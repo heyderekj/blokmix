@@ -10,6 +10,8 @@ import { CopyPanel } from '../panels/CopyPanel'
 import { PacketPanel } from '../panels/PacketPanel'
 import { Divider, Island, MORPH } from './Island'
 import { LogoTile } from './Logo'
+import { Avatar } from './Avatar'
+import { useMe } from '@/lib/people'
 
 export const toggleSheet = (s: Sheet) => {
   const st = useStore.getState()
@@ -65,6 +67,8 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
       }
     >
       <div className="p-1.5">
+        <NameField />
+        <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         <MenuItem icon={Undo2} label="Undo" kbd="⌘Z" onClick={undo} />
         <MenuItem icon={Redo2} label="Redo" kbd="⇧⌘Z" onClick={redo} />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
@@ -266,5 +270,27 @@ export function Segmented<T extends string>({
         </button>
       ))}
     </div>
+  )
+}
+
+/** Your name drives your monogram on versions and in the dock (first and last initials). */
+function NameField() {
+  const name = useStore((s) => s.ui.myName)
+  const me = useMe()
+  return (
+    <label className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5">
+      <Avatar who={me} size={24} ring={false} />
+      <input
+        value={name}
+        onChange={(e) => useStore.getState().setUi({ myName: e.target.value })}
+        onKeyDown={(e) => {
+          e.stopPropagation()
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+        }}
+        placeholder="Your name"
+        className="h-8 min-w-0 flex-1 rounded-lg bg-well px-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-900/15"
+        aria-label="Your name"
+      />
+    </label>
   )
 }

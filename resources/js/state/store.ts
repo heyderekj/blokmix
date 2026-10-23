@@ -57,6 +57,7 @@ export interface UiState {
   packetTargets: BuildTarget[]
   hintDismissed: boolean
   editingNoteId: string | null
+  myName: string
 }
 
 export interface TapeData {
@@ -140,6 +141,7 @@ const DEFAULT_UI: UiState = {
   packetTargets: ['astro'],
   hintDismissed: false,
   editingNoteId: null,
+  myName: '',
 }
 
 function pickDifferent(options: string[], current: string): string {

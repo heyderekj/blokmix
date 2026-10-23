@@ -13,7 +13,7 @@ import { PageFrame } from '@/frame/PageFrame'
 import { runReferenceBuild } from '@/lib/agent-sim'
 import { FlashTitle, FrameHeader, OverflowMenu, StatusMenu, StatusRing } from './FrameHeader'
 import { Avatar, AvatarStack } from '../shell/Avatar'
-import { agent, ME } from '@/lib/people'
+import { agent, useMe } from '@/lib/people'
 import { STATUS_INK, STATUS_META } from './status'
 import type { FramePlacement } from '../canvas/geometry'
 import { AstroIcon, NextIcon } from '../shell/FrameworkIcons'
@@ -28,6 +28,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
   const setFrameHeight = useLayout((s) => s.setFrameHeight)
   const setSections = useLayout((s) => s.setSections)
   const st = useStore.getState
+  const me = useMe()
 
   const srcdoc = useMemo(() => {
     const page = composePage({
@@ -75,7 +76,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
             {metaLine && <span className="text-zinc-500"> · {metaLine}</span>}
           </div>
         </div>
-        <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [ME]} />
+        <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [me]} />
         {v.kind === 'snapshot' ? (
           <SendToAgent disabled={agentBusy} onSend={(t) => runReferenceBuild(v.id, t)} />
         ) : (

@@ -9,7 +9,7 @@ import { Crate } from './Crate'
 import { Alternatives } from './Alternatives'
 import { IconButton, Segmented, toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
-import { agent as agentP, ME } from '@/lib/people'
+import { agent as agentP, useMe } from '@/lib/people'
 
 const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
   { id: 'select', icon: MousePointer2, label: 'Select', key: 'V' },
@@ -137,11 +137,12 @@ function ZoomControls() {
 
 function Presence() {
   const agent = useStore((s) => s.agent)
+  const me = useMe()
   const active = !!agent.versionId
   return (
     <div className="flex items-center pl-0.5 pr-1">
       <div className="flex -space-x-1.5">
-        <Avatar who={ME} />
+        <Avatar who={me} />
         <AnimatePresence>
           {active && (
             <motion.span

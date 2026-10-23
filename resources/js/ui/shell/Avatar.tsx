@@ -1,3 +1,4 @@
+import { UserRound } from 'lucide-react'
 import { hash } from '@/core/hash'
 
 /**
@@ -10,6 +11,12 @@ export type Participant = { kind: 'person'; name: string } | { kind: 'agent'; na
 export function Avatar({ who, size = 28, ring = true }: { who: Participant; size?: number; ring?: boolean }) {
   const cls = `grid shrink-0 place-items-center overflow-hidden rounded-full ${ring ? 'ring-2 ring-[var(--lift)]' : ''}`
   if (who.kind === 'person') {
+    if (!who.name.trim())
+      return (
+        <span className={`${cls} bg-chip text-zinc-500`} style={{ width: size, height: size }} title="You: set your name in the menu">
+          <UserRound size={size * 0.55} strokeWidth={2} />
+        </span>
+      )
     const initials = monogram(who.name)
     return (
       <span className={`${cls} bg-chip font-semibold text-zinc-700`} style={{ width: size, height: size, fontSize: size * (initials.length > 1 ? 0.36 : 0.42) }} title={who.name}>
