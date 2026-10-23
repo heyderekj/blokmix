@@ -11,8 +11,8 @@ import { useLayout } from '@/state/layout'
 import { VIEWPORT_VH } from '@/state/derived'
 import { PageFrame } from '@/frame/PageFrame'
 import { runReferenceBuild } from '@/lib/agent-sim'
-import { FlashTitle, FrameHeader, OverflowMenu, StatusMenu } from './FrameHeader'
-import { STATUS_META } from './status'
+import { FlashTitle, FrameHeader, OverflowMenu, SourceAvatars, StatusMenu, StatusRing } from './FrameHeader'
+import { STATUS_INK, STATUS_META } from './status'
 import type { FramePlacement } from '../canvas/geometry'
 import { AstroIcon, NextIcon } from '../shell/FrameworkIcons'
 
@@ -42,10 +42,20 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
   const meta = STATUS_META[v.status]
   const [attaching, setAttaching] = useState(false)
   const parent = useStore((s) => (v.parentId ? s.versions[v.parentId] : null))
+  const sources = useMemo(() => {
+    const seen = new Map<string, { name: string; color: string; ink: string; count: number }>()
+    for (const sl of v.snapshot.slots) {
+      const clip = library.clips[sl.clipId]
+      if (!clip) continue
+      const name = library.sources[clip.sourceId].name
+      const hit = seen.get(name)
+      if (hit) hit.count++
+      else seen.set(name, { name, color: clip.tokens['color.primary'], ink: clip.tokens['color.onPrimary'], count: 1 })
+    }
+    return [...seen.values()]
+  }, [v.snapshot])
   const metaLine = [
-    meta.label,
     v.kind === 'build' ? `${v.build?.agentName} · ${v.build?.target === 'astro' ? 'Astro' : 'Next.js'}${v.build?.previewUrl ? ' · live preview' : ''}` : parent ? `from ${parent.letter}` : null,
-    `${v.snapshot.slots.length} tracks`,
     isBranchBase ? 'in the mix' : null,
   ]
     .filter(Boolean)
@@ -58,17 +68,20 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
       onPointerDown={() => st().setUi({ selectedFrameId: v.id })}
       data-frame={v.id}
     >
-      <FrameHeader width={p.w} tint={meta.color} selected={selected}>
-        <StatusMenu status={v.status} onChange={(s) => st().setStatus(v.id, s)} />
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg text-[13px] font-bold text-background" style={{ background: meta.color }}>
-          {v.letter}
-        </span>
+      <FrameHeader width={p.w} selected={selected} dim={v.status === 'archived'}>
+        <StatusMenu status={v.status} onChange={(s) => st().setStatus(v.id, s)} trigger={<StatusRing letter={v.letter} status={v.status} />} />
         <div className="min-w-0 flex-1">
           <FlashTitle status={v.status}>
             <Title v={v} />
           </FlashTitle>
-          <div className="truncate text-[12px] leading-snug text-zinc-500">{metaLine}</div>
+          <div className="truncate text-[12px] leading-snug">
+            <span className="font-medium" style={{ color: STATUS_INK[v.status] }}>
+              {meta.label}
+            </span>
+            {metaLine && <span className="text-zinc-500"> · {metaLine}</span>}
+          </div>
         </div>
+        <SourceAvatars sources={sources} total={v.snapshot.slots.length} />
         {v.kind === 'snapshot' ? (
           <SendToAgent disabled={agentBusy} onSend={(t) => runReferenceBuild(v.id, t)} />
         ) : (

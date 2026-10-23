@@ -8,7 +8,7 @@ import { STATUS_META, STATUS_ORDER } from './status'
  * A frame's header lives in canvas space (it moves with the frame) but renders at
  * screen size, so it stays readable at any zoom.
  */
-export function FrameHeader({ width, children, tint, selected }: { width: number; children: ReactNode; tint?: string; selected?: boolean }) {
+export function FrameHeader({ width, children, tint, selected, dim }: { width: number; children: ReactNode; tint?: string; selected?: boolean; dim?: boolean }) {
   return (
     <div
       className="absolute bottom-full left-0 z-30 origin-bottom-left pb-2"
@@ -19,7 +19,7 @@ export function FrameHeader({ width, children, tint, selected }: { width: number
       <div
         className={`flex min-h-12 items-center gap-2 rounded-2xl border py-1.5 pl-1.5 pr-1.5 text-[13px] shadow-sm backdrop-blur transition-colors duration-300 ${
           selected ? 'ring-2 ring-zinc-900/80' : ''
-        }`}
+        } ${dim ? 'opacity-70' : ''}`}
         style={{
           background: tint ? `color-mix(in oklab, ${tint} 12%, var(--header-bg))` : 'var(--header-bg)',
           borderColor: tint ? `color-mix(in oklab, ${tint} 45%, transparent)` : 'var(--header-border)',
@@ -66,7 +66,7 @@ export function HeaderButton({
 }
 
 /** Will King-style status picker: a fanned stack of pills, and the header flashes the new status. */
-export function StatusMenu({ status, onChange }: { status: Status; onChange: (s: Status) => void }) {
+export function StatusMenu({ status, onChange, trigger }: { status: Status; onChange: (s: Status) => void; trigger?: ReactNode }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const meta = STATUS_META[status]
@@ -90,10 +90,10 @@ export function StatusMenu({ status, onChange }: { status: Status; onChange: (s:
           e.stopPropagation()
           setOpen((o) => !o)
         }}
-        className="grid size-8 place-items-center rounded-full transition hover:bg-zinc-950/5 active:scale-[0.97]"
-        style={{ color: meta.color }}
+        className={trigger ? 'block rounded-full transition active:scale-[0.97]' : 'grid size-8 place-items-center rounded-full transition hover:bg-zinc-950/5 active:scale-[0.97]'}
+        style={trigger ? undefined : { color: meta.color }}
       >
-        <Icon size={16} strokeWidth={2.25} />
+        {trigger ?? <Icon size={16} strokeWidth={2.25} />}
       </button>
       <AnimatePresence>
         {open && (
@@ -258,6 +258,52 @@ export function OverflowMenu({ items }: { items: MenuItem[] }) {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  )
+}
+
+/** The version letter wearing its status as a ring: dashed while in progress, solid after, with a badge once it's been judged. */
+export function StatusRing({ letter, status }: { letter: string; status: Status }) {
+  const m = STATUS_META[status]
+  const dashed = status === 'in-progress'
+  const badge = status === 'ready' || status === 'changes' || status === 'approved'
+  return (
+    <span className="relative grid size-10 shrink-0 place-items-center">
+      <svg viewBox="0 0 40 40" className={`absolute inset-0 transition-transform ${dashed ? 'animate-[spin_6s_linear_infinite]' : ''}`} aria-hidden>
+        <circle cx="20" cy="20" r="18" fill="var(--lift)" stroke={m.color} strokeWidth="2.5" strokeDasharray={dashed ? '5 4' : undefined} />
+      </svg>
+      <span className="relative text-[15px] font-bold text-zinc-900">{letter}</span>
+      <AnimatePresence>
+        {badge && (
+          <motion.span
+            key={status}
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.6, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 600, damping: 26 }}
+            className="absolute -bottom-0.5 -right-0.5 grid size-4 place-items-center rounded-full text-white ring-2 ring-[var(--lift)]"
+            style={{ background: m.color }}
+          >
+            <m.icon size={10} strokeWidth={3} />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
+  )
+}
+
+/** Who's in the mix: one avatar per source site, in its own colour. */
+export function SourceAvatars({ sources, total }: { sources: { name: string; color: string; ink: string; count: number }[]; total: number }) {
+  return (
+    <div className="flex shrink-0 items-center gap-1.5" title={sources.map((s) => `${s.name}: ${s.count} track${s.count > 1 ? 's' : ''}`).join('\n')}>
+      <div className="flex -space-x-1.5">
+        {sources.map((s) => (
+          <span key={s.name} className="grid size-7 place-items-center rounded-full text-[10.5px] font-bold ring-2 ring-[var(--lift)]" style={{ background: s.color, color: s.ink }}>
+            {s.name[0]}
+          </span>
+        ))}
+      </div>
+      <span className="text-[12px] tabular-nums text-zinc-500">{total}</span>
     </div>
   )
 }
