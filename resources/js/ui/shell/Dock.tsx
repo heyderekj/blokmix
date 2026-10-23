@@ -7,6 +7,8 @@ import { canvasApi } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
 import { IconButton, Segmented, toggleSheet } from './TopBar'
+import { Avatar } from './Avatar'
+import { agent as agentP, ME } from '@/lib/people'
 
 const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
   { id: 'select', icon: MousePointer2, label: 'Select', key: 'V' },
@@ -136,9 +138,7 @@ function Presence() {
   return (
     <div className="flex items-center pl-0.5 pr-1">
       <div className="flex -space-x-1.5">
-        <span className="grid size-7 place-items-center rounded-full bg-zinc-900 text-[10px] font-bold text-white ring-2 ring-[var(--lift)]" title="You">
-          You
-        </span>
+        <Avatar who={ME} />
         <AnimatePresence>
           {active && (
             <motion.span
@@ -146,10 +146,10 @@ function Presence() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.6, opacity: 0 }}
               transition={MORPH}
-              className="relative grid size-7 animate-pulse-ring place-items-center rounded-full bg-agent text-[11px] font-bold text-white ring-2 ring-[var(--lift)]"
+              className="relative grid animate-pulse-ring place-items-center rounded-full"
               title={`${agent.name} is building`}
             >
-              C
+              <Avatar who={agentP(agent.name)} />
             </motion.span>
           )}
         </AnimatePresence>

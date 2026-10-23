@@ -68,7 +68,7 @@
     from { opacity: 0; transform: translateY(6px); }
   }
   @keyframes pulse-ring {
-    0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--agent) 55%, transparent); }
+    0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--n-500) 55%, transparent); }
     100% { box-shadow: 0 0 0 10px transparent; }
   }
 }

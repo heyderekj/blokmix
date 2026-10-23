@@ -291,19 +291,3 @@ export function StatusRing({ letter, status }: { letter: string; status: Status 
     </span>
   )
 }
-
-/** Who's in the mix: one avatar per source site, in its own colour. */
-export function SourceAvatars({ sources, total }: { sources: { name: string; color: string; ink: string; count: number }[]; total: number }) {
-  return (
-    <div className="flex shrink-0 items-center gap-1.5" title={sources.map((s) => `${s.name}: ${s.count} track${s.count > 1 ? 's' : ''}`).join('\n')}>
-      <div className="flex -space-x-1.5">
-        {sources.map((s) => (
-          <span key={s.name} className="grid size-7 place-items-center rounded-full text-[10.5px] font-bold ring-2 ring-[var(--lift)]" style={{ background: s.color, color: s.ink }}>
-            {s.name[0]}
-          </span>
-        ))}
-      </div>
-      <span className="text-[12px] tabular-nums text-zinc-500">{total}</span>
-    </div>
-  )
-}

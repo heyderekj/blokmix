@@ -11,7 +11,9 @@ import { useLayout } from '@/state/layout'
 import { VIEWPORT_VH } from '@/state/derived'
 import { PageFrame } from '@/frame/PageFrame'
 import { runReferenceBuild } from '@/lib/agent-sim'
-import { FlashTitle, FrameHeader, OverflowMenu, SourceAvatars, StatusMenu, StatusRing } from './FrameHeader'
+import { FlashTitle, FrameHeader, OverflowMenu, StatusMenu, StatusRing } from './FrameHeader'
+import { Avatar, AvatarStack } from '../shell/Avatar'
+import { agent, ME } from '@/lib/people'
 import { STATUS_INK, STATUS_META } from './status'
 import type { FramePlacement } from '../canvas/geometry'
 import { AstroIcon, NextIcon } from '../shell/FrameworkIcons'
@@ -43,18 +45,10 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
   const [attaching, setAttaching] = useState(false)
   const parent = useStore((s) => (v.parentId ? s.versions[v.parentId] : null))
   const sources = useMemo(() => {
-    const seen = new Map<string, { name: string; color: string; ink: string; count: number }>()
-    for (const sl of v.snapshot.slots) {
-      const clip = library.clips[sl.clipId]
-      if (!clip) continue
-      const name = library.sources[clip.sourceId].name
-      const hit = seen.get(name)
-      if (hit) hit.count++
-      else seen.set(name, { name, color: clip.tokens['color.primary'], ink: clip.tokens['color.onPrimary'], count: 1 })
-    }
-    return [...seen.values()]
+    return [...new Set(v.snapshot.slots.map((sl) => library.clips[sl.clipId]?.sourceId).filter(Boolean))]
   }, [v.snapshot])
   const metaLine = [
+    `${v.snapshot.slots.length} tracks · ${sources.length} sites`,
     v.kind === 'build' ? `${v.build?.agentName} · ${v.build?.target === 'astro' ? 'Astro' : 'Next.js'}${v.build?.previewUrl ? ' · live preview' : ''}` : parent ? `from ${parent.letter}` : null,
     isBranchBase ? 'in the mix' : null,
   ]
@@ -81,7 +75,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
             {metaLine && <span className="text-zinc-500"> · {metaLine}</span>}
           </div>
         </div>
-        <SourceAvatars sources={sources} total={v.snapshot.slots.length} />
+        <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [ME]} />
         {v.kind === 'snapshot' ? (
           <SendToAgent disabled={agentBusy} onSend={(t) => runReferenceBuild(v.id, t)} />
         ) : (
@@ -265,7 +259,7 @@ function BuildProgress({ v }: { v: VersionNode }) {
       <div className="absolute left-1/2 top-24 origin-top" style={{ transform: 'translateX(-50%) scale(calc(1 / var(--z)))' }}>
         <div className="w-80 rounded-2xl border border-zinc-950/10 bg-white p-4 shadow-xl">
           <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-zinc-900">
-            <span className="grid size-6 place-items-center rounded-full bg-agent text-[11px] font-bold text-white">C</span>
+            <Avatar who={agent(v.build?.agentName ?? 'Agent')} size={24} ring={false} />
             {v.build?.agentName} is building {v.letter}
           </div>
           <ul className="space-y-1.5 text-[12.5px]">
