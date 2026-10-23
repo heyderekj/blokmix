@@ -251,7 +251,7 @@ function EdgeButton({ side, onClick, visible }: { side: 'left' | 'right'; onClic
         }}
         className={`group/edge grid size-16 place-items-center rounded-full transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`}
         style={{
-          transform: `scale(min(calc(1 / var(--z)), 3.4)) translate(${side === 'left' ? 'calc(-100% - 34px)' : '34px'}, -50%)`,
+          transform: `scale(min(calc(1 / var(--z)), 3.4)) translate(${side === 'left' ? '-34px' : '34px'}, -50%)`,
           transformOrigin: side === 'left' ? '100% 0' : '0 0',
           position: 'absolute',
           [side === 'left' ? 'right' : 'left']: 0,
