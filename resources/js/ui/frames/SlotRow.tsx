@@ -240,7 +240,8 @@ const Tile = memo(function Tile(p: {
 function EdgeButton({ side, onClick, visible }: { side: 'left' | 'right'; onClick: () => void; visible: boolean }) {
   const Icon = side === 'left' ? ChevronLeft : ChevronRight
   return (
-    <div className="absolute top-1/2 h-0 w-0" style={{ [side]: 0 }} data-chrome>
+    <div className="absolute top-1/2 z-30 h-0 w-0" style={{ [side]: 0 }} data-chrome>
+      {/* a generous, invisible hit area around the visible button, clear of the gutter rail */}
       <button
         type="button"
         onPointerDown={(e) => e.stopPropagation()}
@@ -248,11 +249,9 @@ function EdgeButton({ side, onClick, visible }: { side: 'left' | 'right'; onClic
           e.stopPropagation()
           onClick()
         }}
-        className={`grid size-11 place-items-center rounded-full border border-zinc-950/10 bg-white text-zinc-800 shadow-lg transition-[opacity,scale] duration-200 hover:scale-110 active:scale-90 ${
-          visible ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'
-        }`}
+        className={`group/edge grid size-16 place-items-center rounded-full transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`}
         style={{
-          transform: `scale(min(calc(1 / var(--z)), 3.4)) translate(${side === 'left' ? '-30%' : '30%'}, -50%)`,
+          transform: `scale(min(calc(1 / var(--z)), 3.4)) translate(${side === 'left' ? 'calc(-100% - 34px)' : '34px'}, -50%)`,
           transformOrigin: side === 'left' ? '100% 0' : '0 0',
           position: 'absolute',
           [side === 'left' ? 'right' : 'left']: 0,
@@ -260,7 +259,9 @@ function EdgeButton({ side, onClick, visible }: { side: 'left' | 'right'; onClic
         }}
         aria-label={side === 'left' ? 'Previous clip' : 'Next clip'}
       >
-        <Icon size={22} strokeWidth={2.4} />
+        <span className="grid size-11 place-items-center rounded-full border border-zinc-950/10 bg-white text-zinc-800 shadow-lg transition-[scale] duration-150 group-hover/edge:scale-110 group-active/edge:scale-90">
+          <Icon size={22} strokeWidth={2.4} />
+        </span>
       </button>
     </div>
   )
