@@ -127,3 +127,22 @@ describe('block looks', () => {
     expect(html).toContain('Mine')
   })
 })
+
+describe('spacing', () => {
+  it('exports block spacing on the scale and section spacing on the root', () => {
+    const clip = library.clips['cta.layout-band']
+    const card = clip.blocks.find((b) => b.kind === 'card')!
+    const page = composePage({
+      slots: [{ id: 's', type: 'cta', clipId: clip.id, locked: false, keep: { ...DEFAULT_KEEP }, edits: { [clip.id]: { [card.id]: { style: { padding: 8, gap: 2, above: 4 } } } }, spacing: { top: 'tight', bottom: 'none' } }],
+      guide: resolveGuide(emptyGuide()),
+      content: DEFAULT_CONTENT,
+      library,
+    })
+    const s = page.sections[0]
+    expect(s.css).toContain('padding: var(--mx-space-8);')
+    expect(s.css).toContain('gap: var(--mx-space-2);')
+    expect(s.css).toContain('margin-block-start: var(--mx-space-4);')
+    expect(s.css).toContain(`.${clip.rootClass}.mx-s1 { padding-top: calc(var(--mx-space-section) * 0.5); padding-bottom: 0px; }`)
+    expect(JSON.stringify(s.tree)).toContain(`${clip.rootClass} mx-s1`)
+  })
+})

@@ -1,6 +1,6 @@
 import type { BlockEdit, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
-import { applyFields, attr, mapTree, parseHtml, type HNode } from './html/parse'
-import { blockCss, effectiveEdit, slug } from './blocks/style'
+import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
+import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
 import { resolveFields } from './content'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
@@ -83,14 +83,16 @@ export function composePage(input: ComposeInput): ComposedPage {
     const blockClass = (id: string) => `mx-s${position + 1}-${id}`
     const changedIds = new Set(changed.map((x) => x.b.id))
     let order = 0
+    const spaced = !!sectionSpacingCss(slot.spacing, 'x')
+    const addClass = (el: HEl, cls: string): HEl => ({
+      ...el,
+      attrs: el.attrs.some(([k]) => k === 'class') ? el.attrs.map(([k, v]) => (k === 'class' ? [k, `${v} ${cls}`] : [k, v])) : [...el.attrs, ['class', cls]],
+    })
     const marked = mapTree(parseHtml(clip.html), (el) => {
+      if (spaced && attr(el, 'data-mx-section') !== undefined) return addClass(el, `mx-s${position + 1}`)
       if (attr(el, 'data-mx-block') === undefined) return el
       const id = `b${order++}`
-      if (!changedIds.has(id)) return el
-      const attrs = el.attrs.some(([k]) => k === 'class')
-        ? el.attrs.map(([k, v]) => (k === 'class' ? ([k, `${v} ${blockClass(id)}`] as [string, string]) : [k, v] as [string, string]))
-        : [...el.attrs, ['class', blockClass(id)] as [string, string]]
-      return { ...el, attrs }
+      return changedIds.has(id) ? addClass(el, blockClass(id)) : el
     })
     const tree = applyFields(marked, fields)
     const blocksCss = blockCss({
@@ -98,7 +100,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       edits,
       components: input.page?.components,
       select: (b) => `.${clip.rootClass}.${blockClass(b.id)}, .${clip.rootClass} .${blockClass(b.id)}`,
-    })
+    }) + (spaced ? `\n${sectionSpacingCss(slot.spacing, `.${clip.rootClass}.mx-s${position + 1}`)}` : '')
 
     let localVars: CssVars | null = null
     let css = clip.css

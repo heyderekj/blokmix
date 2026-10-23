@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, Slot } from '@/core/types'
-import { BLOCK_LABEL } from '@/core/blocks'
+import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
 import { advise, suggestedVariants, type Advice } from '@/core/advise'
@@ -11,6 +11,7 @@ import { useStore } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { useBlockPreview } from './preview'
 import { keepInView } from '../canvas/inView'
+import { SPACE_STEPS, Steps } from './Spacing'
 
 type Menu = 'variant' | 'style' | 'more' | 'advice' | null
 
@@ -177,7 +178,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
           <div className="px-2.5 pb-1 pt-0.5 text-[11px] text-zinc-400">From the checklist · Suggestions, not rules</div>
         </Popover>
       )}
-      {menu === 'style' && <StyleMenu style={own?.style} inherited={def?.style} onHover={(s) => hover(s ? { style: s } : null)} onPick={(s) => apply({ style: s })} />}
+      {menu === 'style' && <StyleMenu style={own?.style} inherited={def?.style} composite={COMPOSITE.has(block.kind)} onHover={(s) => hover(s ? { style: s } : null)} onPick={(s) => apply({ style: s })} />}
       {menu === 'more' && (
         <Popover width={248}>
           <MenuItem
@@ -338,14 +339,24 @@ function StyleDots({ style }: { style?: BlockStyle }) {
   )
 }
 
+const SPACE_PROPS: { k: 'padding' | 'above' | 'below' | 'gap'; label: string }[] = [
+  { k: 'padding', label: 'Padding' },
+  { k: 'above', label: 'Above' },
+  { k: 'below', label: 'Below' },
+  { k: 'gap', label: 'Gap' },
+]
+
 function StyleMenu({
   style,
   inherited,
+  composite,
   onHover,
   onPick,
 }: {
   style?: BlockStyle
   inherited?: BlockStyle
+  /** Lists, cards and items also get a gap between their children. */
+  composite: boolean
   onHover: (s: BlockStyle | null) => void
   onPick: (s: BlockStyle) => void
 }) {
@@ -407,6 +418,26 @@ function StyleMenu({
           onHover={(v) => onHover(v ? { radius: v } : null)}
           onPick={(v) => onPick({ radius: v })}
         />
+      </div>
+      <div className="px-2 py-1.5">
+        <div className="mb-1.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400">
+          Spacing
+          {(style?.padding !== undefined || style?.above !== undefined || style?.below !== undefined || style?.gap !== undefined) && (
+            <button type="button" className="font-medium text-zinc-500 hover:text-zinc-900" onClick={() => onPick({ padding: undefined, above: undefined, below: undefined, gap: undefined })}>
+              Reset
+            </button>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          {SPACE_PROPS.filter((p) => p.k !== 'gap' || composite).map((p) => (
+            <div key={p.k} className="flex items-center gap-2">
+              <span className="w-14 text-[11.5px] font-medium text-zinc-500">{p.label}</span>
+              <div className="flex-1">
+                <Steps options={SPACE_STEPS} value={shown[p.k]} onHover={(v) => onHover(v === null ? null : { [p.k]: v })} onPick={(v) => onPick({ [p.k]: v })} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="px-2 pb-2 pt-1.5">
         <div className="mb-1.5 text-[11px] font-semibold text-zinc-400">Shadow</div>

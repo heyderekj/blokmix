@@ -120,6 +120,7 @@ export interface Slot {
   edits?: SlotEdits
   /** This section's own words, over the shared copy for its type. */
   words?: Record<string, string>
+  spacing?: SectionSpacing
 }
 
 export interface Candidate {
@@ -245,11 +246,29 @@ export interface BlockInfo {
  */
 export type ColorRef = string
 
+/** A step on the spacing scale (--mx-space-0 … --mx-space-10), never raw pixels. */
+export type SpaceStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
+
 export interface BlockStyle {
   fill?: ColorRef
   ink?: ColorRef
   radius?: 'none' | 'sm' | 'md' | 'lg' | 'pill'
   shadow?: 'none' | 'soft' | 'lifted' | 'offset'
+  /** Inner padding. */
+  padding?: SpaceStep
+  /** Space above and below the block. */
+  above?: SpaceStep
+  below?: SpaceStep
+  /** Space between the block's children (lists, cards, items). */
+  gap?: SpaceStep
+}
+
+/** A section's top or bottom padding, relative to the style guide's section spacing. */
+export type SectionSpace = 'none' | 'tight' | 'default' | 'roomy'
+
+export interface SectionSpacing {
+  top?: SectionSpace
+  bottom?: SectionSpace
 }
 
 /** Your changes to one block of one clip in one section. */

@@ -13,6 +13,7 @@ import type {
   NoteAnchor,
   NoteColor,
   ProjectContent,
+  SectionSpacing,
   SectionType,
   Slot,
   Status,
@@ -102,6 +103,7 @@ export interface State extends TapeData {
   /** Patch a block of the section's current clip; null clears its edit. */
   editBlock: (slotId: string, blockId: string, patch: Partial<BlockEdit> | null) => void
   setWord: (slotId: string, field: string, value: string | null) => void
+  setSectionSpacing: (slotId: string, patch: Partial<SectionSpacing>) => void
   /** Make this block's variant and style the default for every block of its kind. */
   promoteBlock: (slotId: string, blockId: string) => void
   clearComponent: (kind: BlockKind) => void
@@ -246,6 +248,12 @@ export const useStore = create<State>()(
               if (value === null) delete words[field]
               else words[field] = value
               return { ...s, words }
+            }),
+          setSectionSpacing: (slotId, patch) =>
+            updateSlot(slotId, (s) => {
+              const spacing = { ...s.spacing, ...patch }
+              for (const k of Object.keys(spacing) as (keyof SectionSpacing)[]) if (!spacing[k] || spacing[k] === 'default') delete spacing[k]
+              return { ...s, spacing: Object.keys(spacing).length ? spacing : undefined }
             }),
           promoteBlock: (slotId, blockId) => {
             const st = get()

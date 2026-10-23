@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import type { BlockEdit, Clip, GuideState, ProjectContent, ResolvedGuide, Slot, Swatch, TokenSet } from '@/core/types'
-import { blockCss, effectiveEdit, slug } from '@/core/blocks/style'
+import type { BlockEdit, Clip, GuideState, ProjectContent, ResolvedGuide, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
+import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
 import { BASE_FONTS, expandTokens, fontHref, fontsForTokens, varsToCss } from '@/core/tokens'
@@ -44,7 +44,7 @@ export function fontHrefFor(tokens: TokenSet): string | null {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   clip: Clip,
-  slot: Pick<Slot, 'keep' | 'words' | 'edits'> | null,
+  slot: Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing'> | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
@@ -63,7 +63,7 @@ export function frameStateFor(
     fields: slot.keep.content && !own ? null : resolveFields(clip.type, clip.fields, content, slot.keep.content, own).fields,
     fonts: [fontHrefFor(tokens)],
     outline: !slot.keep.layout,
-    blocks: blocksFor(clip, slot.edits?.[clip.id], page?.components),
+    blocks: blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing),
   }
 }
 
@@ -75,13 +75,20 @@ export function swatchCss(swatches: Swatch[] | undefined): string {
   return `\n:root { ${swatches.map((w) => `--mx-color-x-${slug(w.name)}: ${w.value};`).join(' ')} }`
 }
 
-function blocksFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, components: GuideState['components']): FrameState['blocks'] {
-  if (!edits && !components) return NO_BLOCKS
+function blocksFor(
+  clip: Clip,
+  edits: Record<string, BlockEdit> | undefined,
+  components: GuideState['components'],
+  spacing: SectionSpacing | undefined,
+): FrameState['blocks'] {
+  if (!edits && !components && !spacing) return NO_BLOCKS
   const variants: Record<string, string> = {}
   for (const b of clip.blocks) {
     const e = effectiveEdit(edits?.[b.id], components?.[b.kind])
     if (e?.variant) variants[b.id] = e.variant
   }
-  const css = blockCss({ blocks: clip.blocks, edits, components, select: (b) => `[data-mx-b="${b.id}"]` })
+  const css = [blockCss({ blocks: clip.blocks, edits, components, select: (b) => `[data-mx-b="${b.id}"]` }), sectionSpacingCss(spacing, '[data-mx-section]')]
+    .filter(Boolean)
+    .join('\n')
   return css || Object.keys(variants).length ? { css, variants } : NO_BLOCKS
 }

@@ -1,4 +1,4 @@
-import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, ComponentDefault, SlotEdits } from '../types'
+import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, ComponentDefault, SectionSpace, SectionSpacing, SlotEdits } from '../types'
 import { TOKEN_KEYS } from '../types'
 import { findVariant } from './variants'
 
@@ -96,6 +96,11 @@ export function blockCss(i: BlockCssInput): string {
     }
     if (s?.radius) decl.push(`--b-radius: ${RADIUS[s.radius]}; border-radius: ${RADIUS[s.radius]};`)
     if (s?.shadow) decl.push(`--b-shadow: ${SHADOW[s.shadow]}; box-shadow: ${SHADOW[s.shadow]};`)
+    const sp = (n: number) => `var(--mx-space-${n})`
+    if (s?.padding !== undefined) decl.push(`padding: ${sp(s.padding)};`)
+    if (s?.above !== undefined) decl.push(`margin-block-start: ${sp(s.above)};`)
+    if (s?.below !== undefined) decl.push(`margin-block-end: ${sp(s.below)};`)
+    if (s?.gap !== undefined) decl.push(`gap: ${sp(s.gap)};`)
     const v = findVariant(b.kind, e.variant)
     // Variant first so the explicit picks above (declared after) win on the same element.
     const body = [v ? v.css : '', decl.join(' ')].filter(Boolean).join('\n  ')
@@ -106,4 +111,18 @@ export function blockCss(i: BlockCssInput): string {
 
 export function editsFor(edits: SlotEdits | undefined, clipId: string) {
   return edits?.[clipId]
+}
+
+const SECTION_SPACE: Record<Exclude<SectionSpace, 'default'>, string> = {
+  none: '0px',
+  tight: 'calc(var(--mx-space-section) * 0.5)',
+  roomy: 'calc(var(--mx-space-section) * 1.5)',
+}
+
+/** A section's own top and bottom padding, in @layer blocks so it beats the clip. */
+export function sectionSpacingCss(spacing: SectionSpacing | undefined, selector: string): string {
+  const decl: string[] = []
+  if (spacing?.top && spacing.top !== 'default') decl.push(`padding-top: ${SECTION_SPACE[spacing.top]};`)
+  if (spacing?.bottom && spacing.bottom !== 'default') decl.push(`padding-bottom: ${SECTION_SPACE[spacing.bottom]};`)
+  return decl.length ? `@layer blocks {\n${selector} { ${decl.join(' ')} }\n}` : ''
 }

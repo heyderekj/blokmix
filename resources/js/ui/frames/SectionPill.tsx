@@ -8,6 +8,7 @@ import { GROUP_LABEL, primaryFamily } from '@/core/tokens'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { MORPH } from '../shell/Island'
+import { SectionSpacingRows } from '../blocks/Spacing'
 
 export const KEEPS: { key: keyof Keep; label: string; icon: typeof Type; on: string; off: string; n: number }[] = [
   { key: 'layout', label: 'Layout', icon: PanelsTopLeft, on: 'The agent reproduces this structure', off: 'Reference only; the agent may restructure it', n: 1 },
@@ -256,6 +257,10 @@ function LookTab({ slot }: { slot: Slot }) {
         >
           <Sparkles size={14} /> Use just these
         </button>
+      </div>
+      <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
+        <div className="mb-2 text-[11px] font-semibold text-zinc-400">Section spacing</div>
+        <SectionSpacingRows slot={slot} />
       </div>
     </div>
   )
