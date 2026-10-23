@@ -1,0 +1,20 @@
+.mx-footer-marginalia-colophon {
+  & .cta-heading { animation: mx-footer-marginalia-colophon-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .button { animation: mx-footer-marginalia-colophon-rise var(--mx-motion-duration) var(--mx-motion-ease) 220ms both; }
+  & .colophon { animation: mx-footer-marginalia-colophon-rise var(--mx-motion-duration) var(--mx-motion-ease) 340ms both; }
+  & .col { animation: mx-footer-marginalia-colophon-rise var(--mx-motion-duration) var(--mx-motion-ease) 440ms both; }
+  & .col:nth-child(2) { animation-delay: 540ms; }
+  & .col:nth-child(3) { animation-delay: 640ms; }
+  & .base { animation: mx-footer-marginalia-colophon-fade calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) 760ms both; }
+  & .fleuron { animation: mx-footer-marginalia-colophon-sway 6s ease-in-out infinite alternate; }
+}
+@keyframes mx-footer-marginalia-colophon-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes mx-footer-marginalia-colophon-fade {
+  from { opacity: 0; }
+}
+@keyframes mx-footer-marginalia-colophon-sway {
+  from { transform: rotate(-6deg); }
+  to { transform: rotate(6deg) translateY(-2px); }
+}

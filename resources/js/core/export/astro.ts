@@ -1,0 +1,75 @@
+import type { ComposedPage } from '../compose'
+import { serialize } from '../html/serialize'
+import { BASE_CSS } from './base-css'
+import { fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+
+export const ASTRO_VERSION = '~7.3.0' // 7.4 needs Node >= 22.23.4; 7.3 runs on any Node 22.12+
+
+export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
+  const files: FileMap = {}
+  const href = fontLink(page)
+
+  files[`${root}package.json`] = JSON.stringify(
+    {
+      name: slug(page.title) + '-astro',
+      type: 'module',
+      private: true,
+      scripts: { dev: 'astro dev', build: 'astro build', preview: 'astro preview' },
+      dependencies: { astro: ASTRO_VERSION },
+    },
+    null,
+    2,
+  ) + '\n'
+  files[`${root}astro.config.mjs`] = `import { defineConfig } from 'astro/config'\n\nexport default defineConfig({})\n`
+  files[`${root}tsconfig.json`] = JSON.stringify({ extends: 'astro/tsconfigs/strict', include: ['.astro/types.d.ts', '**/*'], exclude: ['dist'] }, null, 2) + '\n'
+  files[`${root}src/styles/tokens.css`] = tokensCss(page)
+  files[`${root}src/styles/base.css`] = BASE_CSS
+
+  files[`${root}src/layouts/Base.astro`] = `---
+import '../styles/tokens.css'
+import '../styles/base.css'
+
+interface Props {
+  title: string
+}
+const { title } = Astro.props
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+${href ? `    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n    <link rel="stylesheet" href="${href}" />\n` : ''}  </head>
+  <body>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+`
+
+  for (const s of page.sections) {
+    files[`${root}src/components/sections/${s.component}.css`] = sectionCss(s)
+    files[`${root}src/components/sections/${s.component}.astro`] = `---
+${sectionHeader(s, 'js')}
+import './${s.component}.css'
+---
+${serialize(s.tree, 'html')}
+`
+  }
+
+  const imports = page.sections.map((s) => `import ${s.component} from '../components/sections/${s.component}.astro'`).join('\n')
+  files[`${root}src/pages/index.astro`] = `---
+import Base from '../layouts/Base.astro'
+${imports}
+---
+<Base title=${JSON.stringify(page.title)}>
+${page.sections.map((s) => `  <${s.component} />`).join('\n')}
+</Base>
+`
+  return files
+}
+
+export function slug(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'mixtape'
+}

@@ -1,0 +1,19 @@
+.mx-hero-marginalia-split {
+  & .copy > * { animation: mx-hero-marginalia-split-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .copy > :nth-child(2) { animation-delay: 90ms; }
+  & .copy > :nth-child(3) { animation-delay: 180ms; }
+  & .copy > :nth-child(4) { animation-delay: 270ms; }
+  & .copy > :nth-child(5) { animation-delay: 360ms; }
+  & .paper { animation: mx-hero-marginalia-split-drift 9s ease-in-out infinite alternate; }
+  & .sun { animation: mx-hero-marginalia-split-sun 7s ease-in-out infinite alternate; }
+}
+@keyframes mx-hero-marginalia-split-rise {
+  from { opacity: 0; transform: translateY(18px); }
+}
+@keyframes mx-hero-marginalia-split-drift {
+  from { transform: rotate(-1.2deg); }
+  to { transform: rotate(0.8deg) translateY(-8px); }
+}
+@keyframes mx-hero-marginalia-split-sun {
+  to { transform: translateY(14%); }
+}

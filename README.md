@@ -1,0 +1,43 @@
+# Mixtape
+
+Clip sections from any site, remix them like a sliding-tile puzzle, resolve one style guide, and hand a packet to your agent to build in Astro or Next.js.
+
+This is the clickable prototype: the core loop runs end to end on 18 sample clips from four fictional sites. The capture extension, backend and MCP server come later (see the plan below).
+
+```bash
+npm install
+npm run dev
+```
+
+Open http://localhost:5173.
+
+## The loop
+
+1. **Slide.** Each track of the working mix cycles through every clip of its type (← →). Neighbors peek out beside the page. Space shuffles unlocked tracks; L locks one.
+2. **Keep.** Per track: layout, own style, source copy, motion (1–4).
+3. **Resolve.** Promote a clip's design (P, or "Use design") and settle contradictions per group in the Style guide tab. Flip **As captured / Unified** (U) to see the difference.
+4. **Press.** Enter snapshots the mix as a lettered version (A, B…). Remix any version to branch (B.1, B.2).
+5. **Hand off.** Send a version to the agent, or open the Packet tab: `mixtape.json`, `MIXTAPE.md` liner notes, tokens (CSS + W3C DTCG), and runnable `astro/` and `next/` projects.
+
+Sticky notes (S) dropped on a track or a version become instructions in the packet. Version frames carry review statuses (in progress → ready for review → changes requested / approved).
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm test` | Core tests: guide resolution, clip lint, every clip through both exporters |
+| `npm run typecheck` / `npm run build` | Types / production build |
+| `npm run export:demo` | Writes the seeded demo packet to `.out/packet` (then `npm i && npm run build` inside `astro/` or `next/`) |
+
+## Layout
+
+`resources/js` mirrors the Laravel React starter kit (`pages/`, `components`-style folders, `@/` alias), so the app can move into Laravel + Inertia on Laravel Cloud without restructuring. `resources/js/core` is framework-free so the capture extension and MCP server can reuse it. Clip authoring rules live in `CLAUDE.md`.
+
+## Next phases
+
+1. Laravel + Inertia on Laravel Cloud: projects, clip storage, auth, share links
+2. Chrome MV3 "Clip section" extension that emits this clip format
+3. MCP server (`laravel/mcp`): `get_packet`, `list_versions`, `set_status`, `submit_version`, `add_note`; agent presence driven by real calls
+4. ReviseMy reviews from version frames (statuses + marks as stickies) and "Open in Koati"
+5. Bookmark-app and gallery imports

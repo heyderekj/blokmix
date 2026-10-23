@@ -1,0 +1,21 @@
+.mx-nav-nightowl-command {
+  & .bar > * { animation: mx-nav-nightowl-command-drop var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .bar > :nth-child(2) { animation-delay: 70ms; }
+  & .bar > :nth-child(3) { animation-delay: 140ms; }
+  &::after { animation: mx-nav-nightowl-command-scan 1.2s var(--mx-motion-ease) 200ms both; }
+  & .cta { animation: mx-nav-nightowl-command-breathe 3.2s ease-in-out 600ms infinite; }
+  & .cta:hover { animation-play-state: paused; }
+}
+@keyframes mx-nav-nightowl-command-drop {
+  from { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes mx-nav-nightowl-command-scan {
+  from { opacity: 0; transform: scaleX(0); }
+}
+@keyframes mx-nav-nightowl-command-breathe {
+  50% {
+    box-shadow:
+      0 0 0 1px var(--mx-color-primary),
+      0 0 30px 0 color-mix(in oklab, var(--mx-color-primary) 65%, transparent);
+  }
+}

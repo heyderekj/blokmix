@@ -1,0 +1,67 @@
+# Mixtape
+
+Canvas prototype for clipping website sections, remixing them like a sliding-tile
+puzzle, resolving one style guide, and handing a packet to an agent that builds
+Astro or Next.js. Frontend only for now; the layout (`resources/js`, `@/` alias,
+`pages/`) mirrors the Laravel React starter kit so it can move into Laravel +
+Inertia on Laravel Cloud later.
+
+## Commands
+
+- `npm run dev`: Vite on http://localhost:5173 (Browser pane: launch config "mixtape")
+- `npm test`: Vitest (core logic, clip lint, exporters)
+- `npm run typecheck`, `npm run build`
+- `npm run export:demo`: writes the seeded demo packet to `.out/`
+
+## Layout
+
+- `resources/js/core/`: pure TS, no React or Vite APIs (reused by the future extension and MCP server)
+- `resources/js/data/library.ts`: loads `samples/` via `import.meta.glob`
+- `resources/js/state/`: zustand store (persist + zundo undo)
+- `resources/js/frame/`: sandboxed iframe rendering + postMessage bridge
+- `resources/js/ui/`: canvas, frames, panels
+- `samples/sources/*.json`: fictional source sites (`*.example`) and their tokens
+- `samples/clips/<type>/<source>-<variant>/`: `clip.html`, `clip.css`, `motion.css` (optional), `clip.json`
+
+## Clip authoring rules (enforced by `core/lint.ts`, checked in `npm test`)
+
+Clips are what the capture extension will emit later. They must re-theme under ANY
+source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
+
+1. One root element: `<section|header|footer|nav class="mx-<type>-<folder>" data-mx-section="<type>">`.
+2. All CSS nests under `.mx-<type>-<folder> { & .x { … } }` (explicit `&`). Keyframes are named
+   `mx-<type>-<folder>-*`. Nothing else at the top level. Short class names inside the root are fine.
+3. Every color, font, radius, shadow, duration and easing comes from `var(--mx-*)`. No hex, rgb(),
+   hsl(), oklch() literals. Tints: `color-mix(in oklab, var(--mx-color-primary) 15%, transparent)`.
+   `transparent` and `currentColor` are fine. Never assume the background is light or dark.
+4. No `vh` units (iframes auto-size to content): use `calc(var(--mx-vh) * 80)`. `vw` and `%` are fine.
+5. No `style=""`, no `<script>`, no `on*=` handlers, no raster images (inline SVG or CSS art only),
+   links are `href="#"`.
+6. Motion lives only in `motion.css` and is CSS-only (keyframes, transitions on :hover are fine in
+   clip.css). `clip.css` must render the final, at-rest state; `motion.css` adds the entrance/loop.
+   Turning motion off just drops `motion.css`. No scroll-driven animations (frames don't scroll).
+7. Interactions without JS: `:hover`, `:focus-visible`, `<details>`, radio inputs + `:has()`.
+8. Copy: `data-mx-field="<name>"` on LEAF text elements only, names from `FIELD_SCHEMA` in
+   `core/content.ts`. Put every piece of real copy in a field so "your copy" replaces it fully.
+   Decorative static text (labels like "01", "↗", "Fig. 1") must not mention the source brand.
+   A duplicate of a field (e.g. the second half of a seamless marquee) uses `data-mx-mirror="<field>"`
+   so it follows the swapped copy too.
+9. Siblings that need visual space between them get it from flex/grid `gap`, never from whitespace
+   between inline elements (JSX drops it).
+10. Use typographic quotes (’ “ ”). Avoid `{` `}` in text unless inside `<pre>`/`<code>`.
+11. Each clip must look right at 1440px and 390px (nest `@media (max-width: 760px)` inside the root).
+
+### Token variables
+
+| Var | Meaning |
+|---|---|
+| `--mx-color-bg/surface/text/muted/border/primary/on-primary/accent` | colors |
+| `--mx-font-display/body/mono` | font stacks |
+| `--mx-type-display-weight` | display font weight |
+| `--mx-text-xs/sm/base/lg/xl/2xl/3xl/4xl/5xl/6xl` | modular type scale from base × ratio |
+| `--mx-space-0…10` | 0, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32 × space unit (unit is 4px in every sample) |
+| `--mx-space-section` | vertical section padding |
+| `--mx-radius-sm/--mx-radius/--mx-radius-lg/--mx-radius-pill` | radii (pill is 0 when radius is 0) |
+| `--mx-shadow-card` | card shadow |
+| `--mx-motion-duration/--mx-motion-ease` | motion |
+| `--mx-vh` | 1% of the captured viewport height |

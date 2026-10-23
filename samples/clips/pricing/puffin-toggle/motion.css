@@ -1,0 +1,56 @@
+.mx-pricing-puffin-toggle {
+  /* Header springs in, toggle pops last */
+  & .head > * { animation: mx-pricing-puffin-toggle-pop calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) backwards; }
+  & .head > :nth-child(2) { animation-delay: 80ms; }
+  & .head > :nth-child(3) { animation-delay: 160ms; }
+  & .toggle { animation-name: mx-pricing-puffin-toggle-badge; animation-delay: 260ms; }
+
+  /* Tier cards pop in, the featured one floats */
+  & .tier { animation: mx-pricing-puffin-toggle-card calc(var(--mx-motion-duration) * 1.8) var(--mx-motion-ease) backwards; }
+  & .tier:nth-child(1) { animation-delay: 340ms; }
+  & .tier:nth-child(3) { animation-delay: 520ms; }
+  & .featured {
+    animation:
+      mx-pricing-puffin-toggle-card calc(var(--mx-motion-duration) * 1.8) var(--mx-motion-ease) 430ms backwards,
+      mx-pricing-puffin-toggle-float 5s ease-in-out 1.6s infinite alternate;
+  }
+  & .featured::after { animation: mx-pricing-puffin-toggle-twinkle 2.4s ease-in-out infinite alternate; }
+
+  /* Prices bounce when the billing period changes */
+  &:has(#mx-pricing-puffin-toggle-monthly:checked) .amt.m,
+  &:has(#mx-pricing-puffin-toggle-yearly:checked) .amt.y {
+    animation: mx-pricing-puffin-toggle-flip var(--mx-motion-duration) var(--mx-motion-ease) backwards;
+  }
+
+  & .b1 { animation: mx-pricing-puffin-toggle-drift-a 16s ease-in-out infinite alternate; }
+  & .b2 { animation: mx-pricing-puffin-toggle-drift-b 20s ease-in-out infinite alternate; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & *, & *::before, & *::after { animation: none; }
+  }
+}
+@keyframes mx-pricing-puffin-toggle-pop {
+  from { opacity: 0; translate: 0 20px; scale: 0.96; }
+}
+@keyframes mx-pricing-puffin-toggle-badge {
+  from { opacity: 0; scale: 0.7; }
+}
+@keyframes mx-pricing-puffin-toggle-card {
+  from { opacity: 0; translate: 0 36px; scale: 0.92; }
+}
+@keyframes mx-pricing-puffin-toggle-float {
+  to { translate: 0 -8px; }
+}
+@keyframes mx-pricing-puffin-toggle-twinkle {
+  from { rotate: 0deg; scale: 0.85; }
+  to { rotate: 90deg; scale: 1.1; }
+}
+@keyframes mx-pricing-puffin-toggle-flip {
+  from { opacity: 0; translate: 0 -12px; scale: 0.9; }
+}
+@keyframes mx-pricing-puffin-toggle-drift-a {
+  to { translate: 90px -60px; scale: 1.12; }
+}
+@keyframes mx-pricing-puffin-toggle-drift-b {
+  to { translate: -80px -40px; scale: 0.92; }
+}

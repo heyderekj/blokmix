@@ -1,0 +1,142 @@
+.mx-features-monolith-index {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  /* Header: tag + counter, giant heading, intro tucked to the right. */
+  & .head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 38ch);
+    column-gap: var(--mx-space-9);
+    row-gap: var(--mx-space-7);
+    align-items: end;
+    padding-bottom: var(--mx-space-8);
+  }
+  & .meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mx-space-4);
+    padding-bottom: var(--mx-space-4);
+    border-bottom: 2px solid var(--mx-color-border);
+  }
+  & .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mx-space-3);
+    padding: var(--mx-space-2) var(--mx-space-4);
+    background: var(--mx-color-primary);
+    color: var(--mx-color-on-primary);
+    border: 2px solid var(--mx-color-border);
+    border-radius: var(--mx-radius-sm);
+    box-shadow: var(--mx-shadow-card);
+    font-family: var(--mx-font-mono);
+    font-size: max(var(--mx-text-sm), 12px);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  & .block {
+    width: 10px;
+    height: 10px;
+    flex: none;
+    background: currentColor;
+  }
+  & .count {
+    font-family: var(--mx-font-mono);
+    font-size: max(var(--mx-text-sm), 12px);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mx-color-muted);
+  }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 6.6vw, var(--mx-text-5xl));
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  & .intro {
+    font-size: var(--mx-text-base);
+    line-height: 1.6;
+    color: var(--mx-color-muted);
+    text-wrap: pretty;
+  }
+
+  /* The index: full-width rows ruled in 2px, inverting on hover. */
+  & .rows {
+    border-top: 4px solid var(--mx-color-border);
+  }
+  & .row {
+    display: grid;
+    grid-template-columns: 5ch minmax(0, 1fr) minmax(0, 1.25fr) auto;
+    gap: var(--mx-space-7);
+    align-items: baseline;
+    padding: var(--mx-space-6) var(--mx-space-4);
+    border-bottom: 2px solid var(--mx-color-border);
+    transition: background var(--mx-motion-duration) var(--mx-motion-ease), color var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .num {
+    font-family: var(--mx-font-mono);
+    font-size: var(--mx-text-base);
+    font-weight: 700;
+    color: var(--mx-color-muted);
+    transition: color var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .title {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-lg), 2.2vw, var(--mx-text-xl));
+    line-height: 1.05;
+    text-transform: uppercase;
+  }
+  & .body {
+    max-width: 52ch;
+    font-size: var(--mx-text-base);
+    line-height: 1.55;
+    color: var(--mx-color-muted);
+    transition: color var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .arrow {
+    font-family: var(--mx-font-display);
+    font-size: var(--mx-text-lg);
+    line-height: 1;
+    transition: transform var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .row:hover {
+    background: var(--mx-color-primary);
+    color: var(--mx-color-on-primary);
+  }
+  & .row:hover .num,
+  & .row:hover .body { color: var(--mx-color-on-primary); }
+  & .row:hover .arrow { transform: translateX(6px) rotate(-45deg); }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--mx-space-5);
+      padding-bottom: var(--mx-space-7);
+    }
+    & .heading { font-size: clamp(var(--mx-text-xl), 10.5vw, var(--mx-text-3xl)); }
+    & .row {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      column-gap: var(--mx-space-4);
+      row-gap: var(--mx-space-2);
+      padding: var(--mx-space-5) var(--mx-space-2);
+    }
+    & .body { grid-column: 2 / -1; }
+    & .arrow { grid-row: 1; grid-column: 3; }
+    & .title { font-size: var(--mx-text-lg); }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Pull quote with reader letters and figures",
+  "layoutPattern": "pull-quote-with-sidebar",
+  "motionNotes": "The oversized quotation mark settles in from a slight scale, the pull quote rises slowly beneath it, then the figures, the two letters and the row of small-caps wordmarks fade in on a long, unhurried stagger. Wordmarks darken on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "main > section.letters",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-14T16:25:00Z"
+  }
+}

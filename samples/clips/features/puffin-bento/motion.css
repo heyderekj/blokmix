@@ -1,0 +1,48 @@
+.mx-features-puffin-bento {
+  /* Header springs in */
+  & .head > * { animation: mx-features-puffin-bento-pop calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) backwards; }
+  & .head > :nth-child(2) { animation-delay: 80ms; }
+  & .head > :nth-child(3) { animation-delay: 160ms; }
+
+  /* Cards pop in one after another */
+  & .card { animation: mx-features-puffin-bento-card calc(var(--mx-motion-duration) * 1.7) var(--mx-motion-ease) backwards; }
+  & .card:nth-child(1) { animation-delay: 240ms; }
+  & .card:nth-child(2) { animation-delay: 320ms; }
+  & .card:nth-child(3) { animation-delay: 400ms; }
+  & .card:nth-child(4) { animation-delay: 480ms; }
+  & .card:nth-child(5) { animation-delay: 560ms; }
+  & .card:nth-child(6) { animation-delay: 640ms; }
+
+  /* Idle float on the icon blobs, out of phase */
+  & .ico { animation: mx-features-puffin-bento-bob 3.6s ease-in-out 1.2s infinite alternate; }
+  & .card:nth-child(even) .ico { animation-duration: 4.4s; animation-direction: alternate-reverse; }
+
+  /* The dragged tile hovers, the orbit hub breathes */
+  & .tile.lift { animation: mx-features-puffin-bento-bob 2.8s ease-in-out infinite alternate; }
+  & .core { animation: mx-features-puffin-bento-breathe 3.2s ease-in-out infinite alternate; }
+  & .node { animation: mx-features-puffin-bento-bob 4s ease-in-out infinite alternate; }
+  & .node:nth-child(odd) { animation-direction: alternate-reverse; animation-duration: 4.8s; }
+
+  & .blob { animation: mx-features-puffin-bento-drift 18s ease-in-out infinite alternate; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & *, & *::before, & *::after { animation: none; }
+  }
+}
+@keyframes mx-features-puffin-bento-pop {
+  from { opacity: 0; translate: 0 20px; scale: 0.96; }
+}
+@keyframes mx-features-puffin-bento-card {
+  from { opacity: 0; translate: 0 28px; scale: 0.92; }
+}
+@keyframes mx-features-puffin-bento-bob {
+  from { translate: 0 2px; }
+  to { translate: 0 -6px; }
+}
+@keyframes mx-features-puffin-bento-breathe {
+  to { scale: 1.08; }
+}
+@keyframes mx-features-puffin-bento-drift {
+  from { translate: -60px 0; scale: 1; }
+  to { translate: 80px -40px; scale: 1.15; }
+}

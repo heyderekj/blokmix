@@ -1,0 +1,36 @@
+/**
+ * Writes the seeded demo tape's packet to .out/packet so the Astro and Next.js
+ * exports can be installed and built from the command line.
+ *   npm run export:demo
+ */
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { library } from '../resources/js/data/library'
+import { buildSeed } from '../resources/js/state/seed'
+import { composePage } from '../resources/js/core/compose'
+import { resolveGuide } from '../resources/js/core/guide'
+import { packetFiles } from '../resources/js/core/export/packet'
+
+const out = join(process.cwd(), '.out', 'packet')
+const seed = buildSeed(library)
+const version = seed.versions[seed.head!]
+const snap = version.snapshot
+const guide = resolveGuide(snap.guide)
+const files = packetFiles({
+  page: composePage({ slots: snap.slots, guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand }),
+  guide,
+  guideState: snap.guide,
+  library,
+  tapeName: seed.tapeName,
+  version: { id: version.id, letter: version.letter, title: version.title, status: version.status },
+  targets: ['astro', 'next'],
+})
+
+rmSync(out, { recursive: true, force: true })
+for (const [path, text] of Object.entries(files)) {
+  const file = join(out, path)
+  mkdirSync(dirname(file), { recursive: true })
+  writeFileSync(file, text)
+}
+console.log(`Wrote ${Object.keys(files).length} files to ${out}`)
+if (library.warnings.length) console.warn(`${library.warnings.length} clip lint issue(s)`)

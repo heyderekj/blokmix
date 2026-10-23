@@ -1,0 +1,11 @@
+{
+  "title": "Mega footer with CTA band and outlined wordmark",
+  "layoutPattern": "cta-band-ruled-grid-wordmark",
+  "motionNotes": "The CTA heading stamps in on the primary band while the caution-tape rule below crawls on a loop; the button drops into place and its arrow jabs in hard steps. Grid cells drop in one by one, then the giant outlined wordmark wipes up filled with the primary color before snapping back to an outline. Hover lifts the button onto a deeper hard shadow and fills the wordmark.",
+  "capture": {
+    "path": "/",
+    "selector": "body > footer.site-footer",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-16T09:31:00Z"
+  }
+}

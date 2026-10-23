@@ -1,0 +1,27 @@
+.mx-pricing-nightowl-usage {
+  & .head { animation: mx-pricing-nightowl-usage-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .tier { animation: mx-pricing-nightowl-usage-rise calc(var(--mx-motion-duration) * 1.5) var(--mx-motion-ease) both; }
+  & .tier:nth-child(1) { animation-delay: 120ms; }
+  & .tier:nth-child(2) { animation-delay: 200ms; }
+  & .tier:nth-child(3) { animation-delay: 280ms; }
+  & .featured::before { animation: mx-pricing-nightowl-usage-breathe 3.6s ease-in-out 800ms infinite; }
+  & .features li { animation: mx-pricing-nightowl-usage-fade var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .features li:nth-child(1) { animation-delay: 420ms; }
+  & .features li:nth-child(2) { animation-delay: 480ms; }
+  & .features li:nth-child(3) { animation-delay: 540ms; }
+  & .features li:nth-child(4) { animation-delay: 600ms; }
+}
+@keyframes mx-pricing-nightowl-usage-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes mx-pricing-nightowl-usage-fade {
+  from { opacity: 0; transform: translateX(-6px); }
+}
+@keyframes mx-pricing-nightowl-usage-breathe {
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--mx-color-primary) 30%, transparent),
+      0 0 64px -8px color-mix(in oklab, var(--mx-color-primary) 70%, transparent),
+      inset 0 0 32px -12px color-mix(in oklab, var(--mx-color-primary) 60%, transparent);
+  }
+}
