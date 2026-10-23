@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { CircleHelp, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
 import { useStore, undo, redo, type Sheet } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
@@ -120,12 +120,26 @@ function ModeIsland() {
             title={decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide and copy (G)'}
             aria-label={decisions ? `Style guide, ${decisions} to decide` : 'Style guide'}
             aria-expanded={open}
-            className={`relative grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${
+            className={`relative flex h-8 items-center rounded-full px-2 transition-colors active:scale-[0.97] ${
               open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'
             }`}
           >
-            <SwatchBook size={16} />
-            {decisions > 0 && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-attention ring-2 ring-[var(--lift)]" />}
+            <SwatchBook size={16} className="shrink-0" />
+            {/* Opened, the icon grows into a labelled button so the panel is named. */}
+            <AnimatePresence initial={false}>
+              {open && (
+                <motion.span
+                  key="label"
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 'auto', opacity: 1, transition: { width: MORPH, opacity: { delay: 0.06, duration: 0.14 } } }}
+                  exit={{ width: 0, opacity: 0, transition: { width: { type: 'spring', stiffness: 700, damping: 56 }, opacity: { duration: 0.06 } } }}
+                  className="overflow-hidden whitespace-nowrap text-[13px] font-medium"
+                >
+                  <span className="block pl-1.5 pr-0.5">Style guide</span>
+                </motion.span>
+              )}
+            </AnimatePresence>
+            {decisions > 0 && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-attention ring-2 ring-[var(--lift)]" style={open ? { right: 'auto', left: 18 } : undefined} />}
           </button>
         </>
       }
