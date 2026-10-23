@@ -42,12 +42,14 @@ export function MixFrame() {
           <Disc3 size={18} className={`text-key-ink ${dirty ? 'animate-[spin_3s_linear_infinite]' : ''}`} strokeWidth={2} />
         </span>
         <HeaderTitle title="Working mix" meta={`${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} tracks`} />
+        <span className="@max-[220px]:hidden">
         <HeaderButton
           icon={Eye}
           label={previewing ? 'Stop interacting' : 'Interact with the page'}
           active={previewing}
           onClick={() => st().setUi({ previewFrameId: previewing ? null : MIX_ID })}
         />
+        </span>
       </FrameHeader>
 
       <div
@@ -81,8 +83,8 @@ function AddSection({ width }: { width: number }) {
   const st = useStore.getState
   return (
     <div
-      className="absolute left-0 top-full origin-top-left pt-3"
-      style={{ width: `calc(${width}px * var(--z))`, transform: 'scale(calc(1 / var(--z)))' }}
+      className="@container absolute left-0 top-full origin-top-left pt-3"
+      style={{ width: `max(calc(${width}px * var(--z)), 48px)`, transform: 'scale(calc(1 / var(--z)))' }}
       data-chrome
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -108,9 +110,10 @@ function AddSection({ width }: { width: number }) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="flex items-center gap-1.5 rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-95"
+            title="Add a track"
+            className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-95 @max-[150px]:px-2.5"
           >
-            <Plus size={15} /> Add a track
+            <Plus size={15} /> <span className="@max-[150px]:hidden">Add a track</span>
           </button>
         )}
       </div>

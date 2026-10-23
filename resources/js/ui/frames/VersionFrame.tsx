@@ -65,7 +65,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
     >
       <FrameHeader width={p.w} selected={selected} dim={v.status === 'archived'}>
         <StatusMenu status={v.status} onChange={(s) => st().setStatus(v.id, s)} trigger={<StatusRing letter={v.letter} status={v.status} />} />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 @max-[180px]:hidden">
           <FlashTitle status={v.status}>
             <Title v={v} />
           </FlashTitle>
@@ -76,12 +76,14 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
             {metaLine && <span className="text-zinc-500"> · {metaLine}</span>}
           </div>
         </div>
-        <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [me]} />
+        <span className="@max-[420px]:hidden">
+          <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [me]} />
+        </span>
         {v.kind === 'snapshot' ? (
           <SendToAgent disabled={agentBusy} onSend={(t) => runReferenceBuild(v.id, t)} />
         ) : (
-          <button type="button" onClick={() => remix(v)} className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold">
-            <Shuffle size={13} /> Remix
+          <button type="button" onClick={() => remix(v)} title="Remix" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2 @max-[220px]:hidden">
+            <Shuffle size={13} /> <span className="@max-[340px]:hidden">Remix</span>
           </button>
         )}
         <OverflowMenu
@@ -180,7 +182,7 @@ function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: Buil
     return () => window.removeEventListener('pointerdown', close, true)
   }, [open])
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative @max-[220px]:hidden">
       <button
         type="button"
         disabled={disabled}
@@ -189,9 +191,9 @@ function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: Buil
           e.stopPropagation()
           setOpen((o) => !o)
         }}
-        className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold"
+        className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2"
       >
-        <Bot size={14} /> Build
+        <Bot size={14} /> <span className="@max-[340px]:hidden">Build</span>
       </button>
       {open && (
         <div className="glass-menu absolute right-0 top-full z-50 mt-2 w-64 animate-pop rounded-2xl p-2">

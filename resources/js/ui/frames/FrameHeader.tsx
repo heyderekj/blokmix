@@ -11,15 +11,15 @@ import { STATUS_INK, STATUS_META, STATUS_ORDER } from './status'
 export function FrameHeader({ width, children, tint, selected, dim }: { width: number; children: ReactNode; tint?: string; selected?: boolean; dim?: boolean }) {
   return (
     <div
-      className="absolute bottom-full left-0 z-30 origin-bottom-left pb-2"
-      style={{ width: `max(calc(${width}px * var(--z)), min(400px, calc(${width + 280}px * var(--z))))`, transform: 'scale(calc(1 / var(--z)))' }}
+      className="@container absolute bottom-full left-0 z-30 origin-bottom-left pb-2"
+      style={{ width: `max(calc(${width}px * var(--z)), 56px)`, transform: 'scale(calc(1 / var(--z)))' }}
       data-chrome
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div
         className={`flex min-h-12 items-center gap-2 rounded-2xl border py-1.5 pl-1.5 pr-1.5 text-[13px] shadow-sm backdrop-blur transition-colors duration-300 ${
           selected ? 'ring-2 ring-zinc-900/80' : ''
-        } ${dim ? 'opacity-70' : ''}`}
+        } ${dim ? 'opacity-70' : ''} min-w-0 @max-[180px]:justify-center @max-[180px]:px-1`}
         style={{
           background: tint ? `color-mix(in oklab, ${tint} 12%, var(--header-bg))` : 'var(--header-bg)',
           borderColor: tint ? `color-mix(in oklab, ${tint} 45%, transparent)` : 'var(--header-border)',
@@ -190,7 +190,7 @@ export function FlashTitle({ status, children }: { status: Status; children: Rea
 /** Tier one of a header: a bold name over a quiet line of facts. */
 export function HeaderTitle({ title, meta }: { title: ReactNode; meta?: ReactNode }) {
   return (
-    <div className="min-w-0 flex-1">
+    <div className="min-w-0 flex-1 @max-[180px]:hidden">
       <div className="truncate text-[15px] font-semibold leading-tight text-zinc-900">{title}</div>
       {meta && <div className="truncate text-[12px] leading-snug text-zinc-500">{meta}</div>}
     </div>
@@ -218,7 +218,7 @@ export function OverflowMenu({ items }: { items: MenuItem[] }) {
     return () => window.removeEventListener('pointerdown', close, true)
   }, [open])
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative @max-[260px]:hidden">
       <button
         type="button"
         aria-label="More"
