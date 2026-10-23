@@ -3,6 +3,7 @@ import { useStore } from '@/state/store'
 import { Canvas } from '@/ui/canvas/Canvas'
 import { World } from '@/ui/canvas/World'
 import { TopBar } from '@/ui/shell/TopBar'
+import { Lightbox } from '@/ui/shell/Lightbox'
 import { Dock } from '@/ui/shell/Dock'
 import { Flash, HelpOverlay } from '@/ui/shell/Overlays'
 import { useShortcuts } from '@/hooks/useShortcuts'
@@ -29,6 +30,7 @@ export default function Board() {
       </Canvas>
       <TopBar onHelp={toggleHelp} />
       <Dock />
+      <Lightbox />
       <Flash />
       <HelpOverlay open={help} onClose={() => setHelp(false)} />
     </div>

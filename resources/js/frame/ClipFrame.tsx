@@ -2,6 +2,8 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { Clip } from '@/core/types'
 import { buildSrcdoc } from './srcdoc'
 import { postState, registerFrame, type BlockEvent, type FrameState } from './bridge'
+import { uploadData } from '@/lib/assets'
+import { openLightbox } from '@/ui/shell/Lightbox'
 
 interface Props {
   clip: Clip
@@ -64,6 +66,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     return registerFrame(win, (d) => {
       if (d.ready) {
         sent.current = ''
+        blobsSent.current = new Set()
         push()
         const e = editRef.current
         if (e) postState(win, { edit: e.active, select: e.active ? e.selected : null, noteMode: e.active && !!e.noteMode, track: e.track ?? [] })
@@ -72,17 +75,30 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
         setHeight(d.height)
         onHeightRef.current?.(d.height)
       }
+      if (d.lightbox) openLightbox(d.lightbox, d.asset ?? undefined)
       if ('hover' in d || 'pick' in d || 'selRect' in d || d.word || 'editing' in d || d.key || 'notePick' in d || 'drag' in d || d.area || d.rects || d.words) editRef.current?.onEvent(d)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [srcdoc])
 
+  // Uploaded videos and Lotties travel as files: a sandboxed frame can't read this page's blob URLs,
+  // but it can make its own from a Blob it's sent.
+  const blobsSent = useRef(new Set<string>())
   const push = () => {
     const s = stateRef.current
     const key = JSON.stringify(s)
     if (key === sent.current) return
     sent.current = key
-    postState(ref.current?.contentWindow, s)
+    const blobs: Record<string, Blob> = {}
+    for (const m of Object.values(s.media ?? {})) {
+      if (!m.asset || blobsSent.current.has(m.asset)) continue
+      const a = uploadData(m.asset)
+      if (a?.bytes) {
+        blobs[m.asset] = new Blob([a.bytes], { type: a.mime })
+        blobsSent.current.add(m.asset)
+      }
+    }
+    postState(ref.current?.contentWindow, Object.keys(blobs).length ? { ...s, blobs } : s)
   }
 
   useEffect(() => {

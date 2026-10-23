@@ -1,4 +1,5 @@
 import { BASE_CSS, LAYER_ORDER } from '@/core/export/base-css'
+import { MEDIA_CSS, MEDIA_JS } from '@/core/export/media-runtime'
 
 /**
  * Runs inside every sandboxed clip iframe. Live changes (tokens, motion, copy,
@@ -160,6 +161,49 @@ const BRIDGE = `(function () {
     if (e.key === ' ' || e.key === 'Tab' || e.key.indexOf('Arrow') === 0) e.preventDefault();
   });
 
+  /* ---- pictures and moving media in image blocks (same elements the exports write) ---- */
+  var blobUrls = {}, lastMedia = null;
+  function mk(tag, attrs) { var e = document.createElement(tag); Object.keys(attrs).forEach(function (k) { if (attrs[k] != null) e.setAttribute(k, attrs[k]); }); return e; }
+  function drawMedia(media) {
+    document.querySelectorAll('[data-mx-block="image"]').forEach(function (el) {
+      var m = media[el.getAttribute('data-mx-b')];
+      var key = m ? JSON.stringify(m) + (m.asset && blobUrls[m.asset] ? '+' : '') : '';
+      if (el.__mxKey === key) return;
+      el.__mxKey = key;
+      el.querySelectorAll(':scope > .mx-media, :scope > .mx-play').forEach(function (x) { x.remove(); });
+      if (!m) { el.removeAttribute('data-mx-has-media'); el.removeAttribute('data-lightbox'); el.removeAttribute('data-wired'); return; }
+      if (getComputedStyle(el).position === 'static') el.setAttribute('data-mx-rel', '');
+      el.setAttribute('data-mx-has-media', m.fit);
+      el.toggleAttribute('data-lightbox', !!m.lightbox);
+      el.removeAttribute('data-wired');
+      var src = m.asset ? blobUrls[m.asset] : m.src;
+      var label = m.alt || null;
+      if (m.kind === 'video') {
+        if (!src) { if (m.poster) el.appendChild(mk('img', { class: 'mx-media', src: m.poster, alt: '' })); return; }
+        var v = mk('video', { class: 'mx-media', src: src, poster: m.poster, playsinline: '', muted: '', preload: 'metadata', 'data-play': m.play || 'inview', 'aria-label': label, 'data-asset': m.asset || null });
+        v.muted = true; if (m.loop) v.loop = true;
+        v.addEventListener('loadeddata', report);
+        el.appendChild(v);
+      } else if (m.kind === 'lottie') {
+        if (!src) return;
+        el.appendChild(mk('canvas', { class: 'mx-media', 'data-lottie': src, 'data-play': m.play || 'inview', 'data-loop': String(m.loop !== false), role: 'img', 'aria-label': label, 'data-asset': m.asset || null }));
+      } else if (m.kind === 'embed') {
+        if (m.poster) el.appendChild(mk('img', { class: 'mx-media', src: m.poster, alt: m.alt || '' }));
+        el.appendChild(mk('button', { type: 'button', class: 'mx-play', 'data-embed': m.player, 'aria-label': label ? 'Play video: ' + label : 'Play video' }));
+      } else {
+        var img = mk('img', { class: 'mx-media', src: src, alt: m.alt || '' });
+        img.onload = report;
+        el.appendChild(img);
+      }
+      if (window.mxMedia) window.mxMedia.wire(el);
+    });
+  }
+  /* The lightbox opens over the whole app, not inside this section's frame. */
+  window.__mxLightbox = function (p) {
+    var clean = { kind: p.kind, src: p.src, poster: p.poster, alt: p.alt, player: p.player };
+    post({ lightbox: clean, asset: (p.asset || null) });
+  };
+
   new ResizeObserver(function () { report(); post({ sections: sections() }); if (sel) reportSel(); reportTracked(); }).observe(document.body);
   if (document.fonts) document.fonts.ready.then(report);
   window.addEventListener('message', function (e) {
@@ -187,27 +231,9 @@ const BRIDGE = `(function () {
         if (v) el.setAttribute('data-mx-v', v); else el.removeAttribute('data-mx-v');
       });
     }
-    if (d.media) {
-      document.querySelectorAll('[data-mx-block="image"]').forEach(function (el) {
-        var m = d.media[el.getAttribute('data-mx-b')];
-        var img = el.querySelector(':scope > img.mx-media');
-        if (!m) {
-          if (img) img.remove();
-          el.removeAttribute('data-mx-has-media');
-          return;
-        }
-        if (!img) {
-          img = document.createElement('img');
-          img.className = 'mx-media';
-          img.onload = report;
-          el.appendChild(img);
-        }
-        if (getComputedStyle(el).position === 'static') el.setAttribute('data-mx-rel', '');
-        el.setAttribute('data-mx-has-media', m.fit);
-        if (img.getAttribute('src') !== m.src) img.setAttribute('src', m.src);
-        img.setAttribute('alt', m.alt || '');
-      });
-    }
+    if (d.blobs) Object.keys(d.blobs).forEach(function (id) { if (!blobUrls[id]) blobUrls[id] = URL.createObjectURL(d.blobs[id]); });
+    if (d.media) lastMedia = d.media;
+    if (d.media || d.blobs) drawMedia(lastMedia || {});
     if (typeof d.edit === 'boolean') {
       editMode = d.edit;
       document.documentElement.toggleAttribute('data-mx-edit', d.edit);
@@ -235,7 +261,7 @@ html[data-mx-note] ::selection { background: color-mix(in srgb, #ff6aa8 35%, tra
 [data-mx-editing] { outline: none; cursor: text; caret-color: currentColor; }
 [data-mx-rel] { position: relative; }
 [data-mx-has-media] { overflow: hidden; }
-[data-mx-has-media] > :not(.mx-media) { visibility: hidden; }
+[data-mx-has-media] > :not(.mx-media, .mx-play) { visibility: hidden; }
 img.mx-media { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; display: block; border-radius: inherit; }
 [data-mx-has-media='contain'] > img.mx-media { object-fit: contain; }
 `
@@ -268,8 +294,10 @@ ${links}
 <style id="mx-clip">@layer clip {\n${i.css}\n}</style>
 <style id="mx-motion"${i.motion === false ? ' media="not all"' : ''}>@layer motion {\n${i.motionCss ?? ''}\n}</style>
 <style id="mx-blocks">${i.blocksCss ?? ''}</style>
+<style id="mx-media-css">${MEDIA_CSS}</style>
 </head><body>
 ${i.html}
 <script>${BRIDGE}</script>
+<script>${MEDIA_JS}</script>
 </body></html>`
 }

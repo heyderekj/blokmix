@@ -113,6 +113,10 @@ download-tracked; needs `VITE_UNSPLASH_ACCESS_KEY` in `.env.local`). Frames and 
 `<img class="mx-media">` over the block's own art, which keeps the size and shape. Exports write
 `public/media/*`; `npm run export:demo` squeezes raster images with Dinky's CLI (dinkyfiles.com) when
 `dinky` is on the PATH (or `DINKY=/path/to/dinky`), and MIXTAPE.md tells the agent the same command.
+Image blocks can also hold moving media: a video, a Lottie (`.lottie`/`.json`) or a YouTube/Vimeo embed
+(poster first, player on click), with a trigger (autoplay, hover, in view, click, scrub for Lotties), loop,
+lightbox and a custom thumbnail. `core/export/media-runtime.ts` is the one player for both the canvas frames
+and exports (`public/mx-media.js`); a frame's lightbox opens over the whole app. Reduced motion never autoplays.
 Authored clips still use CSS/SVG art only (rule 5).
 
 ### Built-in layouts

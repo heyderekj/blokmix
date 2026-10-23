@@ -12,7 +12,7 @@ import { buildSeed } from '../resources/js/state/seed'
 import { composePage } from '../resources/js/core/compose'
 import { resolveGuide } from '../resources/js/core/guide'
 import { packetFiles } from '../resources/js/core/export/packet'
-import { DEFAULT_KEEP, PLACEHOLDER_STYLES, SECTION_TYPES, type Slot } from '../resources/js/core/types'
+import { DEFAULT_KEEP, PLACEHOLDER_STYLES, SECTION_TYPES, type MediaFill, type Slot } from '../resources/js/core/types'
 
 const out = join(process.cwd(), '.out', 'packet')
 const seed = buildSeed(library)
@@ -45,12 +45,20 @@ const slots: Slot[] = allLayouts
           ...Object.fromEntries(
             library.clips[clipId].blocks
               .filter((b) => b.kind === 'image')
-              .map((b, j) => [b.id, { media: { source: 'placeholder' as const, style: PLACEHOLDER_STYLES[(i + j) % PLACEHOLDER_STYLES.length], seed: i + j + 1, alt: '' } }]),
+              .map((b, j) => [b.id, { media: demoMedia(i + j) }]),
           ),
         },
       },
     }))
   : version.snapshot.slots
+/** Mostly palette placeholders, with a video, a Lottie and a YouTube embed (in a lightbox) mixed in. */
+function demoMedia(n: number): MediaFill {
+  if (n % 7 === 3) return { source: 'video', link: { url: 'https://cdn.example.com/demo.mp4' }, play: 'inview', loop: true, alt: 'Product demo' }
+  if (n % 7 === 5) return { source: 'lottie', link: { url: 'https://cdn.example.com/spark.lottie' }, play: 'scrub', alt: '' }
+  if (n % 11 === 6) return { source: 'embed', link: { url: 'https://youtu.be/aqz-KE-bpKQ', provider: 'youtube', id: 'aqz-KE-bpKQ' }, play: 'click', lightbox: true, alt: 'Launch film' }
+  return { source: 'placeholder', style: PLACEHOLDER_STYLES[n % PLACEHOLDER_STYLES.length], seed: n + 1, alt: '' }
+}
+
 const guideState = allLayouts
   ? { ...version.snapshot.guide, swatches: [{ id: 'sw', name: 'Sunset', value: '#ff7a00' }], components: { badge: { variant: 'dot' } } }
   : version.snapshot.guide

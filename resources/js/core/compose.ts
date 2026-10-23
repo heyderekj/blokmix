@@ -1,9 +1,9 @@
-import type { BlockEdit, MediaFill, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
+import type { BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
 import { motionCss as presetMotionCss } from './motion'
-import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit } from './media'
+import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
 import { resolveFields } from './content'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
@@ -34,6 +34,15 @@ export interface ComposedMedia {
   blockId: string
   label: string
   source: MediaFill['source']
+  kind: MediaRender['kind']
+  poster: string | null
+  /** The still inline, for the single-file reference build. */
+  inlinePoster: string | null
+  /** Embeds: the player URL, loaded on click. */
+  player: string | null
+  play: MediaPlay | null
+  loop: boolean
+  lightbox: boolean
   /** Path in the exported site (public/…), or the remote URL for stock. */
   src: string
   /** The same picture inline (data URI or URL), for the single-file reference build. */
@@ -50,6 +59,8 @@ export interface ComposedPage {
   sections: ComposedSection[]
   /** Image files to write into the site's public folder. */
   mediaFiles: Record<string, string | Uint8Array>
+  /** Some section has video, a Lottie, an embed or a lightbox: ship the media player. */
+  moving: boolean
 }
 
 export interface ComposeInput {
@@ -62,7 +73,7 @@ export interface ComposeInput {
   /** Extra brand colours and page-wide block looks from the style guide. */
   page?: Pick<GuideState, 'swatches' | 'components'>
   /** Uploaded images by asset id (data URLs), from the browser's asset store. */
-  uploads?: (id: string) => string | undefined
+  uploads?: (id: string) => UploadData | undefined
 }
 
 const pascal = (s: string) =>
@@ -114,7 +125,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       ...el,
       attrs: el.attrs.some(([k]) => k === 'class') ? el.attrs.map(([k, v]) => (k === 'class' ? [k, `${v} ${cls}`] : [k, v])) : [...el.attrs, ['class', cls]],
     })
-    // Pictures: an <img> over the block's placeholder art, which keeps the block's size and shape.
+    // Pictures and moving media: an element over the block's own art, which keeps its size and shape.
     const media: ComposedMedia[] = []
     for (const { b, edit } of changed) {
       if (b.kind !== 'image' || !edit.media) continue
@@ -123,6 +134,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       if (!r) continue
       const base = `media/s${position + 1}-${b.id}`
       let src = r.src
+      let poster = r.poster
       if (fill.source === 'placeholder') {
         src = `/${base}.svg`
         mediaFiles[`${base}.svg`] = placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, input.guide.tokens, b.ratio)
@@ -132,8 +144,38 @@ export function composePage(input: ComposeInput): ComposedPage {
           src = `/${base}.${file.ext}`
           mediaFiles[`${base}.${file.ext}`] = file.bytes
         }
+      } else if (fill.asset) {
+        // An uploaded video or Lottie: the file itself, plus the video's still.
+        const up = input.uploads?.(fill.asset)
+        if (up?.bytes) {
+          const ext = extFor(r.kind, up.mime)
+          src = `/${base}.${ext}`
+          mediaFiles[`${base}.${ext}`] = new Uint8Array(up.bytes)
+        }
       }
-      media.push({ blockId: b.id, label: b.label, source: fill.source, src, inline: r.src, alt: r.alt, credit: fill.source === 'stock' && fill.stock ? stockCredit(fill.stock) : null })
+      if (poster?.startsWith('data:')) {
+        const still = dataUrlBytes(poster)
+        if (still) {
+          mediaFiles[`${base}-poster.${still.ext}`] = still.bytes
+          poster = `/${base}-poster.${still.ext}`
+        }
+      }
+      media.push({
+        blockId: b.id,
+        label: b.label,
+        source: fill.source,
+        kind: r.kind,
+        src,
+        inline: r.src,
+        poster: poster ?? null,
+        inlinePoster: r.poster ?? null,
+        player: r.player ?? null,
+        play: r.play ?? null,
+        loop: r.loop ?? false,
+        lightbox: !!r.lightbox,
+        alt: r.alt,
+        credit: fill.source === 'stock' && fill.stock ? stockCredit(fill.stock) : null,
+      })
     }
     const mediaFor = new Map(media.map((m) => [m.blockId, m]))
     const marked = mapTree(parseHtml(clip.html), (el) => {
@@ -145,14 +187,8 @@ export function composePage(input: ComposeInput): ComposedPage {
       const m = mediaFor.get(id)
       if (!m) return withClass
       const [w, h] = sizeForRatio(clip.blocks.find((x) => x.id === id)?.ratio, 1600)
-      const img: HEl = {
-        t: 'el',
-        tag: 'img',
-        ns: 'html',
-        attrs: [['class', 'mx-media'], ['src', m.src], ['alt', m.alt], ['width', String(w)], ['height', String(h)], ['loading', 'lazy'], ['decoding', 'async']],
-        kids: [],
-      }
-      return { ...withClass, kids: [...withClass.kids, img] }
+      const block = m.lightbox ? { ...withClass, attrs: [...withClass.attrs, ['data-lightbox', ''] as [string, string]] } : withClass
+      return { ...block, kids: [...block.kids, ...mediaElements(m, w, h)] }
     })
     const tree = applyFields(marked, fields)
     const blocksCss = blockCss({
@@ -166,7 +202,7 @@ export function composePage(input: ComposeInput): ComposedPage {
         const sel = `.${clip.rootClass} .${blockClass(m.blockId)}`
         const fit = changed.find((x) => x.b.id === m.blockId)?.edit.media?.fit === 'contain' ? 'contain' : 'cover'
         // position: relative sits in the clip layer under :where(), so a clip that positions the block keeps winning.
-        return `@layer clip { :where(${sel}) { position: relative; } }\n@layer blocks {\n${sel} { overflow: hidden; }\n${sel} > :not(.mx-media) { visibility: hidden; }\n${sel} > .mx-media { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: ${fit}; display: block; border-radius: inherit; }\n}`
+        return `@layer clip { :where(${sel}) { position: relative; } }\n@layer blocks {\n${sel} { overflow: hidden; }\n${sel} > :not(.mx-media, .mx-play) { visibility: hidden; }\n${sel} > .mx-media { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: ${fit}; display: block; border: 0; border-radius: inherit; }\n}`
       })
       .join('\n')
     const rootSel = `.${clip.rootClass}.mx-s${position + 1}`
@@ -227,6 +263,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     fonts: [...fonts.values()],
     sections,
     mediaFiles,
+    moving: sections.some((x) => x.media.some((m) => m.kind !== 'image' || m.lightbox)),
   }
 }
 
@@ -235,4 +272,39 @@ function indent(s: string, by = '  '): string {
     .split('\n')
     .map((l) => (l ? by + l : l))
     .join('\n')
+}
+
+function extFor(kind: MediaRender['kind'], mime: string | undefined): string {
+  if (kind === 'lottie') return mime === 'application/json' ? 'json' : 'lottie'
+  if (mime?.includes('webm')) return 'webm'
+  if (mime?.includes('quicktime')) return 'mov'
+  return 'mp4'
+}
+
+const el = (tag: string, attrs: [string, string][], kids: HNode[] = []): HEl => ({ t: 'el', tag, ns: 'html', attrs, kids })
+
+/** The element(s) that draw a picture or moving media inside its block. */
+function mediaElements(m: ComposedMedia, w: number, h: number): HEl[] {
+  const size: [string, string][] = [
+    ['width', String(w)],
+    ['height', String(h)],
+  ]
+  if (m.kind === 'video') {
+    const attrs: [string, string][] = [['class', 'mx-media'], ['src', m.src], ...size, ['muted', ''], ['playsinline', ''], ['preload', 'metadata'], ['data-play', m.play ?? 'inview']]
+    if (m.loop) attrs.push(['loop', ''])
+    if (m.play === 'autoplay') attrs.push(['autoplay', ''])
+    if (m.poster) attrs.push(['poster', m.poster])
+    if (m.alt) attrs.push(['aria-label', m.alt])
+    return [el('video', attrs)]
+  }
+  if (m.kind === 'lottie') {
+    const attrs: [string, string][] = [['class', 'mx-media'], ...size, ['data-lottie', m.src], ['data-play', m.play ?? 'inview'], ['data-loop', String(m.loop)], ['role', 'img']]
+    if (m.alt) attrs.push(['aria-label', m.alt])
+    return [el('canvas', attrs)]
+  }
+  if (m.kind === 'embed') {
+    const poster = m.poster ? [el('img', [['class', 'mx-media'], ['src', m.poster], ['alt', m.alt], ...size, ['loading', 'lazy'], ['decoding', 'async']])] : []
+    return [...poster, el('button', [['type', 'button'], ['class', 'mx-play'], ['data-embed', m.player ?? ''], ['aria-label', m.alt ? `Play video: ${m.alt}` : 'Play video']])]
+  }
+  return [el('img', [['class', 'mx-media'], ['src', m.src], ['alt', m.alt], ...size, ['loading', 'lazy'], ['decoding', 'async']])]
 }

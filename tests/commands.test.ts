@@ -95,3 +95,13 @@ describe('image commands', () => {
     expect(() => runCommand('set_image', { section: 'hero', block: hero.blocks.find((b) => b.kind === 'heading')!.id, placeholder: 'mesh' })).toThrow(/isn’t an image block/)
   })
 })
+
+describe('media commands', () => {
+  it('puts a YouTube video in an image block with a lightbox and a custom thumbnail', () => {
+    const hero = (runCommand('get_page', { section: 'hero' }) as Page).sections[0]
+    const img = hero.blocks.find((b) => b.kind === 'image')!
+    const r = runCommand('set_media', { section: 'hero', block: img.id, url: 'https://youtu.be/abc', thumbnail: 'https://example.com/cover.jpg' }) as { media: { source: string; lightbox: boolean; poster: string } }
+    expect(r.media).toMatchObject({ source: 'embed', lightbox: true, poster: 'https://example.com/cover.jpg' })
+    expect(() => runCommand('set_media', { section: 'hero', block: img.id, play: 'hover' })).toThrow(/Embeds play on click/)
+  })
+})

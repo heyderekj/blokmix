@@ -1,6 +1,7 @@
 import type { ComposedPage } from '../compose'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
+import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
 import { slug } from './astro'
 import { fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 
@@ -51,9 +52,10 @@ export function nextFiles(page: ComposedPage, root = 'next/'): FileMap {
   ) + '\n'
 
   files[`${root}app/tokens.css`] = tokensCss(page)
-  files[`${root}app/base.css`] = BASE_CSS_LAYERED
+  files[`${root}app/base.css`] = BASE_CSS_LAYERED + (page.moving ? `\n${MEDIA_CSS}` : '')
+  if (page.moving) files[`${root}public/mx-media.js`] = MEDIA_JS
   files[`${root}app/layout.tsx`] = `import type { Metadata } from 'next'
-import './tokens.css'
+${page.moving ? "import Script from 'next/script'\n" : ''}import './tokens.css'
 import './base.css'
 ${page.sections.map((s) => `import '../components/sections/${s.component}.css'`).join('\n')}
 
@@ -68,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ${href ? `        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />\n        <link rel="stylesheet" href="${href}" />\n` : ''}      </head>
       <body>
         <main>{children}</main>
-      </body>
+${page.moving ? '        <Script src="/mx-media.js" strategy="afterInteractive" />\n' : ''}      </body>
     </html>
   )
 }

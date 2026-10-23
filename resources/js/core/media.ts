@@ -1,7 +1,7 @@
 // Images in blocks: placeholders drawn from your palette, uploads and stock.
 // Pure, so the canvas, the exports and an agent all make the same picture.
 
-import type { MediaFill, PlaceholderStyle, StockPhoto, TokenSet } from './types'
+import type { MediaFill, MediaLink, MediaPlay, PlaceholderStyle, StockPhoto, TokenSet } from './types'
 import { hexToRgb } from './tokens'
 
 export const PLACEHOLDER_LABEL: Record<PlaceholderStyle, string> = {
@@ -104,24 +104,100 @@ export function svgDataUri(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-/** What a frame needs to draw an image block. */
+/** An upload as the core sees it: an image as a data URL, or a video/Lottie as bytes. */
+export interface UploadData {
+  dataUrl?: string
+  bytes?: ArrayBuffer
+  mime?: string
+  /** A still for videos, as a data URL. */
+  poster?: string
+}
+
+/** What a frame (or an export) needs to draw an image block. */
 export interface MediaRender {
+  kind: 'image' | 'video' | 'lottie' | 'embed'
+  /** A URL or data URI. Empty when the bytes travel separately (uploaded video or Lottie: see `asset`). */
   src: string
   alt: string
   fit: 'cover' | 'contain'
+  /** Uploaded video or Lottie: the asset id whose bytes the frame receives. */
+  asset?: string
+  mime?: string
+  poster?: string
+  play?: MediaPlay
+  loop?: boolean
+  lightbox?: boolean
+  /** Embeds: the player URL, loaded only when someone plays it. */
+  player?: string
 }
 
-/** Resolve a fill to a source. Uploads need their bytes from the asset store (a data URL). */
-export function renderMedia(fill: MediaFill, tokens: TokenSet, ratio: string | undefined, uploads: (id: string) => string | undefined): MediaRender | null {
+/** Resolve a fill to what's drawn. */
+export function renderMedia(fill: MediaFill, tokens: TokenSet, ratio: string | undefined, uploads: (id: string) => UploadData | undefined): MediaRender | null {
   const alt = fill.alt ?? ''
   const fit = fill.fit ?? 'cover'
-  if (fill.source === 'placeholder') return { src: svgDataUri(placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, tokens, ratio)), alt, fit }
-  if (fill.source === 'stock' && fill.stock) return { src: stockUrl(fill.stock, 1600), alt: alt || fill.stock.description || '', fit }
+  const moving = { play: fill.play ?? defaultPlay(fill), loop: fill.loop ?? true, lightbox: !!fill.lightbox }
+  const posterOf = (p: string | undefined) => (p ? (uploads(p)?.dataUrl ?? p) : undefined)
+  if (fill.source === 'placeholder') return { kind: 'image', src: svgDataUri(placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, tokens, ratio)), alt, fit, lightbox: !!fill.lightbox }
+  if (fill.source === 'stock' && fill.stock) return { kind: 'image', src: stockUrl(fill.stock, 1600), alt: alt || fill.stock.description || '', fit, lightbox: !!fill.lightbox }
   if (fill.source === 'upload' && fill.asset) {
-    const src = uploads(fill.asset)
-    return src ? { src, alt, fit } : null
+    const src = uploads(fill.asset)?.dataUrl
+    return src ? { kind: 'image', src, alt, fit, lightbox: !!fill.lightbox } : null
+  }
+  if (fill.source === 'video' || fill.source === 'lottie') {
+    const kind = fill.source
+    if (fill.asset) {
+      const a = uploads(fill.asset)
+      if (!a) return null
+      return { kind, src: '', asset: fill.asset, mime: a.mime, alt, fit, poster: posterOf(fill.poster) ?? a.poster, ...moving }
+    }
+    if (fill.link) return { kind, src: fill.link.url, alt, fit, poster: posterOf(fill.poster), ...moving }
+    return null
+  }
+  if (fill.source === 'embed' && fill.link?.id) {
+    // Embeds are a poster and a play button until someone asks: the player loads on click.
+    return { kind: 'embed', src: '', alt, fit, poster: posterOf(fill.poster) ?? embedPoster(fill.link), player: embedPlayer(fill.link), play: 'click', loop: false, lightbox: fill.lightbox ?? true }
   }
   return null
+}
+
+/** Sensible playback for what it is: Lotties and short videos loop in view; embeds wait for a click. */
+export function defaultPlay(fill: MediaFill): MediaPlay {
+  return fill.source === 'embed' ? 'click' : 'inview'
+}
+
+/* ---------- links ---------- */
+
+/** What a pasted link is: a video file, a Lottie, or a YouTube/Vimeo page. */
+export function detectLink(raw: string): { source: 'video' | 'lottie' | 'embed'; link: MediaLink } | null {
+  let u: URL
+  try {
+    u = new URL(raw.trim())
+  } catch {
+    return null
+  }
+  if (u.protocol !== 'https:' && u.protocol !== 'http:') return null
+  const host = u.hostname.replace(/^www\./, '')
+  const yt =
+    host === 'youtu.be' ? u.pathname.slice(1) : host.endsWith('youtube.com') ? (u.searchParams.get('v') ?? /^\/(?:embed|shorts)\/([\w-]+)/.exec(u.pathname)?.[1]) : null
+  if (yt) return { source: 'embed', link: { url: raw.trim(), provider: 'youtube', id: yt } }
+  const vm = host.endsWith('vimeo.com') ? /\/(\d+)/.exec(u.pathname)?.[1] : null
+  if (vm) return { source: 'embed', link: { url: raw.trim(), provider: 'vimeo', id: vm } }
+  const path = u.pathname.toLowerCase()
+  if (/\.(mp4|webm|mov|m4v)$/.test(path)) return { source: 'video', link: { url: u.toString() } }
+  if (/\.(lottie|json)$/.test(path)) return { source: 'lottie', link: { url: u.toString() } }
+  return null
+}
+
+export function embedPoster(l: MediaLink): string | undefined {
+  if (l.provider === 'youtube' && l.id) return `https://i.ytimg.com/vi/${l.id}/hq720.jpg`
+  return undefined
+}
+
+/** Privacy-friendly players that start when they load (they only load on a click). */
+export function embedPlayer(l: MediaLink): string | undefined {
+  if (l.provider === 'youtube' && l.id) return `https://www.youtube-nocookie.com/embed/${l.id}?autoplay=1&rel=0&playsinline=1`
+  if (l.provider === 'vimeo' && l.id) return `https://player.vimeo.com/video/${l.id}?autoplay=1&dnt=1`
+  return undefined
 }
 
 /* ---------- stock (Unsplash) ---------- */

@@ -5,7 +5,7 @@
 // Blocks are referred to by id ("b3") or by label ("Pricing · Plan 2 · Button").
 
 import { z } from 'zod'
-import { BLOCK_KINDS, PLACEHOLDER_STYLES, ENTER_PRESETS, HOVER_PRESETS, LOOP_PRESETS, NOTE_KINDS, NOTE_STATUSES, SCROLL_PRESETS, SECTION_TYPES, TOKEN_KEYS } from '../types'
+import { BLOCK_KINDS, MEDIA_PLAY, PLACEHOLDER_STYLES, ENTER_PRESETS, HOVER_PRESETS, LOOP_PRESETS, NOTE_KINDS, NOTE_STATUSES, SCROLL_PRESETS, SECTION_TYPES, TOKEN_KEYS } from '../types'
 
 const section = z.union([z.string(), z.number().int().min(1)]).describe('A section: its id, its position from the top (1 = first), or its type such as "hero"')
 const block = z.string().describe('A block in that section: its id ("b3") or its label ("Pricing · Plan 2 · Button")')
@@ -109,6 +109,21 @@ export const COMMANDS = {
       alt: z.string().optional(),
       fit: z.enum(['cover', 'contain']).optional(),
       remove: z.boolean().optional(),
+    }),
+    write: true,
+  },
+  set_media: {
+    description:
+      'Put moving media in an image block from a link: an .mp4/.webm video, a .lottie/.json animation, or a YouTube/Vimeo page (shows a poster and loads the player on click). Also sets when it plays (autoplay, hover, inview, click, scrub for Lotties), loop and lightbox. Reduced motion never autoplays.',
+    input: z.object({
+      section,
+      block,
+      url: z.string().url().optional().describe('Omit to change playback of what’s already there'),
+      play: z.enum(MEDIA_PLAY).optional(),
+      loop: z.boolean().optional(),
+      lightbox: z.boolean().optional(),
+      alt: z.string().optional(),
+      thumbnail: z.string().url().nullable().optional().describe('An image URL shown before it plays and as the lightbox cover; null goes back to automatic'),
     }),
     write: true,
   },

@@ -24,6 +24,8 @@ const JSX_RENAME: Record<string, string> = {
   rowspan: 'rowSpan',
   autocomplete: 'autoComplete',
   autofocus: 'autoFocus',
+  autoplay: 'autoPlay',
+  playsinline: 'playsInline',
   crossorigin: 'crossOrigin',
   srcset: 'srcSet',
   contenteditable: 'contentEditable',
@@ -41,10 +43,10 @@ const JSX_RENAME: Record<string, string> = {
   'http-equiv': 'httpEquiv',
 }
 
-const BOOLEAN = new Set(['checked', 'disabled', 'hidden', 'open', 'required', 'selected', 'multiple', 'autofocus', 'readonly', 'novalidate', 'defaultChecked', 'readOnly', 'noValidate', 'autoFocus'])
+const BOOLEAN = new Set(['checked', 'disabled', 'hidden', 'open', 'required', 'selected', 'multiple', 'autofocus', 'readonly', 'novalidate', 'defaultChecked', 'readOnly', 'noValidate', 'autoFocus', 'muted', 'loop', 'autoplay', 'autoPlay', 'playsinline', 'playsInline', 'controls'])
 
 /** React types these as numbers, so `rows="5"` must become `rows={5}`. */
-const NUMERIC = new Set(['rows', 'cols', 'size', 'span', 'start', 'tabIndex', 'colSpan', 'rowSpan', 'maxLength', 'minLength'])
+const NUMERIC = new Set(['rows', 'cols', 'size', 'span', 'start', 'tabIndex', 'colSpan', 'rowSpan', 'maxLength', 'minLength', 'width', 'height'])
 
 export function jsxAttrName(name: string, tag: string): string {
   if (name === 'checked' && tag === 'input') return 'defaultChecked'

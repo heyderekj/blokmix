@@ -1,4 +1,4 @@
-import { assetUrl } from '@/lib/assets'
+import { uploadData } from '@/lib/assets'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { Bot, Eye, Link2, Package, Shuffle, Trash2 } from 'lucide-react'
@@ -39,7 +39,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
       library,
       slotNotes: v.snapshot.slotNotes,
       page: v.snapshot.guide,
-      uploads: assetUrl,
+      uploads: uploadData,
     })
     return referenceHtml(page, { vh: VIEWPORT_VH[viewport], tagSlots: true })
   }, [v.snapshot, viewport])

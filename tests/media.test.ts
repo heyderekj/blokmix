@@ -34,7 +34,7 @@ describe('stock and uploads', () => {
 
   it('turns an uploaded data URL into bytes for the export', () => {
     expect(dataUrlBytes(PNG)).toMatchObject({ ext: 'webp' })
-    expect(renderMedia({ source: 'upload', asset: 'a' }, tokens, '1/1', () => PNG)?.src).toBe(PNG)
+    expect(renderMedia({ source: 'upload', asset: 'a' }, tokens, '1/1', () => ({ dataUrl: PNG }))?.src).toBe(PNG)
     expect(renderMedia({ source: 'upload', asset: 'gone' }, tokens, '1/1', () => undefined)).toBeNull()
   })
 })
@@ -48,7 +48,7 @@ describe('pictures in exports', () => {
     guide: resolveGuide(emptyGuide()),
     content: DEFAULT_CONTENT,
     library,
-    uploads: () => PNG,
+    uploads: () => ({ dataUrl: PNG }),
   })
   const s = page.sections[0]
 
@@ -73,5 +73,44 @@ describe('pictures in exports', () => {
     const blocks = [{ id: 'b0', kind: 'image' as const, parent: null, children: [], label: 'Team · Image' }]
     expect(advise({ blocks, edits: { b0: { media: { source: 'upload', asset: 'x' } } }, tokens, fields: {} }).find((a) => a.rule === 'alt')?.level).toBe('problem')
     expect(advise({ blocks, edits: { b0: { media: { source: 'upload', asset: 'x', alt: 'A desk' } } }, tokens, fields: {} }).some((a) => a.rule === 'alt')).toBe(false)
+  })
+})
+
+import { detectLink } from '@/core/media'
+describe('moving media', () => {
+  it('recognises video files, Lotties and YouTube/Vimeo pages', () => {
+    expect(detectLink('https://youtu.be/aqz-KE-bpKQ')).toMatchObject({ source: 'embed', link: { provider: 'youtube', id: 'aqz-KE-bpKQ' } })
+    expect(detectLink('https://www.youtube.com/watch?v=abc123')?.link.id).toBe('abc123')
+    expect(detectLink('https://vimeo.com/76979871')).toMatchObject({ source: 'embed', link: { provider: 'vimeo', id: '76979871' } })
+    expect(detectLink('https://cdn.example.com/hero.webm')?.source).toBe('video')
+    expect(detectLink('https://cdn.example.com/spark.lottie')?.source).toBe('lottie')
+    expect(detectLink('https://example.com/page')).toBeNull()
+  })
+
+  it('embeds show a poster and load the player on click; a custom thumbnail wins', () => {
+    const fill = { source: 'embed' as const, link: { url: 'u', provider: 'youtube' as const, id: 'x1' } }
+    expect(renderMedia(fill, tokens, '16/9', () => undefined)).toMatchObject({ kind: 'embed', play: 'click', lightbox: true, poster: 'https://i.ytimg.com/vi/x1/hq720.jpg' })
+    expect(renderMedia({ ...fill, poster: 'img1' }, tokens, '16/9', () => ({ dataUrl: PNG }))?.poster).toBe(PNG)
+  })
+
+  it('exports an uploaded video with its still, the player script and a lightbox', () => {
+    const clip = library.clips['hero.layout-split']
+    const img = clip.blocks.find((b) => b.kind === 'image')!
+    const page = composePage({
+      slots: [{ id: 's', type: 'hero', clipId: clip.id, locked: false, keep: { ...DEFAULT_KEEP }, edits: { [clip.id]: { [img.id]: { media: { source: 'video', asset: 'v1', play: 'hover', loop: true, lightbox: true, alt: 'A demo' } } } } }],
+      guide: resolveGuide(emptyGuide()),
+      content: DEFAULT_CONTENT,
+      library,
+      uploads: () => ({ bytes: new Uint8Array([1, 2, 3]).buffer, mime: 'video/webm', poster: PNG }),
+    })
+    expect(page.moving).toBe(true)
+    expect(Object.keys(page.mediaFiles).sort()).toEqual([`media/s1-${img.id}-poster.webp`, `media/s1-${img.id}.webm`])
+    const files = packetFiles({ page, guide: resolveGuide(emptyGuide()), guideState: emptyGuide(), library, tapeName: 'T', targets: ['astro', 'next'] })
+    expect(files['astro/public/mx-media.js']).toContain('IntersectionObserver')
+    expect(files['astro/src/layouts/Base.astro']).toContain('/mx-media.js')
+    expect(files['next/app/layout.tsx']).toContain('next/script')
+    const tsx = Object.entries(files).find(([p]) => p.endsWith('HeroLayoutSplit.tsx'))![1] as string
+    expect(tsx).toContain('data-lightbox')
+    expect(tsx).toMatch(/<video[^>]*playsInline[^>]*data-play="hover"/)
   })
 })

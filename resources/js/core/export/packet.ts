@@ -169,12 +169,25 @@ export function linerNotes(i: PacketInput): string {
     lines.push('## Images')
     lines.push('')
     for (const m of media) {
-      const what = m.source === 'placeholder' ? 'placeholder from the palette (replace with a real image before launch)' : m.source === 'upload' ? 'uploaded image' : 'stock photo'
-      lines.push(`- **${m.label}** (${m.section}): ${what}, \`${m.src}\`${m.alt ? `, alt “${m.alt}”` : ', no alt text yet (add one unless it’s decorative)'}`)
+      const playback = m.kind !== 'image' ? `, plays ${m.play === 'inview' ? 'when in view' : m.play === 'scrub' ? 'with the scroll' : m.play === 'hover' ? 'on hover' : m.play === 'autoplay' ? 'automatically (muted)' : 'on click'}${m.loop ? ', loops' : ''}` : ''
+      const what =
+        m.source === 'placeholder'
+          ? 'placeholder from the palette (replace with a real image before launch)'
+          : m.source === 'upload'
+            ? 'uploaded image'
+            : m.source === 'stock'
+              ? 'stock photo'
+              : m.source === 'embed'
+                ? `video embed (${m.player?.includes('vimeo') ? 'Vimeo' : 'YouTube'}; poster first, player loads on click)`
+                : `${m.kind === 'lottie' ? 'Lottie animation' : 'video'}${playback}`
+      const lb = m.lightbox ? ', opens in a lightbox' : ''
+      lines.push(`- **${m.label}** (${m.section}): ${what}${lb}, \`${m.src || m.player}\`${m.alt ? `, alt “${m.alt}”` : ', no alt text yet (add one unless it’s decorative)'}`)
       if (m.credit) lines.push(`  - Credit: ${m.credit}. Keep the hotlinked URL and show this credit, as Unsplash requires.`)
     }
     lines.push('')
-    lines.push('Optimise the files in `public/media/` before shipping. With Dinky’s CLI (dinkyfiles.com): `dinky compress-image public/media/*.webp -f webp -w 1600 --strip-metadata --json -o public/media`, keeping file names so references still match.')
+    if (page.moving) lines.push('Moving media and lightboxes run on `/mx-media.js` (triggers, reduced motion, lazy embeds, a `<dialog>` lightbox). It loads the dotLottie player from a CDN; swap in the `@lottiefiles/dotlottie-web` package if you prefer bundling it.')
+    lines.push('')
+    lines.push('Optimise the files in `public/media/` before shipping (videos too: `dinky compress-video`). With Dinky’s CLI (dinkyfiles.com): `dinky compress-image public/media/*.webp -f webp -w 1600 --strip-metadata --json -o public/media`, keeping file names so references still match.')
     lines.push('')
   }
   if (i.notes?.length) {

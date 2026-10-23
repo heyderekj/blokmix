@@ -3,7 +3,7 @@ import type { BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGu
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { motionCss } from '@/core/motion'
 import { renderMedia } from '@/core/media'
-import { assetUrl } from '@/lib/assets'
+import { uploadData } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
 import { BASE_FONTS, expandTokens, fontHref, fontsForTokens, varsToCss } from '@/core/tokens'
@@ -86,8 +86,8 @@ function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, toke
     const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' ? tokens : null])
     let m = mediaCache.get(key)
     if (!m) {
-      m = renderMedia(fill, tokens, b.ratio, assetUrl) ?? undefined
-      if (m && fill.source !== 'upload') {
+      m = renderMedia(fill, tokens, b.ratio, uploadData) ?? undefined
+      if (m && !fill.asset) {
         if (mediaCache.size > 300) mediaCache.clear()
         mediaCache.set(key, m)
       }

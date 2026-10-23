@@ -2,6 +2,7 @@ import type { ComposedPage } from '../compose'
 import { mapTree } from '../html/parse'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
+import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
 import { fontLink, sectionCss, tokensCss } from './shared'
 
 /**
@@ -17,7 +18,11 @@ export function referenceHtml(page: ComposedPage, opts: { vh?: string; tagSlots?
         ? mapTree(s.tree, (el) => (el === s.tree.find((n) => n.t === 'el') ? { ...el, attrs: [...el.attrs, ['data-mx-slot', s.slotId]] } : el))
         : s.tree
       // The reference build is a single file, so pictures go inline.
-      return s.media.reduce((html, m) => html.split(`src="${m.src}"`).join(`src="${m.inline}"`), serialize(tree, 'html', 1))
+      return s.media.reduce((html, m) => {
+        let out = html.split(`src="${m.src}"`).join(`src="${m.inline}"`)
+        if (m.poster && m.inlinePoster) out = out.split(`"${m.poster}"`).join(`"${m.inlinePoster}"`)
+        return out
+      }, serialize(tree, 'html', 1))
     })
     .join('\n')
   return `<!doctype html>
@@ -30,6 +35,7 @@ ${href ? `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n
 <style>
 ${vars}
 ${BASE_CSS_LAYERED}
+${page.moving ? MEDIA_CSS : ''}
 ${page.sections.map(sectionCss).join('\n')}
 </style>
 </head>
@@ -37,6 +43,7 @@ ${page.sections.map(sectionCss).join('\n')}
 <main>
 ${body}
 </main>
+${page.moving ? `<script>${MEDIA_JS}</script>` : ''}
 </body>
 </html>
 `

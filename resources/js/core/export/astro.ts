@@ -1,6 +1,7 @@
 import type { ComposedPage } from '../compose'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
+import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
 import { fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 
 export const ASTRO_VERSION = '~7.3.0' // 7.4 needs Node >= 22.23.4; 7.3 runs on any Node 22.12+
@@ -24,7 +25,8 @@ export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
   files[`${root}astro.config.mjs`] = `import { defineConfig } from 'astro/config'\n\nexport default defineConfig({})\n`
   files[`${root}tsconfig.json`] = JSON.stringify({ extends: 'astro/tsconfigs/strict', include: ['.astro/types.d.ts', '**/*'], exclude: ['dist'] }, null, 2) + '\n'
   files[`${root}src/styles/tokens.css`] = tokensCss(page)
-  files[`${root}src/styles/base.css`] = BASE_CSS_LAYERED
+  files[`${root}src/styles/base.css`] = BASE_CSS_LAYERED + (page.moving ? `\n${MEDIA_CSS}` : '')
+  if (page.moving) files[`${root}public/mx-media.js`] = MEDIA_JS
 
   files[`${root}src/layouts/Base.astro`] = `---
 import '../styles/tokens.css'
@@ -40,7 +42,7 @@ const { title } = Astro.props
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-${href ? `    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n    <link rel="stylesheet" href="${href}" />\n` : ''}  </head>
+${href ? `    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n    <link rel="stylesheet" href="${href}" />\n` : ''}${page.moving ? '    <script is:inline src="/mx-media.js" defer></script>\n' : ''}  </head>
   <body>
     <main>
       <slot />

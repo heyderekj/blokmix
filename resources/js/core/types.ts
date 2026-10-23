@@ -363,20 +363,40 @@ export interface StockPhoto {
   description?: string
 }
 
+/** When moving media plays. Scrub ties a Lottie's progress to scrolling. */
+export const MEDIA_PLAY = ['autoplay', 'hover', 'inview', 'click', 'scrub'] as const
+export type MediaPlay = (typeof MEDIA_PLAY)[number]
+
+/** A video or animation link: a file, or a YouTube/Vimeo page that embeds a player. */
+export interface MediaLink {
+  url: string
+  provider?: 'youtube' | 'vimeo'
+  /** The provider's video id, for embeds. */
+  id?: string
+}
+
 /**
  * What fills an image block: a placeholder drawn from your palette (it
  * re-themes with the style guide), an image you uploaded (kept in this
- * browser), or a stock photo.
+ * browser), a stock photo, or something that moves: a video, a Lottie
+ * animation, or a YouTube/Vimeo embed.
  */
 export interface MediaFill {
-  source: 'placeholder' | 'upload' | 'stock'
+  source: 'placeholder' | 'upload' | 'stock' | 'video' | 'lottie' | 'embed'
   style?: PlaceholderStyle
   seed?: number
-  /** Upload: the asset id in the browser's asset store. */
+  /** Upload (image, video or Lottie): the asset id in the browser's asset store. */
   asset?: string
   stock?: StockPhoto
+  link?: MediaLink
   alt?: string
   fit?: 'cover' | 'contain'
+  /** Moving media: when it plays, whether it loops, and whether a click opens it large. */
+  play?: MediaPlay
+  loop?: boolean
+  lightbox?: boolean
+  /** A still shown before it plays and with reduced motion: an image asset id or URL. */
+  poster?: string
 }
 
 /** Your changes to one block of one clip in one section. */

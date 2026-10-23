@@ -34,6 +34,7 @@ export interface Advice {
     | 'nav-motion'
     | 'alt'
     | 'placeholder'
+    | 'captions'
   level: 'problem' | 'suggestion'
   lens: Lens
   message: string
@@ -278,14 +279,22 @@ export function advise(i: AdviseInput): Advice[] {
   for (const b of i.blocks) {
     const media = eff(b)?.media
     if (b.kind !== 'image' || !media || eff(b)?.hidden) continue
+    const moving = media.source === 'video' || media.source === 'lottie' || media.source === 'embed'
     if (media.source !== 'placeholder' && !media.alt?.trim()) {
       out.push({
         blockId: b.id,
         rule: 'alt',
-        level: 'problem',
+        // A purely decorative animation can go without; videos and pictures need a description.
+        level: media.source === 'lottie' ? 'suggestion' : 'problem',
         lens: 'Accessibility',
-        message: 'This picture has no description. Screen readers will skip it or read the file name; say what’s in it in a few words.',
+        message:
+          media.source === 'lottie'
+            ? 'If this animation carries meaning, describe it; if it’s decoration, it can stay silent.'
+            : `This ${moving ? 'video' : 'picture'} has no description. Screen readers will skip it or read the file name; say what’s in it in a few words.`,
       })
+    }
+    if ((media.source === 'video' && (media.play === 'click' || media.lightbox)) || media.source === 'embed') {
+      out.push({ blockId: b.id, rule: 'captions', level: 'suggestion', lens: 'Accessibility', message: 'If this video has speech, give it captions so it works muted and for people who can’t hear it.' })
     }
     if (media.source === 'placeholder') {
       out.push({ blockId: b.id, rule: 'placeholder', level: 'suggestion', lens: 'IIDS', message: 'A placeholder, drawn from your palette. Swap in a real image before launch; the packet flags it for the agent too.' })
@@ -293,7 +302,14 @@ export function advise(i: AdviseInput): Advice[] {
   }
 
   // ---- motion (Emil Kowalski's craft): restraint, purpose, nothing on what you use constantly ----
-  const loops = i.blocks.filter((b) => eff(b)?.motion?.loop && !eff(b)?.hidden)
+  // Looping videos and animations count too: they pull the eye just like a looping block.
+  const loops = i.blocks.filter((b) => {
+    const e = eff(b)
+    if (!e || e.hidden) return false
+    const m = e.media
+    const playingLoop = !!m && (m.source === 'video' || m.source === 'lottie') && m.loop !== false && (m.play ?? 'inview') !== 'click' && m.play !== 'scrub'
+    return !!e.motion?.loop || playingLoop
+  })
   for (const b of loops.slice(1)) {
     out.push({
       blockId: b.id,
@@ -301,7 +317,7 @@ export function advise(i: AdviseInput): Advice[] {
       level: 'suggestion',
       lens: 'Motion',
       message: 'This section already has something looping. More than one constant motion pulls the eye in different directions.',
-      fix: { label: 'Stop this loop', edit: { motion: { loop: undefined } } },
+      fix: eff(b)?.motion?.loop ? { label: 'Stop this loop', edit: { motion: { loop: undefined } } } : undefined,
     })
   }
   for (const b of i.blocks) {

@@ -5,7 +5,7 @@ import { openGroups, resolveGuide } from '@/core/guide'
 import { composePage } from '@/core/compose'
 import { agentPrompt, packetFiles, type PacketInput } from '@/core/export/packet'
 import { zipFiles } from '@/core/export/zip'
-import { assetUrl, useAssets } from '@/lib/assets'
+import { uploadData, useAssets } from '@/lib/assets'
 import { slug } from '@/core/export/astro'
 import { dfsOrder, generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
 import { library } from '@/data/library'
@@ -49,7 +49,7 @@ export function PacketPanel() {
       : []
     const parent = version?.parentId ? versions[version.parentId] : null
     return {
-      page: composePage({ slots: snap.slots.filter((s) => library.clips[s.clipId]), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: assetUrl }),
+      page: composePage({ slots: snap.slots.filter((s) => library.clips[s.clipId]), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: uploadData }),
       guide,
       guideState: snap.guide,
       library,

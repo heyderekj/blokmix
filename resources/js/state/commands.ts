@@ -1,5 +1,6 @@
 import type { BlockEdit, BlockInfo, BlockMotion, BlockStyle, Choice, MediaFill, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
 import { isMark, MARK_GUIDANCE, SOURCE_LABEL, sortMarks } from '@/core/notes'
+import { detectLink } from '@/core/media'
 import { COMMANDS, toolDefinitions, type CommandInput, type CommandName } from '@/core/commands/schema'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -349,6 +350,30 @@ const WRITE = {
             throw new CommandError('Give a placeholder style, or set a picture first')
           })()
     st.editBlock(slot.id, b.id, { media: next })
+    return { block: b.label, media: next }
+  },
+  set_media: (i: CommandInput<'set_media'>) => {
+    const slot = findSection(i.section)
+    const b = findBlock(slot, i.block)
+    if (b.kind !== 'image') throw new CommandError(`${b.label} isn’t an image block; media goes in image blocks`)
+    const cur = slot.edits?.[slot.clipId]?.[b.id]?.media
+    let next: MediaFill
+    if (i.url) {
+      const found = detectLink(i.url)
+      if (!found) throw new CommandError('That link isn’t a video file (.mp4, .webm), a Lottie (.lottie, .json), or a YouTube/Vimeo page')
+      next = { source: found.source, link: found.link, play: found.source === 'embed' ? 'click' : 'inview', loop: found.source !== 'embed', lightbox: found.source === 'embed', alt: cur?.alt }
+    } else if (cur && (cur.source === 'video' || cur.source === 'lottie' || cur.source === 'embed' || i.lightbox !== undefined || i.alt !== undefined)) next = { ...cur }
+    else throw new CommandError('Give a url, or put a video or animation in this block first')
+    if (i.play) {
+      if (i.play === 'scrub' && next.source !== 'lottie') throw new CommandError('Only Lottie animations can follow the scroll')
+      if (next.source === 'embed' && i.play !== 'click') throw new CommandError('Embeds play on click (their player loads only when asked)')
+      next.play = i.play
+    }
+    if (i.loop !== undefined) next.loop = i.loop
+    if (i.lightbox !== undefined) next.lightbox = i.lightbox
+    if (i.alt !== undefined) next.alt = i.alt || undefined
+    if (i.thumbnail !== undefined) next.poster = i.thumbnail ?? undefined
+    useStore.getState().editBlock(slot.id, b.id, { media: next })
     return { block: b.label, media: next }
   },
   set_section_motion: (i: CommandInput<'set_section_motion'>) => {

@@ -124,8 +124,8 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
           <StyleDots style={edit?.style} />
         </BarButton>
         {block.kind === 'image' && (
-          <BarButton active={menu === 'image'} onClick={() => setMenu(menu === 'image' ? null : 'image')} icon={ImageIcon} title="Picture">
-            {edit?.media ? <span className="size-1.5 rounded-full bg-tape" /> : 'Image'}
+          <BarButton active={menu === 'image'} onClick={() => setMenu(menu === 'image' ? null : 'image')} icon={ImageIcon} title="Media">
+            {edit?.media ? <span className="size-1.5 rounded-full bg-tape" /> : 'Media'}
           </BarButton>
         )}
         <BarButton active={menu === 'motion'} onClick={() => setMenu(menu === 'motion' ? null : 'motion')} icon={Waves} title="Motion">
