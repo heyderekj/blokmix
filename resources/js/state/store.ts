@@ -141,7 +141,7 @@ const DEFAULT_UI: UiState = {
   packetTargets: ['astro'],
   hintDismissed: false,
   editingNoteId: null,
-  myName: '',
+  myName: 'Derek Castelli',
 }
 
 function pickDifferent(options: string[], current: string): string {
