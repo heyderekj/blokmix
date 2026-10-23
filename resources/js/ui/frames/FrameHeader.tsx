@@ -11,7 +11,7 @@ import { STATUS_META, STATUS_ORDER } from './status'
 export function FrameHeader({ width, children, tint, selected }: { width: number; children: ReactNode; tint?: string; selected?: boolean }) {
   return (
     <div
-      className="absolute bottom-full left-0 origin-bottom-left pb-2"
+      className="absolute bottom-full left-0 z-30 origin-bottom-left pb-2"
       style={{ width: `max(calc(${width}px * var(--z)), min(400px, calc(${width + 280}px * var(--z))))`, transform: 'scale(calc(1 / var(--z)))' }}
       data-chrome
       onPointerDown={(e) => e.stopPropagation()}
