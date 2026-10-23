@@ -46,6 +46,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const pBlock = useBlockPreview((s) => s.blockId)
   const pPatch = useBlockPreview((s) => s.patch)
   const editText = useBlockPreview((s) => s.editText)
+  const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
   const live = useMemo(() => withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch }), [slot, pSlot, pBlock, pPatch])
   const ids = library.byType[slot.type]
@@ -252,7 +253,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
               guide={guide}
               content={content}
               viewport={viewport}
-              replayKey={isCurrent ? landed : 0}
+              replayKey={isCurrent ? landed + (focused ? replays : 0) : 0}
               interactive={isCurrent && previewing}
               onHeight={(h) => setHeights((m) => (m[clipId] === h ? m : { ...m, [clipId]: h }))}
               onPick={() => st().setClip(slot.id, clipId)}

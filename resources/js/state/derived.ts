@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
-import type { BlockEdit, Clip, GuideState, ProjectContent, ResolvedGuide, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
+import type { BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
+import { motionCss } from '@/core/motion'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
 import { BASE_FONTS, expandTokens, fontHref, fontsForTokens, varsToCss } from '@/core/tokens'
@@ -44,7 +45,7 @@ export function fontHrefFor(tokens: TokenSet): string | null {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   clip: Clip,
-  slot: Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing'> | null,
+  slot: Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion'> | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
@@ -59,11 +60,12 @@ export function frameStateFor(
   const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
   return {
     css: tokensCssFor(tokens, vh) + swatchCss(page?.swatches),
-    motion: slot.keep.motion,
+    // A motion preset (or None) replaces the clip's own motion.
+    motion: slot.keep.motion && (!slot.motion || slot.motion.mode === 'captured'),
     fields: slot.keep.content && !own ? null : resolveFields(clip.type, clip.fields, content, slot.keep.content, own).fields,
     fonts: [fontHrefFor(tokens)],
     outline: !slot.keep.layout,
-    blocks: blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing),
+    blocks: blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion),
   }
 }
 
@@ -80,14 +82,25 @@ function blocksFor(
   edits: Record<string, BlockEdit> | undefined,
   components: GuideState['components'],
   spacing: SectionSpacing | undefined,
+  motion: SectionMotion | undefined,
 ): FrameState['blocks'] {
-  if (!edits && !components && !spacing) return NO_BLOCKS
+  if (!edits && !components && !spacing && motion?.mode !== 'preset') return NO_BLOCKS
   const variants: Record<string, string> = {}
   for (const b of clip.blocks) {
     const e = effectiveEdit(edits?.[b.id], components?.[b.kind])
     if (e?.variant) variants[b.id] = e.variant
   }
-  const css = [blockCss({ blocks: clip.blocks, edits, components, select: (b) => `[data-mx-b="${b.id}"]` }), sectionSpacingCss(spacing, '[data-mx-section]')]
+  const select = (b: BlockInfo) => `[data-mx-b="${b.id}"]`
+  const moving = motionCss({
+    blocks: clip.blocks,
+    edits: (b) => effectiveEdit(edits?.[b.id], components?.[b.kind]),
+    section: motion,
+    select,
+    root: '[data-mx-section]',
+    prefix: 'mx-m',
+    canvas: true,
+  })
+  const css = [blockCss({ blocks: clip.blocks, edits, components, select }), sectionSpacingCss(spacing, '[data-mx-section]'), moving]
     .filter(Boolean)
     .join('\n')
   return css || Object.keys(variants).length ? { css, variants } : NO_BLOCKS

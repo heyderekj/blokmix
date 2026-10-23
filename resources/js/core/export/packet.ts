@@ -1,5 +1,6 @@
 import type { BlockEdit, Note } from '../types'
 import { MARK_GUIDANCE, workPackets, type WorkItem } from '../notes'
+import { describeBlockMotion, describeSectionMotion } from '../motion'
 import type { BuildTarget, GuideState, Library, ResolvedGuide, Status } from '../types'
 import type { ComposedPage } from '../compose'
 import { GROUP_LABEL, TOKEN_LABEL, toDtcg } from '../tokens'
@@ -132,7 +133,7 @@ export function linerNotes(i: PacketInput): string {
     lines.push(`- **Layout:** ${s.keep.layout ? 'reproduce the structure faithfully' : 'reference only; choose a structure that fits neighboring sections'}`)
     lines.push(`- **Style:** ${s.keep.style ? 'keeps its own captured tokens (scoped to the section)' : 'use the style guide tokens'}`)
     lines.push(`- **Copy:** ${s.keep.content ? 'source copy kept (replace before launch)' : 'your copy'}${s.retained.length ? `; still source copy: ${s.retained.join(', ')}` : ''}`)
-    lines.push(`- **Motion:** ${s.keep.motion ? s.clip.motionNotes ?? 'keep the captured motion' : 'none'}`)
+    lines.push(`- **Motion:** ${describeSectionMotion(s.motion) ?? (s.keep.motion ? s.clip.motionNotes ?? 'keep the captured motion' : 'none')}${s.motionCss?.includes('Motion presets') ? ' (presets are in the section’s motion CSS; keep their timing and easing)' : ''}`)
     for (const b of s.blocks) lines.push(`- **Block, ${b.label}:** ${describeEdit(b.edit)}`)
     for (const n of s.notes) lines.push(`- **Note:** ${n}`)
     lines.push('')
@@ -233,6 +234,8 @@ function describeEdit(e: BlockEdit): string {
   if (e.hidden) return 'hidden; leave it out'
   const parts: string[] = []
   if (e.variant) parts.push(`${e.variant} look`)
+  const m = describeBlockMotion(e.motion)
+  if (m) parts.push(m)
   for (const [k, v] of Object.entries(e.style ?? {}) as [string, string | undefined][]) if (v) parts.push(`${k} ${v.replace('x:', 'brand colour ')}`)
   return `${parts.join(', ')} (the section CSS has it in @layer blocks)`
 }

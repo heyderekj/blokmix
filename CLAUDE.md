@@ -99,7 +99,8 @@ Nudge) for hierarchy, spacing and type; Laws of UX for behaviour; Emil Kowalski'
   (`cubic-bezier(0.23, 1, 0.32, 1)`), never ease-in; UI motion under 300ms and exits shorter than
   entrances; stagger 30–80ms; never from `scale(0)` (start ~0.95 with opacity 0); nothing on keyboard
   actions or things seen many times a day; reduced motion keeps fades, drops movement. Lint warns on
-  `transition: all`, `scale(0)` and `ease-in`.
+  `transition: all`, `scale(0)` and `ease-in`. Motion presets (`core/motion.ts`) are written to these
+  rules; a section preset replaces the clip's own motion.css.
 
 ### Built-in layouts
 

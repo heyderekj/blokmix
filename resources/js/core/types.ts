@@ -121,6 +121,7 @@ export interface Slot {
   /** This section's own words, over the shared copy for its type. */
   words?: Record<string, string>
   spacing?: SectionSpacing
+  motion?: SectionMotion
 }
 
 export interface Candidate {
@@ -314,11 +315,42 @@ export interface SectionSpacing {
   bottom?: SectionSpace
 }
 
+export const ENTER_PRESETS = ['rise', 'fade', 'pop', 'drop', 'slide', 'blur'] as const
+export type EnterPreset = (typeof ENTER_PRESETS)[number]
+export const HOVER_PRESETS = ['lift', 'glow', 'tilt', 'zoom', 'nudge', 'underline'] as const
+export type HoverPreset = (typeof HOVER_PRESETS)[number]
+export const SCROLL_PRESETS = ['reveal', 'parallax'] as const
+export type ScrollPreset = (typeof SCROLL_PRESETS)[number]
+export const LOOP_PRESETS = ['float', 'breathe', 'spin'] as const
+export type LoopPreset = (typeof LOOP_PRESETS)[number]
+export type MotionSpeed = 'quick' | 'normal' | 'slow'
+
+/** A block's motion. 'none' switches off what the section would otherwise give it (its stagger). */
+export interface BlockMotion {
+  enter?: EnterPreset | 'none'
+  hover?: HoverPreset
+  scroll?: ScrollPreset
+  loop?: LoopPreset
+  speed?: MotionSpeed
+}
+
+/** A section's motion: as clipped, a preset you chose, or none. */
+export interface SectionMotion {
+  mode: 'captured' | 'preset' | 'none'
+  enter?: EnterPreset
+  /** Blocks arrive one after another instead of together. */
+  stagger?: boolean
+  /** Play when scrolled into view (on the canvas, it plays on load). */
+  onScroll?: boolean
+  speed?: MotionSpeed
+}
+
 /** Your changes to one block of one clip in one section. */
 export interface BlockEdit {
   /** A variant from the block library ('outline'); absent = the clip's own look. */
   variant?: string
   style?: BlockStyle
+  motion?: BlockMotion
   hidden?: boolean
 }
 

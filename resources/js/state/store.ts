@@ -4,6 +4,7 @@ import { temporal } from 'zundo'
 import type {
   BlockEdit,
   BlockKind,
+  BlockMotion,
   BlockStyle,
   BuildTarget,
   Choice,
@@ -16,6 +17,7 @@ import type {
   NoteSource,
   NoteStatus,
   ProjectContent,
+  SectionMotion,
   SectionSpacing,
   SectionType,
   Slot,
@@ -112,6 +114,8 @@ export interface State extends TapeData {
   editBlock: (slotId: string, blockId: string, patch: Partial<BlockEdit> | null) => void
   setWord: (slotId: string, field: string, value: string | null) => void
   setSectionSpacing: (slotId: string, patch: Partial<SectionSpacing>) => void
+  /** null = as clipped. */
+  setSectionMotion: (slotId: string, motion: SectionMotion | null) => void
   /** Make this block's variant and style the default for every block of its kind. */
   promoteBlock: (slotId: string, blockId: string) => void
   clearComponent: (kind: BlockKind) => void
@@ -248,6 +252,11 @@ export const useStore = create<State>()(
               else {
                 const next: BlockEdit = { ...forClip[blockId], ...patch }
                 if (patch.style !== undefined) next.style = patch.style && Object.keys(patch.style).length ? { ...forClip[blockId]?.style, ...patch.style } : undefined
+                if (patch.motion !== undefined) {
+                  const m = patch.motion && Object.keys(patch.motion).length ? { ...forClip[blockId]?.motion, ...patch.motion } : undefined
+                  if (m) for (const k of Object.keys(m) as (keyof BlockMotion)[]) if (m[k] === undefined) delete m[k]
+                  next.motion = m && Object.keys(m).length ? m : undefined
+                }
                 for (const k of Object.keys(next) as (keyof BlockEdit)[]) if (next[k] === undefined) delete next[k]
                 if (next.style) for (const k of Object.keys(next.style) as (keyof BlockStyle)[]) if (next.style[k] === undefined) delete next.style[k]
                 if (next.style && !Object.keys(next.style).length) delete next.style
@@ -268,6 +277,12 @@ export const useStore = create<State>()(
               const spacing = { ...s.spacing, ...patch }
               for (const k of Object.keys(spacing) as (keyof SectionSpacing)[]) if (!spacing[k] || spacing[k] === 'default') delete spacing[k]
               return { ...s, spacing: Object.keys(spacing).length ? spacing : undefined }
+            }),
+          setSectionMotion: (slotId, motion) =>
+            updateSlot(slotId, (s) => {
+              if (!motion || motion.mode === 'captured') return { ...s, motion: undefined, keep: { ...s.keep, motion: true } }
+              // "None" also means the clip's own motion stays off, in the packet too.
+              return { ...s, motion, keep: { ...s.keep, motion: motion.mode !== 'none' } }
             }),
           promoteBlock: (slotId, blockId) => {
             const st = get()

@@ -14,6 +14,9 @@ interface BlockPreview {
   /** Ask the frame to start editing a block's words in place. */
   editText: { id: string; n: number } | null
   requestEditText: (blockId: string) => void
+  /** Bumped to play entrances again on the focused section. */
+  replays: number
+  replay: () => void
 }
 
 export const useBlockPreview = create<BlockPreview>()((set) => ({
@@ -24,6 +27,8 @@ export const useBlockPreview = create<BlockPreview>()((set) => ({
   clear: () => set({ slotId: null, blockId: null, patch: null }),
   editText: null,
   requestEditText: (id) => set((s) => ({ editText: { id, n: (s.editText?.n ?? 0) + 1 } })),
+  replays: 0,
+  replay: () => set((s) => ({ replays: s.replays + 1 })),
 }))
 
 /** The slot as it would look with the hovered preview applied. */
@@ -31,6 +36,11 @@ export function withPreview(slot: Slot, p: Pick<BlockPreview, 'slotId' | 'blockI
   if (p.slotId !== slot.id || !p.blockId || !p.patch) return slot
   const forClip = slot.edits?.[slot.clipId] ?? {}
   const cur = forClip[p.blockId] ?? {}
-  const next: BlockEdit = { ...cur, ...p.patch, style: p.patch.style ? { ...cur.style, ...p.patch.style } : cur.style }
+  const next: BlockEdit = {
+    ...cur,
+    ...p.patch,
+    style: p.patch.style ? { ...cur.style, ...p.patch.style } : cur.style,
+    motion: p.patch.motion ? { ...cur.motion, ...p.patch.motion } : cur.motion,
+  }
   return { ...slot, edits: { ...slot.edits, [slot.clipId]: { ...forClip, [p.blockId]: next } } }
 }

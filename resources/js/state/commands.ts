@@ -1,4 +1,4 @@
-import type { BlockEdit, BlockInfo, BlockStyle, Choice, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
+import type { BlockEdit, BlockInfo, BlockMotion, BlockStyle, Choice, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
 import { isMark, MARK_GUIDANCE, SOURCE_LABEL, sortMarks } from '@/core/notes'
 import { COMMANDS, toolDefinitions, type CommandInput, type CommandName } from '@/core/commands/schema'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
@@ -130,6 +130,7 @@ function describeSection(slot: Slot, position: number) {
     clip: { id: clip.id, title: clip.title, origin: clip.origin, source: library.sources[clip.sourceId]?.name, rhythm: clip.rhythm ?? null },
     keep: { layout: slot.keep.layout, style: slot.keep.style, copy: slot.keep.content, motion: slot.keep.motion, locked: slot.locked },
     spacing: slot.spacing ?? {},
+    motion: slot.motion ?? { mode: slot.keep.motion ? 'captured' : 'none' },
     words,
     blocks: clip.blocks.map((b) => {
       const e = effectiveEdit(slot.edits?.[clip.id]?.[b.id], st.guide.components?.[b.kind])
@@ -142,6 +143,7 @@ function describeSection(slot: Slot, position: number) {
         words: b.field ? words[b.field] : null,
         look: e?.variant ?? null,
         style: e?.style ?? null,
+        motion: e?.motion ?? null,
         hidden: !!e?.hidden,
       }
     }),
@@ -225,6 +227,7 @@ function adviceFor(slot: Slot) {
   const clip = library.clips[slot.clipId]
   return advise({
     blocks: clip.blocks,
+      sectionType: clip.type,
     edits: slot.edits?.[clip.id],
     components: st.guide.components,
     tokens: resolveGuide(st.guide).tokens,
@@ -296,6 +299,7 @@ const WRITE = {
     }
     const style = styleFrom(i.style)
     if (style) patch.style = style
+    if (i.motion) patch.motion = Object.fromEntries(Object.entries(i.motion).map(([k, v]) => [k, v === null || v === 'normal' ? undefined : v])) as Partial<BlockMotion>
     if (i.hidden !== undefined) patch.hidden = i.hidden || undefined
     if (Object.keys(patch).length) st.editBlock(slot.id, b.id, patch)
     return describeSection(findSection(slot.id), 0).blocks.find((x) => x.id === b.id)
@@ -325,6 +329,13 @@ const WRITE = {
     const slot = findSection(i.section)
     useStore.getState().setSectionSpacing(slot.id, clean({ top: i.top, bottom: i.bottom }))
     return { spacing: findSection(slot.id).spacing ?? {} }
+  },
+  set_section_motion: (i: CommandInput<'set_section_motion'>) => {
+    const slot = findSection(i.section)
+    useStore
+      .getState()
+      .setSectionMotion(slot.id, i.mode === 'captured' ? null : i.mode === 'none' ? { mode: 'none' } : { mode: 'preset', enter: i.enter ?? 'rise', stagger: i.stagger, onScroll: i.on_scroll, speed: i.speed === 'normal' ? undefined : i.speed })
+    return { motion: findSection(slot.id).motion ?? { mode: 'captured' } }
   },
   set_token: (i: CommandInput<'set_token'>) => {
     const choice: Choice | null = i.value === null ? null : { kind: 'custom', value: i.value }

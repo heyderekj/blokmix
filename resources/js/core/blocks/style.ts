@@ -58,6 +58,7 @@ export function effectiveEdit(edit: BlockEdit | undefined, def: ComponentDefault
   return {
     variant: edit?.variant ?? def?.variant,
     style: def?.style || edit?.style ? { ...def?.style, ...edit?.style } : undefined,
+    motion: edit?.motion,
     hidden: edit?.hidden,
   }
 }

@@ -29,6 +29,9 @@ export interface Advice {
     | 'rhythm'
     | 'line-length'
     | 'corners'
+    | 'loops'
+    | 'hover-static'
+    | 'nav-motion'
   level: 'problem' | 'suggestion'
   lens: Lens
   message: string
@@ -46,6 +49,8 @@ export interface AdviseInput {
   fields: Record<string, string>
   /** Measured size of blocks, when known (the selected one). */
   rects?: Record<string, { w: number; h: number }>
+  /** Which kind of section this is (nav and footer motion get special care). */
+  sectionType?: string
   /** The section's root font size isn't known, so line length uses the page's base text size (px). */
   basePx?: number
   /** Own styles on blocks of each kind across the whole page, for the consistency nudge. */
@@ -263,6 +268,43 @@ export function advise(i: AdviseInput): Advice[] {
           message: `Its ${prop === 'above' ? 'space above' : prop === 'below' ? 'space below' : prop} differs from the ${sibs.length - 1} like it. Even spacing makes a group read as one.`,
           fix: { label: 'Match the others', edit: { style: { [prop]: common } } },
         })
+      })
+    }
+  }
+
+  // ---- motion (Emil Kowalski's craft): restraint, purpose, nothing on what you use constantly ----
+  const loops = i.blocks.filter((b) => eff(b)?.motion?.loop && !eff(b)?.hidden)
+  for (const b of loops.slice(1)) {
+    out.push({
+      blockId: b.id,
+      rule: 'loops',
+      level: 'suggestion',
+      lens: 'Motion',
+      message: 'This section already has something looping. More than one constant motion pulls the eye in different directions.',
+      fix: { label: 'Stop this loop', edit: { motion: { loop: undefined } } },
+    })
+  }
+  for (const b of i.blocks) {
+    const m = eff(b)?.motion
+    if (!m) continue
+    if (m.hover && (b.kind === 'heading' || b.kind === 'text' || b.kind === 'badge' || b.kind === 'list')) {
+      out.push({
+        blockId: b.id,
+        rule: 'hover-static',
+        level: 'suggestion',
+        lens: 'Motion',
+        message: 'It moves on hover but can’t be clicked, so it promises an action that isn’t there.',
+        fix: { label: 'Remove the hover', edit: { motion: { hover: undefined } } },
+      })
+    }
+    if ((i.sectionType === 'nav') && m.enter && m.enter !== 'none') {
+      out.push({
+        blockId: b.id,
+        rule: 'nav-motion',
+        level: 'suggestion',
+        lens: 'Motion',
+        message: 'Navigation is used constantly; it should be there the moment the page is, without an entrance.',
+        fix: { label: 'No entrance', edit: { motion: { enter: undefined } } },
       })
     }
   }

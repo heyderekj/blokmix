@@ -5,7 +5,7 @@
 // Blocks are referred to by id ("b3") or by label ("Pricing · Plan 2 · Button").
 
 import { z } from 'zod'
-import { BLOCK_KINDS, NOTE_KINDS, NOTE_STATUSES, SECTION_TYPES, TOKEN_KEYS } from '../types'
+import { BLOCK_KINDS, ENTER_PRESETS, HOVER_PRESETS, LOOP_PRESETS, NOTE_KINDS, NOTE_STATUSES, SCROLL_PRESETS, SECTION_TYPES, TOKEN_KEYS } from '../types'
 
 const section = z.union([z.string(), z.number().int().min(1)]).describe('A section: its id, its position from the top (1 = first), or its type such as "hero"')
 const block = z.string().describe('A block in that section: its id ("b3") or its label ("Pricing · Plan 2 · Button")')
@@ -26,6 +26,17 @@ const style = z
     gap: space.nullable().optional().describe('Space between the block’s children (lists, cards, items)'),
   })
   .describe('Only the properties you set change; null clears one back to the clip’s own')
+
+const speed = z.enum(['quick', 'normal', 'slow'])
+const blockMotion = z
+  .object({
+    enter: z.enum([...ENTER_PRESETS, 'none']).nullable().optional().describe('How it arrives; "none" opts out of the section’s stagger'),
+    hover: z.enum(HOVER_PRESETS).nullable().optional().describe('Only on things you can click'),
+    scroll: z.enum(SCROLL_PRESETS).nullable().optional(),
+    loop: z.enum(LOOP_PRESETS).nullable().optional().describe('Use sparingly: one loop per section at most'),
+    speed: speed.nullable().optional(),
+  })
+  .describe('Motion presets; null clears one. They follow the craft rules: ease-out, transform and opacity, reduced motion keeps fades only.')
 
 export const COMMANDS = {
   get_page: {
@@ -68,8 +79,8 @@ export const COMMANDS = {
     write: true,
   },
   set_block: {
-    description: 'Change one block: its look (a variant id from get_options, or null for the original), its style and spacing, or hide it. reset clears all changes.',
-    input: z.object({ section, block, look: z.string().nullable().optional(), style: style.optional(), hidden: z.boolean().optional(), reset: z.boolean().optional() }),
+    description: 'Change one block: its look (a variant id from get_options, or null for the original), its style and spacing, its motion, or hide it. reset clears all changes.',
+    input: z.object({ section, block, look: z.string().nullable().optional(), style: style.optional(), motion: blockMotion.optional(), hidden: z.boolean().optional(), reset: z.boolean().optional() }),
     write: true,
   },
   use_look_for_all: {
@@ -85,6 +96,18 @@ export const COMMANDS = {
   set_section_spacing: {
     description: 'A section’s top and bottom padding relative to the style guide.',
     input: z.object({ section, top: z.enum(['none', 'tight', 'default', 'roomy']).optional(), bottom: z.enum(['none', 'tight', 'default', 'roomy']).optional() }),
+    write: true,
+  },
+  set_section_motion: {
+    description: 'A section’s motion: "captured" (as clipped), "none", or "preset" with an entrance, optionally staggering its blocks and playing on scroll.',
+    input: z.object({
+      section,
+      mode: z.enum(['captured', 'preset', 'none']),
+      enter: z.enum(ENTER_PRESETS).optional(),
+      stagger: z.boolean().optional(),
+      on_scroll: z.boolean().optional(),
+      speed: speed.optional(),
+    }),
     write: true,
   },
   set_token: {

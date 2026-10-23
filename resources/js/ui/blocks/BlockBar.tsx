@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus } from 'lucide-react'
+import { ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -14,8 +14,9 @@ import type { FrameRect } from '@/frame/bridge'
 import { keepInView } from '../canvas/inView'
 import { draftForBlock, useMarkDraft } from '../notes/Marks'
 import { SPACE_STEPS, Steps } from './Spacing'
+import { MotionMenu } from './MotionMenu'
 
-type Menu = 'variant' | 'style' | 'more' | 'advice' | null
+type Menu = 'variant' | 'style' | 'motion' | 'more' | 'advice' | null
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -114,6 +115,9 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         <BarButton active={menu === 'style'} onClick={() => setMenu(menu === 'style' ? null : 'style')} icon={Palette} title="Colour and shape">
           <StyleDots style={edit?.style} />
         </BarButton>
+        <BarButton active={menu === 'motion'} onClick={() => setMenu(menu === 'motion' ? null : 'motion')} icon={Waves} title="Motion">
+          {edit?.motion ? <span className="size-1.5 rounded-full bg-tape" /> : null}
+        </BarButton>
         {block.field && (
           <BarButton onClick={() => preview.requestEditText(block.id)} icon={Type} title="Edit text (double-click or ↵)">
             Edit
@@ -194,6 +198,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         </Popover>
       )}
       {menu === 'style' && <StyleMenu style={own?.style} inherited={def?.style} composite={COMPOSITE.has(block.kind)} onHover={(s) => hover(s ? { style: s } : null)} onPick={(s) => apply({ style: s })} />}
+      {menu === 'motion' && <MotionMenu kind={block.kind} motion={edit?.motion} onHover={(m) => hover(m ? { motion: m } : null)} onPick={(m) => apply({ motion: m })} />}
       {menu === 'more' && (
         <Popover width={248}>
           <MenuItem
@@ -551,6 +556,7 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
     }
     return advise({
       blocks: clip.blocks,
+      sectionType: clip.type,
       edits: slot.edits?.[slot.clipId],
       components,
       tokens: guide.tokens,

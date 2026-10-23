@@ -1,7 +1,8 @@
-import type { BlockEdit, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
+import type { BlockEdit, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
+import { motionCss as presetMotionCss } from './motion'
 import { resolveFields } from './content'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
@@ -20,6 +21,8 @@ export interface ComposedSection {
   localVars: CssVars | null
   /** Block looks you changed: variant and style per block, for the packet. */
   blocks: { id: string; label: string; kind: string; edit: BlockEdit }[]
+  /** The section's motion choice (absent = as clipped). */
+  motion?: SectionMotion
   retained: string[]
   notes: string[]
 }
@@ -81,9 +84,12 @@ export function composePage(input: ComposeInput): ComposedPage {
       .map((b) => ({ b, edit: effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]) }))
       .filter((x): x is { b: (typeof x)['b']; edit: BlockEdit } => !!x.edit)
     const blockClass = (id: string) => `mx-s${position + 1}-${id}`
-    const changedIds = new Set(changed.map((x) => x.b.id))
+    const preset = slot.motion?.mode === 'preset' ? slot.motion : undefined
+    // Staggered sections animate their top-level blocks, so those need a class too.
+    const staggered = preset?.stagger ? clip.blocks.filter((b) => !b.parent || clip.blocks.find((x) => x.id === b.parent)?.kind === 'list').map((b) => b.id) : []
+    const changedIds = new Set([...changed.map((x) => x.b.id), ...staggered])
     let order = 0
-    const spaced = !!sectionSpacingCss(slot.spacing, 'x')
+    const spaced = !!sectionSpacingCss(slot.spacing, 'x') || !!preset
     const addClass = (el: HEl, cls: string): HEl => ({
       ...el,
       attrs: el.attrs.some(([k]) => k === 'class') ? el.attrs.map(([k, v]) => (k === 'class' ? [k, `${v} ${cls}`] : [k, v])) : [...el.attrs, ['class', cls]],
@@ -101,6 +107,15 @@ export function composePage(input: ComposeInput): ComposedPage {
       components: input.page?.components,
       select: (b) => `.${clip.rootClass}.${blockClass(b.id)}, .${clip.rootClass} .${blockClass(b.id)}`,
     }) + (spaced ? `\n${sectionSpacingCss(slot.spacing, `.${clip.rootClass}.mx-s${position + 1}`)}` : '')
+    const rootSel = `.${clip.rootClass}.mx-s${position + 1}`
+    const generated = presetMotionCss({
+      blocks: clip.blocks,
+      edits: (b) => effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]),
+      section: slot.motion,
+      select: (b) => `.${clip.rootClass} .${blockClass(b.id)}`,
+      root: rootSel,
+      prefix: `mx-s${position + 1}-m`,
+    })
 
     let localVars: CssVars | null = null
     let css = clip.css
@@ -111,10 +126,12 @@ export function composePage(input: ComposeInput): ComposedPage {
       addFonts(clip.tokens)
     }
 
-    const motionCss =
-      slot.keep.motion && clip.motionCss
+    // The clip's own motion, unless a preset (or None) replaces it; then any presets you chose.
+    const captured =
+      slot.keep.motion && clip.motionCss && (!slot.motion || slot.motion.mode === 'captured')
         ? `@layer motion {\n  @media (prefers-reduced-motion: no-preference) {\n${indent(clip.motionCss, '    ')}\n  }\n}`
         : null
+    const motionCss = [captured, generated && `/* Motion presets */\n${generated}`].filter(Boolean).join('\n\n') || null
     // Layers keep the cascade simple: a block's look always beats the clip's own CSS.
     // The order is repeated in each file so it holds whichever stylesheet a bundler loads first.
     css = `${LAYER_ORDER}\n\n@layer clip {\n${indent(css)}\n}${blocksCss ? `\n\n/* Blocks you restyled */\n${blocksCss}` : ''}`
@@ -131,6 +148,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       motionCss,
       localVars,
       blocks: changed.map(({ b, edit }) => ({ id: b.id, label: b.label, kind: b.kind, edit })),
+      motion: slot.motion,
       retained: slot.keep.content ? [] : retained,
       notes: input.slotNotes?.[slot.id] ?? [],
     })
