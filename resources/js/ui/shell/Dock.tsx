@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, X } from 'lucide-react'
 import { useStore, type Tool } from '@/state/store'
@@ -19,11 +20,9 @@ const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
 
 /** The dock: how you work the canvas. The Clips button grows it upward into the crate. */
 export function Dock() {
-  const tool = useStore((s) => s.ui.tool)
   const open = useStore((s) => s.ui.sheet === 'crate')
   // On a track (and nothing else open), the dock grows that track's alternatives.
   const focused = useStore((s) => (s.ui.sheet === 'none' ? s.slots.find((x) => x.id === s.ui.focusedSlotId) : undefined))
-  const st = useStore.getState
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3">
       <FirstRunTip />
@@ -34,20 +33,7 @@ export function Dock() {
         maxBody="min(52vh, 420px)"
         bar={
           <>
-            {TOOLS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                title={`${t.label} (${t.key})`}
-                aria-label={t.label}
-                aria-pressed={tool === t.id}
-                onClick={() => st().setUi({ tool: t.id })}
-                className={`relative grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${tool === t.id ? 'text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
-              >
-                {tool === t.id && <motion.span layoutId="dock-tool" transition={MORPH} className="absolute inset-0 rounded-full bg-zinc-900" />}
-                <t.icon size={16} className="relative" />
-              </button>
-            ))}
+            <ToolSwitcher />
             <Divider />
             <ShuffleButton />
             <button
@@ -102,12 +88,7 @@ function ViewMenu() {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => useStore.subscribe((s) => s.camera && setZ(s.camera.z)), [])
   useEffect(() => setOpen(false), [sheet])
-  useEffect(() => {
-    if (!open) return
-    const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
-    window.addEventListener('pointerdown', close, true)
-    return () => window.removeEventListener('pointerdown', close, true)
-  }, [open])
+  useOutsideClose(open, ref, () => setOpen(false))
   const row = (Icon: typeof Plus, label: string, kbd: string, run: () => void, keep = false) => (
     <button
       type="button"
@@ -124,15 +105,7 @@ function ViewMenu() {
   )
   return (
     <div ref={ref} className="relative">
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.98, transition: { duration: 0.08 } }}
-            transition={{ duration: 0.14, ease: [0.2, 0, 0, 1] }}
-            className="glass-menu absolute bottom-full right-0 z-50 mb-3 w-56 origin-bottom-right rounded-2xl p-1.5"
-          >
+      <DockMenu anchor={ref} open={open} align="right">
             <div className="mb-1 flex gap-0.5 rounded-lg bg-well p-0.5">
               {(['desktop', 'mobile'] as const).map((v) => (
                 <button
@@ -154,9 +127,7 @@ function ViewMenu() {
             {row(Minus, 'Zoom out', '−', () => canvasApi.zoomBy(1 / 1.3), true)}
             {row(Disc3, 'Back to the mix', '⇧0', () => canvasApi.fitMix())}
             {row(Maximize, 'Fit everything', '⇧1', () => canvasApi.fitAll())}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </DockMenu>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -231,4 +202,96 @@ function FirstRunTip() {
       )}
     </AnimatePresence>
   )
+}
+
+/**
+ * Menus that open from the dock. They render in a top layer anchored to their
+ * button, because the dock clips its own overflow for its open/close animation.
+ */
+function DockMenu({ anchor, open, align, children }: { anchor: React.RefObject<HTMLElement | null>; open: boolean; align: 'left' | 'right'; children: React.ReactNode }) {
+  const [rect, setRect] = useState<DOMRect | null>(null)
+  useEffect(() => {
+    if (!open) return
+    const update = () => anchor.current && setRect(anchor.current.getBoundingClientRect())
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [open, anchor])
+  return createPortal(
+    <AnimatePresence>
+      {open && rect && (
+        <motion.div
+          initial={{ opacity: 0, y: 4, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 4, scale: 0.98, transition: { duration: 0.08 } }}
+          transition={{ duration: 0.14, ease: [0.2, 0, 0, 1] }}
+          className={`glass-menu fixed z-[60] w-56 rounded-2xl p-1.5 ${align === 'right' ? 'origin-bottom-right' : 'origin-bottom-left'}`}
+          style={{
+            bottom: window.innerHeight - rect.top + 12,
+            ...(align === 'right' ? { right: window.innerWidth - rect.right - 6 } : { left: rect.left - 6 }),
+          }}
+          data-chrome
+          data-dock-menu
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  )
+}
+
+/** One button for the canvas tool: shows the current tool, opens the other two. */
+function ToolSwitcher() {
+  const tool = useStore((s) => s.ui.tool)
+  const sheet = useStore((s) => s.ui.sheet)
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const current = TOOLS.find((t) => t.id === tool) ?? TOOLS[0]
+  useEffect(() => setOpen(false), [sheet, tool])
+  useOutsideClose(open, ref, () => setOpen(false))
+  return (
+    <div ref={ref}>
+      <DockMenu anchor={ref} open={open} align="left">
+        {TOOLS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            aria-pressed={tool === t.id}
+            onClick={() => useStore.getState().setUi({ tool: t.id })}
+            className={`flex h-8 w-full items-center gap-2.5 rounded-lg px-2 text-left text-[13px] transition ${tool === t.id ? 'bg-zinc-950/5 font-medium text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+          >
+            <t.icon size={15} className={tool === t.id ? 'text-zinc-900' : 'text-zinc-500'} />
+            <span className="flex-1">{t.label}</span>
+            <span className="kbd">{t.key}</span>
+          </button>
+        ))}
+      </DockMenu>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-label={`Tool: ${current.label}`}
+        title={`${current.label} (${current.key}). Click for other tools`}
+        className="flex h-8 items-center gap-0.5 rounded-full bg-zinc-900 pl-2 pr-1.5 text-white transition active:scale-[0.97]"
+      >
+        <current.icon size={16} />
+        <ChevronDown size={12} className={`opacity-70 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+    </div>
+  )
+}
+
+function useOutsideClose(open: boolean, ref: React.RefObject<HTMLElement | null>, close: () => void) {
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node
+      if (ref.current?.contains(t) || (t instanceof Element && t.closest('[data-dock-menu]'))) return
+      close()
+    }
+    window.addEventListener('pointerdown', onDown, true)
+    return () => window.removeEventListener('pointerdown', onDown, true)
+  }, [open, ref, close])
 }
