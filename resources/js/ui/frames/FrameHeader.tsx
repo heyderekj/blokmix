@@ -97,7 +97,7 @@ export function StatusMenu({ status, onChange, trigger }: { status: Status; onCh
       </button>
       <AnimatePresence>
         {open && (
-          <div className="absolute left-0 top-full z-50 mt-2">
+          <div className="absolute bottom-full right-0 z-50 mb-2">
             {STATUS_ORDER.map((s, i) => {
               const m = STATUS_META[s]
               const PillIcon = m.icon
@@ -106,18 +106,18 @@ export function StatusMenu({ status, onChange, trigger }: { status: Status; onCh
                 <motion.button
                   key={s}
                   type="button"
-                  initial={{ opacity: 0, y: -16, rotate: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, y: (n - 1 - i) * 34, rotate: (i - 2) * 2.5, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.85, transition: { duration: 0.14 } }}
+                  initial={{ opacity: 0, y: 16, x: 0, rotate: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, y: -(n - 1 - i) * 34, x: -(n - 1 - i) * 14, rotate: -(n - 1 - i) * 2, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, x: 0, scale: 0.85, transition: { duration: 0.14 } }}
                   transition={{ type: 'spring', stiffness: 520, damping: 26, delay: (n - 1 - i) * 0.03 }}
-                  whileHover={{ scale: 1.06, rotate: 0, x: 4 }}
+                  whileHover={{ scale: 1.06, rotate: 0 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation()
                     onChange(s)
                     setOpen(false)
                   }}
-                  className="absolute left-0 top-0 flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[12px] font-medium shadow-md"
+                  className="absolute bottom-0 right-0 flex h-7 origin-bottom-right items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[12px] font-medium shadow-md"
                   style={{
                     color: m.color,
                     background: `color-mix(in oklab, ${m.color} 14%, var(--header-bg))`,
