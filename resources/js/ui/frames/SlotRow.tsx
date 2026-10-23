@@ -10,6 +10,10 @@ import { VIEW_W } from '../canvas/geometry'
 import { SectionPill, SectionRail } from './SectionPill'
 
 const SPIN_STEP = 90
+/** Clip swaps: short, firm and settled, like flipping a card, not spinning a reel. */
+const SWAP = '240ms cubic-bezier(0.2, 0.9, 0.25, 1)'
+/** How far a clip travels as it swaps, as a share of the page width. */
+const NUDGE = 0.08
 
 interface Props {
   slot: Slot
@@ -97,7 +101,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       className="group/row relative"
       style={{
         height,
-        transition: 'height 520ms cubic-bezier(0.16, 1, 0.3, 1)',
+        transition: `height ${SWAP}`,
         zIndex: focused ? 20 : 1,
       }}
       onPointerDown={() => st().focusSlot(slot.id)}
@@ -207,20 +211,19 @@ const Tile = memo(function Tile(p: {
     () => frameStateFor(clip, p.slot, p.mode, p.guide, p.content, p.viewport),
     [clip, p.slot, p.mode, p.guide, p.content, p.viewport],
   )
-  const visible = Math.abs(p.rel) <= 1
   const isCurrent = p.rel === 0
   const transition = p.jump
     ? 'opacity 200ms'
     : p.spinning
       ? `transform ${SPIN_STEP - 10}ms linear, opacity 120ms`
-      : 'transform 560ms cubic-bezier(0.34, 1.4, 0.64, 1), opacity 300ms'
+      : `transform ${SWAP}, opacity 160ms ease-out`
   return (
     <div
       className={`absolute left-0 top-0 overflow-hidden ${p.edge}`}
       style={{
-        // neighbours butt up against the current clip, so a slide reads as a push within the page
-        transform: `translateX(${p.rel * p.width}px)`,
-        opacity: visible ? 1 : 0,
+        // the outgoing clip shifts a little and fades while the next one shifts in from that side
+        transform: `translateX(${Math.sign(p.rel) * p.width * NUDGE}px)`,
+        opacity: isCurrent ? 1 : 0,
         transition,
         pointerEvents: isCurrent ? 'auto' : 'none',
       }}
