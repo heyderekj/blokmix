@@ -87,12 +87,13 @@ const BRIDGE = `(function () {
       editing = null;
       f.removeAttribute('contenteditable'); f.removeAttribute('data-mx-editing');
       f.removeEventListener('keydown', onKey); f.removeEventListener('blur', onBlur);
+      var ws2 = getSelection(); if (ws2) ws2.removeAllRanges();
       var text = f.textContent.replace(/\\s+/g, ' ').trim();
       if (!keep || !text) { f.textContent = before; post({ editing: false }); return; }
       post({ word: { field: f.getAttribute('data-mx-field'), value: text }, editing: false });
     };
     var onKey = function (e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); done(true); }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); done(true); }
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(false); }
     };
     var onBlur = function () { done(true); };
