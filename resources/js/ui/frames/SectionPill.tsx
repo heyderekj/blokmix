@@ -5,7 +5,8 @@ import type { Keep, Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { GROUP_LABEL, primaryFamily } from '@/core/tokens'
-import { library } from '@/data/library'
+import { library, slotClip } from '@/data/library'
+import { Switch } from '../panels/parts'
 import { useStore } from '@/state/store'
 import { MORPH } from '../shell/Island'
 import { SectionSpacingRows } from '../blocks/Spacing'
@@ -259,6 +260,7 @@ function LookTab({ slot }: { slot: Slot }) {
           <Sparkles size={14} /> Use just these
         </button>
       </div>
+      {slot.type === 'nav' && <BannerRow slot={slot} />}
       <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
         <div className="mb-2 text-[11px] font-semibold text-zinc-400">Section spacing</div>
         <SectionSpacingRows slot={slot} />
@@ -267,6 +269,32 @@ function LookTab({ slot }: { slot: Slot }) {
         <div className="mb-2 text-[11px] font-semibold text-zinc-400">Section motion</div>
         <SectionMotionRows slot={slot} />
       </div>
+    </div>
+  )
+}
+
+/** An announcement strip above the nav: the clip's own ticker, or one added to any nav. */
+function BannerRow({ slot }: { slot: Slot }) {
+  const banner = slotClip(slot).blocks.find((b) => b.kind === 'banner')
+  const on = !!banner && !slot.edits?.[slot.clipId]?.[banner.id]?.hidden
+  const st = useStore.getState
+  return (
+    <div className="mt-3.5 flex items-center gap-3 border-t border-zinc-950/6 pt-3">
+      <div className="min-w-0 flex-1">
+        <div className="text-[12.5px] font-medium text-zinc-800">Announcement banner</div>
+        <div className="text-[11.5px] text-zinc-500">{on ? 'Select it on the page for its look and messages' : 'A strip of short messages above the nav'}</div>
+      </div>
+      <Switch
+        on={on}
+        label="Announcement banner"
+        onChange={() => {
+          st().setBanner(slot.id, !on)
+          if (!on) setTimeout(() => {
+            const b = slotClip(useStore.getState().slots.find((s) => s.id === slot.id)!).blocks.find((x) => x.kind === 'banner')
+            if (b) st().selectBlock(b.id)
+          })
+        }}
+      />
     </div>
   )
 }

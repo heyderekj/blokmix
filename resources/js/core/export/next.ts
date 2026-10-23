@@ -1,5 +1,6 @@
 import type { ComposedPage } from '../compose'
 import { serialize } from '../html/serialize'
+import type { HNode } from '../html/parse'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
 import { slug } from './astro'
@@ -8,6 +9,12 @@ import { bindContent } from './bind'
 
 export const NEXT_VERSION = '^16.4.3'
 export const REACT_VERSION = '^19.3.1'
+
+/** A component's markup; a fragment when there's more than one root (a nav with a banner added above it). */
+function jsxBody(nodes: HNode[]): string {
+  if (nodes.filter((n) => n.t === 'el').length < 2) return serialize(nodes, 'jsx', 2)
+  return `    <>\n${serialize(nodes, 'jsx', 3)}\n    </>`
+}
 
 export function nextFiles(page: ComposedPage, root = 'next/'): FileMap {
   const files: FileMap = {}
@@ -79,7 +86,7 @@ ${page.moving ? '        <Script src="/mx-media.js" strategy="afterInteractive" 
   for (const s of page.sections) {
     files[`${root}components/sections/${s.component}.css`] = sectionCss(s)
     if (!s.outline.length) {
-      files[`${root}components/sections/${s.component}.tsx`] = `${sectionHeader(s, 'js')}\nexport default function ${s.component}() {\n  return (\n${serialize(s.tree, 'jsx', 2)}\n  )\n}\n`
+      files[`${root}components/sections/${s.component}.tsx`] = `${sectionHeader(s, 'js')}\nexport default function ${s.component}() {\n  return (\n${jsxBody(s.tree)}\n  )\n}\n`
       continue
     }
     // Words live in a content file; the page passes it in as props.
@@ -90,7 +97,7 @@ import data from '@/content/${s.contentName}.json'
 
 export default function ${s.component}({ content = data }: { content?: typeof data }) {
   return (
-${serialize(bindContent(s.source, s.outline, file, true), 'jsx', 2)}
+${jsxBody(bindContent(s.source, s.outline, file, true))}
   )
 }
 `

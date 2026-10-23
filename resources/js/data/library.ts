@@ -18,6 +18,6 @@ if (import.meta.env.DEV && library.warnings.length) {
 }
 
 /** The clip a section shows: the library clip with the section's lists applied (blocks, fields, ids). */
-export function slotClip(slot: Pick<Slot, 'clipId' | 'lists'>): SectionClip {
-  return sectionClip(library.clips[slot.clipId], slot.lists)
+export function slotClip(slot: Pick<Slot, 'clipId' | 'lists' | 'banner'>): SectionClip {
+  return sectionClip(library.clips[slot.clipId], slot.lists, { banner: slot.banner })
 }

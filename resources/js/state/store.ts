@@ -30,6 +30,7 @@ import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, promote, removeCandidate } from '@/core/guide'
 import { autoTitle, descendants, nextLetter } from '@/core/versions'
 import { library, slotClip } from '@/data/library'
+import { BANNER_ID } from '@/core/banner'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
 import { keepOption, putBackOption, retireOption, showWords } from '@/core/words'
 import { suggestClip } from '@/core/suggest'
@@ -117,6 +118,8 @@ export interface State extends TapeData {
   /** Patch a block of the section's current clip; null clears its edit. */
   editBlock: (slotId: string, blockId: string, patch: Partial<BlockEdit> | null) => void
   setWord: (slotId: string, field: string, value: string | null) => void
+  /** Navs: show or remove an announcement banner (the clip's own, or one added above it). */
+  setBanner: (slotId: string, on: boolean) => void
   /** Add, duplicate, remove or move a list's items. Returns the item to select (a new one), or null if it couldn't. */
   editList: (slotId: string, change: ListOp) => { itemId: string | null } | null
   /** Keep words as an option for a field ("Keep as an option"). */
@@ -257,8 +260,17 @@ export const useStore = create<State>()(
             })),
 
           selectBlock: (blockId) => set((st) => ({ ui: { ...st.ui, selectedBlockId: blockId } })),
+          setBanner: (slotId, on) => {
+            const slot = get().slots.find((s) => s.id === slotId)
+            if (!slot || slot.type !== 'nav') return
+            const own = slotClip({ ...slot, banner: false }).blocks.find((b) => b.kind === 'banner')
+            if (own) get().editBlock(slotId, own.id, { hidden: on ? undefined : true })
+            else updateSlot(slotId, (s) => ({ ...s, banner: on || undefined }))
+          },
           editBlock: (slotId, blockId, patch) =>
             updateSlot(slotId, (s) => {
+              // Hiding an added banner removes it.
+              if (blockId === BANNER_ID && patch?.hidden) return { ...s, banner: undefined }
               const forClip = { ...(s.edits?.[s.clipId] ?? {}) }
               if (patch === null) delete forClip[blockId]
               else {

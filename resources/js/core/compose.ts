@@ -7,6 +7,7 @@ import { swapIcons } from './icons'
 import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
 import { resolveFields } from './content'
 import { sectionClip } from './lists'
+import { BANNER_CSS, BANNER_MOTION, bannerMoves } from './banner'
 import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
@@ -115,7 +116,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const libraryClip = input.library.clips[slot.clipId]
     if (!libraryClip) return
     // The clip as this section shows it: its lists in your order, blocks stamped with stable ids.
-    const clip = sectionClip(libraryClip, slot.lists)
+    const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
     let component = componentName(clip)
     const n = (used.get(component) ?? 0) + 1
     used.set(component, n)
@@ -251,10 +252,13 @@ export function composePage(input: ComposeInput): ComposedPage {
       slot.keep.motion && clip.motionCss && (!slot.motion || slot.motion.mode === 'captured')
         ? `@layer motion {\n  @media (prefers-reduced-motion: no-preference) {\n${indent(clip.motionCss, '    ')}\n  }\n}`
         : null
-    const motionCss = [captured, generated && `/* Motion presets */\n${generated}`].filter(Boolean).join('\n\n') || null
+    const bannerMotion = clip.extras?.banner && bannerMoves(slot) ? `/* The banner's scroll */\n${BANNER_MOTION}` : null
+    const motionCss = [captured, generated && `/* Motion presets */\n${generated}`, bannerMotion].filter(Boolean).join('\n\n') || null
     // Layers keep the cascade simple: a block's look always beats the clip's own CSS.
     // The order is repeated in each file so it holds whichever stylesheet a bundler loads first.
     css = `${LAYER_ORDER}\n\n@layer clip {\n${indent(css)}\n}${blocksCss ? `\n\n/* Blocks you restyled */\n${blocksCss}` : ''}${mediaCss ? `\n\n/* Pictures */\n${mediaCss}` : ''}`
+    // An added banner brings its own CSS, in tokens; it scrolls unless the section's motion is off.
+    if (clip.extras?.banner) css += `\n\n/* Banner you added */\n${BANNER_CSS}`
 
     sections.push({
       slotId: slot.id,

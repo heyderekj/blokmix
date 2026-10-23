@@ -10,7 +10,8 @@
 // wherever they move.
 
 import type { BlockInfo, Clip, ListItemRef, ProjectContent, Slot } from './types'
-import { resolveFields } from './content'
+import { DEFAULT_CONTENT, resolveFields } from './content'
+import { bannerTree } from './banner'
 import { attr, extractFields, mapTree, parseHtml, walk, type HEl, type HNode } from './html/parse'
 import { serialize } from './html/serialize'
 import { indexBlocks } from './blocks'
@@ -19,6 +20,13 @@ import { indexBlocks } from './blocks'
 export interface ListPatch {
   sel: string
   html: string
+  /** Insert the html just before `sel` instead of replacing it (an added banner). */
+  before?: boolean
+}
+
+/** Things a section adds to its clip (a banner above a nav). */
+export interface SectionExtras {
+  banner?: boolean
 }
 
 /** A clip as one section shows it: its lists applied, blocks stamped and indexed. */
@@ -27,6 +35,7 @@ export interface SectionClip extends Clip {
   patches: ListPatch[]
   /** The clip in the library. */
   source: Clip
+  extras?: SectionExtras
 }
 
 const isEl = (n: HNode): n is HEl => n.t === 'el'
@@ -351,20 +360,28 @@ const cache = new Map<string, SectionClip>()
  * The clip as a section shows it: blocks stamped, lists in the section's order,
  * fields and blocks re-read from the result. Cached by clip and list changes.
  */
-export function sectionClip(clip: Clip, lists?: Record<string, ListItemRef[]>): SectionClip {
+export function sectionClip(clip: Clip, lists?: Record<string, ListItemRef[]>, extras?: SectionExtras): SectionClip {
   const relevant = lists && Object.keys(lists).length ? lists : undefined
-  const k = `${clip.id}@${clip.hash}:${relevant ? JSON.stringify(relevant) : ''}`
+  const base = stamp(parseHtml(clip.html))
+  // An added banner goes just before a nav that doesn't have one of its own.
+  const banner = !!extras?.banner && clip.type === 'nav' && !base.some(function has(n): boolean {
+    return n.t === 'el' && (attr(n, 'data-mx-block') === 'banner' || n.kids.some(has))
+  })
+  const k = `${clip.id}@${clip.hash}:${relevant ? JSON.stringify(relevant) : ''}:${banner ? 'b' : ''}`
   let hit = cache.get(k)
   if (hit) return hit
-  const base = stamp(parseHtml(clip.html))
-  const tree = applyLists(base, relevant)
+  const withExtras: HNode[] = banner ? [bannerTree((f) => DEFAULT_CONTENT.fields.nav?.[f] ?? ''), { t: 'text', v: '\n' }, ...base] : base
+  const tree = applyLists(withExtras, relevant)
+  const patches = relevant ? patchesFor(base, tree) : []
+  if (banner) patches.unshift({ sel: '[data-mx-section]', html: serialize([tree[0]], 'html'), before: true })
   hit = {
     ...clip,
     html: serialize(tree, 'html'),
     fields: extractFields(tree),
     blocks: annotate(indexBlocks(tree, clip.type), tree),
-    patches: relevant ? patchesFor(base, tree) : [],
+    patches,
     source: clip,
+    extras: banner ? { banner } : undefined,
   }
   if (cache.size > 400) cache.clear()
   cache.set(k, hit)
@@ -419,7 +436,7 @@ export class ListError extends Error {}
 export function layoutOrder(clip: SectionClip, slot: Pick<Slot, 'lists'>, listId: string, key: string): number[] {
   const others = { ...slot.lists }
   delete others[key]
-  return listOrder(sectionClip(clip.source, others), listId)
+  return listOrder(sectionClip(clip.source, others, clip.extras), listId)
 }
 
 /**

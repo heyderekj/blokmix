@@ -8,6 +8,7 @@ import { uploadData } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
 import { sectionClip } from '@/core/lists'
+import { BANNER_CSS, BANNER_MOTION, bannerMoves } from '@/core/banner'
 import { BASE_FONTS, expandTokens, fontHref, fontsForTokens, varsToCss } from '@/core/tokens'
 import { allFonts } from '@/core/library'
 import { library } from '@/data/library'
@@ -49,7 +50,7 @@ export function fontHrefFor(tokens: TokenSet): string | null {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   libraryClip: Clip,
-  slot: Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists'> | null,
+  slot: Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner'> | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
@@ -62,7 +63,7 @@ export function frameStateFor(
     return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null, lists: NO_LISTS }
   }
   // The clip as this section shows it: items you added, removed or reordered.
-  const clip = sectionClip(libraryClip, slot.lists)
+  const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
   const tokens = slot.keep.style ? clip.tokens : guide
   const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
   return {
@@ -72,7 +73,7 @@ export function frameStateFor(
     fields: slot.keep.content && !own ? null : resolveFields(clip.type, clip.fields, content, slot.keep.content, own).fields,
     fonts: [fontHrefFor(tokens)],
     outline: !slot.keep.layout,
-    blocks: blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion),
+    blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion), clip.extras?.banner ? bannerMoves(slot) : null),
     media: mediaFor(clip, slot.edits?.[clip.id], tokens),
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? null : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
@@ -81,6 +82,13 @@ export function frameStateFor(
 }
 
 const NO_LISTS: FrameState['lists'] = []
+
+/** An added banner's CSS rides along with the block CSS (its scroll, unless the section's motion is off). */
+function withBanner(b: FrameState['blocks'], moves: boolean | null): FrameState['blocks'] {
+  if (moves === null) return b
+  const css = [BANNER_CSS, moves ? BANNER_MOTION : '', b.css].filter(Boolean).join('\n')
+  return { ...b, css }
+}
 
 const NO_BLOCKS: FrameState['blocks'] = { css: '', variants: {} }
 const NO_MEDIA: FrameState['media'] = {}

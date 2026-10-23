@@ -125,6 +125,9 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
 - Lists (`slot.lists`, by the key their fields are numbered by) add, duplicate, remove and reorder items on
   the canvas (block bar, ⌘D, ⌥←/→, ⌫) or in the Content view. Frames patch the changed list in place
   (`FrameState.lists`); blocks in a copied item get ids like `b5.f4`, so edits and notes follow items.
+- Navs can add an announcement banner (`slot.banner`, `core/banner.ts`): the same `banner` block a clipped
+  ticker is, with notice fields, the same looks, inserted just before the nav's root (so the nav's own
+  padding stays). A nav clipped with its own ticker uses that one; hiding either removes it.
 - Exports write each section's words to `src/content/<section>.json` (Next: `content/`). Components read
   `{content.heading}`, map lists whose items are built alike (`{content.features.map((item, i) => …)}`), and
   carry `data-mx-src="<file>#<path>"` (Koati's `data-koati-src` idea). MIXTAPE.md points to Keystatic as an

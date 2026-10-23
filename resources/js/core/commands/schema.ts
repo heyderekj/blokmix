@@ -97,6 +97,11 @@ export const COMMANDS = {
     }),
     write: true,
   },
+  set_banner: {
+    description: 'Navs only: show an announcement banner above the nav (a strip of short messages, a ticker by default) or remove it. Its messages are the notices list (edit_list / set_list); its looks are Inverted, Quiet, Accent and Still (set_block on the banner).',
+    input: z.object({ section, on: z.boolean() }),
+    write: true,
+  },
   edit_list: {
     description:
       'Change a list’s items (features, questions, plans, logos…): add one (it copies the first item’s structure), duplicate, remove or move an item, or reset to the layout’s own items.',

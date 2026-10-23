@@ -161,6 +161,32 @@ describe('banners', () => {
   })
 })
 
+describe('added banners', () => {
+  const id = 'nav.layout-simple'
+  it('goes above any nav as a banner block with a notices list, without shifting its blocks', () => {
+    const plain = sectionClip(library.clips[id])
+    const c = sectionClip(library.clips[id], undefined, { banner: true })
+    expect(c.blocks.find((b) => b.kind === 'banner')!.id).toBe('x0')
+    expect(c.blocks.find((b) => b.list === 'notices')!.listKey).toBe('notice')
+    for (const b of plain.blocks) expect(c.blocks.find((x) => x.id === b.id)?.label).toBe(b.label)
+    expect(c.patches[0]).toMatchObject({ sel: '[data-mx-section]', before: true })
+    // A nav clipped with its own ticker keeps just that one.
+    expect(sectionClip(library.clips['nav.monolith-bar'], undefined, { banner: true }).blocks.filter((b) => b.kind === 'banner')).toHaveLength(1)
+  })
+  it('exports with its CSS, its words and a fragment in Next.js', async () => {
+    const page = pageFor([slotFor(id, { banner: true })])
+    const s = page.sections[0]
+    expect(s.css).toContain('.mx-banner-group')
+    expect(s.motionCss).toContain('mx-banner-marquee')
+    expect((s.content as { notices: string[] }).notices).toHaveLength(4)
+    const tsx = nextFiles(page)['next/components/sections/NavLayoutSimple.tsx'] as string
+    expect(tsx).toContain('    <>')
+    const { transformWithOxc } = await import('vite')
+    await expect(transformWithOxc(tsx, 'x.tsx', { lang: 'tsx' })).resolves.toBeTruthy()
+    expect(pageFor([slotFor(id, { banner: true, motion: { mode: 'none' } })]).sections[0].motionCss ?? '').not.toContain('mx-banner-marquee')
+  })
+})
+
 describe('content commands', () => {
   beforeEach(() => {
     useStore.getState().resetDemo()
@@ -178,6 +204,16 @@ describe('content commands', () => {
     expect(r.showing).toBe('Your site, remixed.')
     expect(r.choices.filter((c) => c.by === 'agent')).toHaveLength(2)
     expect(useStore.temporal.getState().pastStates).toHaveLength(1)
+  })
+
+  it('adds and removes a banner on the nav', () => {
+    const nav = useStore.getState().slots.find((s) => s.type === 'nav')!
+    const ownBanner = sectionClip(library.clips[nav.clipId]).blocks.some((b) => b.kind === 'banner')
+    const off = runCommand('set_banner', { section: 'nav', on: false }) as { banner: unknown }
+    expect(off.banner).toBeNull()
+    const on = runCommand('set_banner', { section: 'nav', on: true }) as { banner: { block: string } }
+    expect(on.banner.block).toBe(ownBanner ? 'b0' : 'x0')
+    expect(() => runCommand('set_banner', { section: 'hero', on: true })).toThrow(/navs/)
   })
 
   it('edits and writes lists as one undo step each', () => {

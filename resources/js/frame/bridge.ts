@@ -76,7 +76,7 @@ export interface FrameState {
   /** Named icons redrawn in the style guide's set (null = the clip's own icons). */
   icons: { set: string; glyphs: Record<string, string>; overrides: Record<string, string> } | null
   /** Lists you changed: elements to swap in place (everything else re-applies on top). */
-  lists: { sel: string; html: string }[]
+  lists: { sel: string; html: string; before?: boolean }[]
 }
 
 export function postState(

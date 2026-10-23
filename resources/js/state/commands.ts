@@ -387,6 +387,14 @@ const WRITE = {
     const live = findSection(slot.id)
     return { field: i.field, showing: wordsFor(live)[i.field], choices: wordChoices(clip, live, content, i.field).map((c) => ({ text: c.text, kind: c.kind, by: c.option?.by })) }
   },
+  set_banner: (i: CommandInput<'set_banner'>) => {
+    const slot = findSection(i.section)
+    if (slot.type !== 'nav') throw new CommandError('Banners go on navs. Pick the nav section.')
+    useStore.getState().setBanner(slot.id, i.on)
+    const banner = slotClip(findSection(slot.id)).blocks.find((b) => b.kind === 'banner')
+    const hidden = banner ? !!findSection(slot.id).edits?.[slot.clipId]?.[banner.id]?.hidden : true
+    return { banner: !hidden && banner ? { block: banner.id, label: banner.label } : null }
+  },
   edit_list: (i: CommandInput<'edit_list'>) => {
     const slot = findSection(i.section)
     const list = findList(slot, i.list)

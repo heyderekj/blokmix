@@ -128,7 +128,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   useEffect(() => {
     if (!selectedBlock) setSelRect(null)
   }, [selectedBlock])
-  const blocks = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists).blocks : []
+  const blocks = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists, { banner: slot.banner }).blocks : []
   const block = selectedBlock ? blocks.find((b) => b.id === selectedBlock) : undefined
   // Blocks with a pin on them: the frame reports where they are.
   const notes = useStore((s) => s.notes)

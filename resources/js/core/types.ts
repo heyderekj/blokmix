@@ -128,6 +128,8 @@ export interface Slot {
   motion?: SectionMotion
   /** Other ways to say a field's words, kept to switch between (by field). */
   options?: Record<string, WordOption[]>
+  /** Navs: an announcement banner added above the nav (one clipped with its own uses that instead). */
+  banner?: boolean
   /** Repeating items you added, removed or reordered, by list key ("f", "faq", "t1F"). */
   lists?: Record<string, ListItemRef[]>
 }

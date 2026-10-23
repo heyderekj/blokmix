@@ -237,17 +237,22 @@ const BRIDGE = `(function () {
     listKey = key;
     var had = {};
     document.querySelectorAll('[data-mx-b]').forEach(function (el) { had[el.getAttribute('data-mx-b')] = true; });
+    /* Things the section added (a banner) come out, then go back in where they're still wanted. */
+    document.querySelectorAll('[data-mx-extra]').forEach(function (x) { x.remove(); });
     listPatched.forEach(function (sel) { var cur = document.querySelector(sel); if (cur && listOrig[sel]) cur.replaceWith(listOrig[sel].cloneNode(true)); });
     listPatched = [];
     patches.forEach(function (p) {
       var cur = document.querySelector(p.sel);
       if (!cur) return;
-      if (!listOrig[p.sel]) listOrig[p.sel] = cur.cloneNode(true);
       var t = document.createElement('template'); t.innerHTML = p.html;
       var next = t.content.firstElementChild;
       if (!next) return;
-      cur.replaceWith(next);
-      listPatched.push(p.sel);
+      if (p.before) cur.before(next);
+      else {
+        if (!listOrig[p.sel]) listOrig[p.sel] = cur.cloneNode(true);
+        cur.replaceWith(next);
+        listPatched.push(p.sel);
+      }
       /* Items that were already on the page don't play their entrance again; new ones do. */
       next.getAnimations({ subtree: true }).forEach(function (a) {
         var tg = a.effect && a.effect.target, item = tg && tg.closest && tg.closest('[data-mx-b]');
