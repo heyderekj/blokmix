@@ -1,16 +1,20 @@
 // The font library: a curated set of free fonts, organised by vibe the way
-// "Usable Google Fonts" sorts them, from Google Fonts and Fontshare (the
-// Indian Type Foundry's free library). Every one is free for commercial use
-// (SIL OFL on Google Fonts, the ITF Free Font License on Fontshare) and loads
-// from its provider's CSS API, on the canvas and in exported sites alike.
+// "Usable Google Fonts" sorts them, from Google Fonts, Fontshare (the Indian
+// Type Foundry's free library) and Fontsource (open-source fonts that aren't on
+// Google, served by jsDelivr). It includes the open-source families studios
+// and tool makers publish (Vercel's Geist, GitHub's Mona Sans and Monaspace,
+// IBM Plex, iA Writer…), the ones designers keep recommending. Every one is
+// free for commercial use (SIL OFL, or the ITF Free Font License) and loads
+// from its provider, on the canvas and in exported sites alike.
 
 import type { FontSource } from './types'
 
-export type FontVibe = 'display' | 'sans' | 'serif' | 'humanist' | 'rounded' | 'mono' | 'script' | 'hand' | 'retro'
+export type FontVibe = 'studio' | 'display' | 'sans' | 'serif' | 'humanist' | 'rounded' | 'mono' | 'script' | 'hand' | 'retro'
 export type FontRole = 'display' | 'body' | 'mono'
-export type FontProvider = 'google' | 'fontshare'
+export type FontProvider = 'google' | 'fontshare' | 'fontsource'
 
 export const VIBES: { id: FontVibe; label: string; hint: string }[] = [
+  { id: 'studio', label: 'Studios & open source', hint: 'Families studios and tool makers give away: Geist, Mona Sans, Plex, iA Writer…' },
   { id: 'display', label: 'Interesting display', hint: 'Headlines with character' },
   { id: 'sans', label: 'Sans for body', hint: 'Clean, workhorse text' },
   { id: 'serif', label: 'Serifs', hint: 'Editorial and bookish' },
@@ -29,12 +33,15 @@ export interface LibraryFont {
   /** What it's good for; body fonts also work for headings. */
   role: FontRole
   weights: number[]
-  /** Fontshare's id ("general-sans"); Google needs none. */
+  /** Fontshare's or Fontsource's id ("general-sans", "commit-mono"); Google needs none. */
   slug?: string
+  /** Who made it, for the studio and open-source families. */
+  maker?: string
 }
 
 const g = (family: string, vibes: FontVibe[], role: FontRole, weights: number[]): LibraryFont => ({ family, provider: 'google', vibes, role, weights })
 const fs = (family: string, slug: string, vibes: FontVibe[], role: FontRole, weights: number[]): LibraryFont => ({ family, provider: 'fontshare', slug, vibes, role, weights })
+const src = (family: string, slug: string, vibes: FontVibe[], role: FontRole, weights: number[]): LibraryFont => ({ family, provider: 'fontsource', slug, vibes, role, weights })
 const W = (...w: number[]) => w
 
 export const FONT_LIBRARY: LibraryFont[] = [
@@ -204,10 +211,112 @@ export const FONT_LIBRARY: LibraryFont[] = [
   g('Bowlby One', ['retro', 'display'], 'display', W(400)),
   g('Rampart One', ['retro'], 'display', W(400)),
   g('Righteous', ['retro', 'display'], 'display', W(400)),
+
+  // Studios & open source: families studios, companies and tool makers publish for everyone
+  g('Mona Sans', ['sans', 'display'], 'body', W(400, 500, 700)),
+  g('Hubot Sans', ['display', 'sans'], 'display', W(400, 600, 800)),
+  g('IBM Plex Serif', ['serif'], 'body', W(400, 500, 700)),
+  g('Fira Mono', ['mono'], 'mono', W(400, 500, 700)),
+  g('Inconsolata', ['mono'], 'mono', W(400, 600, 700)),
+  g('Recursive', ['sans', 'mono'], 'body', W(400, 600, 800)),
+  g('Overpass', ['sans'], 'body', W(400, 600, 800)),
+  g('Overpass Mono', ['mono'], 'mono', W(400, 600)),
+  g('Ubuntu Sans', ['sans', 'humanist'], 'body', W(400, 500, 700)),
+  g('Ubuntu Sans Mono', ['mono'], 'mono', W(400, 500, 700)),
+  g('Source Code Pro', ['mono'], 'mono', W(400, 500, 700)),
+  g('DM Serif Text', ['serif'], 'body', W(400)),
+  g('Charis SIL', ['serif'], 'body', W(400, 700)),
+  g('Gentium Book Plus', ['serif'], 'body', W(400, 700)),
+  g('Andada Pro', ['serif'], 'body', W(400, 600, 800)),
+  g('STIX Two Text', ['serif'], 'body', W(400, 600, 700)),
+  g('Cascadia Code', ['mono'], 'mono', W(400, 600, 700)),
+  g('Funnel Display', ['display'], 'display', W(400, 600, 800)),
+  g('Funnel Sans', ['sans'], 'body', W(400, 500, 700)),
+  g('Host Grotesk', ['sans'], 'body', W(400, 500, 700)),
+  src('Commit Mono', 'commit-mono', ['mono'], 'mono', W(400, 700)),
+  src('iA Writer Quattro', 'ia-writer-quattro', ['mono', 'sans'], 'body', W(400, 700)),
+  src('iA Writer Duo', 'ia-writer-duo', ['mono'], 'mono', W(400, 700)),
+  src('Monaspace Neon', 'monaspace-neon', ['mono'], 'mono', W(400, 700)),
+  src('Monaspace Argon', 'monaspace-argon', ['mono'], 'mono', W(400, 700)),
+  src('Cooper Hewitt', 'cooper-hewitt', ['sans', 'display'], 'body', W(400, 700)),
+  src('Geist Pixel', 'geist-pixel', ['retro', 'mono'], 'display', W(400)),
+  src('Cal Sans', 'cal-sans', ['display'], 'display', W(400)),
+  src('Fragment Mono', 'fragment-mono', ['mono'], 'mono', W(400)),
 ]
 
-export const PROVIDER_LABEL: Record<FontProvider, string> = { google: 'Google Fonts', fontshare: 'Fontshare' }
-export const PROVIDER_LICENSE: Record<FontProvider, string> = { google: 'SIL Open Font License', fontshare: 'ITF Free Font License' }
+/** Who made the studio and open-source families: the "Studios & open source" collection. */
+const MAKERS: Record<string, string> = {
+  Inter: 'Rasmus Andersson',
+  Geist: 'Vercel',
+  'Geist Mono': 'Vercel',
+  'Geist Pixel': 'Vercel',
+  'Mona Sans': 'GitHub',
+  'Hubot Sans': 'GitHub',
+  'Monaspace Neon': 'GitHub Next',
+  'Monaspace Argon': 'GitHub Next',
+  'IBM Plex Sans': 'IBM',
+  'IBM Plex Serif': 'IBM',
+  'IBM Plex Mono': 'IBM',
+  'Fira Sans': 'Mozilla',
+  'Fira Mono': 'Mozilla',
+  'Fira Code': 'Mozilla',
+  'Source Sans 3': 'Adobe',
+  'Source Serif 4': 'Adobe',
+  'Source Code Pro': 'Adobe',
+  Overpass: 'Red Hat',
+  'Overpass Mono': 'Red Hat',
+  'Red Hat Display': 'Red Hat',
+  'Red Hat Mono': 'Red Hat',
+  'Ubuntu Sans': 'Canonical',
+  'Ubuntu Sans Mono': 'Canonical',
+  'Cascadia Code': 'Microsoft',
+  'JetBrains Mono': 'JetBrains',
+  'iA Writer Quattro': 'iA',
+  'iA Writer Duo': 'iA',
+  'Commit Mono': 'Eigil Nikolajsen',
+  'Cal Sans': 'Cal.com',
+  'Cooper Hewitt': 'Cooper Hewitt Museum',
+  'Fragment Mono': 'Wei Huang',
+  'Work Sans': 'Wei Huang',
+  'Public Sans': 'US Web Design System',
+  Recursive: 'Arrow Type',
+  'Space Grotesk': 'Florian Karsten',
+  'Space Mono': 'Colophon',
+  'DM Sans': 'Colophon',
+  'DM Mono': 'Colophon',
+  'DM Serif Text': 'Colophon',
+  'DM Serif Display': 'Colophon',
+  'Instrument Sans': 'Instrument',
+  'Instrument Serif': 'Instrument',
+  Literata: 'TypeTogether',
+  Spectral: 'Production Type',
+  Alegreya: 'Huerta Tipográfica',
+  'Alegreya Sans': 'Huerta Tipográfica',
+  'Andada Pro': 'Huerta Tipográfica',
+  Piazzolla: 'Huerta Tipográfica',
+  'Charis SIL': 'SIL',
+  'Gentium Book Plus': 'SIL',
+  'STIX Two Text': 'STIX',
+  'Atkinson Hyperlegible': 'Braille Institute',
+  'Funnel Display': 'NONO',
+  'Funnel Sans': 'NONO',
+  'Host Grotesk': 'Element Type',
+  'Bricolage Grotesque': 'Mathieu Triay',
+  'Martian Mono': 'Evil Martians',
+  Figtree: 'Erik Kennedy',
+  Inconsolata: 'Raph Levien',
+}
+for (const f of FONT_LIBRARY) {
+  if (f.provider === 'fontshare') f.maker = 'Indian Type Foundry'
+  const m = MAKERS[f.family]
+  if (m) {
+    f.maker = m
+    if (!f.vibes.includes('studio')) f.vibes.unshift('studio')
+  }
+}
+
+export const PROVIDER_LABEL: Record<FontProvider, string> = { google: 'Google Fonts', fontshare: 'Fontshare', fontsource: 'Fontsource' }
+export const PROVIDER_LICENSE: Record<FontProvider, string> = { google: 'SIL Open Font License', fontshare: 'ITF Free Font License', fontsource: 'SIL Open Font License' }
 
 const plus = (s: string) => s.replace(/ /g, '+')
 
@@ -215,6 +324,7 @@ const plus = (s: string) => s.replace(/ /g, '+')
 export function fontSource(f: LibraryFont): FontSource {
   const w = [...f.weights].sort((a, b) => a - b)
   if (f.provider === 'fontshare') return { family: f.family, css2: '', provider: 'fontshare', fontshare: `${f.slug}@${w.join(',')}` }
+  if (f.provider === 'fontsource') return { family: f.family, css2: '', provider: 'fontsource', fontsource: `${f.slug}@${w.join(',')}` }
   return { family: f.family, css2: w.length === 1 && w[0] === 400 ? plus(f.family) : `${plus(f.family)}:wght@${w.join(';')}` }
 }
 

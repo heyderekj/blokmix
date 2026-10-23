@@ -154,13 +154,21 @@ export function varsToCss(vars: CssVars, selector = ':root'): string {
   return `${selector} {\n${body}\n}`
 }
 
-/** Stylesheet URLs for a set of fonts: one for Google Fonts, one for Fontshare. */
+export const FONTSOURCE_CDN = 'https://cdn.jsdelivr.net/npm/@fontsource'
+
+/** Stylesheet URLs for a set of fonts: one for Google Fonts, one for Fontshare, one per weight for Fontsource. */
 export function fontHrefs(fonts: FontSource[]): string[] {
   const google = fonts.filter((f) => f.provider !== 'fontshare' && f.css2)
   const fontshare = fonts.filter((f) => f.provider === 'fontshare' && f.fontshare)
   const out: string[] = []
   if (google.length) out.push(`https://fonts.googleapis.com/css2?${google.map((f) => `family=${f.css2}`).join('&')}&display=swap`)
   if (fontshare.length) out.push(`https://api.fontshare.com/v2/css?${fontshare.map((f) => `f[]=${f.fontshare}`).join('&')}&display=swap`)
+  // Fontsource publishes a stylesheet per weight.
+  for (const f of fonts) {
+    if (f.provider !== 'fontsource' || !f.fontsource) continue
+    const [id, ws] = f.fontsource.split('@')
+    for (const w of ws.split(',')) out.push(`${FONTSOURCE_CDN}/${id}/${w}.css`)
+  }
   return out
 }
 
@@ -170,6 +178,7 @@ export function fontLinkTags(hrefs: string[], jsx = false): string[] {
   const out: string[] = []
   if (hrefs.some((h) => h.includes('fonts.googleapis.com'))) out.push(`<link rel="preconnect" href="https://fonts.gstatic.com" ${co} />`)
   if (hrefs.some((h) => h.includes('fontshare.com'))) out.push(`<link rel="preconnect" href="https://cdn.fontshare.com" ${co} />`)
+  if (hrefs.some((h) => h.includes('cdn.jsdelivr.net'))) out.push(`<link rel="preconnect" href="https://cdn.jsdelivr.net" ${co} />`)
   for (const h of hrefs) out.push(`<link rel="stylesheet" href="${h.replace(/&/g, '&amp;')}" />`)
   return out
 }

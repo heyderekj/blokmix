@@ -58,9 +58,11 @@ export interface FontSource {
   /** Google Fonts css2 `family=` parameter, e.g. "Fraunces:opsz,wght@9..144,400;9..144,700" */
   css2: string
   /** Where it loads from (Google Fonts unless said otherwise). */
-  provider?: 'google' | 'fontshare'
+  provider?: 'google' | 'fontshare' | 'fontsource'
   /** Fontshare's `f[]=` parameter, e.g. "satoshi@400,500,700". */
   fontshare?: string
+  /** Fontsource package and weights, e.g. "commit-mono@400,700" (one stylesheet per weight on jsDelivr). */
+  fontsource?: string
 }
 
 export interface Source {

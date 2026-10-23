@@ -193,12 +193,12 @@ export const COMMANDS = {
   },
   list_fonts: {
     description:
-      'Browse the free font library (Google Fonts and Fontshare, all free for commercial use), organised by vibe: display, sans, serif, humanist, rounded, mono, script, hand, retro. Filter by role to get faces that suit headings, body text or code. Then set one with set_token.',
+      'Browse the free font library (Google Fonts, Fontshare and Fontsource, all free for commercial use), organised by vibe: studio (open-source families from studios and tool makers), display, sans, serif, humanist, rounded, mono, script, hand, retro. Filter by role to get faces that suit headings, body text or code. Then set one with set_token.',
     input: z.object({
       query: z.string().optional(),
-      vibe: z.enum(['display', 'sans', 'serif', 'humanist', 'rounded', 'mono', 'script', 'hand', 'retro']).optional(),
+      vibe: z.enum(['studio', 'display', 'sans', 'serif', 'humanist', 'rounded', 'mono', 'script', 'hand', 'retro']).optional().describe('"studio": open-source families from studios and tool makers (Geist, Mona Sans, Plex, iA Writer…)'),
       role: z.enum(['display', 'body', 'mono']).optional(),
-      source: z.enum(['google', 'fontshare']).optional(),
+      source: z.enum(['google', 'fontshare', 'fontsource']).optional(),
     }),
     write: false,
   },

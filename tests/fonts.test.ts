@@ -33,6 +33,15 @@ describe('font library', () => {
     expect(fontSource(FONT_LIBRARY.find((f) => f.family === 'Anton')!).css2).toBe('Anton')
   })
 
+  it('includes the open-source families studios publish, credited, and loads Fontsource ones per weight', () => {
+    const studio = searchFonts({ vibe: 'studio' })
+    expect(studio.find((f) => f.family === 'Geist')?.maker).toBe('Vercel')
+    expect(studio.find((f) => f.family === 'Monaspace Neon')?.provider).toBe('fontsource')
+    const hrefs = fontHrefs([fontSource(FONT_LIBRARY.find((f) => f.family === 'Commit Mono')!)])
+    expect(hrefs).toEqual(['https://cdn.jsdelivr.net/npm/@fontsource/commit-mono/400.css', 'https://cdn.jsdelivr.net/npm/@fontsource/commit-mono/700.css'])
+    expect(fontLinkTags(hrefs).join('\n')).toContain('preconnect" href="https://cdn.jsdelivr.net"')
+  })
+
   it('exports link both stylesheets', () => {
     const base = resolveGuide(emptyGuide())
     const guide = { ...base, tokens: { ...base.tokens, 'font.display': fontStack('Satoshi', 'display') } }

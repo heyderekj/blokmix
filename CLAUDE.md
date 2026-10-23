@@ -135,8 +135,9 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
 
 ### Fonts
 
-The style guide's fonts come from your clips or the font library (`core/fonts.ts`): ~150 free fonts from
-Google Fonts and Fontshare (free for commercial use), sorted by vibe after "Usable Google Fonts". The picker
+The style guide's fonts come from your clips or the font library (`core/fonts.ts`): ~180 free fonts from
+Google Fonts, Fontshare and Fontsource (free for commercial use), sorted by vibe after "Usable Google Fonts",
+plus a "Studios & open source" collection crediting each maker (Vercel's Geist, GitHub's Mona Sans, IBM Plex…). The picker
 previews each in your brand name (Pica-style), hover previews on the page, and agents use `list_fonts` +
 `set_token`. Frames and exports load one stylesheet per provider (`fontHrefs`). `npx vite-node
 scripts/check-fonts.ts` checks every library font still loads.

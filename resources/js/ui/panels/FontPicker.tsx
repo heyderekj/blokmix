@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronDown, Search } from 'lucide-react'
 import type { FontSource, TokenKey } from '@/core/types'
 import { FONT_LIBRARY, PROVIDER_LABEL, VIBES, fontStack, type FontProvider, type FontRole, type FontVibe, type LibraryFont } from '@/core/fonts'
-import { primaryFamily } from '@/core/tokens'
+import { FONTSOURCE_CDN, primaryFamily } from '@/core/tokens'
 import { resolveGuide } from '@/core/guide'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
@@ -27,6 +27,7 @@ const loaded = new Set<string>()
 function loadPreview(row: Row, text: string) {
   let href: string
   if (row.provider === 'fontshare') href = `https://api.fontshare.com/v2/css?f[]=${row.lib!.slug}@${row.lib!.weights.join(',')}&display=swap`
+  else if (row.provider === 'fontsource') href = `${FONTSOURCE_CDN}/${row.lib!.slug}/400.css`
   else {
     // Google can send just the letters a preview needs: tiny, fast files.
     const fam = row.clip?.css2 ?? row.family.replace(/ /g, '+')
@@ -155,7 +156,7 @@ function FontPicker({ k, current, onPick, onClose }: { k: TokenKey; current: str
           ))}
         </div>
         <div className="flex items-center gap-1 text-[11px] text-zinc-500">
-          {(['all', 'google', 'fontshare'] as const).map((p) => (
+          {(['all', 'google', 'fontshare', 'fontsource'] as const).map((p) => (
             <button key={p} type="button" onClick={() => setProvider(p)} className={`rounded-md px-1.5 py-0.5 font-semibold transition ${provider === p ? 'bg-zinc-950/[0.07] text-zinc-900' : 'hover:text-zinc-900'}`}>
               {p === 'all' ? 'Every source' : PROVIDER_LABEL[p]}
             </button>
@@ -182,7 +183,7 @@ function FontPicker({ k, current, onPick, onClose }: { k: TokenKey; current: str
         {!rows.length && <p className="px-2 py-4 text-[12px] text-zinc-500">No free font called “{q}”. Try another name or a different vibe.</p>}
       </div>
       <p className="border-t border-zinc-950/6 px-3 py-2 text-[10.5px] leading-snug text-zinc-400">
-        All free for commercial use: Google Fonts under the SIL Open Font License, Fontshare under the ITF Free Font License. Exports load them from the same places.
+        All free for commercial use: Google Fonts and Fontsource under the SIL Open Font License, Fontshare under the ITF Free Font License. Exports load them from the same places.
       </p>
     </div>
   )
@@ -196,7 +197,7 @@ function FontRow({ row, sample, text, display, on, onHover, onPick }: { row: Row
     if (!el) return
     const io = new IntersectionObserver((es) => {
       if (es.some((e) => e.isIntersecting)) {
-        loadPreview(row, text + row.family)
+        loadPreview(row, text + row.family + 'Aa')
         io.disconnect()
       }
     })
@@ -210,8 +211,16 @@ function FontRow({ row, sample, text, display, on, onHover, onPick }: { row: Row
       onMouseEnter={onHover}
       onFocus={onHover}
       onClick={onPick}
-      className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition active:scale-[0.99] ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
+      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition active:scale-[0.99] ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
     >
+      {/* The font's character at a glance, the way font managers show it. */}
+      <span
+        aria-hidden
+        className={`grid size-11 shrink-0 place-items-center rounded-[10px] text-[21px] leading-none ring-1 ${on ? 'bg-zinc-900 text-white ring-zinc-900' : 'bg-zinc-950/[0.035] text-zinc-900 ring-zinc-950/[0.06]'}`}
+        style={{ fontFamily: `'${row.family}', system-ui` }}
+      >
+        Aa
+      </span>
       <span className="min-w-0 flex-1">
         <span className={`block truncate leading-tight text-zinc-900 ${display ? 'text-[22px]' : 'text-[14.5px]'}`} style={{ fontFamily: `'${row.family}', system-ui` }}>
           {sample}
@@ -221,7 +230,7 @@ function FontRow({ row, sample, text, display, on, onHover, onPick }: { row: Row
             {row.family}
           </span>
           <span>·</span>
-          <span>{row.clip ? 'From your clips' : PROVIDER_LABEL[row.provider]}</span>
+          <span className="truncate">{row.clip ? 'From your clips' : (row.lib?.maker && row.lib.provider !== 'fontshare' ? row.lib.maker : PROVIDER_LABEL[row.provider])}</span>
           <span>·</span>
           <span>
             {row.styles} weight{row.styles > 1 ? 's' : ''}

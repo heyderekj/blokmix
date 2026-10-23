@@ -262,7 +262,7 @@ const READ = {
     const fonts = searchFonts({ query: i.query, vibe: i.vibe, role: i.role, provider: i.source })
     return {
       count: fonts.length,
-      fonts: fonts.map((f) => ({ family: f.family, source: PROVIDER_LABEL[f.provider], license: PROVIDER_LICENSE[f.provider], vibes: f.vibes, goodFor: f.role, weights: f.weights })),
+      fonts: fonts.map((f) => ({ family: f.family, by: f.maker ?? null, source: PROVIDER_LABEL[f.provider], license: PROVIDER_LICENSE[f.provider], vibes: f.vibes, goodFor: f.role, weights: f.weights })),
       current: Object.fromEntries((['font.display', 'font.body', 'font.mono'] as const).map((k) => [k, resolveGuide(useStore.getState().guide).tokens[k]])),
     }
   },
