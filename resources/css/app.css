@@ -185,7 +185,7 @@
 
   /* The desk the canvas sits on: Koati's linen paper. */
   --canvas-bg: hsl(40 22% 95%);
-  --canvas-dot: hsl(40 10% 80%);
+  --canvas-dot: hsl(40 9% 81%);
   --header-bg: rgb(255 255 255 / 0.86);
   --header-border: rgb(0 0 0 / 0.06);
   color-scheme: light;

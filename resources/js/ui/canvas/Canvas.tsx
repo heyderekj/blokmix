@@ -63,21 +63,62 @@ export function Canvas({ children }: { children: ReactNode }) {
   const saveTimer = useRef<number>(0)
   const animating = useRef(false)
 
-  const apply = useCallback((c: Camera, animate = false) => {
-    cam.current = c
+  const tween = useRef(0)
+  const landTimer = useRef<number>(0)
+
+  // Paint one camera position: the world transform and the dot grid move together.
+  const paint = useCallback((c: Camera) => {
     const w = world.current
     const r = root.current
     if (!w || !r) return
-    w.style.transition = animate ? 'transform 560ms cubic-bezier(0.16, 1, 0.3, 1)' : 'none'
     w.style.transform = `translate(${c.x}px, ${c.y}px) scale(${c.z})`
     w.style.setProperty('--z', String(c.z))
-    const dot = 24 * c.z < 8 ? 24 * c.z * 4 : 24 * c.z
-    r.style.backgroundSize = `${dot}px ${dot}px`
-    r.style.backgroundPosition = `${c.x}px ${c.y}px`
-    animating.current = animate
-    window.clearTimeout(saveTimer.current)
-    saveTimer.current = window.setTimeout(() => useStore.getState().setCamera(c), 300)
+    const g = dotGrid(c)
+    r.style.backgroundImage = g.image
+    r.style.backgroundSize = g.size
+    r.style.backgroundPosition = g.position
   }, [])
+
+  const apply = useCallback(
+    (c: Camera, animate = false) => {
+      cancelAnimationFrame(tween.current)
+      const from = cam.current
+      cam.current = c
+      animating.current = animate
+      if (!animate) paint(c)
+      else {
+        // Animate in JS, not CSS, so the grid stays locked to the canvas every frame.
+        const start = performance.now()
+        const D = 520
+        const lz0 = Math.log(from.z)
+        const lz1 = Math.log(c.z)
+        const step = (now: number) => {
+          const t = Math.min(1, (now - start) / D)
+          const e = 1 - Math.pow(1 - t, 4)
+          // Zoom interpolates in log space, so 25% → 100% feels as even as 100% → 400%.
+          const z = Math.exp(lz0 + (lz1 - lz0) * e)
+          const x = from.x + (c.x - from.x) * e
+          const y = from.y + (c.y - from.y) * e
+          paint({ x, y, z })
+          if (t < 1) tween.current = requestAnimationFrame(step)
+          else animating.current = false
+        }
+        tween.current = requestAnimationFrame(step)
+        // Background tabs pause animation frames; always land on the destination.
+        window.clearTimeout(landTimer.current)
+        landTimer.current = window.setTimeout(() => {
+          if (cam.current === c) {
+            cancelAnimationFrame(tween.current)
+            paint(c)
+            animating.current = false
+          }
+        }, D + 120)
+      }
+      window.clearTimeout(saveTimer.current)
+      saveTimer.current = window.setTimeout(() => useStore.getState().setCamera(c), 300)
+    },
+    [paint],
+  )
 
   // Public API used by the toolbar, zoom controls and shortcuts.
   useEffect(() => {
@@ -251,7 +292,6 @@ export function Canvas({ children }: { children: ReactNode }) {
       className="absolute inset-0 overflow-hidden select-none"
       style={{
         cursor,
-        backgroundImage: 'radial-gradient(circle, var(--canvas-dot) 1.1px, transparent 1.3px)',
         touchAction: 'none',
       }}
       onPointerDown={onPointerDown}
@@ -284,3 +324,25 @@ export function Canvas({ children }: { children: ReactNode }) {
 }
 
 export { MIX_ID }
+
+/**
+ * Two dot grids, four times apart, cross-fading as you zoom: the fine one fades
+ * out as its dots crowd together just as the coarse one is already there, so
+ * spacing on screen always stays between 16 and 64px and never jumps.
+ */
+const BASE = 24
+const MIN = 16
+export function dotGrid(c: Camera) {
+  const raw = BASE * c.z
+  const level = Math.max(0, Math.ceil(Math.log(MIN / raw) / Math.log(4)))
+  const fine = raw * Math.pow(4, level)
+  const coarse = fine * 4
+  const fade = Math.min(1, Math.max(0, (fine - MIN) / 28))
+  const dot = (alpha: number, r: number) =>
+    `radial-gradient(circle, color-mix(in srgb, var(--canvas-dot) ${Math.round(alpha * 100)}%, transparent) ${r}px, transparent ${r + 0.35}px)`
+  return {
+    image: `${dot(1, 1.1)}, ${dot(fade, 1.1)}`,
+    size: `${coarse}px ${coarse}px, ${fine}px ${fine}px`,
+    position: `${c.x}px ${c.y}px, ${c.x}px ${c.y}px`,
+  }
+}
