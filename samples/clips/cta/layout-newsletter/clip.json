@@ -1,0 +1,12 @@
+{
+  "title": "Newsletter sign-up",
+  "layoutPattern": "centered-email-capture",
+  "rhythm": "centered",
+  "motionNotes": "The envelope mark pops in, then copy and the email form rise in a short stagger; the field rings softly on focus.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

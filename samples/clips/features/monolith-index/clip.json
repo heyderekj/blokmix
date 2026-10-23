@@ -1,11 +1,15 @@
 {
   "title": "Numbered spec-sheet index",
   "layoutPattern": "numbered-row-index",
+  "rhythm": "stack",
   "motionNotes": "The eyebrow tag and giant heading stamp in with a hard overshoot, then the six rows slam in from the left one after another; the tag’s square blinks like a cursor. Rows invert to the primary color on hover and their arrows snap to a diagonal.",
   "capture": {
     "path": "/how-we-stock",
     "selector": "main > section.spec-index",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-16T09:18:00Z"
   }
 }

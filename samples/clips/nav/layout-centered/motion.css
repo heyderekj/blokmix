@@ -1,0 +1,19 @@
+.mx-nav-layout-centered {
+  & .brand { animation: mx-nav-layout-centered-pop var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .links, & .cta { animation: mx-nav-layout-centered-fade calc(var(--mx-motion-duration) * 1.5) var(--mx-motion-ease) both; animation-delay: 120ms; }
+  & .mark { animation: mx-nav-layout-centered-pulse 3.2s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .brand, & .links, & .cta, & .mark { animation: none; }
+  }
+}
+@keyframes mx-nav-layout-centered-pop {
+  from { opacity: 0; transform: scale(0.94); }
+}
+@keyframes mx-nav-layout-centered-fade {
+  from { opacity: 0; }
+}
+@keyframes mx-nav-layout-centered-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.7); }
+}

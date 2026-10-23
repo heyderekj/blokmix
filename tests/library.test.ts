@@ -20,3 +20,20 @@ describe('sample library', () => {
     for (const t of SECTION_TYPES) expect(library.byType[t].length, t).toBeGreaterThan(0)
   })
 })
+
+describe('built-in layouts', () => {
+  it('every section type has at least one layout', () => {
+    for (const t of SECTION_TYPES) expect(library.layoutsByType[t].length, t).toBeGreaterThan(0)
+  })
+
+  it('every clip and layout declares a rhythm', () => {
+    for (const c of Object.values(library.clips)) expect(c.rhythm, c.id).toBeTruthy()
+  })
+
+  it('lists your clips before layouts', () => {
+    for (const t of SECTION_TYPES) {
+      const origins = library.byType[t].map((id) => library.clips[id].origin)
+      expect(origins.indexOf('layout') === -1 || origins.lastIndexOf('clip') < origins.indexOf('layout'), t).toBe(true)
+    }
+  })
+})

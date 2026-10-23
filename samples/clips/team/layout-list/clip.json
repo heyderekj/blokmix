@@ -1,0 +1,12 @@
+{
+  "title": "Team list",
+  "layoutPattern": "hairline-rows",
+  "rhythm": "stack",
+  "motionNotes": "Header rises, then rows cascade in; rows tint softly on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

@@ -1,5 +1,6 @@
 {
   "id": "monolith",
+  "kind": "site",
   "name": "Monolith Supply",
   "url": "https://monolith.example/",
   "personality": "Brutalist hardware store: white paper, 2px black rules, hi-vis yellow, square corners, hard offset shadows, mono body, snappy unapologetic motion.",
@@ -26,7 +27,13 @@
     "motion.ease": "cubic-bezier(0, 0, 1, 1)"
   },
   "fonts": [
-    { "family": "Archivo Black", "css2": "Archivo+Black" },
-    { "family": "Space Mono", "css2": "Space+Mono:ital,wght@0,400;0,700;1,400" }
+    {
+      "family": "Archivo Black",
+      "css2": "Archivo+Black"
+    },
+    {
+      "family": "Space Mono",
+      "css2": "Space+Mono:ital,wght@0,400;0,700;1,400"
+    }
   ]
 }

@@ -1,0 +1,12 @@
+{
+  "title": "Stat cards",
+  "layoutPattern": "stat-cards-4up",
+  "rhythm": "grid",
+  "motionNotes": "Header rises, cards follow in a stagger and the little bar charts grow from the baseline; cards lift with a soft shadow on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

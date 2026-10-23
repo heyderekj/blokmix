@@ -1,11 +1,15 @@
 {
   "title": "Usage tiers in one hairline panel",
   "layoutPattern": "three-tier-joined-panel",
+  "rhythm": "grid",
   "motionNotes": "Header and tiers rise in a stagger, feature rows slide in after; the recommended tier’s glowing border breathes on a slow loop.",
   "capture": {
     "path": "/pricing",
     "selector": "main > section#plans",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-16T21:51:00Z"
   }
 }

@@ -1,0 +1,12 @@
+{
+  "title": "Bento feature grid",
+  "layoutPattern": "bento-grid-3col",
+  "rhythm": "grid",
+  "motionNotes": "Header and cards rise in a stagger; the square in the ring slowly turns and the picked slot sways in place; cards lift a touch on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

@@ -1,11 +1,15 @@
 {
   "title": "Editorial chapters in ruled columns",
   "layoutPattern": "three-column-ruled-grid",
+  "rhythm": "grid",
   "motionNotes": "Heading and drop-cap intro rise in a gentle stagger, the heavy top rule inks in, then the six chapters fade upward one by one. On hover a chapter’s top rule draws across in the primary ink and its numeral warms to the accent.",
   "capture": {
     "path": "/",
     "selector": "main > section.chapters",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-14T16:22:00Z"
   }
 }

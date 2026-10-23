@@ -1,0 +1,14 @@
+.mx-nav-layout-pill {
+  & .pill { animation: mx-nav-layout-pill-drop calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; }
+  & .pill > * { animation: mx-nav-layout-pill-fade var(--mx-motion-duration) var(--mx-motion-ease) both; animation-delay: 180ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .pill, & .pill > * { animation: none; }
+  }
+}
+@keyframes mx-nav-layout-pill-drop {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+}
+@keyframes mx-nav-layout-pill-fade {
+  from { opacity: 0; }
+}

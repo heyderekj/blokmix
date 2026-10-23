@@ -1,0 +1,24 @@
+.mx-testimonials-nightowl-marquee {
+  & .track { animation: mx-testimonials-nightowl-marquee-scroll 32s linear infinite; }
+  & .marquee:hover .track { animation-play-state: paused; }
+
+  & .head > * { animation: mx-testimonials-nightowl-marquee-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 80ms; }
+  & .stat { animation: mx-testimonials-nightowl-marquee-rise calc(var(--mx-motion-duration) * 1.5) var(--mx-motion-ease) both; }
+  & .stat:nth-child(2) { animation-delay: 90ms; }
+  & .stat:nth-child(3) { animation-delay: 180ms; }
+  & .stat::before { animation: mx-testimonials-nightowl-marquee-glow 2.8s ease-in-out infinite alternate; }
+  & .quote { animation: mx-testimonials-nightowl-marquee-rise calc(var(--mx-motion-duration) * 1.5) var(--mx-motion-ease) 240ms both; }
+  & .quote:nth-child(2) { animation-delay: 330ms; }
+  & .quote:nth-child(3) { animation-delay: 420ms; }
+}
+@keyframes mx-testimonials-nightowl-marquee-scroll {
+  to { transform: translateX(-50%); }
+}
+@keyframes mx-testimonials-nightowl-marquee-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+@keyframes mx-testimonials-nightowl-marquee-glow {
+  from { width: 28px; opacity: 0.7; }
+  to { width: 56px; opacity: 1; }
+}

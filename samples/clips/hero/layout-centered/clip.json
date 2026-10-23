@@ -1,0 +1,12 @@
+{
+  "title": "Centered statement",
+  "layoutPattern": "centered-headline-two-ctas",
+  "rhythm": "centered",
+  "motionNotes": "Eyebrow, headline, subhead, buttons and note rise in a gentle stagger; a faint accent glow behind the headline breathes on a slow loop.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Product shot",
+  "layoutPattern": "centered-copy-over-product-window",
+  "rhythm": "stack",
+  "motionNotes": "Copy rises in a stagger, then the app window slides up from below the fold and its chart bars grow into place.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

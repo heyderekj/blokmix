@@ -11,7 +11,7 @@ const SEED_PICKS: [SectionType, string][] = [
   ['nav', 'nav.monolith-bar'],
   ['hero', 'hero.marginalia-split'],
   ['features', 'features.puffin-bento'],
-  ['proof', 'proof.nightowl-marquee'],
+  ['testimonials', 'testimonials.nightowl-marquee'],
   ['pricing', 'pricing.puffin-toggle'],
   ['footer', 'footer.monolith-mega'],
 ]
@@ -19,7 +19,7 @@ const SEED_PICKS: [SectionType, string][] = [
 const SEED_PROMOTIONS: [string, 'color' | 'type' | 'shape'][] = [
   ['features.puffin-bento', 'color'],
   ['hero.marginalia-split', 'color'],
-  ['proof.nightowl-marquee', 'type'],
+  ['testimonials.nightowl-marquee', 'type'],
   ['hero.marginalia-split', 'type'],
   ['nav.monolith-bar', 'shape'],
   ['features.puffin-bento', 'shape'],

@@ -1,0 +1,12 @@
+{
+  "title": "Text with media",
+  "layoutPattern": "split-text-media",
+  "rhythm": "split",
+  "motionNotes": "Text rises in a stagger while the media frame scales in; the quote callout lands last.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

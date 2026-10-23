@@ -1,11 +1,15 @@
 {
   "title": "Three tiers with gradient featured card and billing toggle",
   "layoutPattern": "three-tier-featured-center",
+  "rhythm": "grid",
   "motionNotes": "Header springs in and the pill toggle pops on; tier cards pop in staggered and the featured card floats on a loop with a twinkling sparkle. The toggle thumb slides with a springy ease and prices bounce in when the billing period changes. Two blurred gradient blobs drift behind.",
   "capture": {
     "path": "/pricing",
     "selector": "main > section.plans",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-16T10:51:00Z"
   }
 }

@@ -327,7 +327,7 @@ export function SectionRail({ slot, index, focused }: { slot: Slot; index: numbe
       />
       {/* the label, at screen size */}
       <div
-        className="absolute right-[calc(14px/var(--z))] top-[calc(6px/var(--z))] origin-top-right"
+        className="absolute right-[calc(14px/var(--z))] top-[calc(14px/var(--z))] origin-top-right"
         style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}
       >
         <div className="flex w-5 flex-col items-center gap-1.5">

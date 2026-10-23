@@ -1,0 +1,12 @@
+{
+  "title": "Single plan beside copy",
+  "layoutPattern": "single-plan-split",
+  "rhythm": "split",
+  "motionNotes": "Copy rises in a short stagger, the plan card follows and its features fade in one by one; the button lifts on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

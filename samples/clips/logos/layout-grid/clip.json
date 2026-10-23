@@ -1,0 +1,12 @@
+{
+  "title": "Heading with logo grid",
+  "layoutPattern": "heading-left-logo-grid-4x2",
+  "rhythm": "grid",
+  "motionNotes": "Heading rises, then the wordmarks fade and settle into their cells one by one; a cell tints and its mark darkens on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

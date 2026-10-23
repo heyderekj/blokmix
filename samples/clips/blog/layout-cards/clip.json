@@ -1,0 +1,12 @@
+{
+  "title": "Post cards",
+  "layoutPattern": "three-post-cards",
+  "rhythm": "grid",
+  "motionNotes": "Header rises, then the three cards stagger in; cards lift on hover and the all-posts arrow nudges.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

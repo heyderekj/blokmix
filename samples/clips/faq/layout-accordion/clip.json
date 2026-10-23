@@ -1,0 +1,12 @@
+{
+  "title": "Centered accordion",
+  "layoutPattern": "centered-accordion",
+  "rhythm": "stack",
+  "motionNotes": "Header and questions rise in a short stagger; opening a question turns its plus into a filled minus and fades the answer in.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

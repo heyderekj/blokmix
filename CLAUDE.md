@@ -20,8 +20,10 @@ Inertia on Laravel Cloud later.
 - `resources/js/state/`: zustand store (persist + zundo undo)
 - `resources/js/frame/`: sandboxed iframe rendering + postMessage bridge
 - `resources/js/ui/`: canvas, frames, panels
-- `samples/sources/*.json`: fictional source sites (`*.example`) and their tokens
-- `samples/clips/<type>/<source>-<variant>/`: `clip.html`, `clip.css`, `motion.css` (optional), `clip.json`
+- `samples/sources/*.json`: fictional source sites (`*.example`, `kind: "site"`) and Mixtape's built-in
+  layouts (`layout.json`, `kind: "layout"`), with their tokens
+- `samples/clips/<type>/<source>-<variant>/`: `clip.html`, `clip.css`, `motion.css` (optional), `clip.json`.
+  Built-in layouts use the `layout` source: `samples/clips/<type>/layout-<variant>/`.
 
 ## Clip authoring rules (enforced by `core/lint.ts`, checked in `npm test`)
 
@@ -50,6 +52,17 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
    between inline elements (JSX drops it).
 10. Use typographic quotes (’ “ ”). Avoid `{` `}` in text unless inside `<pre>`/`<code>`.
 11. Each clip must look right at 1440px and 390px (nest `@media (max-width: 760px)` inside the root).
+12. `clip.json` sets `rhythm` (`centered | split | grid | stack | band`): the section's dominant shape.
+    Suggestions use it to pick layouts that contrast with their neighbours.
+
+### Built-in layouts
+
+Layouts are clips from the `layout` source: polished neutral structure (Inter, near-black on white,
+10px radius, generous spacing, one quiet pink accent used sparingly). They follow every rule above,
+fill every field in their type's schema where it makes sense, avoid any brand name in static text, and
+use CSS/SVG placeholders for imagery (soft surface-coloured blocks with subtle shapes, avatars as
+initials or gradient circles from tokens). They must look finished under the neutral tokens AND under
+every site's tokens, since in "Your style" they take the user's style guide.
 
 ### Token variables
 

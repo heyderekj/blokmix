@@ -1,0 +1,12 @@
+{
+  "title": "Plan comparison table",
+  "layoutPattern": "comparison-table",
+  "rhythm": "grid",
+  "motionNotes": "Header rises, the table follows and its checks pop in together; rows tint on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

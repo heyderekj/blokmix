@@ -1,0 +1,12 @@
+{
+  "title": "Split with form",
+  "layoutPattern": "split-details-form",
+  "rhythm": "split",
+  "motionNotes": "Text column rises in a short stagger; the form card follows. Inputs ring on focus, the button lifts on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

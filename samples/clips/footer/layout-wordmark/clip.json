@@ -1,0 +1,12 @@
+{
+  "title": "Big wordmark",
+  "layoutPattern": "cta-columns-giant-wordmark",
+  "rhythm": "stack",
+  "motionNotes": "The CTA heading and button rise in, the link columns fade up, and the oversized wordmark slides up from the bottom edge last. Links pick up the accent on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

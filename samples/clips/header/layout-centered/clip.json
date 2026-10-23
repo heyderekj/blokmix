@@ -1,0 +1,12 @@
+{
+  "title": "Centered page header",
+  "layoutPattern": "centered-page-header",
+  "rhythm": "centered",
+  "motionNotes": "Eyebrow, heading, intro and button rise in a short stagger on load; the button lifts on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

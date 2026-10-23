@@ -363,6 +363,12 @@ body {
   background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, color-mix(in srgb, currentColor 14%, transparent) 3px, color-mix(in srgb, currentColor 14%, transparent) 4px);
 }
 
+/* Horizontal scrollers fade at their edges, so a cut-off card reads as "more this way", not a clipping bug. */
+.fade-x {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 28px), transparent);
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .thin-scroll { scrollbar-width: thin; scrollbar-color: color-mix(in oklab, currentColor 20%, transparent) transparent; }

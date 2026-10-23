@@ -24,7 +24,7 @@ export function Dock() {
   // On a section (and nothing else open), the dock grows that section's alternatives.
   const focused = useStore((s) => (s.ui.sheet === 'none' ? s.slots.find((x) => x.id === s.ui.focusedSlotId) : undefined))
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3">
+    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3" data-dock>
       <FirstRunTip />
       <Island
         open={open || !!focused}

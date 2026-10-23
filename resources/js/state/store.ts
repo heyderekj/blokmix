@@ -17,10 +17,11 @@ import type {
   TokenKey,
   VersionNode,
 } from '@/core/types'
-import { DEFAULT_KEEP, TOKEN_GROUPS } from '@/core/types'
+import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, promote, removeCandidate } from '@/core/guide'
 import { autoTitle, descendants, nextLetter } from '@/core/versions'
 import { library } from '@/data/library'
+import { suggestClip } from '@/core/suggest'
 import { buildSeed } from './seed'
 import { snapshotOf } from './snapshot'
 
@@ -216,11 +217,12 @@ export const useStore = create<State>()(
           addSlot: (type, clipId, atIndex) =>
             set((st) => {
               const id = uid('slot')
-              const slot: Slot = { id, type, clipId: clipId ?? library.byType[type][0], locked: false, keep: { ...DEFAULT_KEEP } }
-              if (!slot.clipId) return {}
-              const slots = [...st.slots]
               const focused = st.slots.findIndex((s) => s.id === st.ui.focusedSlotId)
               const at = atIndex ?? (focused >= 0 ? focused + 1 : defaultIndexFor(type, st.slots))
+              // With no clip named, take the one that suits this spot best.
+              const slot: Slot = { id, type, clipId: clipId ?? suggestClip(type, st.slots, at, library)[0]?.clipId, locked: false, keep: { ...DEFAULT_KEEP } }
+              if (!slot.clipId) return {}
+              const slots = [...st.slots]
               slots.splice(at, 0, slot)
               return { slots, ui: { ...st.ui, focusedSlotId: id, selectedFrameId: 'mix' } }
             }),
@@ -366,7 +368,14 @@ export const useStore = create<State>()(
         camera: s.camera,
       }),
       merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<State>
+        // "proof" sections became "testimonials": rewrite ids and types in saved tapes.
+        const migrated = JSON.parse(
+          JSON.stringify(persisted ?? {})
+            .replace(/"proof\./g, '"testimonials.')
+            .replace(/"type":"proof"/g, '"type":"testimonials"')
+            .replace(/mx-proof-/g, 'mx-testimonials-'),
+        )
+        const p = migrated as Partial<State>
         const merged = { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } } as State
         // Drop anything that points at clips that no longer exist in the sample library.
         merged.slots = (merged.slots ?? []).filter((s) => library.clips[s.clipId])
@@ -381,7 +390,7 @@ export const useStore = create<State>()(
   ),
 )
 
-const TYPE_ORDER: SectionType[] = ['nav', 'hero', 'features', 'proof', 'pricing', 'footer']
+const TYPE_ORDER: SectionType[] = [...SECTION_TYPES]
 function defaultIndexFor(type: SectionType, slots: Slot[]): number {
   const rank = TYPE_ORDER.indexOf(type)
   const i = slots.findIndex((s) => TYPE_ORDER.indexOf(s.type) > rank)

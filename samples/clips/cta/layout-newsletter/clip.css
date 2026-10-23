@@ -1,0 +1,142 @@
+.mx-cta-layout-newsletter {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  font-family: var(--mx-font-body);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .inner {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  & .mark {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--mx-space-6);
+    border: 1px solid var(--mx-color-border);
+    border-radius: var(--mx-radius);
+    background: var(--mx-color-surface);
+    color: var(--mx-color-text);
+    box-shadow: var(--mx-shadow-card);
+  }
+  & .eyebrow {
+    font-size: var(--mx-text-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--mx-color-muted);
+  }
+  & .heading {
+    margin-top: var(--mx-space-4);
+    max-width: 18ch;
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.6vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  & .body {
+    margin-top: var(--mx-space-4);
+    max-width: 44ch;
+    font-size: var(--mx-text-lg);
+    line-height: 1.55;
+    color: var(--mx-color-muted);
+    text-wrap: pretty;
+  }
+
+  /* Email form */
+  & .form {
+    margin-top: var(--mx-space-7);
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    gap: var(--mx-space-2);
+    padding: var(--mx-space-1);
+    border: 1px solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+    background: var(--mx-color-surface);
+    transition: border-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .form:focus-within {
+    border-color: color-mix(in oklab, var(--mx-color-text) 35%, var(--mx-color-border));
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--mx-color-text) 8%, transparent);
+  }
+  & .input {
+    flex: 1;
+    min-width: 0;
+    padding: var(--mx-space-3) var(--mx-space-4);
+    border: 0;
+    border-radius: var(--mx-radius);
+    background: transparent;
+    color: var(--mx-color-text);
+    font-size: var(--mx-text-base);
+    outline: none;
+  }
+  & .input::placeholder { color: var(--mx-color-muted); opacity: 1; }
+  & .submit {
+    flex: none;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius);
+    background: var(--mx-color-primary);
+    color: var(--mx-color-on-primary);
+    font-size: var(--mx-text-base);
+    font-weight: 600;
+    transition: background var(--mx-motion-duration) var(--mx-motion-ease), transform var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .submit:hover { background: color-mix(in oklab, var(--mx-color-primary) 88%, var(--mx-color-text)); }
+  & .submit:active { transform: scale(0.98); }
+  & .submit:focus-visible { outline: 2px solid var(--mx-color-primary); outline-offset: 2px; }
+
+  & .meta {
+    margin-top: var(--mx-space-5);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mx-space-3);
+    font-size: var(--mx-text-sm);
+    color: var(--mx-color-muted);
+  }
+  & .sep {
+    width: 4px;
+    height: 4px;
+    border-radius: var(--mx-radius-pill);
+    background: var(--mx-color-accent);
+  }
+  & .link {
+    color: var(--mx-color-text);
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--mx-color-text) 30%, transparent);
+    text-underline-offset: 3px;
+    transition: text-decoration-color var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .link:hover { text-decoration-color: currentColor; }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-4);
+    & .heading { font-size: clamp(var(--mx-text-2xl), 8vw, var(--mx-text-3xl)); }
+    & .body { font-size: var(--mx-text-base); }
+    & .form {
+      flex-direction: column;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      gap: var(--mx-space-3);
+    }
+    & .form:focus-within { box-shadow: none; }
+    & .input {
+      border: 1px solid var(--mx-color-border);
+      background: var(--mx-color-surface);
+      text-align: center;
+    }
+    & .input:focus { border-color: color-mix(in oklab, var(--mx-color-text) 35%, var(--mx-color-border)); }
+    & .meta { flex-direction: column; gap: var(--mx-space-2); }
+    & .sep { display: none; }
+  }
+}

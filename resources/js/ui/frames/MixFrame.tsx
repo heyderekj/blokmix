@@ -1,14 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Disc3, Eye, Plus } from 'lucide-react'
-import { SECTION_TYPES } from '@/core/types'
-import { TYPE_LABEL } from '@/core/content'
 import { snapshotKey } from '@/core/versions'
-import { library } from '@/data/library'
 import { useStore } from '@/state/store'
+import { useLayout } from '@/state/layout'
 import { useResolvedGuide } from '@/state/derived'
 import { MIX_ID, VIEW_W } from '../canvas/geometry'
 import { FrameHeader, HeaderButton, HeaderTitle } from './FrameHeader'
 import { SlotRow } from './SlotRow'
+import { AddSectionMenu } from '../shell/AddSection'
 
 export function MixFrame() {
   const slots = useStore((s) => s.slots)
@@ -27,6 +26,8 @@ export function MixFrame() {
     [head, slots, guideState, content],
   )
 
+  const [addAt, setAddAt] = useState<number | null>(null)
+  const closeAdd = useCallback(() => setAddAt(null), [])
   const st = useStore.getState
   const label = branchFrom ? `Remixing ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New tape'
 
@@ -73,14 +74,71 @@ export function MixFrame() {
         )}
       </div>
 
-      <AddSection width={W} />
+      {!previewing && <Seams onAdd={setAddAt} />}
+      {addAt !== null && <AddAt at={addAt} onClose={closeAdd} />}
+      <AddSection width={W} onAdd={() => setAddAt(slots.length)} />
     </div>
   )
 }
 
-function AddSection({ width }: { width: number }) {
-  const [open, setOpen] = useState(false)
-  const st = useStore.getState
+/** The "+" at each gap between sections, in the gutter beside the rail. Opens Add section there. */
+function Seams({ onAdd }: { onAdd: (at: number) => void }) {
+  const slots = useStore((s) => s.slots)
+  const rows = useLayout((s) => s.rows)
+  const last = slots.length ? rows[slots[slots.length - 1].id] : undefined
+  const ys = slots.map((s) => rows[s.id]?.top)
+  if (last) ys.push(last.top + last.height)
+  return (
+    <>
+      {ys.map((y, at) =>
+        y === undefined ? null : (
+          <div
+            key={at}
+            className="group/seam absolute right-full z-30"
+            style={{ top: y, width: 'calc(40px / var(--z))', height: 'calc(20px / var(--z))', marginTop: 'calc(-10px / var(--z))' }}
+            data-chrome
+          >
+            <button
+              type="button"
+              title="Add a section here"
+              aria-label="Add a section here"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                onAdd(at)
+              }}
+              className="absolute top-1/2 grid size-5 place-items-center rounded-full border border-zinc-950/12 bg-white text-zinc-700 opacity-0 shadow-sm transition-opacity duration-150 hover:text-zinc-950 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 group-hover/seam:opacity-100"
+              style={{ right: 'calc(9px / var(--z))', transform: 'translate(50%, -50%) scale(min(calc(1 / var(--z)), 3.4))' }}
+            >
+              <Plus size={12} strokeWidth={2.6} />
+            </button>
+          </div>
+        ),
+      )}
+    </>
+  )
+}
+
+/** The Add section menu, pinned at the gap it was opened from. */
+function AddAt({ at, onClose }: { at: number; onClose: () => void }) {
+  const slots = useStore((s) => s.slots)
+  const rows = useLayout((s) => s.rows)
+  const frameH = slots.length ? (rows[slots[slots.length - 1].id]?.top ?? 0) + (rows[slots[slots.length - 1].id]?.height ?? 0) : 0
+  const y = at < slots.length ? (rows[slots[at].id]?.top ?? 0) : frameH
+  const below = at >= slots.length
+  return (
+    <div
+      className="absolute left-0 z-40 origin-top-left"
+      style={{ top: y, transform: `scale(min(calc(1 / var(--z)), 3.4))${below ? ' translateY(56px)' : ''}` }}
+    >
+      <div className="m-2">
+        <AddSectionMenu at={at} onClose={onClose} />
+      </div>
+    </div>
+  )
+}
+
+function AddSection({ width, onAdd }: { width: number; onAdd: () => void }) {
   return (
     <div
       className="@container absolute left-0 top-full origin-top-left pt-3"
@@ -89,33 +147,14 @@ function AddSection({ width }: { width: number }) {
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="flex justify-center">
-        {open ? (
-          <div className="flex animate-pop flex-wrap items-center gap-1 rounded-2xl border border-zinc-950/10 bg-white p-1.5 shadow-lg">
-            {SECTION_TYPES.map((t) => (
-              <button
-                key={t}
-                type="button"
-                disabled={!library.byType[t].length}
-                onClick={() => {
-                  st().addSlot(t, undefined, st().slots.length)
-                  setOpen(false)
-                }}
-                className="rounded-xl px-3 py-1.5 text-[13px] font-medium text-zinc-700 transition hover:bg-zinc-100 active:scale-95 disabled:opacity-30"
-              >
-                {TYPE_LABEL[t]}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            title="Add a section"
-            className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-95 @max-[150px]:px-2.5"
-          >
-            <Plus size={15} /> <span className="@max-[150px]:hidden">Add a section</span>
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onAdd}
+          title="Add a section"
+          className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-95 @max-[150px]:px-2.5"
+        >
+          <Plus size={15} /> <span className="@max-[150px]:hidden">Add a section</span>
+        </button>
       </div>
     </div>
   )

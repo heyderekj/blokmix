@@ -1,0 +1,12 @@
+{
+  "title": "Split with abstract media",
+  "layoutPattern": "split-media-right",
+  "rhythm": "split",
+  "motionNotes": "Copy rises in a stagger while the media panel scales in; the orb and ring drift slowly on a loop and the floating card slides up last.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

@@ -1,0 +1,17 @@
+.mx-faq-layout-columns {
+  & .head-copy > *, & .intro { animation: mx-faq-layout-columns-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .head-copy > :nth-child(2) { animation-delay: 60ms; }
+  & .intro { animation-delay: 120ms; }
+  & .pair { animation: mx-faq-layout-columns-rise calc(var(--mx-motion-duration) * 1.2) var(--mx-motion-ease) both; }
+  & .pair:nth-child(1), & .pair:nth-child(2) { animation-delay: 180ms; }
+  & .pair:nth-child(3), & .pair:nth-child(4) { animation-delay: 260ms; }
+  & .pair:nth-child(5), & .pair:nth-child(6) { animation-delay: 340ms; }
+  & .contact { animation: mx-faq-layout-columns-rise var(--mx-motion-duration) var(--mx-motion-ease) 420ms both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & *, & *::before, & *::after { animation: none; }
+  }
+}
+@keyframes mx-faq-layout-columns-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}

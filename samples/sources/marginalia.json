@@ -1,5 +1,6 @@
 {
   "id": "marginalia",
+  "kind": "site",
   "name": "Marginalia",
   "url": "https://marginalia.example/",
   "personality": "Editorial and literary: warm paper, oxblood ink, high-contrast serif display, generous whitespace, slow graceful fades.",
@@ -26,8 +27,17 @@
     "motion.ease": "cubic-bezier(0.16, 1, 0.3, 1)"
   },
   "fonts": [
-    { "family": "Fraunces", "css2": "Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900" },
-    { "family": "Newsreader", "css2": "Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700" },
-    { "family": "IBM Plex Mono", "css2": "IBM+Plex+Mono:wght@400;500" }
+    {
+      "family": "Fraunces",
+      "css2": "Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900"
+    },
+    {
+      "family": "Newsreader",
+      "css2": "Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "css2": "IBM+Plex+Mono:wght@400;500"
+    }
   ]
 }

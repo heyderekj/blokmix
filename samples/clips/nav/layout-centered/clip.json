@@ -1,0 +1,12 @@
+{
+  "title": "Centered brand",
+  "layoutPattern": "links-brand-links",
+  "rhythm": "centered",
+  "motionNotes": "The centered brand pops in first and the links fade in around it; the accent dot above the name breathes slowly. Links draw an underline on hover and the outlined button fills.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

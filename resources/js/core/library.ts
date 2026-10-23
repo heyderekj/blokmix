@@ -1,4 +1,4 @@
-import type { Capture, Clip, Library, SectionType, Source, TokenSet } from './types'
+import type { Capture, Clip, Library, Rhythm, SectionType, Source, TokenSet } from './types'
 import { SECTION_TYPES } from './types'
 import { extractFields, parseHtml } from './html/parse'
 import { lintClip } from './lint'
@@ -13,6 +13,7 @@ export interface RawClip {
   meta: {
     title: string
     layoutPattern: string
+    rhythm?: Rhythm
     motionNotes?: string
     capture: Omit<Capture, 'url'> & { path?: string }
     tokens?: Partial<TokenSet>
@@ -25,6 +26,7 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
     sources: Object.fromEntries(sources.map((s) => [s.id, s])),
     clips: {},
     byType: Object.fromEntries(SECTION_TYPES.map((t) => [t, []])) as unknown as Library['byType'],
+    layoutsByType: Object.fromEntries(SECTION_TYPES.map((t) => [t, []])) as unknown as Library['layoutsByType'],
     warnings: [],
   }
 
@@ -47,6 +49,8 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
       sourceId,
       title: raw.meta.title,
       layoutPattern: raw.meta.layoutPattern,
+      rhythm: raw.meta.rhythm,
+      origin: source.kind === 'layout' ? 'layout' : 'clip',
       rootClass,
       html: raw.html.trim(),
       css: raw.css.trim(),
@@ -64,7 +68,12 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
       hash: hash(raw.html + raw.css + (raw.motionCss ?? '') + JSON.stringify(tokens)),
     }
     lib.clips[id] = clip
-    lib.byType[raw.type].push(id)
+    if (clip.origin === 'layout') lib.layoutsByType[raw.type].push(id)
+  }
+  // Your clips first, then layouts, so sliding through a section reaches real clips before built-ins.
+  for (const t of SECTION_TYPES) {
+    const ids = Object.values(lib.clips).filter((c) => c.type === t)
+    lib.byType[t] = [...ids.filter((c) => c.origin === 'clip'), ...ids.filter((c) => c.origin === 'layout')].map((c) => c.id)
   }
   return lib
 }

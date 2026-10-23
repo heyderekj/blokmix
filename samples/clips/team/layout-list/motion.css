@@ -1,0 +1,13 @@
+.mx-team-layout-list {
+  & .head > * { animation: mx-team-layout-list-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 80ms; }
+  & .row { animation: mx-team-layout-list-rise var(--mx-motion-duration) var(--mx-motion-ease) 140ms both; }
+  & .row:nth-child(2) { animation-delay: 190ms; }
+  & .row:nth-child(3) { animation-delay: 240ms; }
+  & .row:nth-child(4) { animation-delay: 290ms; }
+  & .row:nth-child(5) { animation-delay: 340ms; }
+  & .row:nth-child(6) { animation-delay: 390ms; }
+}
+@keyframes mx-team-layout-list-rise {
+  from { opacity: 0; transform: translateY(8px); }
+}

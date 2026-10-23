@@ -1,0 +1,12 @@
+{
+  "title": "Centered band",
+  "layoutPattern": "centered-band",
+  "rhythm": "band",
+  "motionNotes": "Content rises in a short stagger on load; buttons lift on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

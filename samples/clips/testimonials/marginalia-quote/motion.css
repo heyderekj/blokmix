@@ -1,0 +1,29 @@
+.mx-testimonials-marginalia-quote {
+  & .head { animation: mx-testimonials-marginalia-quote-fade var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .mark {
+    transform-origin: 70% 30%;
+    animation: mx-testimonials-marginalia-quote-mark calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) 120ms both;
+  }
+  & .lead .quote { animation: mx-testimonials-marginalia-quote-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) 260ms both; }
+  & .lead .cite { animation: mx-testimonials-marginalia-quote-fade var(--mx-motion-duration) var(--mx-motion-ease) 620ms both; }
+  & .stat { animation: mx-testimonials-marginalia-quote-rise var(--mx-motion-duration) var(--mx-motion-ease) 480ms both; }
+  & .stat:nth-of-type(2) { animation-delay: 580ms; }
+  & .stat:nth-of-type(3) { animation-delay: 680ms; }
+  & .minor { animation: mx-testimonials-marginalia-quote-rise calc(var(--mx-motion-duration) * 1.2) var(--mx-motion-ease) 760ms both; }
+  & .minor + .minor { animation-delay: 880ms; }
+  & .logo { animation: mx-testimonials-marginalia-quote-fade calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) 960ms both; }
+  & .logo:nth-child(2) { animation-delay: 1040ms; }
+  & .logo:nth-child(3) { animation-delay: 1120ms; }
+  & .logo:nth-child(4) { animation-delay: 1200ms; }
+  & .logo:nth-child(5) { animation-delay: 1280ms; }
+  & .logo:nth-child(6) { animation-delay: 1360ms; }
+}
+@keyframes mx-testimonials-marginalia-quote-mark {
+  from { opacity: 0; transform: scale(1.18) translateY(-6px); }
+}
+@keyframes mx-testimonials-marginalia-quote-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+@keyframes mx-testimonials-marginalia-quote-fade {
+  from { opacity: 0; }
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Two-column questions",
+  "layoutPattern": "two-column-qa-grid",
+  "rhythm": "grid",
+  "motionNotes": "Header rises, then question pairs follow row by row and the contact band settles in last.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

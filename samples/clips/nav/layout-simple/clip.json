@@ -1,0 +1,12 @@
+{
+  "title": "Simple bar",
+  "layoutPattern": "brand-links-cta",
+  "rhythm": "band",
+  "motionNotes": "Brand, links and button fade down in a quick stagger on load; links pick up a soft tint and the button lifts on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

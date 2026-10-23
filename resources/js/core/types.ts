@@ -1,7 +1,24 @@
 // Core types. Nothing in core/ imports React or Vite APIs, so the same code can
 // later run inside the capture extension and the MCP server.
 
-export const SECTION_TYPES = ['nav', 'hero', 'features', 'proof', 'pricing', 'footer'] as const
+/** In typical page order. Inner pages use `header` (a page header) instead of `hero`. */
+export const SECTION_TYPES = [
+  'nav',
+  'hero',
+  'header',
+  'logos',
+  'features',
+  'stats',
+  'content',
+  'team',
+  'testimonials',
+  'pricing',
+  'blog',
+  'faq',
+  'contact',
+  'cta',
+  'footer',
+] as const
 export type SectionType = (typeof SECTION_TYPES)[number]
 
 export const TOKEN_KEYS = [
@@ -42,6 +59,8 @@ export interface FontSource {
 
 export interface Source {
   id: string
+  /** 'site': clipped from a real site. 'layout': Mixtape's built-in, neutral layouts. */
+  kind?: 'site' | 'layout'
   name: string
   url: string
   personality: string
@@ -62,6 +81,10 @@ export interface Clip {
   sourceId: string
   title: string
   layoutPattern: string
+  /** Visual rhythm, used to suggest layouts that contrast with their neighbours. */
+  rhythm?: Rhythm
+  /** 'clip' came from a site you clipped; 'layout' is one of Mixtape's built-ins. */
+  origin: 'clip' | 'layout'
   rootClass: string // 'mx-hero-marginalia-split'
   html: string
   css: string
@@ -181,10 +204,16 @@ export interface VersionNode {
   }
 }
 
+export const RHYTHMS = ['centered', 'split', 'grid', 'stack', 'band'] as const
+export type Rhythm = (typeof RHYTHMS)[number]
+
 export interface Library {
   sources: Record<string, Source>
   clips: Record<string, Clip>
+  /** Every clip and layout of a type: your clips first, then layouts. */
   byType: Record<SectionType, string[]>
+  /** Only the built-in layouts of a type. */
+  layoutsByType: Record<SectionType, string[]>
   warnings: LintIssue[]
 }
 

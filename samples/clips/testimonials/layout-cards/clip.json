@@ -1,0 +1,12 @@
+{
+  "title": "Three testimonial cards",
+  "layoutPattern": "testimonial-cards-3up",
+  "rhythm": "grid",
+  "motionNotes": "Header rises, then the three cards follow in a short stagger; cards lift with a soft shadow on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

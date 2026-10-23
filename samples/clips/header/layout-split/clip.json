@@ -1,0 +1,12 @@
+{
+  "title": "Split page header",
+  "layoutPattern": "heading-left-intro-right",
+  "rhythm": "split",
+  "motionNotes": "The heading rises in while the intro column slides in from the right behind its hairline; the outlined button fills and its arrow nudges on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

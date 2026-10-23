@@ -1,0 +1,152 @@
+.mx-hero-layout-split {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--mx-space-10);
+    align-items: center;
+  }
+  & .eyebrow {
+    font-size: var(--mx-text-sm);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--mx-color-accent);
+  }
+  & .headline {
+    margin-top: var(--mx-space-4);
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-3xl), 4.8vw, var(--mx-text-6xl));
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  & .subhead {
+    margin-top: var(--mx-space-6);
+    max-width: 44ch;
+    font-size: var(--mx-text-lg);
+    line-height: 1.55;
+    color: var(--mx-color-muted);
+    text-wrap: pretty;
+  }
+  & .actions {
+    margin-top: var(--mx-space-8);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mx-space-3);
+  }
+  & .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius-pill);
+    font-size: var(--mx-text-base);
+    font-weight: 600;
+    transition: background var(--mx-motion-duration) var(--mx-motion-ease), transform var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & .primary:hover { transform: translateY(-1px); }
+  & .secondary { box-shadow: inset 0 0 0 1px var(--mx-color-border); }
+  & .secondary:hover { background: var(--mx-color-surface); }
+  & a:focus-visible {
+    outline: 2px solid var(--mx-color-accent);
+    outline-offset: 3px;
+  }
+  & .note {
+    margin-top: var(--mx-space-5);
+    font-size: var(--mx-text-sm);
+    color: var(--mx-color-muted);
+  }
+
+  /* Abstract media placeholder */
+  & .media {
+    position: relative;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    background: var(--mx-color-surface);
+    border: 1px solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 16%, transparent) 1px, transparent 1.5px);
+    background-size: 22px 22px;
+    background-position: 11px 11px;
+  }
+  & .orb {
+    position: absolute;
+    top: 14%;
+    right: 14%;
+    width: 38%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 55%, var(--mx-color-bg)), var(--mx-color-accent));
+  }
+  & .slab {
+    position: absolute;
+    left: 12%;
+    bottom: 16%;
+    width: 52%;
+    height: 34%;
+    border-radius: var(--mx-radius-lg);
+    background: var(--mx-color-primary);
+    transform: rotate(-6deg);
+  }
+  & .ring {
+    position: absolute;
+    left: 40%;
+    top: 26%;
+    width: 22%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid var(--mx-color-text);
+    opacity: 0.8;
+  }
+  & .card {
+    position: absolute;
+    right: 9%;
+    bottom: 11%;
+    width: 42%;
+    display: flex;
+    align-items: center;
+    gap: var(--mx-space-3);
+    padding: var(--mx-space-4);
+    background: var(--mx-color-bg);
+    border: 1px solid var(--mx-color-border);
+    border-radius: var(--mx-radius);
+    box-shadow: var(--mx-shadow-card);
+  }
+  & .avatar {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--mx-color-accent), var(--mx-color-primary));
+  }
+  & .lines {
+    flex: 1;
+    display: grid;
+    gap: var(--mx-space-2);
+  }
+  & .lines span {
+    height: 6px;
+    border-radius: var(--mx-radius-pill);
+    background: color-mix(in oklab, var(--mx-color-text) 18%, transparent);
+  }
+  & .lines span:first-child { width: 80%; background: color-mix(in oklab, var(--mx-color-text) 40%, transparent); }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .inner { grid-template-columns: minmax(0, 1fr); gap: var(--mx-space-8); }
+    & .subhead { font-size: var(--mx-text-base); }
+    & .actions { flex-direction: column; }
+    & .card { width: 56%; padding: var(--mx-space-3); }
+  }
+}

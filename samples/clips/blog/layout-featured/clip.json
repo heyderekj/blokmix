@@ -1,0 +1,12 @@
+{
+  "title": "Featured post",
+  "layoutPattern": "featured-plus-list",
+  "rhythm": "split",
+  "motionNotes": "Header rises, the featured post follows, then the side list cascades; titles tint on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Heading with stat grid",
+  "layoutPattern": "heading-left-stats-2x2",
+  "rhythm": "split",
+  "motionNotes": "Heading block rises, the four figures follow in a stagger and the short marker above each one draws in.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

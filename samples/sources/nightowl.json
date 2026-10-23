@@ -1,5 +1,6 @@
 {
   "id": "nightowl",
+  "kind": "site",
   "name": "Nightowl",
   "url": "https://nightowl.example/",
   "personality": "Dark developer tool: near-black panels, neon green signal color, tight grotesk display, monospace details, glowing borders, terminal-like precision.",
@@ -26,8 +27,17 @@
     "motion.ease": "cubic-bezier(0.2, 0.8, 0.2, 1)"
   },
   "fonts": [
-    { "family": "Inter Tight", "css2": "Inter+Tight:wght@400..800" },
-    { "family": "Inter", "css2": "Inter:wght@400..700" },
-    { "family": "JetBrains Mono", "css2": "JetBrains+Mono:wght@400;500;700" }
+    {
+      "family": "Inter Tight",
+      "css2": "Inter+Tight:wght@400..800"
+    },
+    {
+      "family": "Inter",
+      "css2": "Inter:wght@400..700"
+    },
+    {
+      "family": "JetBrains Mono",
+      "css2": "JetBrains+Mono:wght@400;500;700"
+    }
   ]
 }

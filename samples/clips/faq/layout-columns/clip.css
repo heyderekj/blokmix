@@ -1,0 +1,126 @@
+.mx-faq-layout-columns {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  font-family: var(--mx-font-body);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .inner { max-width: 1120px; margin: 0 auto; }
+
+  /* Header: heading left, intro right */
+  & .head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: var(--mx-space-8);
+    padding-bottom: var(--mx-space-8);
+    border-bottom: 1px solid var(--mx-color-border);
+  }
+  & .head-copy { display: flex; flex-direction: column; gap: var(--mx-space-4); }
+  & .eyebrow {
+    font-size: var(--mx-text-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--mx-color-muted);
+  }
+  & .heading {
+    max-width: 14ch;
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-3xl), 4vw, var(--mx-text-5xl));
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  & .intro {
+    max-width: 44ch;
+    justify-self: end;
+    font-size: var(--mx-text-lg);
+    line-height: 1.55;
+    color: var(--mx-color-muted);
+    text-wrap: pretty;
+  }
+
+  /* Q&A grid */
+  & .grid {
+    margin-top: var(--mx-space-9);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--mx-space-8) var(--mx-space-9);
+  }
+  & .pair { display: flex; gap: var(--mx-space-5); }
+  & .num {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--mx-radius);
+    background: var(--mx-color-surface);
+    border: 1px solid var(--mx-color-border);
+    font-family: var(--mx-font-mono);
+    font-size: var(--mx-text-xs);
+    font-weight: 500;
+    color: var(--mx-color-muted);
+  }
+  & .pair:first-child .num {
+    background: color-mix(in oklab, var(--mx-color-accent) 12%, var(--mx-color-surface));
+    border-color: color-mix(in oklab, var(--mx-color-accent) 35%, var(--mx-color-border));
+    color: color-mix(in oklab, var(--mx-color-accent) 70%, var(--mx-color-text));
+  }
+  & .text { display: flex; flex-direction: column; gap: var(--mx-space-3); padding-top: var(--mx-space-1); }
+  & .q {
+    font-size: var(--mx-text-lg);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+  & .a {
+    max-width: 52ch;
+    font-size: var(--mx-text-base);
+    line-height: 1.65;
+    color: var(--mx-color-muted);
+    text-wrap: pretty;
+  }
+
+  /* Contact band */
+  & .contact {
+    margin-top: var(--mx-space-9);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mx-space-4);
+    padding: var(--mx-space-6) var(--mx-space-7);
+    border-radius: var(--mx-radius-lg);
+    background: var(--mx-color-surface);
+    border: 1px solid var(--mx-color-border);
+  }
+  & .contact-text { font-size: var(--mx-text-lg); font-weight: 600; }
+  & .contact-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--mx-space-3) var(--mx-space-5);
+    border-radius: var(--mx-radius);
+    background: var(--mx-color-primary);
+    color: var(--mx-color-on-primary);
+    font-size: var(--mx-text-sm);
+    font-weight: 600;
+    transition: transform var(--mx-motion-duration) var(--mx-motion-ease), background var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .contact-cta:hover { transform: translateY(-1px); background: color-mix(in oklab, var(--mx-color-primary) 88%, var(--mx-color-text)); }
+  & .contact-cta:focus-visible { outline: 2px solid var(--mx-color-primary); outline-offset: 2px; }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-4);
+    & .head { grid-template-columns: 1fr; gap: var(--mx-space-4); padding-bottom: var(--mx-space-7); }
+    & .intro { justify-self: start; font-size: var(--mx-text-base); }
+    & .heading { font-size: clamp(var(--mx-text-2xl), 8vw, var(--mx-text-3xl)); }
+    & .grid { grid-template-columns: 1fr; margin-top: var(--mx-space-7); gap: var(--mx-space-7); }
+    & .pair { gap: var(--mx-space-4); }
+    & .num { width: 32px; height: 32px; }
+    & .q { font-size: var(--mx-text-base); }
+    & .a { font-size: var(--mx-text-sm); }
+    & .contact { margin-top: var(--mx-space-8); padding: var(--mx-space-5); }
+    & .contact-text { font-size: var(--mx-text-base); }
+  }
+}

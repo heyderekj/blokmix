@@ -1,0 +1,12 @@
+{
+  "title": "Minimal row",
+  "layoutPattern": "cta-line-over-single-row",
+  "rhythm": "band",
+  "motionNotes": "The CTA line and button rise in, then the brand, links and legal row fade up beneath the hairline. The button’s arrow nudges on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

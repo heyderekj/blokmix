@@ -1,0 +1,22 @@
+.mx-logos-layout-grid {
+  & .head > * { animation: mx-logos-layout-grid-rise var(--mx-motion-duration) var(--mx-motion-ease) backwards; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .logo { animation: mx-logos-layout-grid-fade calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) 160ms backwards; }
+  & .cell:nth-child(2) .logo { animation-delay: 210ms; }
+  & .cell:nth-child(3) .logo { animation-delay: 260ms; }
+  & .cell:nth-child(4) .logo { animation-delay: 310ms; }
+  & .cell:nth-child(5) .logo { animation-delay: 360ms; }
+  & .cell:nth-child(6) .logo { animation-delay: 410ms; }
+  & .cell:nth-child(7) .logo { animation-delay: 460ms; }
+  & .cell:nth-child(8) .logo { animation-delay: 510ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & *, & *::before, & *::after { animation: none; }
+  }
+}
+@keyframes mx-logos-layout-grid-rise {
+  from { opacity: 0; translate: 0 12px; }
+}
+@keyframes mx-logos-layout-grid-fade {
+  from { opacity: 0; scale: 0.94; }
+}

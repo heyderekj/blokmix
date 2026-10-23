@@ -1,0 +1,12 @@
+{
+  "title": "Readable prose",
+  "layoutPattern": "single-column-article",
+  "rhythm": "stack",
+  "motionNotes": "Header and paragraphs rise in a gentle stagger; the pull quote slides in from its accent rule.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

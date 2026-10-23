@@ -1,0 +1,12 @@
+{
+  "title": "Scrolling logo marquee",
+  "layoutPattern": "logo-marquee",
+  "rhythm": "band",
+  "motionNotes": "Wordmarks scroll in an endless loop between soft faded edges and pause on hover; the eyebrow and row fade in on load.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

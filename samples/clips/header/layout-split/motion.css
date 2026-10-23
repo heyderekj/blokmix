@@ -1,0 +1,15 @@
+.mx-header-layout-split {
+  & .lead > * { animation: mx-header-layout-split-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .lead > :nth-child(2) { animation-delay: 60ms; }
+  & .aside { animation: mx-header-layout-split-rule calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) both; animation-delay: 160ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .lead > *, & .aside { animation: none; }
+  }
+}
+@keyframes mx-header-layout-split-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-header-layout-split-rule {
+  from { opacity: 0; transform: translateX(16px); }
+}

@@ -77,6 +77,7 @@ export function packetJson(i: PacketInput) {
         hash: s.clip.hash,
         title: s.clip.title,
         source: library.sources[s.clip.sourceId]?.name ?? s.clip.sourceId,
+        origin: s.clip.origin,
         url: s.clip.capture.url,
         selector: s.clip.capture.selector,
         viewport: s.clip.capture.viewport,
@@ -118,7 +119,8 @@ export function linerNotes(i: PacketInput): string {
     const src = library.sources[s.clip.sourceId]
     lines.push(`### ${s.position + 1}. ${TYPE_LABEL[s.type]}: \`${s.component}\``)
     lines.push('')
-    lines.push(`- **Clipped from:** ${src?.name ?? s.clip.sourceId}, ${s.clip.capture.url} (\`${s.clip.capture.selector}\`, ${s.clip.capture.viewport.width}px)`)
+    if (s.clip.origin === 'layout') lines.push('- **From:** a Mixtape layout. It’s structural, not a captured site: restyle it freely with the style guide.')
+    else lines.push(`- **Clipped from:** ${src?.name ?? s.clip.sourceId}, ${s.clip.capture.url} (\`${s.clip.capture.selector}\`, ${s.clip.capture.viewport.width}px)`)
     lines.push(`- **Pattern:** ${s.clip.layoutPattern}: ${s.clip.title}`)
     lines.push(`- **Layout:** ${s.keep.layout ? 'reproduce the structure faithfully' : 'reference only; choose a structure that fits neighboring sections'}`)
     lines.push(`- **Style:** ${s.keep.style ? 'keeps its own captured tokens (scoped to the section)' : 'use the style guide tokens'}`)

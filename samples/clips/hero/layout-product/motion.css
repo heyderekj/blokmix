@@ -1,0 +1,23 @@
+.mx-hero-layout-product {
+  & .copy > * { animation: mx-hero-layout-product-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; }
+  & .copy > :nth-child(2) { animation-delay: 80ms; }
+  & .copy > :nth-child(3) { animation-delay: 160ms; }
+  & .copy > :nth-child(4) { animation-delay: 240ms; }
+  & .copy > :nth-child(5) { animation-delay: 320ms; }
+  & .shot { animation: mx-hero-layout-product-shot calc(var(--mx-motion-duration) * 3) var(--mx-motion-ease) both; animation-delay: 360ms; }
+  & .chart span { transform-origin: bottom; animation: mx-hero-layout-product-bar calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) both; animation-delay: 800ms; }
+  & .chart span:nth-child(even) { animation-delay: 880ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .copy > *, & .shot, & .chart span { animation: none; }
+  }
+}
+@keyframes mx-hero-layout-product-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes mx-hero-layout-product-shot {
+  from { opacity: 0; transform: translateY(48px) scale(0.98); }
+}
+@keyframes mx-hero-layout-product-bar {
+  from { transform: scaleY(0.1); }
+}

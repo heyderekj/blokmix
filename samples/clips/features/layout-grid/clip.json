@@ -1,0 +1,12 @@
+{
+  "title": "Three-up feature grid",
+  "layoutPattern": "feature-grid-3col",
+  "rhythm": "grid",
+  "motionNotes": "Header rises in a short stagger, then the six features follow in reading order; icon tiles fill with the primary colour on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-23T00:00:00Z"
+  }
+}

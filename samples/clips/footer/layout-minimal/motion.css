@@ -1,0 +1,15 @@
+.mx-footer-layout-minimal {
+  & .cta > * { animation: mx-footer-layout-minimal-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .cta > :nth-child(2) { animation-delay: 90ms; }
+  & .row { animation: mx-footer-layout-minimal-fade calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) both; animation-delay: 200ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .cta > *, & .row { animation: none; }
+  }
+}
+@keyframes mx-footer-layout-minimal-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-footer-layout-minimal-fade {
+  from { opacity: 0; }
+}
