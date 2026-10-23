@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { X } from 'lucide-react'
 
 /** Chrome morph: quick and settled, no bounce (the canvas is where things bounce). */
 export const MORPH = { type: 'spring', stiffness: 560, damping: 44, mass: 0.9 } as const
@@ -21,6 +22,7 @@ export function Island({
   grow = 'down',
   maxBody = 'min(68vh, 640px)',
   className = '',
+  onClose,
 }: {
   open: boolean
   bar: ReactNode
@@ -29,6 +31,8 @@ export function Island({
   grow?: 'down' | 'up'
   maxBody?: string
   className?: string
+  /** Shows a close button at the end of the bar while open. */
+  onClose?: () => void
 }) {
   const body = (
     <AnimatePresence initial={false}>
@@ -57,7 +61,26 @@ export function Island({
       data-chrome
     >
       {grow === 'up' && body}
-      <div className="flex h-11 shrink-0 items-center gap-1 px-1">{bar}</div>
+      <div className="flex h-11 shrink-0 items-center gap-1 px-1">
+        {bar}
+        <AnimatePresence initial={false}>
+          {open && onClose && (
+            <motion.button
+              key="close"
+              type="button"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, transition: { delay: 0.08, duration: 0.14 } }}
+              exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.06 } }}
+              onClick={onClose}
+              title="Close (Esc)"
+              aria-label="Close"
+              className="ml-auto grid size-8 shrink-0 place-items-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-950/5 hover:text-zinc-900"
+            >
+              <X size={16} />
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
       {grow === 'down' && body}
     </motion.div>
   )

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { CircleHelp, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2, X } from 'lucide-react'
+import { CircleHelp, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
 import { useStore, undo, redo, type Sheet } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
@@ -44,6 +44,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
     <Island
       open={open}
       width={300}
+      onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       bar={
         <>
           <button type="button" onClick={() => toggleSheet('menu')} className="ml-0.5 rounded-lg transition active:scale-[0.97]" title="Menu" aria-label="Menu">
@@ -54,16 +55,6 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
           <span className="max-md:hidden">
             <TapeName value={tapeName} onChange={(v) => st().renameTape(v)} />
           </span>
-          {open && (
-            <button
-              type="button"
-              onClick={() => toggleSheet('menu')}
-              aria-label="Close menu"
-              className="ml-auto grid size-8 place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900"
-            >
-              <X size={15} />
-            </button>
-          )}
         </>
       }
     >
@@ -110,6 +101,7 @@ function ModeIsland() {
     <Island
       open={open}
       width={440}
+      onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       bar={
         <>
           <Segmented
@@ -125,14 +117,16 @@ function ModeIsland() {
             type="button"
             onClick={() => toggleSheet('guide')}
             title={decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide and copy (G)'}
+            aria-label="Style guide"
             aria-expanded={open}
-            className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
-              open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5'
+            className={`relative grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${
+              open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'
             }`}
           >
-            <SwatchBook size={15} />
-            Style guide
-            {decisions > 0 && <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-attention px-1 text-[10.5px] font-bold text-white">{decisions}</span>}
+            <SwatchBook size={16} />
+            {decisions > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-attention px-1 text-[10px] font-bold text-white ring-2 ring-[var(--lift)]">{decisions}</span>
+            )}
           </button>
         </>
       }
@@ -159,6 +153,7 @@ function ShipIsland() {
     <Island
       open={open}
       width={420}
+      onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       maxBody="min(76vh, 720px)"
       bar={
         <>
@@ -169,7 +164,7 @@ function ShipIsland() {
             title="Export code for your agent: Astro or Next.js"
             aria-expanded={open}
             className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
-              open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5'
+              open ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
             }`}
           >
             <Package size={15} />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, X } from 'lucide-react'
+import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote } from 'lucide-react'
 import { useStore, type Tool } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi } from '../canvas/Canvas'
@@ -31,6 +31,7 @@ export function Dock() {
         width={open ? Math.min(760, window.innerWidth - 24) : undefined}
         grow="up"
         maxBody="min(52vh, 420px)"
+        onClose={() => useStore.getState().setUi(open ? { sheet: 'none' } : { focusedSlotId: null })}
         bar={
           <>
             <ToolSwitcher />
@@ -42,9 +43,9 @@ export function Dock() {
               title={`Clips: ${Object.keys(library.clips).length} sections (C)`}
               aria-label="Clips"
               aria-expanded={open}
-              className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
+              className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
             >
-              {open ? <X size={16} /> : <Library size={16} />}
+              <Library size={16} />
             </button>
             <Divider />
             <ViewMenu />
