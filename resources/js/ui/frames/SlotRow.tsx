@@ -1,7 +1,8 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
-import { library } from '@/data/library'
+import { library, slotClip } from '@/data/library'
+import { sectionClip } from '@/core/lists'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { frameStateFor, usePageStyle } from '@/state/derived'
@@ -46,10 +47,11 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const pSlot = useBlockPreview((s) => s.slotId)
   const pBlock = useBlockPreview((s) => s.blockId)
   const pPatch = useBlockPreview((s) => s.patch)
+  const pWords = useBlockPreview((s) => s.words)
   const editText = useBlockPreview((s) => s.editText)
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
-  const live = useMemo(() => withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch }), [slot, pSlot, pBlock, pPatch])
+  const live = useMemo(() => withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords }), [slot, pSlot, pBlock, pPatch, pWords])
   const ids = library.byType[slot.type]
   const W = VIEW_W[viewport]
 
@@ -126,7 +128,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   useEffect(() => {
     if (!selectedBlock) setSelRect(null)
   }, [selectedBlock])
-  const blocks = library.clips[shown]?.blocks ?? []
+  const blocks = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists).blocks : []
   const block = selectedBlock ? blocks.find((b) => b.id === selectedBlock) : undefined
   // Blocks with a pin on them: the frame reports where they are.
   const notes = useStore((s) => s.notes)
@@ -158,14 +160,22 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
         if ('hover' in e) setHover(e.hover ?? null)
         if ('pick' in e) st().selectBlock(e.pick ?? null)
         if ('selRect' in e) setSelRect(e.selRect ?? null)
-        if (e.word) st().setWord(slot.id, e.word.field, e.word.value)
+        if (e.word) {
+          st().setWord(slot.id, e.word.field, e.word.value)
+          // "Another way to say it": what you just wrote is kept as an option too.
+          const k = useBlockPreview.getState().keepNext
+          if (k && k.slotId === slot.id && k.field === e.word.field) {
+            st().keepWords(slot.id, e.word.field, e.word.value)
+            useBlockPreview.getState().setKeepNext(null)
+          }
+        }
         if ('editing' in e) setTyping(!!e.editing)
         if (e.rects) setRects((r) => ({ ...r, ...e.rects }))
         if ('drag' in e) setDrawing(e.drag ?? null)
         if (e.words) {
           const w = e.words
           const live = useStore.getState().slots.find((x) => x.id === slot.id)!
-          const b = library.clips[live.clipId]?.blocks.find((x) => x.id === w.block)
+          const b = slotClip(live).blocks.find((x) => x.id === w.block)
           st().setUi({ openNoteId: null })
           useMarkDraft.getState().open({
             slotId: live.id,
@@ -176,7 +186,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
           const live = useStore.getState().slots.find((x) => x.id === slot.id)!
           // Marking doesn't focus the section: the dock stays small and the page stays in view.
           st().setUi({ openNoteId: null })
-          const clip = library.clips[live.clipId]
+          const clip = slotClip(live)
           const words = resolveFields(clip.type, clip.fields, useStore.getState().content, live.keep.content, live.words).fields
           let draft: MarkDraft | null = null
           if (e.notePick && e.rect) draft = draftForBlock(live, e.notePick, e.rect, words)

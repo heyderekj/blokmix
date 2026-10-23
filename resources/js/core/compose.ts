@@ -6,6 +6,8 @@ import { motionCss as presetMotionCss } from './motion'
 import { swapIcons } from './icons'
 import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
 import { resolveFields } from './content'
+import { sectionClip } from './lists'
+import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
 
@@ -17,6 +19,15 @@ export interface ComposedSection {
   clip: Clip
   keep: Keep
   tree: HNode[]
+  /** The same markup before the words go in (data-mx-* kept), for components that read a content file. */
+  source: HNode[]
+  /** Its words as content: fields and lists in page order… */
+  outline: OutlineNode[]
+  /** …and as the content file's JSON (src/content/<contentName>.json). */
+  content: Record<string, ContentValue>
+  contentName: string
+  /** Other ways to say a field that you kept (not retired), by field: what you're still choosing between. */
+  options: Record<string, string[]>
   /** Section CSS including local token overrides when the section keeps its own style. */
   css: string
   motionCss: string | null
@@ -101,8 +112,10 @@ export function composePage(input: ComposeInput): ComposedPage {
   const sections: ComposedSection[] = []
 
   input.slots.forEach((slot, position) => {
-    const clip = input.library.clips[slot.clipId]
-    if (!clip) return
+    const libraryClip = input.library.clips[slot.clipId]
+    if (!libraryClip) return
+    // The clip as this section shows it: its lists in your order, blocks stamped with stable ids.
+    const clip = sectionClip(libraryClip, slot.lists)
     let component = componentName(clip)
     const n = (used.get(component) ?? 0) + 1
     used.set(component, n)
@@ -115,7 +128,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const changed = clip.blocks
       .map((b) => ({ b, edit: effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]) }))
       .filter((x): x is { b: (typeof x)['b']; edit: BlockEdit } => !!x.edit)
-    const blockClass = (id: string) => `mx-s${position + 1}-${id}`
+    const blockClass = (id: string) => `mx-s${position + 1}-${id.replace(/\./g, '-')}`
     const preset = slot.motion?.mode === 'preset' ? slot.motion : undefined
     // Staggered sections animate their top-level blocks, so those need a class too.
     const staggered = preset?.stagger ? clip.blocks.filter((b) => !b.parent || clip.blocks.find((x) => x.id === b.parent)?.kind === 'list').map((b) => b.id) : []
@@ -133,7 +146,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       const fill = edit.media
       const r = renderMedia(fill, input.guide.tokens, b.ratio, input.uploads ?? (() => undefined))
       if (!r) continue
-      const base = `media/s${position + 1}-${b.id}`
+      const base = `media/s${position + 1}-${b.id.replace(/\./g, '-')}`
       let src = r.src
       let poster = r.poster
       if (fill.source === 'placeholder') {
@@ -185,7 +198,8 @@ export function composePage(input: ComposeInput): ComposedPage {
     const marked = mapTree(source, (el) => {
       if (spaced && attr(el, 'data-mx-section') !== undefined) return addClass(el, `mx-s${position + 1}`)
       if (attr(el, 'data-mx-block') === undefined) return el
-      const id = `b${order++}`
+      const id = attr(el, 'data-mx-b') ?? `b${order}`
+      order++
       if (!changedIds.has(id)) return el
       const withClass = addClass(el, blockClass(id))
       const m = mediaFor.get(id)
@@ -195,6 +209,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       return { ...block, kids: [...block.kids, ...mediaElements(m, w, h)] }
     })
     const tree = applyFields(marked, fields)
+    const words = outline(marked)
     const blocksCss = blockCss({
       blocks: clip.blocks,
       edits,
@@ -246,6 +261,16 @@ export function composePage(input: ComposeInput): ComposedPage {
       clip,
       keep: slot.keep,
       tree,
+      source: marked,
+      outline: words,
+      content: contentJson(words, fields),
+      contentName: kebab(component),
+      options: Object.fromEntries(
+        Object.entries(slot.options ?? {}).flatMap(([f, os]) => {
+          const live = os.filter((o) => !o.retiredAt && o.text !== fields[f]).map((o) => o.text)
+          return live.length ? [[f, live]] : []
+        }),
+      ),
       css,
       motionCss,
       localVars,
@@ -270,6 +295,8 @@ export function composePage(input: ComposeInput): ComposedPage {
     moving: sections.some((x) => x.media.some((m) => m.kind !== 'image' || m.lightbox)),
   }
 }
+
+const kebab = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
 
 function indent(s: string, by = '  '): string {
   return s

@@ -160,7 +160,8 @@ export function swapIcons(tree: HNode[], setId: string, overrides: Record<string
       if (n.t !== 'el') return n
       let block = iconBlock
       if (attr(n, 'data-mx-block') !== undefined) {
-        const id = `b${order++}`
+        const id = attr(n, 'data-mx-b') ?? `b${order}`
+        order++
         block = attr(n, 'data-mx-block') === 'icon' ? id : null
       }
       if (n.tag === 'svg') {
@@ -191,7 +192,10 @@ export function blockIconName(html: string, blockId: string): string | undefined
     for (const n of nodes) {
       if (found || n.t !== 'el') continue
       let here = inBlock
-      if (attr(n, 'data-mx-block') !== undefined) here = `b${order++}` === blockId
+      if (attr(n, 'data-mx-block') !== undefined) {
+        here = (attr(n, 'data-mx-b') ?? `b${order}`) === blockId
+        order++
+      }
       if (here && n.tag === 'svg') {
         found = attr(n, 'data-mx-icon')
         if (found) return

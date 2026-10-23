@@ -7,6 +7,7 @@ import { iconNamesIn, iconSvg } from '@/core/icons'
 import { uploadData } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
+import { sectionClip } from '@/core/lists'
 import { BASE_FONTS, expandTokens, fontHref, fontsForTokens, varsToCss } from '@/core/tokens'
 import { allFonts } from '@/core/library'
 import { library } from '@/data/library'
@@ -47,8 +48,8 @@ export function fontHrefFor(tokens: TokenSet): string | null {
 
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
-  clip: Clip,
-  slot: Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion'> | null,
+  libraryClip: Clip,
+  slot: Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists'> | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
@@ -57,8 +58,11 @@ export function frameStateFor(
 ): FrameState {
   const vh = VIEWPORT_VH[viewport]
   if (mode === 'captured' || !slot) {
-    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null }
+    const clip = libraryClip
+    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null, lists: NO_LISTS }
   }
+  // The clip as this section shows it: items you added, removed or reordered.
+  const clip = sectionClip(libraryClip, slot.lists)
   const tokens = slot.keep.style ? clip.tokens : guide
   const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
   return {
@@ -72,8 +76,11 @@ export function frameStateFor(
     media: mediaFor(clip, slot.edits?.[clip.id], tokens),
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? null : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
+    lists: clip.patches.length ? clip.patches : NO_LISTS,
   }
 }
+
+const NO_LISTS: FrameState['lists'] = []
 
 const NO_BLOCKS: FrameState['blocks'] = { css: '', variants: {} }
 const NO_MEDIA: FrameState['media'] = {}

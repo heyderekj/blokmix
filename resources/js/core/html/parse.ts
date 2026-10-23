@@ -2,7 +2,14 @@ import { parseFragment } from 'parse5'
 
 export type HEl = { t: 'el'; tag: string; ns: 'html' | 'svg'; attrs: [string, string][]; kids: HNode[] }
 export type HText = { t: 'text'; v: string }
-export type HNode = HEl | HText
+/** Exported components only: a JS expression in braces ({content.heading}). */
+export type HExpr = { t: 'expr'; v: string }
+/** Exported components only: a list rendered from content ({content.features.map((item, i) => …)}). */
+export type HMap = { t: 'map'; list: string; item: string; index: string; kids: HNode[] }
+export type HNode = HEl | HText | HExpr | HMap
+
+/** An attribute whose value is a JS expression in exported components: name={value}. */
+export const EXPR_ATTR = '\u0000'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
@@ -56,7 +63,7 @@ export function mapTree(nodes: HNode[], fn: (el: HEl) => HEl): HNode[] {
 }
 
 export function textOf(node: HNode): string {
-  return node.t === 'text' ? node.v : node.kids.map(textOf).join('')
+  return node.t === 'text' ? node.v : node.t === 'expr' ? '' : node.kids.map(textOf).join('')
 }
 
 /** Collect `data-mx-field` → text from a tree. */

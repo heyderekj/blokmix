@@ -12,6 +12,7 @@ import { buildSeed } from '../resources/js/state/seed'
 import { composePage } from '../resources/js/core/compose'
 import { resolveGuide } from '../resources/js/core/guide'
 import { packetFiles } from '../resources/js/core/export/packet'
+import { listOrder, nextNumber, sectionClip } from '../resources/js/core/lists'
 import { DEFAULT_KEEP, PLACEHOLDER_STYLES, SECTION_TYPES, type MediaFill, type Slot } from '../resources/js/core/types'
 
 const out = join(process.cwd(), '.out', 'packet')
@@ -25,6 +26,8 @@ const slots: Slot[] = allLayouts
       clipId,
       locked: false,
       keep: { ...DEFAULT_KEEP },
+      // Lists change too: the first one runs backwards with a new item on the end.
+      lists: demoLists(clipId),
       // Every other section uses a staggered preset instead of its own motion.
       motion: i % 2 ? ({ mode: 'preset', enter: 'rise', stagger: true, onScroll: true } as const) : undefined,
       // A spread of block looks, so the build check covers restyled blocks too.
@@ -51,6 +54,14 @@ const slots: Slot[] = allLayouts
       },
     }))
   : version.snapshot.slots
+function demoLists(clipId: string): Slot['lists'] {
+  const clip = sectionClip(library.clips[clipId])
+  const list = clip.blocks.find((b) => b.listKey)
+  if (!list?.listKey) return undefined
+  const order = listOrder(clip, list.id)
+  return { [list.listKey]: [...order.reverse().map((n) => ({ n })), { n: nextNumber(clip, list.listKey, order) }] }
+}
+
 /** Mostly palette placeholders, with a video, a Lottie and a YouTube embed (in a lightbox) mixed in. */
 function demoMedia(n: number): MediaFill {
   if (n % 7 === 3) return { source: 'video', link: { url: 'https://cdn.example.com/demo.mp4' }, play: 'inview', loop: true, alt: 'Product demo' }

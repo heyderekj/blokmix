@@ -58,6 +58,17 @@ const HELP: [string, [string, string][]][] = [
     ],
   ],
   [
+    'Blocks and words',
+    [
+      ['↵ / double-click', 'Edit the selected words'],
+      ['[ ]', 'Other ways to say them'],
+      ['⌘D', 'Duplicate a list item'],
+      ['⌥← ⌥→', 'Move a list item'],
+      ['⌫', 'Remove a list item (or hide a block)'],
+      ['Esc', 'Select the block around this one'],
+    ],
+  ],
+  [
     'Versions',
     [
       ['Enter / ⌘S', 'Save a version'],

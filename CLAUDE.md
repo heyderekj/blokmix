@@ -77,6 +77,11 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
       `data-mx-label` ("Panel", "Quote", "Form").
     - Repeating units are `item`s directly inside a `list`: `<ul data-mx-block="list" data-mx-list="features">`
       then `<li data-mx-block="item" data-mx-label="Feature">`. Use a singular noun for the label.
+      Number each item's fields by its place (`f1Title`, `f1Body`, `f2Title`…; a nested list inside an item
+      continues the number: `t1F1`, `t1F2`). That number is how a section adds, duplicates and reorders items
+      (`core/lists.ts`), so every item needs it. A count printed in the item ("01", "2.") as its first static
+      text follows position; an attribute only the first item has (`open`, a wide first tile) belongs to the
+      first position. Anything else about an item travels with it.
     - Pictures (CSS/SVG art standing in for a photo, illustration, screenshot or avatar):
       `data-mx-block="image" data-mx-media="<name>" data-mx-ratio="<w>/<h>"`. Keep the placeholder art inside;
       a real image replaces it later. Media names are unique in the clip.
@@ -110,6 +115,20 @@ Nudge) for hierarchy, spacing and type; Laws of UX for behaviour; Emil Kowalski'
   actions or things seen many times a day; reduced motion keeps fades, drops movement. Lint warns on
   `transition: all`, `scale(0)` and `ease-in`. Motion presets (`core/motion.ts`) are written to these
   rules; a section preset replaces the clip's own motion.css.
+
+### Content
+
+Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI calls it Content, never "CMS".
+- Every field's words have options (`slot.options`): your copy, the clip's words, and options you or an
+  agent kept. ‹ 2/3 › in the block bar (or `[` `]`) cycles them; Keep, Retire, Put it back and "Another way
+  to say it" are Koati's words.
+- Lists (`slot.lists`, by the key their fields are numbered by) add, duplicate, remove and reorder items on
+  the canvas (block bar, ⌘D, ⌥←/→, ⌫) or in the Content view. Frames patch the changed list in place
+  (`FrameState.lists`); blocks in a copied item get ids like `b5.f4`, so edits and notes follow items.
+- Exports write each section's words to `src/content/<section>.json` (Next: `content/`). Components read
+  `{content.heading}`, map lists whose items are built alike (`{content.features.map((item, i) => …)}`), and
+  carry `data-mx-src="<file>#<path>"` (Koati's `data-koati-src` idea). MIXTAPE.md points to Keystatic as an
+  optional editor.
 
 ### Images
 

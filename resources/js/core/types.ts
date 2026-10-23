@@ -126,6 +126,29 @@ export interface Slot {
   words?: Record<string, string>
   spacing?: SectionSpacing
   motion?: SectionMotion
+  /** Other ways to say a field's words, kept to switch between (by field). */
+  options?: Record<string, WordOption[]>
+  /** Repeating items you added, removed or reordered, by list key ("f", "faq", "t1F"). */
+  lists?: Record<string, ListItemRef[]>
+}
+
+/** One way to say a field's words, kept as an option (Koati's "Keep"). */
+export interface WordOption {
+  text: string
+  /** Who wrote it. */
+  by: 'you' | 'agent'
+  keptAt: number
+  /** Retired options leave the cycler but can be put back. */
+  retiredAt?: number
+}
+
+/**
+ * An item in a list, by its number in the list's fields (f4Title is item 4 of
+ * list "f"). `from` is the item whose structure a new item copies.
+ */
+export interface ListItemRef {
+  n: number
+  from?: number
 }
 
 export interface Candidate {
@@ -285,6 +308,10 @@ export interface BlockInfo {
   ratio?: string
   /** List name, for list blocks. */
   list?: string
+  /** List blocks whose items you can add, remove and reorder: the key their fields are numbered by. */
+  listKey?: string
+  /** Items: their number in the list's key (f4Title → 4). */
+  n?: number
 }
 
 /**

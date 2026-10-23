@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { Clip } from '@/core/types'
 import { buildSrcdoc } from './srcdoc'
+import { sectionClip } from '@/core/lists'
 import { postState, registerFrame, type BlockEvent, type FrameState } from './bridge'
 import { uploadData } from '@/lib/assets'
 import { openLightbox } from '@/ui/shell/Lightbox'
@@ -47,7 +48,8 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
   const srcdoc = useMemo(
     () =>
       buildSrcdoc({
-        html: clip.html,
+        // Blocks stamped with their ids (and marquee copies marked), so list changes can patch in place.
+        html: sectionClip(clip).html,
         css: clip.css,
         motionCss: clip.motionCss,
         tokensCss: stateRef.current.css,
@@ -105,7 +107,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     const id = requestAnimationFrame(push)
     return () => cancelAnimationFrame(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks, state.media, state.icons])
+  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks, state.media, state.icons, state.lists])
 
   // Edit mode and the selection travel separately from the look, so they never re-send tokens.
   const editing = !!edit?.active

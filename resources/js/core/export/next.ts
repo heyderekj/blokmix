@@ -3,7 +3,8 @@ import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
 import { slug } from './astro'
-import { fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+import { contentVar, fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+import { bindContent } from './bind'
 
 export const NEXT_VERSION = '^16.4.3'
 export const REACT_VERSION = '^19.3.1'
@@ -77,21 +78,32 @@ ${page.moving ? '        <Script src="/mx-media.js" strategy="afterInteractive" 
 `
   for (const s of page.sections) {
     files[`${root}components/sections/${s.component}.css`] = sectionCss(s)
+    if (!s.outline.length) {
+      files[`${root}components/sections/${s.component}.tsx`] = `${sectionHeader(s, 'js')}\nexport default function ${s.component}() {\n  return (\n${serialize(s.tree, 'jsx', 2)}\n  )\n}\n`
+      continue
+    }
+    // Words live in a content file; the page passes it in as props.
+    const file = `content/${s.contentName}.json`
+    files[`${root}${file}`] = JSON.stringify(s.content, null, 2) + '\n'
     files[`${root}components/sections/${s.component}.tsx`] = `${sectionHeader(s, 'js')}
-export default function ${s.component}() {
+import data from '@/content/${s.contentName}.json'
+
+export default function ${s.component}({ content = data }: { content?: typeof data }) {
   return (
-${serialize(s.tree, 'jsx', 2)}
+${serialize(bindContent(s.source, s.outline, file, true), 'jsx', 2)}
   )
 }
 `
   }
 
-  files[`${root}app/page.tsx`] = `${page.sections.map((s) => `import ${s.component} from '@/components/sections/${s.component}'`).join('\n')}
+  files[`${root}app/page.tsx`] = `${page.sections
+    .flatMap((s) => [`import ${s.component} from '@/components/sections/${s.component}'`, ...(s.outline.length ? [`import ${contentVar(s)} from '@/content/${s.contentName}.json'`] : [])])
+    .join('\n')}
 
 export default function Page() {
   return (
     <>
-${page.sections.map((s) => `      <${s.component} />`).join('\n')}
+${page.sections.map((s) => (s.outline.length ? `      <${s.component} content={${contentVar(s)}} />` : `      <${s.component} />`)).join('\n')}
     </>
   )
 }

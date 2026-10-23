@@ -3,7 +3,9 @@ import type { Keep } from '@/core/types'
 import { useStore, undo, redo } from '@/state/store'
 import { canvasApi } from '@/ui/canvas/Canvas'
 import { pressVersionAndFly } from '@/lib/actions'
-import { library } from '@/data/library'
+import { library, slotClip } from '@/data/library'
+import { listContext } from '@/core/lists'
+import { wordChoices, currentWords } from '@/core/words'
 
 const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
 
@@ -37,6 +39,47 @@ export function useShortcuts(onHelp: () => void) {
         e.preventDefault()
         pressVersionAndFly()
         return
+      }
+      // A selected list item: duplicate, move and remove it in place.
+      const item = focused && st.ui.selectedBlockId ? listContext(slotClip(focused), focused, st.ui.selectedBlockId) : null
+      if (focused && item?.item) {
+        if (mod && k.toLowerCase() === 'd') {
+          e.preventDefault()
+          const r = st.editList(focused.id, { op: 'duplicate', itemId: item.item.id })
+          if (r?.itemId) st.selectBlock(r.itemId)
+          return
+        }
+        if (e.altKey && !mod && k.startsWith('Arrow')) {
+          e.preventDefault()
+          const d = k === 'ArrowUp' || k === 'ArrowLeft' ? -1 : 1
+          st.editList(focused.id, { op: 'move', itemId: item.item.id, to: item.index + d })
+          return
+        }
+        if (!mod && !e.altKey && (k === 'Backspace' || k === 'Delete')) {
+          e.preventDefault()
+          if (st.editList(focused.id, { op: 'remove', itemId: item.item.id })) {
+            st.selectBlock(item.list.id)
+            st.showFlash('Item removed', { undo: true })
+          }
+          return
+        }
+      }
+      // [ and ]: the selected words' other options.
+      if (focused && st.ui.selectedBlockId && !mod && !e.altKey && (k === '[' || k === ']')) {
+        const clip = slotClip(focused)
+        const field = clip.blocks.find((b) => b.id === st.ui.selectedBlockId)?.field
+        if (field) {
+          e.preventDefault()
+          const choices = wordChoices(clip, focused, st.content, field)
+          const now = currentWords(clip, focused, st.content, field)
+          if (choices.length > 1 || (choices.length && !choices.some((c) => c.text.trim() === now.trim()))) {
+            const at = choices.findIndex((c) => c.text.trim() === now.trim())
+            const d = k === ']' ? 1 : -1
+            const i = at < 0 ? (d > 0 ? 0 : choices.length - 1) : (at + d + choices.length) % choices.length
+            st.chooseWords(focused.id, field, choices[i].text)
+          }
+          return
+        }
       }
       if (e.altKey && !mod && (k === 'ArrowUp' || k === 'ArrowDown') && focused) {
         e.preventDefault()
@@ -121,7 +164,7 @@ export function useShortcuts(onHelp: () => void) {
           else if (st.ui.tool === 'note') st.setUi({ tool: 'select' })
           else if (focused && st.ui.selectedBlockId) {
             // Step out one level, like Figma.
-            const block = library.clips[focused.clipId]?.blocks.find((b) => b.id === st.ui.selectedBlockId)
+            const block = slotClip(focused).blocks.find((b) => b.id === st.ui.selectedBlockId)
             st.selectBlock(block?.parent ?? null)
           } else if (st.ui.sheet !== 'none') st.setUi({ sheet: 'none' })
           else st.setUi({ tool: 'select', previewFrameId: null, focusedSlotId: null })

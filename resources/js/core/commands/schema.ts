@@ -78,6 +78,47 @@ export const COMMANDS = {
     input: z.object({ section, words: z.record(z.string(), z.string()) }),
     write: true,
   },
+  get_content: {
+    description:
+      'Read the words as content: each section’s content file (fields, and lists as arrays, as exported to src/content/<section>.json), its lists (id, items, whether you can add or remove items and how many fit), and each field’s word options (kept, retired, by whom).',
+    input: z.object({ section: section.optional() }),
+    write: false,
+  },
+  word_options: {
+    description:
+      'Options for one field’s words, Koati style: keep offers other ways to say it (the person cycles through them on the page), use shows one, retire takes options out of the cycle, put_back returns retired ones. Offer 2–3 genuinely different options rather than rewording silently.',
+    input: z.object({
+      section,
+      field: z.string().describe('Field name from get_page or get_content'),
+      keep: z.array(z.string().min(1)).optional().describe('New options to keep'),
+      use: z.string().optional().describe('Words to show now (kept as an option if they aren’t one yet)'),
+      retire: z.array(z.string()).optional(),
+      put_back: z.array(z.string()).optional(),
+    }),
+    write: true,
+  },
+  edit_list: {
+    description:
+      'Change a list’s items (features, questions, plans, logos…): add one (it copies the first item’s structure), duplicate, remove or move an item, or reset to the layout’s own items.',
+    input: z.object({
+      section,
+      list: z.string().describe('The list: its block id, label or name ("questions") from get_content'),
+      op: z.enum(['add', 'duplicate', 'remove', 'move', 'reset']),
+      item: z.number().int().min(1).optional().describe('Which item, 1 = first (duplicate, remove, move)'),
+      to: z.number().int().min(1).optional().describe('Move: the new position, 1 = first'),
+    }),
+    write: true,
+  },
+  set_list: {
+    description:
+      'Write a whole list at once: its items in order, each as an object of the item’s fields (keys as in get_content, e.g. {"q": …, "a": …}) or a string for one-field items (logos, links). Items are added or removed to match. Nested lists (a plan’s features) are separate lists: set them by their own id.',
+    input: z.object({
+      section,
+      list: z.string().describe('The list: its block id, label or name from get_content'),
+      items: z.array(z.union([z.string(), z.record(z.string(), z.string())])).min(1),
+    }),
+    write: true,
+  },
   set_block: {
     description: 'Change one block: its look (a variant id from get_options, or null for the original), its style and spacing, its motion, or hide it. reset clears all changes.',
     input: z.object({ section, block, look: z.string().nullable().optional(), style: style.optional(), motion: blockMotion.optional(), hidden: z.boolean().optional(), reset: z.boolean().optional() }),

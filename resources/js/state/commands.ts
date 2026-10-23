@@ -9,8 +9,12 @@ import { variantsFor } from '@/core/blocks/variants'
 import { advise, suggestedVariants } from '@/core/advise'
 import { suggestClip, suggestTypes } from '@/core/suggest'
 import { resolveGuide, openGroups } from '@/core/guide'
-import { library } from '@/data/library'
+import { library, slotClip } from '@/data/library'
 import { pressVersionAndFly } from '@/lib/actions'
+import { editList, listContext, ListError, type ListOp } from '@/core/lists'
+import { outline, contentJson, type OutlineList, type OutlineNode } from '@/core/outline'
+import { parseHtml } from '@/core/html/parse'
+import { keepOption, putBackOption, retireOption, showWords, wordChoices } from '@/core/words'
 import { useStore } from './store'
 
 /**
@@ -67,7 +71,7 @@ function findSection(ref: string | number): Slot {
 }
 
 function findBlock(slot: Slot, ref: string): BlockInfo {
-  const blocks = library.clips[slot.clipId].blocks
+  const blocks = slotClip(slot).blocks
   const r = ref.trim().toLowerCase()
   const hit = blocks.find((b) => b.id === ref) ?? blocks.find((b) => b.label.toLowerCase() === r) ?? blocks.find((b) => b.label.toLowerCase().endsWith(r))
   if (!hit) throw new CommandError(`No block "${ref}" in ${TYPE_LABEL[slot.type]}. Blocks: ${blocks.map((b) => `${b.id} ${b.label}`).join('; ')}`)
@@ -116,13 +120,13 @@ export function describeNote(n: Note) {
 }
 
 function wordsFor(slot: Slot) {
-  const clip = library.clips[slot.clipId]
+  const clip = slotClip(slot)
   return resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields
 }
 
 function describeSection(slot: Slot, position: number) {
   const st = useStore.getState()
-  const clip = library.clips[slot.clipId]
+  const clip = slotClip(slot)
   const words = wordsFor(slot)
   return {
     id: slot.id,
@@ -153,6 +157,49 @@ function describeSection(slot: Slot, position: number) {
   }
 }
 
+function findList(slot: Slot, ref: string): BlockInfo {
+  const lists = slotClip(slot).blocks.filter((b) => b.kind === 'list')
+  const r = ref.trim().toLowerCase()
+  const hit =
+    lists.find((b) => b.id === ref) ??
+    lists.find((b) => b.label.toLowerCase() === r) ??
+    lists.find((b) => b.list?.toLowerCase() === r && b.listKey) ??
+    lists.find((b) => b.list?.toLowerCase() === r) ??
+    lists.find((b) => b.label.toLowerCase().endsWith(r))
+  if (!hit) throw new CommandError(`No list "${ref}" in ${TYPE_LABEL[slot.type]}. Lists: ${lists.map((b) => `${b.id} ${b.label}`).join('; ') || 'none'}`)
+  return hit
+}
+
+function outlineOf(slot: Slot): OutlineNode[] {
+  return outline(parseHtml(slotClip(slot).html))
+}
+
+function findOutlineList(nodes: OutlineNode[], id: string): OutlineList | undefined {
+  for (const n of nodes) {
+    if (n.t !== 'list') continue
+    if (n.id === id) return n
+    for (const it of n.items) {
+      const hit = findOutlineList(it.nodes, id)
+      if (hit) return hit
+    }
+  }
+  return undefined
+}
+
+/** A section's list change, with the list's own explanation when it can't be done. */
+function changeList(slot: Slot, change: ListOp): Slot {
+  try {
+    return editList(slot, slotClip(slot), useStore.getState().content, change)
+  } catch (e) {
+    if (e instanceof ListError) throw new CommandError(e.message)
+    throw e
+  }
+}
+
+const putSlot = (next: Slot) => useStore.setState((st) => ({ slots: st.slots.map((x) => (x.id === next.id ? next : x)) }))
+
+const itemsOf = (slot: Slot, listId: string) => slotClip(slot).blocks.filter((b) => b.parent === listId && b.kind === 'item')
+
 const clean = <T extends object>(o: T) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>
 
 /* ---------- reads ---------- */
@@ -176,12 +223,46 @@ const READ = {
       selectedBlock: st.ui.selectedBlockId,
     }
   },
+  get_content: (i: CommandInput<'get_content'>) => {
+    const st = useStore.getState()
+    const sections = i.section !== undefined ? [findSection(i.section)] : st.slots
+    return sections.map((s) => {
+      const clip = slotClip(s)
+      const nodes = outlineOf(s)
+      const lists: unknown[] = []
+      const collect = (ns: OutlineNode[], at: string) => {
+        for (const n of ns) {
+          if (n.t !== 'list') continue
+          const ctx = listContext(clip, s, n.id)
+          lists.push({
+            id: n.id,
+            name: n.key,
+            at: `${at}${n.key}`,
+            label: clip.blocks.find((b) => b.id === n.id)?.label,
+            items: n.items.length,
+            editable: !!ctx,
+            ...(ctx ? { max: ctx.max } : { why: 'Its items are set by the layout.' }),
+          })
+          n.items.forEach((it, ix) => collect(it.nodes, `${at}${n.key}/${ix}/`))
+        }
+      }
+      collect(nodes, '')
+      const options = Object.fromEntries(
+        Object.keys(clip.fields).flatMap((f) => {
+          const kept = wordChoices(clip, s, st.content, f).filter((c) => c.kind === 'kept')
+          const retired = (s.options?.[f] ?? []).filter((o) => o.retiredAt)
+          return kept.length || retired.length ? [[f, { kept: kept.map((c) => ({ text: c.text, by: c.option?.by ?? 'you' })), retired: retired.map((o) => o.text) }]] : []
+        }),
+      )
+      return { section: s.id, position: st.slots.indexOf(s) + 1, type: s.type, content: contentJson(nodes, wordsFor(s)), lists, options }
+    })
+  },
   get_options: (i: CommandInput<'get_options'>) => {
     const st = useStore.getState()
     if (i.section !== undefined && i.block) {
       const slot = findSection(i.section)
       const b = findBlock(slot, i.block)
-      const clip = library.clips[slot.clipId]
+      const clip = slotClip(slot)
       const fields = wordsFor(slot)
       const suggested = suggestedVariants(b, { blocks: clip.blocks, fields })
       return {
@@ -204,7 +285,7 @@ const READ = {
     const st = useStore.getState()
     const slots = i.section !== undefined ? [findSection(i.section)] : st.slots
     return slots.flatMap((s) => {
-      const blocks = library.clips[s.clipId].blocks
+      const blocks = slotClip(s).blocks
       return adviceFor(s).map((a) => ({ section: s.id, block: blocks.find((b) => b.id === a.blockId)?.label, ...a }))
     })
   },
@@ -228,7 +309,7 @@ const READ = {
 
 function adviceFor(slot: Slot) {
   const st = useStore.getState()
-  const clip = library.clips[slot.clipId]
+  const clip = slotClip(slot)
   return advise({
     blocks: clip.blocks,
       sectionType: clip.type,
@@ -283,12 +364,78 @@ const WRITE = {
   },
   set_words: (i: CommandInput<'set_words'>) => {
     const slot = findSection(i.section)
-    const fields = Object.keys(library.clips[slot.clipId].fields)
+    const fields = Object.keys(slotClip(slot).fields)
     for (const [field, text] of Object.entries(i.words)) {
       if (!fields.includes(field)) throw new CommandError(`No field "${field}" in this ${slot.type}. Fields: ${fields.join(', ')}`)
       useStore.getState().setWord(slot.id, field, text === '' ? null : text)
     }
     return { words: wordsFor(findSection(slot.id)) }
+  },
+  word_options: (i: CommandInput<'word_options'>) => {
+    let slot = findSection(i.section)
+    const clip = slotClip(slot)
+    if (clip.fields[i.field] == null) throw new CommandError(`No field "${i.field}" in this ${slot.type}. Fields: ${Object.keys(clip.fields).join(', ')}`)
+    const content = useStore.getState().content
+    for (const t of i.keep ?? []) slot = keepOption(slot, i.field, t, 'agent')
+    for (const t of i.retire ?? []) slot = retireOption(slot, i.field, t)
+    for (const t of i.put_back ?? []) slot = putBackOption(slot, i.field, t)
+    if (i.use) {
+      if (!wordChoices(clip, slot, content, i.field).some((c) => c.text.trim() === i.use!.trim())) slot = keepOption(slot, i.field, i.use, 'agent')
+      slot = showWords(slot, clip, content, i.field, i.use)
+    }
+    putSlot(slot)
+    const live = findSection(slot.id)
+    return { field: i.field, showing: wordsFor(live)[i.field], choices: wordChoices(clip, live, content, i.field).map((c) => ({ text: c.text, kind: c.kind, by: c.option?.by })) }
+  },
+  edit_list: (i: CommandInput<'edit_list'>) => {
+    const slot = findSection(i.section)
+    const list = findList(slot, i.list)
+    const items = itemsOf(slot, list.id)
+    const item = () => {
+      if (i.item == null) throw new CommandError(`Say which item (1–${items.length}).`)
+      const hit = items[i.item - 1]
+      if (!hit) throw new CommandError(`${list.label} has ${items.length} items.`)
+      return hit.id
+    }
+    const change: ListOp =
+      i.op === 'add' || i.op === 'reset'
+        ? { op: i.op, listId: list.id }
+        : i.op === 'move'
+          ? { op: 'move', itemId: item(), to: (i.to ?? 1) - 1 }
+          : { op: i.op, itemId: item() }
+    putSlot(changeList(slot, change))
+    const live = findSection(slot.id)
+    return { list: list.label, items: itemsOf(live, list.id).map((b, n) => ({ position: n + 1, block: b.id, label: b.label })), content: contentJson(outlineOf(live), wordsFor(live)) }
+  },
+  set_list: (i: CommandInput<'set_list'>) => {
+    let slot = findSection(i.section)
+    const list = findList(slot, i.list)
+    if (!list.listKey) throw new CommandError(`${list.label}’s items are set by the layout; set its words with set_words instead.`)
+    // Match the number of items first (new ones copy the first item), then write their words.
+    while (itemsOf(slot, list.id).length < i.items.length) slot = changeList(slot, { op: 'add', listId: list.id })
+    while (itemsOf(slot, list.id).length > i.items.length) {
+      const items = itemsOf(slot, list.id)
+      slot = changeList(slot, { op: 'remove', itemId: items[items.length - 1].id })
+    }
+    const node = findOutlineList(outlineOf(slot), list.id)
+    if (!node) throw new CommandError(`Couldn’t read ${list.label}.`)
+    const words = { ...slot.words }
+    i.items.forEach((value, n) => {
+      const it = node.items[n]
+      const fields = it.nodes.filter((x): x is Extract<OutlineNode, { t: 'field' }> => x.t === 'field')
+      if (typeof value === 'string') {
+        if (fields.length !== 1) throw new CommandError(`Item ${n + 1} has fields ${fields.map((f) => f.key).join(', ')}: give an object.`)
+        words[fields[0].field] = value
+      } else
+        for (const [k, v] of Object.entries(value)) {
+          const f = fields.find((x) => x.key === k)
+          if (!f) throw new CommandError(`Item ${n + 1} has no "${k}". Its fields: ${fields.map((x) => x.key).join(', ')}`)
+          words[f.field] = v
+        }
+    })
+    slot = { ...slot, words }
+    putSlot(slot)
+    return { list: list.label, content: contentJson(outlineOf(slot), wordsFor(findSection(slot.id))) }
   },
   set_block: (i: CommandInput<'set_block'>) => {
     const slot = findSection(i.section)
@@ -337,7 +484,7 @@ const WRITE = {
   set_image: (i: CommandInput<'set_image'>) => {
     const slot = findSection(i.section)
     const b = findBlock(slot, i.block)
-    if (b.kind !== 'image') throw new CommandError(`${b.label} isn’t an image block. Image blocks: ${library.clips[slot.clipId].blocks.filter((x) => x.kind === 'image').map((x) => x.label).join('; ') || 'none'}`)
+    if (b.kind !== 'image') throw new CommandError(`${b.label} isn’t an image block. Image blocks: ${slotClip(slot).blocks.filter((x) => x.kind === 'image').map((x) => x.label).join('; ') || 'none'}`)
     const st = useStore.getState()
     if (i.remove) {
       st.editBlock(slot.id, b.id, { media: undefined })
@@ -384,7 +531,7 @@ const WRITE = {
     if (b.kind !== 'icon') throw new CommandError(`${b.label} isn’t an icon block`)
     if (i.name && !ICON_NAMES.includes(i.name)) throw new CommandError(`No icon "${i.name}". Icons: ${ICON_NAMES.join(', ')}`)
     useStore.getState().editBlock(slot.id, b.id, { icon: i.name ?? undefined })
-    return { block: b.label, icon: i.name ?? blockIconName(library.clips[slot.clipId].html, b.id) ?? null, set: resolveGuide(useStore.getState().guide).tokens['icon.set'] }
+    return { block: b.label, icon: i.name ?? blockIconName(slotClip(slot).html, b.id) ?? null, set: resolveGuide(useStore.getState().guide).tokens['icon.set'] }
   },
   set_section_motion: (i: CommandInput<'set_section_motion'>) => {
     const slot = findSection(i.section)

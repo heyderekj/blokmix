@@ -2,7 +2,8 @@ import type { ComposedPage } from '../compose'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
-import { fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+import { contentVar, fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+import { bindContent } from './bind'
 
 export const ASTRO_VERSION = '~7.3.0' // 7.4 needs Node >= 22.23.4; 7.3 runs on any Node 22.12+
 
@@ -53,21 +54,39 @@ ${href ? `    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigi
 
   for (const s of page.sections) {
     files[`${root}src/components/sections/${s.component}.css`] = sectionCss(s)
+    if (!s.outline.length) {
+      files[`${root}src/components/sections/${s.component}.astro`] = `---\n${sectionHeader(s, 'js')}\nimport './${s.component}.css'\n---\n${serialize(s.tree, 'html')}\n`
+      continue
+    }
+    // Words live in a content file; the component reads it (and takes other content as a prop).
+    const file = `src/content/${s.contentName}.json`
+    files[`${root}${file}`] = JSON.stringify(s.content, null, 2) + '\n'
     files[`${root}src/components/sections/${s.component}.astro`] = `---
 ${sectionHeader(s, 'js')}
 import './${s.component}.css'
+import data from '../../content/${s.contentName}.json'
+
+interface Props {
+  content?: typeof data
+}
+const { content = data } = Astro.props
 ---
-${serialize(s.tree, 'html')}
+${serialize(bindContent(s.source, s.outline, file, false), 'html')}
 `
   }
 
-  const imports = page.sections.map((s) => `import ${s.component} from '../components/sections/${s.component}.astro'`).join('\n')
+  const imports = page.sections
+    .flatMap((s) => [
+      `import ${s.component} from '../components/sections/${s.component}.astro'`,
+      ...(s.outline.length ? [`import ${contentVar(s)} from '../content/${s.contentName}.json'`] : []),
+    ])
+    .join('\n')
   files[`${root}src/pages/index.astro`] = `---
 import Base from '../layouts/Base.astro'
 ${imports}
 ---
 <Base title=${JSON.stringify(page.title)}>
-${page.sections.map((s) => `  <${s.component} />`).join('\n')}
+${page.sections.map((s) => (s.outline.length ? `  <${s.component} content={${contentVar(s)}} />` : `  <${s.component} />`)).join('\n')}
 </Base>
 `
   return files

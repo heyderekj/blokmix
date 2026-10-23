@@ -25,7 +25,7 @@ const BRIDGE = `(function () {
   }
 
   // ---- blocks: ids in document order, matching core/blocks.ts indexBlocks ----
-  document.querySelectorAll('[data-mx-block]').forEach(function (el, i) { el.setAttribute('data-mx-b', 'b' + i); });
+  document.querySelectorAll('[data-mx-block]').forEach(function (el, i) { if (!el.hasAttribute('data-mx-b')) el.setAttribute('data-mx-b', 'b' + i); });
   var byId = function (id) { return id ? document.querySelector('[data-mx-b="' + id + '"]') : null; };
   var up = function (el) { return el && el.parentElement ? el.parentElement.closest('[data-mx-block]') : null; };
   var rect = function (el) { if (!el) return null; var r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
@@ -158,7 +158,7 @@ const BRIDGE = `(function () {
     if (editing) return;
     if (editMode && e.key === 'Enter' && sel) { var f = fieldEl(byId(sel)); if (f) { e.preventDefault(); startEdit(f); return; } }
     post({ key: { key: e.key, code: e.code, meta: e.metaKey, ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey } });
-    if (e.key === ' ' || e.key === 'Tab' || e.key.indexOf('Arrow') === 0) e.preventDefault();
+    if (e.key === ' ' || e.key === 'Tab' || e.key.indexOf('Arrow') === 0 || ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D'))) e.preventDefault();
   });
 
   /* ---- pictures and moving media in image blocks (same elements the exports write) ---- */
@@ -202,16 +202,15 @@ const BRIDGE = `(function () {
   var iconOrig = null;
   var KEEP_OUT = /^(viewbox|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|xmlns)$/i;
   function drawIcons(ic) {
-    if (!iconOrig) {
-      iconOrig = [];
-      document.querySelectorAll('svg').forEach(function (svg) {
-        var b = svg.closest('[data-mx-block]');
-        var iconBlock = b && b.getAttribute('data-mx-block') === 'icon' && b.querySelector('svg') === svg ? b.getAttribute('data-mx-b') : null;
-        if (!svg.hasAttribute('data-mx-icon') && !iconBlock) return;
-        svg.setAttribute('data-mx-i', String(iconOrig.length));
-        iconOrig.push({ html: svg.outerHTML, block: iconBlock, name: svg.getAttribute('data-mx-icon'), animated: !!svg.querySelector('[class]') });
-      });
-    }
+    if (!iconOrig) iconOrig = [];
+    /* New icons arrive with list items you add, so look for unseen ones every time. */
+    document.querySelectorAll('svg:not([data-mx-i])').forEach(function (svg) {
+      var b = svg.closest('[data-mx-block]');
+      var iconBlock = b && b.getAttribute('data-mx-block') === 'icon' && b.querySelector('svg') === svg ? b.getAttribute('data-mx-b') : null;
+      if (!svg.hasAttribute('data-mx-icon') && !iconBlock) return;
+      svg.setAttribute('data-mx-i', String(iconOrig.length));
+      iconOrig.push({ html: svg.outerHTML, block: iconBlock, name: svg.getAttribute('data-mx-icon'), animated: !!svg.querySelector('[class]') });
+    });
     iconOrig.forEach(function (o, i) {
       var cur = document.querySelector('[data-mx-i="' + i + '"]');
       if (!cur) return;
@@ -228,6 +227,34 @@ const BRIDGE = `(function () {
       }
       if (cur.outerHTML !== html) cur.outerHTML = html;
     });
+  }
+
+  /* ---- lists you changed: swap the list (or a marquee's mirrored copy) in place ---- */
+  var listOrig = {}, listPatched = [], listKey = '[]';
+  function patchLists(patches) {
+    var key = JSON.stringify(patches);
+    if (key === listKey) return;
+    listKey = key;
+    var had = {};
+    document.querySelectorAll('[data-mx-b]').forEach(function (el) { had[el.getAttribute('data-mx-b')] = true; });
+    listPatched.forEach(function (sel) { var cur = document.querySelector(sel); if (cur && listOrig[sel]) cur.replaceWith(listOrig[sel].cloneNode(true)); });
+    listPatched = [];
+    patches.forEach(function (p) {
+      var cur = document.querySelector(p.sel);
+      if (!cur) return;
+      if (!listOrig[p.sel]) listOrig[p.sel] = cur.cloneNode(true);
+      var t = document.createElement('template'); t.innerHTML = p.html;
+      var next = t.content.firstElementChild;
+      if (!next) return;
+      cur.replaceWith(next);
+      listPatched.push(p.sel);
+      /* Items that were already on the page don't play their entrance again; new ones do. */
+      next.getAnimations({ subtree: true }).forEach(function (a) {
+        var tg = a.effect && a.effect.target, item = tg && tg.closest && tg.closest('[data-mx-b]');
+        if (!item || had[item.getAttribute('data-mx-b')]) { try { a.finish(); } catch (_) {} }
+      });
+    });
+    if (window.mxMedia) window.mxMedia.wire(document);
   }
 
   /* The lightbox opens over the whole app, not inside this section's frame. */
@@ -248,6 +275,7 @@ const BRIDGE = `(function () {
       var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l);
       l.onload = report;
     });
+    if (d.lists) patchLists(d.lists);
     if (d.fields !== undefined) document.querySelectorAll('[data-mx-field],[data-mx-mirror]').forEach(function (el) {
       if (el === editing) return;
       if (!el.hasAttribute('data-mx-original')) el.setAttribute('data-mx-original', el.textContent);

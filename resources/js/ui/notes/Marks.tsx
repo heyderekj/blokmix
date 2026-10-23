@@ -5,7 +5,7 @@ import type { Note, NoteAnchor, NoteKind, Slot } from '@/core/types'
 import { NOTE_KINDS } from '@/core/types'
 import { KIND_HINT, KIND_LABEL, SOURCE_LABEL, STATUS_LABEL, isMark, replaceWords } from '@/core/notes'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
-import { library } from '@/data/library'
+import { slotClip } from '@/data/library'
 import { useStore } from '@/state/store'
 import type { FrameRect } from '@/frame/bridge'
 import { keepInView } from '../canvas/inView'
@@ -28,7 +28,7 @@ export const useMarkDraft = create<{ draft: MarkDraft | null; open: (d: MarkDraf
 
 /** Start a mark on a block of a section (from the Note tool or the block bar). */
 export function draftForBlock(slot: Slot, blockId: string, rect: FrameRect, words: Record<string, string>): MarkDraft | null {
-  const b = library.clips[slot.clipId]?.blocks.find((x) => x.id === blockId)
+  const b = slotClip(slot).blocks.find((x) => x.id === blockId)
   if (!b) return null
   const quote = b.field ? words[b.field] : undefined
   return { slotId: slot.id, rect, anchor: { kind: 'block', slotId: slot.id, clipId: slot.clipId, blockId: b.id, label: b.label, quote }, suggested: quote }
@@ -281,7 +281,7 @@ function WordsComposer({ draft, anchor }: { draft: MarkDraft; anchor: Extract<No
   }, [close])
   if (!slot) return null
 
-  const clip = library.clips[slot.clipId]
+  const clip = slotClip(slot)
   const full = resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields[anchor.field] ?? ''
   const changed = next.trim() && next.trim() !== anchor.quote
   const st = useStore.getState

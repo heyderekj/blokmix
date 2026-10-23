@@ -5,6 +5,11 @@ import { TYPE_LABEL } from '../content'
 /** Text files, plus binary ones (uploaded images) as bytes. */
 export type FileMap = Record<string, string | Uint8Array>
 
+/** The variable a page imports a section's content file as: featuresGrid2Content. */
+export function contentVar(s: ComposedSection): string {
+  return s.component[0].toLowerCase() + s.component.slice(1) + 'Content'
+}
+
 export function tokensCss(page: ComposedPage): string {
   return `/* Mixtape style guide: generated, edit tokens in Mixtape and re-export. */\n${varsToCss(page.vars)}\n`
 }

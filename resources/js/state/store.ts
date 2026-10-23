@@ -29,7 +29,9 @@ import type {
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, promote, removeCandidate } from '@/core/guide'
 import { autoTitle, descendants, nextLetter } from '@/core/versions'
-import { library } from '@/data/library'
+import { library, slotClip } from '@/data/library'
+import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
+import { keepOption, putBackOption, retireOption, showWords } from '@/core/words'
 import { suggestClip } from '@/core/suggest'
 import { BASE_TOKENS } from '@/core/tokens'
 import { initialStatus, nextNumber } from '@/core/notes'
@@ -58,7 +60,7 @@ export interface UiState {
   mode: Mode
   viewport: Viewport
   sheet: Sheet
-  guideTab: 'style' | 'copy'
+  guideTab: 'style' | 'content'
   crateFilter: SectionType | 'all' | 'auto'
   tool: Tool
   theme: 'light' | 'dark'
@@ -114,6 +116,14 @@ export interface State extends TapeData {
   /** Patch a block of the section's current clip; null clears its edit. */
   editBlock: (slotId: string, blockId: string, patch: Partial<BlockEdit> | null) => void
   setWord: (slotId: string, field: string, value: string | null) => void
+  /** Add, duplicate, remove or move a list's items. Returns the item to select (a new one), or null if it couldn't. */
+  editList: (slotId: string, change: ListOp) => { itemId: string | null } | null
+  /** Keep words as an option for a field ("Keep as an option"). */
+  keepWords: (slotId: string, field: string, text: string, by?: 'you' | 'agent') => void
+  retireWords: (slotId: string, field: string, text: string) => void
+  putBackWords: (slotId: string, field: string, text: string) => void
+  /** Show one of a field's options. */
+  chooseWords: (slotId: string, field: string, text: string) => void
   setSectionSpacing: (slotId: string, patch: Partial<SectionSpacing>) => void
   /** null = as clipped. */
   setSectionMotion: (slotId: string, motion: SectionMotion | null) => void
@@ -273,6 +283,33 @@ export const useStore = create<State>()(
               else words[field] = value
               return { ...s, words }
             }),
+          editList: (slotId, change) => {
+            const slot = get().slots.find((s) => s.id === slotId)
+            if (!slot) return null
+            const clip = slotClip(slot)
+            let next: Slot
+            try {
+              next = applyListEdit(slot, clip, get().content, change)
+            } catch (e) {
+              if (e instanceof ListError) {
+                get().showFlash(e.message)
+                return null
+              }
+              throw e
+            }
+            updateSlot(slotId, () => next)
+            // The new item, for add and duplicate, so it can be selected.
+            if (change.op !== 'add' && change.op !== 'duplicate') return { itemId: null }
+            const listId = change.op === 'add' ? change.listId : clip.blocks.find((b) => b.id === change.itemId)?.parent
+            const before = new Set(listOrder(clip, listId ?? ''))
+            const after = slotClip(next)
+            const added = after.blocks.find((b) => b.parent === listId && b.kind === 'item' && b.n != null && !before.has(b.n))
+            return { itemId: added?.id ?? null }
+          },
+          keepWords: (slotId, field, text, by = 'you') => updateSlot(slotId, (s) => keepOption(s, field, text, by)),
+          retireWords: (slotId, field, text) => updateSlot(slotId, (s) => retireOption(s, field, text)),
+          putBackWords: (slotId, field, text) => updateSlot(slotId, (s) => putBackOption(s, field, text)),
+          chooseWords: (slotId, field, text) => updateSlot(slotId, (s) => showWords(s, slotClip(s), get().content, field, text)),
           setSectionSpacing: (slotId, patch) =>
             updateSlot(slotId, (s) => {
               const spacing = { ...s.spacing, ...patch }
@@ -288,7 +325,7 @@ export const useStore = create<State>()(
           promoteBlock: (slotId, blockId) => {
             const st = get()
             const slot = st.slots.find((x) => x.id === slotId)
-            const block = slot && library.clips[slot.clipId]?.blocks.find((b) => b.id === blockId)
+            const block = slot && slotClip(slot).blocks.find((b) => b.id === blockId)
             const edit = slot?.edits?.[slot.clipId]?.[blockId]
             if (!slot || !block || !edit) return
             set((s) => ({
@@ -524,6 +561,8 @@ export const useStore = create<State>()(
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
         // Drop anything that points at clips that no longer exist in the sample library.
         merged.slots = (merged.slots ?? []).filter((s) => library.clips[s.clipId])
+        // The Copy tab became Content.
+        if ((merged.ui.guideTab as string) === 'copy') merged.ui.guideTab = 'content'
         // One framework per hand-off.
         merged.ui.packetTargets = (merged.ui.packetTargets ?? ['astro']).slice(0, 1)
         for (const [id, v] of Object.entries(merged.versions ?? {})) {

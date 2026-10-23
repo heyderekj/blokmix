@@ -37,6 +37,7 @@ export const AGENT_RULES = [
   'Layout marked “reference only” may be restructured to fit neighboring sections.',
   'Respect prefers-reduced-motion: motion lives in each section’s motion block and must stay optional.',
   'Keep source URLs as references in comments; don’t remove them.',
+  'Words live in content files (src/content/<section>.json in Astro, content/<section>.json in Next.js), and components read them. Change words in those files, not in markup, and keep each element’s data-mx-src so words trace back to their file.',
 ]
 
 function sourceLabel(lib: Library, candidateId: string): string {
@@ -95,6 +96,9 @@ export function packetJson(i: PacketInput) {
       },
       localTokens: s.keep.style ? s.clip.tokens : null,
       retainedSourceFields: s.retained,
+      content: s.outline.length ? s.content : null,
+      contentFile: s.outline.length ? `${s.contentName}.json` : null,
+      wordOptions: s.options,
       media: s.media.map((m) => ({ block: m.label, source: m.source, src: m.src, alt: m.alt, credit: m.credit })),
       blocks: s.blocks.map((b) => ({ id: b.id, label: b.label, kind: b.kind, variant: b.edit.variant ?? null, style: b.edit.style ?? null, hidden: !!b.edit.hidden })),
       notes: s.notes,
@@ -135,6 +139,11 @@ export function linerNotes(i: PacketInput): string {
     lines.push(`- **Layout:** ${s.keep.layout ? 'reproduce the structure faithfully' : 'reference only; choose a structure that fits neighboring sections'}`)
     lines.push(`- **Style:** ${s.keep.style ? 'keeps its own captured tokens (scoped to the section)' : 'use the style guide tokens'}`)
     lines.push(`- **Copy:** ${s.keep.content ? 'source copy kept (replace before launch)' : 'your copy'}${s.retained.length ? `; still source copy: ${s.retained.join(', ')}` : ''}`)
+    if (s.outline.length) {
+      const lists = s.outline.flatMap((n) => (n.t === 'list' ? [`${n.key} ×${n.items.length}`] : []))
+      lines.push(`- **Content:** \`${s.contentName}.json\` in the content folder${lists.length ? ` (lists: ${lists.join(', ')})` : ''}`)
+    }
+    for (const [f, os] of Object.entries(s.options)) lines.push(`- **Other ways to say ${f}** (kept as options; use only if asked): ${os.map((o) => `“${o}”`).join(' · ')}`)
     lines.push(`- **Motion:** ${describeSectionMotion(s.motion) ?? (s.keep.motion ? s.clip.motionNotes ?? 'keep the captured motion' : 'none')}${s.motionCss?.includes('Motion presets') ? ' (presets are in the section’s motion CSS; keep their timing and easing)' : ''}`)
     for (const b of s.blocks) lines.push(`- **Block, ${b.label}:** ${describeEdit(b.edit)}`)
     for (const n of s.notes) lines.push(`- **Note:** ${n}`)
@@ -233,6 +242,14 @@ export function linerNotes(i: PacketInput): string {
   if (i.targets.includes('astro')) lines.push('- `astro/`: runnable Astro project (`npm i && npm run dev`)')
   if (i.targets.includes('next')) lines.push('- `next/`: runnable Next.js App Router project (`npm i && npm run dev`)')
   lines.push('')
+  lines.push('## Content')
+  lines.push('')
+  lines.push('Each section’s words are a JSON file (`src/content/` in Astro, `content/` in Next.js); the page imports it and passes it to the section as `content`. Lists are arrays: where a list’s items are built alike, the component maps over the array, so adding an entry adds an item; items that differ (their own icons, pictures or looks) are written one by one and read their entry by position.')
+  lines.push('')
+  lines.push('Every element with words has `data-mx-src="<file>#<path>"` (like Koati’s `data-koati-src`), so a picker or an agent can find where its words live.')
+  lines.push('')
+  lines.push('Want a visual editor for these files? [Keystatic](https://keystatic.com) reads and writes local JSON: point a singleton at each file. Optional; nothing in the build depends on it.')
+  lines.push('')
   return lines.join('\n')
 }
 
@@ -244,7 +261,7 @@ export function agentPrompt(i: PacketInput, target: BuildTarget): string {
 1. Read MIXTAPE.md (liner notes) and mixtape.json.
 2. Start from the reference build in ${dir}; it already composes ${i.page.sections.length} section components with the resolved style guide in tokens.css.
 3. Follow the per-section instructions (layout, style, copy, motion) and the rules at the end of MIXTAPE.md, especially: use only the tokens in tokens.css.
-4. Replace any copy listed as retained source copy, and any logos or imagery, with project-appropriate content.
+4. Replace any copy listed as retained source copy, and any logos or imagery, with project-appropriate content. Words live in the content folder's JSON files; edit them there.
 5. Run the dev server, compare against reference.html, and fix any visual drift at 1440px and 390px.
 
 When you're done, report the preview URL so it can be attached to the version on the Mixtape canvas.

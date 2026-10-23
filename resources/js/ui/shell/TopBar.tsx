@@ -6,7 +6,7 @@ import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
 import { pressVersionAndFly } from '@/lib/actions'
 import { GuidePanel } from '../panels/GuidePanel'
-import { CopyPanel } from '../panels/CopyPanel'
+import { ContentPanel } from '../panels/ContentPanel'
 import { PacketPanel } from '../panels/PacketPanel'
 import { NotesPanel } from '../panels/NotesPanel'
 import { outstanding } from '@/core/notes'
@@ -146,7 +146,7 @@ function ModeIsland() {
           <button
             type="button"
             onClick={() => toggleSheet('guide')}
-            title={decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide and copy (G)'}
+            title={decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide and content (G)'}
             aria-label={decisions ? `Style guide, ${decisions} to decide` : 'Style guide'}
             aria-expanded={open}
             className={`relative flex h-8 items-center rounded-full px-2 transition-colors active:scale-[0.97] ${
@@ -178,12 +178,12 @@ function ModeIsland() {
           value={tab}
           options={[
             { value: 'style', label: 'Style', badge: decisions || undefined },
-            { value: 'copy', label: 'Copy' },
+            { value: 'content', label: 'Content' },
           ]}
           onChange={(v) => st().setUi({ guideTab: v })}
         />
       </div>
-      {tab === 'style' ? <GuidePanel /> : <CopyPanel />}
+      {tab === 'style' ? <GuidePanel /> : <ContentPanel />}
     </Island>
   )
 }

@@ -1,4 +1,4 @@
-import type { HEl, HNode } from './parse'
+import { EXPR_ATTR, type HEl, type HMap, type HNode } from './parse'
 
 /**
  * One serializer, two dialects:
@@ -69,6 +69,7 @@ function attrs(el: HEl, d: Dialect): string {
   return el.attrs
     .map(([k, v]) => {
       const name = d === 'jsx' ? jsxAttrName(k, el.tag) : k
+      if (v.startsWith(EXPR_ATTR)) return ` ${name}={${v.slice(EXPR_ATTR.length)}}`
       if (v === '' && (BOOLEAN.has(k) || BOOLEAN.has(name))) return ` ${name}`
       if (d === 'jsx' && NUMERIC.has(name) && /^-?\d+$/.test(v)) return ` ${name}={${v}}`
       return ` ${name}="${escAttr(v)}"`
@@ -79,14 +80,20 @@ function attrs(el: HEl, d: Dialect): string {
 const isBlank = (n: HNode) => n.t === 'text' && !n.v.trim()
 
 function hasText(el: HEl): boolean {
-  return el.kids.some((k) => k.t === 'text' && k.v.trim() !== '')
+  return el.kids.some((k) => (k.t === 'text' && k.v.trim() !== '') || k.t === 'expr')
 }
+
+/** The opening of a list rendered from content; the item template follows, then mapClose. */
+const mapOpen = (m: HMap) => `{${m.list}.map((${m.item}, ${m.index}) => (`
+const mapClose = '))}'
 
 function inline(n: HNode, d: Dialect, pre: boolean): string {
   if (n.t === 'text') {
     if (pre) return d === 'jsx' ? `{${JSON.stringify(n.v)}}` : escText(n.v)
     return escText(n.v.replace(/\s+/g, ' '))
   }
+  if (n.t === 'expr') return `{${n.v}}`
+  if (n.t === 'map') return `${mapOpen(n)}${n.kids.filter((k) => !isBlank(k)).map((k) => inline(k, d, pre)).join('')}${mapClose}`
   const open = `<${n.tag}${attrs(n, d)}`
   if (VOID.has(n.tag)) return d === 'jsx' ? `${open} />` : `${open}>`
   if (!n.kids.length && (d === 'jsx' || n.ns === 'svg')) return `${open} />`
@@ -99,6 +106,16 @@ function block(n: HNode, d: Dialect, depth: number, out: string[]) {
   if (n.t === 'text') {
     const t = n.v.replace(/\s+/g, ' ').trim()
     if (t) out.push(pad + escText(t))
+    return
+  }
+  if (n.t === 'expr') {
+    out.push(`${pad}{${n.v}}`)
+    return
+  }
+  if (n.t === 'map') {
+    out.push(pad + mapOpen(n))
+    for (const k of n.kids) if (!isBlank(k)) block(k, d, depth + 1, out)
+    out.push(pad + mapClose)
     return
   }
   const kids = n.kids.filter((k) => !isBlank(k))

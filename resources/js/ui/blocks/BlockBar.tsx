@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Copy, ListRestart, Minus, ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
 import { advise, suggestedVariants, type Advice } from '@/core/advise'
 import { resolveFields } from '@/core/content'
-import { library } from '@/data/library'
+import { slotClip } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { useBlockPreview } from './preview'
@@ -19,8 +19,10 @@ import { LookStyles, LookThumb } from './LookSamples'
 import { ImageMenu } from './ImageMenu'
 import { IconMenu } from './IconMenu'
 import { blockIconName } from '@/core/icons'
+import { listContext } from '@/core/lists'
+import { WordsCycler, WordsMenu } from './WordsMenu'
 
-type Menu = 'variant' | 'style' | 'motion' | 'image' | 'icon' | 'more' | 'advice' | null
+type Menu = 'variant' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'more' | 'advice' | null
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -42,7 +44,7 @@ const PLURAL: Record<BlockKind, string> = {
  * whether the change is just here or for every block of its kind.
  */
 export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; rect: FrameRect | null }) {
-  const blocks = library.clips[slot.clipId].blocks
+  const blocks = slotClip(slot).blocks
   const components = useStore((s) => s.guide.components)
   const own = slot.edits?.[slot.clipId]?.[block.id]
   const def = components?.[block.kind]
@@ -53,7 +55,10 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   const st = useStore.getState
   const preview = useBlockPreview()
 
-  useEffect(() => setMenu(null), [block.id])
+  useEffect(() => {
+    setMenu(null)
+    useBlockPreview.getState().setKeepNext(null)
+  }, [block.id])
   // A menu that opens near the bottom of the screen slides the page up so it's all in view.
   useLayoutEffect(() => {
     if (menu) keepInView(ref.current)
@@ -80,15 +85,16 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   const current = variants.find((v) => v.id === edit?.variant)
   const advice = useAdvice(slot, block, rect)
   const sampleText = useMemo(() => {
-    const clip = library.clips[slot.clipId]
+    const clip = slotClip(slot)
     const fields = resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields
     const inner = block.field ?? blocks.find((b) => b.parent === block.id && b.field && (b.kind === 'heading' || b.kind === 'text'))?.field
     return (inner && fields[inner]) || BLOCK_LABEL[block.kind]
   }, [block, blocks, slot])
   const suggested = useMemo(() => {
-    const clip = library.clips[slot.clipId]
+    const clip = slotClip(slot)
     return suggestedVariants(block, { blocks, fields: resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields })
   }, [block, blocks, slot])
+  const list = listContext(slotClip(slot), slot, block.id)
   const fix = (a: Advice) => {
     if (a.fix?.promote) {
       st().promoteBlock(slot.id, block.id)
@@ -143,9 +149,11 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             Edit
           </BarButton>
         )}
+        {block.field && <WordsCycler slot={slot} field={block.field} open={menu === 'words'} onOpen={() => setMenu(menu === 'words' ? null : 'words')} />}
+        {list && <ListControls slotId={slot.id} ctx={list} />}
         <BarButton
           onClick={() => {
-            const clip = library.clips[slot.clipId]
+            const clip = slotClip(slot)
             const words = resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields
             const d = rect && draftForBlock(slot, block.id, rect, words)
             if (d) useMarkDraft.getState().open(d)
@@ -225,7 +233,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
       {menu === 'icon' && (
         <IconMenu
           current={own?.icon}
-          original={blockIconName(library.clips[slot.clipId].html, block.id)}
+          original={blockIconName(slotClip(slot).html, block.id)}
           onHover={(n) => hover(n ? { icon: n } : null)}
           onPick={(n) => apply({ icon: n ?? undefined })}
         />
@@ -233,6 +241,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
       {menu === 'image' && (
         <ImageMenu block={block} fill={own?.media} onHover={(m) => hover(m ? { media: m } : null)} onPick={(m) => apply({ media: m ?? undefined })} />
       )}
+      {menu === 'words' && block.field && <WordsMenu slot={slot} field={block.field} blockId={block.id} onClose={() => setMenu(null)} />}
       {menu === 'motion' && <MotionMenu kind={block.kind} motion={edit?.motion} onHover={(m) => hover(m ? { motion: m } : null)} onPick={(m) => apply({ motion: m })} />}
       {menu === 'more' && (
         <Popover width={248}>
@@ -268,6 +277,18 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
           >
             Reset this block
           </MenuItem>
+          {list?.changed && (
+            <MenuItem
+              icon={ListRestart}
+              onClick={() => {
+                st().editList(slot.id, { op: 'reset', listId: list.list.id })
+                st().selectBlock(list.list.id)
+                st().showFlash('Back to the layout’s own items', { undo: true })
+              }}
+            >
+              Back to the layout’s items
+            </MenuItem>
+          )}
           <MenuItem
             icon={EyeOff}
             onClick={() => {
@@ -282,6 +303,52 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         </Popover>
       )}
     </div>
+  )
+}
+
+/** Add, duplicate, move and remove a list's items, right where they are. */
+function ListControls({ slotId, ctx }: { slotId: string; ctx: NonNullable<ReturnType<typeof listContext>> }) {
+  const st = useStore.getState
+  const full = ctx.count >= ctx.max
+  const select = (r: { itemId: string | null } | null) => r?.itemId && st().selectBlock(r.itemId)
+  if (!ctx.item)
+    return (
+      <BarButton icon={Plus} title={full ? `This layout holds up to ${ctx.max} items` : 'Add an item (it copies the first one)'} onClick={() => select(st().editList(slotId, { op: 'add', listId: ctx.list.id }))}>
+        Add item
+      </BarButton>
+    )
+  const item = ctx.item.id
+  return (
+    <div className="flex items-center">
+      <IconButton icon={Copy} title={full ? `This layout holds up to ${ctx.max} items` : 'Duplicate (⌘D)'} disabled={full} onClick={() => select(st().editList(slotId, { op: 'duplicate', itemId: item }))} />
+      <IconButton icon={ArrowLeft} title="Move earlier (⌥←)" disabled={ctx.index <= 0} onClick={() => st().editList(slotId, { op: 'move', itemId: item, to: ctx.index - 1 })} />
+      <IconButton icon={ArrowRight} title="Move later (⌥→)" disabled={ctx.index >= ctx.count - 1} onClick={() => st().editList(slotId, { op: 'move', itemId: item, to: ctx.index + 1 })} />
+      <IconButton
+        icon={Minus}
+        title={ctx.count <= 1 ? 'A list keeps at least one item' : 'Remove (⌫)'}
+        disabled={ctx.count <= 1}
+        onClick={() => {
+          if (!st().editList(slotId, { op: 'remove', itemId: item })) return
+          st().selectBlock(ctx.list.id)
+          st().showFlash('Item removed', { undo: true })
+        }}
+      />
+    </div>
+  )
+}
+
+function IconButton({ icon: Icon, title, onClick, disabled }: { icon: typeof Type; title: string; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      disabled={disabled}
+      onClick={onClick}
+      className="grid size-8 shrink-0 place-items-center rounded-[10px] text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.94] disabled:pointer-events-none disabled:opacity-35"
+    >
+      <Icon size={14} />
+    </button>
   )
 }
 
@@ -577,12 +644,12 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
   const content = useStore((s) => s.content)
   const slots = useStore((s) => s.slots)
   return useMemo(() => {
-    const clip = library.clips[slot.clipId]
+    const clip = slotClip(slot)
     const fields = resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields
     // Every distinct one-off look per kind across the page.
     const pageStyles: Partial<Record<BlockKind, string[]>> = {}
     for (const s of slots) {
-      const c = library.clips[s.clipId]
+      const c = slotClip(s)
       for (const [id, e] of Object.entries(s.edits?.[s.clipId] ?? {})) {
         const k = c?.blocks.find((b) => b.id === id)?.kind
         if (!k || (!e.variant && !e.style)) continue
