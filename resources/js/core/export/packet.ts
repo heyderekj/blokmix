@@ -1,4 +1,5 @@
-import type { BlockEdit } from '../types'
+import type { BlockEdit, Note } from '../types'
+import { MARK_GUIDANCE, workPackets, type WorkItem } from '../notes'
 import type { BuildTarget, GuideState, Library, ResolvedGuide, Status } from '../types'
 import type { ComposedPage } from '../compose'
 import { GROUP_LABEL, TOKEN_LABEL, toDtcg } from '../tokens'
@@ -20,6 +21,8 @@ export interface PacketInput {
   version?: { id: string; letter: string; title: string; status: Status; parentLetter?: string } | null
   targets: BuildTarget[]
   notes?: string[]
+  /** Feedback marks on this tape (or version). */
+  marks?: Note[]
   generatedAt?: string
 }
 
@@ -67,6 +70,8 @@ export function packetJson(i: PacketInput) {
     })),
     fonts: page.fonts,
     notes: i.notes ?? [],
+    guidance: MARK_GUIDANCE,
+    work_packets: packetsOf(i),
     sections: page.sections.map((s) => ({
       position: s.position + 1,
       type: s.type,
@@ -132,6 +137,31 @@ export function linerNotes(i: PacketInput): string {
     for (const n of s.notes) lines.push(`- **Note:** ${n}`)
     lines.push('')
   })
+  const wp = packetsOf(i)
+  const todo = [...wp.must_fix, ...wp.nits, ...wp.questions]
+  if (todo.length || wp.keeps.length || wp.awaiting_verification.length) {
+    lines.push('## Feedback')
+    lines.push('')
+    lines.push(`> ${MARK_GUIDANCE}`)
+    lines.push('')
+    const write = (title: string, items: WorkItem[]) => {
+      if (!items.length) return
+      lines.push(`### ${title}`)
+      lines.push('')
+      for (const w of items) {
+        lines.push(`- **${w.number}** on ${w.on}${w.status === 'in_progress' ? ' (in progress)' : ''}: ${w.body}`)
+        if (w.quote && !w.on.includes('the words “')) lines.push(`  - Currently says: “${w.quote}”`)
+        if (w.suggestedCopy) lines.push(w.on.includes('the words “') ? `  - Replace “${w.quote}” with exactly: “${w.suggestedCopy}”` : `  - Use exactly: “${w.suggestedCopy}”`)
+        for (const r of w.replies) lines.push(`  - ${r.by}: ${r.text}`)
+      }
+      lines.push('')
+    }
+    write('Must fix', wp.must_fix)
+    write('Small fixes', wp.nits)
+    write('Questions', wp.questions)
+    write('Keep as is', wp.keeps)
+    write('Resolved, waiting for the person to verify', wp.awaiting_verification)
+  }
   if (i.notes?.length) {
     lines.push('## Notes')
     lines.push('')
@@ -205,4 +235,11 @@ function describeEdit(e: BlockEdit): string {
   if (e.variant) parts.push(`${e.variant} look`)
   for (const [k, v] of Object.entries(e.style ?? {}) as [string, string | undefined][]) if (v) parts.push(`${k} ${v.replace('x:', 'brand colour ')}`)
   return `${parts.join(', ')} (the section CSS has it in @layer blocks)`
+}
+
+function packetsOf(i: PacketInput) {
+  return workPackets(
+    i.marks ?? [],
+    i.page.sections.map((s) => ({ slotId: s.slotId, position: s.position + 1, type: s.type, component: s.component, label: TYPE_LABEL[s.type] })),
+  )
 }

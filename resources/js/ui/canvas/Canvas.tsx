@@ -284,7 +284,7 @@ export function Canvas({ children }: { children: ReactNode }) {
     useStore.getState().addNote(anchorAt(p.x, p.y))
   }
 
-  const cursor = panning ? 'grabbing' : spaceHeld || tool === 'hand' ? 'grab' : tool === 'sticky' ? 'copy' : 'default'
+  const cursor = panning ? 'grabbing' : spaceHeld || tool === 'hand' ? 'grab' : tool === 'sticky' ? 'copy' : tool === 'note' ? 'crosshair' : 'default'
 
   return (
     <div

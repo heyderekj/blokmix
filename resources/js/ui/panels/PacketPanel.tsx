@@ -6,7 +6,7 @@ import { composePage } from '@/core/compose'
 import { agentPrompt, packetFiles, type PacketInput } from '@/core/export/packet'
 import { zipFiles } from '@/core/export/zip'
 import { slug } from '@/core/export/astro'
-import { slotNotesFor, dfsOrder } from '@/core/versions'
+import { dfsOrder, generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
@@ -32,7 +32,7 @@ export function PacketPanel() {
   const version = source !== 'mix' ? versions[source] : null
 
   const input: PacketInput = useMemo(() => {
-    const snap = version?.snapshot ?? { slots, guide: guideState, content, slotNotes: slotNotesFor(slots, notes) }
+    const snap = version?.snapshot ?? { slots, guide: guideState, content, slotNotes: slotNotesFor(slots, notes), marks: marksFor(slots, notes), generalNotes: generalNotesFor(notes) }
     const guide = resolveGuide(snap.guide)
     // Notes pinned on a version frame land in the packet, tagged with the section they sit on.
     const frameNotes = version
@@ -54,7 +54,9 @@ export function PacketPanel() {
       tapeName,
       version: version ? { id: version.id, letter: version.letter, title: version.title, status: version.status, parentLetter: parent?.letter } : null,
       targets,
-      notes: frameNotes,
+      notes: [...(snap.generalNotes ?? []), ...frameNotes],
+      // A version's marks live on with the tape, so read them live rather than from the snapshot.
+      marks: version ? marksFor(snap.slots, notes) : snap.marks,
     }
   }, [version, versions, slots, guideState, content, notes, sections, tapeName, targets])
 

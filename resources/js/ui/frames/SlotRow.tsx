@@ -5,9 +5,11 @@ import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { frameStateFor, usePageStyle } from '@/state/derived'
-import type { BlockEvent, FrameRect } from '@/frame/bridge'
+import { postState, type BlockEvent, type FrameRect } from '@/frame/bridge'
 import { useBlockPreview, withPreview } from '../blocks/preview'
 import { BlockBar } from '../blocks/BlockBar'
+import { SectionMarks, draftForBlock, useMarkDraft, type MarkDraft } from '../notes/Marks'
+import { resolveFields, TYPE_LABEL } from '@/core/content'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { VIEW_W } from '../canvas/geometry'
 import { SectionPill, SectionRail } from './SectionPill'
@@ -107,40 +109,90 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const shownIndex = ids.indexOf(shown)
   const st = useStore.getState
 
-  // ---- blocks: hover, select and edit inside the current clip ----
-  const canEdit = focused && mode === 'unified' && tool === 'select' && !previewing && !spinning && shown === slot.clipId
+  // ---- blocks: hover, select and edit inside the current clip; or mark them with the Note tool ----
+  const current = !previewing && !spinning && shown === slot.clipId
+  const canEdit = focused && mode === 'unified' && tool === 'select' && current
+  const noting = tool === 'note' && current
   const [hover, setHover] = useState<{ id: string; rect: FrameRect } | null>(null)
   const [selRect, setSelRect] = useState<FrameRect | null>(null)
   const [typing, setTyping] = useState(false)
+  const [rects, setRects] = useState<Record<string, FrameRect>>({})
+  const [drawing, setDrawing] = useState<FrameRect | null>(null)
   useEffect(() => {
-    if (!canEdit) setHover(null)
-  }, [canEdit])
+    if (!canEdit && !noting) setHover(null)
+  }, [canEdit, noting])
   useEffect(() => {
     if (!selectedBlock) setSelRect(null)
   }, [selectedBlock])
   const blocks = library.clips[shown]?.blocks ?? []
   const block = selectedBlock ? blocks.find((b) => b.id === selectedBlock) : undefined
+  // Blocks with a pin on them: the frame reports where they are.
+  const notes = useStore((s) => s.notes)
+  const track = useMemo(
+    () => [
+      ...new Set(
+        notes.flatMap((n) => (n.kind && (n.anchor.kind === 'block' || n.anchor.kind === 'words') && n.anchor.slotId === slot.id && n.anchor.clipId === shown && n.anchor.blockId ? [n.anchor.blockId] : [])),
+      ),
+    ],
+    [notes, slot.id, shown],
+  )
+  const frameH = heights[shown] ?? 520
+  const drafting = useMarkDraft((s) => s.draft?.slotId === slot.id)
+  // When a note on selected words closes, let go of the text selection in the page.
+  useEffect(() => {
+    if (drafting) return
+    rowRef.current?.querySelectorAll('iframe').forEach((f) => postState(f.contentWindow, { clearSelection: true }))
+  }, [drafting])
+  const openNote = useStore((s) => s.ui.openNoteId)
+  const noteOpen = drafting || (!!openNote && notes.some((n) => n.id === openNote && 'slotId' in n.anchor && n.anchor.slotId === slot.id))
   const edit = useMemo(
-    () =>
-      canEdit
-        ? {
-            selected: selectedBlock,
-            editText: editText && blocks.some((b) => b.id === editText.id) ? editText : null,
-            onEvent: (e: BlockEvent) => {
-              if ('hover' in e) setHover(e.hover ?? null)
-              if ('pick' in e) st().selectBlock(e.pick ?? null)
-              if ('selRect' in e) setSelRect(e.selRect ?? null)
-              if (e.word) st().setWord(slot.id, e.word.field, e.word.value)
-              if ('editing' in e) setTyping(!!e.editing)
-              if (e.key) {
-                const k = e.key
-                window.dispatchEvent(new KeyboardEvent('keydown', { key: k.key, code: k.code, metaKey: k.meta, ctrlKey: k.ctrl, shiftKey: k.shift, altKey: k.alt, bubbles: true }))
-              }
-            },
+    () => ({
+      active: canEdit || noting,
+      noteMode: noting,
+      selected: canEdit ? selectedBlock : null,
+      editText: canEdit && editText && blocks.some((b) => b.id === editText.id) ? editText : null,
+      track,
+      onEvent: (e: BlockEvent) => {
+        if ('hover' in e) setHover(e.hover ?? null)
+        if ('pick' in e) st().selectBlock(e.pick ?? null)
+        if ('selRect' in e) setSelRect(e.selRect ?? null)
+        if (e.word) st().setWord(slot.id, e.word.field, e.word.value)
+        if ('editing' in e) setTyping(!!e.editing)
+        if (e.rects) setRects((r) => ({ ...r, ...e.rects }))
+        if ('drag' in e) setDrawing(e.drag ?? null)
+        if (e.words) {
+          const w = e.words
+          const live = useStore.getState().slots.find((x) => x.id === slot.id)!
+          const b = library.clips[live.clipId]?.blocks.find((x) => x.id === w.block)
+          st().setUi({ openNoteId: null })
+          useMarkDraft.getState().open({
+            slotId: live.id,
+            rect: w.rect,
+            anchor: { kind: 'words', slotId: live.id, clipId: live.clipId, blockId: b?.id ?? '', label: b?.label ?? TYPE_LABEL[live.type], field: w.field, quote: w.quote },
+          })
+        } else if ('notePick' in e || e.area) {
+          const live = useStore.getState().slots.find((x) => x.id === slot.id)!
+          // Marking doesn't focus the section: the dock stays small and the page stays in view.
+          st().setUi({ openNoteId: null })
+          const clip = library.clips[live.clipId]
+          const words = resolveFields(clip.type, clip.fields, useStore.getState().content, live.keep.content, live.words).fields
+          let draft: MarkDraft | null = null
+          if (e.notePick && e.rect) draft = draftForBlock(live, e.notePick, e.rect, words)
+          else {
+            // An area, or a click on something that isn't a block: mark a small area around the point.
+            const r = e.area ?? (e.at ? { x: e.at.x - 24, y: e.at.y - 24, w: 48, h: 48 } : null)
+            if (r) draft = { slotId: live.id, rect: r, anchor: { kind: 'area', slotId: live.id, clipId: live.clipId, rect: { x: r.x / W, y: r.y / frameH, w: r.w / W, h: r.h / frameH } } }
           }
-        : null,
+          if (draft) useMarkDraft.getState().open(draft)
+        }
+        if (e.key) {
+          const k = e.key
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: k.key, code: k.code, metaKey: k.meta, ctrlKey: k.ctrl, shiftKey: k.shift, altKey: k.alt, bubbles: true }))
+        }
+      },
+    }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canEdit, selectedBlock, editText, shown, slot.id],
+    [canEdit, noting, selectedBlock, editText, shown, slot.id, track, focused, W, frameH],
   )
 
   return (
@@ -150,7 +202,8 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       style={{
         height,
         transition: `height ${SWAP}`,
-        zIndex: focused ? 20 : 1,
+        // Above its neighbours while it's focused or has a note open, so cards and menus aren't covered.
+        zIndex: focused || noteOpen ? 20 : 1,
       }}
       onPointerDown={() => st().focusSlot(slot.id)}
       onDragOver={(e) => {
@@ -240,6 +293,20 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
           style={{ left: hover.rect.x, top: hover.rect.y, width: hover.rect.w, height: hover.rect.h, boxShadow: '0 0 0 calc(1.5px / var(--z)) color-mix(in oklab, var(--color-tape) 70%, transparent)' }}
         />
       )}
+      {/* Note mode snaps to the block under the pointer; a drag lets go and draws an area instead */}
+      {noting && hover && !drawing && (
+        <div
+          className="pointer-events-none absolute z-10 rounded-[3px] bg-problem/5"
+          style={{ left: hover.rect.x, top: hover.rect.y, width: hover.rect.w, height: hover.rect.h, boxShadow: '0 0 0 calc(1.5px / var(--z)) var(--color-problem)' }}
+        >
+          <span
+            className="absolute bottom-full left-0 mb-1 origin-bottom-left whitespace-nowrap rounded-md bg-problem px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}
+          >
+            {blocks.find((b) => b.id === hover.id)?.label.split(' · ').slice(1).join(' · ') || 'Block'}
+          </span>
+        </div>
+      )}
       {canEdit && block && selRect && (
         <>
           <div
@@ -256,6 +323,8 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
           )}
         </>
       )}
+
+      <SectionMarks slot={slot} width={W} height={frameH} rects={rects} drawing={drawing} />
 
       <SectionRail slot={slot} index={index} focused={focused} />
       {focused && !block && <SectionPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />}

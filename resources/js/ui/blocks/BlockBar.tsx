@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users } from 'lucide-react'
+import { ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -10,7 +10,9 @@ import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { useBlockPreview } from './preview'
+import type { FrameRect } from '@/frame/bridge'
 import { keepInView } from '../canvas/inView'
+import { draftForBlock, useMarkDraft } from '../notes/Marks'
 import { SPACE_STEPS, Steps } from './Spacing'
 
 type Menu = 'variant' | 'style' | 'more' | 'advice' | null
@@ -34,7 +36,7 @@ const PLURAL: Record<BlockKind, string> = {
  * (a breadcrumb you can climb), its look (variant), its colours and shape, and
  * whether the change is just here or for every block of its kind.
  */
-export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; rect: { w: number; h: number } | null }) {
+export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; rect: FrameRect | null }) {
   const blocks = library.clips[slot.clipId].blocks
   const components = useStore((s) => s.guide.components)
   const own = slot.edits?.[slot.clipId]?.[block.id]
@@ -117,6 +119,16 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             Edit
           </BarButton>
         )}
+        <BarButton
+          onClick={() => {
+            const clip = library.clips[slot.clipId]
+            const words = resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields
+            const d = rect && draftForBlock(slot, block.id, rect, words)
+            if (d) useMarkDraft.getState().open(d)
+          }}
+          icon={MessageSquarePlus}
+          title="Leave a note on this block (N)"
+        />
         <Sep />
         {advice.length > 0 && (
           <button

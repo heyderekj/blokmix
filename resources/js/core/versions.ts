@@ -45,11 +45,22 @@ export function snapshotKey(s: Pick<TapeSnapshot, 'slots' | 'guide' | 'content'>
 export function slotNotesFor(slots: Slot[], notes: Note[]): Record<string, string[]> {
   const out: Record<string, string[]> = {}
   for (const n of notes) {
-    if (n.anchor.kind !== 'slot' || !n.text.trim()) continue
+    if (n.kind || n.anchor.kind !== 'slot' || !n.text.trim()) continue
     if (!slots.some((s) => s.id === (n.anchor as { slotId: string }).slotId)) continue
     ;(out[n.anchor.slotId] ??= []).push(n.text.trim())
   }
   return out
+}
+
+/** Sticky notes on the canvas but not on a section: they still reach the agent, as general notes. */
+export function generalNotesFor(notes: Note[]): string[] {
+  return notes.filter((n) => !n.kind && n.anchor.kind === 'world' && n.text.trim()).map((n) => n.text.trim())
+}
+
+/** Marks that belong to these sections (or the whole page). */
+export function marksFor(slots: Slot[], notes: Note[]): Note[] {
+  const ids = new Set(slots.map((s) => s.id))
+  return notes.filter((n) => n.kind && (n.anchor.kind === 'page' || ('slotId' in n.anchor && ids.has(n.anchor.slotId))))
 }
 
 /** A short, playful auto-title from the sources used, e.g. "Monolith × Marginalia × Puffin". */

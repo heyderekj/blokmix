@@ -1,4 +1,5 @@
-import type { BlockEdit, BlockInfo, BlockStyle, Choice, Keep, Slot, TokenKey } from '@/core/types'
+import type { BlockEdit, BlockInfo, BlockStyle, Choice, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
+import { isMark, MARK_GUIDANCE, SOURCE_LABEL, sortMarks } from '@/core/notes'
 import { COMMANDS, toolDefinitions, type CommandInput, type CommandName } from '@/core/commands/schema'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -29,6 +30,7 @@ export function runCommand(name: string, raw: unknown, by: Caller = 'agent'): un
   if (!cmd.write) return READ[name as keyof typeof READ](input as never)
 
   // One undo step for the whole command, however many store updates it makes.
+  // (Notes are part of the undoable state, so an agent's marks are one ⌘Z away too.)
   const t = useStore.temporal.getState()
   const s = useStore.getState()
   const before = { slots: s.slots, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }
@@ -40,7 +42,7 @@ export function runCommand(name: string, raw: unknown, by: Caller = 'agent'): un
     t.resume()
   }
   const after = useStore.getState()
-  if (after.slots !== before.slots || after.guide !== before.guide || after.content !== before.content || after.versions !== before.versions) {
+  if (after.slots !== before.slots || after.guide !== before.guide || after.content !== before.content || after.versions !== before.versions || after.notes !== before.notes) {
     useStore.temporal.setState((x) => ({ pastStates: [...x.pastStates, before].slice(-100), futureStates: [] }))
     if (by === 'agent') after.showFlash(`Agent: ${summary(name, input)}`, { undo: true })
   }
@@ -68,6 +70,47 @@ function findBlock(slot: Slot, ref: string): BlockInfo {
   const hit = blocks.find((b) => b.id === ref) ?? blocks.find((b) => b.label.toLowerCase() === r) ?? blocks.find((b) => b.label.toLowerCase().endsWith(r))
   if (!hit) throw new CommandError(`No block "${ref}" in ${TYPE_LABEL[slot.type]}. Blocks: ${blocks.map((b) => `${b.id} ${b.label}`).join('; ')}`)
   return hit
+}
+
+function findNote(ref: string | number) {
+  const marks = useStore.getState().notes.filter(isMark)
+  const n = typeof ref === 'number' ? ref : /^n?\d+$/i.test(ref) ? Number(ref.replace(/^n/i, '')) : null
+  const hit = n !== null ? marks.find((m) => m.number === n) : marks.find((m) => m.id === ref)
+  if (!hit) throw new CommandError(`No mark "${ref}". Marks: ${marks.map((m) => `N${m.number}`).join(', ') || 'none yet'}`)
+  return hit
+}
+
+/** A mark as an agent reads it: what it's on in words, never selectors. */
+export function describeNote(n: Note) {
+  const st = useStore.getState()
+  const a = n.anchor
+  let on = 'the whole page'
+  let section: string | null = null
+  if ('slotId' in a) {
+    const slot = st.slots.find((s) => s.id === a.slotId)
+    section = slot?.id ?? null
+    const name = slot ? `${TYPE_LABEL[slot.type]} (section ${st.slots.indexOf(slot) + 1})` : 'a removed section'
+    if (a.kind === 'block') on = `${a.label}${slot && slot.clipId !== a.clipId ? ' (on a clip that’s no longer shown)' : ''}`
+    else if (a.kind === 'words') on = `the words “${a.quote}” in ${a.label} (field ${a.field})`
+    else if (a.kind === 'area') on = `an area of ${name} (${Math.round(a.rect.x * 100)}% across, ${Math.round(a.rect.y * 100)}% down, ${Math.round(a.rect.w * 100)}% × ${Math.round(a.rect.h * 100)}%)`
+    else on = name
+  }
+  return {
+    id: n.id,
+    number: `N${n.number}`,
+    kind: n.kind,
+    status: n.status,
+    by: n.source ? SOURCE_LABEL[n.source] : 'You',
+    on,
+    section,
+    block: a.kind === 'block' || a.kind === 'words' ? a.blockId : null,
+    field: a.kind === 'words' ? a.field : null,
+    quote: a.kind === 'block' || a.kind === 'words' ? (a.quote ?? null) : null,
+    text: n.text,
+    suggestedCopy: n.suggestedCopy ?? null,
+    resolution: n.resolution ?? null,
+    replies: (n.replies ?? []).map((r) => ({ by: r.author, text: r.text })),
+  }
 }
 
 function wordsFor(slot: Slot) {
@@ -158,6 +201,15 @@ const READ = {
       const blocks = library.clips[s.clipId].blocks
       return adviceFor(s).map((a) => ({ section: s.id, block: blocks.find((b) => b.id === a.blockId)?.label, ...a }))
     })
+  },
+  list_notes: (i: CommandInput<'list_notes'>) => {
+    const st = useStore.getState()
+    const slotId = i.section !== undefined ? findSection(i.section).id : null
+    const marks = sortMarks(st.notes.filter(isMark))
+      .filter((m) => !i.status || m.status === i.status)
+      .filter((m) => !i.kind || m.kind === i.kind)
+      .filter((m) => !slotId || ('slotId' in m.anchor && m.anchor.slotId === slotId))
+    return { guidance: MARK_GUIDANCE, marks: marks.map(describeNote) }
   },
   show: (i: CommandInput<'show'>) => {
     const st = useStore.getState()
@@ -283,6 +335,31 @@ const WRITE = {
     useStore.getState().addSwatch(i.name, i.value)
     return { use: `x:${i.name}` }
   },
+  add_note: (i: CommandInput<'add_note'>) => {
+    const st = useStore.getState()
+    let anchor: NoteAnchor = { kind: 'page' }
+    if (i.section !== undefined) {
+      const slot = findSection(i.section)
+      if (i.block) {
+        const b = findBlock(slot, i.block)
+        anchor = { kind: 'block', slotId: slot.id, clipId: slot.clipId, blockId: b.id, label: b.label, quote: b.field ? wordsFor(slot)[b.field] : undefined }
+      } else anchor = { kind: 'area', slotId: slot.id, clipId: slot.clipId, rect: { x: 0, y: 0, w: 1, h: 1 } }
+    }
+    const id = st.addMark({ anchor, kind: i.kind, text: i.text, suggestedCopy: i.suggested_copy, source: 'agent' })
+    return describeNote(useStore.getState().notes.find((n) => n.id === id)!)
+  },
+  update_note: (i: CommandInput<'update_note'>) => {
+    const m = findNote(i.note)
+    if (m.kind === 'keep') throw new CommandError(`N${m.number} is marked “Love this”: there’s nothing to change`)
+    if (m.status === 'verified') throw new CommandError(`N${m.number} is already verified by a person`)
+    useStore.getState().setMarkStatus(m.id, i.status, i.resolution)
+    return describeNote(useStore.getState().notes.find((n) => n.id === m.id)!)
+  },
+  reply_note: (i: CommandInput<'reply_note'>) => {
+    const m = findNote(i.note)
+    useStore.getState().replyToMark(m.id, i.text, 'agent')
+    return describeNote(useStore.getState().notes.find((n) => n.id === m.id)!)
+  },
   save_version: (i: CommandInput<'save_version'>) => {
     pressVersionAndFly()
     const st = useStore.getState()
@@ -301,6 +378,12 @@ function summary(name: string, input: Record<string, unknown>): string {
       return `rewrote${sec}`
     case 'add_section':
       return `added a ${input.type}`
+    case 'add_note':
+      return `left a ${String(input.kind).replace('-', ' ')} note${sec ? ` on${sec}` : ''}`
+    case 'update_note':
+      return `marked N${String(input.note).replace(/^n/i, '')} ${String(input.status).replace('_', ' ')}`
+    case 'reply_note':
+      return `replied on N${String(input.note).replace(/^n/i, '')}`
     default:
       return `${name.replace(/_/g, ' ')}${sec}`
   }

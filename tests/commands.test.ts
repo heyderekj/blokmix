@@ -61,3 +61,27 @@ describe('commands', () => {
     expect(Array.isArray(runCommand('review', {}))).toBe(true)
   })
 })
+
+describe('note commands', () => {
+  type Marks = { guidance: string; marks: { number: string; kind: string; status: string; on: string; suggestedCopy: string | null; replies: unknown[] }[] }
+
+  it('leave, list, progress and reply on marks, most important first', () => {
+    runCommand('add_note', { kind: 'nit', text: 'Calmer', section: 'pricing' })
+    const m = runCommand('add_note', { kind: 'must-fix', text: 'Say what happens', section: 'hero', block: 'Hero · Button', suggested_copy: 'Start your tape' }) as { number: string; on: string }
+    expect(m.on).toBe('Hero · Button')
+    const list = runCommand('list_notes', {}) as Marks
+    expect(list.marks[0].kind).toBe('must-fix')
+    expect(list.guidance).toMatch(/must-fix first/)
+    runCommand('update_note', { note: m.number, status: 'resolved', resolution: 'Relabelled' })
+    runCommand('reply_note', { note: m.number, text: 'Used the suggested copy' })
+    const done = (runCommand('list_notes', { status: 'resolved' }) as Marks).marks[0]
+    expect(done.replies).toHaveLength(1)
+  })
+
+  it('never lets an agent verify or touch a keep', () => {
+    const keep = runCommand('add_note', { kind: 'keep', text: 'Love the plate', section: 'hero' }) as { number: string; status: string }
+    expect(keep.status).toBe('verified')
+    expect(() => runCommand('update_note', { note: keep.number, status: 'resolved' })).toThrow(/Love this/)
+    expect(() => runCommand('update_note', { note: 'N1', status: 'verified' })).toThrow(/Invalid input/)
+  })
+})

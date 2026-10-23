@@ -168,18 +168,57 @@ export interface ProjectContent {
   fields: Partial<Record<SectionType, Record<string, string>>>
 }
 
+/** ReviseMy's mark kinds, so marks can move between the sibling apps. */
+export const NOTE_KINDS = ['must-fix', 'nit', 'question', 'keep'] as const
+export type NoteKind = (typeof NOTE_KINDS)[number]
+/** open → in_progress (agent working) → resolved (agent says done) → verified (only a person). */
+export const NOTE_STATUSES = ['open', 'in_progress', 'resolved', 'verified'] as const
+export type NoteStatus = (typeof NOTE_STATUSES)[number]
+export type NoteSource = 'you' | 'agent' | 'checklist'
+
+export interface NoteReply {
+  id: string
+  author: string
+  source: NoteSource
+  text: string
+  at: number
+}
+
+/**
+ * A note on the canvas. Without a kind it's a free-form sticky note; with one
+ * it's a mark: specific feedback pinned to a block or an area, with a status.
+ */
 export interface Note {
   id: string
   text: string
   color: NoteColor
   anchor: NoteAnchor
   createdAt: number
+  kind?: NoteKind
+  status?: NoteStatus
+  source?: NoteSource
+  author?: string
+  /** Marks are numbered N1, N2… in the order they were made. */
+  number?: number
+  /** The exact words the agent should use. */
+  suggestedCopy?: string
+  /** What was done, when an agent resolves it. */
+  resolution?: string
+  replies?: NoteReply[]
 }
 export type NoteColor = 'yellow' | 'pink' | 'blue' | 'green'
 export type NoteAnchor =
   | { kind: 'world'; x: number; y: number }
   | { kind: 'slot'; slotId: string; dx: number; dy: number }
   | { kind: 'frame'; frameId: string; dx: number; dy: number }
+  /** A block of one clip in a section; the label is kept so the mark still reads well if the clip changes. */
+  | { kind: 'block'; slotId: string; clipId: string; blockId: string; label: string; quote?: string }
+  /** Words selected inside a block's copy, with the field they're in. */
+  | { kind: 'words'; slotId: string; clipId: string; blockId: string; label: string; field: string; quote: string }
+  /** A drawn area of a section, as fractions of its box so it holds at any width. */
+  | { kind: 'area'; slotId: string; clipId: string; rect: { x: number; y: number; w: number; h: number } }
+  /** The whole page. */
+  | { kind: 'page' }
 
 export interface TapeSnapshot {
   slots: Slot[]
@@ -187,6 +226,10 @@ export interface TapeSnapshot {
   content: ProjectContent
   /** Sticky notes attached to slots at the time of the snapshot, by slot id. */
   slotNotes: Record<string, string[]>
+  /** Sticky notes on the page but not on a section. */
+  generalNotes?: string[]
+  /** Marks (feedback with a kind and status) on this snapshot's sections or the page. */
+  marks?: Note[]
   clipHashes: Record<string, string>
 }
 

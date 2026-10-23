@@ -12,6 +12,9 @@ import type {
   Note,
   NoteAnchor,
   NoteColor,
+  NoteKind,
+  NoteSource,
+  NoteStatus,
   ProjectContent,
   SectionSpacing,
   SectionType,
@@ -26,14 +29,15 @@ import { adoptDesign, choose, chooseGroup, promote, removeCandidate } from '@/co
 import { autoTitle, descendants, nextLetter } from '@/core/versions'
 import { library } from '@/data/library'
 import { suggestClip } from '@/core/suggest'
+import { initialStatus, nextNumber } from '@/core/notes'
 import { buildSeed } from './seed'
 import { snapshotOf } from './snapshot'
 
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
 /** The one surface that can be open at a time; each grows out of the control that summons it. */
-export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'menu'
-export type Tool = 'select' | 'hand' | 'sticky'
+export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'menu' | 'notes'
+export type Tool = 'select' | 'hand' | 'sticky' | 'note'
 
 export interface Camera {
   x: number
@@ -67,6 +71,8 @@ export interface UiState {
   selectedBlockId: string | null
   /** Let a local agent (via the MCP bridge) edit this tape. Off until you turn it on. */
   agentAccess: boolean
+  /** The mark whose card is open on the canvas. */
+  openNoteId: string | null
 }
 
 export interface TapeData {
@@ -135,7 +141,11 @@ export interface State extends TapeData {
 
   // notes
   addNote: (anchor: NoteAnchor, color?: NoteColor) => string
-  updateNote: (id: string, patch: Partial<Pick<Note, 'text' | 'color' | 'anchor'>>) => void
+  updateNote: (id: string, patch: Partial<Pick<Note, 'text' | 'color' | 'anchor' | 'kind' | 'suggestedCopy'>>) => void
+  /** A mark: feedback with a kind, pinned to a block, an area or the page. */
+  addMark: (m: { anchor: NoteAnchor; kind: NoteKind; text: string; suggestedCopy?: string; source?: NoteSource; author?: string }) => string
+  setMarkStatus: (id: string, status: NoteStatus, resolution?: string) => void
+  replyToMark: (id: string, text: string, source?: NoteSource, author?: string) => void
   deleteNote: (id: string) => void
 
   // ui
@@ -165,6 +175,7 @@ const DEFAULT_UI: UiState = {
   myName: 'Derek Castelli',
   selectedBlockId: null,
   agentAccess: false,
+  openNoteId: null,
 }
 
 function pickDifferent(options: string[], current: string): string {
@@ -315,7 +326,7 @@ export const useStore = create<State>()(
               const i = st.slots.findIndex((s) => s.id === slotId)
               const slots = st.slots.filter((s) => s.id !== slotId)
               const focus = slots[Math.min(i, slots.length - 1)]?.id ?? null
-              return { slots, notes: st.notes.filter((n) => !(n.anchor.kind === 'slot' && n.anchor.slotId === slotId)), ui: { ...st.ui, focusedSlotId: focus } }
+              return { slots, notes: st.notes.filter((n) => !('slotId' in n.anchor && n.anchor.slotId === slotId)), ui: { ...st.ui, focusedSlotId: focus } }
             }),
           renameTape: (tapeName) => set({ tapeName }),
 
@@ -416,7 +427,39 @@ export const useStore = create<State>()(
             return id
           },
           updateNote: (id, patch) => set((st) => ({ notes: st.notes.map((n) => (n.id === id ? { ...n, ...patch } : n)) })),
-          deleteNote: (id) => set((st) => ({ notes: st.notes.filter((n) => n.id !== id) })),
+          deleteNote: (id) => set((st) => ({ notes: st.notes.filter((n) => n.id !== id), ui: { ...st.ui, openNoteId: st.ui.openNoteId === id ? null : st.ui.openNoteId } })),
+          addMark: ({ anchor, kind, text, suggestedCopy, source = 'you', author }) => {
+            const id = uid('mark')
+            set((st) => ({
+              notes: [
+                ...st.notes,
+                {
+                  id,
+                  text,
+                  color: 'yellow',
+                  anchor,
+                  createdAt: Date.now(),
+                  kind,
+                  status: initialStatus(kind),
+                  source,
+                  author: author ?? (source === 'you' ? st.ui.myName : source === 'agent' ? 'Agent' : 'Checklist'),
+                  number: nextNumber(st.notes),
+                  suggestedCopy: suggestedCopy?.trim() || undefined,
+                },
+              ],
+            }))
+            return id
+          },
+          setMarkStatus: (id, status, resolution) =>
+            set((st) => ({ notes: st.notes.map((n) => (n.id === id ? { ...n, status, ...(resolution !== undefined ? { resolution: resolution || undefined } : {}) } : n)) })),
+          replyToMark: (id, text, source = 'you', author) =>
+            set((st) => ({
+              notes: st.notes.map((n) =>
+                n.id === id
+                  ? { ...n, replies: [...(n.replies ?? []), { id: uid('r'), text, source, author: author ?? (source === 'you' ? st.ui.myName : 'Agent'), at: Date.now() }] }
+                  : n,
+              ),
+            })),
 
           setUi: (patch) => set((st) => ({ ui: { ...st.ui, ...patch } })),
           setCamera: (camera) => set({ camera }),

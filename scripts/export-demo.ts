@@ -48,6 +48,8 @@ const files = packetFiles({
   tapeName: seed.tapeName,
   version: { id: version.id, letter: version.letter, title: version.title, status: version.status },
   targets: ['astro', 'next'],
+  marks: snap.marks,
+  notes: snap.generalNotes,
 })
 
 rmSync(out, { recursive: true, force: true })

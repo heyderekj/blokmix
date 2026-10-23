@@ -28,12 +28,19 @@ const BRIDGE = `(function () {
   var byId = function (id) { return id ? document.querySelector('[data-mx-b="' + id + '"]') : null; };
   var up = function (el) { return el && el.parentElement ? el.parentElement.closest('[data-mx-block]') : null; };
   var rect = function (el) { if (!el) return null; var r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
-  var editMode = false, sel = null, hoverId = null, editing = null;
+  var editMode = false, noteMode = false, sel = null, hoverId = null, editing = null, tracked = [], drag = null;
+  function reportTracked() {
+    if (!tracked.length) return;
+    var out = {};
+    tracked.forEach(function (id) { var el = byId(id); if (el) out[id] = rect(el); });
+    post({ rects: out });
+  }
 
   /* Figma-style depth: click selects the outermost block, then one level deeper each click. */
   function target(node) {
     var start = node && node.closest ? node.closest('[data-mx-block]') : null;
     if (!start) return null;
+    if (noteMode) return start; /* feedback snaps to the smallest block under the pointer */
     var chain = [];
     for (var n = start; n; n = up(n)) chain.unshift(n);
     var s = byId(sel);
@@ -53,21 +60,65 @@ const BRIDGE = `(function () {
   function reportSel() { post({ selRect: rect(byId(sel)) }); }
 
   document.addEventListener('pointermove', function (e) {
-    if (!editMode || editing) return;
+    if (!editMode || editing || drag) return;
     var t = target(e.target);
     var id = t ? t.getAttribute('data-mx-b') : null;
     if (id !== hoverId) { hoverId = id; post({ hover: id ? { id: id, rect: rect(t) } : null }); }
   });
   document.addEventListener('pointerleave', function () { if (hoverId) { hoverId = null; post({ hover: null }); } });
+  /* Note mode: click marks a block, drag marks an area. */
+  document.addEventListener('pointerdown', function (e) {
+    if (!editMode || !noteMode || e.button !== 0) return;
+    /* Starting on words lets the browser select them (Koati-style "select text to change it"). */
+    var field = e.target.closest ? e.target.closest('[data-mx-field]') : null;
+    if (!field) e.preventDefault();
+    drag = { x: e.clientX, y: e.clientY, moved: false, field: field };
+  }, true);
+  document.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var w = e.clientX - drag.x, h = e.clientY - drag.y;
+    if (drag.field) return; /* selecting text, not drawing */
+    if (!drag.moved && Math.abs(w) + Math.abs(h) < 6) return;
+    /* Dragging lets go of the snapped block and draws a free area instead. */
+    if (!drag.moved && hoverId) { hoverId = null; post({ hover: null }); }
+    drag.moved = true;
+    post({ drag: { x: Math.min(drag.x, e.clientX), y: Math.min(drag.y, e.clientY), w: Math.abs(w), h: Math.abs(h) } });
+  }, true);
+  document.addEventListener('pointerup', function (e) {
+    if (!drag) return;
+    var d = drag; drag = null;
+    var px = e.clientX, py = e.clientY, tgt = e.target;
+    /* The selection settles just after the pointer lifts, so look a tick later. */
+    setTimeout(function () {
+      if (d.field) {
+        var ws = getSelection();
+        var quote = ws ? ws.toString().replace(/\s+/g, ' ').trim() : '';
+        if (quote && ws.rangeCount && d.field.contains(ws.getRangeAt(0).commonAncestorContainer)) {
+          var r = ws.getRangeAt(0).getBoundingClientRect();
+          var b = d.field.closest('[data-mx-block]');
+          post({ words: { block: b ? b.getAttribute('data-mx-b') : null, field: d.field.getAttribute('data-mx-field'), quote: quote, rect: { x: r.left, y: r.top, w: r.width, h: r.height } } });
+          return;
+        }
+        if (ws) ws.removeAllRanges();
+      }
+      if (d.moved) {
+        post({ drag: null, area: { x: Math.min(d.x, px), y: Math.min(d.y, py), w: Math.abs(px - d.x), h: Math.abs(py - d.y) } });
+      } else {
+        var t = target(tgt);
+        post({ notePick: t ? t.getAttribute('data-mx-b') : null, rect: t ? rect(t) : null, at: { x: px, y: py } });
+      }
+    }, 0);
+  }, true);
   document.addEventListener('click', function (e) {
     if (!editMode) return;
+    if (noteMode) { e.preventDefault(); e.stopPropagation(); return; }
     if (editing && editing.contains(e.target)) return;
     e.preventDefault(); e.stopPropagation();
     var t = target(e.target);
     post({ pick: t ? t.getAttribute('data-mx-b') : null });
   }, true);
   document.addEventListener('dblclick', function (e) {
-    if (!editMode) return;
+    if (!editMode || noteMode) return;
     e.preventDefault();
     var t = byId(sel) || target(e.target);
     var f = fieldEl(t);
@@ -109,7 +160,7 @@ const BRIDGE = `(function () {
     if (e.key === ' ' || e.key === 'Tab' || e.key.indexOf('Arrow') === 0) e.preventDefault();
   });
 
-  new ResizeObserver(function () { report(); post({ sections: sections() }); if (sel) reportSel(); }).observe(document.body);
+  new ResizeObserver(function () { report(); post({ sections: sections() }); if (sel) reportSel(); reportTracked(); }).observe(document.body);
   if (document.fonts) document.fonts.ready.then(report);
   window.addEventListener('message', function (e) {
     var d = e.data;
@@ -142,9 +193,12 @@ const BRIDGE = `(function () {
       if (!d.edit && hoverId) { hoverId = null; post({ hover: null }); }
     }
     if (d.select !== undefined) { sel = d.select; reportSel(); }
+    if (d.clearSelection) { var cs = getSelection(); if (cs) cs.removeAllRanges(); }
+    if (typeof d.noteMode === 'boolean') { noteMode = d.noteMode; document.documentElement.toggleAttribute('data-mx-note', d.noteMode); }
+    if (d.track) { tracked = d.track; reportTracked(); }
     if (d.editText) { var f = fieldEl(byId(d.editText)); if (f) startEdit(f); }
     if (d.replay) document.getAnimations().forEach(function (a) { try { a.cancel(); a.play(); } catch (_) {} });
-    requestAnimationFrame(function () { report(); if (sel) reportSel(); });
+    requestAnimationFrame(function () { report(); if (sel) reportSel(); reportTracked(); });
   });
   post({ ready: true });
   report();
@@ -154,6 +208,9 @@ const FRAME_CSS = `html, body { overflow: hidden; }
 html[data-mx-outline] body > * { outline: 2px dashed color-mix(in srgb, currentColor 35%, transparent); outline-offset: -6px; }
 html[data-mx-edit] [data-mx-block] { cursor: default; }
 html[data-mx-edit] [data-mx-field] { cursor: text; }
+html[data-mx-note], html[data-mx-note] * { cursor: crosshair !important; user-select: none; }
+html[data-mx-note] [data-mx-field], html[data-mx-note] [data-mx-field] * { cursor: text !important; user-select: text; }
+html[data-mx-note] ::selection { background: color-mix(in srgb, #ff6aa8 35%, transparent); }
 [data-mx-editing] { outline: none; cursor: text; caret-color: currentColor; }
 `
 

@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef } from 'react'
 import { Trash2 } from 'lucide-react'
 import type { Note, NoteColor } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -21,12 +21,14 @@ export function notePosition(n: Note, placements: FramePlacement[], rows: Record
     const r = rows[a.slotId]
     return r ? { x: a.dx, y: r.top + a.dy } : null
   }
+  if (a.kind !== 'frame') return null // marks are drawn as pins on their section, not as stickies
   const p = placements.find((x) => x.id === a.frameId)
   return p ? { x: p.x + a.dx, y: p.y + a.dy } : null
 }
 
 export function NotesLayer({ placements }: { placements: FramePlacement[] }) {
-  const notes = useStore((s) => s.notes)
+  const all = useStore((s) => s.notes)
+  const notes = useMemo(() => all.filter((n) => !n.kind), [all])
   const rows = useLayout((s) => s.rows)
   return (
     <>

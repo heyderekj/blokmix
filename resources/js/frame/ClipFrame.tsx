@@ -13,7 +13,17 @@ interface Props {
   onHeight?: (h: number) => void
   className?: string
   /** Edit mode: blocks can be hovered, picked and edited in place; events come back here. */
-  edit?: { selected: string | null; editText?: { id: string; n: number } | null; onEvent: (e: BlockEvent) => void } | null
+  edit?: {
+    /** Hover, select and edit blocks (or mark them, in note mode). Off = only report tracked rects. */
+    active: boolean
+    selected: string | null
+    editText?: { id: string; n: number } | null
+    /** Marking feedback instead of editing: click a block or drag an area. */
+    noteMode?: boolean
+    /** Blocks whose position the parent needs (pins). */
+    track?: string[]
+    onEvent: (e: BlockEvent) => void
+  } | null
 }
 
 /**
@@ -55,13 +65,14 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
       if (d.ready) {
         sent.current = ''
         push()
-        if (editRef.current) postState(win, { edit: true, select: editRef.current.selected })
+        const e = editRef.current
+        if (e) postState(win, { edit: e.active, select: e.active ? e.selected : null, noteMode: e.active && !!e.noteMode, track: e.track ?? [] })
       }
       if (typeof d.height === 'number' && d.height > 0) {
         setHeight(d.height)
         onHeightRef.current?.(d.height)
       }
-      if ('hover' in d || 'pick' in d || 'selRect' in d || d.word || 'editing' in d || d.key) editRef.current?.onEvent(d)
+      if ('hover' in d || 'pick' in d || 'selRect' in d || d.word || 'editing' in d || d.key || 'notePick' in d || 'drag' in d || d.area || d.rects || d.words) editRef.current?.onEvent(d)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [srcdoc])
@@ -81,11 +92,19 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
   }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks])
 
   // Edit mode and the selection travel separately from the look, so they never re-send tokens.
-  const editing = !!edit
+  const editing = !!edit?.active
   const selected = edit?.selected ?? null
   useEffect(() => {
     postState(ref.current?.contentWindow, { edit: editing, select: editing ? selected : null })
   }, [editing, selected, srcdoc])
+  const noteMode = editing && !!edit?.noteMode
+  useEffect(() => {
+    postState(ref.current?.contentWindow, { noteMode })
+  }, [noteMode, srcdoc])
+  const trackKey = (edit?.track ?? []).join(',')
+  useEffect(() => {
+    if (trackKey) postState(ref.current?.contentWindow, { track: trackKey.split(',') })
+  }, [trackKey, srcdoc])
   const editText = edit?.editText
   useEffect(() => {
     if (editText) postState(ref.current?.contentWindow, { editText: editText.id })
@@ -102,7 +121,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
       sandbox="allow-scripts"
       srcDoc={srcdoc}
       className={className}
-      style={{ width, height, border: 0, display: 'block', pointerEvents: interactive || edit ? 'auto' : 'none', background: 'transparent' }}
+      style={{ width, height, border: 0, display: 'block', pointerEvents: interactive || edit?.active ? 'auto' : 'none', background: 'transparent' }}
     />
   )
 })

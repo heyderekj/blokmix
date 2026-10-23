@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote } from 'lucide-react'
+import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus } from 'lucide-react'
 import { useStore, type Tool } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi } from '../canvas/Canvas'
@@ -15,6 +15,7 @@ import { agent as agentP, useMe } from '@/lib/people'
 const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
   { id: 'select', icon: MousePointer2, label: 'Select', key: 'V' },
   { id: 'hand', icon: Hand, label: 'Hand', key: 'H' },
+  { id: 'note', icon: MessageSquarePlus, label: 'Note on a block', key: 'N' },
   { id: 'sticky', icon: StickyNote, label: 'Sticky note', key: 'S' },
 ]
 

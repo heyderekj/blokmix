@@ -13,6 +13,16 @@ export interface BlockEvent {
   word?: { field: string; value: string }
   editing?: boolean
   key?: { key: string; code: string; meta: boolean; ctrl: boolean; shift: boolean; alt: boolean }
+  /** Note mode: a block clicked (with the point), or an area being drawn / drawn. */
+  notePick?: string | null
+  rect?: FrameRect | null
+  at?: { x: number; y: number }
+  drag?: FrameRect | null
+  area?: FrameRect
+  /** Words selected in note mode. */
+  words?: { block: string | null; field: string; quote: string; rect: FrameRect }
+  /** Rects of the blocks the parent asked to track (for pins). */
+  rects?: Record<string, FrameRect>
 }
 
 /** Routes postMessages from sandboxed frames to the component that owns each frame. */
@@ -52,7 +62,7 @@ export interface FrameState {
 
 export function postState(
   win: Window | null | undefined,
-  s: Partial<FrameState> & { replay?: boolean; edit?: boolean; select?: string | null; editText?: string },
+  s: Partial<FrameState> & { replay?: boolean; edit?: boolean; noteMode?: boolean; select?: string | null; editText?: string; track?: string[]; clearSelection?: boolean },
 ) {
   win?.postMessage({ ns: 'mx', ...s }, '*')
 }

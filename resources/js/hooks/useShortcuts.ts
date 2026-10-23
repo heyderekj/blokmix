@@ -98,6 +98,10 @@ export function useShortcuts(onHelp: () => void) {
         case 'H':
           st.setUi({ tool: 'hand' })
           return
+        case 'n':
+        case 'N':
+          st.setUi({ tool: st.ui.tool === 'note' ? 'select' : 'note', openNoteId: null })
+          return
         case 's':
         case 'S':
           st.setUi({ tool: st.ui.tool === 'sticky' ? 'select' : 'sticky' })
@@ -113,7 +117,9 @@ export function useShortcuts(onHelp: () => void) {
           if (focused && st.slots.length > 1) st.removeSlot(focused.id)
           return
         case 'Escape':
-          if (focused && st.ui.selectedBlockId) {
+          if (st.ui.openNoteId) st.setUi({ openNoteId: null })
+          else if (st.ui.tool === 'note') st.setUi({ tool: 'select' })
+          else if (focused && st.ui.selectedBlockId) {
             // Step out one level, like Figma.
             const block = library.clips[focused.clipId]?.blocks.find((b) => b.id === st.ui.selectedBlockId)
             st.selectBlock(block?.parent ?? null)

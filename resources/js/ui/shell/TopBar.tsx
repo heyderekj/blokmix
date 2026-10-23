@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bot, CircleHelp, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
+import { Bot, CircleHelp, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
 import { useStore, undo, redo, type Sheet } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
@@ -8,6 +8,8 @@ import { pressVersionAndFly } from '@/lib/actions'
 import { GuidePanel } from '../panels/GuidePanel'
 import { CopyPanel } from '../panels/CopyPanel'
 import { PacketPanel } from '../panels/PacketPanel'
+import { NotesPanel } from '../panels/NotesPanel'
+import { outstanding } from '@/core/notes'
 import { Divider, Island, MORPH } from './Island'
 import { LogoTile } from './Logo'
 import { Avatar } from './Avatar'
@@ -188,7 +190,10 @@ function ModeIsland() {
 
 /** Export and Save version. Export grows into the packet for your agent. */
 function ShipIsland() {
-  const open = useStore((s) => s.ui.sheet === 'packet')
+  const sheet = useStore((s) => s.ui.sheet)
+  const open = sheet === 'packet' || sheet === 'notes'
+  const notes = useStore((s) => s.notes)
+  const todo = notes.filter(outstanding).length
   return (
     <Island
       open={open}
@@ -201,11 +206,23 @@ function ShipIsland() {
           <Presence />
           <button
             type="button"
+            onClick={() => toggleSheet('notes')}
+            title={todo ? `${todo} note${todo > 1 ? 's' : ''} to do` : 'Notes'}
+            aria-expanded={sheet === 'notes'}
+            className={`relative flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
+              sheet === 'notes' ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
+            }`}
+          >
+            <MessageSquare size={15} />
+            {todo > 0 && <span className={`min-w-4 rounded-full px-1 text-[11px] font-bold tabular-nums ${sheet === 'notes' ? 'bg-white/20' : 'bg-problem text-white'}`}>{todo}</span>}
+          </button>
+          <button
+            type="button"
             onClick={() => toggleSheet('packet')}
             title="Export code for your agent: Astro or Next.js"
-            aria-expanded={open}
+            aria-expanded={sheet === 'packet'}
             className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
-              open ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
+              sheet === 'packet' ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
             }`}
           >
             <Package size={15} />
@@ -222,7 +239,7 @@ function ShipIsland() {
         </>
       }
     >
-      <PacketPanel />
+      {sheet === 'notes' ? <NotesPanel /> : <PacketPanel />}
     </Island>
   )
 }
