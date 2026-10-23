@@ -97,6 +97,18 @@ export const COMMANDS = {
     }),
     write: true,
   },
+  set_link: {
+    description:
+      'Where a link or button goes. "section": another section on this page (target = section id, position or type; it scrolls there). "page": another page of the site (target "/about"; the packet asks the builder to make it). "url": a web address (new_tab defaults to true). "email" / "phone": mailto and tel. "none": deliberately nowhere. "auto": back to the default, where words that name a section ("Pricing", "FAQ") lead to it.',
+    input: z.object({
+      section,
+      block,
+      to: z.enum(['section', 'page', 'url', 'email', 'phone', 'none', 'auto']),
+      target: z.string().optional(),
+      new_tab: z.boolean().optional(),
+    }),
+    write: true,
+  },
   set_banner: {
     description: 'Navs only: show an announcement banner above the nav (a strip of short messages, a ticker by default) or remove it. Its messages are the notices list (edit_list / set_list); its looks are Inverted, Quiet, Accent and Still (set_block on the banner).',
     input: z.object({ section, on: z.boolean() }),

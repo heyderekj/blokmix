@@ -320,6 +320,8 @@ export interface BlockInfo {
   listKey?: string
   /** Items: their number in the list's key (f4Title → 4). */
   n?: number
+  /** It is (or holds) a link, so it can lead somewhere. */
+  linkable?: boolean
 }
 
 /**
@@ -446,8 +448,19 @@ export interface BlockEdit {
   media?: MediaFill
   /** Icon blocks: a different icon (by name) than the clip drew. */
   icon?: string
+  /** Links and buttons: where they lead (absent = from their words, else nowhere). */
+  link?: LinkTarget
   hidden?: boolean
 }
+
+/** Where a link leads. */
+export type LinkTarget =
+  | { to: 'section'; slotId: string }
+  | { to: 'page'; path: string }
+  | { to: 'url'; url: string; newTab?: boolean }
+  | { to: 'email'; address: string }
+  | { to: 'phone'; number: string }
+  | { to: 'none' }
 
 /** Edits per clip, then per block id, so swapping clips and back keeps them. */
 export type SlotEdits = Record<string, Record<string, BlockEdit>>

@@ -5,6 +5,7 @@ import { sectionClip } from '@/core/lists'
 import { postState, registerFrame, type BlockEvent, type FrameState } from './bridge'
 import { uploadData } from '@/lib/assets'
 import { openLightbox } from '@/ui/shell/Lightbox'
+import { revealSection } from '@/lib/actions'
 
 interface Props {
   clip: Clip
@@ -79,6 +80,9 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
       }
       if (d.lightbox) openLightbox(d.lightbox, d.asset ?? undefined)
       if (d.wheel) forwardWheel(ref.current, d.wheel)
+      // Following a link while previewing: sections on the page come into view, the rest open in a tab.
+      if (d.goto) revealSection(d.goto)
+      if (d.open && /^(https?:|mailto:|tel:)/.test(d.open)) window.open(d.open, '_blank', 'noopener')
       if ('hover' in d || 'pick' in d || 'selRect' in d || d.word || 'editing' in d || d.key || 'notePick' in d || 'drag' in d || d.area || d.rects || d.words) editRef.current?.onEvent(d)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,7 +112,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     const id = requestAnimationFrame(push)
     return () => cancelAnimationFrame(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks, state.media, state.icons, state.lists])
+  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks, state.media, state.icons, state.lists, state.links])
 
   // Edit mode and the selection travel separately from the look, so they never re-send tokens.
   const editing = !!edit?.active

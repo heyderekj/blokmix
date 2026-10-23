@@ -8,7 +8,8 @@ import { iconNamesIn, iconSvg } from '@/core/icons'
 import { uploadData } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
-import { sectionClip } from '@/core/lists'
+import { sectionClip, type SectionClip } from '@/core/lists'
+import { sectionAnchors, sectionLinks } from '@/core/links'
 import { BANNER_CSS, BANNER_MOTION, bannerMoves } from '@/core/banner'
 import { BASE_FONTS, expandTokens, fontHrefs, fontsForTokens, varsToCss } from '@/core/tokens'
 import { allFonts } from '@/core/library'
@@ -21,10 +22,17 @@ export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
 
 /** Page-wide block defaults and extra colours, for frameStateFor. */
-export function usePageStyle(): Pick<GuideState, 'swatches' | 'components'> {
+export type PageStyle = Pick<GuideState, 'swatches' | 'components'> & { slots?: Pick<Slot, 'id' | 'type'>[] }
+
+/** Page-wide things a section's frame needs: block defaults, extra colours, and the sections links can lead to. */
+export function usePageStyle(): PageStyle {
   const swatches = useStore((s) => s.guide.swatches)
   const components = useStore((s) => s.guide.components)
-  return useMemo(() => ({ swatches, components }), [swatches, components])
+  const order = useStore((s) => s.slots.map((x) => `${x.id}:${x.type}`).join(','))
+  return useMemo(
+    () => ({ swatches, components, slots: order ? order.split(',').map((x) => ({ id: x.split(':')[0], type: x.split(':')[1] as Slot['type'] })) : [] }),
+    [swatches, components, order],
+  )
 }
 
 /** A token value you're hovering in a picker (a font), shown on the page before you choose it. Not undoable state. */
@@ -61,17 +69,17 @@ export function fontHrefsFor(tokens: TokenSet): string[] {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   libraryClip: Clip,
-  slot: Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner'> | null,
+  slot: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner'> & { id?: string }) | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
   viewport: Viewport,
-  page?: Pick<GuideState, 'swatches' | 'components'>,
+  page?: PageStyle,
 ): FrameState {
   const vh = VIEWPORT_VH[viewport]
   if (mode === 'captured' || !slot) {
     const clip = libraryClip
-    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: fontHrefsFor(clip.tokens), outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null, lists: NO_LISTS }
+    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: fontHrefsFor(clip.tokens), outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null, lists: NO_LISTS, links: NO_LINKS }
   }
   // The clip as this section shows it: items you added, removed or reordered.
   const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
@@ -89,7 +97,24 @@ export function frameStateFor(
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? null : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
     lists: clip.patches.length ? clip.patches : NO_LISTS,
+    links: linksFor(clip, slot, content, page?.slots),
   }
+}
+
+const NO_LINKS: FrameState['links'] = {}
+const linkCache = new Map<string, FrameState['links']>()
+/** Where the section's links lead, so previews can follow them. */
+function linksFor(clip: SectionClip, slot: Parameters<typeof frameStateFor>[1] & object, content: ProjectContent, slots: PageStyle['slots']): FrameState['links'] {
+  if (!slots || !slot.id || !clip.blocks.some((b) => b.linkable)) return NO_LINKS
+  const fields = resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields
+  const resolved = sectionLinks(clip.blocks, slot.edits?.[clip.id], fields, slots, slot.id, sectionAnchors(slots))
+  const out = Object.fromEntries(Object.entries(resolved).map(([id, l]) => [id, { href: l.href, slot: l.slotId, newTab: l.newTab }]))
+  const key = JSON.stringify(out)
+  const hit = linkCache.get(key)
+  if (hit) return hit
+  if (linkCache.size > 300) linkCache.clear()
+  linkCache.set(key, out)
+  return out
 }
 
 const NO_LISTS: FrameState['lists'] = []

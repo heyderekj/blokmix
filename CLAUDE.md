@@ -133,6 +133,14 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
   carry `data-mx-src="<file>#<path>"` (Koati's `data-koati-src` idea). MIXTAPE.md points to Keystatic as an
   optional editor.
 
+### Links
+
+Clips write links as `href="#"`; sections decide where they lead (`core/links.ts`, `BlockEdit.link`): a
+section on the page (exports give every section an anchor, `#pricing`), another page (`/about`, listed in
+MIXTAPE.md for the builder to create), a web address (new tab, `rel="noopener noreferrer"`), email or phone.
+Unset links follow their words ("Pricing", "Questions" → that section; emails and numbers → mailto/tel).
+A block is linkable when it is, or holds, its own `<a>`. Previews follow section links on the canvas.
+
 ### Fonts
 
 The style guide's fonts come from your clips or the font library (`core/fonts.ts`): ~180 free fonts from

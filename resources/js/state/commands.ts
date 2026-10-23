@@ -1,4 +1,4 @@
-import type { BlockEdit, BlockInfo, BlockMotion, BlockStyle, Choice, MediaFill, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
+import type { LinkTarget, BlockEdit, BlockInfo, BlockMotion, BlockStyle, Choice, MediaFill, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
 import { isMark, MARK_GUIDANCE, SOURCE_LABEL, sortMarks } from '@/core/notes'
 import { detectLink } from '@/core/media'
 import { ICON_NAMES, ICON_SETS, blockIconName } from '@/core/icons'
@@ -11,6 +11,7 @@ import { suggestClip, suggestTypes } from '@/core/suggest'
 import { resolveGuide, openGroups } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
 import { pressVersionAndFly } from '@/lib/actions'
+import { sectionAnchors, sectionLinks } from '@/core/links'
 import { PROVIDER_LABEL, PROVIDER_LICENSE, findLibraryFont, fontStack, searchFonts } from '@/core/fonts'
 import { editList, listContext, ListError, type ListOp } from '@/core/lists'
 import { outline, contentJson, type OutlineList, type OutlineNode } from '@/core/outline'
@@ -129,6 +130,7 @@ function describeSection(slot: Slot, position: number) {
   const st = useStore.getState()
   const clip = slotClip(slot)
   const words = wordsFor(slot)
+  const links = sectionLinks(clip.blocks, slot.edits?.[clip.id], words, st.slots, slot.id, sectionAnchors(st.slots))
   return {
     id: slot.id,
     position,
@@ -152,6 +154,7 @@ function describeSection(slot: Slot, position: number) {
         style: e?.style ?? null,
         motion: e?.motion ?? null,
         image: b.kind === 'image' ? (e?.media ?? null) : undefined,
+        link: b.linkable ? links[b.id]?.href : undefined,
         hidden: !!e?.hidden,
       }
     }),
@@ -327,6 +330,7 @@ function adviceFor(slot: Slot) {
     tokens: resolveGuide(st.guide).tokens,
     swatches: st.guide.swatches,
     fields: wordsFor(slot),
+    links: sectionLinks(clip.blocks, slot.edits?.[clip.id], wordsFor(slot), st.slots, slot.id, sectionAnchors(st.slots)),
   })
 }
 
@@ -395,6 +399,41 @@ const WRITE = {
     putSlot(slot)
     const live = findSection(slot.id)
     return { field: i.field, showing: wordsFor(live)[i.field], choices: wordChoices(clip, live, content, i.field).map((c) => ({ text: c.text, kind: c.kind, by: c.option?.by })) }
+  },
+  set_link: (i: CommandInput<'set_link'>) => {
+    const slot = findSection(i.section)
+    const b = findBlock(slot, i.block)
+    if (!b.linkable) throw new CommandError(`${b.label} isn’t a link or button. Links here: ${slotClip(slot).blocks.filter((x) => x.linkable).map((x) => x.label).join('; ') || 'none'}`)
+    let link: LinkTarget | undefined
+    switch (i.to) {
+      case 'section':
+        link = { to: 'section', slotId: findSection(i.target ?? '').id }
+        break
+      case 'page':
+        if (!i.target) throw new CommandError('Say which page, e.g. "/about".')
+        link = { to: 'page', path: i.target.startsWith('/') ? i.target : `/${i.target}` }
+        break
+      case 'url':
+        if (!i.target) throw new CommandError('Say which web address.')
+        link = { to: 'url', url: i.target, newTab: i.new_tab ?? true }
+        break
+      case 'email':
+        link = { to: 'email', address: i.target ?? '' }
+        break
+      case 'phone':
+        link = { to: 'phone', number: i.target ?? '' }
+        break
+      case 'none':
+        link = { to: 'none' }
+        break
+      case 'auto':
+        link = undefined
+    }
+    useStore.getState().editBlock(slot.id, b.id, { link })
+    const st = useStore.getState()
+    const live = findSection(slot.id)
+    const l = sectionLinks(slotClip(live).blocks, live.edits?.[live.clipId], wordsFor(live), st.slots, live.id, sectionAnchors(st.slots))[b.id]
+    return { block: b.label, href: l.href, newTab: l.newTab, auto: l.auto }
   },
   set_banner: (i: CommandInput<'set_banner'>) => {
     const slot = findSection(i.section)

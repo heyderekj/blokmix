@@ -1,4 +1,4 @@
-import type { BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
+import type { LinkTarget, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
@@ -7,6 +7,7 @@ import { swapIcons } from './icons'
 import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
 import { resolveFields } from './content'
 import { sectionClip } from './lists'
+import { applyLinks, sectionAnchors, sectionLinks } from './links'
 import { BANNER_CSS, BANNER_MOTION, bannerMoves } from './banner'
 import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
@@ -22,6 +23,10 @@ export interface ComposedSection {
   tree: HNode[]
   /** The same markup before the words go in (data-mx-* kept), for components that read a content file. */
   source: HNode[]
+  /** Its anchor on the page (#pricing). */
+  anchor: string
+  /** Where its links and buttons lead (href "#" = nowhere yet). */
+  links: { id: string; label: string; href: string; newTab: boolean; auto: boolean; to: LinkTarget['to'] }[]
   /** Its words as content: fields and lists in page order… */
   outline: OutlineNode[]
   /** …and as the content file's JSON (src/content/<contentName>.json). */
@@ -74,6 +79,8 @@ export interface ComposedPage {
   mediaFiles: Record<string, string | Uint8Array>
   /** Some section has video, a Lottie, an embed or a lightbox: ship the media player. */
   moving: boolean
+  /** Other pages of the site that links lead to (/about): for the agent to build. */
+  pages: string[]
 }
 
 export interface ComposeInput {
@@ -112,6 +119,7 @@ export function composePage(input: ComposeInput): ComposedPage {
   const mediaFiles: Record<string, string | Uint8Array> = {}
   const sections: ComposedSection[] = []
 
+  const anchors = sectionAnchors(input.slots)
   input.slots.forEach((slot, position) => {
     const libraryClip = input.library.clips[slot.clipId]
     if (!libraryClip) return
@@ -197,7 +205,11 @@ export function composePage(input: ComposeInput): ComposedPage {
     const iconOverrides = Object.fromEntries(changed.flatMap(({ b, edit }) => (b.kind === 'icon' && edit.icon ? [[b.id, edit.icon]] : [])))
     const source = slot.keep.style ? parseHtml(clip.html) : swapIcons(parseHtml(clip.html), input.guide.tokens['icon.set'], iconOverrides)
     const marked = mapTree(source, (el) => {
-      if (spaced && attr(el, 'data-mx-section') !== undefined) return addClass(el, `mx-s${position + 1}`)
+      if (attr(el, 'data-mx-section') !== undefined) {
+        // Every section has an anchor, so links can lead to it (#pricing).
+        const root = spaced ? addClass(el, `mx-s${position + 1}`) : el
+        return { ...root, attrs: [...root.attrs.filter(([k]) => k !== 'id'), ['id', anchors[slot.id]]] }
+      }
       if (attr(el, 'data-mx-block') === undefined) return el
       const id = attr(el, 'data-mx-b') ?? `b${order}`
       order++
@@ -209,9 +221,12 @@ export function composePage(input: ComposeInput): ComposedPage {
       const block = m.lightbox ? { ...withClass, attrs: [...withClass.attrs, ['data-lightbox', ''] as [string, string]] } : withClass
       return { ...block, kids: [...block.kids, ...mediaElements(m, w, h)] }
     })
+    // Where its links lead: what you set, else what their words name.
+    const links = sectionLinks(clip.blocks, edits, fields, input.slots, slot.id, anchors)
+    const linked = applyLinks(marked, links)
     // Blocks you hid (a banner you don't want) leave the markup and the content file altogether.
     const hidden = new Set(changed.filter((x) => x.edit.hidden).map((x) => x.b.id))
-    const shown = hidden.size ? dropBlocks(marked, hidden) : marked
+    const shown = hidden.size ? dropBlocks(linked, hidden) : linked
     const tree = applyFields(shown, fields)
     const words = outline(shown)
     const blocksCss = blockCss({
@@ -269,6 +284,11 @@ export function composePage(input: ComposeInput): ComposedPage {
       keep: slot.keep,
       tree,
       source: shown,
+      anchor: anchors[slot.id],
+      links: clip.blocks.flatMap((b) => {
+        const l = links[b.id]
+        return l && !hidden.has(b.id) ? [{ id: b.id, label: b.label, href: l.href, newTab: l.newTab, auto: l.auto, to: l.target?.to ?? 'none' }] : []
+      }),
       outline: words,
       content: contentJson(words, fields),
       contentName: kebab(component),
@@ -300,6 +320,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     sections,
     mediaFiles,
     moving: sections.some((x) => x.media.some((m) => m.kind !== 'image' || m.lightbox)),
+    pages: [...new Set(sections.flatMap((x) => x.links.filter((l) => l.to === 'page').map((l) => l.href)))].sort(),
   }
 }
 

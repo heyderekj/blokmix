@@ -40,7 +40,7 @@ export interface BlockEvent {
 
 /** Routes postMessages from sandboxed frames to the component that owns each frame. */
 type Handler = (
-  data: { ns: 'mx'; ready?: boolean; height?: number; wheel?: { dx: number; dy: number; mode: number; x: number; y: number; ctrl: boolean; meta: boolean; shift: boolean }; sections?: { slot: string; top: number; height: number }[] } & BlockEvent,
+  data: { ns: 'mx'; ready?: boolean; height?: number; goto?: string; open?: string; wheel?: { dx: number; dy: number; mode: number; x: number; y: number; ctrl: boolean; meta: boolean; shift: boolean }; sections?: { slot: string; top: number; height: number }[] } & BlockEvent,
 ) => void
 
 const handlers = new Map<MessageEventSource, Handler>()
@@ -77,6 +77,8 @@ export interface FrameState {
   icons: { set: string; glyphs: Record<string, string>; overrides: Record<string, string> } | null
   /** Lists you changed: elements to swap in place (everything else re-applies on top). */
   lists: { sel: string; html: string; before?: boolean }[]
+  /** Where each link block leads: its href, and the section for links within the page. */
+  links: Record<string, { href: string; slot?: string; newTab?: boolean }>
 }
 
 export function postState(

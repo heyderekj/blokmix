@@ -99,6 +99,8 @@ export function packetJson(i: PacketInput) {
       content: s.outline.length ? s.content : null,
       contentFile: s.outline.length ? `${s.contentName}.json` : null,
       wordOptions: s.options,
+      anchor: s.anchor,
+      links: s.links.map((l) => ({ block: l.label, href: l.href, newTab: l.newTab, auto: l.auto })),
       media: s.media.map((m) => ({ block: m.label, source: m.source, src: m.src, alt: m.alt, credit: m.credit })),
       blocks: s.blocks.map((b) => ({ id: b.id, label: b.label, kind: b.kind, variant: b.edit.variant ?? null, style: b.edit.style ?? null, hidden: !!b.edit.hidden })),
       notes: s.notes,
@@ -106,6 +108,7 @@ export function packetJson(i: PacketInput) {
       css: s.clip.css,
       motionCss: s.clip.motionCss,
     })),
+    pages: page.pages,
     rules: AGENT_RULES,
     integrations: { revisemy: null, koati: null },
   }
@@ -143,6 +146,10 @@ export function linerNotes(i: PacketInput): string {
       const lists = s.outline.flatMap((n) => (n.t === 'list' ? [`${n.key} ×${n.items.length}`] : []))
       lines.push(`- **Content:** \`${s.contentName}.json\` in the content folder${lists.length ? ` (lists: ${lists.join(', ')})` : ''}`)
     }
+    const nowhere = s.links.filter((l) => l.href === '#')
+    const going = s.links.filter((l) => l.href !== '#')
+    if (going.length) lines.push(`- **Links:** ${going.map((l) => `${l.label.split(' · ').slice(1).join(' · ') || l.label} → \`${l.href}\`${l.newTab ? ' (new tab)' : ''}`).join('; ')}`)
+    if (nowhere.length) lines.push(`- **Links with no destination yet** (ask, or point them somewhere sensible): ${nowhere.map((l) => l.label.split(' · ').slice(1).join(' · ') || l.label).join('; ')}`)
     for (const [f, os] of Object.entries(s.options)) lines.push(`- **Other ways to say ${f}** (kept as options; use only if asked): ${os.map((o) => `“${o}”`).join(' · ')}`)
     lines.push(`- **Motion:** ${describeSectionMotion(s.motion) ?? (s.keep.motion ? s.clip.motionNotes ?? 'keep the captured motion' : 'none')}${s.motionCss?.includes('Motion presets') ? ' (presets are in the section’s motion CSS; keep their timing and easing)' : ''}`)
     for (const b of s.blocks) lines.push(`- **Block, ${b.label}:** ${describeEdit(b.edit)}`)
@@ -242,6 +249,12 @@ export function linerNotes(i: PacketInput): string {
   if (i.targets.includes('astro')) lines.push('- `astro/`: runnable Astro project (`npm i && npm run dev`)')
   if (i.targets.includes('next')) lines.push('- `next/`: runnable Next.js App Router project (`npm i && npm run dev`)')
   lines.push('')
+  if (page.pages.length) {
+    lines.push('## Other pages')
+    lines.push('')
+    lines.push(`Links on this page lead to ${page.pages.map((p) => `\`${p}\``).join(', ')}. Create those pages with the same layout, tokens and nav, even if only as a simple page for now, so no link is broken. Sections link to each other by their anchors (\`#pricing\`).`)
+    lines.push('')
+  }
   lines.push('## Content')
   lines.push('')
   lines.push('Each section’s words are a JSON file (`src/content/` in Astro, `content/` in Next.js); the page imports it and passes it to the section as `content`. Lists are arrays: where a list’s items are built alike, the component maps over the array, so adding an entry adds an item; items that differ (their own icons, pictures or looks) are written one by one and read their entry by position.')

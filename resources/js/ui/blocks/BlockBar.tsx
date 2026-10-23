@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, Copy, ListRestart, Minus, ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile } from 'lucide-react'
+import { Link2, ArrowLeft, ArrowRight, Copy, ListRestart, Minus, ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -20,9 +20,11 @@ import { ImageMenu } from './ImageMenu'
 import { IconMenu } from './IconMenu'
 import { blockIconName } from '@/core/icons'
 import { listContext } from '@/core/lists'
+import { sectionAnchors, sectionLinks } from '@/core/links'
 import { WordsCycler, WordsMenu } from './WordsMenu'
+import { LinkLabel, LinkMenu } from './LinkMenu'
 
-type Menu = 'variant' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'more' | 'advice' | null
+type Menu = 'variant' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'advice' | null
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -150,6 +152,11 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             Edit
           </BarButton>
         )}
+        {block.linkable && (
+          <BarButton active={menu === 'link'} onClick={() => setMenu(menu === 'link' ? null : 'link')} icon={Link2} title="Where it goes">
+            <LinkLabel slot={slot} block={block} />
+          </BarButton>
+        )}
         {block.field && <WordsCycler slot={slot} field={block.field} open={menu === 'words'} onOpen={() => setMenu(menu === 'words' ? null : 'words')} />}
         {list && <ListControls slotId={slot.id} ctx={list} />}
         <BarButton
@@ -242,6 +249,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
       {menu === 'image' && (
         <ImageMenu block={block} fill={own?.media} onHover={(m) => hover(m ? { media: m } : null)} onPick={(m) => apply({ media: m ?? undefined })} />
       )}
+      {menu === 'link' && <LinkMenu slot={slot} block={block} />}
       {menu === 'words' && block.field && <WordsMenu slot={slot} field={block.field} blockId={block.id} onClose={() => setMenu(null)} />}
       {menu === 'motion' && <MotionMenu kind={block.kind} motion={edit?.motion} onHover={(m) => hover(m ? { motion: m } : null)} onPick={(m) => apply({ motion: m })} />}
       {menu === 'more' && (
@@ -668,6 +676,7 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
       fields,
       rects: rect ? { [block.id]: rect } : undefined,
       pageStyles,
+      links: sectionLinks(clip.blocks, slot.edits?.[slot.clipId], fields, slots, slot.id, sectionAnchors(slots)),
     }).filter((a) => a.blockId === block.id)
   }, [slot, block.id, rect, guide.tokens, swatches, components, content, slots])
 }

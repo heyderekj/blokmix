@@ -257,6 +257,7 @@ const BRIDGE = `(function () {
     document.querySelectorAll('[data-mx-extra]').forEach(function (x) { x.remove(); });
     listPatched.forEach(function (sel) { var cur = document.querySelector(sel); if (cur && listOrig[sel]) cur.replaceWith(listOrig[sel].cloneNode(true)); });
     listPatched = [];
+    linkKey = ''; /* items that came or went need their links again */
     patches.forEach(function (p) {
       var cur = document.querySelector(p.sel);
       if (!cur) return;
@@ -278,6 +279,35 @@ const BRIDGE = `(function () {
     if (window.mxMedia) window.mxMedia.wire(document);
   }
 
+  /* ---- where links lead: real hrefs, and following them while previewing ---- */
+  var linkKey = '';
+  function linkEl(b) {
+    if (b.tagName === 'A') return b;
+    var all = b.querySelectorAll('a');
+    for (var i = 0; i < all.length; i++) if (all[i].closest('[data-mx-block]') === b) return all[i];
+    return null;
+  }
+  function drawLinks(links) {
+    var key = JSON.stringify(links);
+    if (key === linkKey) return;
+    linkKey = key;
+    Object.keys(links).forEach(function (id) {
+      var b = byId(id), a = b && linkEl(b), l = links[id];
+      if (!a) return;
+      a.setAttribute('href', l.href);
+      if (l.slot) a.setAttribute('data-mx-goto', l.slot); else a.removeAttribute('data-mx-goto');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    if (editMode) return;
+    var a = e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    /* A sandboxed frame never navigates itself. */
+    e.preventDefault();
+    if (a.hasAttribute('data-mx-goto')) post({ goto: a.getAttribute('data-mx-goto') });
+    else if (a.getAttribute('href') !== '#') post({ open: a.getAttribute('href') });
+  });
+
   /* The lightbox opens over the whole app, not inside this section's frame. */
   window.__mxLightbox = function (p) {
     var clean = { kind: p.kind, src: p.src, poster: p.poster, alt: p.alt, player: p.player };
@@ -297,6 +327,7 @@ const BRIDGE = `(function () {
       l.onload = report;
     });
     if (d.lists) patchLists(d.lists);
+    if (d.links) drawLinks(d.links);
     if (d.fields !== undefined) document.querySelectorAll('[data-mx-field],[data-mx-mirror]').forEach(function (el) {
       if (el === editing) return;
       if (!el.hasAttribute('data-mx-original')) el.setAttribute('data-mx-original', el.textContent);

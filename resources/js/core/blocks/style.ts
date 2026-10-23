@@ -61,6 +61,7 @@ export function effectiveEdit(edit: BlockEdit | undefined, def: ComponentDefault
     motion: edit?.motion,
     media: edit?.media,
     icon: edit?.icon,
+    link: edit?.link,
     hidden: edit?.hidden,
   }
 }

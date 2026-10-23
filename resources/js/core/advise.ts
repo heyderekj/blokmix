@@ -35,6 +35,7 @@ export interface Advice {
     | 'alt'
     | 'placeholder'
     | 'captions'
+    | 'dead-link'
   level: 'problem' | 'suggestion'
   lens: Lens
   message: string
@@ -58,6 +59,8 @@ export interface AdviseInput {
   basePx?: number
   /** Own styles on blocks of each kind across the whole page, for the consistency nudge. */
   pageStyles?: Partial<Record<BlockKind, string[]>>
+  /** Where each link block leads (href "#" = nowhere), when known. */
+  links?: Record<string, { href: string }>
 }
 
 const SOLID = new Set(['solid', 'pill', 'offset'])
@@ -111,6 +114,17 @@ export function advise(i: AdviseInput): Advice[] {
           fix: { label: 'Make it outline', edit: { variant: 'outline' } },
         })
       }
+    }
+
+    // A button or link that leads nowhere: people press it and nothing happens.
+    if (b.linkable && (b.kind === 'button' || b.kind === 'link') && i.links?.[b.id]?.href === '#' && e?.link?.to !== 'none') {
+      out.push({
+        blockId: b.id,
+        rule: 'dead-link',
+        level: 'suggestion',
+        lens: 'Laws of UX',
+        message: 'This leads nowhere yet. Point it at a section, a page or a web address, so pressing it does what its words promise.',
+      })
     }
 
     // Contrast between a block's fill and its words.

@@ -2,6 +2,7 @@ import type { BlockInfo, BlockKind, SectionType } from './types'
 import { BLOCK_KINDS } from './types'
 import { TYPE_LABEL } from './content'
 import { attr, walk, type HEl, type HNode } from './html/parse'
+import { linkElementOf } from './links'
 
 export const BLOCK_LABEL: Record<BlockKind, string> = {
   heading: 'Heading',
@@ -53,6 +54,7 @@ export function indexBlocks(tree: HNode[], type: SectionType): BlockInfo[] {
         if (ratio) b.ratio = ratio
         const list = attr(n, 'data-mx-list')
         if (list) b.list = list
+        if (linkElementOf(n)) b.linkable = true
         out.push(b)
         parent?.children.push(b.id)
         const name = attr(n, 'data-mx-label')
