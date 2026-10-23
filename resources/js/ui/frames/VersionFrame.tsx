@@ -11,7 +11,7 @@ import { useLayout } from '@/state/layout'
 import { VIEWPORT_VH } from '@/state/derived'
 import { PageFrame } from '@/frame/PageFrame'
 import { runReferenceBuild } from '@/lib/agent-sim'
-import { FlashTitle, FrameHeader, HeaderButton, StatusMenu } from './FrameHeader'
+import { FlashTitle, FrameHeader, OverflowMenu, StatusMenu } from './FrameHeader'
 import { STATUS_META } from './status'
 import type { FramePlacement } from '../canvas/geometry'
 
@@ -39,6 +39,16 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
 
   const building = v.kind === 'build' && !v.build?.done
   const meta = STATUS_META[v.status]
+  const [attaching, setAttaching] = useState(false)
+  const parent = useStore((s) => (v.parentId ? s.versions[v.parentId] : null))
+  const metaLine = [
+    meta.label,
+    v.kind === 'build' ? `${v.build?.agentName} · ${v.build?.target === 'astro' ? 'Astro' : 'Next.js'}${v.build?.previewUrl ? ' · live preview' : ''}` : parent ? `from ${parent.letter}` : null,
+    `${v.snapshot.slots.length} tracks`,
+    isBranchBase ? 'in the mix' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
     <div
@@ -49,34 +59,40 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
     >
       <FrameHeader width={p.w} tint={meta.color} selected={selected}>
         <StatusMenu status={v.status} onChange={(s) => st().setStatus(v.id, s)} />
-        <span
-          className="grid h-6 min-w-6 place-items-center rounded-md px-1.5 text-[12px] font-bold text-background"
-          style={{ background: meta.color }}
-        >
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg text-[13px] font-bold text-background" style={{ background: meta.color }}>
           {v.letter}
         </span>
-        <FlashTitle status={v.status}>
-          <Title v={v} />
-        </FlashTitle>
-        {v.kind === 'build' && <AgentBadge v={v} />}
-        {isBranchBase && <span className="rounded-md bg-key-soft px-2 py-0.5 text-[11px] font-semibold text-key-ink">in the mix</span>}
-        <HeaderButton icon={Eye} label={previewing ? 'Stop interacting' : 'Interact with the page'} active={previewing} onClick={() => st().setUi({ previewFrameId: previewing ? null : v.id })} />
-        <HeaderButton icon={Shuffle} label="Remix: load into the working mix and branch" onClick={() => remix(v)} />
-        {v.kind === 'snapshot' && <SendToAgent disabled={agentBusy} onSend={(t) => runReferenceBuild(v.id, t)} />}
-        {v.kind === 'build' && <AttachUrl v={v} />}
-        <HeaderButton
-          icon={Package}
-          label="Open the packet for this version"
-          onClick={() => st().setUi({ packetSource: v.id, sheet: 'packet' })}
+        <div className="min-w-0 flex-1">
+          <FlashTitle status={v.status}>
+            <Title v={v} />
+          </FlashTitle>
+          <div className="truncate text-[12px] leading-snug text-zinc-500">{metaLine}</div>
+        </div>
+        {v.kind === 'snapshot' ? (
+          <SendToAgent disabled={agentBusy} onSend={(t) => runReferenceBuild(v.id, t)} />
+        ) : (
+          <button type="button" onClick={() => remix(v)} className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold">
+            <Shuffle size={13} /> Remix
+          </button>
+        )}
+        <OverflowMenu
+          items={[
+            { icon: Eye, label: previewing ? 'Stop interacting' : 'Interact with the page', onClick: () => st().setUi({ previewFrameId: previewing ? null : v.id }) },
+            ...(v.kind === 'snapshot' ? [{ icon: Shuffle, label: 'Remix into the working mix', onClick: () => remix(v) }] : []),
+            { icon: Package, label: 'Hand off this version', onClick: () => st().setUi({ packetSource: v.id, sheet: 'packet' }) },
+            ...(v.kind === 'build' ? [{ icon: Link2, label: v.build?.previewUrl ? 'Change preview URL' : 'Attach the agent’s preview URL', onClick: () => setAttaching(true) }] : []),
+            {
+              icon: Trash2,
+              label: 'Delete',
+              danger: true,
+              onClick: () => {
+                st().deleteVersion(v.id)
+                st().showFlash(`Deleted ${v.letter}`, { undo: true })
+              },
+            },
+          ]}
         />
-        <HeaderButton
-          icon={Trash2}
-          label="Delete (undo with ⌘Z)"
-          onClick={() => {
-            st().deleteVersion(v.id)
-            st().showFlash(`Deleted ${v.letter}`, { undo: true })
-          }}
-        />
+        {attaching && <AttachUrl v={v} onClose={() => setAttaching(false)} />}
       </FrameHeader>
 
       <div
@@ -139,18 +155,9 @@ function Title({ v }: { v: VersionNode }) {
       />
     )
   return (
-    <div className="truncate font-medium text-zinc-900" onDoubleClick={() => setEditing(true)} title="Double-click to rename">
+    <div className="truncate text-[15px] font-semibold leading-tight text-zinc-900" onDoubleClick={() => setEditing(true)} title="Double-click to rename">
       {v.title}
     </div>
-  )
-}
-
-function AgentBadge({ v }: { v: VersionNode }) {
-  return (
-    <span className="flex items-center gap-1 rounded-full bg-agent-soft py-0.5 pl-0.5 pr-2 text-[11px] font-medium text-agent-ink">
-      <span className="grid size-4 place-items-center rounded-full bg-agent text-[9px] font-bold text-white">C</span>
-      {v.build?.agentName} · {v.build?.target === 'astro' ? 'Astro' : 'Next'}
-    </span>
   )
 }
 
@@ -165,9 +172,20 @@ function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: Buil
   }, [open])
   return (
     <div ref={ref} className="relative">
-      <HeaderButton icon={Bot} label={disabled ? 'The agent is busy' : 'Send to agent'} disabled={disabled} active={open} onClick={() => setOpen((o) => !o)} />
+      <button
+        type="button"
+        disabled={disabled}
+        title={disabled ? 'The agent is busy' : 'Send this version to your agent'}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
+        className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold"
+      >
+        <Bot size={14} /> Build
+      </button>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-64 animate-pop rounded-2xl border border-zinc-950/10 bg-white p-2 shadow-xl">
+        <div className="glass-panel absolute right-0 top-full z-50 mt-2 w-64 animate-pop rounded-2xl p-2">
           <p className="px-2 pb-2 pt-1 text-[12px] leading-snug text-zinc-500">
             Hand this version’s packet to the agent. Until MCP is connected, it renders the exporter’s reference build.
           </p>
@@ -179,7 +197,7 @@ function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: Buil
                 setOpen(false)
                 onSend(t)
               }}
-              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[13px] font-medium text-zinc-800 transition hover:bg-zinc-100 active:scale-[0.98]"
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] font-medium text-zinc-800 transition hover:bg-zinc-950/5"
             >
               Build with {t === 'astro' ? 'Astro' : 'Next.js'}
               <span className="text-zinc-400">→</span>
@@ -191,21 +209,22 @@ function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: Buil
   )
 }
 
-function AttachUrl({ v }: { v: VersionNode }) {
-  const [open, setOpen] = useState(false)
+function AttachUrl({ v, onClose }: { v: VersionNode; onClose: () => void }) {
   const [url, setUrl] = useState(v.build?.previewUrl ?? '')
   return (
-    <div className="relative">
-      <HeaderButton icon={Link2} label="Attach the agent’s preview URL" active={open || !!v.build?.previewUrl} onClick={() => setOpen((o) => !o)} />
-      {open && (
-        <form
-          className="absolute right-0 top-full z-50 mt-2 flex w-80 animate-pop gap-1.5 rounded-2xl border border-zinc-950/10 bg-white p-2 shadow-xl"
+    <div className="absolute right-1.5 top-full">
+      <form
+          className="glass-panel absolute right-0 top-0 z-50 mt-2 flex w-80 animate-pop gap-1.5 rounded-2xl p-2"
+          onKeyDown={(e) => {
+            e.stopPropagation()
+            if (e.key === 'Escape') onClose()
+          }}
           onSubmit={(e) => {
             e.preventDefault()
             const clean = url.trim()
             if (clean && !/^https?:\/\//.test(clean)) return
             useStore.getState().updateBuild(v.id, { previewUrl: clean || undefined, by: clean ? 'agent' : 'reference' })
-            setOpen(false)
+            onClose()
           }}
         >
           <input
@@ -213,11 +232,10 @@ function AttachUrl({ v }: { v: VersionNode }) {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="http://localhost:4321"
-            className="min-w-0 flex-1 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-[13px] outline-none"
+            className="min-w-0 flex-1 rounded-lg bg-well px-2.5 py-1.5 text-[13px] outline-none"
           />
           <button className="btn-lit btn-ink rounded-full px-3.5 text-[13px] font-medium">Attach</button>
         </form>
-      )}
     </div>
   )
 }

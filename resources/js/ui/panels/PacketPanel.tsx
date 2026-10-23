@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Check, ChevronRight, ClipboardCopy, Download, FileCode2, FileJson, FileText, Folder, Sparkles } from 'lucide-react'
+import { Check, ChevronRight, ClipboardCopy, Download, FileCode2, FileJson, FileText, Folder, ChevronDown } from 'lucide-react'
 import type { BuildTarget } from '@/core/types'
 import { openGroups, resolveGuide } from '@/core/guide'
 import { composePage } from '@/core/compose'
@@ -10,7 +10,6 @@ import { slotNotesFor, dfsOrder } from '@/core/versions'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
-import { PanelSection } from './parts'
 
 export function PacketPanel() {
   const source = useStore((s) => s.ui.packetSource)
@@ -24,6 +23,7 @@ export function PacketPanel() {
   const sections = useLayout((s) => s.sections)
   const [open, setOpen] = useState<string>('MIXTAPE.md')
   const [copied, setCopied] = useState<string | null>(null)
+  const [tab, setTab] = useState<'files' | 'prompt'>('files')
   const st = useStore.getState
 
   const version = source !== 'mix' ? versions[source] : null
@@ -88,100 +88,118 @@ export function PacketPanel() {
   const openConflicts = openGroups(input.guide).length
   const noteCount = input.page.sections.reduce((n, s) => n + s.notes.length, 0) + (input.notes?.length ?? 0)
 
+  const facts = [
+    `${input.page.sections.length} tracks`,
+    `${paths.length} files`,
+    openConflicts ? `${openConflicts} style decision${openConflicts > 1 ? 's' : ''} open` : 'guide resolved',
+    noteCount ? `${noteCount} notes` : null,
+  ].filter(Boolean)
+
   return (
-    <div className="flex h-full flex-col">
-      <PanelSection title="Hand off">
-        <label className="mb-2 block">
-          <span className="mb-1 block text-[11px] font-medium text-zinc-400">From</span>
-          <select
-            value={source in versions || source === 'mix' ? source : 'mix'}
-            onChange={(e) => st().setUi({ packetSource: e.target.value })}
-            className="h-9 w-full rounded-xl border border-zinc-950/10 bg-white px-2.5 text-[13px] font-medium text-zinc-800 outline-none"
+    <div>
+      {/* tier 1: what's being handed off, and the one action */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="relative w-fit max-w-full">
+            <select
+              value={source in versions || source === 'mix' ? source : 'mix'}
+              onChange={(e) => st().setUi({ packetSource: e.target.value })}
+              className="w-full max-w-full cursor-pointer appearance-none truncate rounded-md bg-transparent pr-5 text-[15px] font-semibold text-zinc-900 outline-none hover:bg-zinc-950/5"
+              aria-label="Which version to hand off"
+            >
+              <option value="mix">Working mix</option>
+              {dfsOrder(versions).map(({ node }) => (
+                <option key={node.id} value={node.id}>
+                  {node.letter} · {node.title}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="pointer-events-none absolute right-0.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+          </div>
+          <div className={`truncate text-[12px] ${openConflicts ? 'text-attention-ink' : 'text-zinc-500'}`}>{facts.join(' · ')}</div>
+        </div>
+        <button type="button" onClick={download} className="btn-lit btn-ink flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold">
+          <Download size={14} /> Download
+        </button>
+      </div>
+
+      {/* tier 2: tabs left, targets right */}
+      <div className="flex items-end gap-0.5 border-t border-zinc-950/6 px-2 pt-1.5">
+        {(['files', 'prompt'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setTab(k)}
+            className={`h-8 rounded-t-lg px-3 text-[12.5px] font-medium transition ${tab === k ? 'bg-well text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
-            <option value="mix">Working mix</option>
-            {dfsOrder(versions).map(({ node }) => (
-              <option key={node.id} value={node.id}>
-                {node.letter} · {node.title}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="mb-3 flex gap-1.5">
+            {k === 'files' ? 'Files' : 'Agent prompt'}
+          </button>
+        ))}
+        <div className="ml-auto flex items-center gap-1 pb-1.5 pr-1">
           {(['astro', 'next'] as const).map((t) => (
             <button
               key={t}
               type="button"
+              aria-pressed={targets.includes(t)}
               onClick={() => toggleTarget(t)}
-              className={`flex h-8 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[12.5px] font-semibold transition active:scale-95 ${
-                targets.includes(t) ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-zinc-950/10 text-zinc-500'
+              className={`flex h-6 items-center gap-1 rounded-full px-2.5 text-[11.5px] font-medium transition active:scale-[0.97] ${
+                targets.includes(t) ? 'bg-zinc-900 text-white' : 'bg-chip text-zinc-500 hover:text-zinc-800'
               }`}
             >
-              {targets.includes(t) && <Check size={13} />}
+              {targets.includes(t) && <Check size={11} />}
               {t === 'astro' ? 'Astro' : 'Next.js'}
             </button>
           ))}
         </div>
-        <div className="mb-3 flex flex-wrap gap-1.5 text-[11.5px]">
-          <Chip>{input.page.sections.length} tracks</Chip>
-          <Chip>{paths.length} files</Chip>
-          <Chip tone={openConflicts ? 'warn' : 'ok'}>{openConflicts ? `${openConflicts} style decision${openConflicts > 1 ? 's' : ''} open` : 'guide resolved'}</Chip>
-          {noteCount > 0 && <Chip>{noteCount} notes</Chip>}
-        </div>
-        <button
-          type="button"
-          onClick={download}
-          className="btn-lit btn-ink mb-2 flex h-10 w-full items-center justify-center gap-2 rounded-full text-[13px] font-semibold"
-        >
-          <Download size={15} /> Download packet (.zip)
-        </button>
-        <div className="flex gap-1.5">
-          {targets.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => copyPrompt(t)}
-              className="btn-quiet flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full text-[12px] font-medium"
-            >
-              {copied === `prompt-${t}` ? <Check size={13} className="text-green-600" /> : <Sparkles size={13} />}
-              {t === 'astro' ? 'Astro' : 'Next'} prompt
-            </button>
-          ))}
-        </div>
-        <p className="mt-2.5 text-[11px] leading-relaxed text-zinc-400">
-          Unzip next to your agent and paste the prompt. When Mixtape’s MCP server lands, agents will pull this packet directly and post their build back to the canvas.
-        </p>
-      </PanelSection>
+      </div>
 
-      <PanelSection title="Files">
-        <FileTree paths={paths} open={current} onOpen={setOpen} />
-      </PanelSection>
-
-      <div className="flex min-h-0 flex-1 flex-col px-4 pb-4">
-        <div className="mb-1.5 flex items-center justify-between">
-          <span className="truncate font-mono text-[11.5px] text-zinc-500">{current}</span>
-          <button
-            type="button"
-            onClick={async () => {
-              await navigator.clipboard.writeText(files[current])
-              flash('file')
-            }}
-            className="flex h-6 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-800"
-          >
-            {copied === 'file' ? <Check size={12} className="text-green-600" /> : <ClipboardCopy size={12} />}
-            Copy
-          </button>
-        </div>
-        <pre className="thin-scroll max-h-[420px] min-h-40 overflow-auto rounded-xl bg-zinc-950 p-3 font-mono text-[11px] leading-relaxed text-zinc-200">
-          {files[current]}
-        </pre>
+      <div className="bg-well p-3">
+        {tab === 'files' ? (
+          <>
+            <FileTree paths={paths} open={current} onOpen={setOpen} />
+            <div className="mb-1.5 mt-3 flex items-center justify-between">
+              <span className="truncate font-mono text-[11.5px] text-zinc-500">{current}</span>
+              <CopyBtn copied={copied === 'file'} onClick={async () => {
+                await navigator.clipboard.writeText(files[current])
+                flash('file')
+              }} />
+            </div>
+            <pre className="thin-scroll max-h-[340px] min-h-40 overflow-auto rounded-xl bg-lift p-3 font-mono text-[11px] leading-relaxed text-zinc-700 ring-1 ring-zinc-950/5">
+              {files[current]}
+            </pre>
+          </>
+        ) : (
+          <div className="space-y-3">
+            {targets.map((t) => (
+              <div key={t}>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <span className="text-[12.5px] font-medium text-zinc-900">{t === 'astro' ? 'Astro' : 'Next.js'}</span>
+                  <CopyBtn copied={copied === `prompt-${t}`} onClick={() => copyPrompt(t)} />
+                </div>
+                <pre className="thin-scroll max-h-48 overflow-auto whitespace-pre-wrap rounded-xl bg-lift p-3 text-[12px] leading-relaxed text-zinc-700 ring-1 ring-zinc-950/5">{agentPrompt(input, t)}</pre>
+              </div>
+            ))}
+            <p className="text-[11.5px] leading-relaxed text-zinc-500">
+              Unzip the packet next to your agent and paste the prompt. Once Mixtape’s MCP server exists, agents will pull the packet themselves and post their build back to the canvas.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-function Chip({ children, tone }: { children: React.ReactNode; tone?: 'warn' | 'ok' }) {
-  const cls = tone === 'warn' ? 'bg-attention-soft text-attention-ink' : tone === 'ok' ? 'bg-done-soft text-done-ink' : 'bg-chip text-zinc-700'
-  return <span className={`rounded-md px-2 py-0.5 font-medium ${cls}`}>{children}</span>
+function CopyBtn({ copied, onClick }: { copied: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-6 items-center gap-1 rounded-full px-2 text-[11.5px] font-medium text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900"
+    >
+      {copied ? <Check size={12} className="text-done" /> : <ClipboardCopy size={12} />}
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  )
 }
 
 function iconFor(p: string) {

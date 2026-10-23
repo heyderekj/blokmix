@@ -1,16 +1,13 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
-import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, Lock, LockOpen, X } from 'lucide-react'
-import type { Keep, Slot, TokenSet } from '@/core/types'
-import { TYPE_LABEL } from '@/core/content'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import type { Slot, TokenSet } from '@/core/types'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { frameStateFor } from '@/state/derived'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { TILE_GAP, VIEW_W } from '../canvas/geometry'
-import { MORPH } from '../shell/Island'
-import { TrackDetails } from './TrackDetails'
+import { TrackPill } from './TrackPill'
 
 const SPIN_STEP = 90
 
@@ -182,7 +179,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
         </>
       )}
 
-      <RowControls slot={slot} index={index} count={count} focused={focused} shownIndex={shownIndex} total={ids.length} />
+      <TrackPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />
     </div>
   )
 })
@@ -263,169 +260,5 @@ function EdgeButton({ side, onClick, visible }: { side: 'left' | 'right'; onClic
         <Icon size={22} strokeWidth={2.4} />
       </button>
     </div>
-  )
-}
-
-const KEEP_CHIPS: { key: keyof Keep; label: string; hint: string; n: number }[] = [
-  { key: 'layout', label: 'Layout', hint: 'Off: the layout is reference only', n: 1 },
-  { key: 'style', label: 'Style', hint: 'On: keep this section’s own look instead of the style guide', n: 2 },
-  { key: 'content', label: 'Copy', hint: 'On: keep the source copy. Off: your copy fills in', n: 3 },
-  { key: 'motion', label: 'Motion', hint: 'Keep the captured motion', n: 4 },
-]
-
-function RowControls({
-  slot,
-  index,
-  count,
-  focused,
-  shownIndex,
-  total,
-}: {
-  slot: Slot
-  index: number
-  count: number
-  focused: boolean
-  shownIndex: number
-  total: number
-}) {
-  const clip = library.clips[slot.clipId]
-  const source = library.sources[clip?.sourceId ?? '']
-  const [details, setDetails] = useState(false)
-  const sheet = useStore((s) => s.ui.sheet)
-  const open = focused && details
-  const st = useStore.getState
-  // One open surface at a time: a sheet opening folds the details away.
-  useEffect(() => {
-    if (!focused || sheet !== 'none') setDetails(false)
-  }, [focused, sheet])
-
-  return (
-    <div className="absolute left-0 top-0 z-20 origin-top-left" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }} data-chrome>
-      <motion.div
-        layout
-        transition={MORPH}
-        style={{ borderRadius: open ? 18 : 14 }}
-        className={`glass-panel m-2 overflow-hidden text-[12px] transition-opacity ${focused ? 'opacity-100' : 'opacity-70 group-hover/row:opacity-100'}`}
-        onPointerDown={(e) => {
-          e.stopPropagation()
-          st().focusSlot(slot.id)
-        }}
-      >
-        <motion.div layout="position" transition={MORPH} className="flex items-center gap-1 p-1">
-          <div className="flex items-center">
-            <MoveButton dir={-1} disabled={index === 0} onClick={() => st().moveSlot(slot.id, index - 1)} />
-            <MoveButton dir={1} disabled={index === count - 1} onClick={() => st().moveSlot(slot.id, index + 1)} />
-          </div>
-          <span className="tabular-nums text-[10.5px] font-semibold text-zinc-400">{String(index + 1).padStart(2, '0')}</span>
-          <span className="font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
-          <span className="rounded-full bg-chip px-1.5 text-[10.5px] font-semibold tabular-nums text-zinc-600">
-            {shownIndex + 1}/{total}
-          </span>
-          <span className="max-w-36 truncate pl-0.5 text-zinc-500" title={clip?.capture.url}>
-            {source?.name}
-          </span>
-          <button
-            type="button"
-            aria-pressed={slot.locked}
-            onClick={(e) => {
-              e.stopPropagation()
-              st().toggleLock(slot.id)
-            }}
-            className={`ml-0.5 grid size-7 place-items-center rounded-full transition active:scale-[0.97] ${
-              slot.locked ? 'bg-key text-key-ink' : 'text-zinc-500 hover:bg-zinc-950/5'
-            }`}
-            title={slot.locked ? 'Unlock (L): shuffle can change this track' : 'Lock (L): shuffle skips this track'}
-          >
-            {slot.locked ? <Lock size={13} strokeWidth={2.4} /> : <LockOpen size={13} />}
-          </button>
-          {focused && (
-            <>
-              <div className="flex h-7 items-center gap-0.5 rounded-lg bg-well p-0.5" role="group" aria-label="Keep from this clip">
-                {KEEP_CHIPS.map((c) => (
-                  <button
-                    key={c.key}
-                    type="button"
-                    aria-pressed={slot.keep[c.key]}
-                    title={`${c.hint} (${c.n})`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      st().toggleKeep(slot.id, c.key)
-                    }}
-                    className={`h-6 rounded-md px-2 font-medium transition active:scale-[0.97] ${
-                      slot.keep[c.key] ? 'bg-lift text-foreground shadow-sm' : 'text-zinc-400 line-through decoration-zinc-300 hover:text-zinc-600'
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                aria-expanded={open}
-                title={open ? 'Less' : 'Where it came from, and sending its look to the guide'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (!details) st().setUi({ sheet: 'none' })
-                  setDetails((d) => !d)
-                }}
-                className="grid size-7 place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900"
-              >
-                <motion.span animate={{ rotate: open ? 180 : 0 }} transition={MORPH} className="grid">
-                  <ChevronDown size={15} />
-                </motion.span>
-              </button>
-            </>
-          )}
-        </motion.div>
-        <AnimatePresence initial={false}>
-          {open && (
-            <motion.div
-              key="details"
-              layout="position"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { delay: 0.06, duration: 0.14 } }}
-              exit={{ opacity: 0, transition: { duration: 0.06 } }}
-              className="border-t border-zinc-950/6"
-            >
-              <TrackDetails slot={slot} />
-              <div className="flex justify-end px-2.5 pb-2.5">
-                <button
-                  type="button"
-                  disabled={count <= 1}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    st().removeSlot(slot.id)
-                    st().showFlash(`Removed the ${TYPE_LABEL[slot.type].toLowerCase()} track`, { undo: true })
-                  }}
-                  className="flex h-7 items-center gap-1 rounded-full px-2.5 text-[12px] font-medium text-zinc-500 transition hover:bg-problem-soft hover:text-problem-ink disabled:opacity-30"
-                >
-                  <X size={13} /> Remove track
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </div>
-  )
-}
-
-function MoveButton({ dir, disabled, onClick }: { dir: 1 | -1; disabled: boolean; onClick: () => void }) {
-  const Icon = dir < 0 ? ArrowUp : ArrowDown
-  const label = dir < 0 ? 'Move up (⌥↑)' : 'Move down (⌥↓)'
-  return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      disabled={disabled}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-      className="grid size-6 place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-25"
-    >
-      <Icon size={13} />
-    </button>
   )
 }

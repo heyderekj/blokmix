@@ -7,7 +7,7 @@ import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { MIX_ID, VIEW_W } from '../canvas/geometry'
-import { FrameHeader, HeaderButton } from './FrameHeader'
+import { FrameHeader, HeaderButton, HeaderTitle } from './FrameHeader'
 import { SlotRow } from './SlotRow'
 
 export function MixFrame() {
@@ -27,7 +27,6 @@ export function MixFrame() {
     [head, slots, guideState, content],
   )
 
-
   const st = useStore.getState
   const label = branchFrom ? `Remixing ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New tape'
 
@@ -39,16 +38,10 @@ export function MixFrame() {
       data-frame={MIX_ID}
     >
       <FrameHeader width={W} selected={selected} tint={undefined}>
-        <span className="relative ml-1 grid size-6 place-items-center">
-          <Disc3 size={18} className={`text-tape ${dirty ? 'animate-[spin_3s_linear_infinite]' : ''}`} strokeWidth={2.2} />
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-key-soft">
+          <Disc3 size={18} className={`text-key-ink ${dirty ? 'animate-[spin_3s_linear_infinite]' : ''}`} strokeWidth={2} />
         </span>
-        <div className="flex min-w-0 flex-1 items-baseline gap-2">
-          <span className="font-semibold text-zinc-900">Working mix</span>
-          <span className="truncate text-zinc-500">
-            {label}
-            {dirty ? ' · edited' : ' · saved'}
-          </span>
-        </div>
+        <HeaderTitle title="Working mix" meta={`${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} tracks`} />
         <HeaderButton
           icon={Eye}
           label={previewing ? 'Stop interacting' : 'Interact with the page'}

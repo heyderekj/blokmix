@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { MoreHorizontal } from 'lucide-react'
 import type { Status } from '@/core/types'
 import { STATUS_META, STATUS_ORDER } from './status'
 
@@ -16,7 +17,7 @@ export function FrameHeader({ width, children, tint, selected }: { width: number
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div
-        className={`flex h-9 items-center gap-1.5 rounded-xl border px-1.5 text-[13px] shadow-sm backdrop-blur transition-colors duration-300 ${
+        className={`flex min-h-12 items-center gap-2 rounded-2xl border py-1.5 pl-1.5 pr-1.5 text-[13px] shadow-sm backdrop-blur transition-colors duration-300 ${
           selected ? 'ring-2 ring-zinc-900/80' : ''
         }`}
         style={{
@@ -89,7 +90,7 @@ export function StatusMenu({ status, onChange }: { status: Status; onChange: (s:
           e.stopPropagation()
           setOpen((o) => !o)
         }}
-        className="grid size-7 place-items-center rounded-lg transition hover:bg-zinc-950/5 active:scale-90"
+        className="grid size-8 place-items-center rounded-full transition hover:bg-zinc-950/5 active:scale-[0.97]"
         style={{ color: meta.color }}
       >
         <Icon size={16} strokeWidth={2.25} />
@@ -175,6 +176,85 @@ export function FlashTitle({ status, children }: { status: Status; children: Rea
             className="min-w-0"
           >
             {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/** Tier one of a header: a bold name over a quiet line of facts. */
+export function HeaderTitle({ title, meta }: { title: ReactNode; meta?: ReactNode }) {
+  return (
+    <div className="min-w-0 flex-1">
+      <div className="truncate text-[15px] font-semibold leading-tight text-zinc-900">{title}</div>
+      {meta && <div className="truncate text-[12px] leading-snug text-zinc-500">{meta}</div>}
+    </div>
+  )
+}
+
+export interface MenuItem {
+  icon: React.ComponentType<{ size?: number }>
+  label: string
+  onClick: () => void
+  danger?: boolean
+  disabled?: boolean
+}
+
+/** Everything that isn't the one strong action lives here. */
+export function OverflowMenu({ items }: { items: MenuItem[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false)
+    }
+    window.addEventListener('pointerdown', close, true)
+    return () => window.removeEventListener('pointerdown', close, true)
+  }, [open])
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-label="More"
+        aria-expanded={open}
+        title="More"
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
+        className={`grid size-8 place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97] ${open ? 'bg-zinc-950/5 text-zinc-900' : ''}`}
+      >
+        <MoreHorizontal size={16} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.08 } }}
+            transition={{ duration: 0.14, ease: [0.2, 0, 0, 1] }}
+            className="glass-panel absolute right-0 top-full z-50 mt-2 w-60 origin-top-right rounded-2xl p-1.5"
+          >
+            {items.map((it) => (
+              <button
+                key={it.label}
+                type="button"
+                disabled={it.disabled}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setOpen(false)
+                  it.onClick()
+                }}
+                className={`flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[13px] font-medium transition disabled:opacity-30 ${
+                  it.danger ? 'text-zinc-700 hover:bg-problem-soft hover:text-problem-ink' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'
+                }`}
+              >
+                <it.icon size={15} />
+                {it.label}
+              </button>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
