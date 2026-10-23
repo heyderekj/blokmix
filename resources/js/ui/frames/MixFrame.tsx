@@ -41,7 +41,7 @@ export function MixFrame() {
         <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-key-soft">
           <Disc3 size={18} className={`text-key-ink ${dirty ? 'animate-[spin_3s_linear_infinite]' : ''}`} strokeWidth={2} />
         </span>
-        <HeaderTitle title="Working mix" meta={`${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} tracks`} />
+        <HeaderTitle title="Working mix" meta={`${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} sections`} />
         <span className="@max-[220px]:hidden">
         <HeaderButton
           icon={Eye}
@@ -68,7 +68,7 @@ export function MixFrame() {
         ))}
         {!slots.length && (
           <div className="grid place-items-center py-40 text-center" style={{ fontSize: 'calc(16px / var(--z))' }}>
-            <p className="text-zinc-400">Your tape is empty. Add a section to start mixing.</p>
+            <p className="text-zinc-400">Nothing here yet. Add a section to start mixing.</p>
           </div>
         )}
       </div>
@@ -110,10 +110,10 @@ function AddSection({ width }: { width: number }) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            title="Add a track"
+            title="Add a section"
             className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-95 @max-[150px]:px-2.5"
           >
-            <Plus size={15} /> <span className="@max-[150px]:hidden">Add a track</span>
+            <Plus size={15} /> <span className="@max-[150px]:hidden">Add a section</span>
           </button>
         )}
       </div>

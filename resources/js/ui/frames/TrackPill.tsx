@@ -62,7 +62,7 @@ export function TrackPill({ slot, index, count, focused, pos, total }: { slot: S
           <button
             type="button"
             aria-pressed={slot.locked}
-            title={slot.locked ? 'Unlock (L): shuffle can change this track' : 'Lock (L): shuffle skips this track'}
+            title={slot.locked ? 'Unlock (L): shuffle can change this section' : 'Lock (L): shuffle skips this section'}
             onClick={(e) => {
               e.stopPropagation()
               st().toggleLock(slot.id)
@@ -113,12 +113,12 @@ export function TrackPill({ slot, index, count, focused, pos, total }: { slot: S
                 <ArrowDown size={14} />
               </Util>
               <Util
-                label="Remove track (⌫)"
+                label="Remove section (⌫)"
                 disabled={count <= 1}
                 danger
                 onClick={() => {
                   st().removeSlot(slot.id)
-                  st().showFlash(`Removed the ${TYPE_LABEL[slot.type].toLowerCase()} track`, { undo: true })
+                  st().showFlash(`Removed the ${TYPE_LABEL[slot.type].toLowerCase()} section`, { undo: true })
                 }}
               >
                 <Trash2 size={14} />
@@ -316,7 +316,7 @@ export function TrackRail({ slot, index, focused }: { slot: Slot; index: number;
         st().focusSlot(slot.id)
       }}
       data-chrome
-      title={`${TYPE_LABEL[slot.type]}: click to work on this track`}
+      title={`${TYPE_LABEL[slot.type]}: click to work on this section`}
     >
       {/* the rail's line, drawn in page space so it spans the whole track */}
       <div

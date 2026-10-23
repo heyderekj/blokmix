@@ -47,12 +47,12 @@ export function Crate() {
               }`}
             >
               {t === 'all' ? 'All clips' : TYPE_LABEL[t]}
-              {t !== 'all' && t === focusedType && <span className={`ml-1.5 inline-block size-1.5 rounded-full align-middle ${on ? 'bg-key' : 'bg-tape'}`} title="The track you’re on" />}
+              {t !== 'all' && t === focusedType && <span className={`ml-1.5 inline-block size-1.5 rounded-full align-middle ${on ? 'bg-key' : 'bg-tape'}`} title="The section you’re on" />}
             </button>
           )
         })}
         <span className="ml-auto flex shrink-0 items-center gap-1.5 pl-3 text-[11.5px] text-zinc-500">
-          <Scissors size={13} /> Drag onto a track, or click to drop in
+          <Scissors size={13} /> Drag onto a section, or click to drop in
         </span>
       </div>
       <div

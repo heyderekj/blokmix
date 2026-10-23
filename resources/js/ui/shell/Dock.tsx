@@ -72,7 +72,7 @@ function ShuffleButton() {
     <button
       type="button"
       onClick={() => useStore.getState().shuffle()}
-      title="Shuffle unlocked tracks (Space)"
+      title="Shuffle unlocked sections (Space)"
       aria-label="Shuffle"
       className="grid size-8 place-items-center rounded-full text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.97]"
     >
@@ -195,7 +195,7 @@ function FirstRunTip() {
           className="glass flex items-center gap-2 rounded-full py-1 pl-1.5 pr-3 text-[12px] text-zinc-600 max-md:hidden"
         >
           <span className="kbd">←</span>
-          <span className="kbd">→</span> slide a track
+          <span className="kbd">→</span> slide a section
           <span className="text-zinc-300">·</span>
           <span className="kbd">Space</span> shuffle
           <span className="text-zinc-300">·</span>

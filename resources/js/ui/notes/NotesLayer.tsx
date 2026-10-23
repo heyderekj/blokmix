@@ -53,7 +53,7 @@ const StickyNote = memo(function StickyNote({ note, x, y, placements }: { note: 
     const a = note.anchor
     if (a.kind === 'slot') {
       const s = slots.find((x) => x.id === a.slotId)
-      return s ? `on ${TYPE_LABEL[s.type]} track` : null
+      return s ? `on ${TYPE_LABEL[s.type]} section` : null
     }
     if (a.kind === 'frame') {
       const p = placements.find((x) => x.id === a.frameId)
@@ -104,7 +104,7 @@ const StickyNote = memo(function StickyNote({ note, x, y, placements }: { note: 
                 aria-label={`${k} note`}
               />
             ))}
-            <span className="ml-auto truncate text-[10px] font-medium text-black/45">{attachedTo ?? 'drag onto a track'}</span>
+            <span className="ml-auto truncate text-[10px] font-medium text-black/45">{attachedTo ?? 'drag onto a section'}</span>
             <button
               type="button"
               onPointerDown={(e) => e.stopPropagation()}

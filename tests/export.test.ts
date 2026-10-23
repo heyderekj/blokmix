@@ -86,6 +86,6 @@ describe('packet', () => {
       expect(Object.keys(files)).toContain(f)
     const json = JSON.parse(files['mixtape.json'])
     expect(json.schema).toBe('mixtape.packet/v1')
-    expect(json.tracks).toHaveLength(slots.length)
+    expect(json.sections).toHaveLength(slots.length)
   })
 })

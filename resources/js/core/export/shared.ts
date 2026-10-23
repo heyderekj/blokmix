@@ -25,7 +25,7 @@ export function keepSummary(s: ComposedSection): string {
 
 export function sectionHeader(s: ComposedSection, lang: 'html' | 'js' | 'css'): string {
   const lines = [
-    `Track ${s.position + 1} · ${TYPE_LABEL[s.type]} · from ${new URL(s.clip.capture.url).host}`,
+    `Section ${s.position + 1} · ${TYPE_LABEL[s.type]} · from ${new URL(s.clip.capture.url).host}`,
     `Clip ${s.clip.id}@${s.clip.hash} · ${s.clip.layoutPattern}`,
     `Keep: ${keepSummary(s)}`,
   ]

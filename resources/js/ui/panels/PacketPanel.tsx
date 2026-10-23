@@ -89,7 +89,7 @@ export function PacketPanel() {
   const noteCount = input.page.sections.reduce((n, s) => n + s.notes.length, 0) + (input.notes?.length ?? 0)
 
   const facts: { icon: typeof Layers; text: string; dot?: boolean }[] = [
-    { icon: Layers, text: `${input.page.sections.length} tracks` },
+    { icon: Layers, text: `${input.page.sections.length} sections` },
     { icon: Files, text: `${paths.length} files` },
     openConflicts
       ? { icon: SwatchBook, text: `${openConflicts} style choice${openConflicts > 1 ? 's' : ''} open`, dot: true }

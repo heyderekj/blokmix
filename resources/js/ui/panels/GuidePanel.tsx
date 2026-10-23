@@ -97,7 +97,7 @@ export function GuidePanel() {
             ))}
           </div>
         ) : (
-          <p className="text-[12px] text-zinc-500">Nothing promoted yet. Use a track’s “Use design” to start your style guide.</p>
+          <p className="text-[12px] text-zinc-500">Nothing promoted yet. Use a section’s “Use look” to start your style guide.</p>
         )}
       </PanelSection>
 

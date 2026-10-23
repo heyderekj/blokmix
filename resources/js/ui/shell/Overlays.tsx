@@ -47,14 +47,14 @@ const HELP: [string, [string, string][]][] = [
   [
     'Mixing',
     [
-      ['← →', 'Slide the focused track'],
-      ['↑ ↓', 'Move between tracks'],
-      ['Space', 'Shuffle unlocked tracks (hold + drag to pan)'],
-      ['L', 'Lock / unlock track'],
-      ['⌥↑ ⌥↓', 'Move track up / down'],
+      ['← →', 'Slide the focused section'],
+      ['↑ ↓', 'Move between sections'],
+      ['Space', 'Shuffle unlocked sections (hold + drag to pan)'],
+      ['L', 'Lock / unlock section'],
+      ['⌥↑ ⌥↓', 'Move section up / down'],
       ['1 2 3 4', 'Keep layout · style · copy · motion'],
-      ['P', 'Use this track’s design as the style guide'],
-      ['⌫', 'Remove track'],
+      ['P', 'Use this section’s design as the style guide'],
+      ['⌫', 'Remove section'],
     ],
   ],
   [

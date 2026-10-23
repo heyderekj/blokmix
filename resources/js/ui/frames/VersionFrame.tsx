@@ -49,7 +49,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
     return [...new Set(v.snapshot.slots.map((sl) => library.clips[sl.clipId]?.sourceId).filter(Boolean))]
   }, [v.snapshot])
   const metaLine = [
-    `${v.snapshot.slots.length} tracks · ${sources.length} sites`,
+    `${v.snapshot.slots.length} sections · ${sources.length} sites`,
     v.kind === 'build' ? `${v.build?.agentName} · ${v.build?.target === 'astro' ? 'Astro' : 'Next.js'}${v.build?.previewUrl ? ' · live preview' : ''}` : parent ? `from ${parent.letter}` : null,
     isBranchBase ? 'in the mix' : null,
   ]

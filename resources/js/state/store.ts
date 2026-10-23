@@ -185,7 +185,7 @@ export const useStore = create<State>()(
           setClip: (slotId, clipId) => updateSlot(slotId, (s) => (library.clips[clipId]?.type === s.type ? { ...s, clipId } : s)),
           shuffle: () => {
             const { slots } = get()
-            if (slots.every((s) => s.locked)) return get().showFlash('Every track is locked')
+            if (slots.every((s) => s.locked)) return get().showFlash('Every section is locked')
             let next = slots
             // Never "shuffle" into the same arrangement.
             for (let tries = 0; tries < 8; tries++) {

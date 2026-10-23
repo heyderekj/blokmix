@@ -33,7 +33,7 @@ export function CopyPanel() {
   return (
     <div>
       <div className="px-4 pt-3.5 text-[12px] leading-relaxed text-zinc-500">
-        Your copy replaces the source copy on every track where <strong className="font-semibold text-zinc-700">Source copy</strong> is off. Edits show up live.
+        Your copy replaces the source copy on every section where <strong className="font-semibold text-zinc-700">Source copy</strong> is off. Edits show up live.
       </div>
       <PanelSection title="Brand">
         <input value={content.brand} onChange={(e) => st().setBrand(e.target.value)} className={inputCls} />
