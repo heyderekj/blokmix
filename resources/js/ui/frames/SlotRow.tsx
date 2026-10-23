@@ -124,7 +124,8 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       data-slot={slot.id}
     >
       {/* the track: clips side by side, clipped to the current clip's height */}
-      <div className="absolute inset-0" style={{ overflow: 'visible clip' }}>
+      {/* slides happen inside the page: only the current clip is ever visible */}
+      <div className={`absolute inset-0 overflow-hidden ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''}`}>
         {ids.map((clipId, i) => {
           const n = ids.length
           let rel = (((i - shownIndex) % n) + n) % n
@@ -218,13 +219,13 @@ const Tile = memo(function Tile(p: {
       : 'transform 560ms cubic-bezier(0.34, 1.4, 0.64, 1), opacity 300ms'
   return (
     <div
-      className={`absolute left-0 top-0 overflow-hidden ${p.edge} ${isCurrent ? '' : 'cursor-pointer hover:!opacity-70'}`}
+      className={`absolute left-0 top-0 overflow-hidden ${p.edge}`}
       style={{
-        transform: `translateX(${p.rel * (p.width + p.gap)}px)`,
-        opacity: isCurrent ? 1 : visible ? 0.3 : 0,
+        // neighbours butt up against the current clip, so a slide reads as a push within the page
+        transform: `translateX(${p.rel * p.width}px)`,
+        opacity: visible ? 1 : 0,
         transition,
-        pointerEvents: visible ? 'auto' : 'none',
-        filter: isCurrent ? undefined : 'saturate(0.6)',
+        pointerEvents: isCurrent ? 'auto' : 'none',
       }}
       onClick={(e) => {
         if (isCurrent) return

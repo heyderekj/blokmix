@@ -115,8 +115,8 @@ export function Canvas({ children }: { children: ReactNode }) {
     canvasApi.fitMix = () => {
       const m = mixRect()
       const v = view()
-      // Fit the page width (with a peek of the neighbor tiles) and start at the top.
-      const padX = m.w * 0.22
+      // Fit the page width (with room for the gutter rail and arrows) and start at the top.
+      const padX = m.w * 0.1
       const availW = v.w - v.left - v.right
       const z = clampZ(Math.min(availW / (m.w + padX * 2), 0.6))
       apply({ z, x: v.left + (availW - m.w * z) / 2, y: v.top + 64 }, true)
@@ -125,9 +125,9 @@ export function Canvas({ children }: { children: ReactNode }) {
       const st = useStore.getState()
       const lay = useLayout.getState()
       const m = mixRect()
-      let x1 = -m.w * 0.9
+      let x1 = -120
       let y1 = m.y
-      let x2 = m.w * 1.9
+      let x2 = m.w + 120
       let y2 = m.y + m.h
       for (const p of placeVersions(st.versions, st.ui.viewport, st.framePos)) {
         x1 = Math.min(x1, p.x)

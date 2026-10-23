@@ -6,6 +6,7 @@ import { library } from '@/data/library'
 import { canvasApi } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
+import { Alternatives } from './Alternatives'
 import { IconButton, Segmented, toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
 import { agent as agentP, ME } from '@/lib/people'
@@ -21,13 +22,15 @@ export function Dock() {
   const tool = useStore((s) => s.ui.tool)
   const open = useStore((s) => s.ui.sheet === 'crate')
   const viewport = useStore((s) => s.ui.viewport)
+  // On a track (and nothing else open), the dock grows that track's alternatives.
+  const focused = useStore((s) => (s.ui.sheet === 'none' ? s.slots.find((x) => x.id === s.ui.focusedSlotId) : undefined))
   const st = useStore.getState
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3">
       <FirstRunTip />
       <Island
-        open={open}
-        width={Math.min(760, window.innerWidth - 24)}
+        open={open || !!focused}
+        width={open ? Math.min(760, window.innerWidth - 24) : undefined}
         grow="up"
         maxBody="min(52vh, 420px)"
         bar={
@@ -78,7 +81,7 @@ export function Dock() {
           </>
         }
       >
-        <Crate />
+        {open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
       </Island>
     </div>
   )
@@ -161,7 +164,7 @@ function Presence() {
 /** One quiet line above the dock until you've slid or shuffled once. */
 function FirstRunTip() {
   const dismissed = useStore((s) => s.ui.hintDismissed)
-  const sheetOpen = useStore((s) => s.ui.sheet !== 'none')
+  const sheetOpen = useStore((s) => s.ui.sheet !== 'none' || !!s.ui.focusedSlotId)
   const seq = useStore((s) => s.shuffleSeq)
   const key = useStore((s) => s.slots.map((x) => x.clipId).join())
   const [initial] = useState(key)
