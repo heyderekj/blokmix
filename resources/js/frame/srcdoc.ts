@@ -115,24 +115,35 @@ const BRIDGE = `(function () {
     if (noteMode) { e.preventDefault(); e.stopPropagation(); return; }
     if (editing && editing.contains(e.target)) return;
     e.preventDefault(); e.stopPropagation();
+    /* Pressing the words of the block already selected puts the caret right there. */
+    var s = byId(sel), w = s && e.target.closest ? e.target.closest('[data-mx-field]') : null;
+    if (w && s && (w === s || s.contains(w)) && fieldEl(w.closest('[data-mx-block]')) === w) { startEdit(w, caretAt(e.clientX, e.clientY)); return; }
     var t = target(e.target);
     post({ pick: t ? t.getAttribute('data-mx-b') : null });
   }, true);
   document.addEventListener('dblclick', function (e) {
     if (!editMode || noteMode) return;
+    if (editing && editing.contains(e.target)) return; /* the page's own word selection */
     e.preventDefault();
-    var t = byId(sel) || target(e.target);
-    var f = fieldEl(t);
-    if (f) startEdit(f);
+    var w = e.target.closest ? e.target.closest('[data-mx-field]') : null;
+    var f = w && fieldEl(w.closest('[data-mx-block]')) === w ? w : fieldEl(byId(sel) || target(e.target));
+    if (f) { post({ pick: f.closest('[data-mx-block]').getAttribute('data-mx-b') }); startEdit(f, caretAt(e.clientX, e.clientY)); }
   }, true);
-  function startEdit(f) {
+  /* The caret where a press landed (Koati's caretAt). */
+  function caretAt(x, y) {
+    if (document.caretPositionFromPoint) { var p = document.caretPositionFromPoint(x, y); if (!p) return null; var r = document.createRange(); r.setStart(p.offsetNode, p.offset); r.collapse(true); return r; }
+    return document.caretRangeFromPoint ? document.caretRangeFromPoint(x, y) : null;
+  }
+  /* Edit words in place: with the caret where you pressed, or (from ↵ or the bar) all of them selected. */
+  function startEdit(f, caret) {
     if (editing) return;
     editing = f;
     var before = f.textContent;
     f.setAttribute('contenteditable', 'plaintext-only');
     f.setAttribute('data-mx-editing', '');
     f.focus();
-    var r = document.createRange(); r.selectNodeContents(f);
+    var r = caret && f.contains(caret.startContainer) ? caret : null;
+    if (!r) { r = document.createRange(); r.selectNodeContents(f); }
     var ws = getSelection(); ws.removeAllRanges(); ws.addRange(r);
     var done = function (keep) {
       if (editing !== f) return;
@@ -305,7 +316,12 @@ const BRIDGE = `(function () {
       document.documentElement.toggleAttribute('data-mx-edit', d.edit);
       if (!d.edit && hoverId) { hoverId = null; post({ hover: null }); }
     }
-    if (d.select !== undefined) { sel = d.select; reportSel(); }
+    if (d.select !== undefined) {
+      sel = d.select;
+      document.querySelectorAll('[data-mx-sel]').forEach(function (x) { x.removeAttribute('data-mx-sel'); });
+      var se = byId(sel); if (se) se.setAttribute('data-mx-sel', '');
+      reportSel();
+    }
     if (d.clearSelection) { var cs = getSelection(); if (cs) cs.removeAllRanges(); }
     if (typeof d.noteMode === 'boolean') { noteMode = d.noteMode; document.documentElement.toggleAttribute('data-mx-note', d.noteMode); }
     if (d.track) { tracked = d.track; reportTracked(); }
@@ -319,12 +335,13 @@ const BRIDGE = `(function () {
 
 const FRAME_CSS = `html, body { overflow: hidden; }
 html[data-mx-outline] body > * { outline: 2px dashed color-mix(in srgb, currentColor 35%, transparent); outline-offset: -6px; }
-html[data-mx-edit] [data-mx-block] { cursor: default; }
-html[data-mx-edit] [data-mx-field] { cursor: text; }
+html[data-mx-edit], html[data-mx-edit] * { cursor: crosshair; }
+html[data-mx-edit] [data-mx-sel] [data-mx-field], html[data-mx-edit] [data-mx-sel][data-mx-field] { cursor: text; }
 html[data-mx-note], html[data-mx-note] * { cursor: crosshair !important; user-select: none; }
 html[data-mx-note] [data-mx-field], html[data-mx-note] [data-mx-field] * { cursor: text !important; user-select: text; }
 html[data-mx-note] ::selection { background: color-mix(in srgb, #ff6aa8 35%, transparent); }
-[data-mx-editing] { outline: none; cursor: text; caret-color: currentColor; }
+html[data-mx-edit] [data-mx-editing], html[data-mx-edit] [data-mx-editing] * { outline: none; cursor: text; caret-color: currentColor; }
+html[data-mx-edit] [data-mx-editing]::selection { background: color-mix(in srgb, #ff6aa8 32%, transparent); }
 [data-mx-rel] { position: relative; }
 [data-mx-has-media] { overflow: hidden; }
 [data-mx-has-media] > :not(.mx-media, .mx-play) { visibility: hidden; }

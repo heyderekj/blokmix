@@ -299,12 +299,8 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       )}
 
       {/* block outlines, in page pixels: the current frame sits at 0,0 at 1:1 */}
-      {canEdit && hover && hover.id !== selectedBlock && (
-        <div
-          className="pointer-events-none absolute z-10 rounded-[2px]"
-          style={{ left: hover.rect.x, top: hover.rect.y, width: hover.rect.w, height: hover.rect.h, boxShadow: '0 0 0 calc(1.5px / var(--z)) color-mix(in oklab, var(--color-tape) 70%, transparent)' }}
-        />
-      )}
+      {/* Koati's picker: one outline that glides to whatever's under the pointer, with a chip naming it */}
+      <PickOutline rect={canEdit && hover && hover.id !== selectedBlock ? hover.rect : null} label={hover ? partLabel(blocks.find((b) => b.id === hover.id)?.label) : ''} />
       {/* Note mode snaps to the block under the pointer; a drag lets go and draws an area instead */}
       {noting && hover && !drawing && (
         <div
@@ -321,10 +317,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       )}
       {canEdit && block && selRect && (
         <>
-          <div
-            className="pointer-events-none absolute z-10 rounded-[2px]"
-            style={{ left: selRect.x, top: selRect.y, width: selRect.w, height: selRect.h, boxShadow: '0 0 0 calc(2px / var(--z)) var(--color-tape)' }}
-          />
+          <PickOutline rect={selRect} picked />
           {!typing && (
             // Below the block, menus opening downwards, so the block stays in view while you preview looks on it.
             <div className="absolute z-30" style={{ left: selRect.x, top: selRect.y + selRect.h, width: 0, height: 0 }}>
@@ -343,6 +336,45 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
     </div>
   )
 })
+
+/** "Features · Feature 2 · Heading" → "Feature 2 · Heading": the section is already on screen. */
+const partLabel = (label: string | undefined) => label?.split(' · ').slice(1).join(' · ') || 'Block'
+
+/**
+ * The outline Koati's picker draws (after Claude's artifact feedback tool): a tinted
+ * border with a faint fill and a soft halo, thicker once picked. It stays mounted and
+ * glides between blocks instead of blinking from one to the next.
+ */
+function PickOutline({ rect, picked, label }: { rect: FrameRect | null; picked?: boolean; label?: string }) {
+  const last = useRef<FrameRect | null>(null)
+  if (rect) last.current = rect
+  const r = rect ?? last.current
+  if (!r) return null
+  return (
+    <div
+      className="pointer-events-none absolute left-0 top-0 z-10"
+      style={{
+        width: r.w,
+        height: r.h,
+        transform: `translate(${r.x}px, ${r.y}px)`,
+        opacity: rect ? 1 : 0,
+        borderRadius: 'calc(6px / var(--z))',
+        background: `color-mix(in oklab, var(--color-tape) ${picked ? 7 : 10}%, transparent)`,
+        boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--z)) var(--color-tape), 0 0 0 calc(${picked ? 6 : 5.5}px / var(--z)) color-mix(in oklab, var(--color-tape) 18%, transparent)`,
+        transition: 'opacity 140ms cubic-bezier(0.2, 0, 0, 1), transform 90ms cubic-bezier(0.2, 0, 0, 1), width 90ms cubic-bezier(0.2, 0, 0, 1), height 90ms cubic-bezier(0.2, 0, 0, 1)',
+      }}
+    >
+      {label && (
+        <span
+          className="absolute bottom-full left-0 mb-[calc(8px/var(--z))] origin-bottom-left whitespace-nowrap rounded-md bg-tape px-2 py-0.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.35)]"
+          style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}
+        >
+          {label}
+        </span>
+      )}
+    </div>
+  )
+}
 
 const Tile = memo(function Tile(p: {
   clipId: string
