@@ -300,3 +300,49 @@ function Util({ label, onClick, disabled, danger, children }: { label: string; o
     </button>
   )
 }
+
+/**
+ * A track's label at rest lives off the page, in the gutter on its left: a
+ * quiet rail with the number and name, so the design itself is never covered.
+ */
+export function TrackRail({ slot, index, focused }: { slot: Slot; index: number; focused: boolean }) {
+  const st = useStore.getState
+  return (
+    <div
+      className="group/rail absolute inset-y-0 right-full cursor-pointer"
+      style={{ width: 'calc(40px / var(--z))' }}
+      onPointerDown={(e) => {
+        e.stopPropagation()
+        st().focusSlot(slot.id)
+      }}
+      data-chrome
+      title={`${TYPE_LABEL[slot.type]}: click to work on this track`}
+    >
+      {/* the rail's line, drawn in page space so it spans the whole track */}
+      <div
+        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${
+          focused ? 'bg-tape' : 'bg-zinc-300 group-hover/row:bg-tape/70 group-hover/rail:bg-tape/70'
+        }`}
+        style={{ width: 'calc(2px / var(--z))' }}
+      />
+      {/* the label, at screen size */}
+      <div
+        className="absolute right-[calc(14px/var(--z))] top-[calc(6px/var(--z))] origin-top-right"
+        style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}
+      >
+        <div className="flex w-5 flex-col items-center gap-1.5">
+          <span className={`text-[11px] font-bold tabular-nums ${focused ? 'text-zinc-900' : 'text-zinc-400 group-hover/row:text-zinc-700'}`}>
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <span
+            className={`whitespace-nowrap text-[11.5px] font-semibold ${focused ? 'text-zinc-900' : 'text-zinc-500 group-hover/row:text-zinc-800'}`}
+            style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+          >
+            {TYPE_LABEL[slot.type]}
+          </span>
+          {slot.locked && <Lock size={11} strokeWidth={2.4} className="text-key-ink" />}
+        </div>
+      </div>
+    </div>
+  )
+}

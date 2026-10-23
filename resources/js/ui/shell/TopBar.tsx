@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { ChevronDown, CircleHelp, Moon, Package, Redo2, RotateCcw, Sun, Undo2, X } from 'lucide-react'
-import { useStore as useZustand } from 'zustand'
+import { CircleHelp, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2, X } from 'lucide-react'
 import { useStore, undo, redo, type Sheet } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
@@ -66,6 +65,9 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
       }
     >
       <div className="p-1.5">
+        <MenuItem icon={Undo2} label="Undo" kbd="⌘Z" onClick={undo} />
+        <MenuItem icon={Redo2} label="Redo" kbd="⇧⌘Z" onClick={redo} />
+        <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         <div className="px-2.5 pb-1 pt-1.5 md:hidden">
           <TapeName value={tapeName} onChange={(v) => st().renameTape(v)} />
         </div>
@@ -108,31 +110,24 @@ function ModeIsland() {
           <Segmented
             value={mode}
             options={[
-              { value: 'captured', label: 'Captured', title: 'Every section exactly as clipped (U)' },
-              { value: 'unified', label: 'Unified', title: 'Your style guide and copy applied (U)' },
+              { value: 'captured', label: 'Original', title: 'Every section exactly as it was clipped (U)' },
+              { value: 'unified', label: 'Your style', title: 'Your style guide and copy applied to every section (U)' },
             ]}
             onChange={(v) => st().setUi({ mode: v })}
           />
+          <Divider />
           <button
             type="button"
             onClick={() => toggleSheet('guide')}
-            title="Style & copy (G)"
+            title={decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide and copy (G)'}
             aria-expanded={open}
-            className={`flex h-8 items-center gap-1.5 rounded-full pl-2 pr-1.5 text-[13px] font-medium transition active:scale-[0.97] ${
-              decisions && !open ? 'bg-attention-soft text-attention-ink' : 'text-zinc-700 hover:bg-zinc-950/5'
+            className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
+              open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5'
             }`}
           >
-            {decisions && !open ? (
-              <>
-                <span className="grid size-[18px] place-items-center rounded-full bg-attention text-[10.5px] font-bold text-white">{decisions}</span>
-                <span className="max-md:hidden">to decide</span>
-              </>
-            ) : (
-              <span className="pl-0.5">Style & copy</span>
-            )}
-            <motion.span animate={{ rotate: open ? 180 : 0 }} transition={MORPH} className="grid">
-              <ChevronDown size={15} />
-            </motion.span>
+            <SwatchBook size={15} />
+            Style guide
+            {decisions > 0 && <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-attention px-1 text-[10.5px] font-bold text-white">{decisions}</span>}
           </button>
         </>
       }
@@ -141,8 +136,8 @@ function ModeIsland() {
         <Segmented
           value={tab}
           options={[
-            { value: 'style', label: 'Style guide', badge: decisions || undefined },
-            { value: 'copy', label: 'Your copy' },
+            { value: 'style', label: 'Style', badge: decisions || undefined },
+            { value: 'copy', label: 'Copy' },
           ]}
           onChange={(v) => st().setUi({ guideTab: v })}
         />
@@ -152,11 +147,9 @@ function ModeIsland() {
   )
 }
 
-/** Undo, press a version, hand off. Hand off grows into the packet. */
+/** Export and Save version. Export grows into the packet for your agent. */
 function ShipIsland() {
   const open = useStore((s) => s.ui.sheet === 'packet')
-  const canUndo = useZustand(useStore.temporal, (s) => s.pastStates.length > 0)
-  const canRedo = useZustand(useStore.temporal, (s) => s.futureStates.length > 0)
   return (
     <Island
       open={open}
@@ -164,36 +157,25 @@ function ShipIsland() {
       maxBody="min(76vh, 720px)"
       bar={
         <>
-          <IconButton title="Undo (⌘Z)" onClick={undo} disabled={!canUndo}>
-            <Undo2 size={16} />
-          </IconButton>
-          <IconButton title="Redo (⇧⌘Z)" onClick={redo} disabled={!canRedo}>
-            <Redo2 size={16} />
-          </IconButton>
-          <Divider />
           <button
             type="button"
             onClick={() => toggleSheet('packet')}
-            title="Hand off: the packet for your agent"
+            title="Export code for your agent: Astro or Next.js"
             aria-expanded={open}
-            className={`flex h-8 items-center gap-1.5 rounded-full px-2 text-[13px] font-medium transition active:scale-[0.97] ${
+            className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
               open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5'
             }`}
           >
             <Package size={15} />
-            <span className="max-lg:hidden">Hand off</span>
+            Export
           </button>
           <button
             type="button"
             onClick={() => pressVersionAndFly()}
-            title="Press a version from the working mix (Enter)"
-            className="btn-lit group ml-0.5 flex h-8 items-center gap-2 rounded-full pl-2.5 pr-3 text-[13px] font-semibold"
+            title="Save the working mix as a new version (⌘S)"
+            className="btn-lit ml-0.5 flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
           >
-            <span className="relative grid size-3.5 place-items-center">
-              <span className="absolute inset-0 rounded-full bg-key-ink/25 group-hover:animate-ping" />
-              <span className="size-2.5 rounded-full bg-key-ink" />
-            </span>
-            Press<span className="-ml-1 max-xl:hidden"> version</span>
+            Save version
           </button>
         </>
       }

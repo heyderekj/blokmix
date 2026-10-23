@@ -60,8 +60,8 @@ const HELP: [string, [string, string][]][] = [
   [
     'Versions',
     [
-      ['Enter / ⌘S', 'Press a version'],
-      ['U', 'As captured ↔ Unified'],
+      ['Enter / ⌘S', 'Save a version'],
+      ['U', 'Original ↔ Your style'],
       ['⌘Z / ⇧⌘Z', 'Undo / redo'],
     ],
   ],
@@ -72,7 +72,7 @@ const HELP: [string, [string, string][]][] = [
       ['⇧1 / ⇧0', 'Fit everything / back to the mix'],
       ['+ −', 'Zoom'],
       ['C', 'Open the clip crate'],
-      ['G', 'Open style & copy'],
+      ['G', 'Open the style guide'],
       ['Esc', 'Close, stop interacting, deselect'],
     ],
   ],

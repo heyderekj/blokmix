@@ -15,9 +15,9 @@ Open http://localhost:5173.
 
 1. **Slide.** Each track of the working mix cycles through every clip of its type (← →). Neighbors peek out beside the page. Space shuffles unlocked tracks; L locks one.
 2. **Keep.** Per track: layout, own style, source copy, motion (1–4).
-3. **Resolve.** Promote a clip's design (P, or "Use design") and settle contradictions per group in the Style guide tab. Flip **As captured / Unified** (U) to see the difference.
-4. **Press.** Enter snapshots the mix as a lettered version (A, B…). Remix any version to branch (B.1, B.2).
-5. **Hand off.** Send a version to the agent, or open the Packet tab: `mixtape.json`, `MIXTAPE.md` liner notes, tokens (CSS + W3C DTCG), and runnable `astro/` and `next/` projects.
+3. **Resolve.** Promote a clip's design (P, or "Use design") and settle contradictions per group in the Style guide. Flip **Original / Your style** (U) to see the difference.
+4. **Save version.** Enter (or ⌘S) snapshots the mix as a lettered version (A, B…). Remix any version to branch (B.1, B.2).
+5. **Export.** Send a version to the agent with Build, or open Export: `mixtape.json`, `MIXTAPE.md` liner notes, tokens (CSS + W3C DTCG), and runnable `astro/` and `next/` projects.
 
 Sticky notes (S) dropped on a track or a version become instructions in the packet. Version frames carry review statuses (in progress → ready for review → changes requested / approved).
 

@@ -7,7 +7,7 @@ import { useLayout } from '@/state/layout'
 import { frameStateFor } from '@/state/derived'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { TILE_GAP, VIEW_W } from '../canvas/geometry'
-import { TrackPill } from './TrackPill'
+import { TrackPill, TrackRail } from './TrackPill'
 
 const SPIN_STEP = 90
 
@@ -180,7 +180,8 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
         </>
       )}
 
-      <TrackPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />
+      <TrackRail slot={slot} index={index} focused={focused} />
+      {focused && <TrackPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />}
     </div>
   )
 })

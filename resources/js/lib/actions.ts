@@ -4,7 +4,7 @@ import { canvasApi } from '@/ui/canvas/Canvas'
 import { placeVersions } from '@/ui/canvas/geometry'
 import { useLayout } from '@/state/layout'
 
-/** Press a version from the working mix, unless it's identical to the one it came from. */
+/** Save a version from the working mix, unless it's identical to the one it came from. */
 export function pressVersionAndFly() {
   const st = useStore.getState()
   const head = st.head ? st.versions[st.head] : null
@@ -14,7 +14,7 @@ export function pressVersionAndFly() {
   }
   const id = st.pressVersion()
   const v = useStore.getState().versions[id]
-  st.showFlash(`Pressed ${v.letter}. ⇧1 shows the whole tape`)
+  st.showFlash(`Saved version ${v.letter}. ⇧1 shows them all`)
 }
 
 export function focusFrame(id: string) {

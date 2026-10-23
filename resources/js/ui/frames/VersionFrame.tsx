@@ -87,7 +87,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
           items={[
             { icon: Eye, label: previewing ? 'Stop interacting' : 'Interact with the page', onClick: () => st().setUi({ previewFrameId: previewing ? null : v.id }) },
             ...(v.kind === 'snapshot' ? [{ icon: Shuffle, label: 'Remix into the working mix', onClick: () => remix(v) }] : []),
-            { icon: Package, label: 'Hand off this version', onClick: () => st().setUi({ packetSource: v.id, sheet: 'packet' }) },
+            { icon: Package, label: 'Export this version', onClick: () => st().setUi({ packetSource: v.id, sheet: 'packet' }) },
             ...(v.kind === 'build' ? [{ icon: Link2, label: v.build?.previewUrl ? 'Change preview URL' : 'Attach the agent’s preview URL', onClick: () => setAttaching(true) }] : []),
             {
               icon: Trash2,

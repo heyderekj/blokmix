@@ -186,7 +186,7 @@ function FirstRunTip() {
           <span className="text-zinc-300">·</span>
           <span className="kbd">Space</span> shuffle
           <span className="text-zinc-300">·</span>
-          <span className="kbd">Enter</span> press a version
+          <span className="kbd">Enter</span> save a version
         </motion.p>
       )}
     </AnimatePresence>

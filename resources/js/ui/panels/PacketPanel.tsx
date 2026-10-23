@@ -92,7 +92,7 @@ export function PacketPanel() {
     { icon: Layers, text: `${input.page.sections.length} tracks` },
     { icon: Files, text: `${paths.length} files` },
     openConflicts
-      ? { icon: SwatchBook, text: `${openConflicts} to decide`, dot: true }
+      ? { icon: SwatchBook, text: `${openConflicts} style choice${openConflicts > 1 ? 's' : ''} open`, dot: true }
       : { icon: SwatchBook, text: 'Guide settled' },
     ...(noteCount ? [{ icon: StickyNote, text: `${noteCount} notes` }] : []),
   ]
@@ -107,7 +107,7 @@ export function PacketPanel() {
               value={source in versions || source === 'mix' ? source : 'mix'}
               onChange={(e) => st().setUi({ packetSource: e.target.value })}
               className="w-full max-w-full cursor-pointer appearance-none truncate rounded-md bg-transparent py-0.5 pl-1.5 pr-6 text-[15px] font-semibold text-zinc-900 outline-none transition hover:bg-zinc-950/5"
-              aria-label="Which version to hand off"
+              aria-label="Which version to export"
             >
               <option value="mix">Working mix</option>
               {dfsOrder(versions).map(({ node }) => (
