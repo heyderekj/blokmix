@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { X } from 'lucide-react'
 
@@ -37,6 +37,22 @@ export function Island({
   /** Which side the island grows from; the bar's contents stay pinned there so nothing slides. */
   anchor?: 'left' | 'center' | 'right'
 }) {
+  // Closed, the island is exactly as wide as its bar. Animating to that measured
+  // width (rather than 'auto') lets it fold in both directions at once, instead
+  // of keeping the open width until the body unmounts and then snapping.
+  const barRef = useRef<HTMLDivElement>(null)
+  const [barW, setBarW] = useState<number>()
+  useLayoutEffect(() => {
+    const el = barRef.current
+    if (!el) return
+    const measure = () => setBarW(el.offsetWidth)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const closedW = barW ? barW + 8 : 'auto' // + the bar row's px-1 on both sides
+
   const body = (
     <AnimatePresence initial={false}>
       {open && (
@@ -58,7 +74,7 @@ export function Island({
   return (
     <motion.div
       initial={false}
-      animate={{ width: open && width ? width : 'auto', borderRadius: open ? 20 : 16 }}
+      animate={{ width: open ? (width ?? 'auto') : closedW, borderRadius: open ? 20 : 16 }}
       transition={open ? MORPH : CLOSE}
       className={`glass-panel pointer-events-auto flex flex-col overflow-hidden ${className}`}
       data-chrome
@@ -69,7 +85,9 @@ export function Island({
           anchor === 'center' ? 'justify-center' : anchor === 'right' ? 'justify-end' : 'justify-start'
         } ${open && onClose ? (anchor === 'center' ? 'px-10' : anchor === 'right' ? 'pl-10' : 'pr-10') : ''}`}
       >
-        {bar}
+        <div ref={barRef} className="flex shrink-0 items-center gap-1">
+          {bar}
+        </div>
         <AnimatePresence initial={false}>
           {open && onClose && (
             <motion.button

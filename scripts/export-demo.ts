@@ -2,6 +2,7 @@
  * Writes the seeded demo tape's packet to .out/packet so the Astro and Next.js
  * exports can be installed and built from the command line.
  *   npm run export:demo
+ *   npm run export:demo -- --layouts   (a page of every built-in layout, to build-check them all)
  */
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -10,11 +11,22 @@ import { buildSeed } from '../resources/js/state/seed'
 import { composePage } from '../resources/js/core/compose'
 import { resolveGuide } from '../resources/js/core/guide'
 import { packetFiles } from '../resources/js/core/export/packet'
+import { DEFAULT_KEEP, SECTION_TYPES, type Slot } from '../resources/js/core/types'
 
 const out = join(process.cwd(), '.out', 'packet')
 const seed = buildSeed(library)
 const version = seed.versions[seed.head!]
-const snap = version.snapshot
+const allLayouts = process.argv.includes('--layouts')
+const slots: Slot[] = allLayouts
+  ? SECTION_TYPES.flatMap((t) => library.layoutsByType[t]).map((clipId, i) => ({
+      id: `layout-${i}`,
+      type: library.clips[clipId].type,
+      clipId,
+      locked: false,
+      keep: { ...DEFAULT_KEEP },
+    }))
+  : version.snapshot.slots
+const snap = { ...version.snapshot, slots }
 const guide = resolveGuide(snap.guide)
 const files = packetFiles({
   page: composePage({ slots: snap.slots, guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand }),

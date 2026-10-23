@@ -43,6 +43,9 @@ const JSX_RENAME: Record<string, string> = {
 
 const BOOLEAN = new Set(['checked', 'disabled', 'hidden', 'open', 'required', 'selected', 'multiple', 'autofocus', 'readonly', 'novalidate', 'defaultChecked', 'readOnly', 'noValidate', 'autoFocus'])
 
+/** React types these as numbers, so `rows="5"` must become `rows={5}`. */
+const NUMERIC = new Set(['rows', 'cols', 'size', 'span', 'start', 'tabIndex', 'colSpan', 'rowSpan', 'maxLength', 'minLength'])
+
 export function jsxAttrName(name: string, tag: string): string {
   if (name === 'checked' && tag === 'input') return 'defaultChecked'
   if (name === 'value' && (tag === 'input' || tag === 'textarea' || tag === 'select')) return 'defaultValue'
@@ -65,6 +68,7 @@ function attrs(el: HEl, d: Dialect): string {
     .map(([k, v]) => {
       const name = d === 'jsx' ? jsxAttrName(k, el.tag) : k
       if (v === '' && (BOOLEAN.has(k) || BOOLEAN.has(name))) return ` ${name}`
+      if (d === 'jsx' && NUMERIC.has(name) && /^-?\d+$/.test(v)) return ` ${name}={${v}}`
       return ` ${name}="${escAttr(v)}"`
     })
     .join('')

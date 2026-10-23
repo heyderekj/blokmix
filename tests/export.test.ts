@@ -89,3 +89,19 @@ describe('packet', () => {
     expect(json.sections).toHaveLength(slots.length)
   })
 })
+
+describe('jsx attributes', () => {
+  it('writes numeric attributes as numbers, so React’s types accept them', () => {
+    const tsx = nextFiles(
+      composePage({
+        slots: [{ id: 's', type: 'contact', clipId: 'contact.layout-split', locked: false, keep: { ...DEFAULT_KEEP } }],
+        guide: resolveGuide(emptyGuide()),
+        content: DEFAULT_CONTENT,
+        library,
+      }),
+    )
+    const src = Object.entries(tsx).find(([p]) => p.endsWith('ContactLayoutSplit.tsx'))![1]
+    expect(src).toMatch(/rows=\{\d+\}/)
+    expect(src).not.toMatch(/rows="/)
+  })
+})
