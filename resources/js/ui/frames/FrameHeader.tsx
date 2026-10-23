@@ -235,7 +235,7 @@ export function OverflowMenu({ items }: { items: MenuItem[] }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.08 } }}
             transition={{ duration: 0.14, ease: [0.2, 0, 0, 1] }}
-            className="glass-panel absolute right-0 top-full z-50 mt-2 w-60 origin-top-right rounded-2xl p-1.5"
+            className="glass-menu absolute right-0 top-full z-50 mt-2 w-60 origin-top-right rounded-2xl p-1.5"
           >
             {items.map((it) => (
               <button

@@ -185,7 +185,7 @@ function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: Buil
         <Bot size={14} /> Build
       </button>
       {open && (
-        <div className="glass-panel absolute right-0 top-full z-50 mt-2 w-64 animate-pop rounded-2xl p-2">
+        <div className="glass-menu absolute right-0 top-full z-50 mt-2 w-64 animate-pop rounded-2xl p-2">
           <p className="px-2 pb-2 pt-1 text-[12px] leading-snug text-zinc-500">
             Hand this version’s packet to the agent. Until MCP is connected, it renders the exporter’s reference build.
           </p>
@@ -214,7 +214,7 @@ function AttachUrl({ v, onClose }: { v: VersionNode; onClose: () => void }) {
   return (
     <div className="absolute right-1.5 top-full">
       <form
-          className="glass-panel absolute right-0 top-0 z-50 mt-2 flex w-80 animate-pop gap-1.5 rounded-2xl p-2"
+          className="glass-menu absolute right-0 top-0 z-50 mt-2 flex w-80 animate-pop gap-1.5 rounded-2xl p-2"
           onKeyDown={(e) => {
             e.stopPropagation()
             if (e.key === 'Escape') onClose()
