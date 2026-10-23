@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Check, ChevronRight, ClipboardCopy, Download, FileCode2, FileJson, FileText, Folder, ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, ClipboardCopy, Download, FileCode2, FileJson, FileText, Files, Folder, Layers, StickyNote, SwatchBook } from 'lucide-react'
 import type { BuildTarget } from '@/core/types'
 import { openGroups, resolveGuide } from '@/core/guide'
 import { composePage } from '@/core/compose'
@@ -88,23 +88,25 @@ export function PacketPanel() {
   const openConflicts = openGroups(input.guide).length
   const noteCount = input.page.sections.reduce((n, s) => n + s.notes.length, 0) + (input.notes?.length ?? 0)
 
-  const facts = [
-    `${input.page.sections.length} tracks`,
-    `${paths.length} files`,
-    openConflicts ? `${openConflicts} style decision${openConflicts > 1 ? 's' : ''} open` : 'guide resolved',
-    noteCount ? `${noteCount} notes` : null,
-  ].filter(Boolean)
+  const facts: { icon: typeof Layers; text: string; dot?: boolean }[] = [
+    { icon: Layers, text: `${input.page.sections.length} tracks` },
+    { icon: Files, text: `${paths.length} files` },
+    openConflicts
+      ? { icon: SwatchBook, text: `${openConflicts} to decide`, dot: true }
+      : { icon: SwatchBook, text: 'Guide settled' },
+    ...(noteCount ? [{ icon: StickyNote, text: `${noteCount} notes` }] : []),
+  ]
 
   return (
     <div>
       {/* tier 1: what's being handed off, and the one action */}
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="min-w-0 flex-1">
-          <div className="relative w-fit max-w-full">
+          <div className="relative -ml-1.5 w-fit max-w-full">
             <select
               value={source in versions || source === 'mix' ? source : 'mix'}
               onChange={(e) => st().setUi({ packetSource: e.target.value })}
-              className="w-full max-w-full cursor-pointer appearance-none truncate rounded-md bg-transparent pr-5 text-[15px] font-semibold text-zinc-900 outline-none hover:bg-zinc-950/5"
+              className="w-full max-w-full cursor-pointer appearance-none truncate rounded-md bg-transparent py-0.5 pl-1.5 pr-6 text-[15px] font-semibold text-zinc-900 outline-none transition hover:bg-zinc-950/5"
               aria-label="Which version to hand off"
             >
               <option value="mix">Working mix</option>
@@ -114,9 +116,19 @@ export function PacketPanel() {
                 </option>
               ))}
             </select>
-            <ChevronDown size={14} className="pointer-events-none absolute right-0.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <ChevronDown size={14} className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           </div>
-          <div className={`truncate text-[12px] ${openConflicts ? 'text-attention-ink' : 'text-zinc-500'}`}>{facts.join(' · ')}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-zinc-500">
+            {facts.map((f) => (
+              <span key={f.text} className="flex items-center gap-1">
+                <span className="relative grid">
+                  <f.icon size={13} className="text-zinc-400" />
+                  {f.dot && <span className="absolute -right-0.5 -top-0.5 size-1.5 rounded-full bg-attention ring-1 ring-[var(--lift)]" />}
+                </span>
+                {f.text}
+              </span>
+            ))}
+          </div>
         </div>
         <button type="button" onClick={download} className="btn-lit btn-ink flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold">
           <Download size={14} /> Download
