@@ -15,6 +15,7 @@ import { keepInView } from '../canvas/inView'
 import { draftForBlock, useMarkDraft } from '../notes/Marks'
 import { SPACE_STEPS, Steps } from './Spacing'
 import { MotionMenu } from './MotionMenu'
+import { LookStyles, LookThumb } from './LookSamples'
 import { ImageMenu } from './ImageMenu'
 
 type Menu = 'variant' | 'style' | 'motion' | 'image' | 'more' | 'advice' | null
@@ -76,6 +77,12 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   const hover = (patch: Partial<BlockEdit> | null) => (patch ? preview.show(slot.id, block.id, patch) : preview.clear())
   const current = variants.find((v) => v.id === edit?.variant)
   const advice = useAdvice(slot, block, rect)
+  const sampleText = useMemo(() => {
+    const clip = library.clips[slot.clipId]
+    const fields = resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields
+    const inner = block.field ?? blocks.find((b) => b.parent === block.id && b.field && (b.kind === 'heading' || b.kind === 'text'))?.field
+    return (inner && fields[inner]) || BLOCK_LABEL[block.kind]
+  }, [block, blocks, slot])
   const suggested = useMemo(() => {
     const clip = library.clips[slot.clipId]
     return suggestedVariants(block, { blocks, fields: resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields })
@@ -156,22 +163,26 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
       </div>
 
       {menu === 'variant' && (
-        <Popover>
-          <div className="px-2 pb-1 pt-1 text-[11px] font-semibold text-zinc-400">Look</div>
-          <div className="grid grid-cols-2 gap-0.5" onMouseLeave={() => hover(null)}>
-            <VariantOption label="Original" hint="As clipped" on={!edit?.variant} onHover={() => hover({ variant: undefined })} onPick={() => apply({ variant: undefined })} />
-            {[...variants]
+        <Popover width={340}>
+          <LookStyles />
+          <div onMouseLeave={() => hover(null)}>
+            {suggested.length > 0 && (
+              <div className="flex items-center gap-1 px-2 pb-1 pt-1 text-[11px] font-semibold text-zinc-400">
+                <Sparkles size={11} /> Suggested here
+              </div>
+            )}
+            <LookRow kind={block.kind} text={sampleText} label="Original" hint="As clipped" on={!edit?.variant} onHover={() => hover({ variant: undefined })} onPick={() => apply({ variant: undefined })} />
+            {variants
+              .filter((v) => suggested.includes(v.id))
               .sort((a, b) => rank(suggested, a.id) - rank(suggested, b.id))
               .map((v) => (
-                <VariantOption
-                  key={v.id}
-                  label={v.label}
-                  hint={v.hint}
-                  suggested={suggested.includes(v.id)}
-                  on={edit?.variant === v.id}
-                  onHover={() => hover({ variant: v.id })}
-                  onPick={() => apply({ variant: v.id })}
-                />
+                <LookRow key={v.id} kind={block.kind} look={v.id} text={sampleText} label={v.label} hint={v.hint} on={edit?.variant === v.id} onHover={() => hover({ variant: v.id })} onPick={() => apply({ variant: v.id })} />
+              ))}
+            {variants.some((v) => !suggested.includes(v.id)) && <div className="px-2 pb-1 pt-2 text-[11px] font-semibold text-zinc-400">{suggested.length ? 'More' : 'Looks'}</div>}
+            {variants
+              .filter((v) => !suggested.includes(v.id))
+              .map((v) => (
+                <LookRow key={v.id} kind={block.kind} look={v.id} text={sampleText} label={v.label} hint={v.hint} on={edit?.variant === v.id} onHover={() => hover({ variant: v.id })} onPick={() => apply({ variant: v.id })} />
               ))}
           </div>
         </Popover>
@@ -314,21 +325,22 @@ function MenuItem({ icon: Icon, children, onClick, disabled, kbd }: { icon: type
 
 const rank = (list: string[], id: string) => (list.includes(id) ? list.indexOf(id) : 99)
 
-function VariantOption({ label, hint, on, suggested, onHover, onPick }: { label: string; hint: string; on: boolean; suggested?: boolean; onHover: () => void; onPick: () => void }) {
+/** One look: the block drawn in it, with its name and when to reach for it. */
+function LookRow({ kind, look, text, label, hint, on, onHover, onPick }: { kind: BlockKind; look?: string; text: string; label: string; hint: string; on: boolean; onHover: () => void; onPick: () => void }) {
   return (
     <button
       type="button"
       onMouseEnter={onHover}
       onFocus={onHover}
       onClick={onPick}
-      className={`rounded-xl px-2.5 py-2 text-left transition ${on ? 'bg-zinc-950/[0.07]' : 'hover:bg-zinc-950/5'}`}
+      className={`flex w-full items-center gap-3 rounded-xl px-2 py-1.5 text-left transition active:scale-[0.99] ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
     >
-      <div className="flex items-center gap-1.5 text-[13px] font-semibold text-zinc-900">
-        {label}
-        {on && <span className="size-1.5 rounded-full bg-tape" />}
-        {suggested && !on && <Sparkles size={11} className="text-key-ink" aria-label="Suggested here" />}
-      </div>
-      <div className="text-[11.5px] leading-snug text-zinc-500">{hint}</div>
+      <LookThumb kind={kind} look={look} text={text} />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-semibold text-zinc-900">{label}</span>
+        <span className="block truncate text-[11.5px] text-zinc-500">{hint}</span>
+      </span>
+      {on && <span className="size-1.5 shrink-0 rounded-full bg-tape" />}
     </button>
   )
 }

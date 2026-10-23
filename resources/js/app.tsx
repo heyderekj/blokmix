@@ -2,7 +2,6 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../css/app.css'
 import Board from '@/pages/board'
-import LabLooks from '@/pages/lab-looks'
 import { useStore } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi } from '@/ui/canvas/Canvas'
@@ -19,6 +18,6 @@ void loadAssets()
 
 createRoot(document.getElementById('app')!).render(
   <StrictMode>
-    {new URLSearchParams(location.search).get('lab') === 'looks' ? <LabLooks /> : <Board />}
+    <Board />
   </StrictMode>,
 )
