@@ -172,6 +172,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             <div key={n} className="flex gap-2.5 rounded-xl px-2.5 py-2">
               <span className={`mt-1.5 size-2 shrink-0 rounded-full ${a.level === 'problem' ? 'bg-problem' : 'bg-attention'}`} />
               <div className="min-w-0 flex-1">
+                <div className="mb-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400">{a.lens}</div>
                 <div className="text-[12.5px] leading-snug text-zinc-700">{a.message}</div>
                 {a.fix && (
                   <button
@@ -187,7 +188,9 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
               </div>
             </div>
           ))}
-          <div className="px-2.5 pb-1 pt-0.5 text-[11px] text-zinc-400">From the checklist · Suggestions, not rules</div>
+          <div className="px-2.5 pb-1 pt-0.5 text-[11px] leading-snug text-zinc-400">
+            Suggestions, not rules: our distillations of IIDS, Laws of UX and Emil Kowalski’s design-engineering craft, not endorsed by them.
+          </div>
         </Popover>
       )}
       {menu === 'style' && <StyleMenu style={own?.style} inherited={def?.style} composite={COMPOSITE.has(block.kind)} onHover={(s) => hover(s ? { style: s } : null)} onPick={(s) => apply({ style: s })} />}

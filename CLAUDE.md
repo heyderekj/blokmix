@@ -81,6 +81,26 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
     - Don't mark the section root, layout wrappers, decoration, or `data-mx-mirror` duplicates
       (the hidden half of a marquee). Logo wordmarks are `image` blocks (`data-mx-media="logo1"`).
 
+### Craft (applies to clips, layouts, block looks and the app itself)
+
+Our own distillations of public craft sources, the same lenses ReviseMy uses: IIDS (Matt D. Smith / Shift
+Nudge) for hierarchy, spacing and type; Laws of UX for behaviour; Emil Kowalski's design-engineering skill
+(emilkowal.ski/skill) for motion and feel. `core/advise.ts` turns them into suggestions, tagged by lens.
+- **Wrapping:** headings `text-wrap: balance`, body `text-wrap: pretty` (both in the shared base CSS);
+  long words break. Body lines 45–75 characters; headings under ~60 characters.
+- **Hierarchy:** one solid primary action per section; one expressive treatment (gradient, marker,
+  hollow, caps, offset) per section; display treatments only at display sizes.
+- **Spacing:** only spacing-scale steps; siblings share a step; filled containers get at least medium
+  padding; one corner shape per section (plus pill buttons).
+- **Interaction:** everything pressable has a pointer cursor and `scale: 0.97` on `:active`; hover styles
+  only under `@media (hover: hover) and (pointer: fine)` (block looks do this automatically); tap targets
+  44px.
+- **Motion:** name the properties (never `transition: all`); animate transform and opacity; ease-out
+  (`cubic-bezier(0.23, 1, 0.32, 1)`), never ease-in; UI motion under 300ms and exits shorter than
+  entrances; stagger 30–80ms; never from `scale(0)` (start ~0.95 with opacity 0); nothing on keyboard
+  actions or things seen many times a day; reduced motion keeps fades, drops movement. Lint warns on
+  `transition: all`, `scale(0)` and `ease-in`.
+
 ### Built-in layouts
 
 Layouts are clips from the `layout` source: polished neutral structure (Inter, near-black on white,

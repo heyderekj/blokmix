@@ -92,6 +92,10 @@ function checkCss(
     if (!v.startsWith('var(--mx-font-') && v !== 'inherit') err(`${file}: font-family must come from var(--mx-font-*)`)
   }
   if (/!important/.test(css)) warn(`${file}: avoid !important`)
+  // Motion craft: name what animates, never pop from nothing, never ease in.
+  if (/transition\s*:\s*all\b/.test(css)) warn(`${file}: transition: all; list the properties that change`)
+  if (/scale\(\s*0\s*[,)]/.test(css)) warn(`${file}: scale(0); start from about scale(0.95) with opacity 0`)
+  if (/\bease-in\b(?!-)/.test(css)) warn(`${file}: ease-in feels sluggish in UI; use ease-out (var(--mx-motion-ease))`)
 
   // Top-level statements must be the root selector or prefixed keyframes.
   let depth = 0

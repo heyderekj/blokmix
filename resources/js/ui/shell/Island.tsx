@@ -51,7 +51,7 @@ export function Island({
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
-  const closedW = barW ? barW + 8 : 'auto' // + the bar row's px-1 on both sides
+  const closedW = barW ? barW + 12 : 'auto' // + the bar row's px-1.5 on both sides
 
   const body = (
     <AnimatePresence initial={false}>
@@ -81,7 +81,7 @@ export function Island({
     >
       {grow === 'up' && body}
       <div
-        className={`relative flex h-11 shrink-0 items-center gap-1 px-1 ${
+        className={`relative flex h-11 shrink-0 items-center gap-1 px-1.5 ${
           anchor === 'center' ? 'justify-center' : anchor === 'right' ? 'justify-end' : 'justify-start'
         } ${open && onClose ? (anchor === 'center' ? 'px-10' : anchor === 'right' ? 'pl-10' : 'pr-10') : ''}`}
       >

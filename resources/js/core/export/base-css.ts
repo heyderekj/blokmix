@@ -13,6 +13,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 h1, h2, h3, h4, h5, h6, p, figure, blockquote, ul, ol, dl, dd { margin: 0; }
+/* Wrapping: balanced headings, no lonely last words in paragraphs, long words never overflow. */
+h1, h2, h3, h4, h5, h6, blockquote { text-wrap: balance; }
+p, li, dd, figcaption { text-wrap: pretty; }
+body { overflow-wrap: break-word; }
 ul, ol { padding: 0; list-style: none; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }

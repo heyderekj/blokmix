@@ -20,8 +20,9 @@ const fill = (d: string) => `var(--b-fill, ${d})`
 const ink = (d: string) => `var(--b-ink, ${d})`
 const radius = (d: string) => `var(--b-radius, ${d})`
 const shadow = (d: string) => `var(--b-shadow, ${d})`
-const press = `transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), translate 120ms var(--mx-motion-ease);
-  &:active { translate: 0 1px; }`
+// Press feedback on everything pressable: a quick, slight scale (never from 0, never ease-in).
+const press = `transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  &:active { scale: 0.97; }`
 
 const BUTTON_BASE = `display: inline-flex; align-items: center; justify-content: center; gap: var(--mx-space-2);
   min-height: 44px; padding: var(--mx-space-3) var(--mx-space-5); font-weight: 600; line-height: 1.1; text-decoration: none;`
@@ -163,6 +164,12 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
   ],
 }
 VARIANTS.item = VARIANTS.card
+
+/** Hover looks only where a real pointer hovers, so touch screens don't get stuck in a hover state. */
+export function gateHover(css: string): string {
+  return css.replace(/&:hover(::?[a-z-]+)?\s*\{([^{}]*)\}/g, (_, pseudo = '', body) => `@media (hover: hover) and (pointer: fine) { &:hover${pseudo} {${body}} }`)
+}
+for (const list of Object.values(VARIANTS)) for (const v of list ?? []) v.css = gateHover(v.css)
 
 export function variantsFor(kind: BlockKind): Variant[] {
   return VARIANTS[kind] ?? []

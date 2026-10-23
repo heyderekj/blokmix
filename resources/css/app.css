@@ -247,6 +247,9 @@
 }
 
 @layer base {
+  /* Tailwind 4 leaves buttons with the default arrow; everything you can press gets a pointer. */
+  button:not(:disabled), [role='button']:not([aria-disabled='true']), summary, label[for], select { cursor: pointer; }
+
   *, ::after, ::before, ::backdrop { border-color: var(--border); }
   h1, .text-2xl, .text-3xl { letter-spacing: -0.02em; }
   h2, .text-xl, .text-lg { letter-spacing: -0.01em; }

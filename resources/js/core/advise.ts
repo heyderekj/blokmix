@@ -6,10 +6,31 @@ import type { BlockEdit, BlockInfo, BlockKind, ColorRef, ComponentDefault, Swatc
 import { contrastRatio, hexToRgb } from './tokens'
 import { effectiveEdit } from './blocks/style'
 
+/**
+ * Where a suggestion comes from. Like ReviseMy's craft lenses, these are our own
+ * distillations of public craft sources, not quotes from or endorsed by them:
+ * IIDS (Matt D. Smith / Shift Nudge) for hierarchy, spacing and type; Laws of UX
+ * for behaviour; Emil Kowalski's design-engineering skill for motion and feel.
+ */
+export type Lens = 'IIDS' | 'Laws of UX' | 'Motion' | 'Accessibility'
+
 export interface Advice {
   blockId: string
-  rule: 'one-primary' | 'contrast' | 'tap-target' | 'label' | 'measure' | 'consistency'
+  rule:
+    | 'one-primary'
+    | 'contrast'
+    | 'tap-target'
+    | 'label'
+    | 'measure'
+    | 'consistency'
+    | 'expressive'
+    | 'small-display'
+    | 'cramped'
+    | 'rhythm'
+    | 'line-length'
+    | 'corners'
   level: 'problem' | 'suggestion'
+  lens: Lens
   message: string
   /** One click applies this to the block. */
   fix?: { label: string; edit?: Partial<BlockEdit>; promote?: boolean }
@@ -25,6 +46,8 @@ export interface AdviseInput {
   fields: Record<string, string>
   /** Measured size of blocks, when known (the selected one). */
   rects?: Record<string, { w: number; h: number }>
+  /** The section's root font size isn't known, so line length uses the page's base text size (px). */
+  basePx?: number
   /** Own styles on blocks of each kind across the whole page, for the consistency nudge. */
   pageStyles?: Partial<Record<BlockKind, string[]>>
 }
@@ -75,6 +98,7 @@ export function advise(i: AdviseInput): Advice[] {
           blockId: b.id,
           rule: 'one-primary',
           level: 'suggestion',
+          lens: 'Laws of UX',
           message: 'Two solid buttons compete for attention. Let this one step back so the main action stands out.',
           fix: { label: 'Make it outline', edit: { variant: 'outline' } },
         })
@@ -99,6 +123,7 @@ export function advise(i: AdviseInput): Advice[] {
             blockId: b.id,
             rule: 'contrast',
             level: 'problem',
+            lens: 'Accessibility',
             message: `Words on this fill are hard to read (${ratio}:1; aim for ${need}:1).`,
             fix: { label: `Use ${better === 'text' ? 'dark' : 'light'} text`, edit: { style: { ink: better } } },
           })
@@ -113,6 +138,7 @@ export function advise(i: AdviseInput): Advice[] {
         blockId: b.id,
         rule: 'tap-target',
         level: 'suggestion',
+        lens: 'Laws of UX',
         message: `Small to tap (${Math.round(r.h)}px tall). 44px is comfortable on a phone.`,
         fix: b.kind === 'button' ? { label: 'Use a solid button', edit: { variant: 'solid' } } : undefined,
       })
@@ -122,15 +148,15 @@ export function advise(i: AdviseInput): Advice[] {
     const words = b.field ? (i.fields[b.field] ?? '').trim() : ''
     if (CTA.has(b.kind) && words) {
       if (VAGUE.test(words)) {
-        out.push({ blockId: b.id, rule: 'label', level: 'suggestion', message: `“${words}” doesn’t say what happens. Start with a verb that names the outcome, like “Start your free trial”.` })
+        out.push({ blockId: b.id, rule: 'label', level: 'suggestion', lens: 'Laws of UX', message: `“${words}” doesn’t say what happens. Start with a verb that names the outcome, like “Start your free trial”.` })
       } else if (words.split(/\s+/).length > 6) {
-        out.push({ blockId: b.id, rule: 'label', level: 'suggestion', message: 'Long button labels get skipped. Two to four words read at a glance.' })
+        out.push({ blockId: b.id, rule: 'label', level: 'suggestion', lens: 'Laws of UX', message: 'Long button labels get skipped. Two to four words read at a glance.' })
       }
     }
 
     // Readable measure for headings.
     if (b.kind === 'heading' && words.length > 80 && !byId.get(b.parent ?? '')?.list) {
-      out.push({ blockId: b.id, rule: 'measure', level: 'suggestion', message: `Long headings scan poorly (${words.length} characters). Aim for under 60 and move detail into the text below.` })
+      out.push({ blockId: b.id, rule: 'measure', level: 'suggestion', lens: 'IIDS', message: `Long headings scan poorly (${words.length} characters). Aim for under 60 and move detail into the text below.` })
     }
 
     // Consistency: several different one-off looks for the same kind of block.
@@ -142,9 +168,112 @@ export function advise(i: AdviseInput): Advice[] {
           blockId: b.id,
           rule: 'consistency',
           level: 'suggestion',
+          lens: 'IIDS',
           message: `There are ${looks.size} different ${b.kind} looks on this page. Choosing one keeps the page feeling designed.`,
           fix: { label: `Use this for all`, promote: true },
         })
+      }
+    }
+  }
+
+  // ---- craft: hierarchy, rhythm and restraint (IIDS lens) ----
+  const EXPRESSIVE = new Set(['gradient', 'marker', 'scribble', 'hollow', 'caps', 'offset'])
+  const expressive = i.blocks.filter((b) => EXPRESSIVE.has(eff(b)?.variant ?? '') && !eff(b)?.hidden)
+  if (expressive.length > 1) {
+    // Keep the first, suggest the others step back.
+    for (const b of expressive.slice(1)) {
+      out.push({
+        blockId: b.id,
+        rule: 'expressive',
+        level: 'suggestion',
+        lens: 'IIDS',
+        message: 'This section already has a bold treatment. One expressive moment per section reads as confident; more competes.',
+        fix: { label: 'Back to its own look', edit: { variant: undefined } },
+      })
+    }
+  }
+  for (const b of i.blocks) {
+    const e = eff(b)
+    if (!e || e.hidden) continue
+    const parent = b.parent ? byId.get(b.parent) : undefined
+    const inUnit = parent?.kind === 'item' || parent?.kind === 'card'
+    // Display treatments need display sizes.
+    if (b.kind === 'heading' && inUnit && (e.variant === 'hollow' || e.variant === 'caps')) {
+      out.push({
+        blockId: b.id,
+        rule: 'small-display',
+        level: 'suggestion',
+        lens: 'IIDS',
+        message: `${e.variant === 'hollow' ? 'Hollow letters' : 'Tight caps'} are made for big headlines; at card size they get hard to read.`,
+        fix: { label: 'Use plain', edit: { variant: undefined } },
+      })
+    }
+    // Containers need room inside them.
+    const filled = !!e.style?.fill || ['bordered', 'raised', 'tinted', 'glass', 'offset'].includes(e.variant ?? '')
+    if ((b.kind === 'card' || b.kind === 'item') && filled && e.style?.padding !== undefined && e.style.padding < 3) {
+      out.push({
+        blockId: b.id,
+        rule: 'cramped',
+        level: 'suggestion',
+        lens: 'IIDS',
+        message: 'Content is pressed against the edge of its container. Give it at least medium padding so it can breathe.',
+        fix: { label: 'Medium padding', edit: { style: { padding: 4 } } },
+      })
+    }
+    // Long lines are tiring: aim for roughly 45–75 characters.
+    const r = i.rects?.[b.id]
+    if (r && b.kind === 'text' && b.field && (i.fields[b.field] ?? '').length > 120) {
+      const chars = r.w / ((i.basePx ?? 16) * 0.5)
+      if (chars > 85) {
+        out.push({
+          blockId: b.id,
+          rule: 'line-length',
+          level: 'suggestion',
+          lens: 'IIDS',
+          message: `Lines here run about ${Math.round(chars)} characters. 45 to 75 is easier to read; add side padding or narrow the column.`,
+          fix: { label: 'Add side padding', edit: { style: { padding: 6 } } },
+        })
+      }
+    }
+  }
+
+  // Spacing rhythm: siblings of a kind should sit on the same step.
+  const groups = new Map<string, BlockInfo[]>()
+  for (const b of i.blocks) {
+    const key = `${b.parent}|${b.kind}`
+    groups.set(key, [...(groups.get(key) ?? []), b])
+  }
+  for (const sibs of groups.values()) {
+    if (sibs.length < 2) continue
+    for (const prop of ['above', 'below', 'padding', 'gap'] as const) {
+      const vals = sibs.map((b) => eff(b)?.style?.[prop])
+      const set = vals.filter((v) => v !== undefined)
+      if (!set.length || new Set(vals).size < 2) continue
+      // The most common value wins; the odd ones out get the suggestion.
+      const counts = new Map<number | undefined, number>()
+      for (const v of vals) counts.set(v, (counts.get(v) ?? 0) + 1)
+      const common = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]
+      sibs.forEach((b, n) => {
+        if (vals[n] === common || vals[n] === undefined) return
+        out.push({
+          blockId: b.id,
+          rule: 'rhythm',
+          level: 'suggestion',
+          lens: 'IIDS',
+          message: `Its ${prop === 'above' ? 'space above' : prop === 'below' ? 'space below' : prop} differs from the ${sibs.length - 1} like it. Even spacing makes a group read as one.`,
+          fix: { label: 'Match the others', edit: { style: { [prop]: common } } },
+        })
+      })
+    }
+  }
+
+  // Corners: one shape language per section.
+  const radii = new Set(i.blocks.map((b) => eff(b)?.style?.radius).filter(Boolean))
+  if (radii.size > 1) {
+    for (const b of i.blocks) {
+      const rad = eff(b)?.style?.radius
+      if (rad && rad !== [...radii][0]) {
+        out.push({ blockId: b.id, rule: 'corners', level: 'suggestion', lens: 'IIDS', message: 'Corners in this section mix shapes. One radius (or one plus pill buttons) keeps the shape language clear.' })
       }
     }
   }

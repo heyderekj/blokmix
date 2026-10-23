@@ -48,3 +48,42 @@ describe('advise', () => {
     expect(suggestedVariants(blocks[3], { blocks, fields })[0]).toBe('outline')
   })
 })
+
+describe('craft suggestions from your customisations', () => {
+  const card = (id: string, extra: Partial<BlockInfo> = {}) => b(id, 'card', { parent: 'L', ...extra })
+  const list = [b('L', 'list', { parent: null }), card('c1'), card('c2'), card('c3'), b('h', 'heading', { parent: 'c1', field: 'heading' })]
+
+  it('keeps one expressive treatment per section', () => {
+    const a = advise({ blocks, edits: { b1: { variant: 'gradient' }, b2: { variant: 'offset' } }, tokens, fields })
+    expect(a.find((x) => x.rule === 'expressive')).toMatchObject({ blockId: 'b2', lens: 'IIDS' })
+  })
+
+  it('flags display treatments on small headings and cramped filled cards', () => {
+    const a = advise({ blocks: list, edits: { h: { variant: 'hollow' }, c1: { variant: 'raised', style: { padding: 1 } } }, tokens, fields })
+    expect(a.find((x) => x.rule === 'small-display')?.blockId).toBe('h')
+    expect(a.find((x) => x.rule === 'cramped')?.fix?.edit).toEqual({ style: { padding: 4 } })
+  })
+
+  it('evens out spacing between siblings, to the common step', () => {
+    const a = advise({ blocks: list, edits: { c1: { style: { below: 4 } }, c2: { style: { below: 4 } }, c3: { style: { below: 8 } } }, tokens, fields })
+    const r = a.find((x) => x.rule === 'rhythm')!
+    expect(r.blockId).toBe('c3')
+    expect(r.fix?.edit).toEqual({ style: { below: 4 } })
+  })
+
+  it('watches line length on the selected text', () => {
+    const t = [b('t', 'text', { parent: null, field: 'body' })]
+    const long = { body: 'word '.repeat(60) }
+    expect(advise({ blocks: t, edits: { t: {} }, tokens, fields: long, rects: { t: { w: 1100, h: 80 } } }).some((x) => x.rule === 'line-length')).toBe(true)
+    expect(advise({ blocks: t, edits: { t: {} }, tokens, fields: long, rects: { t: { w: 560, h: 80 } } }).some((x) => x.rule === 'line-length')).toBe(false)
+  })
+})
+
+import { gateHover, VARIANTS } from '@/core/blocks/variants'
+describe('variant feel', () => {
+  it('only hovers where hover is real, and presses with a slight scale', () => {
+    expect(gateHover('color: red; &:hover { color: blue; }')).toBe('color: red; @media (hover: hover) and (pointer: fine) { &:hover { color: blue; } }')
+    for (const v of Object.values(VARIANTS).flat()) expect(v!.css.replace(/@media \(hover: hover\) and \(pointer: fine\) \{ &:hover/g, '')).not.toMatch(/&:hover/)
+    expect(VARIANTS.button!.find((v) => v.id === 'solid')!.css).toContain('scale: 0.97')
+  })
+})
