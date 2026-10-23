@@ -3,11 +3,15 @@ import { AnimatePresence, motion } from 'motion/react'
 
 /** Chrome morph: quick and settled, no bounce (the canvas is where things bounce). */
 export const MORPH = { type: 'spring', stiffness: 560, damping: 44, mass: 0.9 } as const
+const CLOSE = { type: 'spring', stiffness: 700, damping: 56, mass: 0.8 } as const
 
 /**
  * A floating bar that grows into the panel it controls. The bar stays put as
- * the panel's header, so opening reads as the same object getting bigger
- * rather than a new window appearing.
+ * the panel's header, so opening reads as the same object getting bigger.
+ *
+ * Size is animated directly (width and height), never with a scale transform,
+ * so glass, text and corners stay crisp. On close, the content fades first and
+ * the panel folds back into the bar.
  */
 export function Island({
   open,
@@ -31,32 +35,29 @@ export function Island({
       {open && (
         <motion.div
           key="body"
-          layout="position"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { delay: 0.07, duration: 0.14 } }}
-          exit={{ opacity: 0, transition: { duration: 0.06 } }}
-          className={`thin-scroll min-h-0 overflow-y-auto ${grow === 'down' ? 'border-t' : 'border-b'} border-zinc-950/6`}
-          style={{ maxHeight: maxBody }}
-          data-scroll-ok
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1, transition: { height: MORPH, opacity: { delay: 0.06, duration: 0.16 } } }}
+          exit={{ height: 0, opacity: 0, transition: { height: CLOSE, opacity: { duration: 0.08 } } }}
+          className={`overflow-hidden ${grow === 'down' ? 'border-t' : 'border-b'} border-zinc-950/6`}
           onKeyDown={(e) => e.stopPropagation()}
         >
-          {children}
+          <div className="thin-scroll min-h-0 overflow-y-auto" style={{ maxHeight: maxBody }} data-scroll-ok>
+            {children}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
   )
   return (
     <motion.div
-      layout
-      transition={MORPH}
+      initial={false}
+      animate={{ width: open && width ? width : 'auto', borderRadius: open ? 20 : 16 }}
+      transition={open ? MORPH : CLOSE}
       className={`glass-panel pointer-events-auto flex flex-col overflow-hidden ${className}`}
-      style={{ width: open && width ? width : undefined, borderRadius: open ? 20 : 16 }}
       data-chrome
     >
       {grow === 'up' && body}
-      <motion.div layout="position" transition={MORPH} className="flex h-11 shrink-0 items-center gap-1 px-1">
-        {bar}
-      </motion.div>
+      <div className="flex h-11 shrink-0 items-center gap-1 px-1">{bar}</div>
       {grow === 'down' && body}
     </motion.div>
   )
