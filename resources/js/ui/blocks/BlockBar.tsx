@@ -33,6 +33,7 @@ const PLURAL: Record<BlockKind, string> = {
   icon: 'icons',
   image: 'images',
   input: 'fields',
+  banner: 'banners',
   card: 'cards',
   item: 'items',
   list: 'lists',

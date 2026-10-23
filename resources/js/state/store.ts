@@ -36,6 +36,7 @@ import { suggestClip } from '@/core/suggest'
 import { BASE_TOKENS } from '@/core/tokens'
 import { initialStatus, nextNumber } from '@/core/notes'
 import { buildSeed } from './seed'
+import { DEFAULT_CONTENT } from '@/core/content'
 import { snapshotOf } from './snapshot'
 
 export type Mode = 'captured' | 'unified'
@@ -561,6 +562,16 @@ export const useStore = create<State>()(
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
         // Drop anything that points at clips that no longer exist in the sample library.
         merged.slots = (merged.slots ?? []).filter((s) => library.clips[s.clipId])
+        // Copy fields added since the tape was saved (a nav banner's messages) start from the defaults.
+        if (merged.content?.fields) {
+          const fields = { ...merged.content.fields }
+          for (const [type, defaults] of Object.entries(DEFAULT_CONTENT.fields) as [SectionType, Record<string, string>][]) {
+            const mine = fields[type] ?? {}
+            const missing = Object.fromEntries(Object.entries(defaults).filter(([k]) => !(k in mine)))
+            if (Object.keys(missing).length) fields[type] = { ...mine, ...missing }
+          }
+          merged.content = { ...merged.content, fields }
+        }
         // The Copy tab became Content.
         if ((merged.ui.guideTab as string) === 'copy') merged.ui.guideTab = 'content'
         // One framework per hand-off.

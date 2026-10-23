@@ -208,8 +208,11 @@ export function composePage(input: ComposeInput): ComposedPage {
       const block = m.lightbox ? { ...withClass, attrs: [...withClass.attrs, ['data-lightbox', ''] as [string, string]] } : withClass
       return { ...block, kids: [...block.kids, ...mediaElements(m, w, h)] }
     })
-    const tree = applyFields(marked, fields)
-    const words = outline(marked)
+    // Blocks you hid (a banner you don't want) leave the markup and the content file altogether.
+    const hidden = new Set(changed.filter((x) => x.edit.hidden).map((x) => x.b.id))
+    const shown = hidden.size ? dropBlocks(marked, hidden) : marked
+    const tree = applyFields(shown, fields)
+    const words = outline(shown)
     const blocksCss = blockCss({
       blocks: clip.blocks,
       edits,
@@ -261,7 +264,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       clip,
       keep: slot.keep,
       tree,
-      source: marked,
+      source: shown,
       outline: words,
       content: contentJson(words, fields),
       contentName: kebab(component),
@@ -294,6 +297,16 @@ export function composePage(input: ComposeInput): ComposedPage {
     mediaFiles,
     moving: sections.some((x) => x.media.some((m) => m.kind !== 'image' || m.lightbox)),
   }
+}
+
+function dropBlocks(nodes: HNode[], ids: Set<string>): HNode[] {
+  return nodes.flatMap((n): HNode[] => {
+    if (n.t !== 'el') return [n]
+    const id = attr(n, 'data-mx-b')
+    // A hidden list takes its marquee copy with it.
+    if ((id && ids.has(id)) || ids.has(attr(n, 'data-mx-set') ?? '')) return []
+    return [{ ...n, kids: dropBlocks(n.kids, ids) }]
+  })
 }
 
 const kebab = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()

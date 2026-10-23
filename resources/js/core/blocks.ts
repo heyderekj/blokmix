@@ -12,13 +12,14 @@ export const BLOCK_LABEL: Record<BlockKind, string> = {
   icon: 'Icon',
   image: 'Image',
   input: 'Field',
+  banner: 'Banner',
   card: 'Card',
   item: 'Item',
   list: 'List',
 }
 
 /** Small blocks hold words or a single element; composite ones hold other blocks. */
-export const COMPOSITE: ReadonlySet<BlockKind> = new Set(['card', 'item', 'list'])
+export const COMPOSITE: ReadonlySet<BlockKind> = new Set(['banner', 'card', 'item', 'list'])
 
 const isKind = (k: string | undefined): k is BlockKind => !!k && (BLOCK_KINDS as readonly string[]).includes(k)
 

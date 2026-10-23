@@ -141,6 +141,26 @@ describe('content as files', () => {
   })
 })
 
+describe('banners', () => {
+  const id = 'nav.monolith-bar'
+  it('is a block whose messages are a list in your copy, with the marquee copy following', () => {
+    const c = sectionClip(library.clips[id])
+    const banner = c.blocks.find((b) => b.kind === 'banner')!
+    const list = c.blocks.find((b) => b.parent === banner.id)!
+    expect(list.listKey).toBe('notice')
+    const json = pageFor([slotFor(id)]).sections[0].content as { notices: string[] }
+    expect(json.notices[0]).toBe(DEFAULT_CONTENT.fields.nav!.notice1)
+    const moved = sectionClip(library.clips[id], { notice: [{ n: 2 }, { n: 1 }] })
+    expect([...moved.html.matchAll(/data-mx-mirror="(notice\d)"/g)].map((m) => m[1])).toEqual(['notice2', 'notice1'])
+  })
+  it('leaves the export entirely when hidden', () => {
+    const banner = library.clips[id].blocks.find((b) => b.kind === 'banner')!
+    const s = pageFor([slotFor(id, { edits: { [id]: { [banner.id]: { hidden: true } } } })]).sections[0]
+    expect(JSON.stringify(s.tree)).not.toContain('ticker')
+    expect(s.content).not.toHaveProperty('notices')
+  })
+})
+
 describe('content commands', () => {
   beforeEach(() => {
     useStore.getState().resetDemo()

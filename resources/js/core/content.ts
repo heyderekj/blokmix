@@ -7,7 +7,7 @@ const range = (n: number, f: (i: number) => string[]) => Array.from({ length: n 
  * clip of a type render your copy instead of the source's.
  */
 export const FIELD_SCHEMA: Record<SectionType, string[]> = {
-  nav: ['brand', 'link1', 'link2', 'link3', 'link4', 'cta'],
+  nav: ['brand', 'link1', 'link2', 'link3', 'link4', 'cta', ...range(6, (i) => [`notice${i}`])],
   hero: ['eyebrow', 'headline', 'subhead', 'ctaPrimary', 'ctaSecondary', 'note'],
   features: ['eyebrow', 'heading', 'intro', ...range(6, (i) => [`f${i}Title`, `f${i}Body`])],
   testimonials: [
@@ -72,7 +72,20 @@ export const TYPE_LABEL: Record<SectionType, string> = {
 export const DEFAULT_CONTENT: ProjectContent = {
   brand: 'Mixtape',
   fields: {
-    nav: { brand: 'Mixtape', link1: 'How it works', link2: 'Extension', link3: 'Pricing', link4: 'Docs', cta: 'Start a tape' },
+    nav: {
+      brand: 'Mixtape',
+      link1: 'How it works',
+      link2: 'Extension',
+      link3: 'Pricing',
+      link4: 'Docs',
+      cta: 'Start a tape',
+      notice1: 'Now in private beta',
+      notice2: 'Free while in beta',
+      notice3: 'Astro + Next.js export',
+      notice4: 'Clip any site',
+      notice5: 'MCP handoff',
+      notice6: 'Made for tinkerers',
+    },
     hero: {
       eyebrow: 'Now in private beta',
       headline: 'Clip the web. Mix your site.',

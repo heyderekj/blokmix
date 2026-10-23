@@ -77,6 +77,12 @@ export function LookSample({ kind, look, text }: { kind: BlockKind; look?: strin
           </svg>
         </span>
       )
+    case 'banner':
+      return (
+        <span className={cls} style={{ display: 'flex', gap: 8, width: 170, padding: '5px 8px', fontFamily: 'var(--mx-font-mono)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', ...(look ? {} : { background: 'var(--mx-color-text)', color: 'var(--mx-color-bg)' }) }}>
+          {words} <span style={{ color: 'var(--mx-color-primary)' }}>★</span> {words}
+        </span>
+      )
     case 'input':
       return (
         <span className={cls} style={{ display: 'block', width: 150, fontSize: 13, color: 'var(--mx-color-muted)', ...(look ? {} : { padding: '8px 10px', border: 'var(--mx-stroke) solid var(--mx-color-border)', borderRadius: 8 }) }}>

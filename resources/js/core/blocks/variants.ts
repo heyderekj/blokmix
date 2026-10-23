@@ -94,6 +94,33 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'arrow', label: 'Arrow', hint: 'Points onwards', css: `color: ${ink('inherit')}; text-decoration: none; &::after { content: " →"; } &:hover { color: ${fill('var(--mx-color-primary)')}; }` },
     { id: 'quiet', label: 'Quiet', hint: 'Muted until hovered; for dense link lists', css: `color: ${ink('var(--mx-color-muted)')}; text-decoration: none; &:hover { color: var(--mx-color-text); }` },
   ],
+  banner: [
+    {
+      id: 'inverted',
+      label: 'Inverted',
+      hint: 'A dark strip that reads as news',
+      css: `background: ${fill('var(--mx-color-text)')}; color: ${ink('var(--mx-color-bg)')}; border-block-end: 0;`,
+    },
+    {
+      id: 'quiet',
+      label: 'Quiet',
+      hint: 'Sits back: surface colour, muted words, a hairline',
+      css: `background: ${fill('var(--mx-color-surface)')}; color: ${ink('var(--mx-color-muted)')}; border-block-end: var(--mx-stroke) solid var(--mx-color-border);`,
+    },
+    {
+      id: 'accent',
+      label: 'Accent',
+      hint: 'For a launch or a sale; use it briefly',
+      css: `background: ${fill('var(--mx-color-accent)')}; color: ${ink('var(--mx-color-on-primary)')}; --mx-color-primary: var(--mx-color-on-primary); border-block-end: 0;`,
+    },
+    {
+      id: 'static',
+      label: 'Still',
+      hint: 'One line, centered, no scrolling: calmer and easier to read',
+      // The hidden half of a marquee goes, and nothing moves.
+      css: `display: flex; justify-content: center; overflow: hidden; & [aria-hidden="true"] { display: none; } & * { animation: none; transform: none; } & > * { width: auto; max-width: 100%; justify-content: center; flex-wrap: wrap; }`,
+    },
+  ],
   badge: [
     { id: 'pill', label: 'Pill', hint: 'A soft tag that sits above a heading', css: `display: inline-flex; align-items: center; gap: var(--mx-space-2); padding: var(--mx-space-1) var(--mx-space-3); border-radius: 999px; background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 14%, transparent); color: ${ink('var(--mx-color-text)')}; font-size: var(--mx-text-sm); font-weight: 600;` },
     { id: 'outline', label: 'Outline', hint: 'Lighter than a pill', css: `display: inline-flex; padding: var(--mx-space-1) var(--mx-space-3); border-radius: 999px; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-text) 22%, transparent); background: none; color: ${ink('var(--mx-color-text)')}; font-size: var(--mx-text-sm); font-weight: 500;` },

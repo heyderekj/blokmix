@@ -27,7 +27,16 @@
     text-transform: uppercase;
     white-space: nowrap;
   }
-  & .star { color: var(--mx-color-primary); }
+  & .note {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mx-space-4);
+  }
+  /* A star after each message: decoration, so it lives in CSS and follows the list. */
+  & .note::after {
+    content: "★";
+    color: var(--mx-color-primary);
+  }
 
   /* Bar: a row of hard-ruled cells. */
   & .bar {

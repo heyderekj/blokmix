@@ -290,7 +290,7 @@ export interface VersionNode {
  * (heading … input) sit inside composite ones (card, item); a list holds the
  * repeating items of a section.
  */
-export const BLOCK_KINDS = ['heading', 'text', 'button', 'link', 'badge', 'icon', 'image', 'input', 'card', 'item', 'list'] as const
+export const BLOCK_KINDS = ['heading', 'text', 'button', 'link', 'badge', 'icon', 'image', 'input', 'banner', 'card', 'item', 'list'] as const
 export type BlockKind = (typeof BLOCK_KINDS)[number]
 
 export interface BlockInfo {

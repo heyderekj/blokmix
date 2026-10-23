@@ -18,6 +18,7 @@ const KIND_NOUN: Record<BlockKind, string> = {
   icon: 'icon',
   image: 'image',
   input: 'field',
+  banner: 'banner',
   card: 'card',
   item: 'item',
   list: 'list',

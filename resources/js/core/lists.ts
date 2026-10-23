@@ -398,7 +398,7 @@ export function renumberField(field: string, key: string, from: number, to: numb
 }
 
 /** How many items a list handles well: the layout's own count, or more for lists that wrap. */
-const MAX_BY_NAME: Record<string, number> = { features: 9, questions: 12, plans: 4, quotes: 6, logos: 12, stats: 6, members: 12, posts: 9, links: 8, columns: 5 }
+const MAX_BY_NAME: Record<string, number> = { notices: 6, features: 9, questions: 12, plans: 4, quotes: 6, logos: 12, stats: 6, members: 12, posts: 9, links: 8, columns: 5 }
 export function listMax(name: string | undefined, key: string, layoutCount: number): number {
   const nested = /[A-Z]$/.test(key)
   return Math.max(layoutCount, nested ? 8 : (MAX_BY_NAME[name ?? ''] ?? 8))
