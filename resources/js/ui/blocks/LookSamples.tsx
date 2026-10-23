@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import type { BlockKind } from '@/core/types'
 import { VARIANTS, type Variant } from '@/core/blocks/variants'
 import { expandTokens, varsToCss } from '@/core/tokens'
-import { fontHrefFor, useResolvedGuide } from '@/state/derived'
+import { fontHrefsFor, useResolvedGuide } from '@/state/derived'
 
 /**
  * Your style guide's tokens on `.lv`, and every look scoped to a class, so a
@@ -16,10 +16,12 @@ export function LookStyles() {
     const looks = (Object.entries(VARIANTS) as [BlockKind, Variant[]][]).flatMap(([kind, list]) => list.map((v) => `.lv .lv-${kind}-${v.id} { ${v.css} }`))
     return `${vars}\n.lv { font-family: var(--mx-font-body); color: var(--mx-color-text); }\n${looks.join('\n')}`
   }, [tokens])
-  const href = fontHrefFor(tokens)
+  const hrefs = fontHrefsFor(tokens)
   return (
     <>
-      {href && <link rel="stylesheet" href={href} />}
+      {hrefs.map((h) => (
+        <link key={h} rel="stylesheet" href={h} />
+      ))}
       <style>{css}</style>
     </>
   )

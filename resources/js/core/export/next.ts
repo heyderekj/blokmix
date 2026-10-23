@@ -4,7 +4,7 @@ import type { HNode } from '../html/parse'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
 import { slug } from './astro'
-import { contentVar, fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+import { contentVar, fontLinks, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
 
 export const NEXT_VERSION = '^16.4.3'
@@ -18,7 +18,7 @@ function jsxBody(nodes: HNode[]): string {
 
 export function nextFiles(page: ComposedPage, root = 'next/'): FileMap {
   const files: FileMap = {}
-  const href = fontLink(page)
+  const links = fontLinks(page, true)
 
   for (const [path, data] of Object.entries(page.mediaFiles)) files[`${root}public/${path}`] = data
   files[`${root}package.json`] = JSON.stringify(
@@ -75,7 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-${href ? `        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />\n        <link rel="stylesheet" href="${href}" />\n` : ''}      </head>
+${links.map((l) => `        ${l}\n`).join('')}      </head>
       <body>
         <main>{children}</main>
 ${page.moving ? '        <Script src="/mx-media.js" strategy="afterInteractive" />\n' : ''}      </body>

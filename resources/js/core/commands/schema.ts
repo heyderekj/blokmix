@@ -191,8 +191,19 @@ export const COMMANDS = {
     }),
     write: true,
   },
+  list_fonts: {
+    description:
+      'Browse the free font library (Google Fonts and Fontshare, all free for commercial use), organised by vibe: display, sans, serif, humanist, rounded, mono, script, hand, retro. Filter by role to get faces that suit headings, body text or code. Then set one with set_token.',
+    input: z.object({
+      query: z.string().optional(),
+      vibe: z.enum(['display', 'sans', 'serif', 'humanist', 'rounded', 'mono', 'script', 'hand', 'retro']).optional(),
+      role: z.enum(['display', 'body', 'mono']).optional(),
+      source: z.enum(['google', 'fontshare']).optional(),
+    }),
+    write: false,
+  },
   set_token: {
-    description: 'Set a style guide token to your own value (e.g. color.primary "#e2508d", font.display "\'Fraunces\', serif", radius.base "12px"), or null to go back to automatic.',
+    description: 'Set a style guide token to your own value (e.g. color.primary "#e2508d", font.display "Satoshi" or a full stack, radius.base "12px"), or null to go back to automatic. Fonts from list_fonts load by themselves, in the canvas and in exports.',
     input: z.object({ key: z.enum(TOKEN_KEYS), value: z.string().nullable() }),
     write: true,
   },

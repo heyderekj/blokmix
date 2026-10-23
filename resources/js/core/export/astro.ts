@@ -2,14 +2,14 @@ import type { ComposedPage } from '../compose'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
-import { contentVar, fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+import { contentVar, fontLinks, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
 
 export const ASTRO_VERSION = '~7.3.0' // 7.4 needs Node >= 22.23.4; 7.3 runs on any Node 22.12+
 
 export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
   const files: FileMap = {}
-  const href = fontLink(page)
+  const links = fontLinks(page)
 
   for (const [path, data] of Object.entries(page.mediaFiles)) files[`${root}public/${path}`] = data
   files[`${root}package.json`] = JSON.stringify(
@@ -43,7 +43,7 @@ const { title } = Astro.props
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-${href ? `    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n    <link rel="stylesheet" href="${href}" />\n` : ''}${page.moving ? '    <script is:inline src="/mx-media.js" defer></script>\n' : ''}  </head>
+${links.map((l) => `    ${l}\n`).join('')}${page.moving ? '    <script is:inline src="/mx-media.js" defer></script>\n' : ''}  </head>
   <body>
     <main>
       <slot />

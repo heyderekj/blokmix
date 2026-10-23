@@ -1,5 +1,5 @@
 import type { ComposedPage, ComposedSection } from '../compose'
-import { fontHref, varsToCss } from '../tokens'
+import { fontHrefs, fontLinkTags, varsToCss } from '../tokens'
 import { TYPE_LABEL } from '../content'
 
 /** Text files, plus binary ones (uploaded images) as bytes. */
@@ -14,8 +14,9 @@ export function tokensCss(page: ComposedPage): string {
   return `/* Mixtape style guide: generated, edit tokens in Mixtape and re-export. */\n${varsToCss(page.vars)}\n`
 }
 
-export function fontLink(page: ComposedPage): string | null {
-  return fontHref(page.fonts)
+/** The head links for the page's fonts (Google Fonts and Fontshare). */
+export function fontLinks(page: ComposedPage, jsx = false): string[] {
+  return fontLinkTags(fontHrefs(page.fonts), jsx)
 }
 
 export function keepSummary(s: ComposedSection): string {

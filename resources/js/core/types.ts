@@ -57,6 +57,10 @@ export interface FontSource {
   family: string
   /** Google Fonts css2 `family=` parameter, e.g. "Fraunces:opsz,wght@9..144,400;9..144,700" */
   css2: string
+  /** Where it loads from (Google Fonts unless said otherwise). */
+  provider?: 'google' | 'fontshare'
+  /** Fontshare's `f[]=` parameter, e.g. "satoshi@400,500,700". */
+  fontshare?: string
 }
 
 export interface Source {

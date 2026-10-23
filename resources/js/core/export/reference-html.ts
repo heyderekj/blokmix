@@ -3,14 +3,14 @@ import { mapTree } from '../html/parse'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
-import { fontLink, sectionCss, tokensCss } from './shared'
+import { fontLinks, sectionCss, tokensCss } from './shared'
 
 /**
  * One standalone HTML document for a composed page. It is what the canvas shows
  * for a reference build, so what you see is what the exporters wrote.
  */
 export function referenceHtml(page: ComposedPage, opts: { vh?: string; tagSlots?: boolean } = {}): string {
-  const href = fontLink(page)
+  const links = fontLinks(page)
   const vars = opts.vh ? tokensCss(page).replace(/--mx-vh: [^;]+;/, `--mx-vh: ${opts.vh};`) : tokensCss(page)
   const body = page.sections
     .map((s) => {
@@ -31,7 +31,7 @@ export function referenceHtml(page: ComposedPage, opts: { vh?: string; tagSlots?
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${page.title.replace(/</g, '&lt;')}</title>
-${href ? `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="${href}">` : ''}
+${links.join('\n')}
 <style>
 ${vars}
 ${BASE_CSS_LAYERED}

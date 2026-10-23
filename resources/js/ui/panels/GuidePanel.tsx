@@ -9,7 +9,8 @@ import { TOKEN_GROUPS } from '@/core/types'
 import { CONTRAST_PAIRS, contrastRatio, expandTokens, GROUP_LABEL, keysInGroup, primaryFamily, TOKEN_LABEL, varsToCss } from '@/core/tokens'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
-import { FONT_CATALOG, useResolvedGuide } from '@/state/derived'
+import { useResolvedGuide } from '@/state/derived'
+import { FontField } from './FontPicker'
 import { PanelSection } from './parts'
 
 function sourceOf(candidateId: string) {
@@ -365,12 +366,6 @@ const EASES: [string, string][] = [
   ['cubic-bezier(0, 0, 1, 1)', 'Linear'],
 ]
 
-function fontStack(family: string, k: TokenKey): string {
-  for (const s of Object.values(library.sources)) {
-    for (const key of ['font.display', 'font.body', 'font.mono'] as const) if (primaryFamily(s.tokens[key]) === family) return s.tokens[key]
-  }
-  return k === 'font.mono' ? `'${family}', ui-monospace, monospace` : `'${family}', system-ui, sans-serif`
-}
 
 function Slider({ value, min, max, step = 1, unit, onChange }: { value: number; min: number; max: number; step?: number; unit: string; onChange: (v: string) => void }) {
   return (
@@ -412,19 +407,7 @@ function Knob({ k, value, onChange }: { k: TokenKey; value: string; onChange: (v
       </div>
     )
   }
-  if (k.startsWith('font.')) {
-    const fam = primaryFamily(value)
-    return (
-      <select value={fam} onChange={(e) => onChange(fontStack(e.target.value, k))} className={selectCls} style={{ fontFamily: value }}>
-        {!FONT_CATALOG.some((f) => f.family === fam) && <option value={fam}>{fam}</option>}
-        {[...new Set(FONT_CATALOG.map((f) => f.family))].map((f) => (
-          <option key={f} value={f} style={{ fontFamily: f }}>
-            {f}
-          </option>
-        ))}
-      </select>
-    )
-  }
+  if (k.startsWith('font.')) return <FontField k={k} value={value} onChange={onChange} />
   const n = parseFloat(value)
   switch (k) {
     case 'type.base':

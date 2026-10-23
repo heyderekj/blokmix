@@ -1,4 +1,5 @@
 import type { CssVars, FontSource, TokenGroup, TokenKey, TokenSet } from './types'
+import { LIBRARY_FONTS } from './fonts'
 import { TOKEN_KEYS } from './types'
 
 export const TOKEN_GROUP_OF: Record<TokenKey, TokenGroup> = {
@@ -153,10 +154,24 @@ export function varsToCss(vars: CssVars, selector = ':root'): string {
   return `${selector} {\n${body}\n}`
 }
 
-export function fontHref(fonts: FontSource[]): string | null {
-  if (!fonts.length) return null
-  const fams = fonts.map((f) => `family=${f.css2}`).join('&')
-  return `https://fonts.googleapis.com/css2?${fams}&display=swap`
+/** Stylesheet URLs for a set of fonts: one for Google Fonts, one for Fontshare. */
+export function fontHrefs(fonts: FontSource[]): string[] {
+  const google = fonts.filter((f) => f.provider !== 'fontshare' && f.css2)
+  const fontshare = fonts.filter((f) => f.provider === 'fontshare' && f.fontshare)
+  const out: string[] = []
+  if (google.length) out.push(`https://fonts.googleapis.com/css2?${google.map((f) => `family=${f.css2}`).join('&')}&display=swap`)
+  if (fontshare.length) out.push(`https://api.fontshare.com/v2/css?${fontshare.map((f) => `f[]=${f.fontshare}`).join('&')}&display=swap`)
+  return out
+}
+
+/** The links an HTML head needs for these stylesheets, with preconnects. */
+export function fontLinkTags(hrefs: string[], jsx = false): string[] {
+  const co = jsx ? 'crossOrigin=""' : 'crossorigin'
+  const out: string[] = []
+  if (hrefs.some((h) => h.includes('fonts.googleapis.com'))) out.push(`<link rel="preconnect" href="https://fonts.gstatic.com" ${co} />`)
+  if (hrefs.some((h) => h.includes('fontshare.com'))) out.push(`<link rel="preconnect" href="https://cdn.fontshare.com" ${co} />`)
+  for (const h of hrefs) out.push(`<link rel="stylesheet" href="${h.replace(/&/g, '&amp;')}" />`)
+  return out
 }
 
 /** First family in a font stack, without quotes. */
@@ -167,7 +182,8 @@ export function primaryFamily(stack: string): string {
 export function fontsForTokens(t: TokenSet, catalog: FontSource[]): FontSource[] {
   const fams = new Set([t['font.display'], t['font.body'], t['font.mono']].map(primaryFamily))
   const out: FontSource[] = []
-  for (const f of catalog) if (fams.has(f.family) && !out.some((o) => o.family === f.family)) out.push(f)
+  // Fonts from your clips first (as captured), then the font library.
+  for (const f of [...catalog, ...LIBRARY_FONTS]) if (fams.has(f.family) && !out.some((o) => o.family === f.family)) out.push(f)
   return out
 }
 

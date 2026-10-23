@@ -133,6 +133,14 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
   carry `data-mx-src="<file>#<path>"` (Koati's `data-koati-src` idea). MIXTAPE.md points to Keystatic as an
   optional editor.
 
+### Fonts
+
+The style guide's fonts come from your clips or the font library (`core/fonts.ts`): ~150 free fonts from
+Google Fonts and Fontshare (free for commercial use), sorted by vibe after "Usable Google Fonts". The picker
+previews each in your brand name (Pica-style), hover previews on the page, and agents use `list_fonts` +
+`set_token`. Frames and exports load one stylesheet per provider (`fontHrefs`). `npx vite-node
+scripts/check-fonts.ts` checks every library font still loads.
+
 ### Images
 
 Image blocks take a fill (`BlockEdit.media`, `core/media.ts`): a placeholder SVG drawn from the

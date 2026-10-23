@@ -11,6 +11,7 @@ import { suggestClip, suggestTypes } from '@/core/suggest'
 import { resolveGuide, openGroups } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
 import { pressVersionAndFly } from '@/lib/actions'
+import { PROVIDER_LABEL, PROVIDER_LICENSE, findLibraryFont, fontStack, searchFonts } from '@/core/fonts'
 import { editList, listContext, ListError, type ListOp } from '@/core/lists'
 import { outline, contentJson, type OutlineList, type OutlineNode } from '@/core/outline'
 import { parseHtml } from '@/core/html/parse'
@@ -256,6 +257,14 @@ const READ = {
       )
       return { section: s.id, position: st.slots.indexOf(s) + 1, type: s.type, content: contentJson(nodes, wordsFor(s)), lists, options }
     })
+  },
+  list_fonts: (i: CommandInput<'list_fonts'>) => {
+    const fonts = searchFonts({ query: i.query, vibe: i.vibe, role: i.role, provider: i.source })
+    return {
+      count: fonts.length,
+      fonts: fonts.map((f) => ({ family: f.family, source: PROVIDER_LABEL[f.provider], license: PROVIDER_LICENSE[f.provider], vibes: f.vibes, goodFor: f.role, weights: f.weights })),
+      current: Object.fromEntries((['font.display', 'font.body', 'font.mono'] as const).map((k) => [k, resolveGuide(useStore.getState().guide).tokens[k]])),
+    }
   },
   get_options: (i: CommandInput<'get_options'>) => {
     const st = useStore.getState()
@@ -549,7 +558,13 @@ const WRITE = {
     return { motion: findSection(slot.id).motion ?? { mode: 'captured' } }
   },
   set_token: (i: CommandInput<'set_token'>) => {
-    const choice: Choice | null = i.value === null ? null : { kind: 'custom', value: i.value }
+    // A bare family from the library ("Satoshi") becomes a full stack with a fitting fallback.
+    let value = i.value
+    if (value && i.key.startsWith('font.') && !value.includes(',')) {
+      const lib = findLibraryFont(value)
+      if (lib) value = fontStack(lib.family, i.key === 'font.mono' ? 'mono' : i.key === 'font.body' ? 'body' : 'display')
+    }
+    const choice: Choice | null = value === null ? null : { kind: 'custom', value }
     useStore.getState().chooseToken(i.key as TokenKey, choice)
     return { key: i.key, value: resolveGuide(useStore.getState().guide).tokens[i.key as TokenKey] }
   },

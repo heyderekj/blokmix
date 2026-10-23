@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import type { BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
+import { create } from 'zustand'
+import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { motionCss } from '@/core/motion'
 import { renderMedia } from '@/core/media'
@@ -9,7 +10,7 @@ import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
 import { sectionClip } from '@/core/lists'
 import { BANNER_CSS, BANNER_MOTION, bannerMoves } from '@/core/banner'
-import { BASE_FONTS, expandTokens, fontHref, fontsForTokens, varsToCss } from '@/core/tokens'
+import { BASE_FONTS, expandTokens, fontHrefs, fontsForTokens, varsToCss } from '@/core/tokens'
 import { allFonts } from '@/core/library'
 import { library } from '@/data/library'
 import type { FrameState } from '@/frame/bridge'
@@ -26,9 +27,19 @@ export function usePageStyle(): Pick<GuideState, 'swatches' | 'components'> {
   return useMemo(() => ({ swatches, components }), [swatches, components])
 }
 
+/** A token value you're hovering in a picker (a font), shown on the page before you choose it. Not undoable state. */
+export const useTokenPreview = create<{ preview: { key: TokenKey; value: string } | null; set: (p: { key: TokenKey; value: string } | null) => void }>()((set) => ({
+  preview: null,
+  set: (preview) => set({ preview }),
+}))
+
 export function useResolvedGuide(): ResolvedGuide {
   const guide = useStore((s) => s.guide)
-  return useMemo(() => resolveGuide(guide), [guide])
+  const preview = useTokenPreview((s) => s.preview)
+  return useMemo(() => {
+    const r = resolveGuide(guide)
+    return preview ? { ...r, tokens: { ...r.tokens, [preview.key]: preview.value } } : r
+  }, [guide, preview])
 }
 
 const cssCache = new Map<string, string>()
@@ -43,8 +54,8 @@ export function tokensCssFor(tokens: TokenSet, vh: string): string {
   return css
 }
 
-export function fontHrefFor(tokens: TokenSet): string | null {
-  return fontHref(fontsForTokens(tokens, FONT_CATALOG))
+export function fontHrefsFor(tokens: TokenSet): string[] {
+  return fontHrefs(fontsForTokens(tokens, FONT_CATALOG))
 }
 
 /** What a clip should look like in a given slot, mode and style guide. */
@@ -60,7 +71,7 @@ export function frameStateFor(
   const vh = VIEWPORT_VH[viewport]
   if (mode === 'captured' || !slot) {
     const clip = libraryClip
-    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null, lists: NO_LISTS }
+    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: fontHrefsFor(clip.tokens), outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null, lists: NO_LISTS }
   }
   // The clip as this section shows it: items you added, removed or reordered.
   const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
@@ -71,7 +82,7 @@ export function frameStateFor(
     // A motion preset (or None) replaces the clip's own motion.
     motion: slot.keep.motion && (!slot.motion || slot.motion.mode === 'captured'),
     fields: slot.keep.content && !own ? null : resolveFields(clip.type, clip.fields, content, slot.keep.content, own).fields,
-    fonts: [fontHrefFor(tokens)],
+    fonts: fontHrefsFor(tokens),
     outline: !slot.keep.layout,
     blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion), clip.extras?.banner ? bannerMoves(slot) : null),
     media: mediaFor(clip, slot.edits?.[clip.id], tokens),
