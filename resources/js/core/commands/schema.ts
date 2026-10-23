@@ -127,6 +127,12 @@ export const COMMANDS = {
     }),
     write: true,
   },
+  set_icon: {
+    description:
+      'Choose the icon in an icon block by name (see get_options for the names), or null for the clip’s own. It’s drawn in the style guide’s icon set (token icon.set, e.g. "phosphor:duotone"; set it with set_token).',
+    input: z.object({ section, block, name: z.string().nullable() }),
+    write: true,
+  },
   set_section_motion: {
     description: 'A section’s motion: "captured" (as clipped), "none", or "preset" with an entrance, optionally staggering its blocks and playing on scroll.',
     input: z.object({

@@ -21,6 +21,7 @@
     "type.displayWeight": "650",
     "radius.base": "10px",
     "stroke.width": "1px",
+    "icon.set": "lucide:regular",
     "shadow.card": "0 1px 2px #18181b0f, 0 8px 24px #18181b0f",
     "space.base": "4px",
     "space.section": "96px",

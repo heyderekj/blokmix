@@ -3,6 +3,7 @@ import type { BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGu
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { motionCss } from '@/core/motion'
 import { renderMedia } from '@/core/media'
+import { iconNamesIn, iconSvg } from '@/core/icons'
 import { uploadData } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
@@ -56,7 +57,7 @@ export function frameStateFor(
 ): FrameState {
   const vh = VIEWPORT_VH[viewport]
   if (mode === 'captured' || !slot) {
-    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS, media: NO_MEDIA }
+    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null }
   }
   const tokens = slot.keep.style ? clip.tokens : guide
   const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
@@ -69,11 +70,29 @@ export function frameStateFor(
     outline: !slot.keep.layout,
     blocks: blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion),
     media: mediaFor(clip, slot.edits?.[clip.id], tokens),
+    // A section keeping its own captured look keeps its own icons too.
+    icons: slot.keep.style ? null : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
   }
 }
 
 const NO_BLOCKS: FrameState['blocks'] = { css: '', variants: {} }
 const NO_MEDIA: FrameState['media'] = {}
+
+const iconCache = new Map<string, FrameState['icons']>()
+function iconsFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, set: string): FrameState['icons'] {
+  const overrides: Record<string, string> = {}
+  for (const b of clip.blocks) if (b.kind === 'icon' && edits?.[b.id]?.icon) overrides[b.id] = edits[b.id].icon!
+  const names = [...new Set([...iconNamesIn(clip.html), ...Object.values(overrides)])]
+  if (!names.length) return null
+  const key = JSON.stringify([set, names, overrides])
+  let v = iconCache.get(key)
+  if (!v) {
+    v = { set, overrides, glyphs: Object.fromEntries(names.flatMap((n) => { const g = iconSvg(n, set); return g ? [[n, g]] : [] })) }
+    if (iconCache.size > 300) iconCache.clear()
+    iconCache.set(key, v)
+  }
+  return v
+}
 
 const mediaCache = new Map<string, FrameState['media'][string]>()
 /** Pictures for image blocks; placeholders are redrawn from the current palette. */

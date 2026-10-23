@@ -2,6 +2,7 @@ import type { LintIssue, SectionType } from './types'
 import { FIELD_SCHEMA } from './content'
 import { attr, parseHtml, walk } from './html/parse'
 import { lintBlocks } from './blocks'
+import { ICON_NAMES } from './icons'
 
 const ROOT_TAGS = new Set(['section', 'header', 'footer', 'nav'])
 
@@ -56,6 +57,11 @@ export function lintClip(input: {
     if (mirror) {
       if (!allowed.has(mirror)) err(`Mirror of unknown field "${mirror}"`)
       if (n.kids.some((k) => k.t === 'el')) err(`Mirror "${mirror}" must be on a leaf text element`)
+    }
+    const icon = attr(n, 'data-mx-icon')
+    if (icon !== undefined) {
+      if (n.tag !== 'svg') err(`data-mx-icon belongs on an <svg> (found it on <${n.tag}>)`)
+      else if (!ICON_NAMES.includes(icon)) err(`Unknown icon name "${icon}"; use one from core/icons.ts (ICON_NAMES)`)
     }
     const href = attr(n, 'href')
     if (n.tag === 'a' && href && href !== '#' && !href.startsWith('#')) warn(`Links should use href="#" (found ${href})`)

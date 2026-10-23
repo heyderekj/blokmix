@@ -1,6 +1,7 @@
 import type { BlockEdit, BlockInfo, BlockMotion, BlockStyle, Choice, MediaFill, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
 import { isMark, MARK_GUIDANCE, SOURCE_LABEL, sortMarks } from '@/core/notes'
 import { detectLink } from '@/core/media'
+import { ICON_NAMES, ICON_SETS, blockIconName } from '@/core/icons'
 import { COMMANDS, toolDefinitions, type CommandInput, type CommandName } from '@/core/commands/schema'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -189,6 +190,7 @@ const READ = {
         palette: ['primary', 'accent', 'text', 'muted', 'surface', 'bg', ...(st.guide.swatches ?? []).map((w) => `x:${w.name}`)],
         spacingSteps: { '0': 0, XS: 1, S: 2, M: 4, L: 6, XL: 8 },
         advice: adviceFor(slot).filter((a) => a.blockId === b.id),
+        ...(b.kind === 'icon' ? { icons: ICON_NAMES, iconSets: ICON_SETS.map((x) => x.id) } : {}),
       }
     }
     if (i.section !== undefined) {
@@ -375,6 +377,14 @@ const WRITE = {
     if (i.thumbnail !== undefined) next.poster = i.thumbnail ?? undefined
     useStore.getState().editBlock(slot.id, b.id, { media: next })
     return { block: b.label, media: next }
+  },
+  set_icon: (i: CommandInput<'set_icon'>) => {
+    const slot = findSection(i.section)
+    const b = findBlock(slot, i.block)
+    if (b.kind !== 'icon') throw new CommandError(`${b.label} isn’t an icon block`)
+    if (i.name && !ICON_NAMES.includes(i.name)) throw new CommandError(`No icon "${i.name}". Icons: ${ICON_NAMES.join(', ')}`)
+    useStore.getState().editBlock(slot.id, b.id, { icon: i.name ?? undefined })
+    return { block: b.label, icon: i.name ?? blockIconName(library.clips[slot.clipId].html, b.id) ?? null, set: resolveGuide(useStore.getState().guide).tokens['icon.set'] }
   },
   set_section_motion: (i: CommandInput<'set_section_motion'>) => {
     const slot = findSection(i.section)

@@ -38,6 +38,7 @@ export const TOKEN_KEYS = [
   'type.displayWeight',
   'radius.base',
   'stroke.width',
+  'icon.set',
   'shadow.card',
   'space.base',
   'space.section',
@@ -67,6 +68,8 @@ export interface Source {
   personality: string
   tokens: TokenSet
   fonts: FontSource[]
+  /** How its icon set was identified from its clips, when it was. */
+  iconReason?: string
 }
 
 export interface Capture {
@@ -406,6 +409,8 @@ export interface BlockEdit {
   style?: BlockStyle
   motion?: BlockMotion
   media?: MediaFill
+  /** Icon blocks: a different icon (by name) than the clip drew. */
+  icon?: string
   hidden?: boolean
 }
 

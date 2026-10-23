@@ -3,6 +3,7 @@ import { Check, ChevronRight, ClipboardCopy, Plus, RotateCcw, TriangleAlert, X }
 import type { BlockKind, ComponentDefault, Conflict, TokenGroup, TokenKey } from '@/core/types'
 import { BLOCK_LABEL } from '@/core/blocks'
 import { findVariant } from '@/core/blocks/variants'
+import { IconGlyph, IconSetPicker } from '../blocks/IconMenu'
 import { groupWinner, openGroups } from '@/core/guide'
 import { TOKEN_GROUPS } from '@/core/types'
 import { CONTRAST_PAIRS, contrastRatio, expandTokens, GROUP_LABEL, keysInGroup, primaryFamily, TOKEN_LABEL, varsToCss } from '@/core/tokens'
@@ -349,6 +350,7 @@ function OptionPreview({ k, value }: { k: TokenKey; value: string }) {
       </span>
     )
   if (k === 'radius.base') return <span className="ml-1 size-4 border-2 border-current" style={{ borderRadius: Math.min(8, parseFloat(value)) }} />
+  if (k === 'icon.set') return <span className="ml-1 text-zinc-700"><IconGlyph name="star" set={value} size={14} /></span>
   if (k === 'stroke.width') return <span className="ml-1 h-0 w-5 border-t border-current" style={{ borderTopWidth: parseFloat(value) }} />
   return <span className="ml-1.5 font-mono text-[10.5px]">{value.length > 12 ? value.slice(0, 12) + '…' : value}</span>
 }
@@ -442,6 +444,8 @@ function Knob({ k, value, onChange }: { k: TokenKey; value: string; onChange: (v
       return <Slider value={n} min={300} max={900} step={10} unit="" onChange={onChange} />
     case 'radius.base':
       return <Slider value={n} min={0} max={32} unit="px" onChange={onChange} />
+    case 'icon.set':
+      return <IconSetPicker value={value} onChange={onChange} />
     case 'stroke.width':
       return <Slider value={n} min={1} max={4} step={0.5} unit="px" onChange={onChange} />
     case 'space.base':

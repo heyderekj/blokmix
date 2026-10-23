@@ -3,6 +3,7 @@ import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './h
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
 import { motionCss as presetMotionCss } from './motion'
+import { swapIcons } from './icons'
 import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
 import { resolveFields } from './content'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
@@ -178,7 +179,10 @@ export function composePage(input: ComposeInput): ComposedPage {
       })
     }
     const mediaFor = new Map(media.map((m) => [m.blockId, m]))
-    const marked = mapTree(parseHtml(clip.html), (el) => {
+    // Named icons redrawn in the style guide's set (unless the section keeps its own look).
+    const iconOverrides = Object.fromEntries(changed.flatMap(({ b, edit }) => (b.kind === 'icon' && edit.icon ? [[b.id, edit.icon]] : [])))
+    const source = slot.keep.style ? parseHtml(clip.html) : swapIcons(parseHtml(clip.html), input.guide.tokens['icon.set'], iconOverrides)
+    const marked = mapTree(source, (el) => {
       if (spaced && attr(el, 'data-mx-section') !== undefined) return addClass(el, `mx-s${position + 1}`)
       if (attr(el, 'data-mx-block') === undefined) return el
       const id = `b${order++}`

@@ -198,6 +198,38 @@ const BRIDGE = `(function () {
       if (window.mxMedia) window.mxMedia.wire(el);
     });
   }
+  /* ---- named icons, redrawn in the style guide's set ---- */
+  var iconOrig = null;
+  var KEEP_OUT = /^(viewbox|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|xmlns)$/i;
+  function drawIcons(ic) {
+    if (!iconOrig) {
+      iconOrig = [];
+      document.querySelectorAll('svg').forEach(function (svg) {
+        var b = svg.closest('[data-mx-block]');
+        var iconBlock = b && b.getAttribute('data-mx-block') === 'icon' && b.querySelector('svg') === svg ? b.getAttribute('data-mx-b') : null;
+        if (!svg.hasAttribute('data-mx-icon') && !iconBlock) return;
+        svg.setAttribute('data-mx-i', String(iconOrig.length));
+        iconOrig.push({ html: svg.outerHTML, block: iconBlock, name: svg.getAttribute('data-mx-icon'), animated: !!svg.querySelector('[class]') });
+      });
+    }
+    iconOrig.forEach(function (o, i) {
+      var cur = document.querySelector('[data-mx-i="' + i + '"]');
+      if (!cur) return;
+      var ov = ic && o.block ? ic.overrides[o.block] : null;
+      var name = ov || o.name;
+      var html = o.html;
+      if (ic && name && ic.glyphs[name] && !(o.animated && !ov)) {
+        var t = document.createElement('template'); t.innerHTML = ic.glyphs[name];
+        var next = t.content.firstElementChild;
+        var orig = document.createElement('template'); orig.innerHTML = o.html;
+        Array.prototype.forEach.call(orig.content.firstElementChild.attributes, function (a) { if (!KEEP_OUT.test(a.name)) next.setAttribute(a.name, a.value); });
+        next.setAttribute('data-mx-icon', name);
+        html = next.outerHTML;
+      }
+      if (cur.outerHTML !== html) cur.outerHTML = html;
+    });
+  }
+
   /* The lightbox opens over the whole app, not inside this section's frame. */
   window.__mxLightbox = function (p) {
     var clean = { kind: p.kind, src: p.src, poster: p.poster, alt: p.alt, player: p.player };
@@ -234,6 +266,7 @@ const BRIDGE = `(function () {
     if (d.blobs) Object.keys(d.blobs).forEach(function (id) { if (!blobUrls[id]) blobUrls[id] = URL.createObjectURL(d.blobs[id]); });
     if (d.media) lastMedia = d.media;
     if (d.media || d.blobs) drawMedia(lastMedia || {});
+    if (d.icons !== undefined) drawIcons(d.icons);
     if (typeof d.edit === 'boolean') {
       editMode = d.edit;
       document.documentElement.toggleAttribute('data-mx-edit', d.edit);

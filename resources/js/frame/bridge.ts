@@ -73,6 +73,8 @@ export interface FrameState {
   blocks: { css: string; variants: Record<string, string> }
   /** Pictures and moving media filling image blocks, by block id. */
   media: Record<string, MediaRender>
+  /** Named icons redrawn in the style guide's set (null = the clip's own icons). */
+  icons: { set: string; glyphs: Record<string, string>; overrides: Record<string, string> } | null
 }
 
 export function postState(

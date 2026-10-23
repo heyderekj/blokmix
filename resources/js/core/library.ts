@@ -4,6 +4,7 @@ import { extractFields, parseHtml } from './html/parse'
 import { lintClip } from './lint'
 import { hash } from './hash'
 import { indexBlocks } from './blocks'
+import { DEFAULT_ICON_SET, identifyIconSet } from './icons'
 
 export interface RawClip {
   type: SectionType
@@ -77,7 +78,24 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
     const ids = Object.values(lib.clips).filter((c) => c.type === t)
     lib.byType[t] = [...ids.filter((c) => c.origin === 'clip'), ...ids.filter((c) => c.origin === 'layout')].map((c) => c.id)
   }
+  identifySourceIcons(lib)
   return lib
+}
+
+/**
+ * A source's icon set, identified from the named icons in its clips (unless the
+ * source says). It becomes part of the source's look, so "Use look" brings it.
+ */
+function identifySourceIcons(lib: Library) {
+  for (const source of Object.values(lib.sources)) {
+    const clips = Object.values(lib.clips).filter((c) => c.sourceId === source.id)
+    const svgs = clips.flatMap((c) => [...c.html.matchAll(/<svg\b[^>]*data-mx-icon[^>]*>[\s\S]*?<\/svg>/g)].map((m) => m[0]))
+    const found = source.tokens['icon.set'] ? null : identifyIconSet(svgs)
+    const set = source.tokens['icon.set'] || found?.set || DEFAULT_ICON_SET
+    source.tokens = { ...source.tokens, 'icon.set': set }
+    if (found) source.iconReason = found.reason
+    for (const c of clips) if (!c.tokens['icon.set']) c.tokens = { ...c.tokens, 'icon.set': set }
+  }
 }
 
 /** Parse `/samples/clips/<type>/<folder>/<file>` glob results into RawClips. */

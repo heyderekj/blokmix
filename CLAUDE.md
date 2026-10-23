@@ -83,6 +83,13 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
     - Don't mark the section root, layout wrappers, decoration, or `data-mx-mirror` duplicates
       (the hidden half of a marquee). Logo wordmarks are `image` blocks (`data-mx-media="logo1"`).
 
+14. Icons: give every inline icon `<svg>` a meaningful name, `data-mx-icon="<name>"`, from `ICON_NAMES` in
+    `core/icons.ts` (arrow-right, mail, star…). In "Your style" named icons redraw in the style guide's icon
+    set (Lucide, Phosphor, Tabler or Heroicons at a weight, token `icon.set`); a source's own set is identified
+    from its named icons. Logos, illustrations and decoration stay unnamed. An icon whose inner shapes carry
+    classes (an animated plus/minus) keeps its own drawing. Regenerate the curated icons with
+    `npx vite-node scripts/build-icons.ts`.
+
 ### Craft (applies to clips, layouts, block looks and the app itself)
 
 Our own distillations of public craft sources, the same lenses ReviseMy uses: IIDS (Matt D. Smith / Shift

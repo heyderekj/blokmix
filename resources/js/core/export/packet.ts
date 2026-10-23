@@ -1,6 +1,7 @@
 import type { BlockEdit, Note } from '../types'
 import { MARK_GUIDANCE, workPackets, type WorkItem } from '../notes'
 import { describeBlockMotion, describeSectionMotion } from '../motion'
+import { PACK_CREDIT, iconSet } from '../icons'
 import type { BuildTarget, GuideState, Library, ResolvedGuide, Status } from '../types'
 import type { ComposedPage } from '../compose'
 import { GROUP_LABEL, TOKEN_LABEL, toDtcg } from '../tokens'
@@ -188,6 +189,13 @@ export function linerNotes(i: PacketInput): string {
     if (page.moving) lines.push('Moving media and lightboxes run on `/mx-media.js` (triggers, reduced motion, lazy embeds, a `<dialog>` lightbox). It loads the dotLottie player from a CDN; swap in the `@lottiefiles/dotlottie-web` package if you prefer bundling it.')
     lines.push('')
     lines.push('Optimise the files in `public/media/` before shipping (videos too: `dinky compress-video`). With Dinky’s CLI (dinkyfiles.com): `dinky compress-image public/media/*.webp -f webp -w 1600 --strip-metadata --json -o public/media`, keeping file names so references still match.')
+    lines.push('')
+  }
+  if (page.sections.some((s) => /data-mx-icon|<svg/.test(s.clip.html))) {
+    const set = iconSet(guide.tokens['icon.set'])
+    lines.push('## Icons')
+    lines.push('')
+    lines.push(`Icons are drawn from ${set.label} (${PACK_CREDIT[set.pack]}), inline as SVG in each section. Keep to that one set; if you need an icon that isn’t there, take it from the same pack and weight.`)
     lines.push('')
   }
   if (i.notes?.length) {
