@@ -101,6 +101,7 @@ function ModeIsland() {
     <Island
       open={open}
       width={440}
+      anchor="center"
       onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       bar={
         <>
@@ -151,6 +152,7 @@ function ShipIsland() {
     <Island
       open={open}
       width={420}
+      anchor="right"
       onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       maxBody="min(76vh, 720px)"
       bar={

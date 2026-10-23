@@ -30,6 +30,7 @@ export function Dock() {
         open={open || !!focused}
         width={open ? Math.min(760, window.innerWidth - 24) : undefined}
         grow="up"
+        anchor="center"
         maxBody="min(52vh, 420px)"
         onClose={() => useStore.getState().setUi(open ? { sheet: 'none' } : { focusedSlotId: null })}
         bar={

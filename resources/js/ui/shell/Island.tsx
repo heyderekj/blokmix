@@ -23,6 +23,7 @@ export function Island({
   maxBody = 'min(68vh, 640px)',
   className = '',
   onClose,
+  anchor = 'left',
 }: {
   open: boolean
   bar: ReactNode
@@ -33,6 +34,8 @@ export function Island({
   className?: string
   /** Shows a close button at the end of the bar while open. */
   onClose?: () => void
+  /** Which side the island grows from; the bar's contents stay pinned there so nothing slides. */
+  anchor?: 'left' | 'center' | 'right'
 }) {
   const body = (
     <AnimatePresence initial={false}>
@@ -61,7 +64,11 @@ export function Island({
       data-chrome
     >
       {grow === 'up' && body}
-      <div className="flex h-11 shrink-0 items-center gap-1 px-1">
+      <div
+        className={`relative flex h-11 shrink-0 items-center gap-1 px-1 ${
+          anchor === 'center' ? 'justify-center' : anchor === 'right' ? 'justify-end' : 'justify-start'
+        } ${open && onClose ? (anchor === 'center' ? 'px-10' : anchor === 'right' ? 'pl-10' : 'pr-10') : ''}`}
+      >
         {bar}
         <AnimatePresence initial={false}>
           {open && onClose && (
@@ -74,7 +81,9 @@ export function Island({
               onClick={onClose}
               title="Close (Esc)"
               aria-label="Close"
-              className="ml-auto grid size-8 shrink-0 place-items-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-950/5 hover:text-zinc-900"
+              className={`absolute top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-950/5 hover:text-zinc-900 ${
+                anchor === 'right' ? 'left-1.5' : 'right-1.5'
+              }`}
             >
               <X size={16} />
             </motion.button>
