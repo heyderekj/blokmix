@@ -11,6 +11,7 @@ import { PacketPanel } from '../panels/PacketPanel'
 import { Divider, Island, MORPH } from './Island'
 import { LogoTile } from './Logo'
 import { Avatar } from './Avatar'
+import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
 
 export const toggleSheet = (s: Sheet) => {
@@ -161,6 +162,7 @@ function ShipIsland() {
       maxBody="min(76vh, 720px)"
       bar={
         <>
+          <Presence />
           <button
             type="button"
             onClick={() => toggleSheet('packet')}

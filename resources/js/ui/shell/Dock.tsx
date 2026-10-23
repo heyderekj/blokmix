@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Dices, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, X } from 'lucide-react'
+import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, X } from 'lucide-react'
 import { useStore, type Tool } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
 import { Alternatives } from './Alternatives'
-import { IconButton, Segmented, toggleSheet } from './TopBar'
+import { toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
 
@@ -21,7 +21,6 @@ const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
 export function Dock() {
   const tool = useStore((s) => s.ui.tool)
   const open = useStore((s) => s.ui.sheet === 'crate')
-  const viewport = useStore((s) => s.ui.viewport)
   // On a track (and nothing else open), the dock grows that track's alternatives.
   const focused = useStore((s) => (s.ui.sheet === 'none' ? s.slots.find((x) => x.id === s.ui.focusedSlotId) : undefined))
   const st = useStore.getState
@@ -54,30 +53,15 @@ export function Dock() {
             <button
               type="button"
               onClick={() => toggleSheet('crate')}
-              title="Clips (C)"
+              title={`Clips: ${Object.keys(library.clips).length} sections (C)`}
+              aria-label="Clips"
               aria-expanded={open}
-              className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
-                open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5'
-              }`}
+              className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
             >
-              {open ? <X size={15} /> : <Library size={15} />}
-              Clips
-              <span className="rounded-full bg-chip px-1.5 text-[11px] font-semibold tabular-nums text-zinc-600">{Object.keys(library.clips).length}</span>
+              {open ? <X size={16} /> : <Library size={16} />}
             </button>
             <Divider />
-            <Segmented
-              value={viewport}
-              options={[
-                { value: 'desktop', label: <Monitor size={14} />, title: 'Desktop, 1280px' },
-                { value: 'mobile', label: <Smartphone size={14} />, title: 'Mobile, 390px' },
-              ]}
-              onChange={(v) => {
-                st().setUi({ viewport: v })
-                setTimeout(() => canvasApi.fitMix(), 120)
-              }}
-            />
-            <ZoomControls />
-            <Presence />
+            <ViewMenu />
           </>
         }
       >
@@ -101,41 +85,93 @@ function ShuffleButton() {
       type="button"
       onClick={() => useStore.getState().shuffle()}
       title="Shuffle unlocked tracks (Space)"
-      className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium text-zinc-700 transition hover:bg-zinc-950/5 active:scale-[0.97]"
+      aria-label="Shuffle"
+      className="grid size-8 place-items-center rounded-full text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.97]"
     >
       <Dices size={16} className={`transition-transform duration-500 ${spin ? 'rotate-[360deg]' : ''}`} style={{ transitionTimingFunction: 'var(--ease-spring)' }} />
-      <span className="max-md:hidden">Shuffle</span>
     </button>
   )
 }
 
-function ZoomControls() {
+/** The zoom readout doubles as the view menu: device, zoom and fit, out of the way. */
+function ViewMenu() {
   const [z, setZ] = useState(useStore.getState().camera?.z ?? 0.3)
+  const [open, setOpen] = useState(false)
+  const viewport = useStore((s) => s.ui.viewport)
+  const sheet = useStore((s) => s.ui.sheet)
+  const ref = useRef<HTMLDivElement>(null)
   useEffect(() => useStore.subscribe((s) => s.camera && setZ(s.camera.z)), [])
+  useEffect(() => setOpen(false), [sheet])
+  useEffect(() => {
+    if (!open) return
+    const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
+    window.addEventListener('pointerdown', close, true)
+    return () => window.removeEventListener('pointerdown', close, true)
+  }, [open])
+  const row = (Icon: typeof Plus, label: string, kbd: string, run: () => void, keep = false) => (
+    <button
+      type="button"
+      onClick={() => {
+        run()
+        if (!keep) setOpen(false)
+      }}
+      className="flex h-8 w-full items-center gap-2.5 rounded-lg px-2 text-left text-[13px] text-zinc-700 transition hover:bg-zinc-950/5 hover:text-zinc-900"
+    >
+      <Icon size={15} className="text-zinc-500" />
+      <span className="flex-1">{label}</span>
+      <span className="kbd">{kbd}</span>
+    </button>
+  )
   return (
-    <div className="flex items-center max-md:hidden">
-      <IconButton title="Zoom out (−)" onClick={() => canvasApi.zoomBy(1 / 1.3)}>
-        <Minus size={15} />
-      </IconButton>
+    <div ref={ref} className="relative">
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.98, transition: { duration: 0.08 } }}
+            transition={{ duration: 0.14, ease: [0.2, 0, 0, 1] }}
+            className="glass-menu absolute bottom-full right-0 z-50 mb-3 w-56 origin-bottom-right rounded-2xl p-1.5"
+          >
+            <div className="mb-1 flex gap-0.5 rounded-lg bg-well p-0.5">
+              {(['desktop', 'mobile'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={viewport === v}
+                  onClick={() => {
+                    useStore.getState().setUi({ viewport: v })
+                    setTimeout(() => canvasApi.fitMix(), 120)
+                  }}
+                  className={`flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md text-[12px] font-medium transition ${viewport === v ? 'bg-lift text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+                >
+                  {v === 'desktop' ? <Monitor size={13} /> : <Smartphone size={13} />}
+                  {v === 'desktop' ? 'Desktop' : 'Mobile'}
+                </button>
+              ))}
+            </div>
+            {row(Plus, 'Zoom in', '+', () => canvasApi.zoomBy(1.3), true)}
+            {row(Minus, 'Zoom out', '−', () => canvasApi.zoomBy(1 / 1.3), true)}
+            {row(Disc3, 'Back to the mix', '⇧0', () => canvasApi.fitMix())}
+            {row(Maximize, 'Fit everything', '⇧1', () => canvasApi.fitAll())}
+          </motion.div>
+        )}
+      </AnimatePresence>
       <button
         type="button"
-        className="h-8 w-11 rounded-full text-center text-[12px] font-medium tabular-nums text-zinc-600 transition hover:bg-zinc-950/5"
-        title="Back to the working mix (⇧0)"
-        onClick={() => canvasApi.fitMix()}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        title="View: zoom and device"
+        className={`flex h-8 items-center gap-1 rounded-full pl-2.5 pr-2 text-[12.5px] font-medium tabular-nums transition ${open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
       >
         {Math.round(z * 100)}%
+        <ChevronDown size={13} className={`text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      <IconButton title="Zoom in (+)" onClick={() => canvasApi.zoomBy(1.3)}>
-        <Plus size={15} />
-      </IconButton>
-      <IconButton title="Fit everything (⇧1)" onClick={() => canvasApi.fitAll()}>
-        <Maximize size={14} />
-      </IconButton>
     </div>
   )
 }
 
-function Presence() {
+export function Presence() {
   const agent = useStore((s) => s.agent)
   const me = useMe()
   const active = !!agent.versionId
