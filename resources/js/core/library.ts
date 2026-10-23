@@ -3,6 +3,7 @@ import { SECTION_TYPES } from './types'
 import { extractFields, parseHtml } from './html/parse'
 import { lintClip } from './lint'
 import { hash } from './hash'
+import { indexBlocks } from './blocks'
 
 export interface RawClip {
   type: SectionType
@@ -59,6 +60,7 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
       tokens,
       fonts: source.fonts,
       fields: extractFields(parseHtml(raw.html)),
+      blocks: indexBlocks(parseHtml(raw.html), raw.type),
       capture: {
         url: new URL(raw.meta.capture.path ?? '/', source.url).toString(),
         selector: raw.meta.capture.selector,

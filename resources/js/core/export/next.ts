@@ -1,6 +1,6 @@
 import type { ComposedPage } from '../compose'
 import { serialize } from '../html/serialize'
-import { BASE_CSS } from './base-css'
+import { BASE_CSS_LAYERED } from './base-css'
 import { slug } from './astro'
 import { fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 
@@ -50,7 +50,7 @@ export function nextFiles(page: ComposedPage, root = 'next/'): FileMap {
   ) + '\n'
 
   files[`${root}app/tokens.css`] = tokensCss(page)
-  files[`${root}app/base.css`] = BASE_CSS
+  files[`${root}app/base.css`] = BASE_CSS_LAYERED
   files[`${root}app/layout.tsx`] = `import type { Metadata } from 'next'
 import './tokens.css'
 import './base.css'

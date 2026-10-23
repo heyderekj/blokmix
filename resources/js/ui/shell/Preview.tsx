@@ -19,7 +19,7 @@ import {
 import type { Clip, SectionType, Slot } from '@/core/types'
 import { DEFAULT_KEEP } from '@/core/types'
 import { useStore } from '@/state/store'
-import { frameStateFor, useResolvedGuide } from '@/state/derived'
+import { frameStateFor, usePageStyle, useResolvedGuide } from '@/state/derived'
 import { ClipFrame } from '@/frame/ClipFrame'
 
 const PAGE_W = 1280
@@ -56,7 +56,7 @@ export const Preview = memo(function Preview({
   className = '',
 }: {
   clip: Clip
-  slot?: Pick<Slot, 'keep'> | null
+  slot?: Pick<Slot, 'keep' | 'words' | 'edits'> | null
   width: number
   height: number
   className?: string
@@ -64,9 +64,10 @@ export const Preview = memo(function Preview({
   const mode = useStore((s) => s.ui.mode)
   const content = useStore((s) => s.content)
   const guide = useResolvedGuide()
+  const page = usePageStyle()
   const state = useMemo(
-    () => frameStateFor(clip, slot ?? { keep: DEFAULT_KEEP }, mode, guide.tokens, content, 'desktop'),
-    [clip, slot, mode, guide.tokens, content],
+    () => frameStateFor(clip, slot ?? { keep: DEFAULT_KEEP }, mode, guide.tokens, content, 'desktop', page),
+    [clip, slot, mode, guide.tokens, content, page],
   )
   const [h, setH] = useState(0)
   const fitW = width / PAGE_W

@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { temporal } from 'zundo'
 import type {
+  BlockEdit,
+  BlockKind,
+  BlockStyle,
   BuildTarget,
   Choice,
   GuideState,
@@ -59,6 +62,8 @@ export interface UiState {
   hintDismissed: boolean
   editingNoteId: string | null
   myName: string
+  /** The block selected inside the focused section (b3), if any. */
+  selectedBlockId: string | null
 }
 
 export interface TapeData {
@@ -91,6 +96,17 @@ export interface State extends TapeData {
   moveSlot: (slotId: string, toIndex: number) => void
   addSlot: (type: SectionType, clipId?: string, atIndex?: number) => void
   removeSlot: (slotId: string) => void
+
+  // blocks
+  selectBlock: (blockId: string | null) => void
+  /** Patch a block of the section's current clip; null clears its edit. */
+  editBlock: (slotId: string, blockId: string, patch: Partial<BlockEdit> | null) => void
+  setWord: (slotId: string, field: string, value: string | null) => void
+  /** Make this block's variant and style the default for every block of its kind. */
+  promoteBlock: (slotId: string, blockId: string) => void
+  clearComponent: (kind: BlockKind) => void
+  addSwatch: (name: string, value: string) => string
+  removeSwatch: (id: string) => void
   renameTape: (name: string) => void
 
   // guide + copy
@@ -143,6 +159,7 @@ const DEFAULT_UI: UiState = {
   hintDismissed: false,
   editingNoteId: null,
   myName: 'Derek Castelli',
+  selectedBlockId: null,
 }
 
 function pickDifferent(options: string[], current: string): string {
@@ -197,7 +214,63 @@ export const useStore = create<State>()(
           },
           toggleLock: (slotId) => updateSlot(slotId, (s) => ({ ...s, locked: !s.locked })),
           toggleKeep: (slotId, key) => updateSlot(slotId, (s) => ({ ...s, keep: { ...s.keep, [key]: !s.keep[key] } })),
-          focusSlot: (slotId) => set((st) => ({ ui: { ...st.ui, focusedSlotId: slotId, ...(slotId ? { selectedFrameId: 'mix' } : {}) } })),
+          focusSlot: (slotId) =>
+            set((st) => ({
+              ui: {
+                ...st.ui,
+                focusedSlotId: slotId,
+                selectedBlockId: slotId === st.ui.focusedSlotId ? st.ui.selectedBlockId : null,
+                ...(slotId ? { selectedFrameId: 'mix' } : {}),
+              },
+            })),
+
+          selectBlock: (blockId) => set((st) => ({ ui: { ...st.ui, selectedBlockId: blockId } })),
+          editBlock: (slotId, blockId, patch) =>
+            updateSlot(slotId, (s) => {
+              const forClip = { ...(s.edits?.[s.clipId] ?? {}) }
+              if (patch === null) delete forClip[blockId]
+              else {
+                const next: BlockEdit = { ...forClip[blockId], ...patch }
+                if (patch.style !== undefined) next.style = patch.style && Object.keys(patch.style).length ? { ...forClip[blockId]?.style, ...patch.style } : undefined
+                for (const k of Object.keys(next) as (keyof BlockEdit)[]) if (next[k] === undefined) delete next[k]
+                if (next.style) for (const k of Object.keys(next.style) as (keyof BlockStyle)[]) if (next.style[k] === undefined) delete next.style[k]
+                if (next.style && !Object.keys(next.style).length) delete next.style
+                if (Object.keys(next).length) forClip[blockId] = next
+                else delete forClip[blockId]
+              }
+              return { ...s, edits: { ...s.edits, [s.clipId]: forClip } }
+            }),
+          setWord: (slotId, field, value) =>
+            updateSlot(slotId, (s) => {
+              const words = { ...s.words }
+              if (value === null) delete words[field]
+              else words[field] = value
+              return { ...s, words }
+            }),
+          promoteBlock: (slotId, blockId) => {
+            const st = get()
+            const slot = st.slots.find((x) => x.id === slotId)
+            const block = slot && library.clips[slot.clipId]?.blocks.find((b) => b.id === blockId)
+            const edit = slot?.edits?.[slot.clipId]?.[blockId]
+            if (!slot || !block || !edit) return
+            set((s) => ({
+              guide: { ...s.guide, components: { ...s.guide.components, [block.kind]: { variant: edit.variant, style: edit.style } } },
+            }))
+            // The block now just follows the page default.
+            get().editBlock(slotId, blockId, edit.hidden ? { variant: undefined, style: undefined } : null)
+          },
+          clearComponent: (kind) =>
+            set((s) => {
+              const components = { ...s.guide.components }
+              delete components[kind]
+              return { guide: { ...s.guide, components } }
+            }),
+          addSwatch: (name, value) => {
+            const id = uid('sw')
+            set((s) => ({ guide: { ...s.guide, swatches: [...(s.guide.swatches ?? []), { id, name, value }] } }))
+            return id
+          },
+          removeSwatch: (id) => set((s) => ({ guide: { ...s.guide, swatches: (s.guide.swatches ?? []).filter((w) => w.id !== id) } })),
           focusNext: (dir) => {
             const { slots, ui } = get()
             if (!slots.length) return

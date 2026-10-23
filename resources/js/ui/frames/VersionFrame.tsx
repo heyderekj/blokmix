@@ -37,6 +37,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
       content: v.snapshot.content,
       library,
       slotNotes: v.snapshot.slotNotes,
+      page: v.snapshot.guide,
     })
     return referenceHtml(page, { vh: VIEWPORT_VH[viewport], tagSlots: true })
   }, [v.snapshot, viewport])

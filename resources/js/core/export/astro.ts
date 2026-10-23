@@ -1,6 +1,6 @@
 import type { ComposedPage } from '../compose'
 import { serialize } from '../html/serialize'
-import { BASE_CSS } from './base-css'
+import { BASE_CSS_LAYERED } from './base-css'
 import { fontLink, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 
 export const ASTRO_VERSION = '~7.3.0' // 7.4 needs Node >= 22.23.4; 7.3 runs on any Node 22.12+
@@ -23,7 +23,7 @@ export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
   files[`${root}astro.config.mjs`] = `import { defineConfig } from 'astro/config'\n\nexport default defineConfig({})\n`
   files[`${root}tsconfig.json`] = JSON.stringify({ extends: 'astro/tsconfigs/strict', include: ['.astro/types.d.ts', '**/*'], exclude: ['dist'] }, null, 2) + '\n'
   files[`${root}src/styles/tokens.css`] = tokensCss(page)
-  files[`${root}src/styles/base.css`] = BASE_CSS
+  files[`${root}src/styles/base.css`] = BASE_CSS_LAYERED
 
   files[`${root}src/layouts/Base.astro`] = `---
 import '../styles/tokens.css'

@@ -7,7 +7,7 @@ import { suggestClip, suggestTypes } from '@/core/suggest'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { Preview, TYPE_ICON } from './Preview'
-import { canvasApi, CHROME } from '../canvas/Canvas'
+import { keepInView } from '../canvas/inView'
 
 /** Insert a section at `at`, picking the clip or layout that suits that spot best. */
 export function insertSection(type: SectionType, at: number) {
@@ -63,18 +63,7 @@ export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => voi
   })
 
   // Opened low on the screen, the menu would sit under the dock: nudge the canvas up so it's all in view.
-  useLayoutEffect(() => {
-    const el = ref.current
-    const dock = [...document.querySelectorAll('[data-dock] .glass-panel')].at(-1)
-    if (!el) return
-    const r = el.getBoundingClientRect()
-    const floor = (dock?.getBoundingClientRect().top ?? window.innerHeight - CHROME.bottom) - 12
-    const ceiling = CHROME.top
-    const dy = r.bottom > floor ? floor - r.bottom : r.top < ceiling ? ceiling - r.top : 0
-    if (!dy) return
-    const cam = canvasApi.get()
-    canvasApi.set({ ...cam, y: cam.y + Math.max(dy, ceiling - r.top) }, true)
-  }, [])
+  useLayoutEffect(() => keepInView(ref.current), [])
 
   const clip = best ? library.clips[best.clipId] : undefined
 

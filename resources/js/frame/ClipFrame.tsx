@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { Clip } from '@/core/types'
 import { buildSrcdoc } from './srcdoc'
-import { postState, registerFrame, type FrameState } from './bridge'
+import { postState, registerFrame, type BlockEvent, type FrameState } from './bridge'
 
 interface Props {
   clip: Clip
@@ -12,6 +12,8 @@ interface Props {
   interactive?: boolean
   onHeight?: (h: number) => void
   className?: string
+  /** Edit mode: blocks can be hovered, picked and edited in place; events come back here. */
+  edit?: { selected: string | null; editText?: { id: string; n: number } | null; onEvent: (e: BlockEvent) => void } | null
 }
 
 /**
@@ -19,7 +21,7 @@ interface Props {
  * is built once per clip + width; every later change goes over postMessage so the
  * frame never reloads (no flash while you drag a knob or flip Unified).
  */
-export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey, interactive, onHeight, className }: Props) {
+export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey, interactive, onHeight, className, edit }: Props) {
   const ref = useRef<HTMLIFrameElement>(null)
   const stateRef = useRef(state)
   stateRef.current = state
@@ -27,6 +29,8 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
   const onHeightRef = useRef(onHeight)
   onHeightRef.current = onHeight
   const sent = useRef('')
+  const editRef = useRef(edit)
+  editRef.current = edit
 
   const srcdoc = useMemo(
     () =>
@@ -38,6 +42,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
         fontHrefs: stateRef.current.fonts,
         motion: stateRef.current.motion,
         outline: stateRef.current.outline,
+        blocksCss: stateRef.current.blocks?.css,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [clip.id, clip.hash, width],
@@ -50,11 +55,13 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
       if (d.ready) {
         sent.current = ''
         push()
+        if (editRef.current) postState(win, { edit: true, select: editRef.current.selected })
       }
       if (typeof d.height === 'number' && d.height > 0) {
         setHeight(d.height)
         onHeightRef.current?.(d.height)
       }
+      if ('hover' in d || 'pick' in d || 'selRect' in d || d.word || 'editing' in d || d.key) editRef.current?.onEvent(d)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [srcdoc])
@@ -71,7 +78,18 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     const id = requestAnimationFrame(push)
     return () => cancelAnimationFrame(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.css, state.motion, state.fields, state.fonts, state.outline])
+  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks])
+
+  // Edit mode and the selection travel separately from the look, so they never re-send tokens.
+  const editing = !!edit
+  const selected = edit?.selected ?? null
+  useEffect(() => {
+    postState(ref.current?.contentWindow, { edit: editing, select: editing ? selected : null })
+  }, [editing, selected, srcdoc])
+  const editText = edit?.editText
+  useEffect(() => {
+    if (editText) postState(ref.current?.contentWindow, { editText: editText.id })
+  }, [editText])
 
   useEffect(() => {
     if (replayKey) postState(ref.current?.contentWindow, { replay: true })
@@ -84,7 +102,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
       sandbox="allow-scripts"
       srcDoc={srcdoc}
       className={className}
-      style={{ width, height, border: 0, display: 'block', pointerEvents: interactive ? 'auto' : 'none', background: 'transparent' }}
+      style={{ width, height, border: 0, display: 'block', pointerEvents: interactive || edit ? 'auto' : 'none', background: 'transparent' }}
     />
   )
 })

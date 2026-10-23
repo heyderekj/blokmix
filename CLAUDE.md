@@ -54,6 +54,19 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
 11. Each clip must look right at 1440px and 390px (nest `@media (max-width: 760px)` inside the root).
 12. `clip.json` sets `rhythm` (`centered | split | grid | stack | band`): the section's dominant shape.
     Suggestions use it to pick layouts that contrast with their neighbours.
+13. Blocks: mark what people will select, swap and restyle with `data-mx-block="<kind>"`.
+    - Small blocks go on the element itself (often the same element as its `data-mx-field`):
+      `heading`, `text`, `button`, `link`, `badge` (eyebrows, tags, pills), `icon`, `input`.
+      A button or link may hold an icon plus its field; other small blocks hold no blocks.
+    - `card`: a self-contained group (a panel, a quote card, a form card). Give it a short
+      `data-mx-label` ("Panel", "Quote", "Form").
+    - Repeating units are `item`s directly inside a `list`: `<ul data-mx-block="list" data-mx-list="features">`
+      then `<li data-mx-block="item" data-mx-label="Feature">`. Use a singular noun for the label.
+    - Pictures (CSS/SVG art standing in for a photo, illustration, screenshot or avatar):
+      `data-mx-block="image" data-mx-media="<name>" data-mx-ratio="<w>/<h>"`. Keep the placeholder art inside;
+      a real image replaces it later. Media names are unique in the clip.
+    - Don't mark the section root, layout wrappers, decoration, or `data-mx-mirror` duplicates
+      (the hidden half of a marquee). Logo wordmarks are `image` blocks (`data-mx-media="logo1"`).
 
 ### Built-in layouts
 

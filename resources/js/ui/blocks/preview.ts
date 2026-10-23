@@ -1,0 +1,36 @@
+import { create } from 'zustand'
+import type { BlockEdit, Slot } from '@/core/types'
+
+/**
+ * A look you're hovering in a picker, shown on the page before you commit it.
+ * Kept out of the undoable store so browsing never adds history.
+ */
+interface BlockPreview {
+  slotId: string | null
+  blockId: string | null
+  patch: Partial<BlockEdit> | null
+  show: (slotId: string, blockId: string, patch: Partial<BlockEdit>) => void
+  clear: () => void
+  /** Ask the frame to start editing a block's words in place. */
+  editText: { id: string; n: number } | null
+  requestEditText: (blockId: string) => void
+}
+
+export const useBlockPreview = create<BlockPreview>()((set) => ({
+  slotId: null,
+  blockId: null,
+  patch: null,
+  show: (slotId, blockId, patch) => set({ slotId, blockId, patch }),
+  clear: () => set({ slotId: null, blockId: null, patch: null }),
+  editText: null,
+  requestEditText: (id) => set((s) => ({ editText: { id, n: (s.editText?.n ?? 0) + 1 } })),
+}))
+
+/** The slot as it would look with the hovered preview applied. */
+export function withPreview(slot: Slot, p: Pick<BlockPreview, 'slotId' | 'blockId' | 'patch'>): Slot {
+  if (p.slotId !== slot.id || !p.blockId || !p.patch) return slot
+  const forClip = slot.edits?.[slot.clipId] ?? {}
+  const cur = forClip[p.blockId] ?? {}
+  const next: BlockEdit = { ...cur, ...p.patch, style: p.patch.style ? { ...cur.style, ...p.patch.style } : cur.style }
+  return { ...slot, edits: { ...slot.edits, [slot.clipId]: { ...forClip, [p.blockId]: next } } }
+}

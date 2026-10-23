@@ -24,12 +24,24 @@ const slots: Slot[] = allLayouts
       clipId,
       locked: false,
       keep: { ...DEFAULT_KEEP },
+      // A spread of block looks, so the build check covers restyled blocks too.
+      edits: {
+        [clipId]: Object.fromEntries(
+          library.clips[clipId].blocks
+            .filter((b) => b.kind === 'button' || b.kind === 'heading' || b.kind === 'card' || b.kind === 'image')
+            .slice(0, 3)
+            .map((b, j) => [b.id, j === 0 ? { variant: b.kind === 'button' ? 'outline' : b.kind === 'heading' ? 'marker' : 'rounded', style: { fill: 'x:Sunset' } } : { style: { radius: 'lg' as const } }]),
+        ),
+      },
     }))
   : version.snapshot.slots
-const snap = { ...version.snapshot, slots }
+const guideState = allLayouts
+  ? { ...version.snapshot.guide, swatches: [{ id: 'sw', name: 'Sunset', value: '#ff7a00' }], components: { badge: { variant: 'dot' } } }
+  : version.snapshot.guide
+const snap = { ...version.snapshot, slots, guide: guideState }
 const guide = resolveGuide(snap.guide)
 const files = packetFiles({
-  page: composePage({ slots: snap.slots, guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand }),
+  page: composePage({ slots: snap.slots, guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide }),
   guide,
   guideState: snap.guide,
   library,

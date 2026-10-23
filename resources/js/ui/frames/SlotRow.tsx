@@ -4,7 +4,10 @@ import type { Slot, TokenSet } from '@/core/types'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
-import { frameStateFor } from '@/state/derived'
+import { frameStateFor, usePageStyle } from '@/state/derived'
+import type { BlockEvent, FrameRect } from '@/frame/bridge'
+import { useBlockPreview, withPreview } from '../blocks/preview'
+import { BlockBar } from '../blocks/BlockBar'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { VIEW_W } from '../canvas/geometry'
 import { SectionPill, SectionRail } from './SectionPill'
@@ -34,6 +37,15 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const content = useStore((s) => s.content)
   const shuffleSeq = useStore((s) => s.shuffleSeq)
   const previewing = useStore((s) => s.ui.previewFrameId === 'mix')
+  const tool = useStore((s) => s.ui.tool)
+  const selectedBlock = useStore((s) => (focused ? s.ui.selectedBlockId : null))
+  const page = usePageStyle()
+  const pSlot = useBlockPreview((s) => s.slotId)
+  const pBlock = useBlockPreview((s) => s.blockId)
+  const pPatch = useBlockPreview((s) => s.patch)
+  const editText = useBlockPreview((s) => s.editText)
+  // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
+  const live = useMemo(() => withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch }), [slot, pSlot, pBlock, pPatch])
   const ids = library.byType[slot.type]
   const W = VIEW_W[viewport]
 
@@ -95,6 +107,42 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const shownIndex = ids.indexOf(shown)
   const st = useStore.getState
 
+  // ---- blocks: hover, select and edit inside the current clip ----
+  const canEdit = focused && mode === 'unified' && tool === 'select' && !previewing && !spinning && shown === slot.clipId
+  const [hover, setHover] = useState<{ id: string; rect: FrameRect } | null>(null)
+  const [selRect, setSelRect] = useState<FrameRect | null>(null)
+  const [typing, setTyping] = useState(false)
+  useEffect(() => {
+    if (!canEdit) setHover(null)
+  }, [canEdit])
+  useEffect(() => {
+    if (!selectedBlock) setSelRect(null)
+  }, [selectedBlock])
+  const blocks = library.clips[shown]?.blocks ?? []
+  const block = selectedBlock ? blocks.find((b) => b.id === selectedBlock) : undefined
+  const edit = useMemo(
+    () =>
+      canEdit
+        ? {
+            selected: selectedBlock,
+            editText: editText && blocks.some((b) => b.id === editText.id) ? editText : null,
+            onEvent: (e: BlockEvent) => {
+              if ('hover' in e) setHover(e.hover ?? null)
+              if ('pick' in e) st().selectBlock(e.pick ?? null)
+              if ('selRect' in e) setSelRect(e.selRect ?? null)
+              if (e.word) st().setWord(slot.id, e.word.field, e.word.value)
+              if ('editing' in e) setTyping(!!e.editing)
+              if (e.key) {
+                const k = e.key
+                window.dispatchEvent(new KeyboardEvent('keydown', { key: k.key, code: k.code, metaKey: k.meta, ctrlKey: k.ctrl, shiftKey: k.shift, altKey: k.alt, bubbles: true }))
+              }
+            },
+          }
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [canEdit, selectedBlock, editText, shown, slot.id],
+  )
+
   return (
     <div
       ref={rowRef}
@@ -140,7 +188,9 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
             <Tile
               key={clipId}
               clipId={clipId}
-              slot={slot}
+              slot={live}
+              page={page}
+              edit={isCurrent ? edit : null}
               rel={rel}
               jump={jump}
               spinning={spinning}
@@ -183,8 +233,32 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
         </>
       )}
 
+      {/* block outlines, in page pixels: the current frame sits at 0,0 at 1:1 */}
+      {canEdit && hover && hover.id !== selectedBlock && (
+        <div
+          className="pointer-events-none absolute z-10 rounded-[2px]"
+          style={{ left: hover.rect.x, top: hover.rect.y, width: hover.rect.w, height: hover.rect.h, boxShadow: '0 0 0 calc(1.5px / var(--z)) color-mix(in oklab, var(--color-tape) 70%, transparent)' }}
+        />
+      )}
+      {canEdit && block && selRect && (
+        <>
+          <div
+            className="pointer-events-none absolute z-10 rounded-[2px]"
+            style={{ left: selRect.x, top: selRect.y, width: selRect.w, height: selRect.h, boxShadow: '0 0 0 calc(2px / var(--z)) var(--color-tape)' }}
+          />
+          {!typing && (
+            // Below the block, menus opening downwards, so the block stays in view while you preview looks on it.
+            <div className="absolute z-30" style={{ left: selRect.x, top: selRect.y + selRect.h, width: 0, height: 0 }}>
+              <div className="absolute left-0 top-0 origin-top-left pt-2" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+                <BlockBar slot={slot} block={block} rect={selRect} />
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       <SectionRail slot={slot} index={index} focused={focused} />
-      {focused && <SectionPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />}
+      {focused && !block && <SectionPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />}
     </div>
   )
 })
@@ -192,6 +266,8 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
 const Tile = memo(function Tile(p: {
   clipId: string
   slot: Slot
+  page: ReturnType<typeof usePageStyle>
+  edit: Parameters<typeof ClipFrame>[0]['edit']
   rel: number
   jump: boolean
   spinning: boolean
@@ -208,8 +284,8 @@ const Tile = memo(function Tile(p: {
 }) {
   const clip = library.clips[p.clipId]
   const state = useMemo(
-    () => frameStateFor(clip, p.slot, p.mode, p.guide, p.content, p.viewport),
-    [clip, p.slot, p.mode, p.guide, p.content, p.viewport],
+    () => frameStateFor(clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page),
+    [clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page],
   )
   const isCurrent = p.rel === 0
   const transition = p.jump
@@ -233,7 +309,7 @@ const Tile = memo(function Tile(p: {
         p.onPick()
       }}
     >
-      <ClipFrame clip={clip} width={p.width} state={state} replayKey={p.replayKey} interactive={p.interactive} onHeight={p.onHeight} />
+      <ClipFrame clip={clip} width={p.width} state={state} replayKey={p.replayKey} interactive={p.interactive} onHeight={p.onHeight} edit={p.edit} />
     </div>
   )
 })

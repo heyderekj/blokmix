@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Check, ChevronRight, ClipboardCopy, RotateCcw, TriangleAlert, X } from 'lucide-react'
-import type { Conflict, TokenGroup, TokenKey } from '@/core/types'
+import { Check, ChevronRight, ClipboardCopy, Plus, RotateCcw, TriangleAlert, X } from 'lucide-react'
+import type { BlockKind, ComponentDefault, Conflict, TokenGroup, TokenKey } from '@/core/types'
+import { BLOCK_LABEL } from '@/core/blocks'
+import { findVariant } from '@/core/blocks/variants'
 import { groupWinner, openGroups } from '@/core/guide'
 import { TOKEN_GROUPS } from '@/core/types'
 import { CONTRAST_PAIRS, contrastRatio, expandTokens, GROUP_LABEL, keysInGroup, primaryFamily, TOKEN_LABEL, varsToCss } from '@/core/tokens'
@@ -64,6 +66,43 @@ export function GuidePanel() {
         </PanelSection>
       ))}
 
+      <PanelSection title="Brand colours" action={<AddSwatch />}>
+        {state.swatches?.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {state.swatches.map((w) => (
+              <span key={w.id} className="flex h-7 items-center gap-1.5 rounded-full border border-zinc-950/10 pl-1 pr-1 text-[12px] text-zinc-700">
+                <span className="size-5 rounded-full ring-1 ring-zinc-950/10" style={{ background: w.value }} />
+                {w.name}
+                <span className="font-mono text-[10.5px] text-zinc-400">{w.value}</span>
+                <button type="button" onClick={() => st().removeSwatch(w.id)} className="grid size-5 place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700" aria-label={`Remove ${w.name}`}>
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[12px] text-zinc-500">Colours beyond your palette. Add one here, or from a block’s Style menu.</p>
+        )}
+      </PanelSection>
+
+      <PanelSection title="Components">
+        {state.components && Object.keys(state.components).length ? (
+          <div className="space-y-1">
+            {(Object.entries(state.components) as [BlockKind, ComponentDefault][]).map(([kind, d]) => (
+              <div key={kind} className="flex items-center gap-2 rounded-lg px-1 py-1 text-[12.5px]">
+                <span className="w-16 font-semibold text-zinc-900">All {BLOCK_LABEL[kind].toLowerCase()}s</span>
+                <span className="flex-1 truncate text-zinc-600">{describeLook(kind, d)}</span>
+                <button type="button" onClick={() => st().clearComponent(kind)} className="grid size-6 place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700" title="Stop using this look everywhere">
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[12px] text-zinc-500">Select a block on the page, give it a look, then choose “Use for all” to make it the look for every block of its kind.</p>
+        )}
+      </PanelSection>
+
       <PanelSection title="Contrast">
         <div className="space-y-1.5">
           {CONTRAST_PAIRS.map(([fg, bg, label]) => {
@@ -112,6 +151,51 @@ export function GuidePanel() {
         </button>
       </div>
     </div>
+  )
+}
+
+function describeLook(kind: BlockKind, d: ComponentDefault): string {
+  const parts: string[] = []
+  const v = findVariant(kind, d.variant)
+  if (v) parts.push(v.label)
+  if (d.style?.fill) parts.push(`${d.style.fill.replace('x:', '')} fill`)
+  if (d.style?.ink) parts.push(`${d.style.ink.replace('x:', '')} text`)
+  if (d.style?.radius) parts.push(`${d.style.radius} corners`)
+  if (d.style?.shadow) parts.push(`${d.style.shadow} shadow`)
+  return parts.join(' · ') || 'Default'
+}
+
+function AddSwatch() {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState('#7c5cff')
+  const [name, setName] = useState('')
+  if (!open)
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="flex h-6 items-center gap-1 rounded-full px-2 text-[12px] font-medium text-zinc-600 hover:bg-zinc-950/5">
+        <Plus size={12} /> Add
+      </button>
+    )
+  const save = () => {
+    if (name.trim()) useStore.getState().addSwatch(name.trim(), value)
+    setOpen(false)
+    setName('')
+  }
+  return (
+    <span className="flex items-center gap-1.5">
+      <input type="color" value={value} onChange={(e) => setValue(e.target.value)} className="size-6 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Colour" />
+      <input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') save()
+          if (e.key === 'Escape') setOpen(false)
+        }}
+        onBlur={save}
+        placeholder="Name"
+        className="h-6 w-24 rounded-md bg-white px-1.5 text-[12px] outline-none ring-1 ring-zinc-950/10 focus:ring-zinc-400"
+      />
+    </span>
   )
 }
 

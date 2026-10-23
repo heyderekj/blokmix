@@ -1,7 +1,7 @@
 import type { ComposedPage } from '../compose'
 import { mapTree } from '../html/parse'
 import { serialize } from '../html/serialize'
-import { BASE_CSS } from './base-css'
+import { BASE_CSS_LAYERED } from './base-css'
 import { fontLink, sectionCss, tokensCss } from './shared'
 
 /**
@@ -28,7 +28,7 @@ export function referenceHtml(page: ComposedPage, opts: { vh?: string; tagSlots?
 ${href ? `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="${href}">` : ''}
 <style>
 ${vars}
-${BASE_CSS}
+${BASE_CSS_LAYERED}
 ${page.sections.map(sectionCss).join('\n')}
 </style>
 </head>

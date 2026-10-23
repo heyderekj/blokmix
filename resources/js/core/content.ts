@@ -300,16 +300,23 @@ export const DEFAULT_CONTENT: ProjectContent = {
 
 /**
  * The copy a section should show. With content kept, the source copy; otherwise
- * your copy, falling back to the source for any field you haven't written.
+ * your copy, falling back to the source for any field you haven't written. Words
+ * edited in place on this section win over both.
  */
 export function resolveFields(
   type: SectionType,
   sourceFields: Record<string, string>,
   content: ProjectContent,
   keepSource: boolean,
+  /** This section's own words (edited in place); they win over everything. */
+  own?: Record<string, string>,
 ): { fields: Record<string, string>; retained: string[] } {
-  if (keepSource) return { fields: { ...sourceFields }, retained: Object.keys(sourceFields) }
-  const mine = content.fields[type] ?? {}
+  const ownOf = (k: string) => (own?.[k] != null && own[k] !== '' ? own[k] : undefined)
+  if (keepSource) {
+    const fields = Object.fromEntries(Object.entries(sourceFields).map(([k, v]) => [k, ownOf(k) ?? v]))
+    return { fields, retained: Object.keys(sourceFields).filter((k) => ownOf(k) === undefined) }
+  }
+  const mine = { ...(content.fields[type] ?? {}), ...Object.fromEntries(Object.keys(own ?? {}).flatMap((k) => (ownOf(k) ? [[k, ownOf(k)!]] : []))) }
   const fields: Record<string, string> = {}
   const retained: string[] = []
   for (const [k, v] of Object.entries(sourceFields)) {

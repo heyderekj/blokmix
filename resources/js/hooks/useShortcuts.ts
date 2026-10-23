@@ -104,10 +104,20 @@ export function useShortcuts(onHelp: () => void) {
           return
         case 'Backspace':
         case 'Delete':
+          if (focused && st.ui.selectedBlockId) {
+            st.editBlock(focused.id, st.ui.selectedBlockId, { hidden: true })
+            st.selectBlock(null)
+            st.showFlash('Block hidden', { undo: true })
+            return
+          }
           if (focused && st.slots.length > 1) st.removeSlot(focused.id)
           return
         case 'Escape':
-          if (st.ui.sheet !== 'none') st.setUi({ sheet: 'none' })
+          if (focused && st.ui.selectedBlockId) {
+            // Step out one level, like Figma.
+            const block = library.clips[focused.clipId]?.blocks.find((b) => b.id === st.ui.selectedBlockId)
+            st.selectBlock(block?.parent ?? null)
+          } else if (st.ui.sheet !== 'none') st.setUi({ sheet: 'none' })
           else st.setUi({ tool: 'select', previewFrameId: null, focusedSlotId: null })
           return
         case '=':

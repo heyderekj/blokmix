@@ -105,3 +105,25 @@ describe('jsx attributes', () => {
     expect(src).not.toMatch(/rows="/)
   })
 })
+
+describe('block looks', () => {
+  it('exports restyled blocks with a class, layered CSS and packet notes', () => {
+    const clip = library.clips['cta.layout-band']
+    const btn = clip.blocks.find((b) => b.kind === 'button')!
+    const page = composePage({
+      slots: [{ id: 's', type: 'cta', clipId: clip.id, locked: false, keep: { ...DEFAULT_KEEP }, edits: { [clip.id]: { [btn.id]: { variant: 'outline', style: { fill: 'accent' } } } }, words: { heading: 'Mine' } }],
+      guide: resolveGuide(emptyGuide()),
+      content: DEFAULT_CONTENT,
+      library,
+      page: { components: { badge: { variant: 'dot' } } },
+    })
+    const s = page.sections[0]
+    expect(s.css).toMatch(/^@layer base, clip, motion, blocks;/)
+    expect(s.css).toContain(`.mx-s1-${btn.id}`)
+    expect(s.css).toContain('@layer blocks')
+    expect(s.blocks.map((b) => b.kind).sort()).toEqual(['badge', 'button'])
+    const html = JSON.stringify(s.tree)
+    expect(html).toContain(`mx-s1-${btn.id}`)
+    expect(html).toContain('Mine')
+  })
+})

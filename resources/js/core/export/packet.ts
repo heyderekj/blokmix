@@ -1,3 +1,4 @@
+import type { BlockEdit } from '../types'
 import type { BuildTarget, GuideState, Library, ResolvedGuide, Status } from '../types'
 import type { ComposedPage } from '../compose'
 import { GROUP_LABEL, TOKEN_LABEL, toDtcg } from '../tokens'
@@ -87,6 +88,7 @@ export function packetJson(i: PacketInput) {
       },
       localTokens: s.keep.style ? s.clip.tokens : null,
       retainedSourceFields: s.retained,
+      blocks: s.blocks.map((b) => ({ id: b.id, label: b.label, kind: b.kind, variant: b.edit.variant ?? null, style: b.edit.style ?? null, hidden: !!b.edit.hidden })),
       notes: s.notes,
       html: s.clip.html,
       css: s.clip.css,
@@ -126,6 +128,7 @@ export function linerNotes(i: PacketInput): string {
     lines.push(`- **Style:** ${s.keep.style ? 'keeps its own captured tokens (scoped to the section)' : 'use the style guide tokens'}`)
     lines.push(`- **Copy:** ${s.keep.content ? 'source copy kept (replace before launch)' : 'your copy'}${s.retained.length ? `; still source copy: ${s.retained.join(', ')}` : ''}`)
     lines.push(`- **Motion:** ${s.keep.motion ? s.clip.motionNotes ?? 'keep the captured motion' : 'none'}`)
+    for (const b of s.blocks) lines.push(`- **Block, ${b.label}:** ${describeEdit(b.edit)}`)
     for (const n of s.notes) lines.push(`- **Note:** ${n}`)
     lines.push('')
   })
@@ -194,4 +197,12 @@ export function packetFiles(i: PacketInput): FileMap {
   if (i.targets.includes('astro')) Object.assign(files, astroFiles(i.page))
   if (i.targets.includes('next')) Object.assign(files, nextFiles(i.page))
   return files
+}
+
+function describeEdit(e: BlockEdit): string {
+  if (e.hidden) return 'hidden; leave it out'
+  const parts: string[] = []
+  if (e.variant) parts.push(`${e.variant} look`)
+  for (const [k, v] of Object.entries(e.style ?? {}) as [string, string | undefined][]) if (v) parts.push(`${k} ${v.replace('x:', 'brand colour ')}`)
+  return `${parts.join(', ')} (the section CSS has it in @layer blocks)`
 }

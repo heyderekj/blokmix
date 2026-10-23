@@ -47,7 +47,7 @@ export function PacketPanel() {
       : []
     const parent = version?.parentId ? versions[version.parentId] : null
     return {
-      page: composePage({ slots: snap.slots.filter((s) => library.clips[s.clipId]), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand }),
+      page: composePage({ slots: snap.slots.filter((s) => library.clips[s.clipId]), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide }),
       guide,
       guideState: snap.guide,
       library,

@@ -1,6 +1,7 @@
 import type { LintIssue, SectionType } from './types'
 import { FIELD_SCHEMA } from './content'
 import { attr, parseHtml, walk } from './html/parse'
+import { lintBlocks } from './blocks'
 
 const ROOT_TAGS = new Set(['section', 'header', 'footer', 'nav'])
 
@@ -59,6 +60,10 @@ export function lintClip(input: {
     const href = attr(n, 'href')
     if (n.tag === 'a' && href && href !== '#' && !href.startsWith('#')) warn(`Links should use href="#" (found ${href})`)
   })
+
+  const blocks = lintBlocks(tree)
+  blocks.errors.forEach(err)
+  blocks.warnings.forEach(warn)
 
   // ---- CSS ----
   checkCss(input.css, 'clip.css', input.rootClass, err, warn)

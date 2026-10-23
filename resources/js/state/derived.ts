@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import type { Clip, ProjectContent, ResolvedGuide, Slot, TokenSet } from '@/core/types'
+import type { BlockEdit, Clip, GuideState, ProjectContent, ResolvedGuide, Slot, Swatch, TokenSet } from '@/core/types'
+import { blockCss, effectiveEdit, slug } from '@/core/blocks/style'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
 import { BASE_FONTS, expandTokens, fontHref, fontsForTokens, varsToCss } from '@/core/tokens'
@@ -11,6 +12,13 @@ import { useStore, type Mode, type Viewport } from './store'
 export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
+
+/** Page-wide block defaults and extra colours, for frameStateFor. */
+export function usePageStyle(): Pick<GuideState, 'swatches' | 'components'> {
+  const swatches = useStore((s) => s.guide.swatches)
+  const components = useStore((s) => s.guide.components)
+  return useMemo(() => ({ swatches, components }), [swatches, components])
+}
 
 export function useResolvedGuide(): ResolvedGuide {
   const guide = useStore((s) => s.guide)
@@ -36,22 +44,44 @@ export function fontHrefFor(tokens: TokenSet): string | null {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   clip: Clip,
-  slot: Pick<Slot, 'keep'> | null,
+  slot: Pick<Slot, 'keep' | 'words' | 'edits'> | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
   viewport: Viewport,
+  page?: Pick<GuideState, 'swatches' | 'components'>,
 ): FrameState {
   const vh = VIEWPORT_VH[viewport]
   if (mode === 'captured' || !slot) {
-    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false }
+    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS }
   }
   const tokens = slot.keep.style ? clip.tokens : guide
+  const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
   return {
-    css: tokensCssFor(tokens, vh),
+    css: tokensCssFor(tokens, vh) + swatchCss(page?.swatches),
     motion: slot.keep.motion,
-    fields: slot.keep.content ? null : resolveFields(clip.type, clip.fields, content, false).fields,
+    fields: slot.keep.content && !own ? null : resolveFields(clip.type, clip.fields, content, slot.keep.content, own).fields,
     fonts: [fontHrefFor(tokens)],
     outline: !slot.keep.layout,
+    blocks: blocksFor(clip, slot.edits?.[clip.id], page?.components),
   }
+}
+
+const NO_BLOCKS: FrameState['blocks'] = { css: '', variants: {} }
+
+/** Extra brand colours, as --mx-color-x-<name>. */
+export function swatchCss(swatches: Swatch[] | undefined): string {
+  if (!swatches?.length) return ''
+  return `\n:root { ${swatches.map((w) => `--mx-color-x-${slug(w.name)}: ${w.value};`).join(' ')} }`
+}
+
+function blocksFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, components: GuideState['components']): FrameState['blocks'] {
+  if (!edits && !components) return NO_BLOCKS
+  const variants: Record<string, string> = {}
+  for (const b of clip.blocks) {
+    const e = effectiveEdit(edits?.[b.id], components?.[b.kind])
+    if (e?.variant) variants[b.id] = e.variant
+  }
+  const css = blockCss({ blocks: clip.blocks, edits, components, select: (b) => `[data-mx-b="${b.id}"]` })
+  return css || Object.keys(variants).length ? { css, variants } : NO_BLOCKS
 }

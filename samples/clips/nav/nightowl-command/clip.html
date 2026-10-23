@@ -1,6 +1,6 @@
 <nav class="mx-nav-nightowl-command" data-mx-section="nav">
   <div class="bar">
-    <a href="#" class="brand">
+    <a href="#" class="brand" data-mx-block="image" data-mx-media="logo" data-mx-ratio="4/1">
       <svg class="mark" viewBox="0 0 28 28" fill="none" aria-hidden="true">
         <rect x="1" y="1" width="26" height="26" rx="7" stroke="currentColor" stroke-width="1.5" />
         <circle cx="10" cy="12.5" r="3.5" stroke="currentColor" stroke-width="1.5" />
@@ -11,14 +11,14 @@
       </svg>
       <span class="name" data-mx-field="brand">Nightowl</span>
     </a>
-    <ul class="links">
-      <li><a href="#" data-mx-field="link1">Product</a></li>
-      <li><a href="#" data-mx-field="link2">Docs</a></li>
-      <li><a href="#" data-mx-field="link3">Changelog</a></li>
-      <li><a href="#" data-mx-field="link4">Pricing</a></li>
+    <ul class="links" data-mx-block="list" data-mx-list="links">
+      <li data-mx-block="item" data-mx-label="Link"><a href="#" data-mx-block="link" data-mx-field="link1">Product</a></li>
+      <li data-mx-block="item" data-mx-label="Link"><a href="#" data-mx-block="link" data-mx-field="link2">Docs</a></li>
+      <li data-mx-block="item" data-mx-label="Link"><a href="#" data-mx-block="link" data-mx-field="link3">Changelog</a></li>
+      <li data-mx-block="item" data-mx-label="Link"><a href="#" data-mx-block="link" data-mx-field="link4">Pricing</a></li>
     </ul>
     <div class="end">
-      <span class="search" aria-hidden="true">
+      <span class="search" aria-hidden="true" data-mx-block="input" data-mx-label="Search">
         <svg viewBox="0 0 16 16" fill="none">
           <circle cx="7" cy="7" r="4.75" stroke="currentColor" stroke-width="1.5" />
           <path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -26,7 +26,7 @@
         <span class="label">Search</span>
         <kbd>⌘K</kbd>
       </span>
-      <a href="#" class="cta" data-mx-field="cta">Start building</a>
+      <a href="#" class="cta" data-mx-block="button" data-mx-field="cta">Start building</a>
       <span class="menu" aria-hidden="true"><span></span><span></span></span>
     </div>
   </div>

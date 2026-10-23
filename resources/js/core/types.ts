@@ -93,6 +93,7 @@ export interface Clip {
   tokens: TokenSet
   fonts: FontSource[]
   fields: Record<string, string> // source copy keyed by data-mx-field
+  blocks: BlockInfo[]
   capture: Capture
   hash: string
 }
@@ -115,6 +116,10 @@ export interface Slot {
   clipId: string
   locked: boolean
   keep: Keep
+  /** Block-level changes (variants, styles), by clip then block. */
+  edits?: SlotEdits
+  /** This section's own words, over the shared copy for its type. */
+  words?: Record<string, string>
 }
 
 export interface Candidate {
@@ -131,6 +136,10 @@ export interface GuideState {
   base: TokenSet
   candidates: Candidate[]
   choices: Partial<Record<TokenKey, Choice>>
+  /** Extra named brand colours beyond the core palette. */
+  swatches?: Swatch[]
+  /** Defaults for kinds of blocks across the whole page ("All buttons: outline"). */
+  components?: Partial<Record<BlockKind, ComponentDefault>>
 }
 
 export interface ConflictOption {
@@ -202,6 +211,68 @@ export interface VersionNode {
     steps: string[]
     done: boolean
   }
+}
+
+/**
+ * The elements inside a section you can select, swap and restyle. Small ones
+ * (heading … input) sit inside composite ones (card, item); a list holds the
+ * repeating items of a section.
+ */
+export const BLOCK_KINDS = ['heading', 'text', 'button', 'link', 'badge', 'icon', 'image', 'input', 'card', 'item', 'list'] as const
+export type BlockKind = (typeof BLOCK_KINDS)[number]
+
+export interface BlockInfo {
+  /** Order in the document: b0, b1… Stable for a clip's content. */
+  id: string
+  kind: BlockKind
+  parent: string | null
+  children: string[]
+  /** People-facing name: "Features · Plan 2 · Button". Selectors are never shown. */
+  label: string
+  /** The copy field on (or inside) this block, if any. */
+  field?: string
+  /** Image slot name, for image blocks. */
+  media?: string
+  ratio?: string
+  /** List name, for list blocks. */
+  list?: string
+}
+
+/**
+ * A colour from the palette: a guide token ('primary'), an extra swatch
+ * ('x:brand'), optionally mixed towards the page colour ('primary/20' = 20% of
+ * primary over the background). Never a raw hex, so it re-themes.
+ */
+export type ColorRef = string
+
+export interface BlockStyle {
+  fill?: ColorRef
+  ink?: ColorRef
+  radius?: 'none' | 'sm' | 'md' | 'lg' | 'pill'
+  shadow?: 'none' | 'soft' | 'lifted' | 'offset'
+}
+
+/** Your changes to one block of one clip in one section. */
+export interface BlockEdit {
+  /** A variant from the block library ('outline'); absent = the clip's own look. */
+  variant?: string
+  style?: BlockStyle
+  hidden?: boolean
+}
+
+/** Edits per clip, then per block id, so swapping clips and back keeps them. */
+export type SlotEdits = Record<string, Record<string, BlockEdit>>
+
+/** A section-wide default for a kind of block, promoted from one block ("All buttons"). */
+export interface ComponentDefault {
+  variant?: string
+  style?: BlockStyle
+}
+
+export interface Swatch {
+  id: string
+  name: string
+  value: string // hex
 }
 
 export const RHYTHMS = ['centered', 'split', 'grid', 'stack', 'band'] as const

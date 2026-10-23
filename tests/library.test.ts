@@ -37,3 +37,22 @@ describe('built-in layouts', () => {
     }
   })
 })
+
+describe('blocks', () => {
+  it('every clip marks its blocks cleanly (rule 13)', () => {
+    const blockWarnings = library.warnings.filter((w) => /block|media slot|data-mx-list|data-mx-media/i.test(w.message)).map((w) => `${w.clipId}: ${w.message}`)
+    expect(blockWarnings).toEqual([])
+  })
+
+  it('every clip has a heading or text block and labels every block', () => {
+    for (const clip of Object.values(library.clips)) {
+      expect(clip.blocks.some((b) => b.kind === 'heading' || b.kind === 'text' || b.kind === 'button'), clip.id).toBe(true)
+      for (const b of clip.blocks) expect(b.label, `${clip.id} ${b.id}`).toMatch(/ · /)
+    }
+  })
+
+  it('labels repeated items by position', () => {
+    const band = library.clips['cta.layout-band'].blocks
+    expect(band.map((b) => b.label)).toContain('Call to action · Button 2')
+  })
+})
