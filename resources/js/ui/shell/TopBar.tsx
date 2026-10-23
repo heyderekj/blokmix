@@ -119,13 +119,13 @@ function ModeIsland() {
             title={decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide and copy (G)'}
             aria-label="Style guide"
             aria-expanded={open}
-            className={`relative grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${
+            className={`flex h-8 items-center gap-1.5 rounded-full transition active:scale-[0.97] ${decisions > 0 ? 'pl-2 pr-1.5' : 'px-2'} ${
               open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'
             }`}
           >
             <SwatchBook size={16} />
             {decisions > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-attention px-1 text-[10px] font-bold text-white ring-2 ring-[var(--lift)]">{decisions}</span>
+              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-attention px-1.5 text-[11px] font-bold tabular-nums leading-none text-white">{decisions}</span>
             )}
           </button>
         </>
