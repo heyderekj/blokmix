@@ -169,9 +169,7 @@ function FontPicker({ k, current, onPick, onClose }: { k: TokenKey; current: str
           <FontRow
             key={r.family}
             row={r}
-            sample={sample}
             text={text}
-            display={role === 'display'}
             on={r.family === current}
             onHover={() => preview({ key: k, value: r.stack })}
             onPick={() => {
@@ -189,7 +187,7 @@ function FontPicker({ k, current, onPick, onClose }: { k: TokenKey; current: str
   )
 }
 
-function FontRow({ row, sample, text, display, on, onHover, onPick }: { row: Row; sample: string; text: string; display: boolean; on: boolean; onHover: () => void; onPick: () => void }) {
+function FontRow({ row, text, on, onHover, onPick }: { row: Row; text: string; on: boolean; onHover: () => void; onPick: () => void }) {
   const ref = useRef<HTMLButtonElement>(null)
   // Load the font only once its row scrolls into view.
   useEffect(() => {
@@ -221,18 +219,13 @@ function FontRow({ row, sample, text, display, on, onHover, onPick }: { row: Row
       >
         Aa
       </span>
+      {/* Plain words beside it: the name, who made it (or where it's from) and its weights. */}
       <span className="min-w-0 flex-1">
-        <span className={`block truncate leading-tight text-zinc-900 ${display ? 'text-[22px]' : 'text-[14.5px]'}`} style={{ fontFamily: `'${row.family}', system-ui` }}>
-          {sample}
-        </span>
+        <span className="block truncate text-[13px] font-medium text-zinc-900">{row.family}</span>
         <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-zinc-500">
-          <span className="font-medium text-zinc-700" style={{ fontFamily: `'${row.family}', system-ui` }}>
-            {row.family}
-          </span>
-          <span>·</span>
           <span className="truncate">{row.clip ? 'From your clips' : (row.lib?.maker && row.lib.provider !== 'fontshare' ? row.lib.maker : PROVIDER_LABEL[row.provider])}</span>
           <span>·</span>
-          <span>
+          <span className="shrink-0">
             {row.styles} weight{row.styles > 1 ? 's' : ''}
           </span>
         </span>
