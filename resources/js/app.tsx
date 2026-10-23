@@ -7,6 +7,7 @@ import LabVersion from '@/pages/lab-version'
 import LabPill from '@/pages/lab-pill'
 import LabOptions from '@/pages/lab-options'
 import LabDock from '@/pages/lab-dock'
+import LabBadge from '@/pages/lab-badge'
 import { useStore } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi } from '@/ui/canvas/Canvas'
@@ -15,6 +16,6 @@ if (import.meta.env.DEV) Object.assign(window, { __mx: { store: useStore, librar
 
 createRoot(document.getElementById('app')!).render(
   <StrictMode>
-    {{ track: <LabTrack />, version: <LabVersion />, pill: <LabPill />, options: <LabOptions />, dock: <LabDock /> }[new URLSearchParams(location.search).get('lab') ?? ''] ?? <Board />}
+    {{ track: <LabTrack />, version: <LabVersion />, pill: <LabPill />, options: <LabOptions />, dock: <LabDock />, badge: <LabBadge /> }[new URLSearchParams(location.search).get('lab') ?? ''] ?? <Board />}
   </StrictMode>,
 )
