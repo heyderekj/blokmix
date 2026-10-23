@@ -137,7 +137,7 @@ const DEFAULT_UI: UiState = {
   selectedFrameId: null,
   previewFrameId: null,
   packetSource: 'mix',
-  packetTargets: ['astro', 'next'],
+  packetTargets: ['astro'],
   hintDismissed: false,
   editingNoteId: null,
 }
@@ -368,6 +368,8 @@ export const useStore = create<State>()(
         const merged = { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } } as State
         // Drop anything that points at clips that no longer exist in the sample library.
         merged.slots = (merged.slots ?? []).filter((s) => library.clips[s.clipId])
+        // One framework per hand-off.
+        merged.ui.packetTargets = (merged.ui.packetTargets ?? ['astro']).slice(0, 1)
         for (const [id, v] of Object.entries(merged.versions ?? {})) {
           if (v.build && !v.build.done) merged.versions[id] = { ...v, status: 'changes', build: { ...v.build, done: true } }
         }

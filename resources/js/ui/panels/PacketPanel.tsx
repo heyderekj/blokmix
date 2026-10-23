@@ -10,10 +10,12 @@ import { slotNotesFor, dfsOrder } from '@/core/versions'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
+import { Segmented } from '../shell/TopBar'
 
 export function PacketPanel() {
   const source = useStore((s) => s.ui.packetSource)
-  const targets = useStore((s) => s.ui.packetTargets)
+  const target: BuildTarget = useStore((s) => s.ui.packetTargets[0] ?? 'astro')
+  const targets = useMemo<BuildTarget[]>(() => [target], [target])
   const versions = useStore((s) => s.versions)
   const tapeName = useStore((s) => s.tapeName)
   const slots = useStore((s) => s.slots)
@@ -80,10 +82,7 @@ export function PacketPanel() {
     flash(`prompt-${t}`)
   }
 
-  const toggleTarget = (t: BuildTarget) => {
-    const next = targets.includes(t) ? targets.filter((x) => x !== t) : [...targets, t]
-    if (next.length) st().setUi({ packetTargets: next })
-  }
+
 
   const openConflicts = openGroups(input.guide).length
   const noteCount = input.page.sections.reduce((n, s) => n + s.notes.length, 0) + (input.notes?.length ?? 0)
@@ -147,21 +146,15 @@ export function PacketPanel() {
             {k === 'files' ? 'Files' : 'Agent prompt'}
           </button>
         ))}
-        <div className="ml-auto flex items-center gap-1 pb-1.5 pr-1">
-          {(['astro', 'next'] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              aria-pressed={targets.includes(t)}
-              onClick={() => toggleTarget(t)}
-              className={`flex h-6 items-center gap-1 rounded-full px-2.5 text-[11.5px] font-medium transition active:scale-[0.97] ${
-                targets.includes(t) ? 'bg-zinc-900 text-white' : 'bg-chip text-zinc-500 hover:text-zinc-800'
-              }`}
-            >
-              {targets.includes(t) && <Check size={11} />}
-              {t === 'astro' ? 'Astro' : 'Next.js'}
-            </button>
-          ))}
+        <div className="ml-auto pb-1 pr-0.5">
+          <Segmented
+            value={target}
+            options={[
+              { value: 'astro', label: 'Astro', title: 'Export an Astro project' },
+              { value: 'next', label: 'Next.js', title: 'Export a Next.js project' },
+            ]}
+            onChange={(t) => st().setUi({ packetTargets: [t] })}
+          />
         </div>
       </div>
 
