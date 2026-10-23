@@ -164,6 +164,11 @@ const BRIDGE = `(function () {
     post({ editing: true });
     requestAnimationFrame(report);
   }
+  /* The frame never scrolls itself: scrolling and pinching over it pan and zoom the canvas. */
+  document.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    post({ wheel: { dx: e.deltaX, dy: e.deltaY, mode: e.deltaMode, x: e.clientX, y: e.clientY, ctrl: e.ctrlKey, meta: e.metaKey, shift: e.shiftKey } });
+  }, { passive: false });
   /* Keys pressed while the frame has focus still drive the canvas. */
   document.addEventListener('keydown', function (e) {
     if (editing) return;

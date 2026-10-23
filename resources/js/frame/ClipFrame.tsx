@@ -78,6 +78,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
         onHeightRef.current?.(d.height)
       }
       if (d.lightbox) openLightbox(d.lightbox, d.asset ?? undefined)
+      if (d.wheel) forwardWheel(ref.current, d.wheel)
       if ('hover' in d || 'pick' in d || 'selRect' in d || d.word || 'editing' in d || d.key || 'notePick' in d || 'drag' in d || d.area || d.rects || d.words) editRef.current?.onEvent(d)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,3 +144,34 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     />
   )
 })
+
+/**
+ * A wheel event from inside a frame, replayed on the frame's element in page
+ * coordinates, so the canvas pans or zooms as if the frame weren't there. Where
+ * nothing takes it (a frame in a scrolling list), the list scrolls instead.
+ */
+function forwardWheel(frame: HTMLIFrameElement | null, w: NonNullable<Parameters<Parameters<typeof registerFrame>[1]>[0]['wheel']>) {
+  if (!frame) return
+  const r = frame.getBoundingClientRect()
+  const scale = frame.offsetWidth ? r.width / frame.offsetWidth : 1
+  const e = new WheelEvent('wheel', {
+    deltaX: w.dx,
+    deltaY: w.dy,
+    deltaMode: w.mode,
+    clientX: r.left + w.x * scale,
+    clientY: r.top + w.y * scale,
+    ctrlKey: w.ctrl,
+    metaKey: w.meta,
+    shiftKey: w.shift,
+    bubbles: true,
+    cancelable: true,
+  })
+  if (!frame.dispatchEvent(e)) return
+  for (let el = frame.parentElement; el; el = el.parentElement) {
+    const o = getComputedStyle(el).overflowY
+    if ((o === 'auto' || o === 'scroll') && el.scrollHeight > el.clientHeight) {
+      el.scrollBy({ left: w.dx, top: w.dy })
+      return
+    }
+  }
+}
