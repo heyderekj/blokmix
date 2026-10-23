@@ -51,6 +51,7 @@ const HELP: [string, [string, string][]][] = [
       ['↑ ↓', 'Move between tracks'],
       ['Space', 'Shuffle unlocked tracks (hold + drag to pan)'],
       ['L', 'Lock / unlock track'],
+      ['⌥↑ ⌥↓', 'Move track up / down'],
       ['1 2 3 4', 'Keep layout · style · copy · motion'],
       ['P', 'Use this track’s design as the style guide'],
       ['⌫', 'Remove track'],

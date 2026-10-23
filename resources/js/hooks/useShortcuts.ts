@@ -38,6 +38,12 @@ export function useShortcuts(onHelp: () => void) {
         pressVersionAndFly()
         return
       }
+      if (e.altKey && !mod && (k === 'ArrowUp' || k === 'ArrowDown') && focused) {
+        e.preventDefault()
+        const i = st.slots.indexOf(focused)
+        st.moveSlot(focused.id, i + (k === 'ArrowUp' ? -1 : 1))
+        return
+      }
       if (mod || e.altKey) return
 
       if (e.shiftKey && (e.code === 'Digit1' || k === '!')) return void (e.preventDefault(), canvasApi.fitAll())

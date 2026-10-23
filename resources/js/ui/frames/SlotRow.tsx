@@ -1,6 +1,6 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ChevronDown, ChevronLeft, ChevronRight, GripVertical, Lock, LockOpen, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, Lock, LockOpen, X } from 'lucide-react'
 import type { Keep, Slot, TokenSet } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { library } from '@/data/library'
@@ -20,8 +20,6 @@ interface Props {
   count: number
   guide: TokenSet
   focused: boolean
-  onDragStart: (slotId: string, e: React.PointerEvent) => void
-  dragOffset: number
 }
 
 /**
@@ -29,7 +27,7 @@ interface Props {
  * the row slides between them. Neighbors peek out beside the page so it reads
  * like a sliding-tile puzzle.
  */
-export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focused, onDragStart, dragOffset }: Props) {
+export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focused }: Props) {
   const mode = useStore((s) => s.ui.mode)
   const viewport = useStore((s) => s.ui.viewport)
   const content = useStore((s) => s.content)
@@ -104,8 +102,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       style={{
         height,
         transition: 'height 520ms cubic-bezier(0.16, 1, 0.3, 1)',
-        transform: dragOffset ? `translateY(${dragOffset}px)` : undefined,
-        zIndex: dragOffset ? 30 : focused ? 20 : 1,
+        zIndex: focused ? 20 : 1,
       }}
       onPointerDown={() => st().focusSlot(slot.id)}
       onDragOver={(e) => {
@@ -185,7 +182,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
         </>
       )}
 
-      <RowControls slot={slot} index={index} count={count} focused={focused} shownIndex={shownIndex} total={ids.length} onDragStart={onDragStart} />
+      <RowControls slot={slot} index={index} count={count} focused={focused} shownIndex={shownIndex} total={ids.length} />
     </div>
   )
 })
@@ -283,7 +280,6 @@ function RowControls({
   focused,
   shownIndex,
   total,
-  onDragStart,
 }: {
   slot: Slot
   index: number
@@ -291,7 +287,6 @@ function RowControls({
   focused: boolean
   shownIndex: number
   total: number
-  onDragStart: (slotId: string, e: React.PointerEvent) => void
 }) {
   const clip = library.clips[slot.clipId]
   const source = library.sources[clip?.sourceId ?? '']
@@ -317,18 +312,10 @@ function RowControls({
         }}
       >
         <motion.div layout="position" transition={MORPH} className="flex items-center gap-1 p-1">
-          <button
-            type="button"
-            className="grid h-7 w-5 cursor-grab place-items-center rounded-md text-zinc-400 hover:bg-zinc-950/5 active:cursor-grabbing"
-            onPointerDown={(e) => {
-              e.stopPropagation()
-              onDragStart(slot.id, e)
-            }}
-            title="Drag to reorder"
-            aria-label="Drag to reorder"
-          >
-            <GripVertical size={14} />
-          </button>
+          <div className="flex items-center">
+            <MoveButton dir={-1} disabled={index === 0} onClick={() => st().moveSlot(slot.id, index - 1)} />
+            <MoveButton dir={1} disabled={index === count - 1} onClick={() => st().moveSlot(slot.id, index + 1)} />
+          </div>
           <span className="tabular-nums text-[10.5px] font-semibold text-zinc-400">{String(index + 1).padStart(2, '0')}</span>
           <span className="font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
           <span className="rounded-full bg-chip px-1.5 text-[10.5px] font-semibold tabular-nums text-zinc-600">
@@ -420,5 +407,25 @@ function RowControls({
         </AnimatePresence>
       </motion.div>
     </div>
+  )
+}
+
+function MoveButton({ dir, disabled, onClick }: { dir: 1 | -1; disabled: boolean; onClick: () => void }) {
+  const Icon = dir < 0 ? ArrowUp : ArrowDown
+  const label = dir < 0 ? 'Move up (⌥↑)' : 'Move down (⌥↓)'
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      disabled={disabled}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick()
+      }}
+      className="grid size-6 place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-25"
+    >
+      <Icon size={13} />
+    </button>
   )
 }

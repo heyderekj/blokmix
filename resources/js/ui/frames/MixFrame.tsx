@@ -1,13 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Disc3, Eye, Plus } from 'lucide-react'
 import { SECTION_TYPES } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { snapshotKey } from '@/core/versions'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
-import { useLayout } from '@/state/layout'
 import { useResolvedGuide } from '@/state/derived'
-import { canvasApi } from '../canvas/Canvas'
 import { MIX_ID, VIEW_W } from '../canvas/geometry'
 import { FrameHeader, HeaderButton } from './FrameHeader'
 import { SlotRow } from './SlotRow'
@@ -29,40 +27,6 @@ export function MixFrame() {
     [head, slots, guideState, content],
   )
 
-  // Drag-to-reorder by the grip: rows follow the pointer, then the tape reorders on drop.
-  const [drag, setDrag] = useState<{ slotId: string; dy: number } | null>(null)
-  const dragRef = useRef<{ slotId: string; startY: number } | null>(null)
-  const onDragStart = (slotId: string, e: React.PointerEvent) => {
-    dragRef.current = { slotId, startY: e.clientY }
-    setDrag({ slotId, dy: 0 })
-    const move = (ev: PointerEvent) => {
-      if (!dragRef.current) return
-      setDrag({ slotId, dy: (ev.clientY - dragRef.current.startY) / canvasApi.get().z })
-    }
-    const up = (ev: PointerEvent) => {
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerup', up)
-      const d = dragRef.current
-      dragRef.current = null
-      setDrag(null)
-      if (!d) return
-      const dy = (ev.clientY - d.startY) / canvasApi.get().z
-      const rows = useLayout.getState().rows
-      const st = useStore.getState()
-      const me = rows[slotId]
-      if (!me) return
-      const center = me.top + me.height / 2 + dy
-      const others = st.slots.filter((s) => s.id !== slotId)
-      let to = others.findIndex((s) => {
-        const r = rows[s.id]
-        return r && center < r.top + r.height / 2
-      })
-      if (to < 0) to = others.length
-      st.moveSlot(slotId, to)
-    }
-    window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', up)
-  }
 
   const st = useStore.getState
   const label = branchFrom ? `Remixing ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New tape'
@@ -105,8 +69,6 @@ export function MixFrame() {
             count={slots.length}
             guide={guide.tokens}
             focused={focused === slot.id}
-            onDragStart={onDragStart}
-            dragOffset={drag?.slotId === slot.id ? drag.dy : 0}
           />
         ))}
         {!slots.length && (
