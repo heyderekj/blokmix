@@ -378,3 +378,9 @@ body {
   background-color: rgb(28 28 31 / 0.96);
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.06), 0 16px 36px -12px rgb(0 0 0 / 0.7);
 }
+
+/* Page frames on the canvas: rounded like the chrome, measured on screen, but
+   capped in page pixels so zooming out never rounds away real content. */
+.frame-r { border-radius: min(calc(14px / var(--z, 1)), 40px); }
+.frame-r-top { border-top-left-radius: min(calc(14px / var(--z, 1)), 40px); border-top-right-radius: min(calc(14px / var(--z, 1)), 40px); }
+.frame-r-bottom { border-bottom-left-radius: min(calc(14px / var(--z, 1)), 40px); border-bottom-right-radius: min(calc(14px / var(--z, 1)), 40px); }

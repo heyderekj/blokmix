@@ -51,7 +51,7 @@ export function MixFrame() {
       </FrameHeader>
 
       <div
-        className="relative shadow-[0_30px_80px_-20px_rgb(0_0_0/0.25),0_0_0_1px_rgb(0_0_0/0.06)] transition-shadow"
+        className="frame-r relative shadow-[0_30px_80px_-20px_rgb(0_0_0/0.25),0_0_0_1px_rgb(0_0_0/0.06)] transition-shadow"
         style={{ background: guide.tokens['color.bg'] }}
       >
         {slots.map((slot, i) => (

@@ -104,7 +104,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
       </FrameHeader>
 
       <div
-        className="relative overflow-hidden bg-white shadow-[0_30px_80px_-20px_rgb(0_0_0/0.25),0_0_0_1px_rgb(0_0_0/0.06)]"
+        className="frame-r relative overflow-hidden bg-white shadow-[0_30px_80px_-20px_rgb(0_0_0/0.25),0_0_0_1px_rgb(0_0_0/0.06)]"
         style={{ minHeight: 600, outline: selected ? `calc(3px / var(--z)) solid ${meta.color}` : undefined }}
       >
         {building ? (

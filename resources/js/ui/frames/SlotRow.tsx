@@ -150,6 +150,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
               interactive={isCurrent && previewing}
               onHeight={(h) => setHeights((m) => (m[clipId] === h ? m : { ...m, [clipId]: h }))}
               onPick={() => st().setClip(slot.id, clipId)}
+              edge={`${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''}`}
             />
           )
         })}
@@ -159,7 +160,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
 
       {/* focus ring */}
       <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-200"
+        className={`pointer-events-none absolute inset-0 transition-opacity duration-200 ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''}`}
         style={{
           boxShadow: `inset 0 0 0 calc(3px / var(--z)) var(--color-tape)`,
           opacity: focused ? 1 : 0,
@@ -200,6 +201,7 @@ const Tile = memo(function Tile(p: {
   interactive: boolean
   onHeight: (h: number) => void
   onPick: () => void
+  edge: string
 }) {
   const clip = library.clips[p.clipId]
   const state = useMemo(
@@ -215,7 +217,7 @@ const Tile = memo(function Tile(p: {
       : 'transform 560ms cubic-bezier(0.34, 1.4, 0.64, 1), opacity 300ms'
   return (
     <div
-      className={`absolute left-0 top-0 ${isCurrent ? '' : 'cursor-pointer hover:!opacity-70'}`}
+      className={`absolute left-0 top-0 overflow-hidden ${p.edge} ${isCurrent ? '' : 'cursor-pointer hover:!opacity-70'}`}
       style={{
         transform: `translateX(${p.rel * (p.width + p.gap)}px)`,
         opacity: isCurrent ? 1 : visible ? 0.3 : 0,

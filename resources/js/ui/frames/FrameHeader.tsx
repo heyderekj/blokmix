@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { MoreHorizontal } from 'lucide-react'
 import type { Status } from '@/core/types'
-import { STATUS_META, STATUS_ORDER } from './status'
+import { STATUS_INK, STATUS_META, STATUS_ORDER } from './status'
 
 /**
  * A frame's header lives in canvas space (it moves with the frame) but renders at
@@ -117,17 +117,21 @@ export function StatusMenu({ status, onChange, trigger }: { status: Status; onCh
                     onChange(s)
                     setOpen(false)
                   }}
-                  className="absolute bottom-0 right-0 flex h-7 origin-bottom-right items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[12px] font-medium shadow-md"
+                  className={`glass-menu absolute bottom-0 right-0 flex h-7 origin-bottom-right items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-medium ${
+                    s === status ? '' : 'text-zinc-600 hover:text-zinc-900'
+                  }`}
                   style={{
-                    color: m.color,
-                    background: `color-mix(in oklab, ${m.color} 14%, var(--header-bg))`,
-                    borderColor: `color-mix(in oklab, ${m.color} 40%, transparent)`,
-                    outline: s === status ? `2px solid ${m.color}` : undefined,
-                    outlineOffset: 1,
+                    ...(s === status
+                      ? {
+                          color: STATUS_INK[s],
+                          background: `color-mix(in oklab, ${m.color} 18%, var(--lift))`,
+                          boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${m.color} 45%, transparent), 0 6px 16px -8px rgb(0 0 0 / 0.3)`,
+                        }
+                      : {}),
                     zIndex: i,
                   }}
                 >
-                  <PillIcon size={13} strokeWidth={2.25} />
+                  <PillIcon size={13} strokeWidth={2.25} style={{ color: s === status ? m.color : undefined }} />
                   {m.label}
                 </motion.button>
               )
