@@ -94,6 +94,7 @@ export function packetJson(i: PacketInput) {
       },
       localTokens: s.keep.style ? s.clip.tokens : null,
       retainedSourceFields: s.retained,
+      media: s.media.map((m) => ({ block: m.label, source: m.source, src: m.src, alt: m.alt, credit: m.credit })),
       blocks: s.blocks.map((b) => ({ id: b.id, label: b.label, kind: b.kind, variant: b.edit.variant ?? null, style: b.edit.style ?? null, hidden: !!b.edit.hidden })),
       notes: s.notes,
       html: s.clip.html,
@@ -162,6 +163,19 @@ export function linerNotes(i: PacketInput): string {
     write('Questions', wp.questions)
     write('Keep as is', wp.keeps)
     write('Resolved, waiting for the person to verify', wp.awaiting_verification)
+  }
+  const media = page.sections.flatMap((s) => s.media.map((m) => ({ ...m, section: `${s.position + 1}. ${TYPE_LABEL[s.type]}` })))
+  if (media.length) {
+    lines.push('## Images')
+    lines.push('')
+    for (const m of media) {
+      const what = m.source === 'placeholder' ? 'placeholder from the palette (replace with a real image before launch)' : m.source === 'upload' ? 'uploaded image' : 'stock photo'
+      lines.push(`- **${m.label}** (${m.section}): ${what}, \`${m.src}\`${m.alt ? `, alt “${m.alt}”` : ', no alt text yet (add one unless it’s decorative)'}`)
+      if (m.credit) lines.push(`  - Credit: ${m.credit}. Keep the hotlinked URL and show this credit, as Unsplash requires.`)
+    }
+    lines.push('')
+    lines.push('Optimise the files in `public/media/` before shipping. With Dinky’s CLI (dinkyfiles.com): `dinky compress-image public/media/*.webp -f webp -w 1600 --strip-metadata --json -o public/media`, keeping file names so references still match.')
+    lines.push('')
   }
   if (i.notes?.length) {
     lines.push('## Notes')

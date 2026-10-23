@@ -1,8 +1,9 @@
-import type { BlockEdit, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
+import type { BlockEdit, MediaFill, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
 import { motionCss as presetMotionCss } from './motion'
+import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit } from './media'
 import { resolveFields } from './content'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
@@ -23,8 +24,22 @@ export interface ComposedSection {
   blocks: { id: string; label: string; kind: string; edit: BlockEdit }[]
   /** The section's motion choice (absent = as clipped). */
   motion?: SectionMotion
+  /** Pictures in its image blocks. */
+  media: ComposedMedia[]
   retained: string[]
   notes: string[]
+}
+
+export interface ComposedMedia {
+  blockId: string
+  label: string
+  source: MediaFill['source']
+  /** Path in the exported site (public/…), or the remote URL for stock. */
+  src: string
+  /** The same picture inline (data URI or URL), for the single-file reference build. */
+  inline: string
+  alt: string
+  credit: string | null
 }
 
 export interface ComposedPage {
@@ -33,6 +48,8 @@ export interface ComposedPage {
   vars: CssVars
   fonts: FontSource[]
   sections: ComposedSection[]
+  /** Image files to write into the site's public folder. */
+  mediaFiles: Record<string, string | Uint8Array>
 }
 
 export interface ComposeInput {
@@ -44,6 +61,8 @@ export interface ComposeInput {
   title?: string
   /** Extra brand colours and page-wide block looks from the style guide. */
   page?: Pick<GuideState, 'swatches' | 'components'>
+  /** Uploaded images by asset id (data URLs), from the browser's asset store. */
+  uploads?: (id: string) => string | undefined
 }
 
 const pascal = (s: string) =>
@@ -66,6 +85,7 @@ export function composePage(input: ComposeInput): ComposedPage {
   addFonts(input.guide.tokens)
 
   const used = new Map<string, number>()
+  const mediaFiles: Record<string, string | Uint8Array> = {}
   const sections: ComposedSection[] = []
 
   input.slots.forEach((slot, position) => {
@@ -94,11 +114,45 @@ export function composePage(input: ComposeInput): ComposedPage {
       ...el,
       attrs: el.attrs.some(([k]) => k === 'class') ? el.attrs.map(([k, v]) => (k === 'class' ? [k, `${v} ${cls}`] : [k, v])) : [...el.attrs, ['class', cls]],
     })
+    // Pictures: an <img> over the block's placeholder art, which keeps the block's size and shape.
+    const media: ComposedMedia[] = []
+    for (const { b, edit } of changed) {
+      if (b.kind !== 'image' || !edit.media) continue
+      const fill = edit.media
+      const r = renderMedia(fill, input.guide.tokens, b.ratio, input.uploads ?? (() => undefined))
+      if (!r) continue
+      const base = `media/s${position + 1}-${b.id}`
+      let src = r.src
+      if (fill.source === 'placeholder') {
+        src = `/${base}.svg`
+        mediaFiles[`${base}.svg`] = placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, input.guide.tokens, b.ratio)
+      } else if (fill.source === 'upload') {
+        const file = dataUrlBytes(r.src)
+        if (file) {
+          src = `/${base}.${file.ext}`
+          mediaFiles[`${base}.${file.ext}`] = file.bytes
+        }
+      }
+      media.push({ blockId: b.id, label: b.label, source: fill.source, src, inline: r.src, alt: r.alt, credit: fill.source === 'stock' && fill.stock ? stockCredit(fill.stock) : null })
+    }
+    const mediaFor = new Map(media.map((m) => [m.blockId, m]))
     const marked = mapTree(parseHtml(clip.html), (el) => {
       if (spaced && attr(el, 'data-mx-section') !== undefined) return addClass(el, `mx-s${position + 1}`)
       if (attr(el, 'data-mx-block') === undefined) return el
       const id = `b${order++}`
-      return changedIds.has(id) ? addClass(el, blockClass(id)) : el
+      if (!changedIds.has(id)) return el
+      const withClass = addClass(el, blockClass(id))
+      const m = mediaFor.get(id)
+      if (!m) return withClass
+      const [w, h] = sizeForRatio(clip.blocks.find((x) => x.id === id)?.ratio, 1600)
+      const img: HEl = {
+        t: 'el',
+        tag: 'img',
+        ns: 'html',
+        attrs: [['class', 'mx-media'], ['src', m.src], ['alt', m.alt], ['width', String(w)], ['height', String(h)], ['loading', 'lazy'], ['decoding', 'async']],
+        kids: [],
+      }
+      return { ...withClass, kids: [...withClass.kids, img] }
     })
     const tree = applyFields(marked, fields)
     const blocksCss = blockCss({
@@ -107,6 +161,14 @@ export function composePage(input: ComposeInput): ComposedPage {
       components: input.page?.components,
       select: (b) => `.${clip.rootClass}.${blockClass(b.id)}, .${clip.rootClass} .${blockClass(b.id)}`,
     }) + (spaced ? `\n${sectionSpacingCss(slot.spacing, `.${clip.rootClass}.mx-s${position + 1}`)}` : '')
+    const mediaCss = media
+      .map((m) => {
+        const sel = `.${clip.rootClass} .${blockClass(m.blockId)}`
+        const fit = changed.find((x) => x.b.id === m.blockId)?.edit.media?.fit === 'contain' ? 'contain' : 'cover'
+        // position: relative sits in the clip layer under :where(), so a clip that positions the block keeps winning.
+        return `@layer clip { :where(${sel}) { position: relative; } }\n@layer blocks {\n${sel} { overflow: hidden; }\n${sel} > :not(.mx-media) { visibility: hidden; }\n${sel} > .mx-media { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: ${fit}; display: block; border-radius: inherit; }\n}`
+      })
+      .join('\n')
     const rootSel = `.${clip.rootClass}.mx-s${position + 1}`
     const generated = presetMotionCss({
       blocks: clip.blocks,
@@ -134,7 +196,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const motionCss = [captured, generated && `/* Motion presets */\n${generated}`].filter(Boolean).join('\n\n') || null
     // Layers keep the cascade simple: a block's look always beats the clip's own CSS.
     // The order is repeated in each file so it holds whichever stylesheet a bundler loads first.
-    css = `${LAYER_ORDER}\n\n@layer clip {\n${indent(css)}\n}${blocksCss ? `\n\n/* Blocks you restyled */\n${blocksCss}` : ''}`
+    css = `${LAYER_ORDER}\n\n@layer clip {\n${indent(css)}\n}${blocksCss ? `\n\n/* Blocks you restyled */\n${blocksCss}` : ''}${mediaCss ? `\n\n/* Pictures */\n${mediaCss}` : ''}`
 
     sections.push({
       slotId: slot.id,
@@ -149,6 +211,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       localVars,
       blocks: changed.map(({ b, edit }) => ({ id: b.id, label: b.label, kind: b.kind, edit })),
       motion: slot.motion,
+      media,
       retained: slot.keep.content ? [] : retained,
       notes: input.slotNotes?.[slot.id] ?? [],
     })
@@ -163,6 +226,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     },
     fonts: [...fonts.values()],
     sections,
+    mediaFiles,
   }
 }
 

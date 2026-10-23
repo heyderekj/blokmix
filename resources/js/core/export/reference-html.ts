@@ -16,7 +16,8 @@ export function referenceHtml(page: ComposedPage, opts: { vh?: string; tagSlots?
       const tree = opts.tagSlots
         ? mapTree(s.tree, (el) => (el === s.tree.find((n) => n.t === 'el') ? { ...el, attrs: [...el.attrs, ['data-mx-slot', s.slotId]] } : el))
         : s.tree
-      return serialize(tree, 'html', 1)
+      // The reference build is a single file, so pictures go inline.
+      return s.media.reduce((html, m) => html.split(`src="${m.src}"`).join(`src="${m.inline}"`), serialize(tree, 'html', 1))
     })
     .join('\n')
   return `<!doctype html>

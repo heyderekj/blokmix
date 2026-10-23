@@ -5,6 +5,7 @@ import { openGroups, resolveGuide } from '@/core/guide'
 import { composePage } from '@/core/compose'
 import { agentPrompt, packetFiles, type PacketInput } from '@/core/export/packet'
 import { zipFiles } from '@/core/export/zip'
+import { assetUrl, useAssets } from '@/lib/assets'
 import { slug } from '@/core/export/astro'
 import { dfsOrder, generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
 import { library } from '@/data/library'
@@ -31,6 +32,7 @@ export function PacketPanel() {
 
   const version = source !== 'mix' ? versions[source] : null
 
+  const assets = useAssets((s) => s.assets)
   const input: PacketInput = useMemo(() => {
     const snap = version?.snapshot ?? { slots, guide: guideState, content, slotNotes: slotNotesFor(slots, notes), marks: marksFor(slots, notes), generalNotes: generalNotesFor(notes) }
     const guide = resolveGuide(snap.guide)
@@ -47,7 +49,7 @@ export function PacketPanel() {
       : []
     const parent = version?.parentId ? versions[version.parentId] : null
     return {
-      page: composePage({ slots: snap.slots.filter((s) => library.clips[s.clipId]), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide }),
+      page: composePage({ slots: snap.slots.filter((s) => library.clips[s.clipId]), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: assetUrl }),
       guide,
       guideState: snap.guide,
       library,
@@ -58,7 +60,7 @@ export function PacketPanel() {
       // A version's marks live on with the tape, so read them live rather than from the snapshot.
       marks: version ? marksFor(snap.slots, notes) : snap.marks,
     }
-  }, [version, versions, slots, guideState, content, notes, sections, tapeName, targets])
+  }, [version, versions, slots, guideState, content, notes, sections, tapeName, targets, assets])
 
   const files = useMemo(() => packetFiles(input), [input])
   const paths = Object.keys(files)
@@ -168,12 +170,13 @@ export function PacketPanel() {
             <div className="mb-1.5 mt-3 flex items-center justify-between">
               <span className="truncate font-mono text-[11.5px] text-zinc-500">{current}</span>
               <CopyBtn copied={copied === 'file'} onClick={async () => {
-                await navigator.clipboard.writeText(files[current])
+                const f = files[current]
+                if (typeof f === 'string') await navigator.clipboard.writeText(f)
                 flash('file')
               }} />
             </div>
             <pre className="thin-scroll max-h-[340px] min-h-40 overflow-auto rounded-xl bg-lift p-3 font-mono text-[11px] leading-relaxed text-zinc-700 ring-1 ring-zinc-950/5">
-              {files[current]}
+              {typeof files[current] === 'string' ? files[current] : `Image · ${Math.round((files[current] as Uint8Array).length / 1024)} KB`}
             </pre>
           </>
         ) : (

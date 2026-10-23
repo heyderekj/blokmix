@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import type { BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { motionCss } from '@/core/motion'
+import { renderMedia } from '@/core/media'
+import { assetUrl } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
 import { BASE_FONTS, expandTokens, fontHref, fontsForTokens, varsToCss } from '@/core/tokens'
@@ -54,7 +56,7 @@ export function frameStateFor(
 ): FrameState {
   const vh = VIEWPORT_VH[viewport]
   if (mode === 'captured' || !slot) {
-    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS }
+    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: [fontHrefFor(clip.tokens)], outline: false, blocks: NO_BLOCKS, media: NO_MEDIA }
   }
   const tokens = slot.keep.style ? clip.tokens : guide
   const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
@@ -66,10 +68,34 @@ export function frameStateFor(
     fonts: [fontHrefFor(tokens)],
     outline: !slot.keep.layout,
     blocks: blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion),
+    media: mediaFor(clip, slot.edits?.[clip.id], tokens),
   }
 }
 
 const NO_BLOCKS: FrameState['blocks'] = { css: '', variants: {} }
+const NO_MEDIA: FrameState['media'] = {}
+
+const mediaCache = new Map<string, FrameState['media'][string]>()
+/** Pictures for image blocks; placeholders are redrawn from the current palette. */
+function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet): FrameState['media'] {
+  if (!edits) return NO_MEDIA
+  const out: FrameState['media'] = {}
+  for (const b of clip.blocks) {
+    const fill = edits[b.id]?.media
+    if (!fill || b.kind !== 'image') continue
+    const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' ? tokens : null])
+    let m = mediaCache.get(key)
+    if (!m) {
+      m = renderMedia(fill, tokens, b.ratio, assetUrl) ?? undefined
+      if (m && fill.source !== 'upload') {
+        if (mediaCache.size > 300) mediaCache.clear()
+        mediaCache.set(key, m)
+      }
+    }
+    if (m) out[b.id] = m
+  }
+  return Object.keys(out).length ? out : NO_MEDIA
+}
 
 /** Extra brand colours, as --mx-color-x-<name>. */
 export function swatchCss(swatches: Swatch[] | undefined): string {

@@ -32,6 +32,8 @@ export interface Advice {
     | 'loops'
     | 'hover-static'
     | 'nav-motion'
+    | 'alt'
+    | 'placeholder'
   level: 'problem' | 'suggestion'
   lens: Lens
   message: string
@@ -269,6 +271,24 @@ export function advise(i: AdviseInput): Advice[] {
           fix: { label: 'Match the others', edit: { style: { [prop]: common } } },
         })
       })
+    }
+  }
+
+  // ---- pictures ----
+  for (const b of i.blocks) {
+    const media = eff(b)?.media
+    if (b.kind !== 'image' || !media || eff(b)?.hidden) continue
+    if (media.source !== 'placeholder' && !media.alt?.trim()) {
+      out.push({
+        blockId: b.id,
+        rule: 'alt',
+        level: 'problem',
+        lens: 'Accessibility',
+        message: 'This picture has no description. Screen readers will skip it or read the file name; say what’s in it in a few words.',
+      })
+    }
+    if (media.source === 'placeholder') {
+      out.push({ blockId: b.id, rule: 'placeholder', level: 'suggestion', lens: 'IIDS', message: 'A placeholder, drawn from your palette. Swap in a real image before launch; the packet flags it for the agent too.' })
     }
   }
 

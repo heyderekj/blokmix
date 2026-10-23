@@ -9,6 +9,7 @@ export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
   const files: FileMap = {}
   const href = fontLink(page)
 
+  for (const [path, data] of Object.entries(page.mediaFiles)) files[`${root}public/${path}`] = data
   files[`${root}package.json`] = JSON.stringify(
     {
       name: slug(page.title) + '-astro',

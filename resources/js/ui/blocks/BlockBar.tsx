@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves } from 'lucide-react'
+import { ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -15,8 +15,9 @@ import { keepInView } from '../canvas/inView'
 import { draftForBlock, useMarkDraft } from '../notes/Marks'
 import { SPACE_STEPS, Steps } from './Spacing'
 import { MotionMenu } from './MotionMenu'
+import { ImageMenu } from './ImageMenu'
 
-type Menu = 'variant' | 'style' | 'motion' | 'more' | 'advice' | null
+type Menu = 'variant' | 'style' | 'motion' | 'image' | 'more' | 'advice' | null
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -115,6 +116,11 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         <BarButton active={menu === 'style'} onClick={() => setMenu(menu === 'style' ? null : 'style')} icon={Palette} title="Colour and shape">
           <StyleDots style={edit?.style} />
         </BarButton>
+        {block.kind === 'image' && (
+          <BarButton active={menu === 'image'} onClick={() => setMenu(menu === 'image' ? null : 'image')} icon={ImageIcon} title="Picture">
+            {edit?.media ? <span className="size-1.5 rounded-full bg-tape" /> : 'Image'}
+          </BarButton>
+        )}
         <BarButton active={menu === 'motion'} onClick={() => setMenu(menu === 'motion' ? null : 'motion')} icon={Waves} title="Motion">
           {edit?.motion ? <span className="size-1.5 rounded-full bg-tape" /> : null}
         </BarButton>
@@ -198,6 +204,9 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         </Popover>
       )}
       {menu === 'style' && <StyleMenu style={own?.style} inherited={def?.style} composite={COMPOSITE.has(block.kind)} onHover={(s) => hover(s ? { style: s } : null)} onPick={(s) => apply({ style: s })} />}
+      {menu === 'image' && (
+        <ImageMenu block={block} fill={own?.media} onHover={(m) => hover(m ? { media: m } : null)} onPick={(m) => apply({ media: m ?? undefined })} />
+      )}
       {menu === 'motion' && <MotionMenu kind={block.kind} motion={edit?.motion} onHover={(m) => hover(m ? { motion: m } : null)} onPick={(m) => apply({ motion: m })} />}
       {menu === 'more' && (
         <Popover width={248}>

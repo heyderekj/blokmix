@@ -89,7 +89,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     const id = requestAnimationFrame(push)
     return () => cancelAnimationFrame(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks])
+  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks, state.media])
 
   // Edit mode and the selection travel separately from the look, so they never re-send tokens.
   const editing = !!edit?.active

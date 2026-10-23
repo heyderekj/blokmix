@@ -102,6 +102,17 @@ Nudge) for hierarchy, spacing and type; Laws of UX for behaviour; Emil Kowalski'
   `transition: all`, `scale(0)` and `ease-in`. Motion presets (`core/motion.ts`) are written to these
   rules; a section preset replaces the clip's own motion.css.
 
+### Images
+
+Image blocks take a fill (`BlockEdit.media`, `core/media.ts`): a placeholder SVG drawn from the
+current palette (re-themes with the style guide), an upload (downscaled WebP in the browser's
+IndexedDB via `lib/assets.ts`, never in the persisted store), or an Unsplash photo (hotlinked, credited,
+download-tracked; needs `VITE_UNSPLASH_ACCESS_KEY` in `.env.local`). Frames and exports layer an
+`<img class="mx-media">` over the block's own art, which keeps the size and shape. Exports write
+`public/media/*`; `npm run export:demo` squeezes raster images with Dinky's CLI (dinkyfiles.com) when
+`dinky` is on the PATH (or `DINKY=/path/to/dinky`), and MIXTAPE.md tells the agent the same command.
+Authored clips still use CSS/SVG art only (rule 5).
+
 ### Built-in layouts
 
 Layouts are clips from the `layout` source: polished neutral structure (Inter, near-black on white,

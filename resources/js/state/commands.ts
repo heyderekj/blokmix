@@ -1,4 +1,4 @@
-import type { BlockEdit, BlockInfo, BlockMotion, BlockStyle, Choice, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
+import type { BlockEdit, BlockInfo, BlockMotion, BlockStyle, Choice, MediaFill, Keep, Note, NoteAnchor, Slot, TokenKey } from '@/core/types'
 import { isMark, MARK_GUIDANCE, SOURCE_LABEL, sortMarks } from '@/core/notes'
 import { COMMANDS, toolDefinitions, type CommandInput, type CommandName } from '@/core/commands/schema'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
@@ -144,6 +144,7 @@ function describeSection(slot: Slot, position: number) {
         look: e?.variant ?? null,
         style: e?.style ?? null,
         motion: e?.motion ?? null,
+        image: b.kind === 'image' ? (e?.media ?? null) : undefined,
         hidden: !!e?.hidden,
       }
     }),
@@ -329,6 +330,26 @@ const WRITE = {
     const slot = findSection(i.section)
     useStore.getState().setSectionSpacing(slot.id, clean({ top: i.top, bottom: i.bottom }))
     return { spacing: findSection(slot.id).spacing ?? {} }
+  },
+  set_image: (i: CommandInput<'set_image'>) => {
+    const slot = findSection(i.section)
+    const b = findBlock(slot, i.block)
+    if (b.kind !== 'image') throw new CommandError(`${b.label} isn’t an image block. Image blocks: ${library.clips[slot.clipId].blocks.filter((x) => x.kind === 'image').map((x) => x.label).join('; ') || 'none'}`)
+    const st = useStore.getState()
+    if (i.remove) {
+      st.editBlock(slot.id, b.id, { media: undefined })
+      return { block: b.label, media: null }
+    }
+    const cur = slot.edits?.[slot.clipId]?.[b.id]?.media
+    const next: MediaFill = i.placeholder
+      ? { source: 'placeholder', style: i.placeholder, seed: i.seed ?? 1, alt: i.alt ?? cur?.alt, fit: i.fit ?? cur?.fit }
+      : cur
+        ? { ...cur, ...(i.alt !== undefined ? { alt: i.alt || undefined } : {}), ...(i.fit ? { fit: i.fit } : {}), ...(i.seed !== undefined && cur.source === 'placeholder' ? { seed: i.seed } : {}) }
+        : (() => {
+            throw new CommandError('Give a placeholder style, or set a picture first')
+          })()
+    st.editBlock(slot.id, b.id, { media: next })
+    return { block: b.label, media: next }
   },
   set_section_motion: (i: CommandInput<'set_section_motion'>) => {
     const slot = findSection(i.section)

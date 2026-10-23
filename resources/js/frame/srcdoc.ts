@@ -187,6 +187,27 @@ const BRIDGE = `(function () {
         if (v) el.setAttribute('data-mx-v', v); else el.removeAttribute('data-mx-v');
       });
     }
+    if (d.media) {
+      document.querySelectorAll('[data-mx-block="image"]').forEach(function (el) {
+        var m = d.media[el.getAttribute('data-mx-b')];
+        var img = el.querySelector(':scope > img.mx-media');
+        if (!m) {
+          if (img) img.remove();
+          el.removeAttribute('data-mx-has-media');
+          return;
+        }
+        if (!img) {
+          img = document.createElement('img');
+          img.className = 'mx-media';
+          img.onload = report;
+          el.appendChild(img);
+        }
+        if (getComputedStyle(el).position === 'static') el.setAttribute('data-mx-rel', '');
+        el.setAttribute('data-mx-has-media', m.fit);
+        if (img.getAttribute('src') !== m.src) img.setAttribute('src', m.src);
+        img.setAttribute('alt', m.alt || '');
+      });
+    }
     if (typeof d.edit === 'boolean') {
       editMode = d.edit;
       document.documentElement.toggleAttribute('data-mx-edit', d.edit);
@@ -212,6 +233,11 @@ html[data-mx-note], html[data-mx-note] * { cursor: crosshair !important; user-se
 html[data-mx-note] [data-mx-field], html[data-mx-note] [data-mx-field] * { cursor: text !important; user-select: text; }
 html[data-mx-note] ::selection { background: color-mix(in srgb, #ff6aa8 35%, transparent); }
 [data-mx-editing] { outline: none; cursor: text; caret-color: currentColor; }
+[data-mx-rel] { position: relative; }
+[data-mx-has-media] { overflow: hidden; }
+[data-mx-has-media] > :not(.mx-media) { visibility: hidden; }
+img.mx-media { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; display: block; border-radius: inherit; }
+[data-mx-has-media='contain'] > img.mx-media { object-fit: contain; }
 `
 
 

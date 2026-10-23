@@ -85,3 +85,13 @@ describe('note commands', () => {
     expect(() => runCommand('update_note', { note: 'N1', status: 'verified' })).toThrow(/Invalid input/)
   })
 })
+
+describe('image commands', () => {
+  it('fills an image block with a placeholder and alt text, and refuses non-image blocks', () => {
+    const hero = (runCommand('get_page', { section: 'hero' }) as Page).sections[0]
+    const img = hero.blocks.find((b) => b.kind === 'image')!
+    const r = runCommand('set_image', { section: 'hero', block: img.id, placeholder: 'arch', alt: 'An arch at dusk' }) as { media: { source: string; alt: string } }
+    expect(r.media).toMatchObject({ source: 'placeholder', alt: 'An arch at dusk' })
+    expect(() => runCommand('set_image', { section: 'hero', block: hero.blocks.find((b) => b.kind === 'heading')!.id, placeholder: 'mesh' })).toThrow(/isn’t an image block/)
+  })
+})

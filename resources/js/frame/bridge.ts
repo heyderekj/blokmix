@@ -58,6 +58,8 @@ export interface FrameState {
   outline: boolean
   /** Block variants and styles: CSS for @layer blocks, plus each edited block's variant id. */
   blocks: { css: string; variants: Record<string, string> }
+  /** Pictures filling image blocks, by block id. */
+  media: Record<string, { src: string; alt: string; fit: 'cover' | 'contain' }>
 }
 
 export function postState(

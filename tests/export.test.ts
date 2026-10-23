@@ -46,7 +46,7 @@ describe.each(clips.map((c) => [c.id, c] as const))('exporters: %s', (_id, clip)
       const files = nextFiles(page)
       for (const [path, code] of Object.entries(files)) {
         if (!path.endsWith('.tsx')) continue
-        await expect(transformWithOxc(code, path, { lang: 'tsx' })).resolves.toBeTruthy()
+        await expect(transformWithOxc(code as string, path, { lang: 'tsx' })).resolves.toBeTruthy()
       }
     })
 
@@ -54,7 +54,7 @@ describe.each(clips.map((c) => [c.id, c] as const))('exporters: %s', (_id, clip)
       const files = astroFiles(page)
       for (const [path, code] of Object.entries(files)) {
         if (!path.endsWith('.astro')) continue
-        const r = await astroTransform(code, { filename: path })
+        const r = await astroTransform(code as string, { filename: path })
         expect(r.diagnostics.filter((d) => d.severity === 1).map((d) => d.text), path).toEqual([])
       }
     })
@@ -84,7 +84,7 @@ describe('packet', () => {
     })
     for (const f of ['mixtape.json', 'MIXTAPE.md', 'tokens.css', 'tokens.json', 'reference.html', 'astro/src/pages/index.astro', 'next/app/page.tsx', 'next/app/layout.tsx'])
       expect(Object.keys(files)).toContain(f)
-    const json = JSON.parse(files['mixtape.json'])
+    const json = JSON.parse(files['mixtape.json'] as string)
     expect(json.schema).toBe('mixtape.packet/v1')
     expect(json.sections).toHaveLength(slots.length)
   })

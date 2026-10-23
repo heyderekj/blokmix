@@ -5,7 +5,7 @@
 // Blocks are referred to by id ("b3") or by label ("Pricing · Plan 2 · Button").
 
 import { z } from 'zod'
-import { BLOCK_KINDS, ENTER_PRESETS, HOVER_PRESETS, LOOP_PRESETS, NOTE_KINDS, NOTE_STATUSES, SCROLL_PRESETS, SECTION_TYPES, TOKEN_KEYS } from '../types'
+import { BLOCK_KINDS, PLACEHOLDER_STYLES, ENTER_PRESETS, HOVER_PRESETS, LOOP_PRESETS, NOTE_KINDS, NOTE_STATUSES, SCROLL_PRESETS, SECTION_TYPES, TOKEN_KEYS } from '../types'
 
 const section = z.union([z.string(), z.number().int().min(1)]).describe('A section: its id, its position from the top (1 = first), or its type such as "hero"')
 const block = z.string().describe('A block in that section: its id ("b3") or its label ("Pricing · Plan 2 · Button")')
@@ -96,6 +96,20 @@ export const COMMANDS = {
   set_section_spacing: {
     description: 'A section’s top and bottom padding relative to the style guide.',
     input: z.object({ section, top: z.enum(['none', 'tight', 'default', 'roomy']).optional(), bottom: z.enum(['none', 'tight', 'default', 'roomy']).optional() }),
+    write: true,
+  },
+  set_image: {
+    description:
+      'Fill an image block: a placeholder drawn from the palette (style mesh, shapes, arch, waves, grid or portrait; it re-themes with the style guide), or remove to go back to the clip’s own art. Always set alt text for real pictures.',
+    input: z.object({
+      section,
+      block,
+      placeholder: z.enum(PLACEHOLDER_STYLES).optional(),
+      seed: z.number().int().optional().describe('Another seed draws a different version of the same style'),
+      alt: z.string().optional(),
+      fit: z.enum(['cover', 'contain']).optional(),
+      remove: z.boolean().optional(),
+    }),
     write: true,
   },
   set_section_motion: {

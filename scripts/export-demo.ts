@@ -4,14 +4,15 @@
  *   npm run export:demo
  *   npm run export:demo -- --layouts   (a page of every built-in layout, to build-check them all)
  */
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { library } from '../resources/js/data/library'
 import { buildSeed } from '../resources/js/state/seed'
 import { composePage } from '../resources/js/core/compose'
 import { resolveGuide } from '../resources/js/core/guide'
 import { packetFiles } from '../resources/js/core/export/packet'
-import { DEFAULT_KEEP, SECTION_TYPES, type Slot } from '../resources/js/core/types'
+import { DEFAULT_KEEP, PLACEHOLDER_STYLES, SECTION_TYPES, type Slot } from '../resources/js/core/types'
 
 const out = join(process.cwd(), '.out', 'packet')
 const seed = buildSeed(library)
@@ -28,17 +29,25 @@ const slots: Slot[] = allLayouts
       motion: i % 2 ? ({ mode: 'preset', enter: 'rise', stagger: true, onScroll: true } as const) : undefined,
       // A spread of block looks, so the build check covers restyled blocks too.
       edits: {
-        [clipId]: Object.fromEntries(
-          library.clips[clipId].blocks
-            .filter((b) => b.kind === 'button' || b.kind === 'heading' || b.kind === 'card' || b.kind === 'image')
-            .slice(0, 3)
-            .map((b, j) => [
-              b.id,
-              j === 0
-                ? { variant: b.kind === 'button' ? 'outline' : b.kind === 'heading' ? 'marker' : 'rounded', style: { fill: 'x:Sunset' }, motion: { hover: 'lift' as const } }
-                : { style: { radius: 'lg' as const }, motion: { scroll: 'reveal' as const, loop: j === 2 ? ('float' as const) : undefined } },
-            ]),
-        ),
+        [clipId]: {
+          ...Object.fromEntries(
+            library.clips[clipId].blocks
+              .filter((b) => b.kind === 'button' || b.kind === 'heading' || b.kind === 'card')
+              .slice(0, 3)
+              .map((b, j) => [
+                b.id,
+                j === 0
+                  ? { variant: b.kind === 'button' ? 'outline' : b.kind === 'heading' ? 'marker' : 'rounded', style: { fill: 'x:Sunset' }, motion: { hover: 'lift' as const } }
+                  : { style: { radius: 'lg' as const }, motion: { scroll: 'reveal' as const, loop: j === 2 ? ('float' as const) : undefined } },
+              ]),
+          ),
+          // Every image block gets a placeholder picture, cycling through the styles.
+          ...Object.fromEntries(
+            library.clips[clipId].blocks
+              .filter((b) => b.kind === 'image')
+              .map((b, j) => [b.id, { media: { source: 'placeholder' as const, style: PLACEHOLDER_STYLES[(i + j) % PLACEHOLDER_STYLES.length], seed: i + j + 1, alt: '' } }]),
+          ),
+        },
       },
     }))
   : version.snapshot.slots
@@ -60,10 +69,43 @@ const files = packetFiles({
 })
 
 rmSync(out, { recursive: true, force: true })
-for (const [path, text] of Object.entries(files)) {
+for (const [path, data] of Object.entries(files)) {
   const file = join(out, path)
   mkdirSync(dirname(file), { recursive: true })
-  writeFileSync(file, text)
+  writeFileSync(file, data)
 }
 console.log(`Wrote ${Object.keys(files).length} files to ${out}`)
+optimiseWithDinky(out)
+
+/**
+ * Squeeze exported raster images with Dinky's CLI (dinkyfiles.com) when it's
+ * installed: same names and formats, so references still match.
+ */
+function optimiseWithDinky(root: string) {
+  const bin = process.env.DINKY ?? 'dinky'
+  if (spawnSync(bin, ['--help'], { stdio: 'ignore' }).error) {
+    console.log('Dinky CLI not found; skipping image optimisation (set DINKY=/path/to/dinky to use it).')
+    return
+  }
+  for (const target of ['astro', 'next']) {
+    const dir = join(root, target, 'public', 'media')
+    const images = existsSync(dir) ? readdirSync(dir).filter((f) => /\.(webp|png|jpe?g|avif)$/i.test(f)) : []
+    if (!images.length) continue
+    const tmp = join(root, `.dinky-${target}`)
+    mkdirSync(tmp, { recursive: true })
+    for (const f of images) {
+      const fmt = f.split('.').pop()!.toLowerCase().replace('jpg', 'jpeg')
+      const res = spawnSync(bin, ['compress-image', join(dir, f), '-f', fmt, '-w', '1600', '--strip-metadata', '--json', '-o', tmp], { encoding: 'utf8' })
+      try {
+        const out = JSON.parse(res.stdout) as { results: { output?: string; outputBytes?: number; originalBytes?: number; error?: string }[] }
+        const r = out.results[0]
+        if (r?.output && !r.error && (r.outputBytes ?? Infinity) < (r.originalBytes ?? 0)) renameSync(r.output, join(dir, f))
+      } catch {
+        console.warn(`Dinky couldn’t optimise ${f}`)
+      }
+    }
+    rmSync(tmp, { recursive: true, force: true })
+    console.log(`Dinky optimised ${images.length} image(s) in ${target}/public/media`)
+  }
+}
 if (library.warnings.length) console.warn(`${library.warnings.length} clip lint issue(s)`)

@@ -47,7 +47,7 @@ describe('marks', () => {
     const files = packetFiles({ page, guide, guideState: emptyGuide(), library, tapeName: 'T', targets: ['astro'], marks: [mark(1, 'must-fix', 'open', { suggestedCopy: 'Start free' })] })
     expect(files['MIXTAPE.md']).toContain('## Feedback')
     expect(files['MIXTAPE.md']).toContain('Use exactly: “Start free”')
-    expect(JSON.parse(files['mixtape.json']).work_packets.must_fix[0].number).toBe('N1')
+    expect(JSON.parse(files['mixtape.json'] as string).work_packets.must_fix[0].number).toBe('N1')
   })
 })
 

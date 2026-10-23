@@ -2,7 +2,8 @@ import type { ComposedPage, ComposedSection } from '../compose'
 import { fontHref, varsToCss } from '../tokens'
 import { TYPE_LABEL } from '../content'
 
-export type FileMap = Record<string, string>
+/** Text files, plus binary ones (uploaded images) as bytes. */
+export type FileMap = Record<string, string | Uint8Array>
 
 export function tokensCss(page: ComposedPage): string {
   return `/* Mixtape style guide: generated, edit tokens in Mixtape and re-export. */\n${varsToCss(page.vars)}\n`

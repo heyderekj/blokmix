@@ -10,6 +10,7 @@ import { useBlockPreview, withPreview } from '../blocks/preview'
 import { BlockBar } from '../blocks/BlockBar'
 import { SectionMarks, draftForBlock, useMarkDraft, type MarkDraft } from '../notes/Marks'
 import { resolveFields, TYPE_LABEL } from '@/core/content'
+import { useAssets } from '@/lib/assets'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { VIEW_W } from '../canvas/geometry'
 import { SectionPill, SectionRail } from './SectionPill'
@@ -353,9 +354,12 @@ const Tile = memo(function Tile(p: {
   edge: string
 }) {
   const clip = library.clips[p.clipId]
+  // Uploads load from the browser's store after start-up; redraw when they arrive.
+  const assets = useAssets((s) => s.assets)
   const state = useMemo(
     () => frameStateFor(clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page),
-    [clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page, assets],
   )
   const isCurrent = p.rel === 0
   const transition = p.jump

@@ -345,12 +345,46 @@ export interface SectionMotion {
   speed?: MotionSpeed
 }
 
+export const PLACEHOLDER_STYLES = ['mesh', 'shapes', 'arch', 'waves', 'grid', 'portrait'] as const
+export type PlaceholderStyle = (typeof PLACEHOLDER_STYLES)[number]
+
+/** A stock photo, hotlinked as the provider asks, with its credit. */
+export interface StockPhoto {
+  provider: 'unsplash'
+  id: string
+  url: string
+  thumb: string
+  width: number
+  height: number
+  author: string
+  authorUrl: string
+  link: string
+  description?: string
+}
+
+/**
+ * What fills an image block: a placeholder drawn from your palette (it
+ * re-themes with the style guide), an image you uploaded (kept in this
+ * browser), or a stock photo.
+ */
+export interface MediaFill {
+  source: 'placeholder' | 'upload' | 'stock'
+  style?: PlaceholderStyle
+  seed?: number
+  /** Upload: the asset id in the browser's asset store. */
+  asset?: string
+  stock?: StockPhoto
+  alt?: string
+  fit?: 'cover' | 'contain'
+}
+
 /** Your changes to one block of one clip in one section. */
 export interface BlockEdit {
   /** A variant from the block library ('outline'); absent = the clip's own look. */
   variant?: string
   style?: BlockStyle
   motion?: BlockMotion
+  media?: MediaFill
   hidden?: boolean
 }
 
