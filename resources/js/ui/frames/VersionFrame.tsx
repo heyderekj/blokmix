@@ -14,6 +14,7 @@ import { runReferenceBuild } from '@/lib/agent-sim'
 import { FlashTitle, FrameHeader, OverflowMenu, StatusMenu } from './FrameHeader'
 import { STATUS_META } from './status'
 import type { FramePlacement } from '../canvas/geometry'
+import { AstroIcon, NextIcon } from '../shell/FrameworkIcons'
 
 export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacement }) {
   const v = p.node
@@ -199,7 +200,10 @@ function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: Buil
               }}
               className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] font-medium text-zinc-800 transition hover:bg-zinc-950/5"
             >
-              Build with {t === 'astro' ? 'Astro' : 'Next.js'}
+              <span className="flex items-center gap-2">
+                {t === 'astro' ? <AstroIcon size={15} /> : <NextIcon size={15} />}
+                Build with {t === 'astro' ? 'Astro' : 'Next.js'}
+              </span>
               <span className="text-zinc-400">→</span>
             </button>
           ))}

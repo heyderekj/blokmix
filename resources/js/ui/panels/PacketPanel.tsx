@@ -11,6 +11,7 @@ import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { Segmented } from '../shell/TopBar'
+import { AstroIcon, NextIcon } from '../shell/FrameworkIcons'
 
 export function PacketPanel() {
   const source = useStore((s) => s.ui.packetSource)
@@ -150,8 +151,8 @@ export function PacketPanel() {
           <Segmented
             value={target}
             options={[
-              { value: 'astro', label: 'Astro', title: 'Export an Astro project' },
-              { value: 'next', label: 'Next.js', title: 'Export a Next.js project' },
+              { value: 'astro', label: <><AstroIcon size={13} />Astro</>, title: 'Export an Astro project' },
+              { value: 'next', label: <><NextIcon size={13} />Next.js</>, title: 'Export a Next.js project' },
             ]}
             onChange={(t) => st().setUi({ packetTargets: [t] })}
           />
