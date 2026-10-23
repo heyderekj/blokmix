@@ -6,8 +6,8 @@ import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { frameStateFor } from '@/state/derived'
 import { ClipFrame } from '@/frame/ClipFrame'
-import { TILE_GAP, VIEW_W } from '../canvas/geometry'
-import { TrackPill, TrackRail } from './TrackPill'
+import { VIEW_W } from '../canvas/geometry'
+import { SectionPill, SectionRail } from './SectionPill'
 
 const SPIN_STEP = 90
 
@@ -20,7 +20,7 @@ interface Props {
 }
 
 /**
- * One track of the tape: every clip of this section type sits side by side, and
+ * One section of the working mix: every clip of this section type sits side by side, and
  * the row slides between them. Neighbors peek out beside the page so it reads
  * like a sliding-tile puzzle.
  */
@@ -32,7 +32,6 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const previewing = useStore((s) => s.ui.previewFrameId === 'mix')
   const ids = library.byType[slot.type]
   const W = VIEW_W[viewport]
-  const GAP = TILE_GAP[viewport]
 
   // `shown` trails the store so shuffles can spin like a slot machine before landing.
   const [shown, setShown] = useState(slot.clipId)
@@ -123,7 +122,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       }}
       data-slot={slot.id}
     >
-      {/* the track: clips side by side, clipped to the current clip's height */}
+      {/* the clips side by side, clipped to the current clip's height */}
       {/* slides happen inside the page: only the current clip is ever visible */}
       <div className={`absolute inset-0 overflow-hidden ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''}`}>
         {ids.map((clipId, i) => {
@@ -142,7 +141,6 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
               jump={jump}
               spinning={spinning}
               width={W}
-              gap={GAP}
               mode={mode}
               guide={guide}
               content={content}
@@ -181,8 +179,8 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
         </>
       )}
 
-      <TrackRail slot={slot} index={index} focused={focused} />
-      {focused && <TrackPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />}
+      <SectionRail slot={slot} index={index} focused={focused} />
+      {focused && <SectionPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />}
     </div>
   )
 })
@@ -194,7 +192,6 @@ const Tile = memo(function Tile(p: {
   jump: boolean
   spinning: boolean
   width: number
-  gap: number
   mode: 'captured' | 'unified'
   guide: TokenSet
   content: ReturnType<typeof useStore.getState>['content']

@@ -11,7 +11,7 @@ const THUMB_W = 168
 const SCALE = THUMB_W / 1280
 
 /**
- * The focused track's alternatives, as live thumbnails in your style: the way
+ * The focused section's alternatives, as live thumbnails in your style: the way
  * Figma shows a component's variants. Click one to swap it onto the page.
  */
 export function Alternatives({ slot }: { slot: Slot }) {

@@ -19,11 +19,11 @@ export const KEEPS: { key: keyof Keep; label: string; icon: typeof Type; on: str
 type Tab = 'keep' | 'look' | 'source'
 
 /**
- * A track's label, in two tiers: what it is (name, source, position) and the one
+ * A section's label, in two tiers: what it is (name, source, position) and the one
  * strong action (use its look). Everything else waits behind tabs that open only
  * when asked, so the card never gets tall.
  */
-export function TrackPill({ slot, index, count, focused, pos, total }: { slot: Slot; index: number; count: number; focused: boolean; pos: number; total: number }) {
+export function SectionPill({ slot, index, count, focused, pos, total }: { slot: Slot; index: number; count: number; focused: boolean; pos: number; total: number }) {
   const clip = library.clips[slot.clipId]
   const source = library.sources[clip?.sourceId ?? '']
   const sheet = useStore((s) => s.ui.sheet)
@@ -87,7 +87,7 @@ export function TrackPill({ slot, index, count, focused, pos, total }: { slot: S
           )}
         </motion.div>
 
-        {/* tier 2: tabs on the left, track utilities on the right */}
+        {/* tier 2: tabs on the left, section utilities on the right */}
         {focused && (
           <motion.div layout="position" transition={MORPH} className="flex items-end gap-0.5 border-t border-zinc-950/6 px-2 pt-1.5">
             {(['keep', 'look', 'source'] as const).map((k) => (
@@ -302,10 +302,10 @@ function Util({ label, onClick, disabled, danger, children }: { label: string; o
 }
 
 /**
- * A track's label at rest lives off the page, in the gutter on its left: a
+ * A section's label at rest lives off the page, in the gutter on its left: a
  * quiet rail with the number and name, so the design itself is never covered.
  */
-export function TrackRail({ slot, index, focused }: { slot: Slot; index: number; focused: boolean }) {
+export function SectionRail({ slot, index, focused }: { slot: Slot; index: number; focused: boolean }) {
   const st = useStore.getState
   return (
     <div
@@ -318,7 +318,7 @@ export function TrackRail({ slot, index, focused }: { slot: Slot; index: number;
       data-chrome
       title={`${TYPE_LABEL[slot.type]}: click to work on this section`}
     >
-      {/* the rail's line, drawn in page space so it spans the whole track */}
+      {/* the rail's line, drawn in page space so it spans the whole section */}
       <div
         className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${
           focused ? 'bg-tape' : 'bg-zinc-300 group-hover/row:bg-tape/70 group-hover/rail:bg-tape/70'

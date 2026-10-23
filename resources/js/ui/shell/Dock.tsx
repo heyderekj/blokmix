@@ -21,7 +21,7 @@ const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
 /** The dock: how you work the canvas. The Clips button grows it upward into the crate. */
 export function Dock() {
   const open = useStore((s) => s.ui.sheet === 'crate')
-  // On a track (and nothing else open), the dock grows that track's alternatives.
+  // On a section (and nothing else open), the dock grows that section's alternatives.
   const focused = useStore((s) => (s.ui.sheet === 'none' ? s.slots.find((x) => x.id === s.ui.focusedSlotId) : undefined))
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3">

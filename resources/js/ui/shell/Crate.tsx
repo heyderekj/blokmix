@@ -12,7 +12,7 @@ import { ClipFrame } from '@/frame/ClipFrame'
 
 /**
  * The crate: every clip you've collected, dug through like records. It follows
- * the track you're on, so it usually opens on just the alternatives that matter.
+ * the section you're on, so it usually opens on just the alternatives that matter.
  */
 export function Crate() {
   const filter = useStore((s) => s.ui.crateFilter)
@@ -23,7 +23,7 @@ export function Crate() {
   const st = useStore.getState
   const effective: SectionType | 'all' = filter === 'auto' ? (focusedType ?? 'all') : filter
 
-  // Picking another track re-follows it.
+  // Picking another section re-follows it.
   useEffect(() => {
     if (useStore.getState().ui.crateFilter !== 'auto') st().setUi({ crateFilter: 'auto' })
     // eslint-disable-next-line react-hooks/exhaustive-deps

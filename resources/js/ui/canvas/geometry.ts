@@ -3,7 +3,6 @@ import { dfsOrder } from '@/core/versions'
 import type { Viewport } from '@/state/store'
 
 export const VIEW_W: Record<Viewport, number> = { desktop: 1280, mobile: 390 }
-export const TILE_GAP: Record<Viewport, number> = { desktop: 140, mobile: 70 }
 
 export const MIX_ID = 'mix'
 
