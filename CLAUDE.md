@@ -13,6 +13,19 @@ Inertia on Laravel Cloud later.
 - `npm run typecheck`, `npm run build`
 - `npm run export:demo`: writes the seeded demo packet to `.out/`
 
+## Agents
+
+Everything you can do on the canvas is a command in `resources/js/core/commands/schema.ts`
+(zod schemas → tool definitions), run by `resources/js/state/commands.ts` through the same store
+actions as the UI. Each write is validated and lands as one undo step; agent edits show a toast.
+- In the browser: `mixtape.tools()` and `mixtape.run(name, input)`.
+- Over MCP: `npm run mcp` starts `scripts/mcp-bridge.ts` (stdio MCP server + a WebSocket on
+  127.0.0.1:4317 that only Mixtape's local origins may join). Add it to Claude Code with
+  `claude mcp add mixtape -- npm --prefix /Users/heyderekj/mixtape run -s mcp`, then turn on
+  "Let agents edit this tape" in Mixtape's menu (off by default). `scripts/mcp-smoke.ts` is a
+  quick end-to-end check.
+- New capabilities should be added as commands first, then wired into the UI.
+
 ## Layout
 
 - `resources/js/core/`: pure TS, no React or Vite APIs (reused by the future extension and MCP server)

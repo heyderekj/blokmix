@@ -65,6 +65,8 @@ export interface UiState {
   myName: string
   /** The block selected inside the focused section (b3), if any. */
   selectedBlockId: string | null
+  /** Let a local agent (via the MCP bridge) edit this tape. Off until you turn it on. */
+  agentAccess: boolean
 }
 
 export interface TapeData {
@@ -162,6 +164,7 @@ const DEFAULT_UI: UiState = {
   editingNoteId: null,
   myName: 'Derek Castelli',
   selectedBlockId: null,
+  agentAccess: false,
 }
 
 function pickDifferent(options: string[], current: string): string {

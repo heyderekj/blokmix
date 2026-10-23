@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { CircleHelp, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
+import { Bot, CircleHelp, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
 import { useStore, undo, redo, type Sheet } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
@@ -13,6 +13,8 @@ import { LogoTile } from './Logo'
 import { Avatar } from './Avatar'
 import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
+import { useAgentLink } from '@/lib/agentLink'
+import { Switch } from '../panels/parts'
 
 export const toggleSheet = (s: Sheet) => {
   const st = useStore.getState()
@@ -67,6 +69,8 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         <div className="px-2.5 pb-1 pt-1.5 md:hidden">
           <TapeName value={tapeName} onChange={(v) => st().renameTape(v)} />
         </div>
+        <AgentAccess />
+        <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         <MenuItem icon={theme === 'dark' ? Sun : Moon} label={theme === 'dark' ? 'Light chrome' : 'Dark chrome'} onClick={() => st().setUi({ theme: theme === 'dark' ? 'light' : 'dark' })} />
         <MenuItem
           icon={CircleHelp}
@@ -87,6 +91,29 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         />
       </div>
     </Island>
+  )
+}
+
+/** Let a local agent (Claude Code over MCP) edit this tape, with what it's doing in plain view. */
+function AgentAccess() {
+  const on = useStore((s) => s.ui.agentAccess)
+  const status = useAgentLink((s) => s.status)
+  const last = useAgentLink((s) => s.lastCommand)
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl px-2.5 py-2">
+      <Bot size={16} className="mt-0.5 shrink-0 text-agent" />
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-medium text-zinc-800">Let agents edit this tape</div>
+        <div className="text-[11.5px] leading-snug text-zinc-500">
+          {!on
+            ? 'Claude Code and other MCP agents can use every tool you can.'
+            : status === 'connected'
+              ? `Connected${last ? ` · last: ${last.replace(/_/g, ' ')}` : ''}`
+              : 'Waiting for the bridge: run npm run mcp, or add it to Claude Code.'}
+        </div>
+      </div>
+      <Switch on={on} onChange={() => useStore.getState().setUi({ agentAccess: !on })} label="Let agents edit this tape" />
+    </div>
   )
 }
 
