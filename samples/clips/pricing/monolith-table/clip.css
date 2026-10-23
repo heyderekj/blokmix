@@ -2,8 +2,8 @@
   background: var(--mx-color-surface);
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
-  border-top: 2px solid var(--mx-color-border);
-  border-bottom: 2px solid var(--mx-color-border);
+  border-top: var(--mx-stroke) solid var(--mx-color-border);
+  border-bottom: var(--mx-stroke) solid var(--mx-color-border);
 
   & .inner {
     max-width: 1240px;
@@ -69,7 +69,7 @@
     gap: var(--mx-space-1);
     padding: var(--mx-space-1);
     background: var(--mx-color-bg);
-    border: 2px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     box-shadow: var(--mx-shadow-card);
   }
@@ -119,7 +119,7 @@
     display: flex;
     flex-direction: column;
     background: var(--mx-color-bg);
-    border: 2px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
     box-shadow: var(--mx-shadow-card);
     transition: transform var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
@@ -141,7 +141,7 @@
     padding: var(--mx-space-2) var(--mx-space-4);
     background: var(--mx-color-text);
     color: var(--mx-color-bg);
-    border: 2px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -155,7 +155,7 @@
     display: grid;
     gap: var(--mx-space-2);
     padding: var(--mx-space-6);
-    border-bottom: 2px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .name {
     font-family: var(--mx-font-display);
@@ -202,7 +202,7 @@
     align-items: baseline;
     gap: var(--mx-space-3);
     padding: var(--mx-space-3) 0;
-    border-top: 2px solid color-mix(in oklab, currentColor 16%, transparent);
+    border-top: var(--mx-stroke) solid color-mix(in oklab, currentColor 16%, transparent);
     font-size: calc(var(--mx-text-base) * 0.92);
     line-height: 1.4;
   }
@@ -222,7 +222,7 @@
     padding: var(--mx-space-4) var(--mx-space-5);
     background: var(--mx-color-text);
     color: var(--mx-color-bg);
-    border: 2px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-sm);
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -253,7 +253,7 @@
   & .footnote {
     margin-top: var(--mx-space-9);
     padding-top: var(--mx-space-4);
-    border-top: 2px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
     font-family: var(--mx-font-mono);
     font-size: calc(var(--mx-text-base) * 0.85);
     color: var(--mx-color-muted);

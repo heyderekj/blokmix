@@ -55,7 +55,7 @@
     gap: var(--mx-space-2);
     padding: var(--mx-space-6);
     background: var(--mx-color-surface);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     transition: transform var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
   }

@@ -49,6 +49,8 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
 3. Every color, font, radius, shadow, duration and easing comes from `var(--mx-*)`. No hex, rgb(),
    hsl(), oklch() literals. Tints: `color-mix(in oklab, var(--mx-color-primary) 15%, transparent)`.
    `transparent` and `currentColor` are fine. Never assume the background is light or dark.
+   Border widths are `var(--mx-stroke)` (or `calc(var(--mx-stroke) * n)` for heavier rules), never fixed px,
+   so a heavy-lined source thins out when adapted to a hairline style guide. Focus outlines stay fixed.
 4. No `vh` units (iframes auto-size to content): use `calc(var(--mx-vh) * 80)`. `vw` and `%` are fine.
 5. No `style=""`, no `<script>`, no `on*=` handlers, no raster images (inline SVG or CSS art only),
    links are `href="#"`.
@@ -133,6 +135,7 @@ every site's tokens, since in "Your style" they take the user's style guide.
 | `--mx-space-0…10` | 0, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32 × space unit (unit is 4px in every sample) |
 | `--mx-space-section` | vertical section padding |
 | `--mx-radius-sm/--mx-radius/--mx-radius-lg/--mx-radius-pill` | radii (pill is 0 when radius is 0) |
+| `--mx-stroke` | line weight for borders and rules (`stroke.width`) |
 | `--mx-shadow-card` | card shadow |
 | `--mx-motion-duration/--mx-motion-ease` | motion |
 | `--mx-vh` | 1% of the captured viewport height |

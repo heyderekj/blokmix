@@ -42,9 +42,9 @@
     margin-top: var(--mx-space-9);
     display: flex;
     flex-direction: column;
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
-  & .item { border-bottom: 1px solid var(--mx-color-border); }
+  & .item { border-bottom: var(--mx-stroke) solid var(--mx-color-border); }
   & .question {
     display: flex;
     align-items: center;
@@ -68,7 +68,7 @@
     flex: none;
     width: 32px;
     height: 32px;
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     color: var(--mx-color-text);
     transition: background var(--mx-motion-duration) var(--mx-motion-ease), border-color var(--mx-motion-duration) var(--mx-motion-ease), color var(--mx-motion-duration) var(--mx-motion-ease);

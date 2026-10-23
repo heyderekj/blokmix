@@ -72,7 +72,7 @@
     display: inline-grid;
     grid-template-columns: 1fr 1fr;
     padding: 4px;
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     background: var(--mx-color-surface);
     box-shadow: var(--mx-shadow-card);
@@ -134,7 +134,7 @@
     flex-direction: column;
     gap: var(--mx-space-6);
     padding: var(--mx-space-8) var(--mx-space-7);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     background: var(--mx-color-surface);
     box-shadow: var(--mx-shadow-card);
@@ -150,7 +150,7 @@
   }
   & .featured {
     padding-block: calc(var(--mx-space-8) + var(--mx-space-4));
-    border: 2px solid transparent;
+    border: calc(var(--mx-stroke) * 2) solid transparent;
     background:
       linear-gradient(
         160deg,
@@ -223,7 +223,7 @@
     box-shadow: var(--mx-shadow-card);
   }
   & .ghost {
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     background: var(--mx-color-bg);
     color: var(--mx-color-text);
   }
@@ -233,7 +233,7 @@
     flex-direction: column;
     gap: var(--mx-space-3);
     padding-top: var(--mx-space-6);
-    border-top: 1px dashed var(--mx-color-border);
+    border-top: var(--mx-stroke) dashed var(--mx-color-border);
   }
   & .feats li { display: flex; align-items: center; gap: var(--mx-space-3); font-size: var(--mx-text-sm); }
   & .check {

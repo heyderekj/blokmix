@@ -61,7 +61,7 @@
     flex-direction: column;
     gap: var(--mx-space-3);
     padding-top: var(--mx-space-6);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .stat::before {
     content: '';

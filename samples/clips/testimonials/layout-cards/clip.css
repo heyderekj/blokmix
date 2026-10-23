@@ -51,7 +51,7 @@
     flex-direction: column;
     gap: var(--mx-space-5);
     padding: var(--mx-space-7);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     background: var(--mx-color-surface);
     transition: transform var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
@@ -82,7 +82,7 @@
     align-items: center;
     gap: var(--mx-space-3);
     padding-top: var(--mx-space-5);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .avatar {
     flex: none;

@@ -2,7 +2,7 @@
   background: var(--mx-color-bg);
   color: var(--mx-color-text);
   padding: var(--mx-space-9) var(--mx-space-8);
-  border-bottom: 1px solid var(--mx-color-border);
+  border-bottom: var(--mx-stroke) solid var(--mx-color-border);
 
   & .inner {
     max-width: 760px;

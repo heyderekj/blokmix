@@ -48,7 +48,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     background: var(--mx-color-surface);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
   & .tier {
@@ -57,7 +57,7 @@
     flex-direction: column;
     padding: var(--mx-space-7);
   }
-  & .tier + .tier { border-left: 1px solid var(--mx-color-border); }
+  & .tier + .tier { border-left: var(--mx-stroke) solid var(--mx-color-border); }
   & .featured {
     z-index: 1;
     border-radius: var(--mx-radius-lg);
@@ -69,7 +69,7 @@
     content: '';
     position: absolute;
     inset: -1px;
-    border: 1px solid var(--mx-color-primary);
+    border: var(--mx-stroke) solid var(--mx-color-primary);
     border-radius: var(--mx-radius-lg);
     box-shadow:
       0 0 0 1px color-mix(in oklab, var(--mx-color-primary) 18%, transparent),
@@ -100,7 +100,7 @@
     text-transform: uppercase;
     color: var(--mx-color-primary);
     background: color-mix(in oklab, var(--mx-color-primary) 10%, transparent);
-    border: 1px solid color-mix(in oklab, var(--mx-color-primary) 45%, transparent);
+    border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-primary) 45%, transparent);
     border-radius: var(--mx-radius-sm);
   }
   & .desc {
@@ -112,7 +112,7 @@
   & .cost {
     margin-top: var(--mx-space-7);
     padding-bottom: var(--mx-space-6);
-    border-bottom: 1px dashed var(--mx-color-border);
+    border-bottom: var(--mx-stroke) dashed var(--mx-color-border);
   }
   & .price {
     display: flex;
@@ -154,7 +154,7 @@
     font-weight: 600;
     color: var(--mx-color-text);
     background: color-mix(in oklab, var(--mx-color-text) 4%, transparent);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-sm);
     transition: background var(--mx-motion-duration) var(--mx-motion-ease), border-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
   }
@@ -219,7 +219,7 @@
     & .tier { padding: var(--mx-space-6) var(--mx-space-5); }
     & .tier + .tier {
       border-left: 0;
-      border-top: 1px solid var(--mx-color-border);
+      border-top: var(--mx-stroke) solid var(--mx-color-border);
     }
     & .amount { font-size: var(--mx-text-4xl); }
     & .cost { margin-top: var(--mx-space-5); }

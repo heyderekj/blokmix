@@ -92,6 +92,9 @@ function checkCss(
     if (!v.startsWith('var(--mx-font-') && v !== 'inherit') err(`${file}: font-family must come from var(--mx-font-*)`)
   }
   if (/!important/.test(css)) warn(`${file}: avoid !important`)
+  // Line weight follows the style guide: borders are var(--mx-stroke) or calc() multiples of it.
+  for (const m of css.matchAll(/(?<![\w-])(border(?:-(?:top|bottom|left|right|block|inline)(?:-(?:start|end))?)?(?:-width)?)\s*:\s*([^;{}]*)/g))
+    if (/\d*\.?\d+px/.test(m[2])) err(`${file}: ${m[1]} uses a fixed width; use var(--mx-stroke) (or calc(var(--mx-stroke) * n))`)
   // Motion craft: name what animates, never pop from nothing, never ease in.
   if (/transition\s*:\s*all\b/.test(css)) warn(`${file}: transition: all; list the properties that change`)
   if (/scale\(\s*0\s*[,)]/.test(css)) warn(`${file}: scale(0); start from about scale(0.95) with opacity 0`)

@@ -31,6 +31,7 @@ import { adoptDesign, choose, chooseGroup, promote, removeCandidate } from '@/co
 import { autoTitle, descendants, nextLetter } from '@/core/versions'
 import { library } from '@/data/library'
 import { suggestClip } from '@/core/suggest'
+import { BASE_TOKENS } from '@/core/tokens'
 import { initialStatus, nextNumber } from '@/core/notes'
 import { buildSeed } from './seed'
 import { snapshotOf } from './snapshot'
@@ -519,6 +520,8 @@ export const useStore = create<State>()(
         )
         const p = migrated as Partial<State>
         const merged = { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } } as State
+        // Tokens added since the tape was saved (e.g. line weight) start at their defaults.
+        if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
         // Drop anything that points at clips that no longer exist in the sample library.
         merged.slots = (merged.slots ?? []).filter((s) => library.clips[s.clipId])
         // One framework per hand-off.

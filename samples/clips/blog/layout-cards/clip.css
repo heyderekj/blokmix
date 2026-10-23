@@ -69,7 +69,7 @@
     flex-direction: column;
     overflow: hidden;
     background: var(--mx-color-bg);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     transition: transform var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
   }
@@ -80,7 +80,7 @@
     display: block;
     aspect-ratio: 16 / 10;
     overflow: hidden;
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
     background:
       linear-gradient(160deg, color-mix(in oklab, var(--tint) 14%, var(--mx-color-surface)), var(--mx-color-surface) 70%);
   }

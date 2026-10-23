@@ -70,7 +70,7 @@
     flex-direction: column;
     gap: var(--mx-space-3);
     padding: var(--mx-space-7);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     background: var(--mx-color-surface);
     box-shadow: var(--mx-shadow-card);
@@ -148,7 +148,7 @@
   & .tile {
     position: relative;
     height: 44px;
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-sm);
     background: var(--mx-color-bg);
   }
@@ -177,7 +177,7 @@
     content: '';
     position: absolute;
     inset: 10% 14%;
-    border: 2px dashed color-mix(in oklab, var(--mx-color-primary) 30%, transparent);
+    border: calc(var(--mx-stroke) * 2) dashed color-mix(in oklab, var(--mx-color-primary) 30%, transparent);
     border-radius: 50%;
   }
   & .core, & .node {
@@ -203,7 +203,7 @@
   & .node {
     width: 44px;
     height: 44px;
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
     background: var(--mx-color-bg);
     box-shadow: var(--mx-shadow-card);

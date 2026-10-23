@@ -44,7 +44,7 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .row {
     display: grid;
@@ -52,7 +52,7 @@
     align-items: center;
     gap: var(--mx-space-5);
     padding: var(--mx-space-4) var(--mx-space-2);
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
     transition: background var(--mx-motion-duration) var(--mx-motion-ease);
   }
   & .row:hover { background: color-mix(in oklab, var(--mx-color-surface) 70%, transparent); }

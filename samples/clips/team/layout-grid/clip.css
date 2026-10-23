@@ -47,7 +47,7 @@
     aspect-ratio: 4 / 5;
     overflow: hidden;
     border-radius: var(--mx-radius-lg);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     background:
       radial-gradient(90% 70% at 50% 0%, color-mix(in oklab, var(--tint) 16%, transparent), transparent 70%),
       var(--mx-color-surface);

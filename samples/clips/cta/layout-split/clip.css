@@ -78,10 +78,10 @@
     background:
       radial-gradient(circle at 85% 15%, color-mix(in oklab, var(--mx-color-accent) 16%, transparent), transparent 45%),
       color-mix(in oklab, var(--mx-color-text) 5%, var(--mx-color-surface));
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .window {
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
     background: var(--mx-color-bg);
     box-shadow: var(--mx-shadow-card);
@@ -91,7 +91,7 @@
     display: flex;
     gap: var(--mx-space-2);
     padding: var(--mx-space-3) var(--mx-space-4);
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .dot {
     width: 8px;

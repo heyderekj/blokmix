@@ -49,7 +49,7 @@
     aspect-ratio: 4 / 5;
     overflow: hidden;
     border-radius: var(--mx-radius-lg);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     background:
       radial-gradient(120% 80% at 80% 0%, color-mix(in oklab, var(--mx-color-accent) 18%, transparent), transparent 60%),
       linear-gradient(180deg, var(--mx-color-surface), color-mix(in oklab, var(--mx-color-surface) 70%, var(--mx-color-border)));
@@ -90,7 +90,7 @@
     padding: var(--mx-space-5) var(--mx-space-6);
     background: var(--mx-color-bg);
     color: var(--mx-color-text);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
     box-shadow: var(--mx-shadow-card);
   }

@@ -75,7 +75,7 @@
     aspect-ratio: 16 / 11;
     overflow: hidden;
     border-radius: var(--mx-radius-lg);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     background:
       radial-gradient(70% 90% at 85% 10%, color-mix(in oklab, var(--mx-color-accent) 20%, transparent), transparent 65%),
       linear-gradient(180deg, var(--mx-color-surface), color-mix(in oklab, var(--mx-color-surface) 75%, var(--mx-color-border)));
@@ -139,7 +139,7 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .item {
     position: relative;
@@ -148,7 +148,7 @@
     gap: var(--mx-space-5);
     align-items: start;
     padding: var(--mx-space-6) 0;
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .item:hover .post { color: var(--mx-color-accent); }
   & .thumb {
@@ -156,7 +156,7 @@
     display: block;
     aspect-ratio: 1;
     border-radius: var(--mx-radius);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     background:
       radial-gradient(circle at 30% 30%, color-mix(in oklab, var(--tint) 28%, transparent) 0 22%, transparent 23%),
       linear-gradient(135deg, color-mix(in oklab, var(--tint) 12%, var(--mx-color-surface)), var(--mx-color-surface));

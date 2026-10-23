@@ -59,7 +59,7 @@
     border-radius: var(--mx-radius-sm);
   }
   & .primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 82%, var(--mx-color-text)); }
-  & .link { padding-bottom: 2px; border-bottom: 1px solid var(--mx-color-accent); }
+  & .link { padding-bottom: 2px; border-bottom: var(--mx-stroke) solid var(--mx-color-accent); }
   & .link:hover { border-color: var(--mx-color-text); }
   & .note { margin-top: var(--mx-space-6); font-size: var(--mx-text-sm); font-style: italic; color: var(--mx-color-muted); }
 
@@ -69,7 +69,7 @@
     aspect-ratio: 4 / 5;
     overflow: hidden;
     background: var(--mx-color-surface);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
     box-shadow: var(--mx-shadow-card);
   }
@@ -78,7 +78,7 @@
     position: absolute;
     inset: 14px;
     z-index: 2;
-    border: 1px solid color-mix(in oklab, var(--mx-color-text) 18%, transparent);
+    border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-text) 18%, transparent);
     border-radius: var(--mx-radius-sm);
   }
   & .sun {

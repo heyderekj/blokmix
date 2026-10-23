@@ -17,6 +17,7 @@ export const TOKEN_GROUP_OF: Record<TokenKey, TokenGroup> = {
   'type.ratio': 'type',
   'type.displayWeight': 'type',
   'radius.base': 'shape',
+  'stroke.width': 'shape',
   'shadow.card': 'shape',
   'space.base': 'space',
   'space.section': 'space',
@@ -40,6 +41,7 @@ export const TOKEN_LABEL: Record<TokenKey, string> = {
   'type.ratio': 'Scale ratio',
   'type.displayWeight': 'Display weight',
   'radius.base': 'Radius',
+  'stroke.width': 'Line weight',
   'shadow.card': 'Card shadow',
   'space.base': 'Space unit',
   'space.section': 'Section padding',
@@ -76,6 +78,7 @@ export const BASE_TOKENS: TokenSet = {
   'type.ratio': '1.25',
   'type.displayWeight': '700',
   'radius.base': '8px',
+  'stroke.width': '1px',
   'shadow.card': '0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)',
   'space.base': '4px',
   'space.section': '96px',
@@ -130,6 +133,11 @@ export function expandTokens(t: TokenSet, opts: { vh?: string } = {}): CssVars {
   vars['--mx-radius'] = `${r}px`
   vars['--mx-radius-lg'] = `${round(r * 1.75)}px`
   vars['--mx-radius-pill'] = r === 0 ? '0px' : '999px'
+
+  // Line weight: borders and rules are written as var(--mx-stroke) or multiples of it.
+  const stroke = px(t['stroke.width'] ?? '') || 1
+  vars['--mx-stroke-width'] = `${stroke}px`
+  vars['--mx-stroke'] = `${stroke}px`
 
   vars['--mx-vh'] = opts.vh ?? '1vh'
   return vars

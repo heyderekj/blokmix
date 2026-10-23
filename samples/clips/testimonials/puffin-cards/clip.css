@@ -61,7 +61,7 @@
     align-items: baseline;
     gap: var(--mx-space-2);
     padding: var(--mx-space-3) var(--mx-space-6);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     background: var(--mx-color-surface);
     box-shadow: var(--mx-shadow-card);
@@ -92,7 +92,7 @@
     flex-direction: column;
     gap: var(--mx-space-5);
     padding: var(--mx-space-8) var(--mx-space-7) var(--mx-space-7);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     background: var(--mx-color-surface);
     box-shadow: var(--mx-shadow-card);
@@ -138,7 +138,7 @@
     align-items: center;
     gap: var(--mx-space-3);
     padding-top: var(--mx-space-5);
-    border-top: 1px dashed var(--mx-color-border);
+    border-top: var(--mx-stroke) dashed var(--mx-color-border);
   }
   & .avatar {
     position: relative;
@@ -193,7 +193,7 @@
   & .mark { flex: none; width: 18px; height: 18px; background: currentColor; border-radius: 50%; }
   & .logo:nth-child(2) .mark { border-radius: var(--mx-radius-sm); rotate: 45deg; width: 14px; height: 14px; }
   & .logo:nth-child(3) .mark { clip-path: polygon(50% 0, 100% 100%, 0 100%); border-radius: 0; }
-  & .logo:nth-child(4) .mark { background: transparent; border: 4px solid currentColor; }
+  & .logo:nth-child(4) .mark { background: transparent; border: calc(var(--mx-stroke) * 4) solid currentColor; }
   & .logo:nth-child(5) .mark { border-radius: 50% 50% 0 0 / 100% 100% 0 0; height: 10px; }
   & .logo:nth-child(6) .mark { clip-path: polygon(35% 0, 65% 0, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0 65%, 0 35%, 35% 35%); border-radius: 0; }
 

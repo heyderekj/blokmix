@@ -37,6 +37,7 @@ export const TOKEN_KEYS = [
   'type.ratio',
   'type.displayWeight',
   'radius.base',
+  'stroke.width',
   'shadow.card',
   'space.base',
   'space.section',

@@ -2,7 +2,7 @@
   background: var(--mx-color-surface);
   color: var(--mx-color-text);
   padding: var(--mx-space-10) var(--mx-space-8) var(--mx-space-7);
-  border-top: 1px solid var(--mx-color-border);
+  border-top: var(--mx-stroke) solid var(--mx-color-border);
 
   & .inner {
     max-width: 1200px;
@@ -17,7 +17,7 @@
     align-items: end;
     gap: var(--mx-space-8);
     padding-bottom: var(--mx-space-9);
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .cta-heading {
     max-width: 17ch;
@@ -103,7 +103,7 @@
   }
   & .col-title {
     padding-bottom: var(--mx-space-3);
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
     font-family: var(--mx-font-mono);
     font-size: var(--mx-text-xs);
     letter-spacing: 0.12em;
@@ -131,7 +131,7 @@
     justify-content: space-between;
     gap: var(--mx-space-5);
     padding-top: var(--mx-space-5);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
     font-size: var(--mx-text-sm);
     color: var(--mx-color-muted);
   }

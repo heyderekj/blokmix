@@ -292,7 +292,7 @@ function GroupDecision({ group, open }: { group: TokenGroup; open: boolean }) {
 const TYPE_HINT: Record<TokenGroup, (t: Record<TokenKey, string>) => string> = {
   color: (t) => t['color.primary'],
   type: (t) => primaryFamily(t['font.display']),
-  shape: (t) => `radius ${t['radius.base']}`,
+  shape: (t) => `radius ${t['radius.base']}, lines ${t['stroke.width'] ?? '1px'}`,
   space: (t) => `section ${t['space.section']}`,
   motion: (t) => t['motion.duration'],
 }
@@ -349,6 +349,7 @@ function OptionPreview({ k, value }: { k: TokenKey; value: string }) {
       </span>
     )
   if (k === 'radius.base') return <span className="ml-1 size-4 border-2 border-current" style={{ borderRadius: Math.min(8, parseFloat(value)) }} />
+  if (k === 'stroke.width') return <span className="ml-1 h-0 w-5 border-t border-current" style={{ borderTopWidth: parseFloat(value) }} />
   return <span className="ml-1.5 font-mono text-[10.5px]">{value.length > 12 ? value.slice(0, 12) + '…' : value}</span>
 }
 
@@ -441,6 +442,8 @@ function Knob({ k, value, onChange }: { k: TokenKey; value: string; onChange: (v
       return <Slider value={n} min={300} max={900} step={10} unit="" onChange={onChange} />
     case 'radius.base':
       return <Slider value={n} min={0} max={32} unit="px" onChange={onChange} />
+    case 'stroke.width':
+      return <Slider value={n} min={1} max={4} step={0.5} unit="px" onChange={onChange} />
     case 'space.base':
       return <Slider value={n} min={2} max={8} unit="px" onChange={onChange} />
     case 'space.section':

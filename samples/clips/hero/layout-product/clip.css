@@ -17,7 +17,7 @@
     align-items: center;
     gap: var(--mx-space-3);
     padding: var(--mx-space-1) var(--mx-space-4) var(--mx-space-1) var(--mx-space-1);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     font-size: var(--mx-text-sm);
     font-weight: 500;
@@ -87,14 +87,14 @@
     margin: var(--mx-space-9) auto 0;
     padding: var(--mx-space-3) var(--mx-space-3) 0;
     background: color-mix(in oklab, var(--mx-color-surface) 70%, transparent);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-bottom: 0;
     border-radius: var(--mx-radius-lg) var(--mx-radius-lg) 0 0;
   }
   & .window {
     overflow: hidden;
     background: var(--mx-color-bg);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-bottom: 0;
     border-radius: var(--mx-radius) var(--mx-radius) 0 0;
     box-shadow: var(--mx-shadow-card);
@@ -104,7 +104,7 @@
     align-items: center;
     gap: var(--mx-space-4);
     padding: var(--mx-space-3) var(--mx-space-4);
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .dots { display: flex; gap: 6px; }
   & .dots span {
@@ -131,7 +131,7 @@
     flex-direction: column;
     gap: var(--mx-space-3);
     padding: var(--mx-space-5) var(--mx-space-4);
-    border-right: 1px solid var(--mx-color-border);
+    border-right: var(--mx-stroke) solid var(--mx-color-border);
     background: color-mix(in oklab, var(--mx-color-surface) 50%, transparent);
   }
   & .logo {
@@ -182,7 +182,7 @@
     display: grid;
     gap: var(--mx-space-3);
     padding: var(--mx-space-4);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
   }
   & .k {
@@ -209,7 +209,7 @@
     gap: var(--mx-space-2);
     min-height: 160px;
     padding: var(--mx-space-5);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
   }
   & .chart span {
@@ -233,7 +233,7 @@
     justify-content: space-around;
     gap: var(--mx-space-3);
     padding: var(--mx-space-4);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
   }
   & .row {
@@ -247,7 +247,7 @@
     flex: none;
     border-radius: 50%;
     background: linear-gradient(135deg, color-mix(in oklab, var(--mx-color-accent) 60%, var(--mx-color-surface)), var(--mx-color-surface));
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .ln {
     flex: 1;

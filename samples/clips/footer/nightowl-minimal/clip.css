@@ -2,7 +2,7 @@
   position: relative;
   background: var(--mx-color-bg);
   color: var(--mx-color-text);
-  border-top: 1px solid var(--mx-color-border);
+  border-top: var(--mx-stroke) solid var(--mx-color-border);
   padding: var(--mx-space-9) var(--mx-space-8) var(--mx-space-6);
 
   & .inner {
@@ -24,7 +24,7 @@
     background:
       repeating-linear-gradient(90deg, color-mix(in oklab, var(--mx-color-border) 55%, transparent) 0 1px, transparent 1px 32px),
       var(--mx-color-surface);
-    border: 1px solid color-mix(in oklab, var(--mx-color-primary) 22%, var(--mx-color-border));
+    border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-primary) 22%, var(--mx-color-border));
     border-radius: var(--mx-radius);
   }
   & .cta-heading {
@@ -104,7 +104,7 @@
     font-family: var(--mx-font-mono);
     font-size: var(--mx-text-xs);
     color: var(--mx-color-muted);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
   }
   & .dot {
@@ -121,7 +121,7 @@
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 1px solid var(--mx-color-primary);
+    border: var(--mx-stroke) solid var(--mx-color-primary);
     opacity: 0;
   }
 
@@ -160,7 +160,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--mx-space-4);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
     font-family: var(--mx-font-mono);
     font-size: var(--mx-text-xs);
     color: var(--mx-color-muted);

@@ -11,7 +11,7 @@
     align-items: center;
     gap: var(--mx-space-6);
     padding-bottom: var(--mx-space-5);
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .links {
     display: flex;

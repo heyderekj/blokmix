@@ -40,7 +40,7 @@
   & .details {
     margin-top: var(--mx-space-7);
     padding-top: var(--mx-space-6);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
     list-style: none;
     display: flex;
     flex-direction: column;
@@ -72,7 +72,7 @@
     gap: var(--mx-space-5);
     padding: var(--mx-space-7);
     background: var(--mx-color-surface);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     box-shadow: var(--mx-shadow-card);
   }
@@ -84,7 +84,7 @@
     font-size: var(--mx-text-base);
     color: var(--mx-color-text);
     background: var(--mx-color-bg);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
     padding: var(--mx-space-3) var(--mx-space-4);
     outline: none;

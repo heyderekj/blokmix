@@ -2,7 +2,7 @@
   background: var(--mx-color-bg);
   color: var(--mx-color-text);
   padding: var(--mx-space-9) var(--mx-space-8);
-  border-bottom: 1px solid var(--mx-color-border);
+  border-bottom: var(--mx-stroke) solid var(--mx-color-border);
 
   & .inner {
     max-width: 1200px;
@@ -33,7 +33,7 @@
     align-items: flex-start;
     gap: var(--mx-space-6);
     padding-left: var(--mx-space-8);
-    border-left: 1px solid var(--mx-color-border);
+    border-left: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .intro {
     max-width: 44ch;
@@ -72,7 +72,7 @@
       padding-left: 0;
       padding-top: var(--mx-space-6);
       border-left: 0;
-      border-top: 1px solid var(--mx-color-border);
+      border-top: var(--mx-stroke) solid var(--mx-color-border);
     }
     & .intro { font-size: var(--mx-text-base); }
   }

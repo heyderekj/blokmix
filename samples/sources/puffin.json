@@ -20,6 +20,7 @@
     "type.ratio": "1.25",
     "type.displayWeight": "800",
     "radius.base": "20px",
+    "stroke.width": "1px",
     "shadow.card": "0 2px 4px #1e1b3a0d, 0 12px 32px #7c5cff1f",
     "space.base": "4px",
     "space.section": "104px",

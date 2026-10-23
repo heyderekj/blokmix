@@ -46,7 +46,7 @@
     display: inline-grid;
     grid-template-columns: 1fr 1fr;
     padding: 4px;
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     background: var(--mx-color-surface);
   }
@@ -104,7 +104,7 @@
     flex-direction: column;
     gap: var(--mx-space-6);
     padding: var(--mx-space-7);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     background: var(--mx-color-bg);
     transition: border-color var(--mx-motion-duration) var(--mx-motion-ease), transform var(--mx-motion-duration) var(--mx-motion-ease);
@@ -166,14 +166,14 @@
   & .cta:focus-visible { outline: 2px solid var(--mx-color-primary); outline-offset: 2px; }
   & .primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
   & .primary:hover { transform: translateY(-1px); background: color-mix(in oklab, var(--mx-color-primary) 88%, var(--mx-color-text)); }
-  & .ghost { border: 1px solid var(--mx-color-border); color: var(--mx-color-text); }
+  & .ghost { border: var(--mx-stroke) solid var(--mx-color-border); color: var(--mx-color-text); }
   & .ghost:hover { background: var(--mx-color-surface); border-color: color-mix(in oklab, var(--mx-color-text) 28%, var(--mx-color-border)); }
   & .feats {
     display: flex;
     flex-direction: column;
     gap: var(--mx-space-3);
     padding-top: var(--mx-space-6);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .feats li { display: flex; align-items: center; gap: var(--mx-space-3); font-size: var(--mx-text-sm); line-height: 1.4; }
   & .check {

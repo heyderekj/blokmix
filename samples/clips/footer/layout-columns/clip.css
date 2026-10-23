@@ -1,7 +1,7 @@
 .mx-footer-layout-columns {
   background: var(--mx-color-bg);
   color: var(--mx-color-text);
-  border-top: 1px solid var(--mx-color-border);
+  border-top: var(--mx-stroke) solid var(--mx-color-border);
   padding: var(--mx-space-9) var(--mx-space-8) var(--mx-space-6);
 
   & .inner {
@@ -100,7 +100,7 @@
     justify-content: space-between;
     gap: var(--mx-space-4);
     padding-top: var(--mx-space-6);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .legal {
     font-size: var(--mx-text-sm);
@@ -115,7 +115,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     background: radial-gradient(circle, color-mix(in oklab, var(--mx-color-text) 30%, transparent) 0 5px, transparent 5.5px);
   }
 

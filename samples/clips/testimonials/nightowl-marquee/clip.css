@@ -41,7 +41,7 @@
   & .marquee {
     margin-top: var(--mx-space-9);
     overflow: hidden;
-    border-block: 1px solid var(--mx-color-border);
+    border-block: var(--mx-stroke) solid var(--mx-color-border);
     background:
       repeating-linear-gradient(90deg, color-mix(in oklab, var(--mx-color-border) 45%, transparent) 0 1px, transparent 1px 40px),
       color-mix(in oklab, var(--mx-color-surface) 50%, transparent);
@@ -79,7 +79,7 @@
     width: 14px;
     height: 14px;
     flex: none;
-    border: 1.5px solid currentColor;
+    border: calc(var(--mx-stroke) * 1.5) solid currentColor;
   }
   & .logo:nth-child(3n + 1) .glyph { border-radius: 50%; }
   & .logo:nth-child(3n + 2) .glyph {
@@ -97,7 +97,7 @@
     margin-top: var(--mx-space-9);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     background: var(--mx-color-surface);
     overflow: hidden;
@@ -106,7 +106,7 @@
     position: relative;
     padding: var(--mx-space-7) var(--mx-space-7) var(--mx-space-6);
   }
-  & .stat + .stat { border-left: 1px solid var(--mx-color-border); }
+  & .stat + .stat { border-left: var(--mx-stroke) solid var(--mx-color-border); }
   & .stat::before {
     content: '';
     position: absolute;
@@ -146,7 +146,7 @@
     gap: var(--mx-space-6);
     padding: var(--mx-space-6);
     background: color-mix(in oklab, var(--mx-color-surface) 60%, transparent);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     transition: border-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
   }
@@ -224,7 +224,7 @@
     & .stat::before { left: var(--mx-space-5); }
     & .stat + .stat {
       border-left: 0;
-      border-top: 1px solid var(--mx-color-border);
+      border-top: var(--mx-stroke) solid var(--mx-color-border);
     }
     & .label {
       margin-top: 0;

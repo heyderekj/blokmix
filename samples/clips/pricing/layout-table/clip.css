@@ -42,7 +42,7 @@
   /* Table */
   & .frame {
     margin-top: var(--mx-space-9);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     overflow: hidden;
     background: var(--mx-color-bg);
@@ -57,7 +57,7 @@
     text-align: left;
     vertical-align: middle;
     font-weight: 400;
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & tbody tr:last-child > * { border-bottom: 0; }
   & td { text-align: center; }
@@ -100,7 +100,7 @@
     display: flex;
     justify-content: center;
     padding: var(--mx-space-3) var(--mx-space-4);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
     background: var(--mx-color-bg);
     font-size: var(--mx-text-sm);

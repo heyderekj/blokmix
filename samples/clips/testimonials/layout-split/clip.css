@@ -52,7 +52,7 @@
     flex-direction: column;
     gap: 2px;
     padding-left: var(--mx-space-4);
-    border-left: 2px solid var(--mx-color-accent);
+    border-left: calc(var(--mx-stroke) * 2) solid var(--mx-color-accent);
   }
   & .name { font-size: var(--mx-text-base); font-weight: 600; }
   & .role { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
@@ -64,7 +64,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: var(--mx-space-6);
     padding-top: var(--mx-space-6);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .stat { display: flex; flex-direction: column; gap: var(--mx-space-1); }
   & .value {
@@ -82,7 +82,7 @@
     position: relative;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     background:
       radial-gradient(70% 55% at 80% 10%, color-mix(in oklab, var(--mx-color-accent) 16%, transparent), transparent 70%),
@@ -124,7 +124,7 @@
     align-items: center;
     gap: var(--mx-space-2);
     padding: var(--mx-space-2) var(--mx-space-3);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     background: var(--mx-color-bg);
     box-shadow: var(--mx-shadow-card);

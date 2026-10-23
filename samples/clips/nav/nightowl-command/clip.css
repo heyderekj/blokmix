@@ -2,7 +2,7 @@
   position: relative;
   background: color-mix(in oklab, var(--mx-color-bg) 90%, transparent);
   color: var(--mx-color-text);
-  border-bottom: 1px solid var(--mx-color-border);
+  border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   backdrop-filter: blur(12px);
 
   &::after {
@@ -83,7 +83,7 @@
     font-size: var(--mx-text-sm);
     color: var(--mx-color-muted);
     background: color-mix(in oklab, var(--mx-color-surface) 75%, transparent);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-sm);
   }
   & .search svg {
@@ -99,7 +99,7 @@
     line-height: 1.4;
     color: var(--mx-color-text);
     background: var(--mx-color-bg);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: calc(var(--mx-radius-sm) * 0.75);
   }
 
@@ -135,7 +135,7 @@
     align-items: center;
     justify-content: center;
     gap: 5px;
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-sm);
   }
   & .menu span {

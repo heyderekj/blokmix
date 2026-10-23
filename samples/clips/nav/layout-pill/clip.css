@@ -12,7 +12,7 @@
     gap: var(--mx-space-5);
     padding: var(--mx-space-2) var(--mx-space-2) var(--mx-space-2) var(--mx-space-5);
     background: color-mix(in oklab, var(--mx-color-surface) 80%, var(--mx-color-bg));
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     box-shadow: var(--mx-shadow-card);
   }

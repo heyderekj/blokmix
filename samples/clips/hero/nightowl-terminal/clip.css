@@ -54,7 +54,7 @@
     letter-spacing: 0.02em;
     color: var(--mx-color-text);
     background: color-mix(in oklab, var(--mx-color-primary) 8%, var(--mx-color-bg));
-    border: 1px solid color-mix(in oklab, var(--mx-color-primary) 38%, var(--mx-color-border));
+    border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-primary) 38%, var(--mx-color-border));
     border-radius: var(--mx-radius-pill);
     box-shadow: 0 0 24px -8px color-mix(in oklab, var(--mx-color-primary) 45%, transparent);
   }
@@ -72,7 +72,7 @@
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 1px solid var(--mx-color-primary);
+    border: var(--mx-stroke) solid var(--mx-color-primary);
     opacity: 0;
   }
 
@@ -131,7 +131,7 @@
   & .ghost {
     color: var(--mx-color-text);
     background: color-mix(in oklab, var(--mx-color-surface) 70%, transparent);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .ghost:hover { border-color: color-mix(in oklab, var(--mx-color-primary) 55%, var(--mx-color-border)); }
   & .note {
@@ -148,7 +148,7 @@
     margin-top: var(--mx-space-10);
     overflow: hidden;
     background: var(--mx-color-surface);
-    border: 1px solid color-mix(in oklab, var(--mx-color-primary) 28%, var(--mx-color-border));
+    border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-primary) 28%, var(--mx-color-border));
     border-radius: var(--mx-radius-lg);
     box-shadow:
       var(--mx-shadow-card),
@@ -164,7 +164,7 @@
     font-size: var(--mx-text-xs);
     color: var(--mx-color-muted);
     background: color-mix(in oklab, var(--mx-color-text) 3%, transparent);
-    border-bottom: 1px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .lights {
     display: flex;

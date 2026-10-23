@@ -1,7 +1,7 @@
 .mx-nav-layout-simple {
   background: var(--mx-color-bg);
   color: var(--mx-color-text);
-  border-bottom: 1px solid var(--mx-color-border);
+  border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   padding: var(--mx-space-4) var(--mx-space-8);
 
   & .bar {

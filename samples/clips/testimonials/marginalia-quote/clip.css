@@ -17,7 +17,7 @@
     justify-content: space-between;
     gap: var(--mx-space-3) var(--mx-space-6);
     padding-bottom: var(--mx-space-4);
-    border-bottom: 1px solid var(--mx-color-text);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-text);
   }
   & .eyebrow {
     display: flex;
@@ -100,7 +100,7 @@
     display: grid;
     gap: var(--mx-space-5);
     padding-left: var(--mx-space-7);
-    border-left: 1px solid var(--mx-color-border);
+    border-left: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .label {
     font-family: var(--mx-font-mono);
@@ -113,7 +113,7 @@
     display: grid;
     gap: var(--mx-space-1);
     padding-top: var(--mx-space-4);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .value {
     font-family: var(--mx-font-display);
@@ -135,7 +135,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--mx-space-9);
     padding-top: var(--mx-space-8);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .minor {
     display: grid;
@@ -159,8 +159,8 @@
     display: grid;
     gap: var(--mx-space-5);
     padding: var(--mx-space-5) 0 var(--mx-space-6);
-    border-top: 1px solid var(--mx-color-text);
-    border-bottom: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-text);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .logo-row {
     display: flex;

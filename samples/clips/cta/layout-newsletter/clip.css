@@ -18,7 +18,7 @@
     width: 48px;
     height: 48px;
     margin-bottom: var(--mx-space-6);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
     background: var(--mx-color-surface);
     color: var(--mx-color-text);
@@ -57,7 +57,7 @@
     display: flex;
     gap: var(--mx-space-2);
     padding: var(--mx-space-1);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     background: var(--mx-color-surface);
     transition: border-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
@@ -131,7 +131,7 @@
     }
     & .form:focus-within { box-shadow: none; }
     & .input {
-      border: 1px solid var(--mx-color-border);
+      border: var(--mx-stroke) solid var(--mx-color-border);
       background: var(--mx-color-surface);
       text-align: center;
     }

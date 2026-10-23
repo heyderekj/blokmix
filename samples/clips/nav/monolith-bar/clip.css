@@ -2,14 +2,14 @@
   background: var(--mx-color-bg);
   color: var(--mx-color-text);
   font-family: var(--mx-font-body);
-  border-bottom: 4px solid var(--mx-color-border);
+  border-bottom: calc(var(--mx-stroke) * 2) solid var(--mx-color-border);
 
   /* Ticker strip: inverted, static at rest (motion.css scrolls it). */
   & .ticker {
     overflow: hidden;
     background: var(--mx-color-text);
     color: var(--mx-color-bg);
-    border-bottom: 2px solid var(--mx-color-border);
+    border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .track {
     display: flex;
@@ -40,7 +40,7 @@
     align-items: center;
     gap: var(--mx-space-3);
     padding: 0 var(--mx-space-6);
-    border-right: 2px solid var(--mx-color-border);
+    border-right: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .mark {
     width: 30px;
@@ -62,10 +62,10 @@
   & .links {
     display: flex;
     margin-left: auto;
-    border-left: 2px solid var(--mx-color-border);
+    border-left: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .links li { display: flex; }
-  & .links li + li { border-left: 2px solid var(--mx-color-border); }
+  & .links li + li { border-left: var(--mx-stroke) solid var(--mx-color-border); }
   & .link {
     display: flex;
     align-items: center;
@@ -90,7 +90,7 @@
     padding: 0 var(--mx-space-7);
     background: var(--mx-color-primary);
     color: var(--mx-color-on-primary);
-    border-left: 2px solid var(--mx-color-border);
+    border-left: var(--mx-stroke) solid var(--mx-color-border);
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
     font-size: var(--mx-text-base);
@@ -137,7 +137,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       border-left: 0;
-      border-top: 2px solid var(--mx-color-border);
+      border-top: var(--mx-stroke) solid var(--mx-color-border);
     }
     & .link {
       width: 100%;

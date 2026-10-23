@@ -2,7 +2,7 @@
   overflow: hidden;
   background: var(--mx-color-bg);
   color: var(--mx-color-text);
-  border-top: 1px solid var(--mx-color-border);
+  border-top: var(--mx-stroke) solid var(--mx-color-border);
   padding: var(--mx-space-section) var(--mx-space-8) 0;
 
   & .inner {
@@ -57,7 +57,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr);
     gap: var(--mx-space-8);
     padding-top: var(--mx-space-8);
-    border-top: 1px solid var(--mx-color-border);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .col {
     display: flex;

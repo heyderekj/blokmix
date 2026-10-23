@@ -20,6 +20,7 @@
     "type.ratio": "1.25",
     "type.displayWeight": "650",
     "radius.base": "10px",
+    "stroke.width": "1px",
     "shadow.card": "0 1px 2px #18181b0f, 0 8px 24px #18181b0f",
     "space.base": "4px",
     "space.section": "96px",
@@ -27,7 +28,13 @@
     "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
   },
   "fonts": [
-    { "family": "Inter", "css2": "Inter:wght@400..700" },
-    { "family": "JetBrains Mono", "css2": "JetBrains+Mono:wght@400;500" }
+    {
+      "family": "Inter",
+      "css2": "Inter:wght@400..700"
+    },
+    {
+      "family": "JetBrains Mono",
+      "css2": "JetBrains+Mono:wght@400;500"
+    }
   ]
 }

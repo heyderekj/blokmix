@@ -58,7 +58,7 @@
   & .l3::before { clip-path: polygon(0 0, 100% 50%, 0 100%, 25% 50%); }
   & .l4 { font-size: var(--mx-text-xl); letter-spacing: -0.04em; }
   & .l4::before { display: none; }
-  & .l5::before { background: transparent; border: 2px solid currentColor; border-radius: 50%; }
+  & .l5::before { background: transparent; border: calc(var(--mx-stroke) * 2) solid currentColor; border-radius: 50%; }
   & .l6 { font-family: var(--mx-font-mono); font-weight: 500; text-transform: lowercase; letter-spacing: -0.03em; }
   & .l6::before { border-radius: 4px 4px 8px 8px; }
   & .l7 { text-transform: uppercase; font-size: var(--mx-text-base); letter-spacing: 0.04em; }

@@ -35,35 +35,35 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
       id: 'solid',
       label: 'Solid',
       hint: 'The one main action in a section',
-      css: `${BUTTON_BASE} background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; border: 1px solid transparent; border-radius: ${radius('var(--mx-radius)')}; box-shadow: ${shadow('none')}; ${press}
+      css: `${BUTTON_BASE} background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; border: var(--mx-stroke) solid transparent; border-radius: ${radius('var(--mx-radius)')}; box-shadow: ${shadow('none')}; ${press}
   &:hover { background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 86%, var(--mx-color-text)); }`,
     },
     {
       id: 'soft',
       label: 'Soft',
       hint: 'A quieter action that still reads as a button',
-      css: `${BUTTON_BASE} background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 14%, transparent); color: ${ink('var(--mx-color-text)')}; border: 1px solid transparent; border-radius: ${radius('var(--mx-radius)')}; box-shadow: ${shadow('none')}; ${press}
+      css: `${BUTTON_BASE} background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 14%, transparent); color: ${ink('var(--mx-color-text)')}; border: var(--mx-stroke) solid transparent; border-radius: ${radius('var(--mx-radius)')}; box-shadow: ${shadow('none')}; ${press}
   &:hover { background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 22%, transparent); }`,
     },
     {
       id: 'outline',
       label: 'Outline',
       hint: 'A secondary action beside a solid one',
-      css: `${BUTTON_BASE} background: transparent; color: ${ink('var(--mx-color-text)')}; border: 1.5px solid ${fill('color-mix(in oklab, var(--mx-color-text) 30%, transparent)')}; border-radius: ${radius('var(--mx-radius)')}; box-shadow: ${shadow('none')}; ${press}
+      css: `${BUTTON_BASE} background: transparent; color: ${ink('var(--mx-color-text)')}; border: calc(var(--mx-stroke) * 1.5) solid ${fill('color-mix(in oklab, var(--mx-color-text) 30%, transparent)')}; border-radius: ${radius('var(--mx-radius)')}; box-shadow: ${shadow('none')}; ${press}
   &:hover { border-color: ${fill('var(--mx-color-text)')}; }`,
     },
     {
       id: 'ghost',
       label: 'Ghost',
       hint: 'A tertiary action; text that behaves like a button',
-      css: `${BUTTON_BASE} background: transparent; color: ${ink('var(--mx-color-text)')}; border: 1px solid transparent; border-radius: ${radius('var(--mx-radius)')}; ${press}
+      css: `${BUTTON_BASE} background: transparent; color: ${ink('var(--mx-color-text)')}; border: var(--mx-stroke) solid transparent; border-radius: ${radius('var(--mx-radius)')}; ${press}
   &:hover { background: color-mix(in oklab, var(--mx-color-text) 7%, transparent); }`,
     },
     {
       id: 'pill',
       label: 'Pill',
       hint: 'Friendlier and rounder; good with soft, rounded styles',
-      css: `${BUTTON_BASE} background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; border: 1px solid transparent; border-radius: 999px; padding-inline: var(--mx-space-6); box-shadow: ${shadow('none')}; ${press}
+      css: `${BUTTON_BASE} background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; border: var(--mx-stroke) solid transparent; border-radius: 999px; padding-inline: var(--mx-space-6); box-shadow: ${shadow('none')}; ${press}
   &:hover { background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 86%, var(--mx-color-text)); }`,
     },
     {
@@ -78,7 +78,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
       id: 'offset',
       label: 'Offset',
       hint: 'Playful and bold: a hard shadow that presses in',
-      css: `${BUTTON_BASE} background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; border: 2px solid var(--mx-color-text); border-radius: ${radius('var(--mx-radius-sm)')}; box-shadow: 4px 4px 0 var(--mx-color-text); transition: translate 120ms var(--mx-motion-ease), box-shadow 120ms var(--mx-motion-ease);
+      css: `${BUTTON_BASE} background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; border: calc(var(--mx-stroke) * 2) solid var(--mx-color-text); border-radius: ${radius('var(--mx-radius-sm)')}; box-shadow: 4px 4px 0 var(--mx-color-text); transition: translate 120ms var(--mx-motion-ease), box-shadow 120ms var(--mx-motion-ease);
   &:hover { translate: -1px -1px; box-shadow: 5px 5px 0 var(--mx-color-text); }
   &:active { translate: 3px 3px; box-shadow: 1px 1px 0 var(--mx-color-text); }`,
     },
@@ -96,7 +96,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
   ],
   badge: [
     { id: 'pill', label: 'Pill', hint: 'A soft tag that sits above a heading', css: `display: inline-flex; align-items: center; gap: var(--mx-space-2); padding: var(--mx-space-1) var(--mx-space-3); border-radius: 999px; background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 14%, transparent); color: ${ink('var(--mx-color-text)')}; font-size: var(--mx-text-sm); font-weight: 600;` },
-    { id: 'outline', label: 'Outline', hint: 'Lighter than a pill', css: `display: inline-flex; padding: var(--mx-space-1) var(--mx-space-3); border-radius: 999px; border: 1px solid color-mix(in oklab, var(--mx-color-text) 22%, transparent); background: none; color: ${ink('var(--mx-color-text)')}; font-size: var(--mx-text-sm); font-weight: 500;` },
+    { id: 'outline', label: 'Outline', hint: 'Lighter than a pill', css: `display: inline-flex; padding: var(--mx-space-1) var(--mx-space-3); border-radius: 999px; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-text) 22%, transparent); background: none; color: ${ink('var(--mx-color-text)')}; font-size: var(--mx-text-sm); font-weight: 500;` },
     { id: 'dot', label: 'Dot', hint: 'A coloured dot before plain text', css: `display: inline-flex; align-items: center; gap: var(--mx-space-2); padding: 0; background: none; border: 0; color: ${ink('var(--mx-color-muted)')}; font-size: var(--mx-text-sm); font-weight: 600; &::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: ${fill('var(--mx-color-accent)')}; }` },
     { id: 'mono', label: 'Mono caps', hint: 'Editorial and technical', css: `display: inline-block; padding: 0; background: none; border: 0; color: ${ink('var(--mx-color-muted)')}; font-family: var(--mx-font-mono); font-size: var(--mx-text-xs); letter-spacing: 0.12em; text-transform: uppercase;` },
   ],
@@ -128,15 +128,15 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'lead', label: 'Lead', hint: 'A larger opening paragraph', css: `font-size: var(--mx-text-lg); line-height: 1.5; color: ${ink('var(--mx-color-text)')};` },
     { id: 'muted', label: 'Muted', hint: 'Supporting detail', css: `color: ${ink('var(--mx-color-muted)')};` },
     { id: 'mono', label: 'Mono', hint: 'Technical notes and captions', css: `font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); letter-spacing: 0.01em; color: ${ink('inherit')};` },
-    { id: 'callout', label: 'Callout', hint: 'Set apart with an accent rule', css: `padding-left: var(--mx-space-4); border-left: 3px solid ${fill('var(--mx-color-accent)')}; color: ${ink('inherit')};` },
+    { id: 'callout', label: 'Callout', hint: 'Set apart with an accent rule', css: `padding-left: var(--mx-space-4); border-left: calc(var(--mx-stroke) * 3) solid ${fill('var(--mx-color-accent)')}; color: ${ink('inherit')};` },
   ],
   card: [
     { id: 'flat', label: 'Flat', hint: 'No container: content on the page', css: `background: none; border: 0; box-shadow: none; padding: 0;` },
-    { id: 'bordered', label: 'Bordered', hint: 'Calm structure for dense grids', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: 1px solid var(--mx-color-border); box-shadow: ${shadow('none')};` },
-    { id: 'raised', label: 'Raised', hint: 'Lifts off the page; one level of depth', css: `${CARD_BASE} background: ${fill('var(--mx-color-surface)')}; border: 1px solid color-mix(in oklab, var(--mx-color-border) 50%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
-    { id: 'tinted', label: 'Tinted', hint: 'A wash of your primary', css: `${CARD_BASE} background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 9%, var(--mx-color-bg)); border: 1px solid color-mix(in oklab, ${fill('var(--mx-color-primary)')} 18%, transparent); box-shadow: ${shadow('none')};` },
-    { id: 'glass', label: 'Glass', hint: 'Frosted, over colour or imagery', css: `${CARD_BASE} background: color-mix(in oklab, var(--mx-color-bg) 62%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid color-mix(in oklab, var(--mx-color-bg) 70%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
-    { id: 'offset', label: 'Offset', hint: 'A hard shadow: bold and graphic', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: 2px solid var(--mx-color-text); box-shadow: 6px 6px 0 var(--mx-color-text);` },
+    { id: 'bordered', label: 'Bordered', hint: 'Calm structure for dense grids', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: ${shadow('none')};` },
+    { id: 'raised', label: 'Raised', hint: 'Lifts off the page; one level of depth', css: `${CARD_BASE} background: ${fill('var(--mx-color-surface)')}; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-border) 50%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
+    { id: 'tinted', label: 'Tinted', hint: 'A wash of your primary', css: `${CARD_BASE} background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 9%, var(--mx-color-bg)); border: var(--mx-stroke) solid color-mix(in oklab, ${fill('var(--mx-color-primary)')} 18%, transparent); box-shadow: ${shadow('none')};` },
+    { id: 'glass', label: 'Glass', hint: 'Frosted, over colour or imagery', css: `${CARD_BASE} background: color-mix(in oklab, var(--mx-color-bg) 62%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-bg) 70%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
+    { id: 'offset', label: 'Offset', hint: 'A hard shadow: bold and graphic', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: calc(var(--mx-stroke) * 2) solid var(--mx-color-text); box-shadow: 6px 6px 0 var(--mx-color-text);` },
   ],
   image: [
     { id: 'rounded', label: 'Rounded', hint: 'Matches your radius', css: `border-radius: ${radius('var(--mx-radius-lg)')}; overflow: hidden;` },
@@ -158,9 +158,9 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'bare', label: 'Bare', hint: 'Just the glyph', css: `background: none; border: 0; box-shadow: none; color: ${ink('var(--mx-color-text)')};` },
   ],
   input: [
-    { id: 'outlined', label: 'Outlined', hint: 'The clearest field', css: `background: var(--mx-color-bg); border: 1.5px solid var(--mx-color-border); border-radius: ${radius('var(--mx-radius)')}; min-height: 44px; padding: var(--mx-space-3) var(--mx-space-4); &:focus { outline: 2px solid ${fill('var(--mx-color-primary)')}; outline-offset: 1px; }` },
-    { id: 'filled', label: 'Filled', hint: 'Softer; good on plain backgrounds', css: `background: color-mix(in oklab, var(--mx-color-text) 6%, transparent); border: 1px solid transparent; border-radius: ${radius('var(--mx-radius)')}; min-height: 44px; padding: var(--mx-space-3) var(--mx-space-4); &:focus { outline: 2px solid ${fill('var(--mx-color-primary)')}; }` },
-    { id: 'underline', label: 'Underline', hint: 'Minimal, editorial forms', css: `background: none; border: 0; border-bottom: 1.5px solid var(--mx-color-border); border-radius: 0; min-height: 44px; padding: var(--mx-space-2) 0; &:focus { outline: none; border-bottom-color: ${fill('var(--mx-color-primary)')}; }` },
+    { id: 'outlined', label: 'Outlined', hint: 'The clearest field', css: `background: var(--mx-color-bg); border: calc(var(--mx-stroke) * 1.5) solid var(--mx-color-border); border-radius: ${radius('var(--mx-radius)')}; min-height: 44px; padding: var(--mx-space-3) var(--mx-space-4); &:focus { outline: 2px solid ${fill('var(--mx-color-primary)')}; outline-offset: 1px; }` },
+    { id: 'filled', label: 'Filled', hint: 'Softer; good on plain backgrounds', css: `background: color-mix(in oklab, var(--mx-color-text) 6%, transparent); border: var(--mx-stroke) solid transparent; border-radius: ${radius('var(--mx-radius)')}; min-height: 44px; padding: var(--mx-space-3) var(--mx-space-4); &:focus { outline: 2px solid ${fill('var(--mx-color-primary)')}; }` },
+    { id: 'underline', label: 'Underline', hint: 'Minimal, editorial forms', css: `background: none; border: 0; border-bottom: calc(var(--mx-stroke) * 1.5) solid var(--mx-color-border); border-radius: 0; min-height: 44px; padding: var(--mx-space-2) 0; &:focus { outline: none; border-bottom-color: ${fill('var(--mx-color-primary)')}; }` },
   ],
 }
 VARIANTS.item = VARIANTS.card

@@ -31,7 +31,7 @@
     align-items: center;
     gap: var(--mx-space-2);
     padding: var(--mx-space-1) var(--mx-space-4) var(--mx-space-1) var(--mx-space-3);
-    border: 1px solid var(--mx-color-border);
+    border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     background: var(--mx-color-bg);
     font-size: var(--mx-text-sm);
