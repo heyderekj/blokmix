@@ -1,5 +1,6 @@
-import { StrictMode } from 'react'
+import { StrictMode, type ComponentType } from 'react'
 import { createRoot } from 'react-dom/client'
+import { createInertiaApp } from '@inertiajs/react'
 import '../css/app.css'
 import Board from '@/pages/board'
 import { useStore } from '@/state/store'
@@ -8,6 +9,7 @@ import { canvasApi } from '@/ui/canvas/Canvas'
 import { runCommand, tools } from '@/state/commands'
 import { startAgentLink } from '@/lib/agentLink'
 import { loadAssets } from '@/lib/assets'
+import { isHosted } from '@/lib/host'
 
 if (import.meta.env.DEV) Object.assign(window, { __mx: { store: useStore, library, canvas: canvasApi } })
 // The same commands the app uses, for scripts and agents: blokmix.tools(), blokmix.run(name, input).
@@ -18,8 +20,28 @@ Object.assign(window, { blokmix: agentApi, mixtape: agentApi })
 startAgentLink()
 void loadAssets()
 
-createRoot(document.getElementById('app')!).render(
-  <StrictMode>
-    <Board />
-  </StrictMode>,
-)
+if (isHosted()) {
+  // Served by Laravel: an Inertia app, one page component per route (resources/js/pages).
+  const pages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx', { eager: true })
+  void createInertiaApp({
+    resolve: (name) => {
+      const page = pages[`./pages/${name}.tsx`]
+      if (!page) throw new Error(`No page component for "${name}"`)
+      return page
+    },
+    setup({ el, App, props }) {
+      createRoot(el!).render(
+        <StrictMode>
+          <App {...props} />
+        </StrictMode>,
+      )
+    },
+  })
+} else {
+  // On its own (npm run dev): just the board.
+  createRoot(document.getElementById('app')!).render(
+    <StrictMode>
+      <Board />
+    </StrictMode>,
+  )
+}

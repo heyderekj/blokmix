@@ -13,6 +13,18 @@ Inertia on Laravel Cloud later.
 - `npm run typecheck`, `npm run build`
 - `npm run export:demo`: writes the seeded demo packet to `.out/`
 
+## Laravel (phase 4)
+
+Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The board still runs on its own:
+- `npm run dev:laravel` (or `composer dev`): `php artisan serve` on http://localhost:8000 plus Vite on 5174.
+  `/mixes` lists mixes, `/mixes/local` is the board. `resources/views/app.blade.php` marks the page
+  (`<meta name="blokmix-host">`, `lib/host.ts` `isHosted()`), and `app.tsx` then mounts Inertia pages from
+  `resources/js/pages/` instead of the bare board.
+- `npm run build:laravel` writes `public/build`; `npm run build` still writes the Vite-only `dist/`.
+- `php artisan test` runs the PHP feature tests (`tests/Feature`); Vitest only picks up `tests/**/*.test.ts`.
+- Mixes still live in the browser's localStorage, which is per origin: :8000 and :5173 each keep their own.
+  Server storage comes next (4b).
+
 ## Agents
 
 Everything you can do on the canvas is a command in `resources/js/core/commands/schema/` (zod schemas →

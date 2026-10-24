@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bot, CircleHelp, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
+import { router } from '@inertiajs/react'
+import { Bot, CircleHelp, LayoutGrid, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
 import { useStore, undo, redo, type Sheet } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
@@ -17,6 +18,7 @@ import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
 import { useAgentLink } from '@/lib/agentLink'
 import { Switch } from '../panels/parts'
+import { isHosted } from '@/lib/host'
 import { PagesPanel, PageSwitch } from './PagesMenu'
 
 export const toggleSheet = (s: Sheet) => {
@@ -72,6 +74,12 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         <div className="p-1.5">
         <NameField />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
+        {isHosted() && (
+          <>
+            <MenuItem icon={LayoutGrid} label="All mixes" onClick={() => (st().setUi({ sheet: 'none' }), router.visit('/mixes'))} />
+            <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
+          </>
+        )}
         <MenuItem icon={Undo2} label="Undo" kbd="⌘Z" onClick={undo} />
         <MenuItem icon={Redo2} label="Redo" kbd="⇧⌘Z" onClick={redo} />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:laravel": "concurrently -k -n php,vite -c \"#93c5fd,#ff6aa8\" \"php artisan serve\" \"BLOKMIX_HOST=laravel vite\"",
     "build": "tsc --noEmit && vite build",
+    "build:laravel": "tsc --noEmit && BLOKMIX_HOST=laravel vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc --noEmit -p extension",
     "test": "vitest run",
@@ -16,6 +18,7 @@
     "clip:add": "vite-node scripts/clip-add.ts"
   },
   "dependencies": {
+    "@inertiajs/react": "^3.9.1",
     "fflate": "^0.8.3",
     "lucide-react": "^1.61.0",
     "motion": "^14.6.0",
@@ -38,7 +41,9 @@
     "@types/react-dom": "^19.3.0",
     "@types/ws": "^8.18.2",
     "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
     "heroicons": "2.2.0",
+    "laravel-vite-plugin": "^3.2.0",
     "lucide-static": "1.53.0",
     "playwright-core": "^1.64.1",
     "tailwindcss": "^4.3.3",
