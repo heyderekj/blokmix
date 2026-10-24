@@ -55,7 +55,7 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   in the browser, saved to your account. You get yours and those of people you share mixes with; they join the
   library (`core/library.ts` `extendLibrary`) before the board opens a mix.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
-  drops one, and sections it uses always count. The Crate and Alternatives show This mix / All your clips / Layouts;
+  drops one, and sections it uses always count. The Crate and Alternatives show This mix / All your clips / Layouts (a focused section opens nothing by itself: the dock's Layouts button grows its alternatives);
   agents use `list_mix_clips`, `add_clips_to_mix`, `remove_clip_from_mix`.
 - Saved style guides (`style_guides`, `Api\StyleGuideController`, `lib/styleGuides.ts`): save a mix's guide under a
   name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). New mix → "Start from a style guide"

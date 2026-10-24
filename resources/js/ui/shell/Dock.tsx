@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus } from 'lucide-react'
+import { ChevronDown, Dices, Disc3, Hand, LayoutTemplate, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus } from 'lucide-react'
 import { useStore, type Tool, currentSlots } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi } from '../canvas/Canvas'
@@ -22,9 +22,12 @@ const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
 /** The dock: how you work the canvas. The Clips button grows it upward into the crate. */
 export function Dock() {
   const open = useStore((s) => s.ui.sheet === 'crate')
-  // On a section (and nothing else open), the dock grows that section's alternatives,
-  // but not while you're working on one of its blocks: the clips would compete with it.
-  const focused = useStore((s) => (s.ui.sheet === 'none' && !s.ui.selectedBlockId ? currentSlots(s).find((x) => x.id === s.ui.focusedSlotId) : undefined))
+  // On a section (and nothing else open) the dock offers that section's other layouts, but only grows them when asked:
+  // focusing a section opens nothing, so the section's own card stays clear. Not while you're working on one of its
+  // blocks, either: the clips would compete with it.
+  const section = useStore((s) => (s.ui.sheet === 'none' && !s.ui.selectedBlockId ? currentSlots(s).find((x) => x.id === s.ui.focusedSlotId) : undefined))
+  const [asked, setAsked] = useState<string | null>(null)
+  const focused = section && asked === section.id ? section : undefined
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3" data-dock>
       <FirstRunTip />
@@ -34,12 +37,23 @@ export function Dock() {
         grow="up"
         anchor="center"
         maxBody="min(52vh, 420px)"
-        onClose={() => useStore.getState().setUi(open ? { sheet: 'none' } : { focusedSlotId: null })}
+        onClose={() => (open ? useStore.getState().setUi({ sheet: 'none' }) : setAsked(null))}
         bar={
           <>
             <ToolSwitcher />
             <Divider />
             <ShuffleButton />
+            {section && !focused && (
+              <button
+                type="button"
+                onClick={() => setAsked(section.id)}
+                title="Other layouts for this section"
+                aria-label="Other layouts for this section"
+                className="grid size-8 place-items-center rounded-full text-zinc-600 transition active:scale-[0.97] hover:bg-zinc-950/5"
+              >
+                <LayoutTemplate size={16} />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => toggleSheet('crate')}
