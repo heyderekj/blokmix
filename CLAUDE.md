@@ -21,7 +21,7 @@ actions as the UI. Each write is validated and lands as one undo step; agent edi
 - In the browser: `blokmix.tools()` and `blokmix.run(name, input)`.
 - Over MCP: `npm run mcp` starts `scripts/mcp-bridge.ts` (stdio MCP server + a WebSocket on
   127.0.0.1:4317 that only Blokmix's local origins may join). Add it to Claude Code with
-  `claude mcp add blokmix -- npm --prefix /Users/heyderekj/mixtape run -s mcp`, then turn on
+  `claude mcp add blokmix -- npm --prefix /Users/heyderekj/blokmix run -s mcp`, then turn on
   "Let agents edit this mix" in Blokmix's menu (off by default). `scripts/mcp-smoke.ts` is a
   quick end-to-end check.
 - New capabilities should be added as commands first, then wired into the UI.
