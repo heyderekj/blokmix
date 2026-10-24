@@ -22,8 +22,15 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `resources/js/pages/` instead of the bare board.
 - `npm run build:laravel` writes `public/build`; `npm run build` still writes the Vite-only `dist/`.
 - `php artisan test` runs the PHP feature tests (`tests/Feature`); Vitest only picks up `tests/**/*.test.ts`.
-- Mixes still live in the browser's localStorage, which is per origin: :8000 and :5173 each keep their own.
-  Server storage comes next (4b).
+- Mixes are saved in the database (`mixes`: name + `data` json with site, guide, content, notes, heads;
+  `mix_versions`: one row per version node). `/mixes/{id}` hands the board the mix as props, and
+  `lib/mixSync.ts` `openMix` points the store's persist at it: saves go out 800ms after a change, one at a
+  time, with only what changed (`PUT /api/mixes/{id}`, `If-Match: "<lock>"`; a stale lock gets 412 and the
+  mix as it is now, which replaces what's on screen). The store's `merge` migrations run on server data too.
+  This device's view (ui, camera) and unsent edits stay in localStorage (`blokmix:mix:<id>`), so offline
+  edits survive a reload. `/mixes/local` is the browser-only mix (the Vite-only app's), which the index can
+  copy to the server ("Save to your mixes").
+- `/api/*` skips Laravel's TrimStrings and ConvertEmptyStringsToNull: words are saved exactly as written.
 
 ## Agents
 

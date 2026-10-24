@@ -20,6 +20,7 @@ import { useAgentLink } from '@/lib/agentLink'
 import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
 import { PagesPanel, PageSwitch } from './PagesMenu'
+import { SaveState } from './SaveState'
 
 export const toggleSheet = (s: Sheet) => {
   const st = useStore.getState()
@@ -65,6 +66,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
           </span>
           <span className="px-0.5 text-zinc-300 max-md:hidden">/</span>
           <PageSwitch />
+          <SaveState />
         </>
       }
     >

@@ -2,29 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Mix;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Mixes. Until they're stored on the server, the one mix lives in this browser
- * (the board keeps it in localStorage), so it's the only one there is: "local".
+ * Mixes as pages: the list, and one open on the board. "local" is the mix kept
+ * in this browser only (from before mixes were saved here).
  */
 class MixController extends Controller
 {
     public function index(): Response
     {
         return Inertia::render('mixes/index', [
-            // Saved on the server: none yet.
-            'mixes' => [],
+            'mixes' => Mix::query()
+                ->withCount('versions')
+                ->latest('updated_at')
+                ->get(['id', 'name', 'updated_at'])
+                ->map(fn (Mix $m) => ['id' => $m->id, 'name' => $m->name, 'updated_at' => $m->updated_at, 'versions' => $m->versions_count]),
         ]);
     }
 
-    public function show(string $mix): Response
+    public function local(): Response
     {
-        abort_unless($mix === 'local', 404);
+        return Inertia::render('mixes/show', ['mix' => ['id' => 'local']]);
+    }
 
-        return Inertia::render('mixes/show', [
-            'mix' => ['id' => $mix],
-        ]);
+    public function show(Mix $mix): Response
+    {
+        return Inertia::render('mixes/show', ['mix' => $mix->load('versions')->toBoard()]);
+    }
+
+    /** A new, blank mix; the board fills it in on first save. */
+    public function store(): RedirectResponse
+    {
+        $mix = Mix::create(['name' => 'Untitled mix']);
+
+        return redirect()->route('mixes.show', $mix);
     }
 }

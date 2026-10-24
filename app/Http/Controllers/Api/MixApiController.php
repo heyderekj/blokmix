@@ -1,0 +1,115 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Mix;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Where the board saves a mix. Saves are optimistic: each names the lock it last
+ * read (If-Match) and gets the next one back; a save from an older lock is
+ * refused with 412 and the mix as it is now, so nothing is overwritten unseen.
+ */
+class MixApiController extends Controller
+{
+    /** Big enough for a site with many versions; versions are sent only when they change. */
+    private const MAX_BYTES = 20 * 1024 * 1024;
+
+    public function show(Mix $mix): JsonResponse
+    {
+        return $this->withLock(response()->json($mix->load('versions')->toBoard()), $mix->lock_version);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $this->guardSize($request);
+        $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'data' => ['nullable', 'array'],
+            'versions' => ['nullable', 'array'],
+            'versions.*' => ['array'],
+            'versions.*.letter' => ['required', 'string', 'max:20'],
+        ]);
+        // The payload as sent: validate() would keep only the keys that have rules (a version's letter).
+        $input = $request->only(['name', 'data', 'versions']);
+
+        $mix = DB::transaction(function () use ($input) {
+            $mix = Mix::create(['name' => $input['name'], 'data' => $input['data'] ?? null]);
+            foreach ($input['versions'] ?? [] as $key => $node) {
+                $mix->versions()->create(['key' => (string) $key, 'letter' => $node['letter'], 'node' => $node]);
+            }
+
+            return $mix;
+        });
+
+        return $this->withLock(response()->json($mix->load('versions')->toBoard(), 201), $mix->lock_version);
+    }
+
+    public function update(Request $request, Mix $mix): JsonResponse
+    {
+        $this->guardSize($request);
+        $lock = (int) trim((string) $request->header('If-Match'), '"W/');
+        abort_if($lock < 1, 428, 'Send If-Match with the lock you last read.');
+
+        $request->validate([
+            'name' => ['sometimes', 'string', 'max:120'],
+            'data' => ['sometimes', 'nullable', 'array'],
+            'versions' => ['sometimes', 'array'],
+            'versions.put' => ['sometimes', 'array'],
+            'versions.put.*' => ['array'],
+            'versions.put.*.letter' => ['required', 'string', 'max:20'],
+            'versions.remove' => ['sometimes', 'array'],
+            'versions.remove.*' => ['string'],
+        ]);
+        $input = $request->only(['name', 'data', 'versions']);
+
+        $saved = DB::transaction(function () use ($mix, $lock, $input) {
+            $changes = ['lock_version' => $lock + 1, 'updated_at' => now()];
+            if (array_key_exists('name', $input)) {
+                $changes['name'] = $input['name'];
+            }
+            if (array_key_exists('data', $input)) {
+                $changes['data'] = $input['data'] === null ? null : json_encode($input['data']);
+            }
+            // Only the save that read the current lock gets through.
+            if (Mix::whereKey($mix->id)->where('lock_version', $lock)->update($changes) === 0) {
+                return false;
+            }
+            foreach ($input['versions']['put'] ?? [] as $key => $node) {
+                $mix->versions()->updateOrCreate(['key' => (string) $key], ['letter' => $node['letter'], 'node' => $node]);
+            }
+            if (! empty($input['versions']['remove'])) {
+                $mix->versions()->whereIn('key', $input['versions']['remove'])->delete();
+            }
+
+            return true;
+        });
+
+        $mix->refresh()->load('versions');
+        if (! $saved) {
+            return $this->withLock(response()->json(['message' => 'This mix changed since you last read it.', 'mix' => $mix->toBoard()], 412), $mix->lock_version);
+        }
+
+        return $this->withLock(response()->json(['lock' => $mix->lock_version, 'updated_at' => $mix->updated_at]), $mix->lock_version);
+    }
+
+    public function destroy(Mix $mix): JsonResponse
+    {
+        $mix->delete();
+
+        return response()->json(null, 204);
+    }
+
+    private function withLock(JsonResponse $response, int $lock): JsonResponse
+    {
+        return $response->setEtag((string) $lock);
+    }
+
+    private function guardSize(Request $request): void
+    {
+        abort_if(strlen($request->getContent()) > self::MAX_BYTES, 413, 'This mix is too big to save in one go.');
+    }
+}

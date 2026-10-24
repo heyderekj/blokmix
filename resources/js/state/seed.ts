@@ -75,3 +75,18 @@ export function buildSeed(lib: Library): MixData {
     framePos: {},
   }
 }
+
+/** A new mix: one empty Home page, no style guide yet, the default words. */
+export function blankMix(name = 'Untitled mix'): MixData {
+  return {
+    mixName: name,
+    site: siteFromSlots([]),
+    guide: emptyGuide(),
+    content: structuredClone(DEFAULT_CONTENT),
+    versions: {},
+    notes: [],
+    branchFrom: null,
+    head: null,
+    framePos: {},
+  }
+}

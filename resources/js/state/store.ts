@@ -250,6 +250,12 @@ export function carryOver(ls: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'
   }
 }
 
+/** The mix kept in this browser (the default, and what "local" opens). */
+export const localMixStorage = () => createJSONStorage<Persisted>(() => carryOver(localStorage))
+
+/** What the store saves: the mix itself plus this device's view of it (ui, camera). */
+export type Persisted = MixData & { ui: UiState; camera: Camera | null }
+
 /** The sections of the page open on the canvas, top to bottom (shared nav and footer included). */
 /** The page to show a section on: its own, or for the shared nav and footer this one if it shows them. */
 function pageFor(site: Site, slotId: string, here: string | null): string | null {
@@ -611,7 +617,7 @@ export const useStore = create<State>()(
     {
       name: STORAGE_KEY,
       version: 1,
-      storage: createJSONStorage(() => carryOver(localStorage)),
+      storage: localMixStorage(),
       partialize: (s) => ({
         mixName: s.mixName,
         site: s.site,
@@ -622,7 +628,7 @@ export const useStore = create<State>()(
         branchFrom: s.branchFrom,
         head: s.head,
         framePos: s.framePos,
-        ui: { ...s.ui, previewFrameId: null, editingNoteId: null, sheet: 'none' },
+        ui: { ...s.ui, previewFrameId: null, editingNoteId: null, sheet: 'none' as const },
         camera: s.camera,
       }),
       merge: (persisted, current) => {

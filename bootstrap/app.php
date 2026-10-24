@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);
+        // A mix is saved exactly as the board sends it: words keep their spaces, and empty words stay empty.
+        $saves = fn (Request $request) => $request->is('api/*');
+        $middleware->trimStrings(except: [$saves]);
+        $middleware->convertEmptyStringsToNull(except: [$saves]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
