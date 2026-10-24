@@ -1,5 +1,6 @@
 import { COMMANDS, toolDefinitions, type CommandName } from '@/core/commands/schema'
 import { useStore } from '../store'
+import { canEdit, useAccount } from '@/lib/account'
 import { CommandError } from './refs'
 import * as read from './read'
 import * as review from './review'
@@ -35,12 +36,17 @@ export interface AsyncCommand<P = unknown> {
 // Modules export `later` maps of async commands; merge them here.
 const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later } as Record<string, AsyncCommand>
 
+/** What a viewer can still do: leave and answer marks. */
+const MARKS = new Set(['add_note', 'update_note', 'reply_note'])
+
 export function runCommand(name: string, raw: unknown, by: Caller = 'agent'): unknown {
   if (!(name in COMMANDS)) throw new CommandError(`Unknown command "${name}". Known: ${Object.keys(COMMANDS).join(', ')}`)
   const cmd = COMMANDS[name as CommandName]
   const parsed = cmd.input.safeParse(raw ?? {})
   if (!parsed.success) throw new CommandError(`Invalid input for ${name}: ${parsed.error.issues.map((i) => `${i.path.join('.') || 'input'}: ${i.message}`).join('; ')}`)
   const input = parsed.data as Record<string, unknown>
+  if (cmd.write && !canEdit(useAccount.getState().role) && !MARKS.has(name))
+    throw new CommandError(`You can view this mix and leave marks (${[...MARKS].join(', ')}), not ${name}. Ask its owner to make you an editor.`)
   const later = ASYNC[name]
   if (later) {
     return later.prepare(input as never).then((prepared) => {

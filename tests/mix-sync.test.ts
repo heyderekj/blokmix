@@ -121,4 +121,20 @@ describe('saving a mix to the server', () => {
     expect(calls[0].url).toBe('/api/mixes/m2')
     expect((calls[0].body!.data as { site: unknown }).site).toBeDefined()
   })
+
+  it('lets a viewer leave marks but puts any other change back', async () => {
+    openMix(serverMix({ id: 'm3' }), { role: 'viewer' })
+    const st = useStore.getState()
+    const site = st.site
+    st.addSlot('faq')
+    expect(useStore.getState().site).toBe(site)
+    expect(useStore.getState().flash?.text).toMatch(/view this mix and leave marks/)
+    useStore.getState().addMark({ anchor: { kind: 'page' }, kind: 'keep', text: 'Love the hero' })
+    expect(useStore.getState().notes.at(-1)?.text).toBe('Love the hero')
+    await settle()
+    expect(calls.at(-1)!.body!.data).toMatchObject({ notes: expect.arrayContaining([expect.objectContaining({ text: 'Love the hero' })]) })
+    openMix('local')
+    useStore.getState().addSlot('faq')
+    expect(useStore.getState().site).not.toBe(site)
+  })
 })

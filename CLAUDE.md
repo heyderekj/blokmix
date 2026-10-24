@@ -35,9 +35,13 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   https://blokmix-production-l9esns.laravel.cloud with Postgres 18. Pushing `main` deploys. Build runs
   `npm run build:laravel`; deploy runs `php artisan migrate --force` and `php artisan optimize`. The `cloud`
   CLI (`composer global` laravel/cloud-cli) is signed in: `cloud deploy blokmix production`, `cloud cmd:run`.
-- Until accounts (4d) the app sits behind one shared password, `BLOKMIX_PASSWORD`, entered on `/unlock` and
-  remembered for the session (`RequirePassword` middleware, before route bindings; the API answers 401 JSON).
-  Production returns 503 until it's set; locally it's open when unset. Changing it signs everyone out.
+- Accounts (Fortify: sign up, sign in, sign out; Inertia pages in `pages/auth/`). Sign-up is open. Password reset
+  is off until there's a mail service. The board takes your account's name for marks and versions.
+- Mixes have members (`mix_members`): owner (shares, deletes), editor (changes anything), viewer (looks and
+  leaves marks). Non-members get 404. Share links (`mix_share_links`, `/share/{token}`) add whoever opens them
+  with a role (never lowering one); signed-out people sign up first. The Share panel (top bar, hosted only) makes
+  and revokes links and changes roles. Viewers: the server keeps only `notes` from their saves, `lib/mixSync.ts`
+  puts any other change back on the board, and commands other than add_note/update_note/reply_note refuse.
 
 ## Agents
 

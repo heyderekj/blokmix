@@ -3,6 +3,7 @@ import type { PersistStorage, StorageValue } from 'zustand/middleware'
 import type { VersionNode } from '@/core/types'
 import { STORAGE_KEY, localMixStorage, useStore, type MixData, type Persisted } from '@/state/store'
 import { blankMix } from '@/state/seed'
+import { useAccount, type MixRole } from './account'
 
 /**
  * Saving a mix to the server. The store persists through whichever storage is
@@ -205,6 +206,9 @@ class MixSync {
 }
 
 let current: MixSync | null = null
+
+/** Send whatever's waiting now (before signing out, say). */
+export const flushMix = () => current?.flush() ?? Promise.resolve()
 let openId = 'local'
 export const openMixId = () => openId
 
@@ -212,11 +216,15 @@ export const openMixId = () => openId
  * Point the store at a mix: "local" (this browser's) or one from the server.
  * Saves whatever the previous one had waiting first. Undo history starts over.
  */
-export function openMix(mix: ServerMix | 'local', opts: { force?: boolean } = {}) {
+export function openMix(mix: ServerMix | 'local', opts: { force?: boolean; role?: MixRole } = {}) {
   const id = mix === 'local' ? 'local' : mix.id
+  const role = mix === 'local' ? 'owner' : (opts.role ?? useAccount.getState().role)
+  useAccount.setState({ role })
   if (id === openId && !opts.force) return
   current?.close()
   current = null
+  viewOnly?.()
+  viewOnly = null
   openId = id
   const persist = useStore.persist
   if (mix === 'local') {
@@ -230,6 +238,28 @@ export function openMix(mix: ServerMix | 'local', opts: { force?: boolean } = {}
   }
   void persist.rehydrate()
   useStore.temporal.getState().clear()
+  if (role === 'viewer') viewOnly = holdStill()
+}
+
+/** What a viewer can't change: everything but the marks (notes) and their own view. */
+const HELD = ['mixName', 'site', 'guide', 'content', 'versions', 'branchFrom', 'head'] as const
+let viewOnly: (() => void) | null = null
+
+/**
+ * A viewer looks and leaves marks. Any other change, from a control, a shortcut or
+ * an agent, is put back as it happens (the server would refuse it anyway).
+ */
+function holdStill(): () => void {
+  const held = Object.fromEntries(HELD.map((k) => [k, useStore.getState()[k]])) as Pick<MixData, (typeof HELD)[number]>
+  let told = false
+  return useStore.subscribe((st) => {
+    if (HELD.every((k) => st[k] === held[k])) return
+    useStore.setState(held)
+    if (!told) {
+      told = true
+      st.showFlash('You can view this mix and leave marks. Ask its owner to make you an editor to change it.')
+    }
+  })
 }
 
 if (typeof window !== 'undefined') {

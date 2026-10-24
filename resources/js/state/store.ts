@@ -48,7 +48,7 @@ import { DEFAULT_CONTENT } from '@/core/content'
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
 /** The one surface that can be open at a time; each grows out of the control that summons it. */
-export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'menu' | 'notes' | 'pages'
+export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'menu' | 'notes' | 'pages' | 'share'
 export type Tool = 'select' | 'hand' | 'sticky' | 'note'
 
 export interface Camera {

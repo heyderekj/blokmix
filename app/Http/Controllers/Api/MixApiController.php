@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\MixRole;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use Illuminate\Http\JsonResponse;
@@ -18,8 +19,10 @@ class MixApiController extends Controller
     /** Big enough for a site with many versions; versions are sent only when they change. */
     private const MAX_BYTES = 20 * 1024 * 1024;
 
-    public function show(Mix $mix): JsonResponse
+    public function show(Request $request, Mix $mix): JsonResponse
     {
+        abort_unless($mix->roleOf($request->user()), 404);
+
         return $this->withLock(response()->json($mix->load('versions')->toBoard()), $mix->lock_version);
     }
 
@@ -36,8 +39,9 @@ class MixApiController extends Controller
         // The payload as sent: validate() would keep only the keys that have rules (a version's letter).
         $input = $request->only(['name', 'data', 'versions']);
 
-        $mix = DB::transaction(function () use ($input) {
+        $mix = DB::transaction(function () use ($input, $request) {
             $mix = Mix::create(['name' => $input['name'], 'data' => $input['data'] ?? null]);
+            $mix->admit($request->user(), MixRole::Owner);
             foreach ($input['versions'] ?? [] as $key => $node) {
                 $mix->versions()->create(['key' => (string) $key, 'letter' => $node['letter'], 'node' => $node]);
             }
@@ -50,6 +54,8 @@ class MixApiController extends Controller
 
     public function update(Request $request, Mix $mix): JsonResponse
     {
+        $role = $mix->roleOf($request->user());
+        abort_unless($role, 404);
         $this->guardSize($request);
         $lock = (int) trim((string) $request->header('If-Match'), '"W/');
         abort_if($lock < 1, 428, 'Send If-Match with the lock you last read.');
@@ -65,6 +71,12 @@ class MixApiController extends Controller
             'versions.remove.*' => ['string'],
         ]);
         $input = $request->only(['name', 'data', 'versions']);
+        if (! $role->canEdit()) {
+            // Viewers leave marks and change nothing else: keep only their notes, on top of the mix as saved.
+            $input = array_key_exists('data', $input) && is_array($input['data'])
+                ? ['data' => [...($mix->data ?? []), 'notes' => $input['data']['notes'] ?? ($mix->data['notes'] ?? [])]]
+                : [];
+        }
 
         $saved = DB::transaction(function () use ($mix, $lock, $input) {
             $changes = ['lock_version' => $lock + 1, 'updated_at' => now()];
@@ -96,8 +108,10 @@ class MixApiController extends Controller
         return $this->withLock(response()->json(['lock' => $mix->lock_version, 'updated_at' => $mix->updated_at]), $mix->lock_version);
     }
 
-    public function destroy(Mix $mix): JsonResponse
+    public function destroy(Request $request, Mix $mix): JsonResponse
     {
+        abort_unless($mix->roleOf($request->user()), 404);
+        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can delete a mix.');
         $mix->delete();
 
         return response()->json(null, 204);

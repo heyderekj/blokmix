@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Bot, CircleHelp, LayoutGrid, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
+import { Bot, CircleHelp, Eye, LayoutGrid, LogOut, Users, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
 import { useStore, undo, redo, type Sheet } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
@@ -19,6 +19,9 @@ import { useMe } from '@/lib/people'
 import { useAgentLink } from '@/lib/agentLink'
 import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
+import { canEdit, useAccount } from '@/lib/account'
+import { flushMix } from '@/lib/mixSync'
+import { SharePanel } from '../panels/SharePanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
 import { SaveState } from './SaveState'
 
@@ -74,7 +77,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         <PagesPanel />
       ) : (
         <div className="p-1.5">
-        <NameField />
+        <AccountRow />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         {isHosted() && (
           <>
@@ -209,7 +212,8 @@ function ModeIsland() {
 /** Export and Save version. Export grows into the packet for your agent. */
 function ShipIsland() {
   const sheet = useStore((s) => s.ui.sheet)
-  const open = sheet === 'packet' || sheet === 'notes'
+  const open = sheet === 'packet' || sheet === 'notes' || sheet === 'share'
+  const role = useAccount((s) => s.role)
   const notes = useStore((s) => s.notes)
   const todo = notes.filter(outstanding).length
   return (
@@ -246,18 +250,38 @@ function ShipIsland() {
             <Package size={15} />
             Export
           </button>
-          <button
-            type="button"
-            onClick={() => pressVersionAndFly()}
-            title="Save the working mix as a new version (⌘S)"
-            className="btn-lit ml-0.5 flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
-          >
-            Save version
-          </button>
+          {isHosted() && (
+            <button
+              type="button"
+              onClick={() => toggleSheet('share')}
+              title="Share this mix"
+              aria-expanded={sheet === 'share'}
+              className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
+                sheet === 'share' ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
+              }`}
+            >
+              <Users size={15} />
+              Share
+            </button>
+          )}
+          {canEdit(role) ? (
+            <button
+              type="button"
+              onClick={() => pressVersionAndFly()}
+              title="Save the working mix as a new version (⌘S)"
+              className="btn-lit ml-0.5 flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
+            >
+              Save version
+            </button>
+          ) : (
+            <span className="ml-0.5 flex h-8 items-center gap-1.5 rounded-full bg-zinc-950/5 px-3 text-[12.5px] font-semibold text-zinc-600" title="You can look and leave marks">
+              <Eye size={14} /> View only
+            </span>
+          )}
         </>
       }
     >
-      {sheet === 'notes' ? <NotesPanel /> : <PacketPanel />}
+      {sheet === 'notes' ? <NotesPanel /> : sheet === 'share' ? <SharePanel /> : <PacketPanel />}
     </Island>
   )
 }
@@ -342,6 +366,31 @@ export function Segmented<T extends string>({
           </span>
         </button>
       ))}
+    </div>
+  )
+}
+
+/** Signed in: who you are, and signing out. Otherwise, the name your marks carry. */
+function AccountRow() {
+  const user = useAccount((s) => s.user)
+  const me = useMe()
+  if (!user) return <NameField />
+  return (
+    <div className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5">
+      <Avatar who={me} size={24} ring={false} />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13px] font-medium text-zinc-900">{user.name}</span>
+        <span className="block truncate text-[11.5px] text-zinc-400">{user.email}</span>
+      </span>
+      <button
+        type="button"
+        title="Sign out"
+        aria-label="Sign out"
+        onClick={() => void flushMix().finally(() => router.post('/logout'))}
+        className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
+      >
+        <LogOut size={15} />
+      </button>
     </div>
   )
 }

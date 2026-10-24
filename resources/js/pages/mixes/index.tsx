@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Head, Link, router } from '@inertiajs/react'
-import { ArrowRight, CloudUpload, Layers, Plus } from 'lucide-react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
+import { ArrowRight, CloudUpload, Layers, Plus, Trash2 } from 'lucide-react'
 import type { Site, Slot, VersionNode } from '@/core/types'
 import { STORAGE_KEY } from '@/state/store'
 import { api, type ServerMix } from '@/lib/mixSync'
@@ -11,7 +11,10 @@ interface SavedMix {
   name: string
   updated_at: string
   versions: number
+  role: 'owner' | 'editor' | 'viewer'
 }
+
+const ROLE_NOTE = { owner: null, editor: 'you can edit', viewer: 'you can view' } as const
 
 interface LocalMix {
   name: string
@@ -50,8 +53,18 @@ const ago = (iso: string) => {
 
 /** Every mix you can open: the ones saved here, and the one still kept only in this browser. */
 export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
+  const user = usePage<{ auth: { user: { name: string } | null } }>().props.auth?.user
   const local = useMemo(readLocal, [])
   const [moving, setMoving] = useState(false)
+  const mine = mixes.filter((m) => m.role === 'owner')
+  const shared = mixes.filter((m) => m.role !== 'owner')
+
+  /** Delete a mix you own, after asking. */
+  const remove = async (m: SavedMix) => {
+    if (!window.confirm(`Delete “${m.name}” and its versions for everyone it’s shared with? This can’t be undone.`)) return
+    const res = await api('DELETE', `/api/mixes/${m.id}`)
+    if (res.status === 204) router.reload({ only: ['mixes'] })
+  }
 
   /** Copy the browser's mix to the server (the browser keeps its copy) and open it. */
   const saveLocal = async () => {
@@ -70,7 +83,19 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
       <Head title="Mixes" />
       <header className="flex items-center gap-2.5 px-6 py-5">
         <LogoTile size={30} />
-        <span className="text-[15px] font-semibold tracking-tight text-zinc-900">Blokmix</span>
+        <span className="flex-1 text-[15px] font-semibold tracking-tight text-zinc-900">Blokmix</span>
+        {user && (
+          <>
+            <span className="truncate text-[13px] text-zinc-500 max-sm:hidden">{user.name}</span>
+            <button
+              type="button"
+              onClick={() => router.post('/logout')}
+              className="h-9 cursor-pointer rounded-full px-3 text-[13px] font-medium text-zinc-600 transition-[background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
+            >
+              Sign out
+            </button>
+          </>
+        )}
       </header>
 
       <main className="mx-auto max-w-3xl px-6 pb-24 pt-8">
@@ -86,13 +111,10 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         </div>
 
         {mixes.length > 0 ? (
-          <ul className="mt-8 flex flex-col gap-2">
-            {mixes.map((m) => (
-              <li key={m.id}>
-                <MixCard href={`/mixes/${m.id}`} name={m.name} meta={[plural(m.versions, 'version'), `edited ${ago(m.updated_at)}`]} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <MixList title={null} mixes={mine} onDelete={remove} />
+            {shared.length > 0 && <MixList title="Shared with you" mixes={shared} />}
+          </>
         ) : (
           <p className="mt-8 rounded-2xl border border-dashed border-zinc-950/10 px-5 py-8 text-center text-[13.5px] text-zinc-500">
             No saved mixes yet. Start a new one{local ? ', or save the one in this browser below' : ''}.
@@ -119,6 +141,33 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         )}
       </main>
     </div>
+  )
+}
+
+function MixList({ title, mixes, onDelete }: { title: string | null; mixes: SavedMix[]; onDelete?: (m: SavedMix) => void }) {
+  if (!mixes.length) return null
+  return (
+    <section className="mt-8">
+      {title && <h2 className="mb-3 text-[12px] font-semibold text-zinc-400">{title}</h2>}
+      <ul className="flex flex-col gap-2">
+        {mixes.map((m) => (
+          <li key={m.id} className="group/mix relative">
+            <MixCard href={`/mixes/${m.id}`} name={m.name} meta={[plural(m.versions, 'version'), `edited ${ago(m.updated_at)}`, ...(ROLE_NOTE[m.role] ? [ROLE_NOTE[m.role]!] : [])]} />
+            {onDelete && (
+              <button
+                type="button"
+                title="Delete this mix"
+                aria-label={`Delete ${m.name}`}
+                onClick={() => onDelete(m)}
+                className="absolute right-12 top-1/2 grid size-8 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-zinc-400 opacity-0 transition-[opacity,background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-red-600 focus-visible:opacity-100 active:scale-[0.97] group-hover/mix:opacity-100 [@media(hover:none)]:opacity-100"
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 

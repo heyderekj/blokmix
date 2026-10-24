@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\MixRole;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -25,6 +27,40 @@ class Mix extends Model
     public function versions(): HasMany
     {
         return $this->hasMany(MixVersion::class);
+    }
+
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mix_members')->withPivot('role')->withTimestamps();
+    }
+
+    public function shareLinks(): HasMany
+    {
+        return $this->hasMany(MixShareLink::class);
+    }
+
+    /** What this person can do here; null when they're not a member. */
+    public function roleOf(?User $user): ?MixRole
+    {
+        if (! $user) {
+            return null;
+        }
+        $member = $this->relationLoaded('members') ? $this->members->firstWhere('id', $user->id) : $this->members()->whereKey($user->id)->first();
+
+        return $member ? MixRole::from($member->pivot->role) : null;
+    }
+
+    /** Add someone, or raise their role; never lowers it. */
+    public function admit(User $user, MixRole $role): MixRole
+    {
+        $current = $this->roleOf($user);
+        if ($current && $current->rank() >= $role->rank()) {
+            return $current;
+        }
+        $this->members()->syncWithoutDetaching([$user->id => ['role' => $role->value]]);
+        $this->unsetRelation('members');
+
+        return $role;
     }
 
     /** The mix as the board reads it. */
