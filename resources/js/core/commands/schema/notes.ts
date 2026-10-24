@@ -30,6 +30,36 @@ export const NOTE_COMMANDS = {
     }),
     write: true,
   },
+  import_review_marks: {
+    description:
+      'Bring a ReviseMy review’s marks back onto a build as notes. Pass the version the review is of, the review (id, url, status) and its marks (work_packets.pins, mapped: id, kind from severity, status, body, x/y as fractions of the screenshot (an area’s top-left, with w/h, when the pin has an area), its CSS width, and the section anchor under the point when you can tell). Safe to run again: marks are matched by their ReviseMy id. list_notes and update_note then show each mark’s ReviseMy id, so mirror fixes back with resolve_marks / reply_to_marks.',
+    input: z.object({
+      version: z.string().min(1).describe('The version or build reviewed: its letter or id'),
+      review: z.object({ id: z.string().min(1), url: z.string().url(), status: z.string().default('pending') }),
+      marks: z
+        .array(
+          z.object({
+            id: z.union([z.string().min(1), z.number().int()]),
+            kind: z.enum(NOTE_KINDS),
+            status: z.enum(NOTE_STATUSES).default('open'),
+            verified_by_person: z.boolean().optional().describe('True only when ReviseMy says a person verified it'),
+            body: z.string(),
+            suggested_copy: z.string().nullish(),
+            resolution: z.string().nullish(),
+            author: z.string().nullish(),
+            section: z.string().nullish().describe('The section’s anchor on the page ("pricing")'),
+            x: z.number().min(0).max(1).nullish(),
+            y: z.number().min(0).max(1).nullish(),
+            w: z.number().min(0).max(1).nullish(),
+            h: z.number().min(0).max(1).nullish(),
+            width: z.number().int().positive().nullish().describe('The screenshot’s CSS width'),
+            page: z.string().nullish(),
+          }),
+        )
+        .max(200),
+    }),
+    write: true,
+  },
   reply_note: {
     description: 'Reply on a mark, e.g. to answer a question or explain a choice.',
     input: z.object({ note: z.union([z.string(), z.number().int()]), text: z.string().min(1) }),

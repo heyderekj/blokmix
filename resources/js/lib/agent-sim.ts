@@ -8,10 +8,10 @@ import { placeVersions } from '@/ui/canvas/geometry'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 /**
- * Stand-in for a real agent run until the MCP server exists. The output is the
- * deterministic reference build from the exporters (exactly what the packet
- * contains), and the frame says so. The presence, steps and status flow are the
- * same ones a real MCP-driven agent will report.
+ * The Build menu's "Reference build": no agent, just the deterministic reference
+ * build from the exporters (exactly what the packet contains), and the frame says
+ * so. A real agent goes through prepare_build / report_build over MCP and shows
+ * the same presence, steps and status flow.
  */
 export async function runReferenceBuild(versionId: string, target: BuildTarget) {
   const st = useStore.getState()

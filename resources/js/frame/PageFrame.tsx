@@ -9,14 +9,17 @@ interface Props {
   title: string
   onSections?: (s: { slot: string; top: number; height: number }[]) => void
   onHeight?: (h: number) => void
+  /** A live preview's full height, when the agent reported it (a cross-origin page can't tell us). */
+  srcHeight?: number
 }
 
 const BRIDGE_TAIL = `<script>(function(){var last=-1;function r(){var h=Math.ceil(document.body.getBoundingClientRect().height);if(h!==last){last=h;parent.postMessage({ns:'mx',height:h},'*');}var s=[];document.querySelectorAll('[data-mx-slot]').forEach(function(el){s.push({slot:el.getAttribute('data-mx-slot'),top:el.offsetTop,height:el.offsetHeight})});parent.postMessage({ns:'mx',sections:s},'*');}new ResizeObserver(r).observe(document.body);if(document.fonts)document.fonts.ready.then(r);r();})();</script><style>html,body{overflow:hidden}</style>`
 
 /** A whole composed page (a version or build) in one sandboxed iframe. */
-export const PageFrame = memo(function PageFrame({ srcdoc, src, width, interactive, title, onSections, onHeight }: Props) {
+export const PageFrame = memo(function PageFrame({ srcdoc, src, srcHeight, width, interactive, title, onSections, onHeight }: Props) {
   const ref = useRef<HTMLIFrameElement>(null)
-  const [height, setHeight] = useState(src ? 2400 : 1200)
+  const [measured, setHeight] = useState(src ? 2400 : 1200)
+  const height = src && srcHeight ? srcHeight : measured
   const cb = useRef({ onSections, onHeight })
   cb.current = { onSections, onHeight }
 

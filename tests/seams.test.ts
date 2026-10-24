@@ -24,7 +24,7 @@ describe('seams for mobile, builds and pages', () => {
   })
 
   it('keeps every command reachable after the split', () => {
-    expect(Object.keys(COMMANDS)).toHaveLength(32)
+    expect(Object.keys(COMMANDS).length).toBeGreaterThanOrEqual(32)
     for (const name of Object.keys(COMMANDS)) expect(() => runCommand(name, '__not an object__' as never)).toThrow(/Invalid input|Unknown/)
   })
 

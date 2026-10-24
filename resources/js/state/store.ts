@@ -522,7 +522,8 @@ export const useStore = create<State>()(
         // One framework per hand-off.
         merged.ui.packetTargets = (merged.ui.packetTargets ?? ['astro']).slice(0, 1)
         for (const [id, v] of Object.entries(merged.versions ?? {})) {
-          if (v.build && !v.build.done) merged.versions[id] = { ...v, status: 'changes', build: { ...v.build, done: true } }
+          // A reference build dies with the tab; an agent's build goes on without it, so it stays open.
+          if (v.build && !v.build.done && v.build.by !== 'agent') merged.versions[id] = { ...v, status: 'changes', build: { ...v.build, done: true } }
         }
         return merged
       },

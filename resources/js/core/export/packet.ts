@@ -41,6 +41,24 @@ export const AGENT_RULES = [
   'Words live in content files (src/content/<section>.json in Astro, content/<section>.json in Next.js), and components read them. Change words in those files, not in markup, and keep each element’s data-mx-src so words trace back to their file.',
 ]
 
+/** The review loop with ReviseMy (revisemy.com), once a build has a preview. */
+export const REVIEW_WIDTHS = [1440, 390] as const
+export const REVISEMY = {
+  after: 'preview',
+  widths: [...REVIEW_WIDTHS],
+  import: 'import_review_marks',
+  loop: [
+    'blokmix prepare_build: write the packet and open the build on the canvas',
+    'build it and run the dev server',
+    'blokmix report_build with preview_url (and preview_height at 1440 and 390)',
+    'revisemy create_review: screenshots at 1440 and 390 for a localhost preview, capture_url for a deployed one',
+    'revisemy wait_for_review until the person decides',
+    'blokmix import_review_marks with the review and its marks (work_packets.pins)',
+    'fix the marks: must-fix first, never a keep',
+    'revisemy resolve_marks (and reply_to_marks) for each fix, and blokmix update_note to match',
+  ],
+}
+
 function sourceLabel(lib: Library, candidateId: string): string {
   const clipId = candidateId.split('#')[0]
   const clip = lib.clips[clipId]
@@ -111,7 +129,7 @@ export function packetJson(i: PacketInput) {
     })),
     pages: page.pages,
     rules: AGENT_RULES,
-    integrations: { revisemy: null, koati: null },
+    integrations: { revisemy: REVISEMY, koati: null },
   }
 }
 
@@ -267,9 +285,11 @@ export function buildNotes(i: PacketInput): string {
   return lines.join('\n')
 }
 
-export function agentPrompt(i: PacketInput, target: BuildTarget): string {
+/** What a coding agent should do with this packet, ending in the review loop. `run` names the build when Blokmix started one. */
+export function agentPrompt(i: PacketInput, target: BuildTarget, run?: { build: string; dir: string }): string {
   const t = target === 'astro' ? 'Astro' : 'Next.js (App Router)'
   const dir = target === 'astro' ? 'astro/' : 'next/'
+  const build = run ? `"${run.build}"` : 'the build letter prepare_build returned'
   return `Build the "${i.mixName}" landing page in ${t} from this Blokmix packet${i.version ? ` (version ${i.version.letter})` : ''}.
 
 1. Read BLOKMIX.md (build notes) and blokmix.json.
@@ -278,7 +298,22 @@ export function agentPrompt(i: PacketInput, target: BuildTarget): string {
 4. Replace any copy listed as retained source copy, and any logos or imagery, with project-appropriate content. Words live in the content folder's JSON files; edit them there.
 5. Run the dev server, compare against reference.html, and fix any visual drift at 1440px and 390px.
 
-When you're done, report the preview URL so it can be attached to the version on the Blokmix canvas.
+## Report back to Blokmix
+
+With the blokmix MCP server connected${run ? '' : ' (start with prepare_build, which writes this packet to disk and opens the build on the canvas)'}:
+- As you go, call report_build {build: ${build}, step: "…"} with a few words per step, so the canvas shows progress.
+- Once the dev server runs, call report_build with preview_url (e.g. http://localhost:${target === 'astro' ? 4321 : 3000}) and preview_height: the page's full height in CSS px at each width, {"1440": …, "390": …}. The preview shows on the build's frame.
+- Call report_build with done: true when it's ready.
+
+## Review loop (ReviseMy)
+
+If the ReviseMy MCP server is connected, have the page reviewed and bring the marks back:
+1. create_review: for a localhost preview, send full-page screenshots at ${REVIEW_WIDTHS.join(' and ')}px wide as images; for a deployed preview, use capture_url with page_url.
+2. wait_for_review until the person decides (call it again when it returns unchanged).
+3. import_review_marks {version: ${build}, review: {id, url, status}, marks}: map each work_packets.pins entry to {id, kind (its severity), status, verified_by_person (only if a person verified it), body, suggested_copy, x, y (fractions of the screenshot: the pin's point, or its area's top-left when it has an area), w, h (the area's size), width (the screenshot's CSS width), section (the id of the section element under the point, e.g. "pricing")}. Running it again updates the same notes.
+4. Fix the marks: must-fix first, use suggested copy exactly, never change a keep. Run report_build with a step as you go.
+5. For each fix, call ReviseMy resolve_marks {id: review id, marks: [{id: mark id, status: "resolved", note}]} and Blokmix update_note {note, status: "resolved", resolution}. list_notes shows each mark's ReviseMy ids under external. Answer questions with reply_to_marks and reply_note. Only a person verifies.
+6. After changes are requested, open the next pass with create_review {parent_id} and repeat.
 `
 }
 
