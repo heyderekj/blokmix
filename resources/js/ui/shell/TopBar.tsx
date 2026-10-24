@@ -70,7 +70,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
           >
             <Wordmark height={17} className="max-lg:hidden" />
             <span className="lg:hidden">
-              <BrandIcon size={22} />
+              <BrandIcon size={28} />
             </span>
           </button>
           <span className="px-0.5 text-zinc-300 max-lg:hidden">/</span>
