@@ -95,7 +95,7 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
                 st().adoptClipDesign(slot.clipId)
                 st().showFlash(`Style guide now follows ${source?.name}`, { undo: true })
               }}
-              className="btn-lit flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold"
+              className="btn-key flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold"
             >
               <Sparkles size={13} /> Use look
             </button>
