@@ -8,8 +8,8 @@ export default function Login() {
     <>
       <Head title="Sign in" />
       <AuthCard
-        title="Sign in to Blokmix"
-        lede={flash ?? undefined}
+        title={flash ? 'Sign in to Blokmix' : 'Welcome back'}
+        lede={flash ?? 'Pick up your mix where you left it.'}
         onSubmit={() => form.post('/login', { onFinish: () => form.reset('password') })}
         footer={
           <>
