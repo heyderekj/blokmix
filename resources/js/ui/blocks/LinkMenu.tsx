@@ -52,7 +52,7 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
   const apply = (link: LinkTarget | undefined) => st().editBlock(slot.id, block.id, { link })
 
   return (
-    <div className="glass-menu w-[320px] animate-pop rounded-2xl p-1.5">
+    <div className="glass-menu w-[352px] animate-pop rounded-2xl p-1.5">
       <div className="flex items-center gap-2 px-2 pb-1.5 pt-1 text-[12px]">
         <span className="text-zinc-500">Goes to</span>
         <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{describeLink(current, slots)}</span>
@@ -64,7 +64,7 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`flex h-7 flex-1 items-center justify-center gap-1 rounded-[9px] text-[11.5px] font-medium transition ${tab === t.id ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+            className={`flex h-7 flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-[9px] px-2 text-[11.5px] font-medium transition ${tab === t.id ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
           >
             <t.icon size={12} />
             {t.label}
