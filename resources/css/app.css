@@ -160,12 +160,19 @@
   --chip: hsl(0 0% 90%);
   --chip-hover: hsl(0 0% 85%);
 
-  /* Blokmix's key: a bright pink, with dark ink on it (like ReviseMy's yellow). */
-  --key: #ff6aa8;
-  --key-hover: #ff559b;
-  --key-ink: hsl(330 40% 9%);
-  --key-soft: #ffe1ee;
+  /* Blokmix's key, from the brand guide: hot pink with ink on it (never white), deep pink on hover,
+     blush for selected states. Pink is the drop, not the wall. */
+  --key: #ff69b4;
+  --key-hover: #ff1493;
+  --key-ink: #17121a;
+  --key-soft: #ffe3f1;
   --highlight: #ffd3e6;
+
+  /* The app icon's flat colors (blokmix-logo/svg/blokmix-icon-simple-*.svg). */
+  --bm-tile: #f1ebee;
+  --bm-slot: #c9bdc6;
+  --bm-slot-floor: #dcd3d9;
+  --bm-shadow: #d3c8d0;
 
   --attention: hsl(36 92% 50%);
   --attention-soft: hsl(40 96% 92%);
@@ -213,6 +220,10 @@
   --chip-hover: hsl(0 0% 25%);
   --key-soft: hsl(330 45% 16%);
   --highlight: hsl(330 40% 26%);
+  --bm-tile: #17121a;
+  --bm-slot: #060407;
+  --bm-slot-floor: #0e0a10;
+  --bm-shadow: #0b080d;
   --attention: hsl(38 92% 56%);
   --attention-soft: hsl(34 60% 15%);
   --attention-ink: hsl(40 96% 76%);
@@ -421,9 +432,11 @@ body {
   pointer-events: none !important;
 }
 
-/* The logo's loose block sliding home, while an agent works. */
-@keyframes blok-slide {
-  0%, 20% { transform: translate(0, 0); }
-  45%, 70% { transform: translate(-11px, 0); }
-  95%, 100% { transform: translate(0, 0); }
+/* The brand's one motion: the pink block lifts and drops, 240 ms with a small overshoot. */
+.bm-block {
+  transform-box: view-box;
+  transform-origin: 600px 458px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bm-block, .bm-lift { transition: transform 240ms cubic-bezier(0.3, 1.4, 0.5, 1), opacity 160ms ease-out; }
 }

@@ -23,6 +23,7 @@ import { canEdit, useAccount } from '@/lib/account'
 import { flushMix } from '@/lib/mixSync'
 import { SharePanel } from '../panels/SharePanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
+import { Wordmark } from '../brand/Wordmark'
 import { SaveState } from './SaveState'
 
 export const toggleSheet = (s: Sheet) => {
@@ -62,7 +63,9 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
           <button type="button" onClick={() => toggleSheet('menu')} className="ml-0.5 rounded-lg transition active:scale-[0.97]" title="Menu" aria-label="Menu">
             <LogoTile size={30} />
           </button>
-          <span className="pl-1.5 text-[15px] font-semibold tracking-tight text-zinc-900 max-lg:hidden">Blokmix</span>
+          <span className="pl-2 text-zinc-900 max-lg:hidden">
+            <Wordmark height={15} />
+          </span>
           <span className="px-0.5 text-zinc-300 max-lg:hidden">/</span>
           <span className="max-md:hidden">
             <MixName value={mixName} onChange={(v) => st().renameMix(v)} />

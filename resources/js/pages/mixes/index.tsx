@@ -5,6 +5,7 @@ import type { Site, Slot, VersionNode } from '@/core/types'
 import { STORAGE_KEY } from '@/state/store'
 import { api, type ServerMix } from '@/lib/mixSync'
 import { LogoTile } from '@/ui/shell/Logo'
+import { Wordmark } from '@/ui/brand/Wordmark'
 
 interface SavedMix {
   id: string
@@ -83,7 +84,9 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
       <Head title="Mixes" />
       <header className="flex items-center gap-2.5 px-6 py-5">
         <LogoTile size={30} />
-        <span className="flex-1 text-[15px] font-semibold tracking-tight text-zinc-900">Blokmix</span>
+        <span className="flex-1 text-zinc-900">
+          <Wordmark height={16} />
+        </span>
         {user && (
           <>
             <span className="truncate text-[13px] text-zinc-500 max-sm:hidden">{user.name}</span>

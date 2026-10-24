@@ -1,0 +1,13 @@
+{
+  "name": "Blokmix",
+  "short_name": "Blokmix",
+  "description": "Sample the web, block by block.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FBF8F9",
+  "theme_color": "#FBF8F9",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

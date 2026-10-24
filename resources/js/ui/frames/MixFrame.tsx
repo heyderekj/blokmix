@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Disc3, Eye, Plus } from 'lucide-react'
+import { Eye, Plus } from 'lucide-react'
+import { BrandIcon } from '../brand/BrandIcon'
 import { snapshotKey } from '@/core/versions'
 import { pageOf } from '@/core/site'
 import { useStore, currentSlots } from '@/state/store'
@@ -42,8 +43,9 @@ export function MixFrame() {
       data-frame={MIX_ID}
     >
       <FrameHeader width={W} selected={selected} tint={undefined}>
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-key-soft">
-          <Disc3 size={18} className={`text-key-ink ${dirty ? 'animate-[spin_3s_linear_infinite]' : ''}`} strokeWidth={2} />
+        {/* The block sits in its slot when the mix is saved, and lifts out while it has edits. */}
+        <span title={dirty ? 'Edited since the last version' : 'Saved as a version'}>
+          <BrandIcon size={32} dropped={!dirty} />
         </span>
         <HeaderTitle
           title={site.pages.length > 1 ? `Working mix · ${page.title}` : 'Working mix'}
