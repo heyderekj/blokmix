@@ -321,7 +321,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
           {!typing && (
             // Below the block, menus opening downwards, so the block stays in view while you preview looks on it.
             <div className="absolute z-30" style={{ left: selRect.x, top: selRect.y + selRect.h, width: 0, height: 0 }}>
-              <div className="absolute left-0 top-0 origin-top-left pt-2" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+              <div className="absolute left-0 top-0 w-max origin-top-left pt-2" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
                 <BlockBar slot={slot} block={block} rect={selRect} />
               </div>
             </div>

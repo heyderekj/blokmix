@@ -107,8 +107,8 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   }
 
   return (
-    <div ref={ref} className="flex flex-col items-start gap-1.5" data-chrome onPointerDown={(e) => e.stopPropagation()}>
-      <div className="glass-panel flex h-10 items-center gap-0.5 rounded-[14px] pl-2 pr-1 text-[12.5px]">
+    <div ref={ref} className="flex w-max flex-col items-start gap-1.5" data-chrome onPointerDown={(e) => e.stopPropagation()}>
+      <div className="glass-panel flex h-10 items-center whitespace-nowrap gap-0.5 rounded-[14px] pl-2 pr-1 text-[12.5px]">
         {/* where you are: climb by clicking a crumb */}
         <div className="flex min-w-0 items-center gap-0.5 pr-1">
           {crumbs.map((b, i) => (
