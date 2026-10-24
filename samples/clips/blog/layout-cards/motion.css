@@ -1,7 +1,7 @@
 .mx-blog-layout-cards {
-  & .title > *, & .all { animation: mx-blog-layout-cards-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
-  & .title > :nth-child(2) { animation-delay: 60ms; }
-  & .title > :nth-child(3) { animation-delay: 120ms; }
+  & .head > *, & .all { animation: mx-blog-layout-cards-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
   & .all { animation-delay: 160ms; }
   & .card { animation: mx-blog-layout-cards-rise calc(var(--mx-motion-duration) * 1.3) var(--mx-motion-ease) 200ms both; }
   & .card:nth-child(2) { animation-delay: 270ms; }

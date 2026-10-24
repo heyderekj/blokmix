@@ -1,0 +1,107 @@
+.mx-contact-layout-form {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+  & .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mx-space-2);
+    min-height: 44px;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius-pill);
+    font-weight: 600;
+    line-height: 1.1;
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .btn:active { scale: 0.97; }
+  & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & a:focus-visible, & button:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-6 { grid-column-end: span 6; }
+  & .col-12 { grid-column-end: span 12; }
+  & .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mx-space-3);
+    padding: var(--mx-space-6);
+    background: var(--mx-color-bg);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+
+  /* One form card, centred, with the email as a quiet alternative below. */
+  & .form { max-width: 640px; margin-inline: auto; gap: var(--mx-space-5); padding: var(--mx-space-7); box-shadow: var(--mx-shadow-card); }
+  & .grid.fields { gap: var(--mx-space-5); }
+
+  & .field { display: grid; gap: var(--mx-space-2); }
+  & .label { font-size: var(--mx-text-sm); font-weight: 600; }
+  & .input {
+    width: 100%;
+    min-height: 44px;
+    padding: var(--mx-space-3) var(--mx-space-4);
+    background: var(--mx-color-bg);
+    color: var(--mx-color-text);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius);
+    transition: border-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .input:focus-visible {
+    outline: none;
+    border-color: var(--mx-color-primary);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--mx-color-primary) 22%, transparent);
+  }
+  & .area { min-height: 132px; resize: vertical; line-height: 1.5; }
+
+  & .form .btn { width: 100%; margin-top: var(--mx-space-2); }
+  & .form .note { text-align: center; }
+  & .mail {
+    display: flex;
+    align-items: center;
+    gap: var(--mx-space-2);
+    width: fit-content;
+    min-height: 44px;
+    margin: var(--mx-space-5) auto 0;
+    color: var(--mx-color-muted);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    transition: color var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
+    & .input:hover { border-color: color-mix(in oklab, var(--mx-color-text) 30%, var(--mx-color-border)); }
+    & .mail:hover { color: var(--mx-color-text); }
+  }
+
+  @media (max-width: 1080px) {
+    & .grid { column-gap: var(--mx-space-5); }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
+    & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
+    & .lead { font-size: var(--mx-text-base); }
+    & .form { padding: var(--mx-space-6) var(--mx-space-5); }
+    & .grid.fields { gap: var(--mx-space-5); }
+  }
+}

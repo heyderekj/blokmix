@@ -1,0 +1,106 @@
+.mx-faq-layout-compact {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container.narrow { max-width: 760px; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mx-space-2);
+    min-height: 44px;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius-pill);
+    font-weight: 600;
+    line-height: 1.1;
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .btn:active { scale: 0.97; }
+  & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mx-space-3);
+    padding: var(--mx-space-6);
+    background: var(--mx-color-bg);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .card.soft { background: var(--mx-color-surface); border-color: transparent; }
+  & .avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: linear-gradient(135deg, color-mix(in oklab, var(--mx-color-accent) 70%, var(--mx-color-bg)), var(--mx-color-primary));
+    color: var(--mx-color-on-primary);
+    font-size: var(--mx-text-sm);
+    font-weight: 600;
+  }
+
+  /* Compact: one bordered list, quiet rows, a person at the bottom. */
+  & .container.narrow { max-width: 640px; }
+  & .head + * { margin-top: var(--mx-space-8); }
+  & .list {
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+    overflow: hidden;
+  }
+  & .qa + .qa { border-top: var(--mx-stroke) solid var(--mx-color-border); }
+  & .qa[open] { background: var(--mx-color-surface); }
+
+  & .question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mx-space-5);
+    min-height: 44px;
+    list-style: none;
+    cursor: pointer;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  & .question::-webkit-details-marker { display: none; }
+  & .question::marker { content: ""; }
+  & .icon { display: grid; place-items: center; flex: none; transition: transform var(--mx-motion-duration) var(--mx-motion-ease); }
+  & .answer { max-width: 62ch; color: var(--mx-color-muted); line-height: 1.6; }
+
+  & .question { padding: var(--mx-space-4) var(--mx-space-5); }
+  & .question:focus-visible { outline-offset: -3px; }
+  & .icon { color: var(--mx-color-muted); }
+  & .qa[open] .icon { transform: rotate(180deg); }
+  & .answer { padding: 0 var(--mx-space-5) var(--mx-space-5); font-size: var(--mx-text-sm); }
+  & .card.contact { flex-direction: row; align-items: center; gap: var(--mx-space-4); margin-top: var(--mx-space-6); padding: var(--mx-space-5); }
+  & .contact-text { flex: 1; font-size: var(--mx-text-sm); line-height: 1.5; }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .lead { font-size: var(--mx-text-base); }
+    & .card.contact { flex-wrap: wrap; }
+    & .contact-text { flex-basis: calc(100% - 64px); }
+    & .contact .btn { flex: 1 1 100%; }
+  }
+}

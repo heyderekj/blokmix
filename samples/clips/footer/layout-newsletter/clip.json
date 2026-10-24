@@ -1,0 +1,12 @@
+{
+  "title": "Newsletter signup",
+  "layoutPattern": "brand-tagline-email-signup-beside-columns",
+  "rhythm": "split",
+  "motionNotes": "No entrance. The email field’s track takes an accent ring while you type; links brighten on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

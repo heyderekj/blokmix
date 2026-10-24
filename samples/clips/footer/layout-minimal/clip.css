@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-9) var(--mx-space-8) var(--mx-space-6);
 
-  & .inner {
+  & .container {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;

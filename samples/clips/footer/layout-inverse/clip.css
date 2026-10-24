@@ -1,0 +1,104 @@
+.mx-footer-layout-inverse {
+  /* The whole footer flips to the primary colour, like a .band.inverse run edge to edge. */
+  background: var(--mx-color-primary);
+  color: var(--mx-color-on-primary);
+  padding: var(--mx-space-section) var(--mx-space-8) var(--mx-space-7);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
+  & .head .actions { margin-top: var(--mx-space-4); }
+
+  & .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mx-space-3); }
+  & .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mx-space-2);
+    min-height: 44px;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius-pill);
+    font-weight: 600;
+    line-height: 1.1;
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .btn:active { scale: 0.97; }
+  & .btn.primary { background: var(--mx-color-on-primary); color: var(--mx-color-primary); }
+  & a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-4 { grid-column-end: span 4; }
+  & .col-5 { grid-column-end: span 5; }
+  & .col-6 { grid-column-end: span 6; }
+  & .start-7 { grid-column-start: 7; }
+
+  /* Columns on the primary colour: titles at full strength, links softened. */
+  & .top { align-items: start; }
+  & .col { display: flex; flex-direction: column; gap: var(--mx-space-4); }
+  & .col-title { font-size: var(--mx-text-sm); font-weight: 600; }
+  & .col-links { display: flex; flex-direction: column; align-items: flex-start; gap: var(--mx-space-2); }
+  & .col-links a {
+    display: inline-block;
+    padding-block: var(--mx-space-1);
+    font-size: var(--mx-text-sm);
+    color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent);
+    cursor: pointer;
+    transition: color var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+
+  & .base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mx-space-4);
+    margin-top: var(--mx-space-9);
+    padding-top: var(--mx-space-6);
+    border-top: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-on-primary) 24%, transparent);
+  }
+  & .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mx-space-3);
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: var(--mx-text-lg);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  & .mark {
+    width: 20px;
+    aspect-ratio: 1;
+    flex: none;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 5) var(--mx-color-on-primary);
+  }
+  & .legal { font-size: var(--mx-text-sm); color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 88%, var(--mx-color-primary)); }
+    & .col-links a:hover { color: var(--mx-color-on-primary); }
+  }
+
+  @media (max-width: 1080px) {
+    & .grid { column-gap: var(--mx-space-5); }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5) var(--mx-space-6);
+    & .lead { font-size: var(--mx-text-base); }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
+    & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
+    & .grid > .m-col-6 { grid-column: auto / span 6; }
+    & .top { row-gap: var(--mx-space-8); }
+    & .base { flex-direction: column; align-items: flex-start; margin-top: var(--mx-space-8); }
+  }
+}

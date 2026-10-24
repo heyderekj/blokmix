@@ -1,0 +1,17 @@
+.mx-nav-layout-stacked {
+  & .top > * { animation: mx-nav-layout-stacked-drop var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .links li { animation: mx-nav-layout-stacked-fade calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; animation-delay: 120ms; }
+  & .links li:nth-child(2) { animation-delay: 160ms; }
+  & .links li:nth-child(3) { animation-delay: 200ms; }
+  & .links li:nth-child(4) { animation-delay: 240ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .top > * { animation-name: mx-nav-layout-stacked-fade; }
+  }
+}
+@keyframes mx-nav-layout-stacked-drop {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes mx-nav-layout-stacked-fade {
+  from { opacity: 0; }
+}

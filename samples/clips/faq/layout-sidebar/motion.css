@@ -1,8 +1,8 @@
 .mx-faq-layout-sidebar {
-  & .side-inner > * { animation: mx-faq-layout-sidebar-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
-  & .side-inner > :nth-child(2) { animation-delay: 60ms; }
-  & .side-inner > :nth-child(3) { animation-delay: 120ms; }
-  & .side-inner > :nth-child(4) { animation-delay: 180ms; }
+  & .head > * { animation: mx-faq-layout-sidebar-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .head > :nth-child(4) { animation-delay: 180ms; }
   & .item { animation: mx-faq-layout-sidebar-rise var(--mx-motion-duration) var(--mx-motion-ease) both; }
   & .item:nth-child(1) { animation-delay: 140ms; }
   & .item:nth-child(2) { animation-delay: 190ms; }

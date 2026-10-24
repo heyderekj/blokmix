@@ -4,7 +4,7 @@
   border-top: var(--mx-stroke) solid var(--mx-color-border);
   padding: var(--mx-space-9) var(--mx-space-8) var(--mx-space-6);
 
-  & .inner {
+  & .container {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -121,7 +121,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5) var(--mx-space-5);
-    & .inner { gap: var(--mx-space-8); }
+    & .container { gap: var(--mx-space-8); }
     & .top {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--mx-space-7) var(--mx-space-5);

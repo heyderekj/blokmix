@@ -1,0 +1,12 @@
+{
+  "title": "Centred rows",
+  "layoutPattern": "centred-brand-link-rows-legal",
+  "rhythm": "centered",
+  "motionNotes": "No entrance. Links take the accent on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

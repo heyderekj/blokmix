@@ -1,0 +1,12 @@
+{
+  "title": "Project packages",
+  "layoutPattern": "three-packages-from-price-inverse-middle",
+  "rhythm": "grid",
+  "motionNotes": "The head rises, then the three packages lift in a short stagger with the middle one last; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

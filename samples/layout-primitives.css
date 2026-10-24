@@ -54,7 +54,7 @@
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible, & summary:focus-visible, & label:has(:focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
 
   /* Stack: a vertical run of siblings that share one spacing step. */
   & .stack { display: flex; flex-direction: column; gap: var(--mx-space-6); }
@@ -69,7 +69,12 @@
   & .col-7 { grid-column-end: span 7; }
   & .col-8 { grid-column-end: span 8; }
   & .col-12 { grid-column-end: span 12; }
+  & .start-2 { grid-column-start: 2; }
   & .start-3 { grid-column-start: 3; }
+  & .start-5 { grid-column-start: 5; }
+  & .start-7 { grid-column-start: 7; }
+  /* Any other span or start follows the same pattern. A .grid nested in a column needs room for its
+     11 gaps (352px at 32px): nest one only in col-6 or wider, or give it a narrower column-gap. */
   /* Split: a grid of two columns (copy and media), centred against each other. .reverse puts media first on desktop. */
   & .split { align-items: center; }
   & .split.top { align-items: start; }

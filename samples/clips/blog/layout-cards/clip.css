@@ -4,20 +4,20 @@
   font-family: var(--mx-font-body);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .wrap {
+  & .container {
     max-width: 1120px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: var(--mx-space-8);
   }
-  & .head {
+  & .top {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: var(--mx-space-6);
   }
-  & .title { display: flex; flex-direction: column; gap: var(--mx-space-4); max-width: 640px; }
+  & .head { display: flex; flex-direction: column; gap: var(--mx-space-4); max-width: 640px; }
   & .eyebrow {
     font-size: var(--mx-text-sm);
     font-weight: 600;
@@ -32,7 +32,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
-  & .intro {
+  & .lead {
     max-width: 46ch;
     font-size: var(--mx-text-lg);
     line-height: 1.55;
@@ -107,7 +107,7 @@
     padding: var(--mx-space-5) var(--mx-space-5) var(--mx-space-6);
   }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
-  & .post {
+  & .title {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
     font-size: var(--mx-text-xl);
@@ -119,7 +119,7 @@
   & .link::after { content: ""; position: absolute; inset: 0; }
   & .link:focus-visible { outline: none; }
   & .card:has(.link:focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 2px; }
-  & .excerpt {
+  & .body {
     font-size: var(--mx-text-base);
     line-height: 1.55;
     color: var(--mx-color-muted);
@@ -128,9 +128,9 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
-    & .wrap { gap: var(--mx-space-6); }
-    & .head { flex-direction: column; align-items: flex-start; gap: var(--mx-space-5); }
+    & .container { gap: var(--mx-space-6); }
+    & .top { flex-direction: column; align-items: flex-start; gap: var(--mx-space-5); }
     & .grid { grid-template-columns: 1fr; gap: var(--mx-space-4); }
-    & .post { font-size: var(--mx-text-lg); }
+    & .title { font-size: var(--mx-text-lg); }
   }
 }
