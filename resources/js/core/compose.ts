@@ -94,6 +94,8 @@ export interface ComposeInput {
   page?: Pick<GuideState, 'swatches' | 'components'>
   /** Uploaded images by asset id (data URLs), from the browser's asset store. */
   uploads?: (id: string) => UploadData | undefined
+  /** Keep each block's data-mx-b in the markup, so the page can be measured block by block (lib/measure.ts). */
+  keepBlockIds?: boolean
 }
 
 const pascal = (s: string) =>
@@ -132,7 +134,8 @@ export function composePage(input: ComposeInput): ComposedPage {
 
     const { fields, retained } = resolveFields(clip.type, clip.fields, input.content, slot.keep.content, slot.words)
 
-    // Blocks with a changed look get a class (unique to this section) that the block CSS targets.
+    // Blocks with a changed look get a class (unique to this section) that the block CSS targets,
+    // including blocks changed only on phones (their rules sit in the block CSS's @media).
     const edits = slot.edits?.[clip.id]
     const changed = clip.blocks
       .map((b) => ({ b, edit: effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]) }))
@@ -143,6 +146,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const staggered = preset?.stagger ? clip.blocks.filter((b) => !b.parent || clip.blocks.find((x) => x.id === b.parent)?.kind === 'list').map((b) => b.id) : []
     const changedIds = new Set([...changed.map((x) => x.b.id), ...staggered])
     let order = 0
+    // Section spacing, on desktop or only on phones (spacing.mobile), needs the root class too.
     const spaced = !!sectionSpacingCss(slot.spacing, 'x') || !!preset
     const addClass = (el: HEl, cls: string): HEl => ({
       ...el,
@@ -225,9 +229,11 @@ export function composePage(input: ComposeInput): ComposedPage {
     const links = sectionLinks(clip.blocks, edits, fields, input.slots, slot.id, anchors)
     const linked = applyLinks(marked, links)
     // Blocks you hid (a banner you don't want) leave the markup and the content file altogether.
+    // Hidden only on phones stays: it's still on the page at desktop widths, and CSS hides it below.
     const hidden = new Set(changed.filter((x) => x.edit.hidden).map((x) => x.b.id))
     const shown = hidden.size ? dropBlocks(linked, hidden) : linked
-    const tree = applyFields(shown, fields)
+    const filled = applyFields(shown, fields, !input.keepBlockIds)
+    const tree = input.keepBlockIds ? mapTree(filled, (el) => ({ ...el, attrs: el.attrs.filter(([k]) => k === 'data-mx-b' || !k.startsWith('data-mx-')) })) : filled
     const words = outline(shown)
     const blocksCss = blockCss({
       blocks: clip.blocks,

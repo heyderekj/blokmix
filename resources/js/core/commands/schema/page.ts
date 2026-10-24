@@ -17,8 +17,12 @@ export const PAGE_COMMANDS = {
     write: false,
   },
   review: {
-    description: 'Run the design checklist (one main action, contrast, tap targets, clear labels, heading length, consistency) over the page or one section.',
-    input: z.object({ section: section.optional() }),
+    description:
+      'Run the design checklist (one main action, contrast, tap targets, clear labels, heading and line length, consistency) over the page or one section. It measures the page at desktop (1280px) and mobile (390px) widths; each item says which (at).',
+    input: z.object({
+      section: section.optional(),
+      widths: z.array(z.enum(['desktop', 'mobile'])).min(1).optional().describe('Which widths to check; default both'),
+    }),
     write: false,
   },
   add_section: {

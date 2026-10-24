@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Link2, ArrowLeft, ArrowRight, Copy, ListRestart, Minus, ChevronDown, ChevronRight, EyeOff, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile } from 'lucide-react'
-import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, Slot } from '@/core/types'
+import { Link2, ArrowLeft, ArrowRight, Copy, ListRestart, Minus, ChevronDown, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile } from 'lucide-react'
+import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
@@ -13,7 +13,9 @@ import { useBlockPreview } from './preview'
 import type { FrameRect } from '@/frame/bridge'
 import { keepInView } from '../canvas/inView'
 import { draftForBlock, useMarkDraft } from '../notes/Marks'
-import { SPACE_STEPS, Steps } from './Spacing'
+import { DeviceSwitch, MobileHint, RowLabel, SPACE_STEPS, Steps, useDevice } from './Spacing'
+import { useLayout } from '@/state/layout'
+import { MEASURE_WIDTHS, useMeasuredPage } from '@/lib/measure'
 import { MotionMenu } from './MotionMenu'
 import { LookStyles, LookThumb } from './LookSamples'
 import { ImageMenu } from './ImageMenu'
@@ -237,7 +239,19 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
           </div>
         </Popover>
       )}
-      {menu === 'style' && <StyleMenu style={own?.style} inherited={def?.style} composite={COMPOSITE.has(block.kind)} onHover={(s) => hover(s ? { style: s } : null)} onPick={(s) => apply({ style: s })} />}
+      {menu === 'style' && (
+        <StyleMenu
+          style={own?.style}
+          inherited={def?.style}
+          phone={own?.mobile?.style}
+          composite={COMPOSITE.has(block.kind)}
+          onHover={(s) => hover(s ? { style: s } : null)}
+          onPick={(s) => apply({ style: s })}
+          // Phone previews carry the whole phone edit, since a preview replaces it.
+          onHoverPhone={(s) => hover(s ? { mobile: { ...own?.mobile, style: { ...own?.mobile?.style, ...s } } } : null)}
+          onPickPhone={(s) => apply({ mobile: { style: s } })}
+        />
+      )}
       {menu === 'icon' && (
         <IconMenu
           current={own?.icon}
@@ -298,6 +312,30 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
               Back to the layout’s items
             </MenuItem>
           )}
+          {own?.mobile?.hidden ? (
+            <MenuItem
+              icon={Eye}
+              onClick={() => {
+                st().editBlock(slot.id, block.id, { mobile: { hidden: false } })
+                setMenu(null)
+              }}
+            >
+              Show on mobile
+            </MenuItem>
+          ) : (
+            <MenuItem
+              icon={Smartphone}
+              onClick={() => {
+                st().editBlock(slot.id, block.id, { mobile: { hidden: true } })
+                // On a phone-width canvas it's gone from view, so let go of it.
+                if (st().ui.viewport === 'mobile') st().selectBlock(null)
+                else setMenu(null)
+                st().showFlash('Hidden on mobile; still there on desktop', { undo: true })
+              }}
+            >
+              Hide on mobile
+            </MenuItem>
+          )}
           <MenuItem
             icon={EyeOff}
             onClick={() => {
@@ -307,7 +345,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             }}
             kbd="⌫"
           >
-            Hide
+            Hide everywhere
           </MenuItem>
         </Popover>
       )}
@@ -473,25 +511,33 @@ function StyleDots({ style }: { style?: BlockStyle }) {
 
 const SPACE_PROPS: { k: 'padding' | 'above' | 'below' | 'gap'; label: string }[] = [
   { k: 'padding', label: 'Padding' },
-  { k: 'above', label: 'Above' },
-  { k: 'below', label: 'Below' },
+  { k: 'above', label: 'Space above' },
+  { k: 'below', label: 'Space below' },
   { k: 'gap', label: 'Gap' },
 ]
 
 function StyleMenu({
   style,
   inherited,
+  phone,
   composite,
   onHover,
   onPick,
+  onHoverPhone,
+  onPickPhone,
 }: {
   style?: BlockStyle
   inherited?: BlockStyle
+  /** Spacing that differs on phones. */
+  phone?: MobileSpacing
   /** Lists, cards and items also get a gap between their children. */
   composite: boolean
   onHover: (s: BlockStyle | null) => void
   onPick: (s: BlockStyle) => void
+  onHoverPhone: (s: MobileSpacing | null) => void
+  onPickPhone: (s: MobileSpacing) => void
 }) {
+  const [device, setDevice] = useDevice()
   const paint = usePaint()
   const swatches = useStore((s) => s.guide.swatches) ?? []
   const shown = { ...inherited, ...style }
@@ -552,23 +598,40 @@ function StyleMenu({
         />
       </div>
       <div className="px-2 py-1.5">
-        <div className="mb-1.5 flex items-center justify-between text-[11px] font-semibold text-zinc-400">
-          Spacing
-          {(style?.padding !== undefined || style?.above !== undefined || style?.below !== undefined || style?.gap !== undefined) && (
-            <button type="button" className="font-medium text-zinc-500 hover:text-zinc-900" onClick={() => onPick({ padding: undefined, above: undefined, below: undefined, gap: undefined })}>
-              Reset
-            </button>
-          )}
+        <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-semibold text-zinc-400">
+          <span className="flex items-center gap-2">
+            Spacing
+            {device === 'desktop' && SPACE_PROPS.some((p) => style?.[p.k] !== undefined) && (
+              <button type="button" className="font-medium text-zinc-500 hover:text-zinc-900" onClick={() => onPick({ padding: undefined, above: undefined, below: undefined, gap: undefined })}>
+                Reset
+              </button>
+            )}
+          </span>
+          <DeviceSwitch value={device} onChange={setDevice} />
         </div>
         <div className="space-y-1.5">
-          {SPACE_PROPS.filter((p) => p.k !== 'gap' || composite).map((p) => (
-            <div key={p.k} className="flex items-center gap-2">
-              <span className="w-14 text-[11.5px] font-medium text-zinc-500">{p.label}</span>
-              <div className="flex-1">
-                <Steps options={SPACE_STEPS} value={shown[p.k]} onHover={(v) => onHover(v === null ? null : { [p.k]: v })} onPick={(v) => onPick({ [p.k]: v })} />
+          {SPACE_PROPS.filter((p) => p.k !== 'gap' || composite).map((p) => {
+            const own = phone?.[p.k]
+            return device === 'desktop' ? (
+              <div key={p.k} className="flex items-center gap-2">
+                <RowLabel label={p.label} phone={own !== undefined} />
+                <div className="flex-1">
+                  <Steps options={SPACE_STEPS} value={shown[p.k]} onHover={(v) => onHover(v === null ? null : { [p.k]: v })} onPick={(v) => onPick({ [p.k]: v })} />
+                </div>
               </div>
-            </div>
-          ))}
+            ) : (
+              // Phones: the desktop value shows faintly until you choose one for phones.
+              <div key={p.k} className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <RowLabel label={p.label} phone={own !== undefined} />
+                  <div className="flex-1">
+                    <Steps options={SPACE_STEPS} value={own ?? shown[p.k]} ghost={own === undefined} onHover={(v) => onHoverPhone(v === null ? null : { [p.k]: v })} onPick={(v) => onPickPhone({ [p.k]: v })} />
+                  </div>
+                </div>
+                <MobileHint overridden={own !== undefined} onReset={() => onPickPhone({ [p.k]: undefined })} />
+              </div>
+            )
+          })}
         </div>
       </div>
       <div className="px-2 pb-2 pt-1.5">
@@ -645,8 +708,16 @@ function NewSwatch({ onDone }: { onDone: (name: string | null) => void }) {
   )
 }
 
-/** Checklist suggestions for the selected block, in context of its section and the page. */
+/**
+ * Checklist suggestions for the selected block, in context of its section and
+ * the page, at desktop (1280) and phone (390) widths. The page is measured at
+ * both in hidden frames; until that's in, the canvas's own box stands in for
+ * the width it shows.
+ */
 function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } | null): Advice[] {
+  useMeasuredPage(true)
+  const measured = useLayout((s) => s.blockRects)
+  const viewport = useStore((s) => s.ui.viewport)
   const guide = useResolvedGuide()
   const swatches = useStore((s) => s.guide.swatches)
   const components = useStore((s) => s.guide.components)
@@ -666,17 +737,18 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
         pageStyles[k] = [...new Set([...(pageStyles[k] ?? []), key])]
       }
     }
-    return advise({
-      blocks: clip.blocks,
-      sectionType: clip.type,
-      edits: slot.edits?.[slot.clipId],
-      components,
-      tokens: guide.tokens,
-      swatches,
-      fields,
-      rects: rect ? { [block.id]: rect } : undefined,
-      pageStyles,
-      links: sectionLinks(clip.blocks, slot.edits?.[slot.clipId], fields, slots, slot.id, sectionAnchors(slots)),
-    }).filter((a) => a.blockId === block.id)
-  }, [slot, block.id, rect, guide.tokens, swatches, components, content, slots])
+    const links = sectionLinks(clip.blocks, slot.edits?.[slot.clipId], fields, slots, slot.id, sectionAnchors(slots))
+    const seen = new Set<string>()
+    return [MEASURE_WIDTHS.desktop, MEASURE_WIDTHS.mobile].flatMap((width) => {
+      const shownHere = (viewport === 'mobile') === (width === MEASURE_WIDTHS.mobile)
+      const rects = measured[width]?.rects[slot.id] ?? (shownHere && rect ? { [block.id]: rect } : undefined)
+      return advise({ blocks: clip.blocks, sectionType: clip.type, edits: slot.edits?.[slot.clipId], components, tokens: guide.tokens, swatches, fields, rects, width, pageStyles, links }).filter((a) => {
+        // Advice that reads the same at both widths shows once.
+        const key = `${a.rule}|${a.message}`
+        if (a.blockId !== block.id || seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+    })
+  }, [slot, block.id, rect, guide.tokens, swatches, components, content, slots, measured, viewport])
 }

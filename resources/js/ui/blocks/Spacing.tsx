@@ -1,5 +1,66 @@
+import { useState } from 'react'
+import { Smartphone } from 'lucide-react'
 import type { SectionSpace, Slot, SpaceStep } from '@/core/types'
 import { useStore } from '@/state/store'
+
+export type Device = 'desktop' | 'mobile'
+
+/** Which width a spacing change is for; starts on Mobile while the canvas shows phones. */
+export function useDevice(): [Device, (d: Device) => void] {
+  return useState<Device>(() => (useStore.getState().ui.viewport === 'mobile' ? 'mobile' : 'desktop'))
+}
+
+/** Desktop | Mobile, for spacing groups. Mobile changes apply at 760px and below. */
+export function DeviceSwitch({ value, onChange }: { value: Device; onChange: (d: Device) => void }) {
+  return (
+    <div className="flex rounded-full bg-chip p-0.5" role="radiogroup" aria-label="Spacing for">
+      {(['desktop', 'mobile'] as const).map((d) => (
+        <button
+          key={d}
+          type="button"
+          role="radio"
+          aria-checked={value === d}
+          title={d === 'mobile' ? 'Phones: 760px wide and below' : 'Every width, unless phones differ'}
+          onClick={(e) => {
+            e.stopPropagation()
+            onChange(d)
+          }}
+          className={`h-5 cursor-pointer rounded-full px-2 text-[11px] font-semibold transition active:scale-[0.97] ${value === d ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+        >
+          {d === 'desktop' ? 'Desktop' : 'Mobile'}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** A row's label, with a phone dot when phones have their own value. */
+export function RowLabel({ label, phone }: { label: string; phone?: boolean }) {
+  return (
+    <span className="flex w-20 shrink-0 items-center gap-1 text-[11.5px] font-medium text-zinc-500">
+      {label}
+      {phone && <Smartphone size={10} className="text-key" aria-label="Different on mobile" />}
+    </span>
+  )
+}
+
+/** "Same as desktop", or a way back to it. */
+export function MobileHint({ overridden, onReset }: { overridden: boolean; onReset: () => void }) {
+  return overridden ? (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        onReset()
+      }}
+      className="cursor-pointer pl-[88px] text-left text-[11px] font-medium text-zinc-500 hover:text-zinc-900"
+    >
+      Reset to desktop
+    </button>
+  ) : (
+    <span className="pl-[88px] text-[11px] text-zinc-400">Same as desktop</span>
+  )
+}
 
 /** The spacing scale as people see it; values are steps of --mx-space-*, never pixels. */
 export const SPACE_STEPS: { v: SpaceStep; label: string }[] = [
@@ -23,11 +84,14 @@ export function Steps<T extends string | number>({
   value,
   onHover,
   onPick,
+  ghost,
 }: {
   options: { v: T; label: string }[]
   value?: T
   onHover?: (v: T | null) => void
   onPick: (v: T) => void
+  /** The value is inherited (from desktop): shown, but faintly. */
+  ghost?: boolean
 }) {
   return (
     <div className="flex rounded-full bg-chip p-0.5" onMouseLeave={() => onHover?.(null)}>
@@ -40,7 +104,7 @@ export function Steps<T extends string | number>({
             e.stopPropagation()
             onPick(o.v)
           }}
-          className={`h-6 flex-1 rounded-full px-1.5 text-[11.5px] font-semibold transition ${value === o.v ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+          className={`h-6 flex-1 rounded-full px-1.5 text-[11.5px] font-semibold transition ${value === o.v ? (ghost ? 'bg-white/50 text-zinc-400' : 'bg-white text-zinc-900 shadow-sm') : 'text-zinc-500 hover:text-zinc-800'}`}
         >
           {o.label}
         </button>
@@ -49,19 +113,30 @@ export function Steps<T extends string | number>({
   )
 }
 
-/** Top and bottom spacing for a whole section, relative to the style guide's section padding. */
-export function SectionSpacingRows({ slot }: { slot: Slot }) {
+/** Top and bottom spacing for a whole section, relative to the style guide's section padding; phones can differ. */
+export function SectionSpacingRows({ slot, device }: { slot: Slot; device: Device }) {
   const st = useStore.getState
   return (
     <div className="space-y-2">
-      {(['top', 'bottom'] as const).map((side) => (
-        <div key={side} className="flex items-center gap-2">
-          <span className="w-14 text-[12px] font-medium text-zinc-500">{side === 'top' ? 'Top' : 'Bottom'}</span>
-          <div className="flex-1">
-            <Steps options={SECTION_SPACES} value={slot.spacing?.[side] ?? 'default'} onPick={(v) => st().setSectionSpacing(slot.id, { [side]: v })} />
+      {(['top', 'bottom'] as const).map((side) => {
+        const desk = slot.spacing?.[side] ?? 'default'
+        const phone = slot.spacing?.mobile?.[side]
+        return (
+          <div key={side} className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <RowLabel label={side === 'top' ? 'Top' : 'Bottom'} phone={!!phone} />
+              <div className="flex-1">
+                {device === 'desktop' ? (
+                  <Steps options={SECTION_SPACES} value={desk} onPick={(v) => st().setSectionSpacing(slot.id, { [side]: v })} />
+                ) : (
+                  <Steps options={SECTION_SPACES} value={phone ?? desk} ghost={!phone} onPick={(v) => st().setSectionSpacing(slot.id, { mobile: { [side]: v } })} />
+                )}
+              </div>
+            </div>
+            {device === 'mobile' && <MobileHint overridden={!!phone} onReset={() => st().setSectionSpacing(slot.id, { mobile: { [side]: undefined } })} />}
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

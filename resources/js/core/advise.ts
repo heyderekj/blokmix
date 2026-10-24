@@ -4,7 +4,7 @@
 
 import type { BlockEdit, BlockInfo, BlockKind, ColorRef, ComponentDefault, Swatch, TokenSet } from './types'
 import { contrastRatio, hexToRgb } from './tokens'
-import { effectiveEdit } from './blocks/style'
+import { effectiveEdit, MOBILE_MAX } from './blocks/style'
 
 /**
  * Where a suggestion comes from. Like ReviseMy's craft lenses, these are our own
@@ -51,8 +51,14 @@ export interface AdviseInput {
   swatches?: Swatch[]
   /** The words each field shows. */
   fields: Record<string, string>
-  /** Measured size of blocks, when known (the selected one). */
+  /** Measured size of blocks, when known. */
   rects?: Record<string, { w: number; h: number }>
+  /**
+   * The page width the rects were measured at (1280 desktop, 390 mobile). At
+   * phone widths (≤760) blocks take their phone spacing and hiding, spacing
+   * fixes go to phones only, and measured messages say "At 390px…".
+   */
+  width?: number
   /** Which kind of section this is (nav and footer motion get special care). */
   sectionType?: string
   /** The section's root font size isn't known, so line length uses the page's base text size (px). */
@@ -93,7 +99,16 @@ export function bestInk(fillHex: string, tokens: TokenSet): ColorRef {
 export function advise(i: AdviseInput): Advice[] {
   const out: Advice[] = []
   const byId = new Map(i.blocks.map((b) => [b.id, b]))
-  const eff = (b: BlockInfo) => effectiveEdit(i.edits?.[b.id], i.components?.[b.kind])
+  const phone = i.width !== undefined && i.width <= MOBILE_MAX
+  const eff = (b: BlockInfo) => {
+    const e = effectiveEdit(i.edits?.[b.id], i.components?.[b.kind])
+    if (!phone || !e?.mobile) return e
+    return { ...e, hidden: e.hidden || e.mobile.hidden, style: e.mobile.style ? { ...e.style, ...e.mobile.style } : e.style }
+  }
+  // Spacing fixes at a phone width change phones only.
+  const spaceFix = (style: Partial<Record<'padding' | 'above' | 'below' | 'gap', number>>): Partial<BlockEdit> => (phone ? { mobile: { style } } : { style }) as Partial<BlockEdit>
+  // Measured findings name the width they were measured at.
+  const at = (m: string) => (i.width ? `At ${i.width}px, ${m[0].toLowerCase()}${m.slice(1)}` : m)
   const hex = (r: ColorRef) => refToHex(r, i.tokens, i.swatches)
 
   for (const b of i.blocks) {
@@ -161,7 +176,7 @@ export function advise(i: AdviseInput): Advice[] {
         rule: 'tap-target',
         level: 'suggestion',
         lens: 'Laws of UX',
-        message: `Small to tap (${Math.round(r.h)}px tall). 44px is comfortable on a phone.`,
+        message: at(`Small to tap (${Math.round(r.h)}px tall). 44px is comfortable on a phone.`),
         fix: b.kind === 'button' ? { label: 'Use a solid button', edit: { variant: 'solid' } } : undefined,
       })
     }
@@ -239,7 +254,7 @@ export function advise(i: AdviseInput): Advice[] {
         level: 'suggestion',
         lens: 'IIDS',
         message: 'Content is pressed against the edge of its container. Give it at least medium padding so it can breathe.',
-        fix: { label: 'Medium padding', edit: { style: { padding: 4 } } },
+        fix: { label: 'Medium padding', edit: spaceFix({ padding: 4 }) },
       })
     }
     // Long lines are tiring: aim for roughly 45–75 characters.
@@ -252,8 +267,8 @@ export function advise(i: AdviseInput): Advice[] {
           rule: 'line-length',
           level: 'suggestion',
           lens: 'IIDS',
-          message: `Lines here run about ${Math.round(chars)} characters. 45 to 75 is easier to read; add side padding or narrow the column.`,
-          fix: { label: 'Add side padding', edit: { style: { padding: 6 } } },
+          message: at(`Lines here run about ${Math.round(chars)} characters. 45 to 75 is easier to read; add side padding or narrow the column.`),
+          fix: { label: 'Add side padding', edit: spaceFix({ padding: 6 }) },
         })
       }
     }
@@ -283,7 +298,7 @@ export function advise(i: AdviseInput): Advice[] {
           level: 'suggestion',
           lens: 'IIDS',
           message: `Its ${prop === 'above' ? 'space above' : prop === 'below' ? 'space below' : prop} differs from the ${sibs.length - 1} like it. Even spacing makes a group read as one.`,
-          fix: { label: 'Match the others', edit: { style: { [prop]: common } } },
+          fix: { label: 'Match the others', edit: spaceFix({ [prop]: common }) },
         })
       })
     }

@@ -63,8 +63,26 @@ export function effectiveEdit(edit: BlockEdit | undefined, def: ComponentDefault
     icon: edit?.icon,
     link: edit?.link,
     hidden: edit?.hidden,
+    mobile: edit?.mobile,
   }
 }
+
+/** The clips' phone breakpoint: block and section changes "on mobile" apply at this width and below. */
+export const MOBILE_MAX = 760
+
+const sp = (n: number) => `var(--mx-space-${n})`
+
+function spacingDecl(s: Partial<Record<'padding' | 'above' | 'below' | 'gap', number>> | undefined): string[] {
+  const decl: string[] = []
+  if (s?.padding !== undefined) decl.push(`padding: ${sp(s.padding)};`)
+  if (s?.above !== undefined) decl.push(`margin-block-start: ${sp(s.above)};`)
+  if (s?.below !== undefined) decl.push(`margin-block-end: ${sp(s.below)};`)
+  if (s?.gap !== undefined) decl.push(`gap: ${sp(s.gap)};`)
+  return decl
+}
+
+/** Rules for phone widths, inside the same layer so they win over desktop picks by coming later. */
+const phoneRules = (rules: string[]) => (rules.length ? `\n@media (max-width: ${MOBILE_MAX}px) {\n${rules.map((r) => `  ${r.replace(/\n/g, '\n  ')}`).join('\n')}\n}` : '')
 
 export interface BlockCssInput {
   blocks: BlockInfo[]
@@ -81,6 +99,7 @@ export interface BlockCssInput {
  */
 export function blockCss(i: BlockCssInput): string {
   const rules: string[] = []
+  const phone: string[] = []
   for (const b of i.blocks) {
     const e = effectiveEdit(i.edits?.[b.id], i.components?.[b.kind])
     if (!e) continue
@@ -100,17 +119,17 @@ export function blockCss(i: BlockCssInput): string {
     }
     if (s?.radius) decl.push(`--b-radius: ${RADIUS[s.radius]}; border-radius: ${RADIUS[s.radius]};`)
     if (s?.shadow) decl.push(`--b-shadow: ${SHADOW[s.shadow]}; box-shadow: ${SHADOW[s.shadow]};`)
-    const sp = (n: number) => `var(--mx-space-${n})`
-    if (s?.padding !== undefined) decl.push(`padding: ${sp(s.padding)};`)
-    if (s?.above !== undefined) decl.push(`margin-block-start: ${sp(s.above)};`)
-    if (s?.below !== undefined) decl.push(`margin-block-end: ${sp(s.below)};`)
-    if (s?.gap !== undefined) decl.push(`gap: ${sp(s.gap)};`)
+    decl.push(...spacingDecl(s))
     const v = findVariant(b.kind, e.variant)
     // Variant first so the explicit picks above (declared after) win on the same element.
     const body = [v ? v.css : '', decl.join(' ')].filter(Boolean).join('\n  ')
     if (body) rules.push(`${i.select(b)} {\n  ${body}\n}`)
+    // Hidden everywhere already covers phones.
+    const m = e.hidden ? undefined : e.mobile
+    const mdecl = [...(m?.hidden ? ['display: none;'] : []), ...spacingDecl(m?.style)]
+    if (mdecl.length) phone.push(`${i.select(b)} { ${mdecl.join(' ')} }`)
   }
-  return rules.length ? `@layer blocks {\n${rules.join('\n')}\n}` : ''
+  return rules.length || phone.length ? `@layer blocks {\n${rules.join('\n')}${phoneRules(phone)}\n}` : ''
 }
 
 export function editsFor(edits: SlotEdits | undefined, clipId: string) {
@@ -125,8 +144,18 @@ const SECTION_SPACE: Record<Exclude<SectionSpace, 'default'>, string> = {
 
 /** A section's own top and bottom padding, in @layer blocks so it beats the clip. */
 export function sectionSpacingCss(spacing: SectionSpacing | undefined, selector: string): string {
+  const desk = sectionDecl(spacing)
+  // On phones 'default' is a real choice: it undoes a desktop change (back to the clip's own padding).
+  const phone = sectionDecl(spacing?.mobile, true)
+  const rules = desk.length ? [`${selector} { ${desk.join(' ')} }`] : []
+  return desk.length || phone.length ? `@layer blocks {\n${rules.join('\n')}${phoneRules(phone.length ? [`${selector} { ${phone.join(' ')} }`] : [])}\n}` : ''
+}
+
+const SPACE_VALUE = (v: SectionSpace) => (v === 'default' ? 'revert-layer' : SECTION_SPACE[v])
+
+function sectionDecl(s: { top?: SectionSpace; bottom?: SectionSpace } | undefined, keepDefault = false): string[] {
   const decl: string[] = []
-  if (spacing?.top && spacing.top !== 'default') decl.push(`padding-top: ${SECTION_SPACE[spacing.top]};`)
-  if (spacing?.bottom && spacing.bottom !== 'default') decl.push(`padding-bottom: ${SECTION_SPACE[spacing.bottom]};`)
-  return decl.length ? `@layer blocks {\n${selector} { ${decl.join(' ')} }\n}` : ''
+  if (s?.top && (keepDefault || s.top !== 'default')) decl.push(`padding-top: ${SPACE_VALUE(s.top)};`)
+  if (s?.bottom && (keepDefault || s.bottom !== 'default')) decl.push(`padding-bottom: ${SPACE_VALUE(s.bottom)};`)
+  return decl
 }

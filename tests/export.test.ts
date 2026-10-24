@@ -11,6 +11,8 @@ import { nextFiles } from '@/core/export/next'
 import { packetFiles } from '@/core/export/packet'
 import { parseHtml } from '@/core/html/parse'
 import { serialize } from '@/core/html/serialize'
+import { describeEdit } from '@/core/export/describe'
+import { referenceHtml } from '@/core/export/reference-html'
 
 const clips = Object.values(library.clips)
 
@@ -144,5 +146,58 @@ describe('spacing', () => {
     expect(s.css).toContain('margin-block-start: var(--mx-space-4);')
     expect(s.css).toContain(`.${clip.rootClass}.mx-s1 { padding-top: calc(var(--mx-space-section) * 0.5); padding-bottom: 0px; }`)
     expect(JSON.stringify(s.tree)).toContain(`${clip.rootClass} mx-s1`)
+  })
+})
+
+describe('mobile editing', () => {
+  const clip = Object.values(library.clips).find((c) => c.sourceId === 'layout' && c.blocks.some((b) => b.kind === 'badge' && b.field) && c.blocks.some((b) => b.kind === 'button'))!
+  const badge = clip.blocks.find((b) => b.kind === 'badge' && b.field)!
+  const btn = clip.blocks.find((b) => b.kind === 'button')!
+  const page = composePage({
+    slots: [
+      {
+        id: 's',
+        type: clip.type,
+        clipId: clip.id,
+        locked: false,
+        keep: { ...DEFAULT_KEEP },
+        edits: { [clip.id]: { [badge.id]: { mobile: { hidden: true } }, [btn.id]: { style: { padding: 4 }, mobile: { style: { padding: 2 } } } } },
+        spacing: { mobile: { top: 'tight' } },
+      },
+    ],
+    guide: resolveGuide(emptyGuide()),
+    content: DEFAULT_CONTENT,
+    library,
+  })
+  const s = page.sections[0]
+
+  it('puts phone rules in a media query inside @layer blocks, after the desktop ones', () => {
+    const layer = s.css.slice(s.css.indexOf('/* Blocks you restyled */'))
+    expect(layer).toMatch(/@layer blocks \{[^]*@media \(max-width: 760px\) \{[^]*display: none;/)
+    expect(layer.indexOf('padding: var(--mx-space-4);')).toBeLessThan(layer.indexOf('padding: var(--mx-space-2);'))
+    expect(layer.indexOf('@media (max-width: 760px)')).toBeGreaterThan(layer.indexOf('@layer blocks'))
+    // Section spacing on phones only still gets its root class.
+    expect(s.css).toContain(`.${clip.rootClass}.mx-s1 { padding-top: calc(var(--mx-space-section) * 0.5); }`)
+    expect(JSON.stringify(s.tree)).toContain(`${clip.rootClass} mx-s1`)
+  })
+
+  it('keeps a block hidden on phones in the markup and its content file', () => {
+    expect(JSON.stringify(s.tree)).toContain(`mx-s1-${badge.id}`)
+    expect(s.content[badge.field!]).toBeTruthy()
+    expect(s.blocks.find((b) => b.id === badge.id)?.edit.mobile).toEqual({ hidden: true })
+  })
+
+  it('describes phone changes for the builder', () => {
+    expect(describeEdit({ style: { padding: 4 }, mobile: { style: { padding: 2 } } })).toContain('on phones (≤760px): padding 2')
+    expect(describeEdit({ mobile: { hidden: true } })).toContain('on phones (≤760px): hidden')
+  })
+
+  it('keeps block ids only when asked, so the page can be measured', () => {
+    expect(referenceHtml(page)).not.toContain('data-mx-b=')
+    const measured = composePage({ slots: [{ id: 's', type: clip.type, clipId: clip.id, locked: false, keep: { ...DEFAULT_KEEP } }], guide: resolveGuide(emptyGuide()), content: DEFAULT_CONTENT, library, keepBlockIds: true })
+    const html = referenceHtml(measured, { tagSlots: true })
+    expect(html).toContain(`data-mx-b="${btn.id}"`)
+    expect(html).toContain('data-mx-slot="s"')
+    expect(html).not.toContain('data-mx-field=')
   })
 })
