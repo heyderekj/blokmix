@@ -15,7 +15,8 @@ export function AuthCard({ title, lede, onSubmit, children, footer }: { title: s
     >
       <div className="relative w-full max-w-[380px]">
         <div className="mb-7 flex justify-center text-[#17121A]">
-          <Wordmark height={26} />
+          {/* One color here: the pink block beside the card is the drop. */}
+          <Wordmark height={26} mono />
         </div>
         <div className="relative">
           <Slot size={72} className="-right-[52px] -top-[44px] max-sm:hidden" />
