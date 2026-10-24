@@ -52,6 +52,8 @@ export interface WEl {
   svg?: string
   /** The sanitized <svg>, ready to write out. */
   svgNode?: HEl
+  /** A multi-colour illustration's colours, by the class each colour's shapes carry. */
+  svgPaints?: { cls: string; prop: 'fill' | 'stroke'; color: string }[]
   media?: SnapEl['media']
 
   /** A leaf holding copy (its text is in `text`, kids are empty). */
@@ -64,6 +66,11 @@ export interface WEl {
   mediaName?: string
   ratio?: string
   icon?: string
+  /** A picture that fills the section behind its copy (a hero photo): filled, not illustrated. */
+  backdrop?: boolean
+  /** <details> made from an accordion row: the chevron that turns, and how it looks when open. */
+  openTurn?: WEl
+  openStyle?: Decls
   /** Made by capture: a wrapper or a placeholder, with no styles of its own on the page. */
   synthetic?: 'wrap' | 'contents' | 'art' | 'wordmark'
   /** Declarations capture adds or overrides (a flex fix, a placeholder's look). */
@@ -73,9 +80,14 @@ export interface WEl {
   /** Output attributes, besides class and the data-mx-* marks. */
   out?: [string, string][]
   cls?: string
+  /** Its role on Blokmix's layout primitives ("container", "head center", "btn primary"): its class name. */
+  role?: string
 }
 
 export type WNode = WEl | WText
+
+/** A class name as a selector: `btn primary` → `.btn.primary`. */
+export const sel = (cls: string) => '.' + cls.trim().split(/\s+/).join('.')
 
 export const isEl = (n: WNode | undefined): n is WEl => !!n && n.t === 'el'
 export const els = (n: WEl) => n.kids.filter(isEl)

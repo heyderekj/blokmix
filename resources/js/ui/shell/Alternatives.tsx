@@ -3,9 +3,11 @@ import { Library } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { library } from '@/data/library'
+import { pickable } from '@/core/library'
 import { useStore, currentSlots } from '@/state/store'
 import { Preview } from './Preview'
 import { suggestClip } from '@/core/suggest'
+import { SHELF_LABEL, shelfOf, useUserClips, type Shelf } from '@/lib/userClips'
 
 /** Marks one of Blokmix's built-in layouts, as opposed to a clip you saved. */
 export function LayoutTag() {
@@ -14,8 +16,6 @@ export function LayoutTag() {
 
 const THUMB_W = 212
 
-type Shelf = 'clips' | 'layouts'
-
 /**
  * The focused section's alternatives, as live thumbnails in your style: the way
  * Figma shows a component's variants. One shelf at a time, your clips or the
@@ -23,21 +23,24 @@ type Shelf = 'clips' | 'layouts'
  * onto the page.
  */
 export function Alternatives({ slot }: { slot: Slot }) {
-  const ids = library.byType[slot.type]
+  const ids = pickable(library, slot.type)
   const pos = ids.indexOf(slot.clipId) + 1
   const slots = useStore(currentSlots)
   const index = slots.findIndex((s) => s.id === slot.id)
   // Each shelf is ordered by how well its clips sit between this section's neighbours.
   const ranked = useMemo(() => suggestClip(slot.type, slots, index, library, true), [slot.type, slots, index])
-  const clips = ranked.filter((r) => library.clips[r.clipId].origin === 'clip')
-  const layouts = ranked.filter((r) => library.clips[r.clipId].origin === 'layout')
+  useUserClips((s) => s.ids.length)
+  const by: Record<Shelf, typeof ranked> = { yours: [], layouts: [] }
+  for (const r of ranked) by[shelfOf(r.clipId)].push(r)
+  const shelves = ['yours', 'layouts'] as const
   const st = useStore.getState
 
   // The shelf follows what's on the page: arrowing onto a layout opens Layouts.
-  const onShelf: Shelf = library.clips[slot.clipId]?.origin === 'layout' || !clips.length ? 'layouts' : 'clips'
+  const here = shelfOf(slot.clipId)
+  const onShelf: Shelf = here === 'layouts' || !by.yours.length ? 'layouts' : 'yours'
   const [shelf, setShelf] = useState<Shelf>(onShelf)
   useEffect(() => setShelf(onShelf), [slot.id, onShelf])
-  const list = shelf === 'clips' ? clips : layouts
+  const list = by[shelf]
 
   return (
     <div className="pb-2 pt-2.5">
@@ -51,7 +54,7 @@ export function Alternatives({ slot }: { slot: Slot }) {
           <span className="kbd">→</span>
         </span>
         <div className="ml-2 flex rounded-full bg-chip p-0.5" role="tablist">
-          {(['clips', 'layouts'] as const).map((k) => (
+          {shelves.map((k) => (
             <button
               key={k}
               type="button"
@@ -62,8 +65,8 @@ export function Alternatives({ slot }: { slot: Slot }) {
                 shelf === k ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
               }`}
             >
-              {k === 'clips' ? 'Your clips' : 'Layouts'}
-              <span className="ml-1 tabular-nums text-zinc-400">{(k === 'clips' ? clips : layouts).length}</span>
+              {SHELF_LABEL[k]}
+              <span className="ml-1 tabular-nums text-zinc-400">{by[k].length}</span>
             </button>
           ))}
         </div>

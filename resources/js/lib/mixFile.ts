@@ -1,6 +1,8 @@
 import type { VersionNode } from '@/core/types'
 import { useStore, type MixData } from '@/state/store'
 import { assetIdsIn, putAssets, useAssets, type Asset } from './assets'
+import { allSlots } from '@/core/site'
+import { clipFiles } from './userClips'
 
 /**
  * A mix as one file: its pages, style guide, words, notes and versions, plus the
@@ -19,6 +21,8 @@ export interface MixFile {
   data: Fields
   versions: Record<string, VersionNode>
   assets: FileAsset[]
+  /** Captured clips the mix uses that aren't built in: they travel with it into another account. */
+  clips?: { id: string; files: Record<string, string> }[]
 }
 
 const FIELDS = ['site', 'guide', 'content', 'notes', 'branchFrom', 'head', 'framePos'] as const
@@ -40,7 +44,12 @@ export function mixFile(): MixFile {
     .map((id) => all[id])
     .filter((a): a is Asset => !!a)
     .map((a) => ({ ...a, bytes: a.bytes ? toBase64(a.bytes) : undefined }))
-  return { format: MIX_FILE_FORMAT, name: st.mixName, exportedAt: new Date().toISOString(), data, versions: st.versions, assets }
+  const used = new Set([...allSlots(st.site), ...Object.values(st.versions).flatMap((v) => allSlots(v.snapshot.site))].map((s) => s.clipId))
+  const clips = [...used].flatMap((id) => {
+    const files = clipFiles(id)
+    return files ? [{ id, files }] : []
+  })
+  return { format: MIX_FILE_FORMAT, name: st.mixName, exportedAt: new Date().toISOString(), data, versions: st.versions, assets, clips }
 }
 
 /** Download the open mix as `<name>.blokmix.json`. */
@@ -65,7 +74,7 @@ export async function readMixFile(file: Blob): Promise<MixFile> {
   if (parsed.format !== MIX_FILE_FORMAT || !parsed.data || typeof parsed.name !== 'string') throw new Error('That isn’t a Blokmix mix file.')
   const assets = (parsed.assets ?? []).map((a) => ({ ...a, bytes: a.bytes ? fromBase64(a.bytes) : undefined }) as Asset)
   await putAssets(assets)
-  return { ...(parsed as MixFile), versions: parsed.versions ?? {}, assets: parsed.assets ?? [] }
+  return { ...(parsed as MixFile), versions: parsed.versions ?? {}, assets: parsed.assets ?? [], clips: parsed.clips ?? [] }
 }
 
 /** Without Laravel: make a mix file the mix in this browser (the page reloads to open it). */

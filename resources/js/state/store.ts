@@ -32,6 +32,7 @@ import type {
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, promote, removeCandidate } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
+import { pickable } from '@/core/library'
 import { BANNER_ID } from '@/core/banner'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
 import { keepOption, putBackOption, retireOption, showWords } from '@/core/words'
@@ -319,7 +320,7 @@ export const useStore = create<State>()(
 
           cycle: (slotId, dir) =>
             updateSlot(slotId, (s) => {
-              const ids = library.byType[s.type]
+              const ids = pickable(library, s.type)
               if (ids.length < 2) return s
               const i = ids.indexOf(s.clipId)
               return { ...s, clipId: ids[(i + dir + ids.length) % ids.length] }
@@ -332,7 +333,7 @@ export const useStore = create<State>()(
             let picks = new Map<string, string>()
             // Never "shuffle" into the same arrangement.
             for (let tries = 0; tries < 8; tries++) {
-              picks = new Map(view.filter((s) => !s.locked).map((s) => [s.id, pickDifferent(library.byType[s.type], s.clipId)]))
+              picks = new Map(view.filter((s) => !s.locked).map((s) => [s.id, pickDifferent(pickable(library, s.type), s.clipId)]))
               if (view.some((s) => picks.has(s.id) && picks.get(s.id) !== s.clipId)) break
             }
             set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? { ...s, clipId: picks.get(s.id)! } : s)), shuffleSeq: x.shuffleSeq + 1 }))

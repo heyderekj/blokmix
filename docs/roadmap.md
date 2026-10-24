@@ -1,0 +1,21 @@
+# Roadmap
+
+Ideas we mean to build, not yet started. Each one names what changes for the person using Blokmix and where
+the work would land.
+
+## Capture straight to your account
+
+The extension sends a clip to the live app in one click, instead of downloading a zip you then add in the
+Crate. The panel would sign in to Blokmix (or reuse the signed-in session) and post to `/api/clips`, the same
+endpoint the Crate uses today (`ClipController`, linted in the browser, saved per account).
+
+## Agents without the local bridge
+
+A hosted MCP server, so agents can work on the live site from anywhere, not just on the machine running
+`npm run mcp`. It would relay the same commands (`core/commands/schema/`) to the open board, so agents keep one
+set of tools whether they connect locally or to the hosted app.
+
+## Live editing together
+
+Laravel Reverb, so two editors see each other’s changes as they happen, instead of the second save being
+refused (today a stale `If-Match` lock gets a 412 and the mix as it is now).

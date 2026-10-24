@@ -12,12 +12,22 @@ import { xsrf } from './http'
  */
 export const useUserClips = create<{ ids: string[] }>()(() => ({ ids: [] }))
 
+/** Which shelf a clip sits on: the ones you captured, or the built-in layouts. */
+export type Shelf = 'yours' | 'layouts'
+export const SHELF_LABEL: Record<Shelf, string> = { yours: 'Your clips', layouts: 'Layouts' }
+export const shelfOf = (id: string): Shelf => (library.clips[id]?.origin === 'layout' ? 'layouts' : 'yours')
+
+/** Each account clip's files (and its site's source file), so a mix file can carry the clips it uses. */
+const filesOf: Record<string, ClipFiles> = {}
+export const clipFiles = (id: string): ClipFiles | undefined => filesOf[id]
+
 const CLIP_PATH = /^samples\/(clips\/[a-z]+\/[\w-]+\/(clip\.html|clip\.css|motion\.css|clip\.json)|sources\/[a-z0-9-]+\.json)$/
 
 /** Files grouped as `samples/...` paths: the shape of the extension's zip (and the repo). */
 type ClipFiles = Record<string, string>
 
 function addToLibrary(sets: ClipFiles[]): string[] {
+  for (const files of sets) for (const id of rawClipsFromFiles(files).map((r) => `${r.type}.${r.folder}`)) filesOf[id] = files
   const all = Object.assign({}, ...sets) as ClipFiles
   const sources = Object.entries(all)
     .filter(([p]) => p.startsWith('samples/sources/'))
@@ -65,4 +75,23 @@ export async function addClipZip(zip: Blob): Promise<string[]> {
   })
   if (!res.ok) throw new Error((await res.json().catch(() => null))?.message ?? 'Couldn’t save that clip. Try again.')
   return addToLibrary([files])
+}
+
+/**
+ * Clips that came inside a mix file: save them to your account (Laravel) and add them to
+ * the library, before the mix that uses them opens. Ones already there are left alone.
+ */
+export async function importClips(list: { id: string; files: ClipFiles }[]): Promise<number> {
+  const fresh = list.filter((c) => !library.clips[c.id])
+  for (const c of fresh) {
+    const res = await fetch('/api/clips', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...xsrf() },
+      body: JSON.stringify({ files: c.files }),
+    })
+    if (!res.ok) throw new Error(`Couldn’t save the clip ${c.id}. Try again.`)
+  }
+  addToLibrary(fresh.map((c) => c.files))
+  return fresh.length
 }

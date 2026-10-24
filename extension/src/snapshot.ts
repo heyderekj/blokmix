@@ -210,17 +210,27 @@ export function snapshotSection(root: Element, opts: SnapshotOptions = {}): Snap
   }
   if (blocked) notes.push(`${blocked} cross-origin stylesheet${blocked > 1 ? 's' : ''} couldn’t be read, so their hover states and keyframes are missing`)
 
-  const styleRules: CSSStyleRule[] = []
+  // `:hover` and `,` as selector syntax, not escaped inside a class name (Tailwind's `.supports-hover\:hover\:bg-black`).
+  const HOVER = /(?<!\\):hover/
+  const HOVER_ALL = /(?<!\\):hover/g
+  const splitList = (sel: string) => sel.split(/(?<!\\),(?![^(]*\))/)
+  // A nested rule's selector, made whole: `&` is its parent; without one, it's a descendant of it.
+  const nest = (sel: string, parent: string) =>
+    splitList(sel)
+      .map((part) => (part.includes('&') ? part.replace(/&/g, `:is(${parent})`) : `:is(${parent}) ${part.trim()}`))
+      .join(', ')
+  const styleRules: { sel: string; style: CSSStyleDeclaration }[] = []
   const keyframeRules: CSSKeyframesRule[] = []
-  const collect = (rules: CSSRuleList) => {
+  const collect = (rules: CSSRuleList, parent = '') => {
     for (const r of Array.from(rules)) {
       if (r instanceof win.CSSStyleRule) {
-        if (r.selectorText.includes(':hover')) styleRules.push(r)
-        if (r.cssRules?.length) collect(r.cssRules)
+        const sel = parent ? nest(r.selectorText, parent) : r.selectorText
+        if (HOVER.test(sel)) styleRules.push({ sel, style: r.style })
+        if (r.cssRules?.length) collect(r.cssRules, sel)
       } else if (r instanceof win.CSSKeyframesRule) keyframeRules.push(r)
       else if (r instanceof win.CSSMediaRule) {
-        if (win.matchMedia(r.conditionText).matches) collect(r.cssRules)
-      } else if ('cssRules' in r && (r as CSSGroupingRule).cssRules) collect((r as CSSGroupingRule).cssRules)
+        if (win.matchMedia(r.conditionText).matches) collect(r.cssRules, parent)
+      } else if ('cssRules' in r && (r as CSSGroupingRule).cssRules) collect((r as CSSGroupingRule).cssRules, parent)
     }
   }
   for (const s of sheets) {
@@ -393,18 +403,20 @@ export function snapshotSection(root: Element, opts: SnapshotOptions = {}): Snap
 
   // Hover rules, matched against the elements we kept.
   for (const rule of styleRules) {
-    for (const sel of rule.selectorText.split(/,(?![^(]*\))/)) {
+    for (const sel of splitList(rule.sel)) {
       const s = sel.trim()
-      if (!s.includes(':hover')) continue
-      const plain = s.replace(/:hover/g, '')
+      if (!HOVER.test(s)) continue
+      const plain = s.replace(HOVER_ALL, '').trim()
+      // A bare `:hover` would match everything.
+      if (!plain || plain === '*') continue
       // Where the :hover sits: on the element itself (last compound) or on an ancestor.
       const compounds = s.split(/\s*(?:[>+~]|\s)\s*(?![^(]*\))/).filter(Boolean)
       const last = compounds[compounds.length - 1] ?? ''
-      const self = last.includes(':hover')
+      const self = HOVER.test(last)
       for (const [el, node] of els) {
         let matches = false
         try {
-          matches = el.matches(plain || '*')
+          matches = el.matches(plain)
         } catch {
           break
         }
@@ -413,7 +425,7 @@ export function snapshotSection(root: Element, opts: SnapshotOptions = {}): Snap
         if (!Object.keys(decls).length) continue
         if (self) node.hover = { ...node.hover, ...decls }
         else {
-          const ownerSel = compounds.filter((c) => c.includes(':hover')).pop()!.replace(/:hover/g, '') || '*'
+          const ownerSel = compounds.filter((c) => HOVER.test(c)).pop()!.replace(HOVER_ALL, '') || '*'
           let owner: Element | null = null
           try {
             owner = el.parentElement?.closest(ownerSel) ?? null

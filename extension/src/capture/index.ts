@@ -11,6 +11,8 @@ import { allEls, buildTree, els, hint, isEl, leavesOf, type WEl } from './tree'
 import { describeLook, inferTokens } from './tokens'
 import { shape } from './structure'
 import { annotate } from './semantics'
+import { cleanTree } from './clean'
+import { normalize } from './normalize'
 import { buildCss, TokenWriter } from './css'
 import { buildMotion } from './motion'
 import type { Snapshot } from './types'
@@ -85,6 +87,7 @@ export function captureClip(snap: Snapshot, opts: CaptureOptions): CaptureResult
   const siteName = snap.siteName || sourceId.charAt(0).toUpperCase() + sourceId.slice(1)
 
   let root = buildTree(snap)
+  notes.push(...cleanTree(root).notes)
   const inferred = inferTokens(root, snap)
   notes.push(...inferred.notes)
   const shaped = shape(root)
@@ -92,6 +95,7 @@ export function captureClip(snap: Snapshot, opts: CaptureOptions): CaptureResult
   root = rootFor(root, type, snap)
   const ann = annotate(root, type, { siteName })
   notes.push(...ann.notes)
+  notes.push(...normalize(root, type).notes)
 
   const rhythm = rhythmOf(root, type)
   const variant = slug(opts.variant ?? rhythm)
@@ -235,6 +239,8 @@ function toHtml(el: WEl, type: SectionType, rootClass: string, isRoot = true): H
     if ((k === 'id' || k === 'for') && !/^(input|label)$/.test(el.tag)) continue
     if (k === 'value' && el.tag !== 'input') continue
     if (k === 'role' && /^(presentation|none)$/.test(v)) continue
+    // Script-driven state means nothing in a clip: <details> keeps its own.
+    if (k === 'aria-controls' || k === 'aria-expanded' || (k === 'type' && el.tag === 'summary')) continue
     attrs.push([k, v])
   }
   if (el.synthetic === 'art' || el.synthetic === 'wordmark') {
@@ -261,28 +267,42 @@ function toHtml(el: WEl, type: SectionType, rootClass: string, isRoot = true): H
   }
   let kids: HNode[]
   if (el.text !== undefined) kids = [{ t: 'text', v: el.text }]
-  else if (el.synthetic === 'art') kids = [placeholderArt()]
+  else if (el.synthetic === 'art') kids = el.backdrop ? [] : [placeholderArt(el.ratio)]
   else kids = el.kids.filter(isEl).map((k) => toHtml(k, type, rootClass, false))
   const tag = el.tag === 'img' ? 'div' : el.tag
   return { t: 'el', tag, ns: 'html', attrs, kids }
 }
 
-/** Stand-in art for a picture: a soft landscape in the palette (CLAUDE.md, rule 5). */
-function placeholderArt(): HEl {
+/**
+ * Stand-in art for a picture (CLAUDE.md, rule 5): a small landscape glyph centred in the
+ * picture's own shape, so it reads as "an image goes here" at any size without filling it.
+ */
+function placeholderArt(ratio = '4/3'): HEl {
+  const [rw, rh] = ratio.split('/').map(Number)
+  const r = rw > 0 && rh > 0 ? rw / rh : 4 / 3
+  // The short side is 100 units; the glyph is a fifth of it.
+  const [W, H] = r >= 1 ? [Math.round(100 * r), 100] : [100, Math.round(100 / r)]
+  const g = 20
+  const x = (W - g * 1.3) / 2
+  const y = (H - g) / 2
+  const n = (v: number) => String(Math.round(v * 10) / 10)
   const a = (tag: string, attrs: [string, string][]): HEl => ({ t: 'el', tag, ns: 'svg', attrs, kids: [] })
   return {
     t: 'el',
     tag: 'svg',
     ns: 'svg',
     attrs: [
-      ['viewBox', '0 0 120 90'],
+      ['viewBox', `0 0 ${W} ${H}`],
       ['width', '100%'],
       ['height', '100%'],
-      ['preserveAspectRatio', 'xMidYMid slice'],
+      ['preserveAspectRatio', 'xMidYMid meet'],
       ['fill', 'currentColor'],
       ['aria-hidden', 'true'],
     ],
-    kids: [a('circle', [['cx', '86'], ['cy', '28'], ['r', '9']]), a('path', [['d', 'M0 90 L38 50 L60 70 L82 52 L120 86 L120 90 Z']])],
+    kids: [
+      a('circle', [['cx', n(x + g * 0.95)], ['cy', n(y + g * 0.28)], ['r', n(g * 0.13)]]),
+      a('path', [['d', `M${n(x)} ${n(y + g)} L${n(x + g * 0.42)} ${n(y + g * 0.45)} L${n(x + g * 0.68)} ${n(y + g * 0.75)} L${n(x + g * 0.92)} ${n(y + g * 0.52)} L${n(x + g * 1.3)} ${n(y + g)} Z`]]),
+    ],
   }
 }
 

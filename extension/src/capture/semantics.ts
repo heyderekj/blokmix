@@ -314,7 +314,11 @@ function fillItem(it: WEl, i: number, spec: ItemSpec, give: Give) {
         return by(len)
       case 'title': {
         const q = fl.find((l) => closest(l, (p) => p.tag === 'summary' || p.tag === 'dt' || (p.tag === 'button' && contains(it, p))))
-        return q ?? fl.filter((l) => !pressed(l)).find((l) => HEADING_TAGS.has(l.tag)) ?? fl.filter((l) => !pressed(l)).sort((a, b) => loudness(b) - loudness(a) || leaves.indexOf(a) - leaves.indexOf(b))[0]
+        if (q) return q
+        const pick = fl.filter((l) => !pressed(l)).find((l) => HEADING_TAGS.has(l.tag)) ?? fl.filter((l) => !pressed(l)).sort((a, b) => loudness(b) - loudness(a) || leaves.indexOf(a) - leaves.indexOf(b))[0]
+        // A paragraph set large is still the body when a short label names the item: the label is its title.
+        const label = pick && len(pick) > 80 ? fl.filter((l) => !pressed(l) && l !== pick && len(l) <= 40 && /\w/.test(l.text ?? '')).sort((a, b) => leaves.indexOf(a) - leaves.indexOf(b))[0] : undefined
+        return label ?? pick
       }
       case 'name':
         return fl.filter((l) => len(l) <= 48 && !pressed(l)).sort((a, b) => loudness(b) - loudness(a) || leaves.indexOf(a) - leaves.indexOf(b))[0]
@@ -552,6 +556,7 @@ function markMirrors(root: WEl): Map<WEl, WEl> {
 function markBlocks(root: WEl, lists: WEl[]) {
   let images = 0
   let avatars = 0
+  let backdrops = 0
   const all = allEls(root)
   for (const e of all) {
     if (e === root) continue
@@ -565,7 +570,7 @@ function markBlocks(root: WEl, lists: WEl[]) {
     if (e.block === 'image' && !e.mediaName) {
       const [, , w, h] = e.rect
       const round = /50%|999/.test(e.s['border-top-left-radius'] ?? '') || (w > 0 && Math.abs(w - h) < 2 && parseFloat(e.s['border-top-left-radius'] ?? '0') >= w / 2 - 1)
-      e.mediaName = round && w <= 120 ? `avatar${++avatars}` : `image${++images}`
+      e.mediaName = e.backdrop ? (++backdrops > 1 ? `backdrop${backdrops}` : 'backdrop') : round && w <= 120 ? `avatar${++avatars}` : `image${++images}`
     }
   }
   // Cards: a filled or outlined group with copy of its own, that isn't an item or list.

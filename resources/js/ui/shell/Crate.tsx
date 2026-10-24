@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { isHosted } from '@/lib/host'
 import { pickFile } from '@/lib/pickFile'
-import { addClipZip, useUserClips } from '@/lib/userClips'
+import { addClipZip, SHELF_LABEL, shelfOf, useUserClips, type Shelf } from '@/lib/userClips'
+import { pickable } from '@/core/library'
 import { createPortal } from 'react-dom'
 import { Plus, Scissors } from 'lucide-react'
 import type { Clip, SectionType } from '@/core/types'
@@ -33,10 +34,10 @@ export function Crate() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusedId])
 
-  const [shelf, setShelf] = useState<'clips' | 'layouts'>('clips')
   // Clips added from your account change the library; redraw when they arrive.
-  useUserClips((s) => s.ids.length)
-  const pool = (t: SectionType) => (shelf === 'layouts' ? library.layoutsByType[t] : library.byType[t].filter((id) => library.clips[id].origin === 'clip'))
+  const yours = useUserClips((s) => s.ids.length)
+  const [shelf, setShelf] = useState<Shelf>(yours ? 'yours' : 'layouts')
+  const pool = (t: SectionType) => pickable(library, t).filter((id) => shelfOf(id) === shelf)
   const ids = effective === 'all' ? SECTION_TYPES.flatMap(pool) : pool(effective)
   const scroller = useRef<HTMLDivElement>(null)
   const chip = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-1'
@@ -45,7 +46,7 @@ export function Crate() {
     <div className="pb-2 pt-3">
       <div className="mb-2 flex items-center gap-3 px-3">
         <div className="flex rounded-full bg-chip p-0.5" role="tablist">
-          {(['clips', 'layouts'] as const).map((k) => (
+          {(['yours', 'layouts'] as const).map((k) => (
             <button
               key={k}
               type="button"
@@ -56,7 +57,7 @@ export function Crate() {
                 shelf === k ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
               }`}
             >
-              {k === 'clips' ? 'Your clips' : 'Layouts'}
+              {SHELF_LABEL[k]}
             </button>
           ))}
         </div>
@@ -70,7 +71,7 @@ export function Crate() {
               pickFile('.zip,application/zip', async (f) => {
                 try {
                   const added = await addClipZip(f)
-                  setShelf('clips')
+                  setShelf('yours')
                   st().showFlash(`Added ${added.map((id) => library.clips[id]?.title ?? id).join(', ')} to your clips`)
                 } catch (e) {
                   st().showFlash(e instanceof Error ? e.message : String(e))

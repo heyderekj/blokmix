@@ -4,7 +4,7 @@
 
 import type { TokenSet } from '@/core/types'
 import { ColorMapper, COLOR_RE, parseColor } from './color'
-import { allEls, els, leavesOf, px, type WEl } from './tree'
+import { allEls, els, leavesOf, px, sel, type WEl } from './tree'
 import { firstFamily, type Families } from './tokens'
 import { HEADING_TAGS, isPressable } from './roles'
 import type { Decls } from './types'
@@ -131,7 +131,9 @@ export class TokenWriter {
       return color && nums.length >= 4 && nums[0] === 0 && nums[1] === 0 && nums[2] === 0 && nums[3] > 0 ? `${/inset/.test(l) ? 'inset ' : ''}0 0 0 ${this.strokeOf(nums[3])} ${this.color(color)}` : null
     })
     if (rings.every(Boolean)) return rings.join(', ')
-    return 'var(--mx-shadow-card)'
+    // A hairline ring plus a soft drop (a window, a card): the ring stays a line, the drop becomes the card shadow.
+    const kept = rings.filter(Boolean)
+    return kept.length ? `${kept.join(', ')}, var(--mx-shadow-card)` : 'var(--mx-shadow-card)'
   }
 
   ms(v: string): number {
@@ -194,6 +196,8 @@ const neutralized = (el: WEl, prop: string) =>
 
 export interface ElementCss {
   decls: Decls
+  /** A multi-colour illustration's shapes, by class: `.pf1 { fill: … }`. */
+  paints?: Record<string, Decls>
   hover?: Decls
   active?: Decls
   before?: Decls
@@ -226,7 +230,8 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
   if (pos === 'sticky' && !isRoot) pos = 'relative'
   if (pos !== 'static') put('position', pos)
   const abs = pos === 'absolute'
-  if (pos !== 'static' && pos !== 'sticky') for (const side of SIDES) if ((s[side] ?? 'auto') !== 'auto' && (abs || px(s[side]) !== 0)) put(side, s[side])
+  // A section's own offsets placed it on its page (a fixed bar, a pulled-up hero): in a clip it starts the flow.
+  if (pos !== 'static' && pos !== 'sticky' && !isRoot) for (const side of SIDES) if ((s[side] ?? 'auto') !== 'auto' && (abs || px(s[side]) !== 0)) put(side, s[side])
   if (pos === 'sticky') put('top', s.top && s.top !== 'auto' ? s.top : '0')
   if (pos !== 'static' && (s['z-index'] ?? 'auto') !== 'auto') put('z-index', s['z-index'])
 
@@ -304,6 +309,40 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
       else if (fills && W / pw > 0.3 && hasCopy && (parent.s['flex-wrap'] ?? 'nowrap') === 'nowrap' && sibs.length >= 2) put('flex', `0 1 ${Math.round((W / pw) * 100)}%`)
     }
   }
+  // In a column that centres its children, a box only keeps the width the page gave it if we say so.
+  const inFlexCol = /flex/.test(pdisp) && /column/.test(parent?.s['flex-direction'] ?? '')
+  const alignment = s['align-self'] && s['align-self'] !== 'auto' ? s['align-self'] : parent?.s['align-items'] ?? 'normal'
+  if (inFlexCol && !/stretch|normal/.test(alignment) && els(el).length && el.text === undefined && !isPressable(el) && !abs) {
+    if (W >= pw - 2) put('align-self', 'stretch')
+    else {
+      put('width', `${Math.round(W)}px`)
+      put('max-width', '100%')
+    }
+  }
+  // A box its in-flow content doesn't fill: a picture frame whose layers are all positioned, a hero
+  // with a set height, a panel taller than its copy. Its size was set on the page, so it's kept.
+  if (!abs && !el.svgNode && el.synthetic !== 'art' && el.text === undefined && els(el).length) {
+    const flow = els(el).filter((k) => !/^(absolute|fixed)$/.test(k.s.position ?? 'static'))
+    const big = H >= w.viewport.height * 0.4
+    const stretched = !!parent && (inGrid || (inFlexRow && /stretch|normal/.test(s['align-self'] === 'auto' ? parent.s['align-items'] ?? 'normal' : s['align-self'] ?? 'auto')))
+    if (!flow.length && !hasCopy) {
+      // Nothing in the flow at all: it keeps its shape, and scales with its width.
+      if (W >= 160 && !(inFlexRow && !/px$/.test(out.flex ?? 'px'))) {
+        if (!(inGrid || inFlexRow && grow !== '0')) put('width', W >= pw * 0.92 ? '100%' : `${Math.round(W)}px`)
+        put('max-width', '100%')
+        put('aspect-ratio', `${Math.round(W)} / ${Math.round(H)}`)
+      } else {
+        put('width', `${Math.round(W)}px`)
+        put('height', `${Math.round(H)}px`)
+      }
+    } else {
+      const padB = px(s['padding-bottom']) + px(s['border-bottom-width'])
+      const bottom = flow.length ? Math.max(...flow.map((k) => k.rect[1] + k.rect[3] + Math.max(0, px(k.s['margin-bottom'])))) - el.rect[1] + padB : 0
+      const clipped = /hidden|clip/.test(s['overflow-y'] ?? '')
+      if (clipped && bottom > H + 4) put('height', big ? w.vh(H) : `${Math.round(H)}px`)
+      else if (H > bottom + 24 && !stretched && (s['min-height'] ?? 'auto') === 'auto') put('min-height', big ? w.vh(H) : `${Math.round(H)}px`)
+    }
+  }
   // A bar with a set height (a 72px nav row): its children sit centred in more room than they need.
   const contentH = H - px(s['padding-top']) - px(s['padding-bottom']) - px(s['border-top-width']) - px(s['border-bottom-width'])
   const tallest = Math.max(0, ...els(el).filter((k) => (k.s.position ?? 'static') === 'static').map((k) => k.rect[3] + px(k.s['margin-top']) + px(k.s['margin-bottom'])))
@@ -325,7 +364,7 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
     if (d === 'left' && pushRight) return 'auto'
     return differs(`margin-${d}`) || px(baseline(el, `margin-${d}`)) !== m[i] ? w.space(m[i]) : null
   })
-  writeSides(put, 'margin', mv, el, baseline)
+  if (!isRoot) writeSides(put, 'margin', mv, el, baseline)
   const p = SIDES.map((d) => px(s[`padding-${d}`]))
   const pv = SIDES.map((d, i) => {
     if (!differs(`padding-${d}`) && px(baseline(el, `padding-${d}`)) === p[i]) return null
@@ -373,7 +412,7 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
   for (const k of ['filter', 'backdrop-filter']) if ((s[k] ?? 'none') !== 'none') put(k, w.colorsIn(s[k]))
   if ((s['mix-blend-mode'] ?? 'normal') !== 'normal') put('mix-blend-mode', s['mix-blend-mode'])
   if ((s.isolation ?? 'auto') !== 'auto') put('isolation', s.isolation)
-  if ((s['pointer-events'] ?? 'auto') !== 'auto') put('pointer-events', s['pointer-events'])
+  if ((s['pointer-events'] ?? 'auto') !== 'auto' && !isRoot) put('pointer-events', s['pointer-events'])
   const deco = s['text-decoration-line'] ?? 'none'
   if (deco !== baseline(el, 'text-decoration-line') && el.text !== undefined) {
     put('text-decoration-line', deco)
@@ -449,7 +488,7 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
         break
     }
   }
-  if (isPressable(el) && el.tag !== 'button') put('cursor', 'pointer')
+  if ((isPressable(el) && el.tag !== 'button') || el.tag === 'summary') put('cursor', 'pointer')
 
   // Capture's own additions win.
   for (const [k, v] of Object.entries(el.extra ?? {})) {
@@ -462,7 +501,21 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
     delete out['column-gap']
     delete out['row-gap']
   }
-  if (el.synthetic === 'art') {
+  if (el.synthetic === 'art' && el.backdrop) {
+    // A backdrop is filled, not illustrated: its own colour, or a quiet wash of the primary.
+    // Light copy laid over a photo needs a dark wash in its place, and dark copy a light one.
+    // Weighed by how much of the copy there is, so a big headline outvotes a small print line.
+    const over = leavesOf(ctx.root).filter((l) => overlaps(l.rect, el.rect))
+    const weight = (ls: WEl[]) => ls.reduce((n, l) => n + l.rect[2] * l.rect[3], 0)
+    const light = weight(over.filter((l) => lum(parseColor(l.s.color)) > 0.55))
+    const wash = light > weight(over) / 2 ? 'color-mix(in oklab, var(--mx-color-text) 86%, var(--mx-color-primary))' : 'color-mix(in oklab, var(--mx-color-primary) 14%, var(--mx-color-bg))'
+    out.background = bg && bg.a > 0.01 ? w.color(s['background-color']) : wash
+    // Behind everything in the section, whatever order the page stacked it in.
+    out['z-index'] = '-1'
+    delete out['min-height']
+    out.overflow = 'hidden'
+    delete out['background-color']
+  } else if (el.synthetic === 'art') {
     out.background ??= 'color-mix(in oklab, var(--mx-color-primary) 8%, var(--mx-color-surface))'
     out.color = 'color-mix(in oklab, var(--mx-color-primary) 24%, var(--mx-color-surface))'
     out.overflow = 'hidden'
@@ -470,7 +523,9 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
     if (bg && bg.a > 0.01) out.background = w.color(s['background-color'])
   }
 
+  if (isRoot && allEls(el).some((e) => e.backdrop)) out.isolation = 'isolate'
   const res: ElementCss = { decls: out }
+  if (el.svgPaints?.length) res.paints = Object.fromEntries(el.svgPaints.map((p) => [p.cls, { [p.prop]: w.color(p.color) }]))
   if (el.hover) res.hover = mapState(el.hover, w, el, out)
   if (el.block === 'button') res.active = { scale: '0.97' }
   if (el.before) res.before = pseudoCss(el.before, w, el)
@@ -478,6 +533,17 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
   if (res.before === null) delete res.before
   if (res.after === null) delete res.after
   return res
+}
+
+const overlaps = (a: WEl['rect'], b: WEl['rect']) => a[0] < b[0] + b[2] && b[0] < a[0] + a[2] && a[1] < b[1] + b[3] && b[1] < a[1] + a[3]
+/** Relative luminance, 0 (black) to 1 (white). */
+const lum = (c: ReturnType<typeof parseColor>) => {
+  if (!c) return 0
+  const ch = (v: number) => {
+    const x = v / 255
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)
+  }
+  return 0.2126 * ch(c.r) + 0.7152 * ch(c.g) + 0.0722 * ch(c.b)
 }
 
 const norm = (v: string) => (v === 'left' ? 'start' : v === 'right' ? 'end' : v === '-webkit-center' ? 'center' : v)
@@ -623,6 +689,7 @@ const TAG_BASE: Record<string, string> = {
 }
 
 function baseName(el: WEl): string {
+  if (el.role) return el.role
   if (el.synthetic === 'wordmark') return 'wordmark'
   if (el.synthetic === 'art') return 'media'
   if (el.block) return el.block === 'heading' && el.parent && closestItem(el) ? 'title' : CLASS_BASE[el.block]
@@ -655,6 +722,7 @@ export function buildCss(root: WEl, rootClass: string, w: TokenWriter, defaults:
     const t = byId.get(g.target)
     if (t) needsClass.add(t)
   }
+  for (const e of all) if (e.openTurn) needsClass.add(e).add(e.openTurn)
 
   // Classes: elements styled alike share one.
   const names = new Map<string, string>()
@@ -662,15 +730,17 @@ export function buildCss(root: WEl, rootClass: string, w: TokenWriter, defaults:
   for (const el of all) {
     if (el === root) continue
     const c = css.get(el)!
-    const hasRules = Object.keys(c.decls).length || c.hover || c.before || c.after || c.mobile || c.active
+    const hasRules = Object.keys(c.decls).length || c.hover || c.before || c.after || c.mobile || c.active || c.paints
     if (!hasRules && !needsClass.has(el)) continue
     const base = baseName(el)
     const key = base + '\u0000' + JSON.stringify(c) + (needsClass.has(el) && !hasRules ? `#${el.id}` : '')
     let name = names.get(key)
     if (!name) {
-      const n = (counts.get(base) ?? 0) + 1
-      counts.set(base, n)
-      name = n === 1 ? base : `${base}-${n}`
+      // Numbered by the first word, so no class's words are a subset of another's (`.head` never matches `head-2 center`).
+      const [first, ...mods] = base.split(' ')
+      const n = (counts.get(first) ?? 0) + 1
+      counts.set(first, n)
+      name = [n === 1 ? first : `${first}-${n}`, ...mods].join(' ')
       names.set(key, name)
     }
     el.cls = name
@@ -686,10 +756,10 @@ export function buildCss(root: WEl, rootClass: string, w: TokenWriter, defaults:
     if (!t?.cls || !e.cls && e !== root) continue
     const mapped = mapState(g.decls, w, t, css.get(t)!.decls)
     if (!mapped) continue
-    const sel = e === root ? `&:hover .${t.cls}` : `&:hover .${t.cls}`
+    const sel_ = `&:hover ${sel(t.cls)}`
     const owner = e === root ? '' : e.cls!
     const list = groupRules.get(owner) ?? []
-    list.push(`      ${sel} {\n${body(mapped, '        ')}\n      }`)
+    list.push(`      ${sel_} {\n${body(mapped, '        ')}\n      }`)
     groupRules.set(owner, list)
   }
   const hoverBlock = (inner: string[]) => [`    @media (hover: hover) and (pointer: fine) {`, ...inner, `    }`]
@@ -706,7 +776,10 @@ export function buildCss(root: WEl, rootClass: string, w: TokenWriter, defaults:
     if (c.active) parts.push(`    &:active {\n${body(c.active, '      ')}\n    }`)
     if (c.before) parts.push(`    &::before {\n${body(c.before, '      ')}\n    }`)
     if (c.after) parts.push(`    &::after {\n${body(c.after, '      ')}\n    }`)
-    lines.push('', `  & .${el.cls} {`, parts.join('\n'), '  }')
+    for (const [cls, d] of Object.entries(c.paints ?? {})) parts.push(`    & .${cls} {\n${body(d, '      ')}\n    }`)
+    if (el.tag === 'summary') parts.push(`    &::-webkit-details-marker {\n      display: none;\n    }`, `    &::marker {\n      content: '';\n    }`)
+    if (el.openTurn?.cls && el.openStyle) parts.push(`    &[open] ${sel(el.openTurn.cls)} {\n${body(el.openStyle, '      ')}\n    }`)
+    lines.push('', `  & ${sel(el.cls)} {`, parts.join('\n'), '  }')
   }
   if (rootCss.hover || groupRules.get('')) {
     lines.push('', `  @media (hover: hover) and (pointer: fine) {`)
@@ -725,7 +798,7 @@ export function buildCss(root: WEl, rootClass: string, w: TokenWriter, defaults:
     const c = css.get(el)!
     if (el === root || !c.mobile || !el.cls || mobWritten.has(el.cls)) continue
     mobWritten.add(el.cls)
-    mob.push(`    & .${el.cls} {\n${body(c.mobile, '      ')}\n    }`)
+    mob.push(`    & ${sel(el.cls)} {\n${body(c.mobile, '      ')}\n    }`)
   }
   if (mob.length) lines.push('', '  @media (max-width: 760px) {', mob.join('\n'), '  }')
   lines.push('}')

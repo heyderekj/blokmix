@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
+import { pickable } from '@/core/library'
 import { sectionClip } from '@/core/lists'
 import { onSection } from '@/core/notes'
 import { useStore, currentSlots } from '@/state/store'
@@ -53,7 +54,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
   const live = useMemo(() => withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords }), [slot, pSlot, pBlock, pPatch, pWords])
-  const ids = library.byType[slot.type]
+  const ids = pickable(library, slot.type)
   const W = VIEW_W[viewport]
 
   // `shown` trails the store so shuffles can spin like a slot machine before landing.

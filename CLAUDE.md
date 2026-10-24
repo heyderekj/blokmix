@@ -82,6 +82,14 @@ by `lib/packet.ts` `packetInputFor`, shared by the export panel and agent comman
 `src/snapshot.ts`; everything else in `src/capture/` is pure and reuses `core/` (lint, parse, icons,
 fonts). `npm run clip:add -- <zip>` adds a downloaded clip and lints it. Capture tests run the saved
 fixtures in `extension/fixtures/` in real Chrome.
+- Capture keeps the section, not how its page built it: `capture/clean.ts` folds wrapper boxes, drops
+  stacked image copies, scrims, invisible layers and hidden controls, turns rows of cards into one 12-column
+  grid and accordions into `<details>`; `capture/normalize.ts` names what's left on the layout primitives
+  (`.container`, `.head`, `.actions`, `.btn`, `.grid`, `.split`, `.band`, `.card`, `.media`). Every rule is
+  general, never per site.
+- `extension/scripts/capture-url.ts <url> "<selector>=<type>[:<variant>]"` captures from the command line and
+  saves each raw snapshot to `.out/inspo/snaps/`; `extension/scripts/recapture.ts [filter]` re-runs capture on
+  them offline and writes original-vs-clip pairs to `.out/inspo/compare/`, the loop for improving fidelity.
 
 ## Layout
 

@@ -154,3 +154,15 @@ export function extendLibrary(lib: Library, sources: Source[], raws: RawClip[]):
   lib.warnings.push(...extra.warnings.filter((w) => added.includes(w.clipId)))
   return added
 }
+
+/**
+ * Blokmix's sample sites: made-up brands (`*.example`) that seed the demo mix. Mixes that use them
+ * still draw them, but they aren't offered as alternatives: the built-in layouts are.
+ */
+export const isSample = (lib: Library, id: string): boolean => {
+  const clip = lib.clips[id]
+  return !!clip && clip.origin === 'clip' && /\.example(\/|$)/.test(new URL(lib.sources[clip.sourceId]?.url ?? 'https://x/').host + '/')
+}
+
+/** The clips you can pick for a section: your clips, then the layouts. */
+export const pickable = (lib: Library, type: SectionType): string[] => lib.byType[type].filter((id) => !isSample(lib, id))

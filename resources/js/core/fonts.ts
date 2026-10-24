@@ -100,7 +100,7 @@ export const FONT_LIBRARY: LibraryFont[] = [
   g('Urbanist', ['sans'], 'body', W(400, 500, 700)),
   g('Lexend', ['sans'], 'body', W(400, 500, 700)),
   g('Red Hat Display', ['sans', 'display'], 'body', W(400, 500, 700)),
-  g('Archivo', ['sans'], 'body', W(400, 500, 700)),
+  g('Archivo', ['sans', 'display'], 'body', W(400, 500, 700, 800, 900)),
   g('Be Vietnam Pro', ['sans'], 'body', W(400, 500, 700)),
   fs('Satoshi', 'satoshi', ['sans'], 'body', W(400, 500, 700)),
   fs('General Sans', 'general-sans', ['sans'], 'body', W(400, 500, 600)),

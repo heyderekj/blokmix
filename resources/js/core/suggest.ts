@@ -4,6 +4,7 @@
 // (and an agent can take this over later).
 
 import type { Library, Rhythm, SectionType, Slot } from './types'
+import { pickable } from './library'
 import { SECTION_TYPES } from './types'
 import { TYPE_LABEL } from './content'
 
@@ -165,7 +166,7 @@ export function suggestClip(type: SectionType, slots: PageSlot[], index: number,
   const aboveClip = above ? library.clips[above.clipId] : undefined
   const belowClip = below ? library.clips[below.clipId] : undefined
 
-  return library.byType[type]
+  return pickable(library, type)
     .map((clipId, order): ClipSuggestion & { order: number } => {
       const clip = library.clips[clipId]
       let score = clip.origin === 'clip' ? 100 : 0

@@ -106,6 +106,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
               pickFile('.json,application/json', async (f) => {
                 try {
                   const file = await readMixFile(f)
+                  if (file.clips?.length) return st().showFlash('This mix uses captured clips, which need an account: import it on your Blokmix mixes page.')
                   if (window.confirm(`Replace the mix in this browser with “${file.name}”? Export this one first if you want to keep it.`)) replaceLocalMix(file, STORAGE_KEY)
                 } catch (e) {
                   st().showFlash(e instanceof Error ? e.message : String(e))

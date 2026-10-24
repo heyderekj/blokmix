@@ -30,7 +30,7 @@ export function Dock() {
       <FirstRunTip />
       <Island
         open={open || !!focused}
-        width={open ? Math.min(760, window.innerWidth - 24) : undefined}
+        width={open || focused ? Math.min(760, window.innerWidth - 24) : undefined}
         grow="up"
         anchor="center"
         maxBody="min(52vh, 420px)"

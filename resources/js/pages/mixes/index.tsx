@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
 import { ArrowRight, CloudUpload, Layers, Plus, Trash2, Upload } from 'lucide-react'
 import { readMixFile } from '@/lib/mixFile'
+import { importClips } from '@/lib/userClips'
 import { pickFile } from '@/lib/pickFile'
 import type { Site, Slot, VersionNode } from '@/core/types'
 import { STORAGE_KEY } from '@/state/store'
@@ -115,6 +116,8 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
                 try {
                   const file = await readMixFile(f)
                   setMoving(true)
+                  // Its captured clips join your account first, so the mix opens with every section.
+                  await importClips(file.clips ?? [])
                   const res = await api<ServerMix>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions })
                   setMoving(false)
                   if (res.status === 201) router.visit(`/mixes/${res.body.id}`)

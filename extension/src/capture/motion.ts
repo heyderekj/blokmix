@@ -2,7 +2,7 @@
 // root class) and transitions, timed from the motion tokens. clip.css already
 // holds the at-rest state, so dropping this file just turns motion off.
 
-import { allEls, els, type WEl } from './tree'
+import { allEls, els, sel, type WEl } from './tree'
 import type { TokenWriter } from './css'
 import type { Keyframe } from './types'
 
@@ -85,11 +85,11 @@ export function buildMotion(root: WEl, rootClass: string, w: TokenWriter, keyfra
   }
   for (const [cls, list] of byClass) {
     const bodies = list.map((e) => rules.get(e)!.join('\n    '))
-    if (new Set(bodies).size === 1) lines.push('', `  & .${cls} {`, `    ${bodies[0]}`, '  }')
+    if (new Set(bodies).size === 1) lines.push('', `  & ${sel(cls)} {`, `    ${bodies[0]}`, '  }')
     else
       list.forEach((e, i) => {
         const n = e.parent ? els(e.parent).indexOf(e) + 1 : 1
-        lines.push('', `  & .${cls}:nth-child(${n}) {`, `    ${bodies[i]}`, '  }')
+        lines.push('', `  & ${sel(cls)}:nth-child(${n}) {`, `    ${bodies[i]}`, '  }')
       })
   }
   lines.push('}')
