@@ -71,4 +71,11 @@ class AssetsTest extends TestCase
         $this->postJson('/api/unsplash/download', ['url' => 'https://evil.example/steal'])->assertUnprocessable();
         $this->postJson('/api/unsplash/download', ['url' => 'https://api.unsplash.com/photos/p1/download'])->assertNoContent();
     }
+
+    public function test_production_never_keeps_uploads_on_its_own_disk(): void
+    {
+        config(['blokmix.uploads_disk' => 'local']);
+        $this->app->detectEnvironment(fn () => 'production');
+        $this->actingAs($this->owner)->upload()->assertStatus(503);
+    }
 }

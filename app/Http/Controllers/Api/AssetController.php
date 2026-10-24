@@ -29,6 +29,9 @@ class AssetController extends Controller
         $role = $mix->roleOf($request->user());
         abort_unless($role, 404);
         abort_unless($role->canEdit(), 403, 'Viewers can’t add images.');
+        // A server's own disk is wiped on every deploy: in production, keep uploads in the browser until a bucket is attached.
+        $driver = config('filesystems.disks.'.config('blokmix.uploads_disk').'.driver');
+        abort_if(app()->isProduction() && $driver === 'local', 503, 'Uploads aren’t set up on this server yet. They stay in your browser for now.');
 
         $input = $request->validate([
             'id' => ['required', 'string', 'regex:/^(img|vid|lot)_[a-z0-9]{8}$/'],
