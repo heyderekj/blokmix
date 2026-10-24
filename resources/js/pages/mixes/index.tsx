@@ -189,7 +189,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
             <h2 className="text-[13px] font-semibold text-[#6B5F68]">Only in this browser</h2>
             <ul className={GRID + ' !mt-4'}>
               <li>
-                <Card href="/local" name={local.name} sections={local.sections} guide={local.guide} meta={[plural(local.pages, 'page'), plural(local.versions, 'version')]} quiet>
+                <Card href="/local" name={local.name} sections={local.sections} guide={local.guide} versions={local.versions} meta={[plural(local.pages, 'page'), plural(local.versions, 'version')]} quiet>
                   <button
                     type="button"
                     disabled={moving}
@@ -239,7 +239,7 @@ function MixCard({ mix: m, onDelete }: { mix: SavedMix; onDelete?: () => void })
   const meta = [plural(m.versions, 'version'), ...(m.pages > 1 ? [plural(m.pages, 'page')] : []), `edited ${ago(m.updated_at)}`]
   if (m.role !== 'owner') meta.splice(0, 0, `Shared by ${m.owner ?? 'someone'}`, ROLE_NOTE[m.role]!)
   return (
-    <Card href={`/${m.short}`} name={m.name} sections={m.sections} guide={m.guide} meta={m.role === 'owner' ? meta : meta.slice(0, 2)}>
+    <Card href={`/${m.short}`} name={m.name} sections={m.sections} guide={m.guide} versions={m.heads.length} meta={m.role === 'owner' ? meta : meta.slice(0, 2)}>
       {m.heads.length > 0 && (
         <span className="flex -space-x-1.5">
           {m.heads.slice(0, 6).map((h) => (
@@ -271,17 +271,15 @@ function MixCard({ mix: m, onDelete }: { mix: SavedMix; onDelete?: () => void })
 }
 
 /** A mix as a card: its page drawn small on a soft tile, then its name, a quiet line of facts and whatever it adds. */
-function Card({ href, name, sections, guide, meta, quiet, children }: { href: string; name: string; sections: SectionType[]; guide: GuideState | null; meta: string[]; quiet?: boolean; children?: React.ReactNode }) {
+function Card({ href, name, sections, guide, meta, quiet, versions = 0, children }: { href: string; name: string; sections: SectionType[]; guide: GuideState | null; meta: string[]; quiet?: boolean; versions?: number; children?: React.ReactNode }) {
   return (
     <div className={CARD}>
       {/* The whole card opens the mix; its buttons sit above this link. */}
       <Link href={href} aria-label={`Open ${name}`} className="absolute inset-0 z-0 rounded-[22px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF69B4]" />
-      <span className={`pointer-events-none block p-3 pb-0 ${quiet ? 'opacity-80' : ''}`}>
-        <span className="block aspect-[16/10] overflow-hidden rounded-[14px] bg-[#F3EDF0] p-3 pb-0">
-          <span className="block size-full overflow-hidden rounded-t-[8px] shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_10px_24px_-14px_rgb(23_18_26/0.35)]">
-            <MixThumb sections={sections} guide={guide} />
-          </span>
-        </span>
+      <span className={`pointer-events-none block p-3 pb-0 ${quiet ? 'opacity-80 saturate-50' : ''}`}>
+        <Stage versions={versions}>
+          <MixThumb sections={sections} guide={guide} />
+        </Stage>
       </span>
       <span className="pointer-events-none flex flex-1 flex-col gap-3 p-4 pt-3.5 [&_button]:pointer-events-auto [&_button]:relative [&_button]:z-10">
         <span className="min-w-0">
@@ -291,5 +289,41 @@ function Card({ href, name, sections, guide, meta, quiet, children }: { href: st
         {children && <span className="mt-auto flex min-h-7 items-center gap-2">{children}</span>}
       </span>
     </div>
+  )
+}
+
+/**
+ * The preview, drawn the way blokmix.com draws the app: a pink dotted stage, the mix's page as a frame lifted off it,
+ * its saved versions as frames fanned behind (up to two), and the brand's pink block dropped on a corner. On hover the
+ * fan opens a little and the block bobs.
+ */
+function Stage({ versions, children }: { versions: number; children: React.ReactNode }) {
+  const behind = Math.min(versions, 2)
+  return (
+    <span
+      className="relative block aspect-[16/10] overflow-hidden rounded-[14px]"
+      style={{ background: '#FFF2F8', backgroundImage: 'radial-gradient(rgb(255 105 180 / 0.32) 1px, transparent 1.3px)', backgroundSize: '14px 14px' }}
+    >
+      {Array.from({ length: behind }, (_, i) => (
+        <span
+          key={i}
+          className={`absolute inset-x-[14%] bottom-[-12%] top-[16%] rounded-[10px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_10px_20px_-12px_rgb(23_18_26/0.3)] transition-[rotate,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+            i
+              ? 'translate-x-2.5 translate-y-1.5 rotate-[5deg] group-hover/card:translate-x-4 group-hover/card:rotate-[8deg]'
+              : '-translate-x-2.5 translate-y-1 -rotate-[4deg] group-hover/card:-translate-x-4 group-hover/card:-rotate-[7deg]'
+          }`}
+        >
+          <span className="absolute inset-x-3 top-3 block h-1.5 w-1/3 rounded-full bg-[#F3EDF0]" />
+        </span>
+      ))}
+      <span className="absolute inset-x-[14%] bottom-[-12%] top-[10%] overflow-hidden rounded-[10px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_18px_32px_-14px_rgb(194_24_91/0.35)] transition-[translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/card:-translate-y-1">
+        {children}
+      </span>
+      <span
+        aria-hidden
+        className="absolute left-[7%] top-[7%] block size-[22px] -rotate-[12deg] rounded-[6px] transition-[rotate,translate] duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] group-hover/card:-translate-y-1.5 group-hover/card:-rotate-[2deg]"
+        style={{ background: 'linear-gradient(160deg, #FF8CC6, #FF5CB0 60%)', boxShadow: 'inset 0 -3px 0 #C2185B, 0 8px 14px -6px rgb(194 24 91 / 0.6)' }}
+      />
+    </span>
   )
 }

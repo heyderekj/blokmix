@@ -4,7 +4,8 @@ import { resolveGuide } from '@/core/guide'
 import { WEIGHT } from '@/ui/brand/MixMark'
 
 const W = 160
-const H = 100
+/** About the shape of the gallery's page frame, so the drawing fills it without cropping its sides. */
+const H = 142
 /** Height per unit of a section's weight: a hero is 4 units, so the drawing shows the top of the page, like a screenshot. */
 const UNIT = 9
 
@@ -55,27 +56,27 @@ export function MixThumb({ sections, guide }: { sections: SectionType[]; guide: 
 /** One section's shapes inside its band (x from 0 to W, y from `y` to `y + h`). */
 function Band({ type, y, h, p }: { type: SectionType; y: number; h: number; p: Palette }) {
   const r = p.radius
-  const bar = (x: number, by: number, w: number, bh = 2.4, fill = p.muted) => <rect x={x} y={by} width={w} height={bh} rx={bh / 2} fill={fill} />
+  const bar = (x: number, by: number, w: number, bh = 1.6, fill = p.muted) => <rect x={x} y={by} width={w} height={bh} rx={bh / 2} fill={fill} opacity={fill === p.muted ? 0.55 : 0.9} />
   const mid = y + h / 2
   switch (type) {
     case 'nav':
       return (
         <g>
           <rect x={10} y={mid - 2} width={4} height={4} rx={1} fill={p.text} />
-          {bar(17, mid - 1.2, 16, 2.4, p.text)}
-          {bar(92, mid - 1, 10, 2)}
-          {bar(106, mid - 1, 10, 2)}
-          <rect x={124} y={mid - 2.5} width={26} height={5} rx={2.5} fill={p.primary} />
+          {bar(17, mid - 0.9, 16, 1.8, p.text)}
+          {bar(92, mid - 0.8, 10, 1.6)}
+          {bar(106, mid - 0.8, 10, 1.6)}
+          <rect x={126} y={mid - 2.2} width={24} height={4.4} rx={2.2} fill={p.primary} />
         </g>
       )
     case 'hero':
     case 'header':
       return (
         <g>
-          {bar(36, y + h * 0.26, 88, 5, p.text)}
-          {bar(50, y + h * 0.26 + 7, 60, 5, p.text)}
-          {bar(48, y + h * 0.26 + 16, 64, 2.4)}
-          <rect x={64} y={y + h * 0.26 + 22} width={32} height={6} rx={Math.max(r, 3)} fill={p.primary} />
+          {bar(40, y + h * 0.26, 80, 3.2, p.text)}
+          {bar(54, y + h * 0.26 + 5, 52, 3.2, p.text)}
+          {bar(52, y + h * 0.26 + 11.5, 56, 1.4)}
+          <rect x={67} y={y + h * 0.26 + 16.5} width={26} height={4.8} rx={Math.max(r, 2.4)} fill={p.primary} />
         </g>
       )
     case 'logos':
@@ -85,13 +86,13 @@ function Band({ type, y, h, p }: { type: SectionType; y: number; h: number; p: P
     case 'blog':
       return (
         <g>
-          {bar(56, y + 3, 48, 3.5, p.text)}
+          {bar(58, y + 3, 44, 2.4, p.text)}
           {[0, 1, 2].map((i) => (
             <g key={i}>
               <rect x={10 + i * 48} y={y + 10} width={44} height={h - 12} rx={r} fill={p.surface} stroke={p.border} strokeWidth={0.5} />
               <rect x={14 + i * 48} y={y + 13} width={5} height={5} rx={1.5} fill={p.primary} opacity={0.75} />
-              {bar(14 + i * 48, y + h - 9, 24, 2.2, p.text)}
-              {bar(14 + i * 48, y + h - 5.5, 32, 1.8)}
+              {bar(14 + i * 48, y + h - 8.5, 22, 1.6, p.text)}
+              {bar(14 + i * 48, y + h - 5.5, 30, 1.3)}
             </g>
           ))}
         </g>
