@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { confirmAction } from './Confirm'
 import { AnimatePresence, motion } from 'motion/react'
 import { router } from '@inertiajs/react'
 import { Bot, CircleHelp, Download, Eye, LayoutGrid, LogOut, Upload, Users, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
@@ -107,7 +108,13 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
                 try {
                   const file = await readMixFile(f)
                   if (file.clips?.length) return st().showFlash('This mix uses captured clips, which need an account: import it on your Blokmix mixes page.')
-                  if (window.confirm(`Replace the mix in this browser with “${file.name}”? Export this one first if you want to keep it.`)) replaceLocalMix(file, STORAGE_KEY)
+                  const ok = await confirmAction({
+                    title: `Replace this mix with “${file.name}”?`,
+                    body: 'The mix in this browser is replaced. Export it first if you want to keep it.',
+                    confirm: 'Replace',
+                    tone: 'caution',
+                  })
+                  if (ok) replaceLocalMix(file, STORAGE_KEY)
                 } catch (e) {
                   st().showFlash(e instanceof Error ? e.message : String(e))
                 }

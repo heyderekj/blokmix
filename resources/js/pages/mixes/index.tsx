@@ -7,6 +7,7 @@ import { pickFile } from '@/lib/pickFile'
 import type { GuideState, SectionType, Site, Slot, Status, VersionNode } from '@/core/types'
 import { STORAGE_KEY } from '@/state/store'
 import { api, type ServerMix } from '@/lib/mixSync'
+import { confirmAction } from '@/ui/shell/Confirm'
 import { listGuides, type SavedGuide } from '@/lib/styleGuides'
 import { Wordmark } from '@/ui/brand/Wordmark'
 import { LiftedBlock, Slot as BlockSlot } from '@/ui/auth/AuthCard'
@@ -126,7 +127,12 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
 
   /** Delete a mix you own, after asking. */
   const remove = async (m: SavedMix) => {
-    if (!window.confirm(`Delete “${m.name}” and its versions for everyone it’s shared with? This can’t be undone.`)) return
+    const ok = await confirmAction({
+      title: `Delete “${m.name}”?`,
+      body: 'Its versions and uploads go too, for everyone it’s shared with. This can’t be undone.',
+      confirm: 'Delete mix',
+    })
+    if (!ok) return
     const res = await api('DELETE', `/api/mixes/${m.id}`)
     if (res.status === 204) router.reload({ only: ['mixes', 'auth'] })
   }

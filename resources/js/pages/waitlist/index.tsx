@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
 import { ArrowLeft, Check, Copy, Download, Search, Trash2 } from 'lucide-react'
 import { Wordmark } from '@/ui/brand/Wordmark'
+import { confirmAction } from '@/ui/shell/Confirm'
 
 interface Person {
   id: number
@@ -40,8 +41,9 @@ export default function Waitlist({ people }: { people: Person[] }) {
     window.setTimeout(() => setCopied(false), 1600)
   }
 
-  const remove = (p: Person) => {
-    if (!window.confirm(`Take ${p.email} off the waitlist? This can’t be undone.`)) return
+  const remove = async (p: Person) => {
+    const ok = await confirmAction({ title: `Take ${p.email} off the waitlist?`, body: 'They won’t hear when Blokmix opens. This can’t be undone.', confirm: 'Take off' })
+    if (!ok) return
     router.delete(`/waitlist/${p.id}`, { preserveScroll: true })
   }
 

@@ -4,6 +4,7 @@ import type { TokenKey } from '@/core/types'
 import { resolveGuide } from '@/core/guide'
 import { deleteGuide, listGuides, saveGuide, type SavedGuide } from '@/lib/styleGuides'
 import { useStore } from '@/state/store'
+import { confirmAction } from '@/ui/shell/Confirm'
 
 const SWATCH: TokenKey[] = ['color.bg', 'color.text', 'color.primary', 'color.accent']
 
@@ -44,7 +45,8 @@ export function SavedGuides() {
   }
 
   const remove = async (g: SavedGuide) => {
-    if (!window.confirm(`Delete the saved style guide “${g.name}”? Mixes that use it keep their own copy.`)) return
+    const ok = await confirmAction({ title: `Delete “${g.name}”?`, body: 'Mixes that use this style guide keep their own copy.', confirm: 'Delete guide' })
+    if (!ok) return
     if (await deleteGuide(g.id)) setGuides((all) => (all ?? []).filter((x) => x.id !== g.id))
   }
 
