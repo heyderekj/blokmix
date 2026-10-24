@@ -1,0 +1,52 @@
+.mx-content-layout-quote {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container.narrow { max-width: 760px; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .stack { display: flex; flex-direction: column; gap: var(--mx-space-6); }
+  & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+
+  & .head { margin-bottom: var(--mx-space-4); }
+  & .prose { font-size: var(--mx-text-lg); line-height: 1.7; }
+
+  /* The pull quote breaks out of the reading column to the full container. */
+  & .pull {
+    display: grid;
+    justify-items: center;
+    gap: var(--mx-space-5);
+    margin-block: var(--mx-space-8);
+    padding-block: var(--mx-space-8);
+    border-block: var(--mx-stroke) solid var(--mx-color-border);
+    text-align: center;
+  }
+  & .quote {
+    max-width: 24ch;
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-3xl), 4.6vw, var(--mx-text-5xl));
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+  & .quote::before { content: "“"; }
+  & .quote::after { content: "”"; }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .lead { font-size: var(--mx-text-base); }
+    & .prose { font-size: var(--mx-text-base); }
+    & .pull { margin-block: var(--mx-space-7); padding-block: var(--mx-space-7); }
+    & .quote { font-size: var(--mx-text-2xl); }
+  }
+}

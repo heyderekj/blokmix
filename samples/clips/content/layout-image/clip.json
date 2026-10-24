@@ -1,0 +1,12 @@
+{
+  "title": "Wide figure over a reading column",
+  "layoutPattern": "centred-head-wide-figure-narrow-prose",
+  "rhythm": "stack",
+  "motionNotes": "The head rises, then the wide figure settles from 98% and its hills drift up; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

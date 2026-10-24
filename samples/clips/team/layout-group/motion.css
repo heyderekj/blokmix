@@ -1,0 +1,21 @@
+.mx-team-layout-group {
+  & .head > * { animation: mx-team-layout-group-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 50ms; }
+  & .head > :nth-child(3) { animation-delay: 100ms; }
+  & .crowd i { animation: mx-team-layout-group-rise calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) both; animation-delay: 160ms; }
+  & .crowd i:nth-child(2) { animation-delay: 200ms; }
+  & .crowd i:nth-child(3) { animation-delay: 240ms; }
+  & .crowd i:nth-child(4) { animation-delay: 280ms; }
+  & .crowd i:nth-child(5) { animation-delay: 320ms; }
+  & .crowd i:nth-child(6) { animation-delay: 360ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .crowd i { animation-name: mx-team-layout-group-fade; }
+  }
+}
+@keyframes mx-team-layout-group-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes mx-team-layout-group-fade {
+  from { opacity: 0; }
+}

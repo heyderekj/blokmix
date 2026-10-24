@@ -1,0 +1,12 @@
+{
+  "title": "Group photo with a key",
+  "layoutPattern": "wide-group-photo-numbered-key",
+  "rhythm": "stack",
+  "motionNotes": "The head rises, then the silhouettes in the group photo step up one by one; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Four square portraits",
+  "layoutPattern": "split-head-square-portraits-4up",
+  "rhythm": "grid",
+  "motionNotes": "No entrance motion: four square portraits in a row with names underneath.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

@@ -1,0 +1,45 @@
+.mx-content-layout-sticky {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+  & .stack { display: flex; flex-direction: column; gap: var(--mx-space-6); }
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-4 { grid-column-end: span 4; }
+  & .col-6 { grid-column-end: span 6; }
+  & .split { align-items: center; }
+  & .split.top { align-items: start; }
+
+  & .start-7 { grid-column-start: 7; }
+  & .sticky { position: sticky; top: var(--mx-space-8); }
+  & .prose { font-size: var(--mx-text-lg); line-height: 1.7; }
+  & .signoff { padding-top: var(--mx-space-5); border-top: var(--mx-stroke) solid var(--mx-color-border); }
+
+  @media (max-width: 1080px) {
+    & .grid { column-gap: var(--mx-space-5); }
+    & .grid > .side { grid-column: 1 / span 5; }
+    & .grid > .text { grid-column: 7 / span 6; }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .lead { font-size: var(--mx-text-base); }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
+    & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
+    & .grid > .side, & .grid > .text { grid-column: 1 / -1; }
+    & .sticky { position: static; }
+    & .prose { font-size: var(--mx-text-base); }
+  }
+}

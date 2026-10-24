@@ -1,0 +1,12 @@
+{
+  "title": "Prose with a side card",
+  "layoutPattern": "prose-left-lead-and-quote-card-right",
+  "rhythm": "split",
+  "motionNotes": "No entrance motion: the prose reads down the left while the lead and a quote sit in a soft card beside it.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

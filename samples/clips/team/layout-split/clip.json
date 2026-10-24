@@ -1,0 +1,12 @@
+{
+  "title": "Team beside a sticky head",
+  "layoutPattern": "sticky-head-left-member-cards-2up-right",
+  "rhythm": "split",
+  "motionNotes": "No entrance motion: the head holds its place on the left while the member cards run down the right.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}
