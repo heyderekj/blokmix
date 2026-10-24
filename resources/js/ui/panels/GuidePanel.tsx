@@ -142,7 +142,8 @@ export function GuidePanel() {
         )}
       </PanelSection>
 
-      <div className="px-4 py-3.5">
+      {/* Always in reach at the bottom of the panel, however far the guide scrolls. */}
+      <div className="sticky bottom-0 z-10 border-t border-zinc-950/6 px-4 py-3 backdrop-blur-md [background:var(--header-bg)]">
         <button
           type="button"
           onClick={copyValues}

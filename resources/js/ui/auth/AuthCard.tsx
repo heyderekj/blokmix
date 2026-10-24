@@ -83,7 +83,7 @@ export function Submit({ busy, children }: { busy: boolean; children: ReactNode 
     <button
       type="submit"
       disabled={busy}
-      className="btn-key mt-1 h-11 w-full cursor-pointer rounded-full text-[14px] font-semibold"
+      className="btn-block mt-1 h-11 w-full cursor-pointer rounded-full text-[14px] font-semibold"
     >
       {children}
     </button>

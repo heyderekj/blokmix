@@ -123,7 +123,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         </div>
         <AgentAccess />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
-        <MenuItem icon={theme === 'dark' ? Sun : Moon} label={theme === 'dark' ? 'Light chrome' : 'Dark chrome'} onClick={() => st().setUi({ theme: theme === 'dark' ? 'light' : 'dark' })} />
+        <MenuItem icon={theme === 'dark' ? Sun : Moon} label={theme === 'dark' ? 'Light mode' : 'Dark mode'} onClick={() => st().setUi({ theme: theme === 'dark' ? 'light' : 'dark' })} />
         <MenuItem
           icon={CircleHelp}
           label="Keyboard shortcuts"
@@ -299,7 +299,7 @@ function ShipIsland() {
               type="button"
               onClick={() => pressVersionAndFly()}
               title="Save the working mix as a new version (⌘S)"
-              className="btn-key ml-0.5 flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
+              className="btn-lit ml-0.5 flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
             >
               Save version
             </button>

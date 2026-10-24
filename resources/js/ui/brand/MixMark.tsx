@@ -25,10 +25,11 @@ const WEIGHT: Record<SectionType, number> = {
  * the pink block. Saved, it sits in its row; edited since, it lifts out of its slot,
  * tilted with a shadow: the brand's one motion, on your own page.
  */
-export function MixMark({ types, active, edited, size = 32 }: { types: SectionType[]; active: number; edited: boolean; size?: number }) {
+export function MixMark({ types, active, edited, size = 32 }: { types: SectionType[]; active: number | null; edited: boolean; size?: number }) {
   // Long pages keep their first sections; the rest are implied.
   const shown = types.length ? types.slice(0, 8) : (['hero'] as SectionType[])
-  const at = Math.max(0, Math.min(active, shown.length - 1))
+  // null: no pink block (a page with nothing of its own yet).
+  const at = active === null ? -1 : Math.max(0, Math.min(active, shown.length - 1))
   const top = 5
   const height = 22
   const gap = 1.25
@@ -43,7 +44,7 @@ export function MixMark({ types, active, edited, size = 32 }: { types: SectionTy
     y += h + gap
     return r
   })
-  const a = rows[at]
+  const a = rows[at] as { y: number; h: number } | undefined
   const rx = (h: number) => Math.min(1.75, h / 2)
   const lift = edited ? 'translate(1.25px, -2px) rotate(-9deg)' : 'none'
   return (
@@ -53,10 +54,12 @@ export function MixMark({ types, active, edited, size = 32 }: { types: SectionTy
         // The active row is the slot the block came from: carved a little deeper.
         <rect key={i} x={x} y={r.y} width={w} height={r.h} rx={rx(r.h)} fill={`color-mix(in oklab, var(--key-ink) ${i === at ? 22 : 12}%, transparent)`} />
       ))}
-      <g className="bm-mix-block" style={{ transform: lift, transformOrigin: `${x + w / 2}px ${a.y + a.h / 2}px` }}>
-        <rect className="bm-lift" x={x + 1} y={a.y + 1.25} width={w} height={a.h} rx={rx(a.h)} fill="color-mix(in oklab, var(--key-ink) 20%, transparent)" style={{ opacity: edited ? 1 : 0 }} />
-        <rect x={x} y={a.y} width={w} height={a.h} rx={rx(a.h)} fill="#FF69B4" />
-      </g>
+      {a && (
+        <g className="bm-mix-block" style={{ transform: lift, transformOrigin: `${x + w / 2}px ${a.y + a.h / 2}px` }}>
+          <rect className="bm-lift" x={x + 1} y={a.y + 1.25} width={w} height={a.h} rx={rx(a.h)} fill="color-mix(in oklab, var(--key-ink) 20%, transparent)" style={{ opacity: edited ? 1 : 0 }} />
+          <rect x={x} y={a.y} width={w} height={a.h} rx={rx(a.h)} fill="#FF69B4" />
+        </g>
+      )}
     </svg>
   )
 }

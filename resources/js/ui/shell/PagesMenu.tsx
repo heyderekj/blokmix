@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Copy, FileText, MoreHorizontal, PanelBottom, PanelTop, Pencil, Plus, Trash2 } from 'lucide-react'
-import type { Page } from '@/core/types'
+import type { Page, SectionType } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
+import { MixMark } from '../brand/MixMark'
 import { PAGE_TEMPLATES, pageOf, type PageTemplate } from '@/core/site'
 import { useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
@@ -91,7 +92,7 @@ function PageRow({ page, open, only, hasNav, hasFooter }: { page: Page; open: bo
         >
           <span className="min-w-0 flex-1">
             <span className={`block truncate text-[13.5px] ${open ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-700'}`}>{page.title}</span>
-            <span className="block truncate font-mono text-[11px] text-zinc-400">{page.path}</span>
+            {page.path !== '/' && <span className="block truncate font-mono text-[11px] text-zinc-400">{page.path}</span>}
           </span>
         </button>
         {hasNav && (
@@ -240,18 +241,28 @@ function AddPage({ onDone }: { onDone: () => void }) {
   return (
     <div className="px-1.5 pb-1">
       <div className="px-1 pb-1.5 pt-1 text-[11px] font-semibold text-zinc-400">Start from</div>
-      <div className="grid grid-cols-2 gap-1">
-        {(Object.keys(PAGE_TEMPLATES) as PageTemplate[]).map((k) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => add(k)}
-            className="flex cursor-pointer flex-col items-start rounded-lg bg-white px-2.5 py-2 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.07)] transition-[background-color,scale] duration-150 hover:bg-zinc-50 active:scale-[0.97]"
-          >
-            <span className="text-[12.5px] font-semibold text-zinc-800">{k === 'blank' ? 'Blank' : PAGE_TEMPLATES[k].title}</span>
-            <span className="truncate text-[11px] text-zinc-400">{PAGE_TEMPLATES[k].types.length ? PAGE_TEMPLATES[k].types.map((t) => TYPE_LABEL[t]).join(' · ') : 'Just the nav and footer'}</span>
-          </button>
-        ))}
+      <div className="grid grid-cols-2 gap-1.5">
+        {(Object.keys(PAGE_TEMPLATES) as PageTemplate[]).map((k) => {
+          const types = PAGE_TEMPLATES[k].types as readonly SectionType[]
+          // The page it makes, as the Working mix mark draws a page: shared nav, its sections, shared footer; its main section in pink.
+          const page: SectionType[] = ['nav', ...types, 'footer']
+          const main = types.length ? page.indexOf(types.find((t) => t !== 'header' && t !== 'cta') ?? types[0]) : null
+          return (
+            <button
+              key={k}
+              type="button"
+              onClick={() => add(k)}
+              title={types.length ? types.map((t) => TYPE_LABEL[t]).join(' · ') : 'Just the nav and footer'}
+              className="flex min-w-0 cursor-pointer items-center gap-2.5 rounded-xl bg-white p-2 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.07)] transition-[background-color,box-shadow,scale] duration-150 active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_0_0_1px_rgb(0_0_0/0.1),0_6px_14px_-8px_rgb(0_0_0/0.25)]"
+            >
+              <MixMark types={page} active={main} edited={false} size={40} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px] font-semibold text-zinc-800">{k === 'blank' ? 'Blank' : PAGE_TEMPLATES[k].title}</span>
+                <span className="block truncate text-[11.5px] text-zinc-400">{types.length ? `${types.length} sections` : 'Nav and footer'}</span>
+              </span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

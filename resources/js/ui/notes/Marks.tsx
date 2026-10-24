@@ -249,7 +249,7 @@ function Composer({ draft }: { draft: MarkDraft }) {
           <button type="button" onClick={close} className="h-8 rounded-full px-3 text-[12.5px] font-medium text-zinc-600 hover:bg-zinc-950/5">
             Cancel
           </button>
-          <button type="button" disabled={!text.trim()} onClick={save} className="btn-ink cursor-pointer h-8 rounded-full px-3.5 text-[12.5px] font-semibold">
+          <button type="button" disabled={!text.trim()} onClick={save} className="btn-lit btn-ink cursor-pointer h-8 rounded-full px-3.5 text-[12.5px] font-semibold">
             Add note
           </button>
         </div>
@@ -353,7 +353,7 @@ function WordsComposer({ draft, anchor }: { draft: MarkDraft; anchor: Extract<No
         <button type="button" disabled={!changed && !why.trim()} onClick={suggest} className="h-8 rounded-full px-3 text-[12.5px] font-semibold text-zinc-700 hover:bg-zinc-950/5 disabled:opacity-40" title="Leave it as a note (⌘↵)">
           Suggest
         </button>
-        <button type="button" disabled={!changed} onClick={applyNow} className="btn-ink cursor-pointer h-8 rounded-full px-3.5 text-[12.5px] font-semibold" title="Change the words now (↵)">
+        <button type="button" disabled={!changed} onClick={applyNow} className="btn-lit btn-ink cursor-pointer h-8 rounded-full px-3.5 text-[12.5px] font-semibold" title="Change the words now (↵)">
           Change it
         </button>
       </div>

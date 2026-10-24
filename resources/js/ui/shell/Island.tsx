@@ -52,6 +52,8 @@ export function Island({
     return () => ro.disconnect()
   }, [])
   const closedW = barW ? barW + 12 : 'auto' // + the bar row's px-1.5 on both sides
+  // Open, at least as wide as the bar plus room for the close button, so it never sits on the bar's contents.
+  const openW = width && barW ? Math.max(width, barW + 12 + (onClose ? 40 : 0)) : (width ?? 'auto')
 
   const body = (
     <AnimatePresence initial={false}>
@@ -74,7 +76,7 @@ export function Island({
   return (
     <motion.div
       initial={false}
-      animate={{ width: open ? (width ?? 'auto') : closedW, borderRadius: open ? 20 : 16 }}
+      animate={{ width: open ? openW : closedW, borderRadius: open ? 20 : 16 }}
       transition={open ? MORPH : CLOSE}
       className={`glass-panel pointer-events-auto flex flex-col overflow-hidden ${className}`}
       data-chrome
