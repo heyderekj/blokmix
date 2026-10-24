@@ -39,7 +39,9 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Accounts (Fortify: sign up, sign in, sign out; Inertia pages in `pages/auth/`). Sign-up is open. Password reset
   is off until there's a mail service. The board takes your account's name for marks and versions.
 - `/` is your mixes when signed in (`/mixes` redirects there): a gallery of cards, each drawing its first page in its own
-  style guide (`ui/mixes/MixThumb.tsx`) with its versions' status rings. `MarkSignedIn` sets a plain `blokmix_signed_in=1`
+  style guide (`ui/mixes/MixThumb.tsx`, its main heading in the mix's display font) with its versions' status rings.
+  Cards rename in place (`PATCH /api/mixes/{id}/name`, owners and editors, no lock bump) and duplicate
+  (`POST /api/mixes/{id}/duplicate`: data, versions and uploads into a new mix you own); the gallery searches and sorts. `MarkSignedIn` sets a plain `blokmix_signed_in=1`
   cookie while you're signed in, so the edge in front of blokmix.com can send `/` to the app or the website.
 - Password reset by email (Fortify): the "Forgot password?" link shows only when MAIL_MAILER is a real mailer
   (Cloud's Email resource connects Resend). Signing up from a share link names the mix you're invited to.

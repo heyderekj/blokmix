@@ -7,6 +7,7 @@ use App\Models\Mix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,7 +24,7 @@ class MixController extends Controller
     public function index(Request $request): Response
     {
         $mixes = $request->user()->mixes()->withCount('versions')->latest('updated_at')
-            ->get(['mixes.id', 'mixes.short', 'mixes.name', 'mixes.updated_at', 'mixes.data']);
+            ->get(['mixes.id', 'mixes.short', 'mixes.name', 'mixes.created_at', 'mixes.updated_at', 'mixes.data']);
         $ids = $mixes->pluck('id');
         $heads = DB::table('mix_versions')->whereIn('mix_id', $ids)->orderBy('letter')
             ->get(['mix_id', 'letter', 'node->status as status'])->groupBy('mix_id');
@@ -34,7 +35,12 @@ class MixController extends Controller
             'mixes' => $mixes->map(function (Mix $m) use ($heads, $owners) {
                 $site = $m->data['site'] ?? null;
                 $page = $site['pages'][0] ?? null;
-                $sections = collect($page['slots'] ?? [])->pluck('type');
+                $slots = collect($page['slots'] ?? []);
+                $sections = $slots->pluck('type');
+                // The page's main heading, to set in the mix's own display font on its card.
+                $lead = $slots->first(fn ($s) => in_array($s['type'] ?? null, ['hero', 'header'], true));
+                $fields = $lead ? [...($m->data['content']['fields'][$lead['type']] ?? []), ...($lead['words'] ?? [])] : [];
+                $heading = $fields['headline'] ?? $fields['heading'] ?? null;
                 if ($page && ($page['show']['nav'] ?? true) && isset($site['shared']['nav'])) {
                     $sections->prepend($site['shared']['nav']['type'] ?? 'nav');
                 }
@@ -46,8 +52,10 @@ class MixController extends Controller
                     'id' => $m->id,
                     'short' => $m->short,
                     'name' => $m->name,
+                    'created_at' => $m->created_at,
                     'updated_at' => $m->updated_at,
                     'versions' => $m->versions_count,
+                    'heading' => is_string($heading) ? Str::limit(trim($heading), 80) : null,
                     'role' => $m->pivot->role,
                     'owner' => $owners[$m->id] ?? null,
                     'pages' => count($site['pages'] ?? []),

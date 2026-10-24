@@ -21,6 +21,8 @@ function paletteOf(guide: GuideState | null) {
     primary: t['color.primary'] ?? '#ff69b4',
     onPrimary: t['color.onPrimary'] ?? '#ffffff',
     radius: Math.min(4, (parseFloat(t['radius.base'] ?? '8') || 8) / 3),
+    display: t['font.display'] ?? 'Figtree, system-ui, sans-serif',
+    weight: t['type.displayWeight'] ?? '700',
   }
 }
 type Palette = ReturnType<typeof paletteOf>
@@ -29,7 +31,7 @@ type Palette = ReturnType<typeof paletteOf>
  * A mix drawn small: its first page top to bottom, each section as tall as its kind tends to be, with a few shapes
  * that say what it is, painted in the mix's own style guide. Decorative; the card names the mix.
  */
-export function MixThumb({ sections, guide }: { sections: SectionType[]; guide: GuideState | null }) {
+export function MixThumb({ sections, guide, heading }: { sections: SectionType[]; guide: GuideState | null; heading?: string | null }) {
   const p = useMemo(() => paletteOf(guide), [guide])
   let y = 0
   const bands = sections.map((type, i) => {
@@ -43,7 +45,7 @@ export function MixThumb({ sections, guide }: { sections: SectionType[]; guide: 
     <svg viewBox={`0 0 ${W} ${H}`} className="block size-full" preserveAspectRatio="xMidYMin slice" aria-hidden>
       <rect width={W} height={H} fill={p.bg} />
       {bands.length ? (
-        bands.filter((b) => b.y < H).map((b) => <Band key={b.key} type={b.type} y={b.y} h={b.h} p={p} />)
+        bands.filter((b) => b.y < H).map((b, i) => <Band key={b.key} type={b.type} y={b.y} h={b.h} p={p} heading={i === bands.findIndex((x) => x.type === 'hero' || x.type === 'header') ? heading : null} />)
       ) : (
         <text x={W / 2} y={H / 2 + 3} textAnchor="middle" fontSize="8" fill={p.muted} fontFamily="Figtree, system-ui, sans-serif">
           Nothing here yet
@@ -54,7 +56,7 @@ export function MixThumb({ sections, guide }: { sections: SectionType[]; guide: 
 }
 
 /** One section's shapes inside its band (x from 0 to W, y from `y` to `y + h`). */
-function Band({ type, y, h, p }: { type: SectionType; y: number; h: number; p: Palette }) {
+function Band({ type, y, h, p, heading }: { type: SectionType; y: number; h: number; p: Palette; heading?: string | null }) {
   const r = p.radius
   const bar = (x: number, by: number, w: number, bh = 1.6, fill = p.muted) => <rect x={x} y={by} width={w} height={bh} rx={bh / 2} fill={fill} opacity={fill === p.muted ? 0.55 : 0.9} />
   const mid = y + h / 2
@@ -73,8 +75,21 @@ function Band({ type, y, h, p }: { type: SectionType; y: number; h: number; p: P
     case 'header':
       return (
         <g>
-          {bar(40, y + h * 0.26, 80, 3.2, p.text)}
-          {bar(54, y + h * 0.26 + 5, 52, 3.2, p.text)}
+          {heading ? (
+            // The page's real heading, in the mix's display font and weight (two lines at most).
+            <foreignObject x={22} y={y + h * 0.16} width={116} height={14}>
+              <div
+                style={{ fontFamily: p.display, fontWeight: Number(p.weight) || 700, fontSize: 6.2, lineHeight: 1.08, letterSpacing: '-0.02em', color: p.text, textAlign: 'center', textWrap: 'balance', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+              >
+                {heading}
+              </div>
+            </foreignObject>
+          ) : (
+            <>
+              {bar(40, y + h * 0.26, 80, 3.2, p.text)}
+              {bar(54, y + h * 0.26 + 5, 52, 3.2, p.text)}
+            </>
+          )}
           {bar(52, y + h * 0.26 + 11.5, 56, 1.4)}
           <rect x={67} y={y + h * 0.26 + 16.5} width={26} height={4.8} rx={Math.max(r, 2.4)} fill={p.primary} />
         </g>

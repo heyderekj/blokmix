@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/mixes/{mix}', [MixApiController::class, 'show'])->name('mixes.show');
         Route::put('/mixes/{mix}', [MixApiController::class, 'update'])->name('mixes.update');
         Route::delete('/mixes/{mix}', [MixApiController::class, 'destroy'])->name('mixes.destroy');
+        Route::patch('/mixes/{mix}/name', [MixApiController::class, 'rename'])->name('mixes.rename');
+        Route::post('/mixes/{mix}/duplicate', [MixApiController::class, 'duplicate'])->middleware('throttle:20,1')->name('mixes.duplicate');
 
         Route::get('/mixes/{mix}/assets', [AssetController::class, 'index'])->name('assets.index');
         Route::post('/mixes/{mix}/assets', [AssetController::class, 'store'])->name('assets.store');

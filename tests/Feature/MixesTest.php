@@ -6,6 +6,7 @@ use App\Enums\MixRole;
 use App\Models\Mix;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -116,7 +117,7 @@ class MixesTest extends TestCase
     {
         $mix = $this->mine(['name' => 'Drawn', 'data' => [
             'site' => [
-                'pages' => [['id' => 'p1', 'path' => '/', 'title' => 'Home', 'show' => ['nav' => true, 'footer' => false], 'slots' => [['type' => 'hero'], ['type' => 'features']]]],
+                'pages' => [['id' => 'p1', 'path' => '/', 'title' => 'Home', 'show' => ['nav' => true, 'footer' => false], 'slots' => [['type' => 'hero', 'words' => ['headline' => 'Clip the web.']], ['type' => 'features']]]],
                 'shared' => ['nav' => ['type' => 'nav'], 'footer' => ['type' => 'footer']],
             ],
             'guide' => ['base' => ['color.primary' => '#ff69b4'], 'candidates' => [], 'choices' => []],
@@ -130,7 +131,43 @@ class MixesTest extends TestCase
             ->where('mixes.0.pages', 1)
             ->where('mixes.0.guide.base', ['color.primary' => '#ff69b4'])
             ->where('mixes.0.heads', [['letter' => 'A', 'status' => 'approved']])
-            ->where('mixes.0.marks', 1));
+            ->where('mixes.0.marks', 1)
+            ->where('mixes.0.heading', 'Clip the web.'));
+    }
+
+    public function test_renaming_from_the_gallery_keeps_the_lock(): void
+    {
+        $mix = $this->mine(['name' => 'Old']);
+        $this->patchJson("/api/mixes/{$mix->id}/name", ['name' => '  New name '])->assertOk()->assertJson(['name' => 'New name']);
+        $this->assertSame('New name', $mix->fresh()->name);
+        $this->assertSame(1, $mix->fresh()->lock_version);
+
+        $viewer = User::factory()->create();
+        $mix->admit($viewer, MixRole::Viewer);
+        $this->actingAs($viewer)->patchJson("/api/mixes/{$mix->id}/name", ['name' => 'Nope'])->assertForbidden();
+        $this->actingAs(User::factory()->create())->patchJson("/api/mixes/{$mix->id}/name", ['name' => 'Nope'])->assertNotFound();
+    }
+
+    public function test_duplicating_copies_versions_and_uploads_into_a_mix_you_own(): void
+    {
+        Storage::fake('local');
+        config(['blokmix.uploads_disk' => 'local']);
+        $theirs = Mix::create(['name' => 'Theirs', 'data' => ['site' => ['pages' => []]]]);
+        $theirs->admit(User::factory()->create(), MixRole::Owner);
+        $theirs->admit($this->me, MixRole::Viewer);
+        $theirs->versions()->create(['key' => 'v_A', 'letter' => 'A', 'node' => $this->node('A')]);
+        Storage::disk('local')->put("mixes/{$theirs->id}/img_1", 'pixels');
+        $theirs->assets()->create(['key' => 'img_1', 'kind' => 'image', 'name' => 'a.webp', 'mime' => 'image/webp', 'path' => "mixes/{$theirs->id}/img_1"]);
+
+        $res = $this->postJson("/api/mixes/{$theirs->id}/duplicate")->assertCreated()->assertJsonPath('name', 'Theirs copy');
+        $copy = Mix::findOrFail($res->json('id'));
+        $this->assertSame(MixRole::Owner, $copy->roleOf($this->me));
+        $this->assertNotSame($theirs->short, $copy->short);
+        $this->assertSame(['v_A'], $copy->versions()->pluck('key')->all());
+        $this->assertSame("mixes/{$copy->id}/img_1", $copy->assets()->value('path'));
+        Storage::disk('local')->assertExists("mixes/{$copy->id}/img_1");
+
+        $this->actingAs(User::factory()->create())->postJson("/api/mixes/{$theirs->id}/duplicate")->assertNotFound();
     }
 
     public function test_short_addresses_are_unique(): void

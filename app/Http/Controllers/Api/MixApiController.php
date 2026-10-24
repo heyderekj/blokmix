@@ -8,6 +8,8 @@ use App\Models\Mix;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Where the board saves a mix. Saves are optimistic: each names the lock it last
@@ -106,6 +108,59 @@ class MixApiController extends Controller
         }
 
         return $this->withLock(response()->json(['lock' => $mix->lock_version, 'updated_at' => $mix->updated_at]), $mix->lock_version);
+    }
+
+    /**
+     * Rename from the gallery. Only the name changes, and the lock stays as it is, so a board open on this mix
+     * keeps saving (it shows the new name after a reload).
+     */
+    public function rename(Request $request, Mix $mix): JsonResponse
+    {
+        $role = $mix->roleOf($request->user());
+        abort_unless($role, 404);
+        abort_unless($role->canEdit(), 403, 'Viewers can’t rename a mix.');
+        $name = trim($request->validate(['name' => ['required', 'string', 'max:120']])['name']);
+        abort_if($name === '', 422, 'Give the mix a name.');
+        Mix::whereKey($mix->id)->update(['name' => $name, 'updated_at' => now()]);
+
+        return response()->json(['name' => $name]);
+    }
+
+    /**
+     * A copy of a mix you can open: its pages, style guide, words, notes, versions and uploads, as a new mix you own
+     * ("… copy"). Sharing doesn't come along.
+     */
+    public function duplicate(Request $request, Mix $mix): JsonResponse
+    {
+        abort_unless($mix->roleOf($request->user()), 404);
+        $disk = Storage::disk(config('blokmix.uploads_disk'));
+
+        $copy = DB::transaction(function () use ($mix, $request, $disk) {
+            $copy = Mix::create(['name' => Str::limit($mix->name.' copy', 120, ''), 'data' => $mix->data, 'schema' => $mix->schema]);
+            $copy->admit($request->user(), MixRole::Owner);
+            foreach ($mix->versions as $v) {
+                $copy->versions()->create(['key' => $v->key, 'letter' => $v->letter, 'node' => $v->node]);
+            }
+            // Uploads are copied on the disk too, so deleting either mix leaves the other's intact.
+            $copyFile = function (?string $path) use ($disk, $copy): ?string {
+                if ($path === null) {
+                    return null;
+                }
+                $to = "mixes/{$copy->id}/".basename($path);
+                if ($disk->exists($path)) {
+                    $disk->copy($path, $to);
+                }
+
+                return $to;
+            };
+            foreach ($mix->assets as $a) {
+                $copy->assets()->create([...$a->only(['key', 'kind', 'name', 'mime', 'width', 'height', 'size']), 'path' => $copyFile($a->path), 'poster_path' => $copyFile($a->poster_path)]);
+            }
+
+            return $copy;
+        });
+
+        return $this->withLock(response()->json($copy->load('versions')->toBoard(), 201), $copy->lock_version);
     }
 
     public function destroy(Request $request, Mix $mix): JsonResponse
