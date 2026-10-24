@@ -19,6 +19,7 @@ import type {
   ProjectContent,
   SectionMotion,
   SectionSpacing,
+  MobileSpacing,
   SectionType,
   Slot,
   Status,
@@ -316,6 +317,15 @@ export const useStore = create<State>()(
                   if (m) for (const k of Object.keys(m) as (keyof BlockMotion)[]) if (m[k] === undefined) delete m[k]
                   next.motion = m && Object.keys(m).length ? m : undefined
                 }
+                if (patch.mobile !== undefined) {
+                  // Phones: merged like style; a value that matches desktop (or nothing set) falls away.
+                  const cur = forClip[blockId]?.mobile
+                  const ms = patch.mobile && patch.mobile.style !== undefined ? (patch.mobile.style ? { ...cur?.style, ...patch.mobile.style } : {}) : { ...cur?.style }
+                  for (const k of Object.keys(ms) as (keyof MobileSpacing)[]) if (ms[k] === undefined || ms[k] === next.style?.[k]) delete ms[k]
+                  const hidden = patch.mobile && 'hidden' in patch.mobile ? patch.mobile.hidden : cur?.hidden
+                  const m = { ...(Object.keys(ms).length ? { style: ms } : {}), ...(hidden ? { hidden: true } : {}) }
+                  next.mobile = Object.keys(m).length ? m : undefined
+                }
                 for (const k of Object.keys(next) as (keyof BlockEdit)[]) if (next[k] === undefined) delete next[k]
                 if (next.style) for (const k of Object.keys(next.style) as (keyof BlockStyle)[]) if (next.style[k] === undefined) delete next.style[k]
                 if (next.style && !Object.keys(next.style).length) delete next.style
@@ -361,7 +371,12 @@ export const useStore = create<State>()(
           setSectionSpacing: (slotId, patch) =>
             updateSlot(slotId, (s) => {
               const spacing = { ...s.spacing, ...patch }
-              for (const k of Object.keys(spacing) as (keyof SectionSpacing)[]) if (!spacing[k] || spacing[k] === 'default') delete spacing[k]
+              for (const k of ['top', 'bottom'] as const) if (!spacing[k] || spacing[k] === 'default') delete spacing[k]
+              // Phones: merged; a side that matches desktop falls away.
+              const mobile = { ...s.spacing?.mobile, ...patch.mobile }
+              for (const k of ['top', 'bottom'] as const) if (!mobile[k] || mobile[k] === (spacing[k] ?? 'default')) delete mobile[k]
+              if (Object.keys(mobile).length) spacing.mobile = mobile
+              else delete spacing.mobile
               return { ...s, spacing: Object.keys(spacing).length ? spacing : undefined }
             }),
           setSectionMotion: (slotId, motion) =>

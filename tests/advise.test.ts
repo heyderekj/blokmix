@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { BlockInfo, TokenSet } from '@/core/types'
+import type { BlockEdit, BlockInfo, TokenSet } from '@/core/types'
 import { BASE_TOKENS } from '@/core/tokens'
 import { advise, refToHex, suggestedVariants } from '@/core/advise'
 
@@ -85,5 +85,29 @@ describe('variant feel', () => {
     expect(gateHover('color: red; &:hover { color: blue; }')).toBe('color: red; @media (hover: hover) and (pointer: fine) { &:hover { color: blue; } }')
     for (const v of Object.values(VARIANTS).flat()) expect(v!.css.replace(/@media \(hover: hover\) and \(pointer: fine\) \{ &:hover/g, '')).not.toMatch(/&:hover/)
     expect(VARIANTS.button!.find((v) => v.id === 'solid')!.css).toContain('scale: 0.97')
+  })
+})
+
+describe('advice per width', () => {
+  const t = [b('t', 'text', { parent: null, field: 'body' })]
+  const long = { body: 'word '.repeat(60) }
+
+  it('names the width it measured at', () => {
+    const a = advise({ blocks, edits: {}, tokens, fields, rects: { b2: { w: 120, h: 30 } }, width: 390 })
+    expect(a.find((x) => x.rule === 'tap-target')?.message).toMatch(/^At 390px, small to tap/)
+    expect(advise({ blocks, edits: {}, tokens, fields, rects: { b2: { w: 120, h: 30 } } }).find((x) => x.rule === 'tap-target')?.message).toMatch(/^Small to tap/)
+  })
+
+  it('reads phone spacing and hiding at phone widths, and fixes spacing for phones only', () => {
+    const list = [b('L', 'list', { parent: null }), b('c1', 'card', { parent: 'L' }), b('c2', 'card', { parent: 'L' }), b('c3', 'card', { parent: 'L' })]
+    const edits: Record<string, BlockEdit> = { c1: { style: { below: 4 } }, c2: { style: { below: 4 } }, c3: { style: { below: 4 }, mobile: { style: { below: 8 } } } }
+    expect(advise({ blocks: list, edits, tokens, fields, width: 1280 }).some((x) => x.rule === 'rhythm')).toBe(false)
+    const phone = advise({ blocks: list, edits, tokens, fields, width: 390 }).find((x) => x.rule === 'rhythm')!
+    expect(phone.blockId).toBe('c3')
+    expect(phone.fix?.edit).toEqual({ mobile: { style: { below: 4 } } })
+    // Hidden on phones: nothing to say about it there, but desktop still checks it.
+    const hidden = { t: { mobile: { hidden: true } } }
+    expect(advise({ blocks: t, edits: hidden, tokens, fields: long, rects: { t: { w: 1100, h: 80 } }, width: 390 }).some((x) => x.rule === 'line-length')).toBe(false)
+    expect(advise({ blocks: t, edits: hidden, tokens, fields: long, rects: { t: { w: 1100, h: 80 } }, width: 1280 }).some((x) => x.rule === 'line-length')).toBe(true)
   })
 })

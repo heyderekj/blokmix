@@ -1,6 +1,24 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useStore } from '@/state/store'
 import { runCommand, tools } from '@/state/commands'
+
+// The checklist lays the page out in hidden frames; here a fake layout stands in, per width.
+const measured = vi.hoisted(() => ({ calls: [] as number[] }))
+vi.mock('@/lib/measure', async (orig) => {
+  const real = await orig<typeof import('@/lib/measure')>()
+  return {
+    ...real,
+    measurePage: vi.fn(async (width: number) => {
+      measured.calls.push(width)
+      const { useStore } = await import('@/state/store')
+      const { slotClip } = await import('@/data/library')
+      const hero = useStore.getState().slots.find((s) => s.type === 'hero')!
+      const btn = slotClip(hero).blocks.find((b) => b.kind === 'button')!
+      // The hero's button is a comfortable size on desktop and too small on a phone.
+      return { [hero.id]: { [btn.id]: { x: 0, y: 0, w: 140, h: width === 390 ? 30 : 48 } } }
+    }),
+  }
+})
 
 type Page = { sections: { id: string; type: string; blocks: { id: string; kind: string; label: string; look: string | null; style: Record<string, unknown> | null }[] }[] }
 
@@ -58,7 +76,59 @@ describe('commands', () => {
   it('suggests options and reviews against the checklist', () => {
     const opts = runCommand('get_options', { at: 2 }) as { types: { type: string; reason: string }[] }
     expect(opts.types[0].reason.length).toBeGreaterThan(0)
-    expect(Array.isArray(runCommand('review', {}))).toBe(true)
+  })
+})
+
+describe('mobile commands', () => {
+  type Block = Page['sections'][0]['blocks'][0] & { hidden: boolean; mobile: { style?: Record<string, number>; hidden?: boolean } | null }
+  const heroBlocks = () => (runCommand('get_page', { section: 'hero' }) as { sections: { blocks: Block[]; spacing: unknown }[] }).sections[0]
+
+  it('set_block sets phone spacing and hiding, as one undo step, and get_page reports it', () => {
+    const btn = heroBlocks().blocks.find((b) => b.kind === 'button')!
+    const steps = useStore.temporal.getState().pastStates.length
+    runCommand('set_block', { section: 'hero', block: btn.id, style: { padding: 4 }, mobile: { style: { padding: 2 }, hidden: true } })
+    expect(useStore.temporal.getState().pastStates.length).toBe(steps + 1)
+    let b = heroBlocks().blocks.find((x) => x.id === btn.id)!
+    expect(b.style).toEqual({ padding: 4 })
+    expect(b.mobile).toEqual({ style: { padding: 2 }, hidden: true })
+    expect(b.hidden).toBe(false)
+    // Phone values merge; null goes back to desktop; a value that matches desktop falls away.
+    runCommand('set_block', { section: 'hero', block: btn.id, mobile: { style: { below: 6, padding: null }, hidden: false } })
+    expect(heroBlocks().blocks.find((x) => x.id === btn.id)!.mobile).toEqual({ style: { below: 6 } })
+    runCommand('set_block', { section: 'hero', block: btn.id, mobile: { style: { below: null, padding: 4 } } })
+    expect(heroBlocks().blocks.find((x) => x.id === btn.id)!.mobile).toBeNull()
+    runCommand('set_block', { section: 'hero', block: btn.id, mobile: { hidden: true } })
+    runCommand('set_block', { section: 'hero', block: btn.id, mobile: null })
+    b = heroBlocks().blocks.find((x) => x.id === btn.id)!
+    expect(b.mobile).toBeNull()
+  })
+
+  it('set_section_spacing takes phone spacing', () => {
+    runCommand('set_section_spacing', { section: 'hero', top: 'roomy', mobile: { top: 'tight', bottom: 'none' } })
+    expect(heroBlocks().spacing).toEqual({ top: 'roomy', mobile: { top: 'tight', bottom: 'none' } })
+    runCommand('set_section_spacing', { section: 'hero', mobile: { bottom: null } })
+    expect(heroBlocks().spacing).toEqual({ top: 'roomy', mobile: { top: 'tight' } })
+    // Back to the clip's own padding on phones only.
+    runCommand('set_section_spacing', { section: 'hero', mobile: { top: 'default' } })
+    expect(heroBlocks().spacing).toEqual({ top: 'roomy', mobile: { top: 'default' } })
+    runCommand('set_section_spacing', { section: 'hero', mobile: null })
+    expect(heroBlocks().spacing).toEqual({ top: 'roomy' })
+  })
+
+  it('review measures at both widths and says which', async () => {
+    measured.calls = []
+    type Item = { section: string; rule: string; at: number; message: string }
+    const all = (await runCommand('review', { section: 'hero' })) as Item[]
+    expect(measured.calls.sort((a, b) => a - b)).toEqual([390, 1280])
+    const tap = all.filter((a) => a.rule === 'tap-target')
+    expect(tap.map((a) => a.at)).toEqual([390])
+    expect(tap[0].message).toMatch(/^At 390px/)
+    // Advice that reads the same at both widths comes once, at desktop.
+    expect(all.filter((a) => a.at === 390).every((a) => !all.some((d) => d.at === 1280 && d.message === a.message && d.rule === a.rule))).toBe(true)
+    measured.calls = []
+    const desk = (await runCommand('review', { section: 'hero', widths: ['desktop'] })) as Item[]
+    expect(measured.calls).toEqual([1280])
+    expect(desk.every((a) => a.at === 1280)).toBe(true)
   })
 })
 

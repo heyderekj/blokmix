@@ -9,7 +9,7 @@ import { library, slotClip } from '@/data/library'
 import { Switch } from '../panels/parts'
 import { useStore } from '@/state/store'
 import { MORPH } from '../shell/Island'
-import { SectionSpacingRows } from '../blocks/Spacing'
+import { DeviceSwitch, SectionSpacingRows, useDevice } from '../blocks/Spacing'
 import { SectionMotionRows } from '../blocks/MotionMenu'
 
 export const KEEPS: { key: keyof Keep; label: string; icon: typeof Type; on: string; off: string; n: number }[] = [
@@ -261,14 +261,59 @@ function LookTab({ slot }: { slot: Slot }) {
         </button>
       </div>
       {slot.type === 'nav' && <BannerRow slot={slot} />}
-      <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
-        <div className="mb-2 text-[11px] font-semibold text-zinc-400">Section spacing</div>
-        <SectionSpacingRows slot={slot} />
-      </div>
+      <SpacingGroup slot={slot} />
       <div className="mt-3 border-t border-zinc-950/6 pt-3">
         <div className="mb-2 text-[11px] font-semibold text-zinc-400">Section motion</div>
         <SectionMotionRows slot={slot} />
       </div>
+    </div>
+  )
+}
+
+/** Section spacing for desktop or phones, and the blocks this section hides on phones. */
+function SpacingGroup({ slot }: { slot: Slot }) {
+  const [device, setDevice] = useDevice()
+  const edits = slot.edits?.[slot.clipId] ?? {}
+  const hiddenOnPhones = Object.entries(edits).filter(([, e]) => e.mobile?.hidden && !e.hidden)
+  // Show them all again as one undo step.
+  const showAll = () =>
+    useStore.setState((st) => ({
+      slots: st.slots.map((x) => {
+        if (x.id !== slot.id) return x
+        const forClip = { ...x.edits?.[x.clipId] }
+        for (const [id] of hiddenOnPhones) {
+          const { mobile, ...rest } = forClip[id]
+          const m = mobile?.style ? { style: mobile.style } : undefined
+          const next = m ? { ...rest, mobile: m } : rest
+          if (Object.keys(next).length) forClip[id] = next
+          else delete forClip[id]
+        }
+        return { ...x, edits: { ...x.edits, [x.clipId]: forClip } }
+      }),
+    }))
+  return (
+    <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
+      <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-zinc-400">
+        Section spacing
+        <DeviceSwitch value={device} onChange={setDevice} />
+      </div>
+      <SectionSpacingRows slot={slot} device={device} />
+      {hiddenOnPhones.length > 0 && (
+        <div className="mt-2 flex items-center gap-1 text-[11.5px] text-zinc-500">
+          Hidden on mobile ({hiddenOnPhones.length}) ·
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              showAll()
+              useStore.getState().showFlash('Shown on mobile again', { undo: true })
+            }}
+            className="cursor-pointer font-medium text-zinc-700 hover:text-zinc-950"
+          >
+            Show
+          </button>
+        </div>
+      )}
     </div>
   )
 }

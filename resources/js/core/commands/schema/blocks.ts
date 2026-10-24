@@ -1,12 +1,41 @@
 import { z } from 'zod'
 import { BLOCK_KINDS, MEDIA_PLAY, PLACEHOLDER_STYLES, ENTER_PRESETS } from '../../types'
-import { section, block, style, speed, blockMotion } from './shared'
+import { section, block, style, speed, blockMotion, space } from './shared'
+
+const sectionSpace = z.enum(['none', 'tight', 'default', 'roomy'])
+
+/** Phones (≤760px): spacing and hiding that differ from desktop. */
+const mobile = z
+  .object({
+    style: z
+      .object({
+        padding: space.nullable().optional(),
+        above: space.nullable().optional(),
+        below: space.nullable().optional(),
+        gap: space.nullable().optional(),
+      })
+      .optional()
+      .describe('Spacing on phones; null goes back to the desktop value'),
+    hidden: z.boolean().optional().describe('Hide it on phones only; it stays in the markup and the content file'),
+  })
+  .nullable()
+  .describe('Phone widths (760px and below) only. null clears every phone change. Check the result with review (it measures at 1280 and 390).')
 
 /** Commands that change one block, or every block of a kind. */
 export const BLOCK_COMMANDS = {
   set_block: {
-    description: 'Change one block: its look (a variant id from get_options, or null for the original), its style and spacing, its motion, or hide it. reset clears all changes.',
-    input: z.object({ section, block, look: z.string().nullable().optional(), style: style.optional(), motion: blockMotion.optional(), hidden: z.boolean().optional(), reset: z.boolean().optional() }),
+    description:
+      'Change one block: its look (a variant id from get_options, or null for the original), its style and spacing, its motion, or hide it (hidden: everywhere; mobile.hidden: on phones only). mobile sets spacing just for phones. reset clears all changes.',
+    input: z.object({
+      section,
+      block,
+      look: z.string().nullable().optional(),
+      style: style.optional(),
+      motion: blockMotion.optional(),
+      hidden: z.boolean().optional(),
+      mobile: mobile.optional(),
+      reset: z.boolean().optional(),
+    }),
     write: true,
   },
   use_look_for_all: {
@@ -20,8 +49,13 @@ export const BLOCK_COMMANDS = {
     write: true,
   },
   set_section_spacing: {
-    description: 'A section’s top and bottom padding relative to the style guide.',
-    input: z.object({ section, top: z.enum(['none', 'tight', 'default', 'roomy']).optional(), bottom: z.enum(['none', 'tight', 'default', 'roomy']).optional() }),
+    description: 'A section’s top and bottom padding relative to the style guide, and optionally different on phones (mobile; null goes back to the desktop spacing).',
+    input: z.object({
+      section,
+      top: sectionSpace.optional(),
+      bottom: sectionSpace.optional(),
+      mobile: z.object({ top: sectionSpace.nullable().optional(), bottom: sectionSpace.nullable().optional() }).nullable().optional(),
+    }),
     write: true,
   },
   set_image: {

@@ -110,6 +110,8 @@ export function describeSection(slot: Slot, position: number) {
         image: b.kind === 'image' ? (e?.media ?? null) : undefined,
         link: b.linkable ? links[b.id]?.href : undefined,
         hidden: !!e?.hidden,
+        // What differs on phones (≤760px): spacing, or hidden there only.
+        mobile: e?.mobile ?? null,
       }
     }),
   }
@@ -161,12 +163,15 @@ export const itemsOf = (slot: Slot, listId: string) => slotClip(slot).blocks.fil
 export const clean = <T extends object>(o: T) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>
 
 
-export function adviceFor(slot: Slot) {
+/** The checklist for one section; with a width and its measured boxes, at that width. */
+export function adviceFor(slot: Slot, at?: { width: number; rects?: Record<string, { w: number; h: number }> }) {
   const st = useStore.getState()
   const clip = slotClip(slot)
   return advise({
     blocks: clip.blocks,
-      sectionType: clip.type,
+    sectionType: clip.type,
+    width: at?.width,
+    rects: at?.rects,
     edits: slot.edits?.[clip.id],
     components: st.guide.components,
     tokens: resolveGuide(st.guide).tokens,

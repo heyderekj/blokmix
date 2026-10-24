@@ -1,4 +1,4 @@
-import type { LinkTarget, BlockEdit, BlockMotion, BlockStyle, MediaFill } from '@/core/types'
+import type { LinkTarget, BlockEdit, BlockMotion, BlockStyle, MediaFill, SectionSpacing } from '@/core/types'
 import { detectLink } from '@/core/media'
 import { ICON_NAMES, blockIconName } from '@/core/icons'
 import { type CommandInput } from '@/core/commands/schema'
@@ -26,6 +26,8 @@ export const write = {
     if (style) patch.style = style
     if (i.motion) patch.motion = Object.fromEntries(Object.entries(i.motion).map(([k, v]) => [k, v === null || v === 'normal' ? undefined : v])) as Partial<BlockMotion>
     if (i.hidden !== undefined) patch.hidden = i.hidden || undefined
+    if (i.mobile === null) patch.mobile = undefined
+    else if (i.mobile) patch.mobile = { ...(i.mobile.style ? { style: styleFrom(i.mobile.style) } : {}), ...(i.mobile.hidden !== undefined ? { hidden: i.mobile.hidden } : {}) }
     if (Object.keys(patch).length) st.editBlock(slot.id, b.id, patch)
     return describeSection(findSection(slot.id), 0).blocks.find((x) => x.id === b.id)
   },
@@ -52,7 +54,10 @@ export const write = {
   },
   set_section_spacing: (i: CommandInput<'set_section_spacing'>) => {
     const slot = findSection(i.section)
-    useStore.getState().setSectionSpacing(slot.id, clean({ top: i.top, bottom: i.bottom }))
+    const patch: Partial<SectionSpacing> = clean({ top: i.top, bottom: i.bottom })
+    // Only the sides you name change on phones; null (for one side or all) follows desktop again.
+    if (i.mobile !== undefined) patch.mobile = i.mobile === null ? { top: undefined, bottom: undefined } : Object.fromEntries(Object.entries(i.mobile).map(([k, v]) => [k, v ?? undefined]))
+    useStore.getState().setSectionSpacing(slot.id, patch)
     return { spacing: findSection(slot.id).spacing ?? {} }
   },
   set_image: (i: CommandInput<'set_image'>) => {

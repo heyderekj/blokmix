@@ -30,6 +30,8 @@ const slots: Slot[] = allLayouts
       lists: demoLists(clipId),
       // Every other section uses a staggered preset instead of its own motion.
       motion: i % 2 ? ({ mode: 'preset', enter: 'rise', stagger: true, onScroll: true } as const) : undefined,
+      // Every third section is tighter on phones.
+      spacing: i % 3 === 0 ? { mobile: { top: 'tight' as const, bottom: 'tight' as const } } : undefined,
       // A spread of block looks, so the build check covers restyled blocks too.
       edits: {
         [clipId]: {
@@ -40,10 +42,12 @@ const slots: Slot[] = allLayouts
               .map((b, j) => [
                 b.id,
                 j === 0
-                  ? { variant: b.kind === 'button' ? 'outline' : b.kind === 'heading' ? 'marker' : 'rounded', style: { fill: 'x:Sunset' }, motion: { hover: 'lift' as const } }
+                  ? { variant: b.kind === 'button' ? 'outline' : b.kind === 'heading' ? 'marker' : 'rounded', style: { fill: 'x:Sunset' }, motion: { hover: 'lift' as const }, mobile: { style: { padding: 2 as const } } }
                   : { style: { radius: 'lg' as const }, motion: { scroll: 'reveal' as const, loop: j === 2 ? ('float' as const) : undefined } },
               ]),
           ),
+          // Badges sit out on phones (still in the markup and content), so the build check covers mobile edits.
+          ...Object.fromEntries(library.clips[clipId].blocks.filter((b) => b.kind === 'badge').map((b) => [b.id, { mobile: { hidden: true } }])),
           // Every image block gets a placeholder picture, cycling through the styles.
           ...Object.fromEntries(
             library.clips[clipId].blocks
