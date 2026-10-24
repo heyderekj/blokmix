@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AssetController;
+use App\Http\Controllers\Api\ClipController;
 use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\Api\UnsplashController;
 use App\Http\Controllers\MixController;
@@ -29,6 +30,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/mixes/{mix}/assets', [AssetController::class, 'store'])->name('assets.store');
         Route::get('/mixes/{mix}/assets/{key}', [AssetController::class, 'show'])->name('assets.show');
         Route::get('/mixes/{mix}/assets/{key}/poster', [AssetController::class, 'poster'])->name('assets.poster');
+
+        Route::get('/clips', [ClipController::class, 'index'])->name('clips.index');
+        Route::post('/clips', [ClipController::class, 'store'])->middleware('throttle:30,1')->name('clips.store');
 
         Route::get('/unsplash/search', [UnsplashController::class, 'search'])->middleware('throttle:60,1')->name('unsplash.search');
         Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');

@@ -18,6 +18,11 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public function clips(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Clip::class);
+    }
+
     /** The mixes this person can open, with their role in each. */
     public function mixes(): BelongsToMany
     {

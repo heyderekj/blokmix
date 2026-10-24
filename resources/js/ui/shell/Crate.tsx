@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { isHosted } from '@/lib/host'
+import { pickFile } from '@/lib/pickFile'
+import { addClipZip, useUserClips } from '@/lib/userClips'
 import { createPortal } from 'react-dom'
-import { Scissors } from 'lucide-react'
+import { Plus, Scissors } from 'lucide-react'
 import type { Clip, SectionType } from '@/core/types'
 import { SECTION_TYPES } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -31,6 +34,8 @@ export function Crate() {
   }, [focusedId])
 
   const [shelf, setShelf] = useState<'clips' | 'layouts'>('clips')
+  // Clips added from your account change the library; redraw when they arrive.
+  useUserClips((s) => s.ids.length)
   const pool = (t: SectionType) => (shelf === 'layouts' ? library.layoutsByType[t] : library.byType[t].filter((id) => library.clips[id].origin === 'clip'))
   const ids = effective === 'all' ? SECTION_TYPES.flatMap(pool) : pool(effective)
   const scroller = useRef<HTMLDivElement>(null)
@@ -58,6 +63,26 @@ export function Crate() {
         <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[11.5px] text-zinc-500">
           <Scissors size={13} /> Drag onto a section, or click to drop in
         </span>
+        {isHosted() && (
+          <button
+            type="button"
+            onClick={() =>
+              pickFile('.zip,application/zip', async (f) => {
+                try {
+                  const added = await addClipZip(f)
+                  setShelf('clips')
+                  st().showFlash(`Added ${added.map((id) => library.clips[id]?.title ?? id).join(', ')} to your clips`)
+                } catch (e) {
+                  st().showFlash(e instanceof Error ? e.message : String(e))
+                }
+              })
+            }
+            title="Add a clip the Blokmix extension saved (its .zip)"
+            className={`flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold text-zinc-700 transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.97] ${chip}`}
+          >
+            <Plus size={13} /> Add a captured clip
+          </button>
+        )}
       </div>
       {/* full-bleed scrollers: content runs to the panel's edge, but rests aligned with the padding */}
       <div className="fade-x mb-2.5 flex scroll-px-3 items-center gap-1 overflow-x-auto px-3 py-0.5 no-scrollbar">

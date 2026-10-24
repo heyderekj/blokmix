@@ -131,3 +131,26 @@ export function allFonts(lib: Library) {
   for (const s of Object.values(lib.sources)) for (const f of s.fonts) seen.set(f.family, f)
   return [...seen.values()]
 }
+
+/**
+ * Add clips to a library that's already in use (an account's captured clips, loaded
+ * after the built-in samples). Its own clips come before the layouts, as in
+ * buildLibrary. Returns the ids added; clips already there are left alone.
+ */
+export function extendLibrary(lib: Library, sources: Source[], raws: RawClip[]): string[] {
+  const fresh = sources.filter((s) => !lib.sources[s.id])
+  const extra = buildLibrary([...Object.values(lib.sources), ...fresh], raws)
+  for (const s of fresh) lib.sources[s.id] = s
+  const added = Object.keys(extra.clips).filter((id) => !lib.clips[id])
+  for (const id of added) {
+    const clip = extra.clips[id]
+    lib.clips[id] = clip
+    const layouts = lib.layoutsByType[clip.type]
+    const isLayout = extra.layoutsByType[clip.type].includes(id)
+    if (isLayout) layouts.push(id)
+    const yours = lib.byType[clip.type].filter((x) => !layouts.includes(x))
+    lib.byType[clip.type] = [...(isLayout ? yours : [...yours, id]).sort(), ...layouts]
+  }
+  lib.warnings.push(...extra.warnings.filter((w) => added.includes(w.clipId)))
+  return added
+}

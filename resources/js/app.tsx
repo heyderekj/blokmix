@@ -10,6 +10,7 @@ import { runCommand, tools } from '@/state/commands'
 import { startAgentLink } from '@/lib/agentLink'
 import { loadAssets } from '@/lib/assets'
 import { isHosted } from '@/lib/host'
+import { loadUserClips } from '@/lib/userClips'
 
 if (import.meta.env.DEV) Object.assign(window, { __mx: { store: useStore, library, canvas: canvasApi } })
 // The same commands the app uses, for scripts and agents: blokmix.tools(), blokmix.run(name, input).
@@ -22,6 +23,8 @@ void loadAssets()
 
 if (isHosted()) {
   // Served by Laravel: an Inertia app, one page component per route (resources/js/pages).
+  // Your account's captured clips join the library first, so mixes that use them open whole.
+  await loadUserClips()
   const pages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx', { eager: true })
   void createInertiaApp({
     resolve: (name) => {
