@@ -1,9 +1,9 @@
 {
   "id": "layout",
   "kind": "layout",
-  "name": "Mixtape layout",
-  "url": "https://mixtape.example/layouts/",
-  "personality": "Mixtape's built-in layouts: polished and neutral. Clean Inter type, near-black ink on white, soft 10px corners, generous spacing, one quiet pink accent. Structure first, so your style guide can take over.",
+  "name": "Blokmix layout",
+  "url": "https://blokmix.example/layouts/",
+  "personality": "Blokmix's built-in layouts: polished and neutral. Clean Inter type, near-black ink on white, soft 10px corners, generous spacing, one quiet pink accent. Structure first, so your style guide can take over.",
   "tokens": {
     "color.bg": "#ffffff",
     "color.surface": "#f5f5f4",

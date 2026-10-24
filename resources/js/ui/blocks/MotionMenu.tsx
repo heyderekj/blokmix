@@ -72,7 +72,7 @@ export function MotionMenu({
           type="button"
           onClick={() => setOpen(open === t ? null : t)}
           className={`mx-0.5 rounded-md px-1 py-px font-medium underline decoration-dotted decoration-1 underline-offset-[5px] transition ${
-            open === t ? 'bg-zinc-900 text-white decoration-transparent' : v ? 'bg-tape/15 text-zinc-900 hover:bg-tape/25' : 'text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-800'
+            open === t ? 'bg-zinc-900 text-white decoration-transparent' : v ? 'bg-key/15 text-zinc-900 hover:bg-key/25' : 'text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-800'
           }`}
         >
           {PHRASE[t](v)}

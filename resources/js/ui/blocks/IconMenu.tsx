@@ -74,7 +74,7 @@ export function IconSetPicker({ value, onChange }: { value: string; onChange: (v
             ))}
           </span>
           <span className="flex-1 text-[12.5px] font-medium text-zinc-700">{s.label}</span>
-          {value === s.id && <span className="size-1.5 rounded-full bg-tape" />}
+          {value === s.id && <span className="size-1.5 rounded-full bg-key" />}
         </button>
       ))}
     </div>

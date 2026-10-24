@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
 import { temporal } from 'zundo'
 import type {
   BlockEdit,
@@ -76,14 +76,14 @@ export interface UiState {
   myName: string
   /** The block selected inside the focused section (b3), if any. */
   selectedBlockId: string | null
-  /** Let a local agent (via the MCP bridge) edit this tape. Off until you turn it on. */
+  /** Let a local agent (via the MCP bridge) edit this mix. Off until you turn it on. */
   agentAccess: boolean
   /** The mark whose card is open on the canvas. */
   openNoteId: string | null
 }
 
-export interface TapeData {
-  tapeName: string
+export interface MixData {
+  mixName: string
   slots: Slot[]
   guide: GuideState
   content: ProjectContent
@@ -94,14 +94,14 @@ export interface TapeData {
   framePos: Record<string, { x: number; y: number }>
 }
 
-export interface State extends TapeData {
+export interface State extends MixData {
   ui: UiState
   camera: Camera | null
   agent: AgentState
   shuffleSeq: number
   flash: { id: number; text: string; undo?: boolean } | null
 
-  // tape
+  // mix
   cycle: (slotId: string, dir: 1 | -1) => void
   setClip: (slotId: string, clipId: string) => void
   shuffle: () => void
@@ -136,7 +136,7 @@ export interface State extends TapeData {
   clearComponent: (kind: BlockKind) => void
   addSwatch: (name: string, value: string) => string
   removeSwatch: (id: string) => void
-  renameTape: (name: string) => void
+  renameMix: (name: string) => void
 
   // guide + copy
   promoteClip: (clipId: string, groups: TokenGroup[]) => void
@@ -211,6 +211,40 @@ function leading<T extends (...a: never[]) => void>(fn: T, ms: number): T {
     if (now - last > ms) fn(...args)
     last = now
   }) as T
+}
+
+/** Where saved work lives in this browser. Before the rename it lived under the old name. */
+export const STORAGE_KEY = 'blokmix:v1'
+const LEGACY_KEY = 'mixtape:v1'
+
+/**
+ * Storage that reads saved work from before the rename when there's none under
+ * the new name, and forgets the old copy once the new one is written.
+ */
+export function carryOver(ls: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>) {
+  return {
+    getItem: (k: string) => ls.getItem(k) ?? (k === STORAGE_KEY ? ls.getItem(LEGACY_KEY) : null),
+    setItem: (k: string, v: string) => {
+      ls.setItem(k, v)
+      if (k === STORAGE_KEY) ls.removeItem(LEGACY_KEY)
+    },
+    removeItem: (k: string) => ls.removeItem(k),
+  }
+}
+
+/** Saved state in today's words: "proof" sections are "testimonials", and what was the tape's name is the mix's. */
+export function renamedState(persisted: unknown): Record<string, unknown> {
+  const p = JSON.parse(
+    JSON.stringify(persisted ?? {})
+      .replace(/"proof\./g, '"testimonials.')
+      .replace(/"type":"proof"/g, '"type":"testimonials"')
+      .replace(/mx-proof-/g, 'mx-testimonials-'),
+  ) as Record<string, unknown>
+  // Saved before the rename: the mix's name was "tapeName".
+  const old = 'tape' + 'Name'
+  if (typeof p[old] === 'string' && p.mixName === undefined) p.mixName = p[old]
+  delete p[old]
+  return p
 }
 
 export const useStore = create<State>()(
@@ -394,7 +428,7 @@ export const useStore = create<State>()(
               const focus = slots[Math.min(i, slots.length - 1)]?.id ?? null
               return { slots, notes: st.notes.filter((n) => !('slotId' in n.anchor && n.anchor.slotId === slotId)), ui: { ...st.ui, focusedSlotId: focus } }
             }),
-          renameTape: (tapeName) => set({ tapeName }),
+          renameMix: (mixName) => set({ mixName }),
 
           promoteClip: (clipId, groups) => {
             const clip = library.clips[clipId]
@@ -545,10 +579,11 @@ export const useStore = create<State>()(
       },
     ),
     {
-      name: 'mixtape:v1',
+      name: STORAGE_KEY,
       version: 1,
+      storage: createJSONStorage(() => carryOver(localStorage)),
       partialize: (s) => ({
-        tapeName: s.tapeName,
+        mixName: s.mixName,
         slots: s.slots,
         guide: s.guide,
         content: s.content,
@@ -561,20 +596,13 @@ export const useStore = create<State>()(
         camera: s.camera,
       }),
       merge: (persisted, current) => {
-        // "proof" sections became "testimonials": rewrite ids and types in saved tapes.
-        const migrated = JSON.parse(
-          JSON.stringify(persisted ?? {})
-            .replace(/"proof\./g, '"testimonials.')
-            .replace(/"type":"proof"/g, '"type":"testimonials"')
-            .replace(/mx-proof-/g, 'mx-testimonials-'),
-        )
-        const p = migrated as Partial<State>
+        const p = renamedState(persisted) as Partial<State>
         const merged = { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } } as State
-        // Tokens added since the tape was saved (e.g. line weight) start at their defaults.
+        // Tokens added since the mix was saved (e.g. line weight) start at their defaults.
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
         // Drop anything that points at clips that no longer exist in the sample library.
         merged.slots = (merged.slots ?? []).filter((s) => library.clips[s.clipId])
-        // Copy fields added since the tape was saved (a nav banner's messages) start from the defaults.
+        // Copy fields added since the mix was saved (a nav banner's messages) start from the defaults.
         if (merged.content?.fields) {
           const fields = { ...merged.content.fields }
           for (const [type, defaults] of Object.entries(DEFAULT_CONTENT.fields) as [SectionType, Record<string, string>][]) {

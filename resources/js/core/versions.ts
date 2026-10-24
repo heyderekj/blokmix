@@ -1,4 +1,4 @@
-import type { Library, Note, Slot, TapeSnapshot, VersionNode } from './types'
+import type { Library, Note, Slot, MixSnapshot, VersionNode } from './types'
 import { stableStringify } from './hash'
 
 export function letterFor(index: number): string {
@@ -38,7 +38,7 @@ export function descendants(versions: Record<string, VersionNode>, id: string): 
   return kids.flatMap((k) => [k.id, ...descendants(versions, k.id)])
 }
 
-export function snapshotKey(s: Pick<TapeSnapshot, 'slots' | 'guide' | 'content'>): string {
+export function snapshotKey(s: Pick<MixSnapshot, 'slots' | 'guide' | 'content'>): string {
   return stableStringify({ slots: s.slots, guide: { candidates: s.guide.candidates, choices: s.guide.choices }, content: s.content })
 }
 
@@ -71,5 +71,5 @@ export function autoTitle(slots: Slot[], lib: Library): string {
     const name = clip ? lib.sources[clip.sourceId]?.name.split(' ')[0] : null
     if (name && !names.includes(name)) names.push(name)
   }
-  return names.length ? names.join(' × ') : 'Empty tape'
+  return names.length ? names.join(' × ') : 'Empty mix'
 }

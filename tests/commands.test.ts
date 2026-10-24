@@ -67,7 +67,7 @@ describe('note commands', () => {
 
   it('leave, list, progress and reply on marks, most important first', () => {
     runCommand('add_note', { kind: 'nit', text: 'Calmer', section: 'pricing' })
-    const m = runCommand('add_note', { kind: 'must-fix', text: 'Say what happens', section: 'hero', block: 'Hero · Button', suggested_copy: 'Start your tape' }) as { number: string; on: string }
+    const m = runCommand('add_note', { kind: 'must-fix', text: 'Say what happens', section: 'hero', block: 'Hero · Button', suggested_copy: 'Start your mix' }) as { number: string; on: string }
     expect(m.on).toBe('Hero · Button')
     const list = runCommand('list_notes', {}) as Marks
     expect(list.marks[0].kind).toBe('must-fix')

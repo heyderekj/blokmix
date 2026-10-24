@@ -1,0 +1,182 @@
+<title>Blokmix Icon Round 3</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a contact sheet. Eight frames in a grid, each tested at app, tab and favicon size, then a home-screen proof and a shortlist. */
+:root {
+  --bg: #120E14; --surface: #1D1720; --text: #F6EEF3; --muted: #B3A6B0; --line: #352B38; --pink-text: #FFA6D2;
+  color-scheme: dark;
+  --b-hot: #FF69B4; --b-ink: #17121A; --b-paper: #FBF8F9; --b-concrete: #2A2130;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: #FBF8F9; --surface: #FFFFFF; --text: #17121A; --muted: #6B6170; --line: #E7DEE4; --pink-text: #C2185B; color-scheme: light; }
+}
+:root[data-theme="light"] { --bg: #FBF8F9; --surface: #FFFFFF; --text: #17121A; --muted: #6B6170; --line: #E7DEE4; --pink-text: #C2185B; color-scheme: light; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-display); line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; padding-block: 40px 80px; display: grid; gap: 64px; }
+h1, h2, h3 { margin: 0; line-height: 1.05; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--pink-text); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--b-hot); outline-offset: 3px; }
+img { display: block; max-width: 100%; height: auto; }
+.label { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+
+.head { display: grid; gap: 14px; }
+.head h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-stretch: 125%; font-weight: 900; letter-spacing: -.025em; }
+.head .lede { max-width: 66ch; color: var(--muted); font-size: 1.12rem; }
+
+.sec { display: grid; gap: 20px; }
+.sec > header { display: grid; gap: 8px; max-width: 70ch; }
+.sec h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-stretch: 125%; font-weight: 900; letter-spacing: -.02em; }
+.sec > header p { color: var(--muted); }
+
+.sheet { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.frame { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
+.frame .big { background: var(--b-concrete); display: grid; place-items: center; padding: 28px; position: relative; }
+.frame .big img { width: min(100%, 176px); }
+.frame .no { position: absolute; top: 10px; left: 12px; font-family: var(--font-mono); font-size: .7rem; color: var(--b-paper); opacity: .7; }
+.frame .pick { position: absolute; top: 10px; right: 12px; font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; background: var(--b-hot); color: var(--b-ink); padding: 2px 7px; border-radius: 3px; }
+.frame .small { background: var(--b-paper); display: flex; align-items: flex-end; gap: 16px; padding: 14px 16px; border-top: 1px solid var(--line); }
+.frame .small figure { margin: 0; display: grid; gap: 5px; justify-items: center; }
+.frame .small figcaption { font-family: var(--font-mono); font-size: .62rem; color: #6B6170; }
+.frame .txt { padding: 14px 16px 18px; display: grid; gap: 6px; align-content: start; }
+.frame .txt h3 { font-size: 1.15rem; font-stretch: 118%; font-weight: 800; }
+.frame .txt p { color: var(--muted); font-size: .92rem; }
+.frame .txt .reads { font-family: var(--font-mono); font-size: .7rem; color: var(--pink-text); letter-spacing: .03em; }
+
+.home { background: linear-gradient(160deg, #3A2140, #17121A 70%); border-radius: 28px; padding: 36px 28px 28px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 12px; max-width: 520px; justify-self: center; width: 100%; border: 1px solid var(--line); }
+.home figure { margin: 0; display: grid; gap: 7px; justify-items: center; }
+.home img { width: 64px; filter: drop-shadow(0 6px 12px rgba(0,0,0,.35)); }
+.home figcaption { font-size: .72rem; color: #F6EEF3; text-align: center; }
+.home-wrap { display: grid; gap: 14px; }
+.tabbar { display: flex; gap: 6px; background: #EFE7EC; padding: 8px 10px 0; border-radius: 10px 10px 0 0; overflow-x: auto; max-width: 100%; }
+.tabbar div { display: flex; align-items: center; gap: 7px; background: #FFFFFF; color: #17121A; border-radius: 8px 8px 0 0; padding: 7px 11px; font-size: .74rem; white-space: nowrap; }
+.tabbar img { width: 16px; height: 16px; }
+.proofs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 24px; align-items: start; }
+
+.short { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.lock { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; display: grid; min-width: 0; background: var(--surface); }
+.lock .g { padding: 28px 22px; display: flex; align-items: center; gap: 14px; }
+.lock .g.paper { background: var(--b-paper); }
+.lock .g.ink { background: var(--b-ink); }
+.lock .g img.i { width: 52px; flex: none; }
+.lock .g img.w { width: calc(100% - 66px); max-width: 220px; }
+.lock .t { padding: 14px 16px 18px; display: grid; gap: 6px; }
+.lock .t h3 { font-size: 1.1rem; font-stretch: 118%; font-weight: 800; }
+.lock .t p { color: var(--muted); font-size: .92rem; }
+.note { color: var(--muted); font-size: .88rem; border-top: 1px solid var(--line); padding-top: 16px; max-width: 86ch; }
+
+@media (max-width: 980px) { .sheet { grid-template-columns: repeat(2, minmax(0, 1fr)); } .proofs { grid-template-columns: 1fr; } .short { grid-template-columns: 1fr; } }
+@media (max-width: 460px) { .sheet { grid-template-columns: 1fr; } .home { grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 24px 12px; } .home img { width: 52px; } }
+</style>
+
+<main class="wrap">
+  <header class="head">
+    <p class="label">Blokmix · app icon round 3 · Oct 23, 2026</p>
+    <h1>Icon round 3</h1>
+    <p class="lede">Rounds 1 and 2 drew blocks as flat squares on a grid. This round tries other visual languages for block and mix: 3D objects, records, pixels, studio gear and street stickers. The wordmarks stay exactly as they are.</p>
+  </header>
+
+  <section class="sec" aria-labelledby="h-sheet">
+    <header><p class="label">01 · Contact sheet</p><h2 id="h-sheet">Eight new languages</h2></header>
+    <div class="sheet">
+      <article class="frame">
+        <div class="big"><span class="no">01</span><span class="pick">Pick</span><img src="icons/cube.svg" alt="Mixed cube icon concept" width="176" height="176"></div>
+        <div class="small"><figure><img src="icons/cube.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/cube.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/cube.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Mixed cube</h3><p>The block in 3D. Each face comes from a different source, pulled slightly apart so you can see the seams. One object, three sites.</p><p class="reads">Block ●●● · Mix ●●○ · 16 px ●●●</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">02</span><span class="pick">Pick</span><img src="icons/record.svg" alt="The sample icon concept" width="176" height="176"></div>
+        <div class="small"><figure><img src="icons/record.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/record.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/record.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>The sample</h3><p>A square piece lifted straight out of a record. That is what sampling is: taking a block out of something that already exists.</p><p class="reads">Block ●●○ · Mix ●●● · 16 px ●●○</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">03</span><span class="pick">Pick</span><img src="icons/dither.svg" alt="Dither icon concept" width="176" height="176"></div>
+        <div class="small"><figure><img src="icons/dither.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/dither.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/dither.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Dither</h3><p>Paper crossfades into pink one pixel block at a time. A blend drawn in the web’s own language, the pixel.</p><p class="reads">Block ●●● · Mix ●●● · 16 px ●●●</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">04</span><img src="icons/stack.svg" alt="Drop on the stack icon concept" width="176" height="176"></div>
+        <div class="small"><figure><img src="icons/stack.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/stack.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/stack.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Drop on the stack</h3><p>Page sections as 3D slabs. The pink one is landing on the pile, sampled in from somewhere else.</p><p class="reads">Block ●●● · Mix ●●○ · 16 px ●●○</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">05</span><img src="icons/scratch.svg" alt="Scratch icon concept" width="176" height="176"></div>
+        <div class="small"><figure><img src="icons/scratch.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/scratch.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/scratch.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Scratch</h3><p>One block sliced and pushed back and forth, like a record under a DJ’s hand. Glitchy and energetic.</p><p class="reads">Block ●●○ · Mix ●●● · 16 px ●○○</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">06</span><img src="icons/levels.svg" alt="Levels icon concept" width="176" height="176"></div>
+        <div class="small"><figure><img src="icons/levels.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/levels.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/levels.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Levels</h3><p>An LED level meter built from blocks, peaking in pink. Studio energy, but it can read as a bar chart or analytics tool.</p><p class="reads">Block ●●● · Mix ●●○ · 16 px ●●○</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">07</span><img src="icons/boombox.svg" alt="Boombox icon concept" width="176" height="176"></div>
+        <div class="small"><figure><img src="icons/boombox.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/boombox.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/boombox.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Boombox</h3><p>The mixtape player built from blocks, with one speaker sampled in pink. Big on culture but closest to a stock radio icon.</p><p class="reads">Block ●●○ · Mix ●●○ · 16 px ●●○</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">08</span><img src="icons/sticker.svg" alt="Slap icon concept" width="176" height="176"></div>
+        <div class="small"><figure><img src="icons/sticker.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/sticker.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/sticker.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Slap</h3><p>A die-cut sticker peeling off, like a slap tag on a lamppost. Risk: the folded corner reads as a document icon.</p><p class="reads">Block ●●○ · Mix ●○○ · 16 px ●●○</p></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-proof">
+    <header><p class="label">02 · In context</p><h2 id="h-proof">Home screen and browser tabs</h2><p>All eight at true size among each other.</p></header>
+    <div class="proofs">
+      <div class="home" role="img" aria-label="All eight round 3 concepts on a phone home screen">
+        <figure><img src="icons/cube.svg" alt="" width="64" height="64"><figcaption>Mixed cube</figcaption></figure>
+        <figure><img src="icons/record.svg" alt="" width="64" height="64"><figcaption>The sample</figcaption></figure>
+        <figure><img src="icons/dither.svg" alt="" width="64" height="64"><figcaption>Dither</figcaption></figure>
+        <figure><img src="icons/stack.svg" alt="" width="64" height="64"><figcaption>Drop on the stack</figcaption></figure>
+        <figure><img src="icons/scratch.svg" alt="" width="64" height="64"><figcaption>Scratch</figcaption></figure>
+        <figure><img src="icons/levels.svg" alt="" width="64" height="64"><figcaption>Levels</figcaption></figure>
+        <figure><img src="icons/boombox.svg" alt="" width="64" height="64"><figcaption>Boombox</figcaption></figure>
+        <figure><img src="icons/sticker.svg" alt="" width="64" height="64"><figcaption>Slap</figcaption></figure>
+      </div>
+      <div class="home-wrap">
+        <div class="tabbar" role="img" aria-label="Browser tabs with the first four concepts as favicons">
+          <div><img src="icons/cube.svg" alt="" width="16" height="16">Mixed cube</div>
+          <div><img src="icons/record.svg" alt="" width="16" height="16">The sample</div>
+          <div><img src="icons/dither.svg" alt="" width="16" height="16">Dither</div>
+          <div><img src="icons/stack.svg" alt="" width="16" height="16">Drop on the stack</div>
+        </div>
+        <div class="tabbar" role="img" aria-label="Browser tabs with the last four concepts as favicons">
+          <div><img src="icons/scratch.svg" alt="" width="16" height="16">Scratch</div>
+          <div><img src="icons/levels.svg" alt="" width="16" height="16">Levels</div>
+          <div><img src="icons/boombox.svg" alt="" width="16" height="16">Boombox</div>
+          <div><img src="icons/sticker.svg" alt="" width="16" height="16">Slap</div>
+        </div>
+        <p class="note" style="border:0;padding:0">These favicons are the full drawings scaled down. The final pick gets hand-fitted 16 and 32 px versions.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-short">
+    <header><p class="label">03 · Shortlist</p><h2 id="h-short">The three I’d take forward</h2><p>Each shown next to the wordmark you love, since the icon has to sit beside it.</p></header>
+    <div class="short">
+      <article class="lock">
+        <div class="g paper"><img class="i" src="icons/cube.svg" alt="" width="52" height="52"><img class="w" src="wordmark/blokmix-wordmark-ink.svg" alt="blokmix" width="220" height="35"></div>
+        <div class="t"><h3>Mixed cube</h3><p>The most iconic shape of the eight, and it holds up perfectly at 16 px. The three faces tell the mix story. It also leaves a lot of room for motion: faces sliding in from different directions and snapping together.</p></div>
+      </article>
+      <article class="lock">
+        <div class="g paper"><img class="i" src="icons/record.svg" alt="" width="52" height="52"><img class="w" src="wordmark/blokmix-wordmark-ink.svg" alt="blokmix" width="220" height="35"></div>
+        <div class="t"><h3>The sample</h3><p>The strongest story. It explains what Blokmix does to anyone who knows sampling, and its pink tile stands out on a home screen. The record’s rings get lost at 16 px, so the favicon would keep just the disc and the lifted square.</p></div>
+      </article>
+      <article class="lock">
+        <div class="g paper"><img class="i" src="icons/dither.svg" alt="" width="52" height="52"><img class="w" src="wordmark/blokmix-wordmark-ink.svg" alt="blokmix" width="220" height="35"></div>
+        <div class="t"><h3>Dither</h3><p>The most web-native. The mix is drawn with pixels, which no music app would do, so it is very ownable. Good at every size, and the pixel edge echoes the square o in the shadow wordmark.</p></div>
+      </article>
+    </div>
+    <p class="note">Ratings are my read of how clearly each concept says “block”, how clearly it says “mix”, and how well it holds at 16 px. Pick one, or a pair to combine, such as the cube with dithered faces, and I’ll build it as final masters and replace the 2×2 everywhere.</p>
+  </section>
+</main>

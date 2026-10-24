@@ -1,6 +1,8 @@
 /**
- * Mixtape's app tile: the family's squircle tile with one bold flat mark
- * (Koati weaves a K, ReviseMy frames a bubble) — here, a cassette in the key pink.
+ * Blokmix's app tile: the family's squircle tile with one bold flat mark
+ * (Koati weaves a K, ReviseMy frames a bubble). Here, a sliding-tile puzzle:
+ * three blocks and an empty slot, the way sections slide into place. While an
+ * agent works, the loose block slides into the gap and back.
  */
 export function LogoTile({ size = 28, spinning = false }: { size?: number; spinning?: boolean }) {
   return (
@@ -9,17 +11,18 @@ export function LogoTile({ size = 28, spinning = false }: { size?: number; spinn
       style={{ width: size, height: size }}
       aria-hidden
     >
-      <svg viewBox="0 0 24 24" width={size * 0.72} height={size * 0.72} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
-        <path d="M7 19l1.6-3.2h6.8L17 19" />
-        <g className={spinning ? 'origin-[8.5px_10.5px] animate-[spin_2.4s_linear_infinite]' : ''}>
-          <circle cx="8.5" cy="10.5" r="2.2" />
-          <path d="M8.5 9.1v2.8" />
-        </g>
-        <g className={spinning ? 'origin-[15.5px_10.5px] animate-[spin_2.4s_linear_infinite]' : ''}>
-          <circle cx="15.5" cy="10.5" r="2.2" />
-          <path d="M15.5 9.1v2.8" />
-        </g>
+      <svg viewBox="0 0 24 24" width={size * 0.7} height={size * 0.7} fill="currentColor">
+        <rect x="3" y="3" width="7.5" height="7.5" rx="2" />
+        <rect x="13.5" y="3" width="7.5" height="7.5" rx="2" />
+        <rect x="3.75" y="14.25" width="6" height="6" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" opacity="0.55" />
+        <rect
+          x="13.5"
+          y="13.5"
+          width="7.5"
+          height="7.5"
+          rx="2"
+          className={spinning ? 'motion-safe:animate-[blok-slide_2.4s_cubic-bezier(0.23,1,0.32,1)_infinite]' : ''}
+        />
       </svg>
     </span>
   )

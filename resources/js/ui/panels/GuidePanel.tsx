@@ -28,7 +28,7 @@ export function GuidePanel() {
 
   const copyValues = async () => {
     const css = varsToCss(expandTokens(guide.tokens))
-    const text = `Apply this style guide from Mixtape. Use only these CSS variables for color, type, radius, shadow, spacing and motion; replace hard-coded values with them.\n\n${css}\n`
+    const text = `Apply this style guide from Blokmix. Use only these CSS variables for color, type, radius, shadow, spacing and motion; replace hard-coded values with them.\n\n${css}\n`
     await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 1400)

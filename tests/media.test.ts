@@ -62,11 +62,11 @@ describe('pictures in exports', () => {
   })
 
   it('ships them into both projects and lists them in the packet', () => {
-    const files = packetFiles({ page, guide: resolveGuide(emptyGuide()), guideState: emptyGuide(), library, tapeName: 'T', targets: ['astro', 'next'] })
+    const files = packetFiles({ page, guide: resolveGuide(emptyGuide()), guideState: emptyGuide(), library, mixName: 'T', targets: ['astro', 'next'] })
     expect(files[`astro/public/media/s1-${img2.id}.webp`]).toBeInstanceOf(Uint8Array)
     expect(files[`next/public/media/s1-${img.id}.svg`]).toContain('<svg')
-    expect(files['MIXTAPE.md']).toContain('## Images')
-    expect(files['MIXTAPE.md']).toContain('dinky compress-image')
+    expect(files['BLOKMIX.md']).toContain('## Images')
+    expect(files['BLOKMIX.md']).toContain('dinky compress-image')
   })
 
   it('asks for alt text on real pictures', () => {
@@ -105,7 +105,7 @@ describe('moving media', () => {
     })
     expect(page.moving).toBe(true)
     expect(Object.keys(page.mediaFiles).sort()).toEqual([`media/s1-${img.id}-poster.webp`, `media/s1-${img.id}.webm`])
-    const files = packetFiles({ page, guide: resolveGuide(emptyGuide()), guideState: emptyGuide(), library, tapeName: 'T', targets: ['astro', 'next'] })
+    const files = packetFiles({ page, guide: resolveGuide(emptyGuide()), guideState: emptyGuide(), library, mixName: 'T', targets: ['astro', 'next'] })
     expect(files['astro/public/mx-media.js']).toContain('IntersectionObserver')
     expect(files['astro/src/layouts/Base.astro']).toContain('/mx-media.js')
     expect(files['next/app/layout.tsx']).toContain('next/script')

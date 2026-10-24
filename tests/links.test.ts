@@ -24,8 +24,8 @@ describe('links', () => {
   it('leads words that name a section there, and emails and phone numbers to mail and calls', () => {
     expect(suggestLink('Pricing', slots, 'n')).toEqual({ to: 'section', slotId: 'p' })
     expect(suggestLink('Questions', slots, 'n')).toEqual({ to: 'section', slotId: 'f' })
-    expect(suggestLink('Start a tape', slots, 'n')).toBeNull()
-    expect(suggestLink('hello@mixtape.example', slots, 'n')).toEqual({ to: 'email', address: 'hello@mixtape.example' })
+    expect(suggestLink('Start a mix', slots, 'n')).toBeNull()
+    expect(suggestLink('hello@blokmix.example', slots, 'n')).toEqual({ to: 'email', address: 'hello@blokmix.example' })
     expect(suggestLink('+1 (555) 010-2026', slots, 'n')).toEqual({ to: 'phone', number: '+1 (555) 010-2026' })
     expect(hrefFor({ to: 'phone', number: '+1 (555) 010-2026' }, {})).toBe('tel:+15550102026')
     expect(hrefFor({ to: 'url', url: 'stripe.com' }, {})).toBe('https://stripe.com')
@@ -40,7 +40,7 @@ describe('links', () => {
     expect(html).toContain('href="#pricing"') // "Pricing" in the nav
     expect(html).toContain('href="/signup"')
     expect(p.pages).toEqual(['/signup'])
-    const md = packetFiles({ page: p, guide: resolveGuide(emptyGuide()), library, tapeName: 'T', targets: ['astro'] } as never)['MIXTAPE.md'] as string
+    const md = packetFiles({ page: p, guide: resolveGuide(emptyGuide()), library, mixName: 'T', targets: ['astro'] } as never)['BLOKMIX.md'] as string
     expect(md).toContain('## Other pages')
     expect(md).toContain('`/signup`')
   })

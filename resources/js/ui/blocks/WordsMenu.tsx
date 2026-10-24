@@ -133,7 +133,7 @@ function Row({
   return (
     <div className={`group flex items-start gap-2.5 rounded-xl px-2 py-1.5 transition ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`} onMouseEnter={onHover}>
       <button type="button" onClick={onPick} className="flex min-w-0 flex-1 items-start gap-2.5 text-left">
-        <span className={`mt-[7px] size-1.5 shrink-0 rounded-full ${on ? 'bg-tape' : 'bg-transparent'}`} />
+        <span className={`mt-[7px] size-1.5 shrink-0 rounded-full ${on ? 'bg-key' : 'bg-transparent'}`} />
         <span className={`line-clamp-2 min-w-0 flex-1 text-[12.5px] leading-snug ${dim ? 'text-zinc-400' : 'text-zinc-800'}`}>{text}</span>
       </button>
       <span className="mt-0.5 shrink-0 text-[10.5px] font-semibold text-zinc-400">{tag}</span>

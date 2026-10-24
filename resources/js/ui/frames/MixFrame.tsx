@@ -29,7 +29,7 @@ export function MixFrame() {
   const [addAt, setAddAt] = useState<number | null>(null)
   const closeAdd = useCallback(() => setAddAt(null), [])
   const st = useStore.getState
-  const label = branchFrom ? `Remixing ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New tape'
+  const label = branchFrom ? `Remixing ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
 
   return (
     <div

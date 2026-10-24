@@ -141,11 +141,11 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         )}
         {block.kind === 'image' && (
           <BarButton active={menu === 'image'} onClick={() => setMenu(menu === 'image' ? null : 'image')} icon={ImageIcon} title="Media">
-            {edit?.media ? <span className="size-1.5 rounded-full bg-tape" /> : 'Media'}
+            {edit?.media ? <span className="size-1.5 rounded-full bg-key" /> : 'Media'}
           </BarButton>
         )}
         <BarButton active={menu === 'motion'} onClick={() => setMenu(menu === 'motion' ? null : 'motion')} icon={Waves} title="Motion">
-          {edit?.motion ? <span className="size-1.5 rounded-full bg-tape" /> : null}
+          {edit?.motion ? <span className="size-1.5 rounded-full bg-key" /> : null}
         </BarButton>
         {block.field && (
           <BarButton onClick={() => preview.requestEditText(block.id)} icon={Type} title="Edit text (double-click or ↵)">
@@ -431,7 +431,7 @@ function LookRow({ kind, look, text, label, hint, on, onHover, onPick }: { kind:
         <span className="block text-[13px] font-semibold text-zinc-900">{label}</span>
         <span className="block truncate text-[11.5px] text-zinc-500">{hint}</span>
       </span>
-      {on && <span className="size-1.5 shrink-0 rounded-full bg-tape" />}
+      {on && <span className="size-1.5 shrink-0 rounded-full bg-key" />}
     </button>
   )
 }

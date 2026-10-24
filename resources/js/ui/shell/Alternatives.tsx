@@ -7,7 +7,7 @@ import { useStore } from '@/state/store'
 import { Preview } from './Preview'
 import { suggestClip } from '@/core/suggest'
 
-/** Marks one of Mixtape's built-in layouts, as opposed to a clip you saved. */
+/** Marks one of Blokmix's built-in layouts, as opposed to a clip you saved. */
 export function LayoutTag() {
   return <span className="shrink-0 rounded-[5px] bg-zinc-950/6 px-1 py-px text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Layout</span>
 }
@@ -105,12 +105,12 @@ const Thumb = memo(function Thumb({ clipId, slot, current, reason }: { clipId: s
       title={`${layout ? clip.title : `${source.name}: ${clip.title}`}\n${reason}`}
       aria-pressed={current}
     >
-      <div className={`overflow-hidden rounded-lg ring-2 transition group-focus-visible:ring-zinc-400 ${current ? 'ring-tape' : 'ring-zinc-950/8 group-hover:ring-zinc-950/25'}`}>
+      <div className={`overflow-hidden rounded-lg ring-2 transition group-focus-visible:ring-zinc-400 ${current ? 'ring-key' : 'ring-zinc-950/8 group-hover:ring-zinc-950/25'}`}>
         <Preview clip={clip} slot={slot} width={THUMB_W} height={Math.round(THUMB_W * 0.56)} />
       </div>
       <div className="mt-1.5 flex items-center gap-1.5 px-0.5">
         <span className={`truncate text-[12px] ${current ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{layout ? clip.title : source.name}</span>
-        {current && <span className="size-1.5 shrink-0 rounded-full bg-tape" />}
+        {current && <span className="size-1.5 shrink-0 rounded-full bg-key" />}
       </div>
     </button>
   )

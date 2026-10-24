@@ -20,7 +20,7 @@ import { keepOption, putBackOption, retireOption, showWords, wordChoices } from 
 import { useStore } from './store'
 
 /**
- * Runs the commands in core/commands/schema.ts against the live tape. Every
+ * Runs the commands in core/commands/schema.ts against the live mix. Every
  * write is validated, goes through the same store actions as the app's own
  * controls, and lands as one undo step, so an agent's change is as easy to
  * take back as yours.
@@ -214,7 +214,7 @@ const READ = {
     const guide = resolveGuide(st.guide)
     const sections = i.section !== undefined ? [findSection(i.section)] : st.slots
     return {
-      tape: st.tapeName,
+      mix: st.mixName,
       mode: st.ui.mode === 'unified' ? 'your style' : 'original',
       sections: sections.map((s) => describeSection(s, st.slots.indexOf(s) + 1)),
       styleGuide: {

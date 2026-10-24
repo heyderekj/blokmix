@@ -3,7 +3,7 @@ import type { UploadData } from '@/core/media'
 
 /**
  * Images you upload or paste, kept in this browser (IndexedDB), never in the
- * tape's saved state, which stays small. Each is downscaled to WebP, at most
+ * mix's saved state, which stays small. Each is downscaled to WebP, at most
  * 1,600px on its long side. Frames get them as data URLs, because a sandboxed
  * frame can't read this page's blob URLs.
  */
@@ -23,12 +23,14 @@ export interface Asset {
   addedAt: number
 }
 
-const DB = 'mixtape'
+const DB = 'blokmix'
+/** Uploads saved before the rename. */
+const LEGACY_DB = 'mixtape'
 const STORE = 'assets'
 
-function db(): Promise<IDBDatabase> {
+function db(name = DB): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB, 1)
+    const req = indexedDB.open(name, 1)
     req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: 'id' })
     req.onsuccess = () => resolve(req.result)
     req.onerror = () => reject(req.error)
@@ -46,9 +48,31 @@ async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBReq
 
 export const useAssets = create<{ assets: Record<string, Asset>; loaded: boolean }>()(() => ({ assets: {}, loaded: false }))
 
+/** Bring uploads saved under the old name across, once, then remove the old database. */
+async function carryOverUploads() {
+  const names = (await indexedDB.databases?.())?.map((d) => d.name) ?? []
+  if (!names.includes(LEGACY_DB)) return
+  const old = await db(LEGACY_DB)
+  const items = await new Promise<Asset[]>((resolve, reject) => {
+    const r = old.transaction(STORE, 'readonly').objectStore(STORE).getAll() as IDBRequest<Asset[]>
+    r.onsuccess = () => resolve(r.result)
+    r.onerror = () => reject(r.error)
+  })
+  old.close()
+  const d = await db()
+  await new Promise<void>((resolve, reject) => {
+    const t = d.transaction(STORE, 'readwrite')
+    for (const a of items) t.objectStore(STORE).put(a)
+    t.oncomplete = () => resolve()
+    t.onerror = () => reject(t.error)
+  })
+  indexedDB.deleteDatabase(LEGACY_DB)
+}
+
 export async function loadAssets() {
   if (typeof indexedDB === 'undefined') return
   try {
+    await carryOverUploads().catch(() => {})
     const all = await tx<Asset[]>('readonly', (s) => s.getAll() as IDBRequest<Asset[]>)
     useAssets.setState({ assets: Object.fromEntries(all.map((a) => [a.id, a])), loaded: true })
   } catch {

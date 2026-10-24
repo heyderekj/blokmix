@@ -41,13 +41,13 @@ describe('marks', () => {
     expect(wp.awaiting_verification.map((w) => w.number)).toEqual(['N5'])
   })
 
-  it('reaches MIXTAPE.md and mixtape.json', () => {
+  it('reaches BLOKMIX.md and blokmix.json', () => {
     const guide = resolveGuide(emptyGuide())
     const page = composePage({ slots: [{ id: 's1', type: 'cta', clipId: 'cta.layout-band', locked: false, keep: { ...DEFAULT_KEEP } }], guide, content: DEFAULT_CONTENT, library })
-    const files = packetFiles({ page, guide, guideState: emptyGuide(), library, tapeName: 'T', targets: ['astro'], marks: [mark(1, 'must-fix', 'open', { suggestedCopy: 'Start free' })] })
-    expect(files['MIXTAPE.md']).toContain('## Feedback')
-    expect(files['MIXTAPE.md']).toContain('Use exactly: “Start free”')
-    expect(JSON.parse(files['mixtape.json'] as string).work_packets.must_fix[0].number).toBe('N1')
+    const files = packetFiles({ page, guide, guideState: emptyGuide(), library, mixName: 'T', targets: ['astro'], marks: [mark(1, 'must-fix', 'open', { suggestedCopy: 'Start free' })] })
+    expect(files['BLOKMIX.md']).toContain('## Feedback')
+    expect(files['BLOKMIX.md']).toContain('Use exactly: “Start free”')
+    expect(JSON.parse(files['blokmix.json'] as string).work_packets.must_fix[0].number).toBe('N1')
   })
 })
 

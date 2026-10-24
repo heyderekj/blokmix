@@ -1,0 +1,808 @@
+<title>Blokmix Brand Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a record sleeve. A block-party flyer for the cover, then liner notes split into Side A (identity) and Side B (in use), each section a track. */
+:root {
+  /* dark-first: the page reads like a night flyer */
+  --bg: #120E14;
+  --surface: #1D1720;
+  --raised: #2A2130;
+  --text: #F6EEF3;
+  --muted: #B3A6B0;
+  --line: #352B38;
+  --pink-text: #FFA6D2;
+  --good: #5BD19F;
+  --bad: #FF7A7A;
+  color-scheme: dark;
+
+  /* brand colors are fixed in every theme */
+  --b-hot: #FF69B4;
+  --b-deep: #FF1493;
+  --b-rose: #C2185B;
+  --b-blush: #FFE3F1;
+  --b-ink: #17121A;
+  --b-concrete: #2A2130;
+  --b-paper: #FBF8F9;
+
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --s-label: .74rem;
+  --s-body: 1rem;
+  --s-lead: 1.25rem;
+  --s-h3: 1.4rem;
+  --s-h2: clamp(1.9rem, 4.2vw, 2.8rem);
+  --s-cover: clamp(4rem, 15vw, 11rem);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #FBF8F9; --surface: #FFFFFF; --raised: #F3ECF0; --text: #17121A; --muted: #6B6170; --line: #E7DEE4;
+    --pink-text: #C2185B; --good: #1E7F5C; --bad: #B3261E; color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #FBF8F9; --surface: #FFFFFF; --raised: #F3ECF0; --text: #17121A; --muted: #6B6170; --line: #E7DEE4;
+  --pink-text: #C2185B; --good: #1E7F5C; --bad: #B3261E; color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-display); font-size: var(--s-body); line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1160px; margin: 0 auto; padding-block: 28px 80px; display: grid; gap: 96px; }
+h1, h2, h3 { margin: 0; line-height: 1.05; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--pink-text); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--b-hot); outline-offset: 3px; border-radius: 2px; }
+.label { font-family: var(--font-mono); font-size: var(--s-label); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--font-mono); font-size: .88em; }
+.measure { max-width: 64ch; }
+.lead { font-size: var(--s-lead); line-height: 1.45; }
+
+/* ---------- wordmark ---------- */
+.wm { font-family: var(--font-display); font-stretch: 125%; font-weight: 900; letter-spacing: -.045em; line-height: .9; display: inline-flex; align-items: baseline; white-space: nowrap; }
+.wm .sq { display: inline-block; width: .5em; height: .5em; background: var(--sq, var(--b-hot)); margin: 0 .035em 0 .02em; border-radius: .04em; }
+
+/* ---------- cover flyer ---------- */
+.cover {
+  background: var(--b-ink); color: var(--b-paper); border-radius: 8px; overflow: hidden;
+  display: grid; grid-template-columns: 1.35fr 1fr; min-height: 520px;
+}
+.cover-main { padding: 40px 40px 36px; display: grid; gap: 28px; align-content: space-between; min-width: 0; container-type: inline-size; }
+.cover .presents { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .2em; text-transform: uppercase; color: var(--b-hot); }
+.cover .wm { font-size: 3.4rem; font-size: 19cqi; color: var(--b-paper); }
+.cover h1 { font-size: clamp(1.6rem, 3.6vw, 2.6rem); font-stretch: 125%; font-weight: 900; letter-spacing: -.02em; text-transform: uppercase; }
+.flyer-lines { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-family: var(--font-mono); font-size: .82rem; margin: 0; }
+.flyer-lines dt { color: var(--b-hot); text-transform: uppercase; letter-spacing: .08em; }
+.flyer-lines dd { margin: 0; color: var(--b-paper); }
+.cover-art { background: var(--b-hot); position: relative; display: grid; align-content: center; justify-items: center; gap: 40px; padding: 48px 28px 56px; min-width: 0; }
+.mix-row { display: grid; grid-template-columns: repeat(3, minmax(0, 96px)); gap: 14px; width: min(100%, 316px); }
+.mix-row i { aspect-ratio: 1; background: var(--b-ink); border-radius: 7.5%; display: block; }
+.mix-row i.slot { background: transparent; border: 3px dashed rgba(23,18,26,.45); position: relative; }
+.mix-row i.slot::after { content: ""; position: absolute; inset: -3px; transform: translateY(-34%); background: var(--b-paper); border-radius: 7.5%; box-shadow: 0 10px 0 -2px rgba(23,18,26,.25); }
+.variants { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; }
+.variants figure { margin: 0; display: grid; gap: 8px; justify-items: center; }
+.variants figcaption { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--b-ink); }
+.v { width: 76px; height: 52px; position: relative; }
+.v i { position: absolute; display: block; border-radius: 7.5%; }
+.v.two i { width: 32px; height: 32px; bottom: 0; background: var(--b-ink); }
+.v.two i:first-child { left: 4px; }
+.v.two i.up { right: 4px; bottom: 14px; background: var(--b-paper); }
+.v.fade i { width: 38px; height: 38px; top: 7px; }
+.v.fade i:first-child { left: 6px; background: var(--b-ink); }
+.v.fade i:last-child { left: 32px; background: rgba(251,248,249,.62); }
+.v.splice i { width: 44px; height: 44px; left: 16px; top: 4px; background: linear-gradient(90deg, var(--b-ink) 50%, var(--b-paper) 50%); }
+.v.loop i { width: 20px; height: 20px; top: 16px; background: var(--b-ink); }
+.v.loop i:nth-child(1) { left: 2px; } .v.loop i:nth-child(2) { left: 28px; background: var(--b-paper); } .v.loop i:nth-child(3) { left: 54px; }
+.cover-art .stamp { position: absolute; bottom: 18px; right: 20px; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--b-ink); }
+
+/* ---------- tracklist ---------- */
+.tracklist { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 2px solid var(--text); }
+.tracklist section { padding-block: 18px 6px; display: grid; gap: 10px; min-width: 0; }
+.tracklist section + section { border-left: 1px solid var(--line); padding-left: 28px; }
+.tracklist h2 { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.tracklist ol { list-style: none; margin: 0; padding: 0; display: grid; }
+.tracklist li a { display: grid; grid-template-columns: 3em 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px dashed var(--line); color: var(--text); text-decoration: none; font-weight: 600; font-stretch: 112%; }
+.tracklist li a span { font-family: var(--font-mono); font-weight: 400; color: var(--pink-text); font-stretch: 100%; }
+.tracklist li a:hover { color: var(--pink-text); }
+
+/* ---------- track sections ---------- */
+.track { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 28px; }
+.track > .num { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; color: var(--pink-text); padding-top: .55rem; border-top: 2px solid var(--b-hot); height: max-content; }
+.track > .body { display: grid; gap: 28px; min-width: 0; }
+.track h2 { font-size: var(--s-h2); font-stretch: 125%; font-weight: 900; letter-spacing: -.025em; }
+.track h3 { font-size: var(--s-h3); font-stretch: 115%; font-weight: 800; }
+.intro { display: grid; gap: 14px; }
+
+/* story */
+.values { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.value { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 8px; align-content: start; }
+.value b { font-stretch: 125%; font-weight: 900; font-size: 1.15rem; }
+.value p { color: var(--muted); font-size: .95rem; }
+.position { border-left: 4px solid var(--b-hot); padding: 4px 0 4px 20px; font-size: var(--s-lead); line-height: 1.5; }
+
+/* name rules */
+.dodont { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dd { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.dd > p:first-child { padding: 10px 16px; font-family: var(--font-mono); font-size: var(--s-label); letter-spacing: .09em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+.dd.do > p:first-child { color: var(--good); }
+.dd.dont > p:first-child { color: var(--bad); }
+.dd ul { list-style: none; margin: 0; padding: 6px 16px 12px; display: grid; }
+.dd li { padding: 9px 0; border-bottom: 1px dashed var(--line); display: grid; gap: 2px; }
+.dd li:last-child { border-bottom: 0; }
+.dd li small { color: var(--muted); font-size: .85rem; }
+.dd.dont li > span:first-child { text-decoration: line-through; text-decoration-color: var(--bad); }
+
+/* logo */
+.logo-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.tile { border-radius: 6px; padding: 24px; display: grid; gap: 18px; align-content: space-between; min-height: 200px; min-width: 0; }
+.tile figcaption { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+.tile.ink { background: var(--b-ink); color: var(--b-paper); border: 1px solid var(--line); }
+.tile.paper { background: var(--b-paper); color: var(--b-ink); border: 1px solid var(--line); }
+.tile.pink { background: var(--b-hot); color: var(--b-ink); }
+.tile.concrete { background: var(--b-concrete); color: var(--b-paper); }
+.span-4 { grid-column: span 4; } .span-3 { grid-column: span 3; } .span-2 { grid-column: span 2; }
+.tile .art { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; min-width: 0; }
+.tile svg { display: block; flex: none; }
+.lockup { display: flex; align-items: center; gap: .35em; font-size: 2.6rem; }
+.lockup svg { width: 1.3em; height: 1.3em; }
+.stacked { display: grid; justify-items: start; gap: .25em; font-size: 2.2rem; }
+.stacked svg { width: 1.6em; height: 1.6em; }
+
+.clear { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+.clear-demo { position: relative; display: inline-block; padding: .5em; outline: 1px dashed var(--b-hot); font-size: 3rem; }
+.clear-demo .unit { position: absolute; width: .5em; height: .5em; background: var(--b-hot); opacity: .35; border-radius: .04em; }
+.specs { display: grid; gap: 10px; margin: 0; }
+.specs div { display: grid; grid-template-columns: 9em 1fr; gap: 12px; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
+.specs dt { font-family: var(--font-mono); font-size: var(--s-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: .2em; }
+.specs dd { margin: 0; min-width: 0; }
+
+.misuse { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.misuse figure { margin: 0; display: grid; gap: 8px; }
+.misuse .box { background: var(--b-paper); color: var(--b-ink); border-radius: 6px; height: 104px; display: grid; place-items: center; position: relative; overflow: hidden; font-size: 1.5rem; border: 1px solid var(--line); }
+.misuse .box::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--bad) calc(50% - 1.5px), var(--bad) calc(50% + 1.5px), transparent calc(50% + 1.5px)); opacity: .9; }
+.misuse figcaption { font-size: .85rem; color: var(--muted); }
+
+/* color */
+.palette { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.sw { border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); display: grid; grid-template-rows: 120px auto; min-width: 0; }
+.sw .c { padding: 12px 14px; display: flex; justify-content: space-between; align-items: flex-end; font-family: var(--font-mono); font-size: .78rem; font-weight: 600; }
+.sw .m { padding: 12px 14px 14px; display: grid; gap: 4px; font-size: .9rem; }
+.sw .m b { font-stretch: 115%; }
+.sw .m span { color: var(--muted); }
+.sw.hero-sw { grid-column: span 2; }
+.ratio { display: grid; gap: 8px; }
+.ratio .bar { display: flex; height: 44px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.ratio .bar i { display: block; }
+.ratio .legend { display: flex; gap: 18px; flex-wrap: wrap; font-family: var(--font-mono); font-size: .75rem; color: var(--muted); }
+.pairs-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+thead th { font-family: var(--font-mono); font-size: var(--s-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.sample { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-stretch: 115%; }
+.verdict { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; border: 1px solid currentColor; white-space: nowrap; }
+.verdict.ok { color: var(--good); } .verdict.no { color: var(--bad); } .verdict.big { color: var(--pink-text); }
+
+/* type */
+.specimens { display: grid; gap: 16px; }
+.spec { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px 24px; display: grid; grid-template-columns: 14em minmax(0, 1fr); gap: 24px; align-items: center; }
+.spec .meta { display: grid; gap: 4px; }
+.spec .meta b { font-stretch: 115%; }
+.spec .meta span { color: var(--muted); font-size: .88rem; }
+.spec .show { min-width: 0; overflow-wrap: anywhere; }
+.show-display { font-size: clamp(2rem, 5vw, 3.6rem); font-stretch: 125%; font-weight: 900; letter-spacing: -.03em; line-height: .95; text-transform: uppercase; }
+.show-body { font-size: 1.1rem; max-width: 56ch; }
+.show-mono { font-family: var(--font-mono); font-size: .95rem; letter-spacing: .04em; }
+.scale { display: grid; gap: 4px; }
+.scale div { display: grid; grid-template-columns: 7em 1fr; gap: 16px; align-items: baseline; border-bottom: 1px dashed var(--line); padding-block: 6px; }
+.scale span:first-child { font-family: var(--font-mono); font-size: var(--s-label); color: var(--muted); font-variant-numeric: tabular-nums; }
+.scale span:last-child { font-stretch: 125%; font-weight: 900; letter-spacing: -.02em; line-height: 1.05; overflow-wrap: anywhere; }
+
+/* graphic language */
+.devices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.device { border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); display: grid; grid-template-rows: 200px auto; min-width: 0; }
+.device .stage { display: grid; place-items: center; position: relative; overflow: hidden; }
+.device .txt { padding: 16px 18px 18px; display: grid; gap: 6px; }
+.device .txt b { font-stretch: 118%; font-weight: 800; }
+.device .txt p { color: var(--muted); font-size: .93rem; }
+.pattern { position: absolute; inset: 0; background-color: var(--b-ink);
+  background-image: linear-gradient(var(--b-hot), var(--b-hot)), linear-gradient(var(--b-concrete), var(--b-concrete));
+  background-size: 28px 28px, 28px 28px; background-position: 6px 6px, 40px 40px;
+  background-repeat: repeat; }
+.pattern::before { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(var(--b-ink), var(--b-ink));
+  background-size: 68px 68px; background-position: 0 0; mix-blend-mode: normal; opacity: 0; }
+.blocks-pattern { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(8, 1fr); grid-auto-rows: 1fr; gap: 6px; padding: 6px; background: var(--b-ink); }
+.blocks-pattern i { border-radius: 3px; background: var(--b-concrete); display: block; }
+.blocks-pattern i.p { background: var(--b-hot); }
+.slot-demo { display: grid; grid-template-columns: 70px 70px; gap: 10px; }
+.slot-demo i { width: 70px; height: 70px; border-radius: 5px; background: var(--b-paper); display: block; }
+.slot-demo i.s { background: transparent; border: 2.5px dashed var(--b-paper); opacity: .5; }
+.slot-demo i.d { background: var(--b-hot); position: absolute; width: 70px; height: 70px; }
+.drop-stage { background: var(--b-ink); }
+.motion-stage { background: var(--b-concrete); }
+.motion-track { width: 78%; height: 6px; border-radius: 3px; background: rgba(251,248,249,.18); position: relative; }
+.motion-track i { position: absolute; top: -27px; left: 0; width: 60px; height: 60px; border-radius: 5px; background: var(--b-hot); display: block; }
+.motion-track span { position: absolute; top: 18px; font-family: var(--font-mono); font-size: .68rem; color: var(--b-paper); opacity: .7; }
+
+/* voice */
+.principles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.principle { border-top: 2px solid var(--b-hot); padding-top: 14px; display: grid; gap: 6px; }
+.principle b { font-stretch: 118%; font-weight: 800; font-size: 1.1rem; }
+.principle p { color: var(--muted); }
+.lines { display: grid; gap: 12px; }
+.line { display: grid; grid-template-columns: 9em minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; align-items: start; }
+.line .ctx { font-family: var(--font-mono); font-size: var(--s-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: .25em; }
+.line .yes::before { content: "Say  "; font-family: var(--font-mono); font-size: .7rem; color: var(--good); letter-spacing: .08em; text-transform: uppercase; }
+.line .no { color: var(--muted); }
+.line .no::before { content: "Not  "; font-family: var(--font-mono); font-size: .7rem; color: var(--bad); letter-spacing: .08em; text-transform: uppercase; }
+
+/* vocabulary */
+.vocab { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.term { background: var(--surface); padding: 18px; display: grid; gap: 6px; align-content: start; }
+.term b { font-stretch: 125%; font-weight: 900; font-size: 1.3rem; letter-spacing: -.01em; }
+.term .means { font-family: var(--font-mono); font-size: .75rem; color: var(--pink-text); letter-spacing: .04em; }
+.term p { color: var(--muted); font-size: .93rem; }
+
+/* in the wild */
+.wild { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.mock { border-radius: 6px; border: 1px solid var(--line); overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; background: var(--surface); }
+.mock > .cap { order: 2; padding: 10px 14px; font-family: var(--font-mono); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-top: 1px solid var(--line); }
+.mock > .scene { order: 1; padding: 22px; display: grid; place-items: center; min-height: 210px; position: relative; overflow: hidden; }
+.scene.s-ink { background: var(--b-ink); } .scene.s-paper { background: var(--b-paper); } .scene.s-pink { background: var(--b-hot); } .scene.s-concrete { background: var(--b-concrete); }
+
+.browser { width: 100%; max-width: 380px; background: #EFE7EC; border-radius: 10px 10px 4px 4px; overflow: hidden; color: var(--b-ink); }
+.browser .tabs { display: flex; align-items: flex-end; gap: 4px; padding: 8px 10px 0; }
+.browser .tab { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px 8px 0 0; font-size: .78rem; background: #FFFFFF; min-width: 0; }
+.browser .tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.browser .tab.off { background: transparent; color: #6B6170; }
+.browser .bar { background: #FFFFFF; padding: 8px 12px 10px; }
+.browser .url { background: #F3ECF0; border-radius: 6px; padding: 5px 10px; font-family: var(--font-mono); font-size: .72rem; color: #6B6170; }
+
+.avatars { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.avatar { width: 96px; height: 96px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--b-ink); border: 3px solid var(--b-paper); }
+.avatar svg { width: 100%; height: 100%; }
+.handle { display: grid; gap: 2px; color: var(--b-paper); }
+.handle b { font-stretch: 115%; }
+.handle span { font-family: var(--font-mono); font-size: .78rem; opacity: .75; }
+
+.home { display: grid; justify-items: center; gap: 8px; color: var(--b-paper); font-size: .75rem; }
+.home svg { width: 72px; height: 72px; filter: drop-shadow(0 6px 14px rgba(0,0,0,.35)); }
+
+.sticker { background: var(--b-paper); color: var(--b-ink); padding: 14px 18px 16px; border-radius: 8px; transform: rotate(-6deg); display: grid; gap: 6px; box-shadow: 0 12px 0 -4px rgba(23,18,26,.3); justify-items: start; }
+.sticker .wm { font-size: 2.1rem; }
+.sticker small { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; }
+
+.post { width: 100%; max-width: 300px; aspect-ratio: 1; background: var(--b-ink); color: var(--b-paper); border-radius: 4px; padding: 20px; display: grid; align-content: space-between; }
+.post .big { font-stretch: 125%; font-weight: 900; text-transform: uppercase; font-size: 2.1rem; line-height: .92; letter-spacing: -.02em; }
+.post .big em { font-style: normal; color: var(--b-hot); }
+.post .row { display: flex; justify-content: space-between; align-items: flex-end; }
+.post .row .wm { font-size: 1.2rem; }
+.post .row small { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+
+.app { width: 100%; background: var(--b-paper); color: var(--b-ink); border-radius: 8px; overflow: hidden; display: grid; grid-template-columns: 220px minmax(0, 1fr); font-size: .85rem; border: 1px solid rgba(23,18,26,.12); }
+.app .side { background: #F3ECF0; padding: 14px; display: grid; gap: 10px; align-content: start; }
+.app .side .wm { font-size: 1.25rem; }
+.app .side .lbl { font-family: var(--font-mono); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: #6B6170; margin-top: 6px; }
+.crate-item { background: #FFFFFF; border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; border: 1px solid #E7DEE4; }
+.crate-item b { font-stretch: 112%; }
+.crate-item span { font-family: var(--font-mono); font-size: .68rem; color: #6B6170; }
+.app .canvas { padding: 16px; display: grid; gap: 8px; align-content: start; }
+.app .canvas .lbl { font-family: var(--font-mono); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: #6B6170; }
+.blk { border-radius: 6px; background: #FFFFFF; border: 1px solid #E7DEE4; padding: 10px 12px; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.blk .t { display: grid; gap: 1px; min-width: 0; }
+.blk .t b { font-stretch: 112%; }
+.blk .t span { font-family: var(--font-mono); font-size: .66rem; color: #6B6170; }
+.blk .tag { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: var(--b-blush); color: var(--b-rose); white-space: nowrap; }
+.blk.new { border: 2px dashed var(--b-hot); background: #FFF5FA; }
+.blk.hero-blk { height: 64px; }
+.drop-btn { justify-self: start; background: var(--b-hot); color: var(--b-ink); font-weight: 800; font-stretch: 115%; border-radius: 5px; padding: 6px 12px; font-size: .8rem; }
+
+.span-6 { grid-column: span 6; }
+
+/* owning it */
+.own { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.own > div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.own ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.own li { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.own .st { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; border: 1px solid currentColor; }
+.st.open { color: var(--good); } .st.taken { color: var(--muted); } .st.sale { color: var(--pink-text); }
+
+.liner { border-top: 1px solid var(--line); padding-top: 20px; color: var(--muted); font-size: .88rem; display: grid; gap: 6px; max-width: 86ch; }
+
+/* motion */
+@media (prefers-reduced-motion: no-preference) {
+  .mix-row i.slot::after { animation: drop 1.1s cubic-bezier(.3,1.5,.5,1) .3s both; }
+  @keyframes drop { 0% { transform: translateY(-160%); } 100% { transform: translateY(-34%); } }
+  .motion-track i { animation: slide 2.4s cubic-bezier(.3,1.4,.5,1) infinite; }
+  @keyframes slide { 0%, 15% { left: 0; } 55%, 100% { left: calc(100% - 60px); } }
+}
+
+/* responsive */
+@media (max-width: 960px) {
+  .cover { grid-template-columns: 1fr; }
+  .cover-art { min-height: 300px; }
+  .logo-grid .span-4, .logo-grid .span-2, .logo-grid .span-3 { grid-column: span 3; }
+  .values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .misuse { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .palette { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .devices, .vocab, .own { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wild .span-2, .wild .span-3 { grid-column: span 3; }
+}
+@media (max-width: 720px) {
+  .track { grid-template-columns: 1fr; gap: 14px; }
+  .track > .num { width: max-content; padding-right: 24px; }
+  .tracklist { grid-template-columns: 1fr; }
+  .tracklist section + section { border-left: 0; padding-left: 0; }
+  .logo-grid .span-4, .logo-grid .span-2, .logo-grid .span-3 { grid-column: span 6; }
+  .dodont, .clear, .principles { grid-template-columns: 1fr; }
+  .spec { grid-template-columns: 1fr; gap: 12px; }
+  .line { grid-template-columns: 1fr; gap: 6px; }
+  .wild .span-2, .wild .span-3 { grid-column: span 6; }
+  .app { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .cover-main { padding: 26px 22px 24px; }
+  .values, .misuse, .palette, .devices, .vocab, .own { grid-template-columns: 1fr; }
+  .sw.hero-sw { grid-column: auto; }
+  .specs div { grid-template-columns: 1fr; gap: 2px; }
+  .flyer-lines { grid-template-columns: 1fr; gap: 0 0; }
+  .flyer-lines dd { margin-bottom: 8px; }
+  .lockup { font-size: 2rem; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="bm-icon" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" style="fill:var(--tile)"/>
+      <rect x="12" y="12" width="18" height="18" rx="3" style="fill:var(--bar)"/>
+      <rect x="34.75" y="12.75" width="16.5" height="16.5" rx="2.5" style="fill:none;stroke:var(--bar);stroke-width:1.5;stroke-dasharray:3 2.5;opacity:.55"/>
+      <rect x="12" y="34" width="18" height="18" rx="3" style="fill:var(--bar)"/>
+      <rect x="34" y="34" width="18" height="18" rx="3" style="fill:var(--bar)"/>
+      <rect x="38" y="7" width="18" height="18" rx="3" style="fill:var(--drop, #FF69B4)"/>
+    </symbol>
+    <symbol id="bm-mini" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" style="fill:var(--tile)"/>
+      <rect x="9" y="9" width="21" height="21" rx="3" style="fill:var(--bar)"/>
+      <rect x="34" y="9" width="21" height="21" rx="3" style="fill:var(--drop, #FF69B4)"/>
+      <rect x="9" y="34" width="21" height="21" rx="3" style="fill:var(--bar)"/>
+      <rect x="34" y="34" width="21" height="21" rx="3" style="fill:var(--bar)"/>
+    </symbol>
+    <symbol id="bm-x" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" style="fill:var(--tile)"/>
+      <rect x="11" y="11" width="12" height="12" rx="2" style="fill:var(--bar)"/>
+      <rect x="41" y="11" width="12" height="12" rx="2" style="fill:var(--bar)"/>
+      <rect x="26" y="26" width="12" height="12" rx="2" style="fill:var(--drop, #FF69B4)"/>
+      <rect x="11" y="41" width="12" height="12" rx="2" style="fill:var(--bar)"/>
+      <rect x="41" y="41" width="12" height="12" rx="2" style="fill:var(--bar)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main class="wrap">
+
+  <!-- cover -->
+  <header class="cover">
+    <div class="cover-main">
+      <p class="presents">Brand guide · draft 1 · Oct 2026</p>
+      <div>
+        <span class="wm" aria-label="blokmix">bl<span class="sq" aria-hidden="true"></span>kmix</span>
+      </div>
+      <h1>Sample the web, block by block.</h1>
+      <dl class="flyer-lines">
+        <dt>Featuring</dt><dd>Any section from any website</dd>
+        <dt>Location</dt><dd>Your browser</dd>
+        <dt>Admission</dt><dd>One URL</dd>
+      </dl>
+    </div>
+    <div class="cover-art" aria-hidden="true">
+      <div class="mix-row"><i></i><i class="slot"></i><i></i></div>
+      <div class="variants">
+        <figure><div class="v two"><i></i><i class="up"></i></div><figcaption>Two-up</figcaption></figure>
+        <figure><div class="v fade"><i></i><i></i></div><figcaption>Crossfade</figcaption></figure>
+        <figure><div class="v splice"><i></i></div><figcaption>Splice</figcaption></figure>
+        <figure><div class="v loop"><i></i><i></i><i></i></div><figcaption>Loop</figcaption></figure>
+      </div>
+      <span class="stamp">Ways to mix</span>
+    </div>
+  </header>
+
+  <!-- tracklist -->
+  <nav class="tracklist" aria-label="Contents">
+    <section>
+      <h2>Side A · Identity</h2>
+      <ol>
+        <li><a href="#name"><span>A1</span>The name</a></li>
+        <li><a href="#logo"><span>A2</span>Logo</a></li>
+        <li><a href="#color"><span>A3</span>Color</a></li>
+        <li><a href="#type"><span>A4</span>Type</a></li>
+      </ol>
+    </section>
+    <section>
+      <h2>Side B · In use</h2>
+      <ol>
+        <li><a href="#graphics"><span>B1</span>Graphic language</a></li>
+        <li><a href="#voice"><span>B2</span>Voice</a></li>
+        <li><a href="#words"><span>B3</span>Product words</a></li>
+        <li><a href="#wild"><span>B4</span>In the wild</a></li>
+        <li><a href="#own"><span>B5</span>Owning it</a></li>
+      </ol>
+    </section>
+  </nav>
+
+  <!-- A1 name -->
+  <section class="track" id="name" aria-labelledby="h-name">
+    <p class="num">A1</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-name">Blokmix. One word, a K, no C.</h2>
+        <p class="measure">Say it BLOCK-mix. Write it with a capital B in sentences. The logo is the only place it appears in lowercase. The K is the point: it marks the name as ours and ties it to Koati.</p>
+      </div>
+      <div class="dodont">
+        <div class="dd do">
+          <p>Write it like this</p>
+          <ul>
+            <li><span>Blokmix</span><small>In sentences, headlines and UI.</small></li>
+            <li><span>BLOKMIX</span><small>Only in all-caps display headlines, like the flyer.</small></li>
+            <li><span>Blokmix that footer.</span><small>As a verb in talk and marketing copy. Keep product buttons literal, like “Sample block”.</small></li>
+          </ul>
+        </div>
+        <div class="dd dont">
+          <p>Not like this</p>
+          <ul>
+            <li><span>Blockmix</span><small>The C spelling belongs to someone else’s domain.</small></li>
+            <li><span>BlokMix · Blok Mix</span><small>No inner capital, no space.</small></li>
+            <li><span>blokmix</span><small>Lowercase is for the logo, not for text.</small></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- A2 logo -->
+  <section class="track" id="logo" aria-labelledby="h-logo">
+    <p class="num">A2</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-logo">The block is the logo.</h2>
+        <p class="measure">The wordmark swaps the o for a pink block. The app icon shows that block grabbed and lifted out of its slot on a dotted canvas, rendered in 3D. Wherever the brand appears, that one pink block is the thing people remember.</p>
+        <p class="measure">The final vector files and construction rules are on the <a href="https://claude.ai/artifact/7zcMCW2Xna3ypuSrsmGaPX">logo masters</a> sheet. Use those files, not the previews on this page.</p>
+      </div>
+      <div class="logo-grid">
+        <figure class="tile ink span-4" style="margin:0">
+          <div class="art"><span class="wm" style="font-size:clamp(3rem,8vw,5.4rem)" aria-label="blokmix wordmark">bl<span class="sq" aria-hidden="true"></span>kmix</span></div>
+          <figcaption>Primary wordmark</figcaption>
+        </figure>
+        <figure class="tile paper span-2" style="margin:0">
+          <div class="art"><img src="icons/blokmix-icon-render-light-512.png" alt="Blokmix app icon: a glossy pink block lifted out of its slot" width="140" height="140" style="width:140px;height:auto;filter:drop-shadow(0 10px 16px rgba(23,18,26,.25))"></div>
+          <figcaption>App icon</figcaption>
+        </figure>
+        <figure class="tile paper span-3" style="margin:0">
+          <div class="art"><div class="lockup"><img src="icons/blokmix-icon-simple-dark.svg" alt="" width="64" height="64" style="width:1.3em;height:1.3em"><span class="wm" aria-label="blokmix">bl<span class="sq" aria-hidden="true"></span>kmix</span></div></div>
+          <figcaption>Horizontal lockup</figcaption>
+        </figure>
+        <figure class="tile concrete span-3" style="margin:0">
+          <div class="art"><div class="stacked"><img src="icons/blokmix-icon-simple-light.svg" alt="" width="64" height="64" style="width:1.6em;height:1.6em"><span class="wm" aria-label="blokmix">bl<span class="sq" aria-hidden="true"></span>kmix</span></div></div>
+          <figcaption>Stacked lockup</figcaption>
+        </figure>
+        <figure class="tile pink span-2" style="margin:0">
+          <div class="art"><span class="wm" style="font-size:2.4rem;--sq:#17121A" aria-label="blokmix">bl<span class="sq" aria-hidden="true"></span>kmix</span></div>
+          <figcaption>On pink, the block turns ink</figcaption>
+        </figure>
+        <figure class="tile ink span-2" style="margin:0">
+          <div class="art">
+            <img src="icons/blokmix-icon-simple-light.svg" alt="" width="64" height="64">
+            <img src="icons/favicon-32-light.svg" alt="" width="32" height="32">
+            <img src="icons/favicon-16-light.svg" alt="" width="16" height="16">
+          </div>
+          <figcaption>64 · 32 · 16 px. Below 64 px drop the dots; at 32 and 16 use the pixel favicons</figcaption>
+        </figure>
+        <figure class="tile paper span-2" style="margin:0">
+          <div class="art"><svg width="80" height="80" style="--tile:#17121A;--bar:#FBF8F9" role="img" aria-label="The X mark: five blocks forming an X"><use href="#bm-x"/></svg></div>
+          <figcaption>The X: stickers, merch, loading</figcaption>
+        </figure>
+        <figure class="tile paper span-3" style="margin:0">
+          <div class="art"><img src="logo/blokmix-wordmark-shadow-ink.svg" alt="Alternate Blokmix wordmark with a square o and a hot pink drop shadow" width="480" height="83" style="width:100%;height:auto"></div>
+          <figcaption>Alternate: square o with shadow</figcaption>
+        </figure>
+        <figure class="tile ink span-3" style="margin:0">
+          <div class="art"><img src="logo/blokmix-wordmark-shadow-paper.svg" alt="Alternate Blokmix wordmark with a square o and a hot pink drop shadow, on dark" width="480" height="83" style="width:100%;height:auto"></div>
+          <figcaption>Alternate on dark</figcaption>
+        </figure>
+      </div>
+
+      <div class="clear">
+        <div class="tile paper" style="min-height:0">
+          <div class="art" style="justify-content:center;padding-block:18px">
+            <span class="clear-demo">
+              <span class="unit" style="top:0;left:0"></span><span class="unit" style="top:0;right:0"></span>
+              <span class="unit" style="bottom:0;left:0"></span><span class="unit" style="bottom:0;right:0"></span>
+              <span class="wm" aria-label="blokmix">bl<span class="sq" aria-hidden="true"></span>kmix</span>
+            </span>
+          </div>
+          <figcaption>Clear space is one block on every side</figcaption>
+        </div>
+        <dl class="specs">
+          <div><dt>Clear space</dt><dd>The width of the pink block in the wordmark, on all four sides.</dd></div>
+          <div><dt>Minimum size</dt><dd>Wordmark 80 px wide on screen, 20 mm in print. App icon down to 64 px from the render; below that use the flat icon, and the pixel-snapped favicons at 32 and 16 px.</dd></div>
+          <div><dt>Backgrounds</dt><dd>Ink, concrete or paper with a pink block. On hot pink, the block turns ink. Never pink on pink.</dd></div>
+          <div><dt>Motion</dt><dd>Only the pink block moves. The letters and grid stay still.</dd></div>
+          <div><dt>Shadow alternate</dt><dd>The o becomes a square ring and a hot pink shadow sits about 10% of the letter height down and to the right. Use it for posters, merch and big moments. The block wordmark stays the primary logo. Never put the shadow version on pink.</dd></div>
+        </dl>
+      </div>
+
+      <div class="intro"><h3>Don’t</h3></div>
+      <div class="misuse">
+        <figure><div class="box"><span class="wm" style="--sq:#3B82F6">bl<span class="sq"></span>kmix</span></div><figcaption>Recolor the block</figcaption></figure>
+        <figure><div class="box"><span class="wm" style="transform:scaleX(.62)">bl<span class="sq"></span>kmix</span></div><figcaption>Squash or stretch it</figcaption></figure>
+        <figure><div class="box"><span class="wm" style="font-stretch:100%;font-weight:500">blokmix</span></div><figcaption>Retype it in another weight</figcaption></figure>
+        <figure><div class="box"><span class="wm" style="text-shadow:0 0 10px #FF69B4, 0 0 2px #FF69B4">bl<span class="sq"></span>kmix</span></div><figcaption>Add glows or outlines. Only the shadow alternate gets a shadow</figcaption></figure>
+        <figure><div class="box" style="background:#FF69B4"><span class="wm">bl<span class="sq"></span>kmix</span></div><figcaption>Put a pink block on pink</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- A3 color -->
+  <section class="track" id="color" aria-labelledby="h-color">
+    <p class="num">A3</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-color">Pink is the drop, not the wall.</h2>
+        <p class="measure">Ink and paper carry most of every layout. Hot pink is reserved for the thing that matters: the block, the action, the moment. The core pink is the CSS keyword <span class="mono">hotpink</span>, so the brand color is something any web designer can type.</p>
+      </div>
+      <div class="palette">
+        <div class="sw hero-sw"><div class="c" style="background:var(--b-hot);color:var(--b-ink)"><span>Hot pink</span><span>#FF69B4</span></div><div class="m"><b>hotpink</b><span>The block, primary buttons, highlights. Ink text on it, never white.</span></div></div>
+        <div class="sw"><div class="c" style="background:var(--b-deep);color:var(--b-ink)"><span>Deep pink</span><span>#FF1493</span></div><div class="m"><b>deeppink</b><span>Large display type and hover states.</span></div></div>
+        <div class="sw"><div class="c" style="background:var(--b-rose);color:#FFFFFF"><span>Rose</span><span>#C2185B</span></div><div class="m"><b>Rose</b><span>Pink text and links on light backgrounds.</span></div></div>
+        <div class="sw"><div class="c" style="background:var(--b-ink);color:var(--b-paper)"><span>Ink</span><span>#17121A</span></div><div class="m"><b>Ink</b><span>Type, dark backgrounds, the grid.</span></div></div>
+        <div class="sw"><div class="c" style="background:var(--b-concrete);color:var(--b-paper)"><span>Concrete</span><span>#2A2130</span></div><div class="m"><b>Concrete</b><span>Cards and panels on dark.</span></div></div>
+        <div class="sw"><div class="c" style="background:var(--b-paper);color:var(--b-ink);border-bottom:1px solid #E7DEE4"><span>Paper</span><span>#FBF8F9</span></div><div class="m"><b>Paper</b><span>Light backgrounds. White with a pink tint.</span></div></div>
+        <div class="sw"><div class="c" style="background:var(--b-blush);color:var(--b-rose)"><span>Blush</span><span>#FFE3F1</span></div><div class="m"><b>Blush</b><span>Tags and selected states in the product.</span></div></div>
+      </div>
+      <div class="ratio">
+        <div class="bar" role="img" aria-label="Color proportions: 60 percent ink, 25 percent paper, 10 percent concrete, 5 percent hot pink">
+          <i style="flex:60;background:var(--b-ink)"></i><i style="flex:25;background:var(--b-paper)"></i><i style="flex:10;background:var(--b-concrete)"></i><i style="flex:5;background:var(--b-hot)"></i>
+        </div>
+        <div class="legend"><span>Ink 60%</span><span>Paper 25%</span><span>Concrete 10%</span><span>Hot pink 5%</span></div>
+      </div>
+      <div class="pairs-wrap">
+        <table>
+          <thead><tr><th scope="col">Pairing</th><th scope="col">Sample</th><th scope="col">Contrast</th><th scope="col">Use for</th></tr></thead>
+          <tbody>
+            <tr><td>Ink on hot pink</td><td><span class="sample" style="background:#FF69B4;color:#17121A">Sample block</span></td><td class="num">7.0:1</td><td><span class="verdict ok">all text</span></td></tr>
+            <tr><td>Paper on ink</td><td><span class="sample" style="background:#17121A;color:#FBF8F9">Sample block</span></td><td class="num">17.5:1</td><td><span class="verdict ok">all text</span></td></tr>
+            <tr><td>Hot pink on ink</td><td><span class="sample" style="background:#17121A;color:#FF69B4">Sample block</span></td><td class="num">7.0:1</td><td><span class="verdict ok">all text</span></td></tr>
+            <tr><td>Rose on paper</td><td><span class="sample" style="background:#FBF8F9;color:#C2185B;border:1px solid #E7DEE4">Sample block</span></td><td class="num">5.6:1</td><td><span class="verdict ok">all text</span></td></tr>
+            <tr><td>Deep pink on paper</td><td><span class="sample" style="background:#FBF8F9;color:#FF1493;border:1px solid #E7DEE4">Sample block</span></td><td class="num">3.4:1</td><td><span class="verdict big">24 px and up</span></td></tr>
+            <tr><td>White on hot pink</td><td><span class="sample" style="background:#FF69B4;color:#FFFFFF">Sample block</span></td><td class="num">2.6:1</td><td><span class="verdict no">never</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- A4 type -->
+  <section class="track" id="type" aria-labelledby="h-type">
+    <p class="num">A4</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-type">One family, stretched wide.</h2>
+        <p class="measure">Archivo is a variable typeface with a width axis. Pushed to its widest and heaviest, it becomes the flyer voice of the wordmark and headlines. At normal width it sets clean, readable body text. JetBrains Mono handles labels, specs and liner notes. All three are free on Google Fonts.</p>
+      </div>
+      <div class="specimens">
+        <div class="spec"><div class="meta"><b>Display</b><span>Archivo · width 125 · weight 900 · tracking −3%</span></div><div class="show show-display">Three sites. One page.</div></div>
+        <div class="spec"><div class="meta"><b>Body</b><span>Archivo · width 100 · weight 400 · line height 1.6</span></div><div class="show show-body">Paste a URL, pick the section you want, and Blokmix pulls it into your crate with its layout, spacing and structure intact. Then restyle it to your brand.</div></div>
+        <div class="spec"><div class="meta"><b>Utility</b><span>JetBrains Mono · 400 / 600 · caps +9%</span></div><div class="show show-mono">SAMPLED FROM STRIPE.COM · 10/23/26 · HERO · 1440 PX</div></div>
+      </div>
+      <div class="scale" aria-label="Type scale">
+        <div><span>Flyer 176</span><span style="font-size:clamp(2.6rem,9vw,5.5rem)">Drop it</span></div>
+        <div><span>H1 48</span><span style="font-size:clamp(1.8rem,4vw,3rem)">Dig through the web</span></div>
+        <div><span>H2 32</span><span style="font-size:2rem">Your crate</span></div>
+        <div><span>H3 22</span><span style="font-size:1.4rem">Pricing table · linear.app</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B1 graphic language -->
+  <section class="track" id="graphics" aria-labelledby="h-graphics">
+    <p class="num">B1</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-graphics">Canvas, slot and the lift.</h2>
+        <p class="measure">The same world as the app icon: a dotted design canvas, a slot carved into it, and a glossy pink block lifted out with real light and shadow. Use these in place of stock photos or gradients.</p>
+      </div>
+      <div class="devices">
+        <div class="device">
+          <div class="stage" aria-hidden="true" style="background-color:#F1EBEE;background-image:radial-gradient(#CFC4CC 22%, transparent 24%);background-size:22px 22px">
+            <span style="display:block;width:112px;height:112px;border-radius:20px;background:#D8CED5;box-shadow:inset 8px 10px 14px rgba(23,18,26,.22)"></span>
+          </div>
+          <div class="txt"><b>The canvas and the slot</b><p>A paper canvas with dots every 64 px at icon scale, and slots carved into it where a block came from or will land. Use them as backgrounds, empty states and drop targets.</p></div>
+        </div>
+        <div class="device">
+          <div class="stage" aria-hidden="true" style="background:#2A2130"><img src="icons/blokmix-icon-render-light-512.png" alt="" width="160" height="160" style="width:160px;height:auto;filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))"></div>
+          <div class="txt"><b>The lift</b><p>The hero object: one glossy pink block, rotated about −9°, tilted toward a top-left key light, with a soft shadow below and to the right. Render it in Blender from source/blokmix_blender.py for big moments.</p></div>
+        </div>
+        <div class="device">
+          <div class="stage" aria-hidden="true" style="background:#F1EBEE"><img src="icons/pinboard-512.png" alt="" width="160" height="160" style="width:160px;height:auto;filter:drop-shadow(0 12px 18px rgba(23,18,26,.25))"></div>
+          <div class="txt"><b>Sections on the board</b><p>Website sections as white cards on a pegboard, with the sampled one lifted off in pink. Use this scene for feature illustrations and onboarding.</p></div>
+        </div>
+      </div>
+      <p class="measure" style="color:var(--muted)">Motion: blocks lift and drop in 240 ms with a small overshoot, easing <span class="mono">cubic-bezier(.3, 1.4, .5, 1)</span>. Only the pink block moves.</p>
+    </div>
+  </section>
+
+  <!-- B2 voice -->
+  <section class="track" id="voice" aria-labelledby="h-voice">
+    <p class="num">B2</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-voice">Talk like a producer showing a friend their crate.</h2>
+        <p class="measure">Blokmix borrows hip-hop’s craft words (sample, flip, crate, drop) because they describe what the tool does. It doesn’t borrow slang or put on a voice. Respect for the culture is part of the brand.</p>
+      </div>
+      <div class="principles">
+        <div class="principle"><b>Short and on beat</b><p>Short sentences with rhythm. Cut every word the beat doesn’t need.</p></div>
+        <div class="principle"><b>Show the source</b><p>Name the site a block came from. Credit is a feature.</p></div>
+        <div class="principle"><b>Confident, never cocky</b><p>Say what it does plainly. Let the work make the noise.</p></div>
+        <div class="principle"><b>Inspired by, not imitating</b><p>Use craft words, not slang. No “yo”, no “fr”, no fire emoji.</p></div>
+      </div>
+      <div class="lines">
+        <div class="line"><span class="ctx">Empty crate</span><span class="yes">Your crate is empty. Paste a URL to dig.</span><span class="no">Oops! Nothing here yet 😅</span></div>
+        <div class="line"><span class="ctx">Sample saved</span><span class="yes">Hero sampled from stripe.com.</span><span class="no">Yo, we jacked that hero 🔥</span></div>
+        <div class="line"><span class="ctx">Drop target</span><span class="yes">Drop a block here.</span><span class="no">Insert component at index.</span></div>
+        <div class="line"><span class="ctx">Error</span><span class="yes">This site blocks sampling. Try another page or upload a screenshot.</span><span class="no">Something went wrong.</span></div>
+        <div class="line"><span class="ctx">Headline</span><span class="yes">Three sites. One page. All yours.</span><span class="no">Revolutionize your web design workflow.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B3 words -->
+  <section class="track" id="words" aria-labelledby="h-words">
+    <p class="num">B3</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-words">Product words</h2>
+        <p class="measure">Use these names everywhere: product UI, docs and marketing. Each one maps to a plain idea, which is shown under it.</p>
+      </div>
+      <div class="vocab">
+        <div class="term"><b>Block</b><span class="means">= a section of a page</span><p>Hero, features, pricing, footer. The unit of everything.</p></div>
+        <div class="term"><b>Dig</b><span class="means">= browse for references</span><p>Paste a URL or search sites you’ve saved.</p></div>
+        <div class="term"><b>Sample</b><span class="means">= capture a block</span><p>Pull a live section into Blokmix with its structure.</p></div>
+        <div class="term"><b>Crate</b><span class="means">= your saved library</span><p>Every block you’ve sampled, tagged by type and source.</p></div>
+        <div class="term"><b>Flip</b><span class="means">= restyle to your brand</span><p>Apply your fonts, colors and copy to a sample.</p></div>
+        <div class="term"><b>Drop</b><span class="means">= place a block on the page</span><p>Drag from the crate into a slot.</p></div>
+        <div class="term"><b>Tracklist</b><span class="means">= the page outline</span><p>The order of blocks on a page, top to bottom.</p></div>
+        <div class="term"><b>Liner notes</b><span class="means">= source credits</span><p>Where each block came from and when it was sampled.</p></div>
+        <div class="term"><b>Press</b><span class="means">= export</span><p>Send the finished mix to code, Figma or Webflow.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B4 in the wild -->
+  <section class="track" id="wild" aria-labelledby="h-wild">
+    <p class="num">B4</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-wild">In the wild</h2>
+        <p class="measure">Sketches of the brand where people will meet it first. The product screen uses example content.</p>
+      </div>
+      <div class="wild">
+        <figure class="mock span-6" style="margin:0">
+          <figcaption class="cap">Product · crate and canvas (example content)</figcaption>
+          <div class="scene s-concrete">
+            <div class="app">
+              <div class="side">
+                <span class="wm" aria-label="blokmix">bl<span class="sq" aria-hidden="true"></span>kmix</span>
+                <span class="lbl">Crate · 3 blocks</span>
+                <div class="crate-item"><b>Hero</b><span>stripe.com · sampled 10/23</span></div>
+                <div class="crate-item"><b>Pricing table</b><span>linear.app · sampled 10/23</span></div>
+                <div class="crate-item"><b>Footer</b><span>vercel.com · sampled 10/22</span></div>
+              </div>
+              <div class="canvas">
+                <span class="lbl">Tracklist · Homepage mix</span>
+                <div class="blk hero-blk"><div class="t"><b>Hero</b><span>from stripe.com</span></div><span class="tag">flipped</span></div>
+                <div class="blk"><div class="t"><b>Pricing table</b><span>from linear.app</span></div><span class="tag">flipped</span></div>
+                <div class="blk new"><div class="t"><b>Drop a block here</b><span>footer, CTA or features</span></div></div>
+                <span class="drop-btn">Sample block</span>
+              </div>
+            </div>
+          </div>
+        </figure>
+        <figure class="mock span-3" style="margin:0">
+          <figcaption class="cap">Browser tab · favicon</figcaption>
+          <div class="scene s-paper">
+            <div class="browser">
+              <div class="tabs">
+                <div class="tab"><img src="icons/favicon-16-light.svg" alt="" width="16" height="16" style="width:16px;height:16px"><span>Homepage mix · Blokmix</span></div>
+                <div class="tab off"><span>stripe.com</span></div>
+              </div>
+              <div class="bar"><div class="url">blokmix.com/mix/homepage</div></div>
+            </div>
+          </div>
+        </figure>
+        <figure class="mock span-3" style="margin:0">
+          <figcaption class="cap">X and Instagram avatars</figcaption>
+          <div class="scene s-ink">
+            <div class="avatars">
+              <div class="avatar"><img src="icons/blokmix-icon-render-light-180.png" alt="" width="96" height="96" style="width:100%;height:100%;object-fit:cover"></div>
+              <div class="handle"><b>Blokmix</b><span>@blokmix on X</span><span>@blokmixhq on Instagram</span></div>
+            </div>
+          </div>
+        </figure>
+        <figure class="mock span-2" style="margin:0">
+          <figcaption class="cap">Home screen</figcaption>
+          <div class="scene s-concrete">
+            <div class="home"><img src="icons/blokmix-icon-render-light-180.png" alt="" width="72" height="72" style="width:72px;height:72px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.35))"><span>Blokmix</span></div>
+          </div>
+        </figure>
+        <figure class="mock span-2" style="margin:0">
+          <figcaption class="cap">Sticker</figcaption>
+          <div class="scene s-pink">
+            <div class="sticker"><span class="wm" aria-label="blokmix">bl<span class="sq" aria-hidden="true"></span>kmix</span><small>Sample the web</small></div>
+          </div>
+        </figure>
+        <figure class="mock span-2" style="margin:0">
+          <figcaption class="cap">Social post</figcaption>
+          <div class="scene s-paper">
+            <div class="post">
+              <p class="big">Three sites.<br>One page.<br><em>All yours.</em></p>
+              <div class="row"><span class="wm" aria-label="blokmix">bl<span class="sq" aria-hidden="true"></span>kmix</span><small>blokmix.com</small></div>
+            </div>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- B5 owning it -->
+  <section class="track" id="own" aria-labelledby="h-own">
+    <p class="num">B5</p>
+    <div class="body">
+      <div class="intro">
+        <h2 id="h-own">Owning it</h2>
+        <p class="measure">Status as of Oct 23, 2026. Register the bare .com and the short-link domain first, then claim the handles the same day.</p>
+      </div>
+      <div class="own">
+        <div>
+          <p class="label">Domains</p>
+          <ul>
+            <li><span class="mono">blokmix.com</span><span class="st open">open</span></li>
+            <li><span class="mono">blokmix.fm</span><span class="st open">open</span></li>
+            <li><span class="mono">blokmixhq.com</span><span class="st open">open</span></li>
+            <li><span class="mono">blokmix .co .io .app .design</span><span class="st open">open</span></li>
+            <li><span class="mono">blockmix.com</span><span class="st sale">$1,999</span></li>
+          </ul>
+        </div>
+        <div>
+          <p class="label">Handles</p>
+          <ul>
+            <li><span class="mono">@blokmix on X</span><span class="st open">open</span></li>
+            <li><span class="mono">@blokmixhq on X</span><span class="st open">open</span></li>
+            <li><span class="mono">@blokmixhq on Instagram</span><span class="st open">no profile</span></li>
+            <li><span class="mono">@blokmix on Instagram</span><span class="st taken">taken</span></li>
+            <li><span class="mono">@blockmix on X</span><span class="st taken">taken</span></li>
+          </ul>
+        </div>
+        <div>
+          <p class="label">Trademark</p>
+          <p>The USPTO database has no records for “blokmix” or “blockmix”. This is a quick screen. Have a trademark attorney run full clearance before you file in Classes 9 and 42.</p>
+          <p><a href="https://claude.ai/artifact/RPnMjh6czP11ndELotqYJL">See the Pagetape vs Blokmix comparison</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="liner">
+    <p class="label">Liner notes</p>
+    <p>Blokmix brand guide, draft 1, Oct 23, 2026. The logo previews here are drawn in CSS. For production, use the outlined vector masters on the <a href="https://claude.ai/artifact/7zcMCW2Xna3ypuSrsmGaPX">logo masters</a> sheet. Typefaces: Archivo and JetBrains Mono (both open licensed). Domain and handle status changes over time, so check it again before you buy.</p>
+  </footer>
+
+</main>

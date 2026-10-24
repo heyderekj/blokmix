@@ -1,13 +1,13 @@
 /**
  * Smoke test for the MCP bridge: starts it like an MCP client would, lists the
- * tools, and (when a Mixtape tab is connected) reads the page.
+ * tools, and (when a Blokmix tab is connected) reads the page.
  *   npx vite-node scripts/mcp-smoke.ts [command] [json-input]
  */
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const [name = 'get_page', input = '{}'] = process.argv.slice(2)
-const client = new Client({ name: 'mixtape-smoke', version: '0.0.0' })
+const client = new Client({ name: 'blokmix-smoke', version: '0.0.0' })
 await client.connect(new StdioClientTransport({ command: 'npm', args: ['run', '-s', 'mcp'], cwd: process.cwd(), stderr: 'inherit' }))
 const { tools } = await client.listTools()
 console.log(`${tools.length} tools: ${tools.map((t) => t.name).join(', ')}`)

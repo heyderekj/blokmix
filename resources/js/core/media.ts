@@ -212,7 +212,7 @@ export function stockUrl(p: StockPhoto, w: number): string {
   return u.toString()
 }
 
-export const UTM = 'utm_source=mixtape&utm_medium=referral'
+export const UTM = 'utm_source=blokmix&utm_medium=referral'
 
 export function stockCredit(p: StockPhoto): string {
   return `Photo by ${p.author} (${p.authorUrl}?${UTM}) on Unsplash (https://unsplash.com/?${UTM})`

@@ -88,7 +88,7 @@ export function FontField({ k, value, onChange }: { k: TokenKey; value: string; 
 
 function FontPicker({ k, current, onPick, onClose }: { k: TokenKey; current: string; onPick: (stack: string) => void; onClose: () => void }) {
   const role = ROLE[k]
-  const brand = useStore((s) => s.content.brand) || 'Mixtape'
+  const brand = useStore((s) => s.content.brand) || 'Blokmix'
   const line = useStore((s) => s.content.fields.hero?.headline) || 'Clip the web. Mix your site.'
   const [q, setQ] = useState('')
   const [vibe, setVibe] = useState<FontVibe | 'all' | 'clips'>(ROLE_VIBE[role])

@@ -1,5 +1,5 @@
 /**
- * Writes the seeded demo tape's packet to .out/packet so the Astro and Next.js
+ * Writes the seeded demo mix's packet to .out/packet so the Astro and Next.js
  * exports can be installed and built from the command line.
  *   npm run export:demo
  *   npm run export:demo -- --layouts   (a page of every built-in layout, to build-check them all)
@@ -80,7 +80,7 @@ const files = packetFiles({
   guide,
   guideState: snap.guide,
   library,
-  tapeName: seed.tapeName,
+  mixName: seed.mixName,
   version: { id: version.id, letter: version.letter, title: version.title, status: version.status },
   targets: ['astro', 'next'],
   marks: snap.marks,

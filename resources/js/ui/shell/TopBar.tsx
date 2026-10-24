@@ -38,10 +38,10 @@ export function TopBar({ onHelp }: { onHelp: () => void }) {
   )
 }
 
-/** Logo + tape name; grows into the small app menu. */
+/** Logo + mix name; grows into the small app menu. */
 function BrandIsland({ onHelp }: { onHelp: () => void }) {
   const open = useStore((s) => s.ui.sheet === 'menu')
-  const tapeName = useStore((s) => s.tapeName)
+  const mixName = useStore((s) => s.mixName)
   const theme = useStore((s) => s.ui.theme)
   const st = useStore.getState
   return (
@@ -54,10 +54,10 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
           <button type="button" onClick={() => toggleSheet('menu')} className="ml-0.5 rounded-lg transition active:scale-[0.97]" title="Menu" aria-label="Menu">
             <LogoTile size={30} />
           </button>
-          <span className="pl-1.5 text-[15px] font-semibold tracking-tight text-zinc-900 max-lg:hidden">Mixtape</span>
+          <span className="pl-1.5 text-[15px] font-semibold tracking-tight text-zinc-900 max-lg:hidden">Blokmix</span>
           <span className="px-0.5 text-zinc-300 max-lg:hidden">/</span>
           <span className="max-md:hidden">
-            <TapeName value={tapeName} onChange={(v) => st().renameTape(v)} />
+            <MixName value={mixName} onChange={(v) => st().renameMix(v)} />
           </span>
         </>
       }
@@ -69,7 +69,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         <MenuItem icon={Redo2} label="Redo" kbd="⇧⌘Z" onClick={redo} />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         <div className="px-2.5 pb-1 pt-1.5 md:hidden">
-          <TapeName value={tapeName} onChange={(v) => st().renameTape(v)} />
+          <MixName value={mixName} onChange={(v) => st().renameMix(v)} />
         </div>
         <AgentAccess />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
@@ -85,10 +85,10 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         />
         <MenuItem
           icon={RotateCcw}
-          label="Reset the demo tape"
+          label="Reset the demo mix"
           onClick={() => {
             st().resetDemo()
-            st().showFlash('Demo tape reset', { undo: true })
+            st().showFlash('Demo mix reset', { undo: true })
           }}
         />
       </div>
@@ -96,7 +96,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
   )
 }
 
-/** Let a local agent (Claude Code over MCP) edit this tape, with what it's doing in plain view. */
+/** Let a local agent (Claude Code over MCP) edit this mix, with what it's doing in plain view. */
 function AgentAccess() {
   const on = useStore((s) => s.ui.agentAccess)
   const status = useAgentLink((s) => s.status)
@@ -105,7 +105,7 @@ function AgentAccess() {
     <div className="flex items-start gap-2.5 rounded-xl px-2.5 py-2">
       <Bot size={16} className="mt-0.5 shrink-0 text-agent" />
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-medium text-zinc-800">Let agents edit this tape</div>
+        <div className="text-[13px] font-medium text-zinc-800">Let agents edit this mix</div>
         <div className="text-[11.5px] leading-snug text-zinc-500">
           {!on
             ? 'Claude Code and other MCP agents can use every tool you can.'
@@ -114,7 +114,7 @@ function AgentAccess() {
               : 'Waiting for the bridge: run npm run mcp, or add it to Claude Code.'}
         </div>
       </div>
-      <Switch on={on} onChange={() => useStore.getState().setUi({ agentAccess: !on })} label="Let agents edit this tape" />
+      <Switch on={on} onChange={() => useStore.getState().setUi({ agentAccess: !on })} label="Let agents edit this mix" />
     </div>
   )
 }
@@ -258,7 +258,7 @@ function MenuItem({ icon: Icon, label, onClick, kbd }: { icon: typeof Sun; label
   )
 }
 
-function TapeName({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function MixName({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [v, setV] = useState(value)
   useEffect(() => setV(value), [value])
   return (
@@ -272,7 +272,7 @@ function TapeName({ value, onChange }: { value: string; onChange: (v: string) =>
       }}
       className="rounded-lg bg-transparent px-1.5 py-1 text-[14px] font-medium text-zinc-500 outline-none transition hover:bg-zinc-950/5 focus:bg-zinc-950/5 focus:text-zinc-900"
       style={{ fieldSizing: 'content', minWidth: 60, maxWidth: 220 } as React.CSSProperties}
-      aria-label="Tape name"
+      aria-label="Mix name"
     />
   )
 }

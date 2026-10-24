@@ -1,0 +1,206 @@
+<title>Blokmix Icon Round 5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a contact sheet. Eight frames in a grid, each tested at app, tab and favicon size, then a home-screen proof and a shortlist. */
+:root {
+  --bg: #120E14; --surface: #1D1720; --text: #F6EEF3; --muted: #B3A6B0; --line: #352B38; --pink-text: #FFA6D2;
+  color-scheme: dark;
+  --b-hot: #FF69B4; --b-ink: #17121A; --b-paper: #FBF8F9; --b-concrete: #2A2130;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: #FBF8F9; --surface: #FFFFFF; --text: #17121A; --muted: #6B6170; --line: #E7DEE4; --pink-text: #C2185B; color-scheme: light; }
+}
+:root[data-theme="light"] { --bg: #FBF8F9; --surface: #FFFFFF; --text: #17121A; --muted: #6B6170; --line: #E7DEE4; --pink-text: #C2185B; color-scheme: light; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-display); line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; padding-block: 40px 80px; display: grid; gap: 64px; }
+h1, h2, h3 { margin: 0; line-height: 1.05; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--pink-text); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--b-hot); outline-offset: 3px; }
+img { display: block; max-width: 100%; height: auto; }
+.label { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+
+.head { display: grid; gap: 14px; }
+.head h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-stretch: 125%; font-weight: 900; letter-spacing: -.025em; }
+.head .lede { max-width: 66ch; color: var(--muted); font-size: 1.12rem; }
+
+.sec { display: grid; gap: 20px; }
+.sec > header { display: grid; gap: 8px; max-width: 70ch; }
+.sec h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-stretch: 125%; font-weight: 900; letter-spacing: -.02em; }
+.sec > header p { color: var(--muted); }
+
+.sheet { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.frame { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
+.frame .big { background: var(--b-concrete); display: grid; place-items: center; padding: 28px; position: relative; }
+.frame .big img { width: min(100%, 200px); filter: drop-shadow(0 14px 22px rgba(0,0,0,.45)); }
+.frame .no { position: absolute; top: 10px; left: 12px; font-family: var(--font-mono); font-size: .7rem; color: var(--b-paper); opacity: .7; }
+.frame .pick { position: absolute; top: 10px; right: 12px; font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; background: var(--b-hot); color: var(--b-ink); padding: 2px 7px; border-radius: 3px; }
+.frame .small { background: var(--b-paper); display: flex; align-items: flex-end; gap: 16px; padding: 14px 16px; border-top: 1px solid var(--line); }
+.frame .small figure { margin: 0; display: grid; gap: 5px; justify-items: center; }
+.frame .small figcaption { font-family: var(--font-mono); font-size: .62rem; color: #6B6170; }
+.frame .txt { padding: 14px 16px 18px; display: grid; gap: 6px; align-content: start; }
+.frame .txt h3 { font-size: 1.15rem; font-stretch: 118%; font-weight: 800; }
+.frame .txt p { color: var(--muted); font-size: .92rem; }
+.frame .txt .reads { font-family: var(--font-mono); font-size: .7rem; color: var(--pink-text); letter-spacing: .03em; }
+
+.home { background: linear-gradient(160deg, #3A2140, #17121A 70%); border-radius: 28px; padding: 36px 28px 28px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 12px; max-width: 520px; justify-self: center; width: 100%; border: 1px solid var(--line); }
+.home figure { margin: 0; display: grid; gap: 7px; justify-items: center; }
+.home img { width: 64px; filter: drop-shadow(0 6px 12px rgba(0,0,0,.35)); }
+.home figcaption { font-size: .72rem; color: #F6EEF3; text-align: center; }
+.home-wrap { display: grid; gap: 14px; }
+.tabbar { display: flex; gap: 6px; background: #EFE7EC; padding: 8px 10px 0; border-radius: 10px 10px 0 0; overflow-x: auto; max-width: 100%; }
+.tabbar div { display: flex; align-items: center; gap: 7px; background: #FFFFFF; color: #17121A; border-radius: 8px 8px 0 0; padding: 7px 11px; font-size: .74rem; white-space: nowrap; }
+.tabbar img { width: 16px; height: 16px; }
+.proofs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 24px; align-items: start; }
+
+.short { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.lock { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; display: grid; min-width: 0; background: var(--surface); }
+.lock .g { padding: 28px 22px; display: flex; align-items: center; gap: 14px; }
+.lock .g.paper { background: var(--b-paper); }
+.lock .g.ink { background: var(--b-ink); }
+.lock .g img.i { width: 52px; flex: none; }
+.lock .g img.w { width: calc(100% - 66px); max-width: 220px; }
+.lock .t { padding: 14px 16px 18px; display: grid; gap: 6px; }
+.lock .t h3 { font-size: 1.1rem; font-stretch: 118%; font-weight: 800; }
+.lock .t p { color: var(--muted); font-size: .92rem; }
+.note { color: var(--muted); font-size: .88rem; border-top: 1px solid var(--line); padding-top: 16px; max-width: 86ch; }
+
+@media (max-width: 980px) { .sheet { grid-template-columns: repeat(2, minmax(0, 1fr)); } .proofs { grid-template-columns: 1fr; } .short { grid-template-columns: 1fr; } }
+@media (max-width: 460px) { .sheet { grid-template-columns: 1fr; } .home { grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 24px 12px; } .home img { width: 52px; } }
+
+.renders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.render { margin: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); display: grid; min-width: 0; }
+.render .stage { display: grid; place-items: center; padding: 36px 24px; }
+.render .stage.wall-light { background: linear-gradient(160deg, #E9E1E6, #CFC4CC); }
+.render .stage.wall-dark { background: linear-gradient(160deg, #2A2130, #0B080D); }
+.render .stage img { width: min(100%, 300px); filter: drop-shadow(0 18px 28px rgba(0,0,0,.35)); }
+.render .ladder { display: flex; align-items: flex-end; gap: 16px; padding: 14px 16px; background: var(--b-paper); border-top: 1px solid var(--line); }
+.render .ladder figure { margin: 0; display: grid; gap: 5px; justify-items: center; }
+.render .ladder figcaption { font-family: var(--font-mono); font-size: .62rem; color: #6B6170; }
+.render .cap { padding: 12px 16px 16px; display: grid; gap: 4px; }
+.render .cap h3 { font-size: 1.1rem; font-stretch: 118%; font-weight: 800; }
+.render .cap p { color: var(--muted); font-size: .92rem; }
+.screens { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.screen { border-radius: 26px; padding: 28px; display: flex; justify-content: center; gap: 34px; border: 1px solid var(--line); }
+.screen.l { background: linear-gradient(160deg, #F3EDF1, #D9CFD6); }
+.screen.d { background: linear-gradient(160deg, #2A2130, #0B080D); }
+.screen figure { margin: 0; display: grid; gap: 7px; justify-items: center; }
+.screen img { width: 72px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.3)); }
+.screen.l figcaption { color: #17121A; font-size: .74rem; }
+.screen.d figcaption { color: #F6EEF3; font-size: .74rem; }
+@media (max-width: 760px) { .renders, .screens { grid-template-columns: 1fr; } }
+</style>
+
+<main class="wrap">
+  <header class="head">
+    <p class="label">Blokmix · app icon round 5 · Oct 23, 2026</p>
+    <h1>Icon round 5</h1>
+    <p class="lede">Inspired by Matthew Skiles’ approach: one tactile hero object with real light, depth and material on a lit tile. These are original Blokmix objects, not copies of his icons. The flat canvas moments from round 4 are saved as a set of custom product icons for later.</p>
+  </header>
+
+  <section class="sec" aria-labelledby="h-blender">
+    <header><p class="label">00 · Rendered in Blender</p><h2 id="h-blender">The grab and Pinboard, built in 3D</h2><p>Real geometry, materials and light instead of drawn gradients. The slot is carved into the canvas, the block and card are glossy coated plastic, and the shadows come from a single key light at the top left. The dark versions now use a flat, matte plum-ink tile with no washed-out gradient.</p></header>
+    <div class="renders">
+      <figure class="render">
+        <div class="stage wall-dark"><img src="blender/grab-512.png" alt="The grab · light app icon, rendered in Blender" width="300" height="300"></div>
+        <div class="ladder"><figure><img src="blender/grab-64.png" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="blender/grab-32.png" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="blender/grab-16.png" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <figcaption class="cap"><h3>The grab · light</h3><p>The pink block lifted out of its carved slot on a dotted canvas.</p></figcaption>
+      </figure>
+      <figure class="render">
+        <div class="stage wall-light"><img src="blender/grab-dark-512.png" alt="The grab · dark app icon, rendered in Blender" width="300" height="300"></div>
+        <div class="ladder"><figure><img src="blender/grab-dark-64.png" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="blender/grab-dark-32.png" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="blender/grab-dark-16.png" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <figcaption class="cap"><h3>The grab · dark</h3><p>The same object on matte plum ink. The slot drops to near black, so the lift reads even more clearly.</p></figcaption>
+      </figure>
+      <figure class="render">
+        <div class="stage wall-dark"><img src="blender/pinboard-512.png" alt="Pinboard · light app icon, rendered in Blender" width="300" height="300"></div>
+        <div class="ladder"><figure><img src="blender/pinboard-64.png" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="blender/pinboard-32.png" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="blender/pinboard-16.png" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <figcaption class="cap"><h3>Pinboard · light</h3><p>Website sections on a pegboard, with the pink section lifted off and tilted toward you.</p></figcaption>
+      </figure>
+      <figure class="render">
+        <div class="stage wall-light"><img src="blender/pinboard-dark-512.png" alt="Pinboard · dark app icon, rendered in Blender" width="300" height="300"></div>
+        <div class="ladder"><figure><img src="blender/pinboard-dark-64.png" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="blender/pinboard-dark-32.png" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="blender/pinboard-dark-16.png" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <figcaption class="cap"><h3>Pinboard · dark</h3><p>Black peg holes in the dark board. The white sections and pink card glow more against it.</p></figcaption>
+      </figure>
+    </div>
+    <div class="screens">
+      <div class="screen l" role="img" aria-label="Both icons on a light home screen"><figure><img src="blender/grab-180.png" alt="" width="72" height="72"><figcaption>The grab</figcaption></figure><figure><img src="blender/pinboard-180.png" alt="" width="72" height="72"><figcaption>Pinboard</figcaption></figure><figure><img src="blender/grab-dark-180.png" alt="" width="72" height="72"><figcaption>Grab dark</figcaption></figure><figure><img src="blender/pinboard-dark-180.png" alt="" width="72" height="72"><figcaption>Pinboard dark</figcaption></figure></div>
+      <div class="screen d" role="img" aria-label="Both icons on a dark home screen"><figure><img src="blender/grab-180.png" alt="" width="72" height="72"><figcaption>The grab</figcaption></figure><figure><img src="blender/pinboard-180.png" alt="" width="72" height="72"><figcaption>Pinboard</figcaption></figure><figure><img src="blender/grab-dark-180.png" alt="" width="72" height="72"><figcaption>Grab dark</figcaption></figure><figure><img src="blender/pinboard-dark-180.png" alt="" width="72" height="72"><figcaption>Pinboard dark</figcaption></figure></div>
+    </div>
+    <p class="note">At 16 and 32 px a render turns soft, so whichever you pick gets a flat drawn favicon built from the same shapes. On a dark home screen the dark tiles’ edges nearly disappear, which is normal for dark app icons. If you want more separation I can add a faint rim light around the tile.</p>
+  </section>
+
+  <section class="sec" aria-labelledby="h-sheet">
+    <header><p class="label">01 · Original sketches</p><h2 id="h-sheet">Flat sketches</h2><p>The SVG drawings these renders started from. Zip and Gummy are parked for now.</p></header>
+    <div class="sheet" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+      <article class="frame">
+        <div class="big"><span class="no">01</span><span class="pick">Pick</span><img src="icons/grab.svg" alt="The grab icon concept" width="200" height="200"></div>
+        <div class="small"><figure><img src="icons/grab.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/grab.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/grab.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>The grab</h3><p>A glossy pink block lifted off a dotted canvas, its recessed slot left behind. The whole product in one object: grab a block from somewhere and put it somewhere new.</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">02</span><span class="pick">Pick</span><img src="icons/zip.svg" alt="Zip icon concept" width="200" height="200"></div>
+        <div class="small"><figure><img src="icons/zip.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/zip.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/zip.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Zip</h3><p>A paper side and a pink side being zipped into one, with metal teeth and a pink enamel pull. Round 4’s Zip idea made real and touchable.</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">03</span><span class="pick">Pick</span><img src="icons/pinboard.svg" alt="Pinboard icon concept" width="200" height="200"></div>
+        <div class="small"><figure><img src="icons/pinboard.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/pinboard.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/pinboard.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Pinboard</h3><p>Website sections pinned to a pegboard, with the pink one being pulled off to use somewhere else. The most literal take on sampling a section.</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">04</span><img src="icons/gummy.svg" alt="Gummy icon concept" width="200" height="200"></div>
+        <div class="small"><figure><img src="icons/gummy.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/gummy.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/gummy.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Gummy</h3><p>Two jelly blocks, milk and pink, pressed together until they blend. The most playful one, though it says less about design.</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">05</span><img src="icons/grab-dark.svg" alt="The grab · dark icon concept" width="200" height="200"></div>
+        <div class="small"><figure><img src="icons/grab-dark.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/grab-dark.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/grab-dark.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>The grab · dark</h3><p>The same idea on an ink canvas. It reads stronger on a light home screen, while the light version stands out on dark ones.</p></div>
+      </article>
+      <article class="frame">
+        <div class="big"><span class="no">06</span><img src="icons/pinboard-dark.svg" alt="Pinboard · dark icon concept" width="200" height="200"></div>
+        <div class="small"><figure><img src="icons/pinboard-dark.svg" alt="" width="64" height="64"><figcaption>64</figcaption></figure><figure><img src="icons/pinboard-dark.svg" alt="" width="32" height="32"><figcaption>32</figcaption></figure><figure><img src="icons/pinboard-dark.svg" alt="" width="16" height="16"><figcaption>16</figcaption></figure></div>
+        <div class="txt"><h3>Pinboard · dark</h3><p>The pinboard at night. The pink section glows more, and the board recedes.</p></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-proof">
+    <header><p class="label">02 · In context</p><h2 id="h-proof">On a home screen</h2><p>Detailed icons have to hold up at 64 px too, so check that the object still reads.</p></header>
+    <div class="home" role="img" aria-label="Round 5 concepts on a phone home screen" style="grid-template-columns:repeat(3,minmax(0,1fr));max-width:420px">
+        <figure><img src="icons/grab.svg" alt="" width="64" height="64"><figcaption>The grab</figcaption></figure>
+        <figure><img src="icons/zip.svg" alt="" width="64" height="64"><figcaption>Zip</figcaption></figure>
+        <figure><img src="icons/pinboard.svg" alt="" width="64" height="64"><figcaption>Pinboard</figcaption></figure>
+        <figure><img src="icons/gummy.svg" alt="" width="64" height="64"><figcaption>Gummy</figcaption></figure>
+        <figure><img src="icons/grab-dark.svg" alt="" width="64" height="64"><figcaption>The grab · dark</figcaption></figure>
+        <figure><img src="icons/pinboard-dark.svg" alt="" width="64" height="64"><figcaption>Pinboard · dark</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-short">
+    <header><p class="label">03 · Shortlist</p><h2 id="h-short">The three I’d take forward</h2><p>Each next to the wordmark.</p></header>
+    <div class="short">
+      <article class="lock">
+        <div class="g paper"><img class="i" src="icons/grab.svg" alt="" width="52" height="52"><img class="w" src="wordmark/blokmix-wordmark-ink.svg" alt="blokmix" width="220" height="35"></div>
+        <div class="t"><h3>The grab</h3><p>My first pick. It is the brand idea in one object (a block, lifted from a canvas), and the glossy pink block echoes the block in the wordmark. The slot behind it gives the story a before and after.</p></div>
+      </article>
+      <article class="lock">
+        <div class="g paper"><img class="i" src="icons/zip.svg" alt="" width="52" height="52"><img class="w" src="wordmark/blokmix-wordmark-ink.svg" alt="blokmix" width="220" height="35"></div>
+        <div class="t"><h3>Zip</h3><p>The most unusual, and the most tactile. No other design tool uses a zipper, and it says “two sources become one” without words. It is busier at 16 px, so the favicon would be just the pull on a split tile.</p></div>
+      </article>
+      <article class="lock">
+        <div class="g paper"><img class="i" src="icons/pinboard.svg" alt="" width="52" height="52"><img class="w" src="wordmark/blokmix-wordmark-ink.svg" alt="blokmix" width="220" height="35"></div>
+        <div class="t"><h3>Pinboard</h3><p>The clearest about what gets sampled: website sections. Good for an audience who wants to know what the tool does, but quieter as a symbol.</p></div>
+      </article>
+    </div>
+    <p class="note">These are hand-drawn SVG with gradients and blur. Once you pick one, the final master gets a production pass: refined lighting, a flat fallback for 16 and 32 px, and PNG exports at every App Store and macOS size.</p>
+  </section>
+</main>

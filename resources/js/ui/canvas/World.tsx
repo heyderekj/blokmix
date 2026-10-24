@@ -41,7 +41,7 @@ function Connectors({ placements }: { placements: ReturnType<typeof placeVersion
     paths.push({ key: p.id, d: curve(parent.x + parent.w, parent.y - 30, p.x, p.y - 30), color: p.node.kind === 'build' ? 'var(--agent)' : undefined })
   }
   const base = branchFrom ? byId.get(branchFrom) : null
-  if (base) paths.push({ key: 'mix', d: curve(base.x, base.y - 30, W, -30).replace(/^M/, 'M'), dashed: true, color: 'var(--color-tape)' })
+  if (base) paths.push({ key: 'mix', d: curve(base.x, base.y - 30, W, -30).replace(/^M/, 'M'), dashed: true, color: 'var(--color-key)' })
   return (
     <svg className="pointer-events-none absolute left-0 top-0 overflow-visible" width="1" height="1">
       {paths.map((p) => (

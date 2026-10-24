@@ -19,13 +19,13 @@ export function PacketPanel() {
   const target: BuildTarget = useStore((s) => s.ui.packetTargets[0] ?? 'astro')
   const targets = useMemo<BuildTarget[]>(() => [target], [target])
   const versions = useStore((s) => s.versions)
-  const tapeName = useStore((s) => s.tapeName)
+  const mixName = useStore((s) => s.mixName)
   const slots = useStore((s) => s.slots)
   const guideState = useStore((s) => s.guide)
   const content = useStore((s) => s.content)
   const notes = useStore((s) => s.notes)
   const sections = useLayout((s) => s.sections)
-  const [open, setOpen] = useState<string>('MIXTAPE.md')
+  const [open, setOpen] = useState<string>('BLOKMIX.md')
   const [copied, setCopied] = useState<string | null>(null)
   const [tab, setTab] = useState<'files' | 'prompt'>('files')
   const st = useStore.getState
@@ -53,18 +53,18 @@ export function PacketPanel() {
       guide,
       guideState: snap.guide,
       library,
-      tapeName,
+      mixName,
       version: version ? { id: version.id, letter: version.letter, title: version.title, status: version.status, parentLetter: parent?.letter } : null,
       targets,
       notes: [...(snap.generalNotes ?? []), ...frameNotes],
-      // A version's marks live on with the tape, so read them live rather than from the snapshot.
+      // A version's marks live on with the mix, so read them live rather than from the snapshot.
       marks: version ? marksFor(snap.slots, notes) : snap.marks,
     }
-  }, [version, versions, slots, guideState, content, notes, sections, tapeName, targets, assets])
+  }, [version, versions, slots, guideState, content, notes, sections, mixName, targets, assets])
 
   const files = useMemo(() => packetFiles(input), [input])
   const paths = Object.keys(files)
-  const current = files[open] !== undefined ? open : 'MIXTAPE.md'
+  const current = files[open] !== undefined ? open : 'BLOKMIX.md'
 
   const flash = (k: string) => {
     setCopied(k)
@@ -72,7 +72,7 @@ export function PacketPanel() {
   }
 
   const download = () => {
-    const name = `${slug(tapeName)}-${version ? version.letter.toLowerCase().replace(/\./g, '-') : 'mix'}`
+    const name = `${slug(mixName)}-${version ? version.letter.toLowerCase().replace(/\./g, '-') : 'mix'}`
     const blob = new Blob([zipFiles(files, name) as BlobPart], { type: 'application/zip' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
@@ -191,7 +191,7 @@ export function PacketPanel() {
               </div>
             ))}
             <p className="text-[11.5px] leading-relaxed text-zinc-500">
-              Unzip the packet next to your agent and paste the prompt. Once Mixtape’s MCP server exists, agents will pull the packet themselves and post their build back to the canvas.
+              Unzip the packet next to your agent and paste the prompt. Once Blokmix’s MCP server exists, agents will pull the packet themselves and post their build back to the canvas.
             </p>
           </div>
         )}

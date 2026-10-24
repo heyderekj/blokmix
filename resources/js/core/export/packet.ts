@@ -12,18 +12,18 @@ import { nextFiles } from './next'
 import { referenceHtml } from './reference-html'
 import { keepSummary, tokensCss, type FileMap } from './shared'
 
-export const PACKET_SCHEMA = 'mixtape.packet/v1'
+export const PACKET_SCHEMA = 'blokmix.packet/v1'
 
 export interface PacketInput {
   page: ComposedPage
   guide: ResolvedGuide
   guideState: GuideState
   library: Library
-  tapeName: string
+  mixName: string
   version?: { id: string; letter: string; title: string; status: Status; parentLetter?: string } | null
   targets: BuildTarget[]
   notes?: string[]
-  /** Feedback marks on this tape (or version). */
+  /** Feedback marks on this mix (or version). */
   marks?: Note[]
   generatedAt?: string
 }
@@ -48,7 +48,7 @@ function sourceLabel(lib: Library, candidateId: string): string {
 }
 
 function provenanceLabel(lib: Library, p: string): string {
-  if (p === 'base') return 'Mixtape default'
+  if (p === 'base') return 'Blokmix default'
   if (p === 'custom') return 'custom'
   return sourceLabel(lib, p)
 }
@@ -58,8 +58,8 @@ export function packetJson(i: PacketInput) {
   return {
     schema: PACKET_SCHEMA,
     generatedAt: i.generatedAt ?? new Date().toISOString(),
-    tape: {
-      name: i.tapeName,
+    mix: {
+      name: i.mixName,
       version: i.version ? { id: i.version.id, letter: i.version.letter, title: i.version.title, status: i.version.status, parent: i.version.parentLetter ?? null } : null,
     },
     targets: i.targets,
@@ -114,13 +114,13 @@ export function packetJson(i: PacketInput) {
   }
 }
 
-export function linerNotes(i: PacketInput): string {
+export function buildNotes(i: PacketInput): string {
   const { page, guide, library } = i
   const v = i.version
   const lines: string[] = []
-  lines.push(`# ${i.tapeName}${v ? ` · Version ${v.letter}` : ' · Working mix'}`)
+  lines.push(`# ${i.mixName}${v ? ` · Version ${v.letter}` : ' · Working mix'}`)
   lines.push('')
-  lines.push('> Liner notes for an agent. Build this page in ' + i.targets.map((t) => (t === 'astro' ? 'Astro' : 'Next.js')).join(' or ') + ' from the reference build in this packet.')
+  lines.push('> Build notes for an agent. Build this page in ' + i.targets.map((t) => (t === 'astro' ? 'Astro' : 'Next.js')).join(' or ') + ' from the reference build in this packet.')
   lines.push('')
   if (v) {
     lines.push(`- **Version:** ${v.letter}: ${v.title}${v.parentLetter ? ` (branched from ${v.parentLetter})` : ''}`)
@@ -136,7 +136,7 @@ export function linerNotes(i: PacketInput): string {
     const src = library.sources[s.clip.sourceId]
     lines.push(`### ${s.position + 1}. ${TYPE_LABEL[s.type]}: \`${s.component}\``)
     lines.push('')
-    if (s.clip.origin === 'layout') lines.push('- **From:** a Mixtape layout. It’s structural, not a captured site: restyle it freely with the style guide.')
+    if (s.clip.origin === 'layout') lines.push('- **From:** a Blokmix layout. It’s structural, not a captured site: restyle it freely with the style guide.')
     else lines.push(`- **Clipped from:** ${src?.name ?? s.clip.sourceId}, ${s.clip.capture.url} (\`${s.clip.capture.selector}\`, ${s.clip.capture.viewport.width}px)`)
     lines.push(`- **Pattern:** ${s.clip.layoutPattern}: ${s.clip.title}`)
     lines.push(`- **Layout:** ${s.keep.layout ? 'reproduce the structure faithfully' : 'reference only; choose a structure that fits neighboring sections'}`)
@@ -243,7 +243,7 @@ export function linerNotes(i: PacketInput): string {
   lines.push('')
   lines.push('## Files')
   lines.push('')
-  lines.push('- `mixtape.json`: machine-readable packet (tokens, sections, provenance, conflicts)')
+  lines.push('- `blokmix.json`: machine-readable packet (tokens, sections, provenance, conflicts)')
   lines.push('- `tokens.css` / `tokens.json`: the style guide as CSS variables and W3C design tokens')
   lines.push('- `reference.html`: the composed page as one static file')
   if (i.targets.includes('astro')) lines.push('- `astro/`: runnable Astro project (`npm i && npm run dev`)')
@@ -269,22 +269,22 @@ export function linerNotes(i: PacketInput): string {
 export function agentPrompt(i: PacketInput, target: BuildTarget): string {
   const t = target === 'astro' ? 'Astro' : 'Next.js (App Router)'
   const dir = target === 'astro' ? 'astro/' : 'next/'
-  return `Build the "${i.tapeName}" landing page in ${t} from this Mixtape packet${i.version ? ` (version ${i.version.letter})` : ''}.
+  return `Build the "${i.mixName}" landing page in ${t} from this Blokmix packet${i.version ? ` (version ${i.version.letter})` : ''}.
 
-1. Read MIXTAPE.md (liner notes) and mixtape.json.
+1. Read BLOKMIX.md (build notes) and blokmix.json.
 2. Start from the reference build in ${dir}; it already composes ${i.page.sections.length} section components with the resolved style guide in tokens.css.
-3. Follow the per-section instructions (layout, style, copy, motion) and the rules at the end of MIXTAPE.md, especially: use only the tokens in tokens.css.
+3. Follow the per-section instructions (layout, style, copy, motion) and the rules at the end of BLOKMIX.md, especially: use only the tokens in tokens.css.
 4. Replace any copy listed as retained source copy, and any logos or imagery, with project-appropriate content. Words live in the content folder's JSON files; edit them there.
 5. Run the dev server, compare against reference.html, and fix any visual drift at 1440px and 390px.
 
-When you're done, report the preview URL so it can be attached to the version on the Mixtape canvas.
+When you're done, report the preview URL so it can be attached to the version on the Blokmix canvas.
 `
 }
 
 export function packetFiles(i: PacketInput): FileMap {
   const files: FileMap = {
-    'mixtape.json': JSON.stringify(packetJson(i), null, 2) + '\n',
-    'MIXTAPE.md': linerNotes(i),
+    'blokmix.json': JSON.stringify(packetJson(i), null, 2) + '\n',
+    'BLOKMIX.md': buildNotes(i),
     'tokens.css': tokensCss(i.page),
     'tokens.json': JSON.stringify(toDtcg(i.guide.tokens), null, 2) + '\n',
     'reference.html': referenceHtml(i.page),

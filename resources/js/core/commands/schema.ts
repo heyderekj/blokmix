@@ -1,4 +1,4 @@
-// The commands anyone can run on a tape: the app's own controls, a prompt, or an
+// The commands anyone can run on a mix: the app's own controls, a prompt, or an
 // agent over MCP. Pure zod, so the MCP bridge can list them without the app.
 //
 // Sections are referred to by id, by position (1 = top) or by type ("pricing").

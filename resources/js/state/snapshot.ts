@@ -1,8 +1,8 @@
-import type { GuideState, Note, ProjectContent, Slot, TapeSnapshot } from '@/core/types'
+import type { GuideState, Note, ProjectContent, Slot, MixSnapshot } from '@/core/types'
 import { generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
 import { library } from '@/data/library'
 
-export function snapshotOf(st: { slots: Slot[]; guide: GuideState; content: ProjectContent; notes: Note[] }): TapeSnapshot {
+export function snapshotOf(st: { slots: Slot[]; guide: GuideState; content: ProjectContent; notes: Note[] }): MixSnapshot {
   return structuredClone({
     slots: st.slots,
     guide: st.guide,

@@ -51,7 +51,7 @@ export function sortMarks<T extends Note>(marks: T[]): T[] {
   return [...marks].sort((a, b) => KIND_ORDER[a.kind!] - KIND_ORDER[b.kind!] || (a.number ?? 0) - (b.number ?? 0))
 }
 
-/** Plain-language instructions for an agent working through the marks (ReviseMy's guidance, in Mixtape's words). */
+/** Plain-language instructions for an agent working through the marks (ReviseMy's guidance, in Blokmix's words). */
 export const MARK_GUIDANCE =
   'Work through the marks in order: must-fix first, then small fixes. Answer questions in your summary rather than guessing. Never change anything marked “Love this”. When a mark has suggested copy, use those exact words. Mark each one in progress as you start and resolved with a short note when done; the person verifies.'
 

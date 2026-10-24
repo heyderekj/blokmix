@@ -1,0 +1,446 @@
+<title>Pagetape vs Blokmix</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Outfit:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a two-sided mixtape J-card. Side A is Pagetape, Side B is Blokmix, read across in matching rows. */
+:root {
+  --paper: #FBF8F9;
+  --surface: #FFFFFF;
+  --ink: #17121A;
+  --muted: #6B6170;
+  --line: #E7DEE4;
+  --pink-text: #C2185B;
+  --open: #1E7F5C;
+  --warn: #9A6700;
+
+  /* brand colors stay fixed in both themes */
+  --brand-hot: #FF69B4;
+  --brand-deep: #FF1493;
+  --brand-ink: #17121A;
+  --brand-paper: #FBF8F9;
+  --brand-white: #FFFFFF;
+
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-pt: "Outfit", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.6rem;
+  --step-3: 2.4rem;
+  --step-4: clamp(2.6rem, 7vw, 4.6rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141016; --surface: #1C161F; --ink: #F6EEF3; --muted: #B3A6B0; --line: #2F2632;
+    --pink-text: #FF8CC6; --open: #5BD19F; --warn: #E3B341; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141016; --surface: #1C161F; --ink: #F6EEF3; --muted: #B3A6B0; --line: #2F2632;
+  --pink-text: #FF8CC6; --open: #5BD19F; --warn: #E3B341; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 48px 72px; display: grid; gap: 72px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.1; }
+p { margin: 0; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: .75rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+}
+.mono { font-family: var(--font-mono); font-size: .88em; }
+
+/* ---------- header ---------- */
+.head { display: grid; gap: 20px; }
+.head h1 { font-size: var(--step-3); font-stretch: 112%; font-weight: 800; letter-spacing: -.01em; }
+.head .lede { max-width: 62ch; color: var(--muted); font-size: var(--step-1); line-height: 1.45; }
+
+/* ---------- J-card: the two sides ---------- */
+.jcard {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border: 1.5px solid var(--ink); border-radius: 6px; overflow: hidden;
+  background: var(--surface);
+}
+.side { padding: 28px 28px 32px; display: grid; gap: 22px; align-content: start; min-width: 0; }
+.side + .side { border-left: 1.5px dashed var(--ink); }
+.side-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.side-label b { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; }
+.side-label span { font-family: var(--font-mono); font-size: .75rem; color: var(--muted); }
+.wm-hero { min-height: 120px; display: flex; align-items: center; font-size: var(--step-4); color: var(--ink); }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0; }
+.facts dt { font-family: var(--font-mono); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: .2em; }
+.facts dd { margin: 0; min-width: 0; }
+.taglines { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.taglines li::before { content: "“"; color: var(--pink-text); }
+.taglines li::after { content: "”"; color: var(--pink-text); }
+.pc { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.pc h3 { font-size: .8rem; font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+.pc ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: .95rem; }
+.pc .pro li::marker { content: "+  "; color: var(--open); font-weight: 700; }
+.pc .con li::marker { content: "−  "; color: var(--pink-text); font-weight: 700; }
+
+/* ---------- wordmarks ---------- */
+.wm-pt { font-family: var(--font-pt); font-weight: 600; letter-spacing: -.035em; line-height: 1; display: inline-flex; align-items: center; }
+.wm-pt .tape {
+  display: inline-block; background: var(--brand-hot); color: var(--brand-ink);
+  padding: .02em .2em .1em; margin-left: .04em; transform: rotate(-2.5deg);
+  clip-path: polygon(.12em 0, calc(100% - .12em) 0, 100% 16.6%, calc(100% - .12em) 33.3%, 100% 50%, calc(100% - .12em) 66.6%, 100% 83.3%, calc(100% - .12em) 100%, .12em 100%, 0 83.3%, .12em 66.6%, 0 50%, .12em 33.3%, 0 16.6%);
+}
+.wm-pt-stack { font-family: var(--font-pt); font-weight: 600; line-height: 1; display: grid; grid-template-columns: repeat(4, .66em); justify-items: center; row-gap: .06em; }
+.wm-pt-stack .row2 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, .66em); justify-items: center; background: var(--brand-hot); color: var(--brand-ink); padding-block: .02em .1em; transform: rotate(-2deg);
+  clip-path: polygon(.12em 0, calc(100% - .12em) 0, 100% 16.6%, calc(100% - .12em) 33.3%, 100% 50%, calc(100% - .12em) 66.6%, 100% 83.3%, calc(100% - .12em) 100%, .12em 100%, 0 83.3%, .12em 66.6%, 0 50%, .12em 33.3%, 0 16.6%); }
+.wm-bm { font-family: var(--font-display); font-stretch: 125%; font-weight: 900; letter-spacing: -.045em; line-height: 1; display: inline-flex; align-items: baseline; }
+.wm-bm .sq { display: inline-block; width: .5em; height: .5em; background: var(--brand-hot); margin: 0 .035em 0 .02em; border-radius: .04em; }
+
+/* ---------- sections ---------- */
+.section { display: grid; gap: 24px; }
+.section > header { display: grid; gap: 8px; max-width: 70ch; }
+.section h2 { font-size: var(--step-2); font-stretch: 112%; font-weight: 800; }
+.section > header p { color: var(--muted); }
+
+/* ---------- logo boards ---------- */
+.boards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.board { display: grid; gap: 14px; min-width: 0; }
+.board h3 { font-size: var(--step-1); font-stretch: 112%; font-weight: 800; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.board h3 small { font-family: var(--font-mono); font-size: .75rem; font-weight: 400; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.panel { border-radius: 6px; padding: 22px; display: grid; gap: 18px; }
+.panel.on-paper { background: var(--brand-paper); color: var(--brand-ink); border: 1px solid var(--line); }
+.panel.on-ink { background: var(--brand-ink); color: var(--brand-paper); border: 1px solid var(--brand-ink); }
+.sizes { display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+.sizes figure { margin: 0; display: grid; gap: 8px; justify-items: start; }
+.sizes figcaption, .lock figcaption { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .05em; opacity: .7; }
+.sizes svg { display: block; }
+.lock { margin: 0; display: grid; gap: 8px; }
+.lockup { display: flex; align-items: center; gap: 14px; font-size: 2.4rem; flex-wrap: wrap; }
+.lockup svg { width: 1.35em; height: 1.35em; flex: none; }
+.brief { display: grid; gap: 6px; font-size: .95rem; }
+.brief p b { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; margin-right: 6px; }
+
+/* ---------- availability table ---------- */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: .92rem; }
+th, td { text-align: left; vertical-align: top; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+thead th { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+tbody th { font-weight: 600; width: 22%; }
+td .item { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+td .item + .item { margin-top: 6px; }
+.chip { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; border: 1px solid currentColor; white-space: nowrap; }
+.chip.open { color: var(--open); }
+.chip.taken { color: var(--muted); }
+.chip.warn { color: var(--warn); }
+.strike { text-decoration: line-through; color: var(--muted); }
+.note { color: var(--muted); font-size: .85rem; }
+
+/* ---------- palette ---------- */
+.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.swatch { display: grid; grid-template-rows: 96px auto; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); min-width: 0; }
+.swatch .chipcolor { display: flex; align-items: flex-end; padding: 10px 12px; font-family: var(--font-mono); font-size: .78rem; font-weight: 600; }
+.swatch .meta { padding: 12px; display: grid; gap: 4px; font-size: .88rem; }
+.swatch .meta b { font-family: var(--font-mono); font-size: .8rem; }
+.swatch .meta span { color: var(--muted); }
+
+/* ---------- next steps ---------- */
+.next { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.next ol { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; }
+.pick { border-left: 4px solid var(--brand-hot); padding: 4px 0 4px 18px; display: grid; gap: 10px; max-width: 62ch; }
+.pick p:first-child { font-size: var(--step-1); font-weight: 700; font-stretch: 108%; }
+.method { color: var(--muted); font-size: .85rem; max-width: 80ch; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 18px; }
+a { color: var(--pink-text); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--pink-text); outline-offset: 2px; }
+
+@media (max-width: 820px) {
+  .jcard, .boards, .next { grid-template-columns: 1fr; }
+  .side + .side { border-left: 0; border-top: 1.5px dashed var(--ink); }
+  .swatches { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 460px) {
+  .pc { grid-template-columns: 1fr; }
+  .side { padding: 22px 18px 26px; }
+  .facts { grid-template-columns: 1fr; gap: 2px; }
+  .facts dd { margin-bottom: 8px; }
+  .lockup { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wm-hero .tape { animation: stick .6s cubic-bezier(.2,.9,.3,1.2) both .15s; }
+  @keyframes stick { from { transform: rotate(-9deg) translateY(-.15em); opacity: 0; } to { transform: rotate(-2.5deg); opacity: 1; } }
+}
+</style>
+
+<!-- icon symbols; colors come from custom properties set on each <use> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="pt-icon" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" style="fill:var(--tile)"/>
+      <rect x="12" y="13" width="40" height="13" rx="2.5" style="fill:var(--bar)"/>
+      <rect x="17" y="29.5" width="35" height="8" rx="2" style="fill:var(--bar)"/>
+      <rect x="12" y="41" width="33" height="10" rx="2.5" style="fill:var(--bar)"/>
+      <path transform="rotate(-27 32 33)" d="M10 27 H54 L56 29 L54 31 L56 33 L54 35 L56 37 L54 39 H10 L8 37 L10 35 L8 33 L10 31 L8 29 Z" style="fill:#FF69B4;fill-opacity:.92"/>
+    </symbol>
+    <symbol id="pt-mini" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" style="fill:var(--tile)"/>
+      <rect x="9" y="22" width="46" height="20" rx="3" style="fill:var(--bar)"/>
+      <path transform="rotate(-27 32 32)" d="M8 23 H56 L59 26.6 L56 30.2 L59 33.8 L56 37.4 L59 41 H8 L5 37.4 L8 33.8 L5 30.2 L8 26.6 Z" style="fill:#FF69B4"/>
+    </symbol>
+    <symbol id="bm-icon" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" style="fill:var(--tile)"/>
+      <rect x="12" y="12" width="18" height="18" rx="3" style="fill:var(--bar)"/>
+      <rect x="34.75" y="12.75" width="16.5" height="16.5" rx="2.5" style="fill:none;stroke:var(--bar);stroke-width:1.5;stroke-dasharray:3 2.5;opacity:.55"/>
+      <rect x="12" y="34" width="18" height="18" rx="3" style="fill:var(--bar)"/>
+      <rect x="34" y="34" width="18" height="18" rx="3" style="fill:var(--bar)"/>
+      <rect x="38" y="7" width="18" height="18" rx="3" style="fill:#FF69B4"/>
+    </symbol>
+    <symbol id="bm-mini" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" style="fill:var(--tile)"/>
+      <rect x="9" y="9" width="21" height="21" rx="3" style="fill:var(--bar)"/>
+      <rect x="34" y="9" width="21" height="21" rx="3" style="fill:#FF69B4"/>
+      <rect x="9" y="34" width="21" height="21" rx="3" style="fill:var(--bar)"/>
+      <rect x="34" y="34" width="21" height="21" rx="3" style="fill:var(--bar)"/>
+    </symbol>
+    <symbol id="bm-x" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" style="fill:var(--tile)"/>
+      <rect x="11" y="11" width="12" height="12" rx="2" style="fill:var(--bar)"/>
+      <rect x="41" y="11" width="12" height="12" rx="2" style="fill:var(--bar)"/>
+      <rect x="26" y="26" width="12" height="12" rx="2" style="fill:#FF69B4"/>
+      <rect x="11" y="41" width="12" height="12" rx="2" style="fill:var(--bar)"/>
+      <rect x="41" y="41" width="12" height="12" rx="2" style="fill:var(--bar)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main class="wrap">
+
+  <header class="head">
+    <p class="eyebrow">Naming shortlist · mixtape project · checked Oct 23, 2026</p>
+    <h1>Pagetape vs Blokmix</h1>
+    <p class="lede">Two names for the tool that lets web designers sample sections from any site and remix them into a new page. Each side below covers what the name says, how it looks, and what you can own today.</p>
+    <div class="pick"><p>Decision: Blokmix.</p><p>It has more of a hip-hop feel. This page stays as the record of the comparison, and the full brand guide builds on Side B.</p></div>
+  </header>
+
+  <!-- the J-card -->
+  <section class="jcard" aria-label="The two names side by side">
+    <article class="side">
+      <div class="side-label"><b>Side A</b><span>page + mixtape</span></div>
+      <div class="wm-hero"><span class="wm-pt">page<span class="tape">tape</span></span></div>
+      <dl class="facts">
+        <dt>Say it</dt><dd>PAGE-tape. Rhymes with mixtape.</dd>
+        <dt>Use it</dt><dd>“Let’s pagetape a homepage from Stripe’s hero and Linear’s pricing.”</dd>
+        <dt>Taglines</dt>
+        <dd><ul class="taglines"><li>Mixtapes for the web.</li><li>Every great site starts as a mixtape.</li><li>Tape your next homepage together.</li></ul></dd>
+      </dl>
+      <div class="pc">
+        <div class="pro"><h3>For</h3><ul>
+          <li>Reads as web pages plus mixtape on first sight.</li>
+          <li>Keeps the sound of the project’s working name.</li>
+          <li>Every domain checked is open, bare .com included.</li>
+          <li>“Tape” is also the action: taping sections into a page.</li>
+        </ul></div>
+        <div class="con"><h3>Against</h3><ul>
+          <li>No K, Z or X, so it’s less distinctive on the page.</li>
+          <li>@pagetape is blocked on X. Use @pagetapehq.</li>
+          <li>Two real words joined. The wordmark has to make it one name.</li>
+        </ul></div>
+      </div>
+    </article>
+
+    <article class="side">
+      <div class="side-label"><b>Side B</b><span>block + mix</span></div>
+      <div class="wm-hero"><span class="wm-bm">bl<span class="sq" aria-hidden="true"></span><span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">o</span>kmix</span></div>
+      <dl class="facts">
+        <dt>Say it</dt><dd>BLOCK-mix.</dd>
+        <dt>Use it</dt><dd>“Blokmix the footer from Vercel into this page.”</dd>
+        <dt>Taglines</dt>
+        <dd><ul class="taglines"><li>Mix blocks from any site.</li><li>Sample the web, block by block.</li><li>Your next site, built from the best of the web.</li></ul></dd>
+      </dl>
+      <div class="pc">
+        <div class="pro"><h3>For</h3><ul>
+          <li>K matches Koati. X is a high-value Scrabble letter.</li>
+          <li>Blocks are the unit every site builder uses.</li>
+          <li>Every domain checked is open, and @blokmix on X is free.</li>
+          <li>Short and punchy as a verb.</li>
+        </ul></div>
+        <div class="con"><h3>Against</h3><ul>
+          <li>Heard aloud, people type “blockmix”, and blockmix.com belongs to someone else.</li>
+          <li>Storyblok, a CMS, already uses the “blok” spelling.</li>
+          <li>Harder and cooler in tone. The pink has to warm it up.</li>
+          <li>@blokmix on Instagram is taken. Use @blokmixhq.</li>
+        </ul></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- logo sketches -->
+  <section class="section" aria-labelledby="logos">
+    <header>
+      <p class="eyebrow">Logo, icon and wordmark</p>
+      <h2 id="logos">First sketches</h2>
+      <p>Each mark is shown on paper and on ink, with the app icon at 120, 64 and 16 px. The 16 px version is simplified so it still reads as a browser favicon.</p>
+    </header>
+
+    <div class="boards">
+      <!-- Pagetape -->
+      <div class="board">
+        <h3>Pagetape <small>tape over sections</small></h3>
+        <div class="panel on-paper">
+          <div class="sizes">
+            <figure><svg width="120" height="120" style="--tile:#FFFFFF;--bar:#17121A" role="img" aria-label="Pagetape app icon"><use href="#pt-icon"/></svg><figcaption>App icon</figcaption></figure>
+            <figure><svg width="64" height="64" style="--tile:#FFFFFF;--bar:#17121A" aria-hidden="true"><use href="#pt-icon"/></svg><figcaption>64 px</figcaption></figure>
+            <figure><svg width="16" height="16" style="--tile:#FFFFFF;--bar:#17121A" aria-hidden="true"><use href="#pt-mini"/></svg><figcaption>16 px</figcaption></figure>
+          </div>
+          <figure class="lock">
+            <div class="lockup"><svg style="--tile:#FFFFFF;--bar:#17121A" aria-hidden="true"><use href="#pt-icon"/></svg><span class="wm-pt">page<span class="tape">tape</span></span></div>
+            <figcaption>Horizontal lockup</figcaption>
+          </figure>
+        </div>
+        <div class="panel on-ink">
+          <div class="sizes">
+            <figure><svg width="120" height="120" style="--tile:#2A2130;--bar:#FBF8F9" aria-hidden="true"><use href="#pt-icon"/></svg><figcaption>App icon</figcaption></figure>
+            <figure><svg width="64" height="64" style="--tile:#2A2130;--bar:#FBF8F9" aria-hidden="true"><use href="#pt-icon"/></svg><figcaption>64 px</figcaption></figure>
+            <figure><svg width="16" height="16" style="--tile:#2A2130;--bar:#FBF8F9" aria-hidden="true"><use href="#pt-mini"/></svg><figcaption>16 px</figcaption></figure>
+            <figure><div class="wm-pt-stack" style="font-size:2.6rem" aria-label="pagetape, stacked"><span>p</span><span>a</span><span>g</span><span>e</span><div class="row2"><span>t</span><span>a</span><span>p</span><span>e</span></div></div><figcaption>Stacked. The a and e line up.</figcaption></figure>
+          </div>
+        </div>
+        <div class="brief">
+          <p><b>Idea</b>Sections from different sites, taped into one page. The torn pink strip is the brand device and can be reused for highlights, empty states and loading.</p>
+          <p><b>Type</b>Rounded geometric sans, lowercase, tight spacing. “tape” always sits on the pink strip with ink text (7:1 contrast).</p>
+          <p><b>Avoid</b>Cassette clip art, Scotch or duct-tape cues, paper textures.</p>
+        </div>
+      </div>
+
+      <!-- Blokmix -->
+      <div class="board">
+        <h3>Blokmix <small>the block mid-drop</small></h3>
+        <div class="panel on-paper">
+          <div class="sizes">
+            <figure><svg width="120" height="120" style="--tile:#FFFFFF;--bar:#17121A" role="img" aria-label="Blokmix app icon"><use href="#bm-icon"/></svg><figcaption>App icon</figcaption></figure>
+            <figure><svg width="64" height="64" style="--tile:#FFFFFF;--bar:#17121A" aria-hidden="true"><use href="#bm-icon"/></svg><figcaption>64 px</figcaption></figure>
+            <figure><svg width="16" height="16" style="--tile:#FFFFFF;--bar:#17121A" aria-hidden="true"><use href="#bm-mini"/></svg><figcaption>16 px</figcaption></figure>
+          </div>
+          <figure class="lock">
+            <div class="lockup"><svg style="--tile:#FFFFFF;--bar:#17121A" aria-hidden="true"><use href="#bm-icon"/></svg><span class="wm-bm">bl<span class="sq" aria-hidden="true"></span>kmix</span></div>
+            <figcaption>Horizontal lockup</figcaption>
+          </figure>
+        </div>
+        <div class="panel on-ink">
+          <div class="sizes">
+            <figure><svg width="120" height="120" style="--tile:#2A2130;--bar:#FBF8F9" aria-hidden="true"><use href="#bm-icon"/></svg><figcaption>App icon</figcaption></figure>
+            <figure><svg width="64" height="64" style="--tile:#2A2130;--bar:#FBF8F9" aria-hidden="true"><use href="#bm-icon"/></svg><figcaption>64 px</figcaption></figure>
+            <figure><svg width="16" height="16" style="--tile:#2A2130;--bar:#FBF8F9" aria-hidden="true"><use href="#bm-mini"/></svg><figcaption>16 px</figcaption></figure>
+            <figure><svg width="64" height="64" style="--tile:#2A2130;--bar:#FBF8F9" role="img" aria-label="Alternative Blokmix mark: an X made of five blocks"><use href="#bm-x"/></svg><figcaption>Alt: blocks form the X</figcaption></figure>
+          </div>
+        </div>
+        <div class="brief">
+          <p><b>Idea</b>Blocks from different sites snapping into one grid. The pink block is the one you just sampled, and its dashed slot shows where it lands.</p>
+          <p><b>Type</b>Extra-wide, extra-bold grotesque, lowercase, tight spacing. The “o” is a solid pink square, the same block as the icon.</p>
+          <p><b>Avoid</b>LEGO or toy-brick cues, Storyblok’s teal, rainbow blocks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- availability -->
+  <section class="section" aria-labelledby="own">
+    <header>
+      <p class="eyebrow">Domains, handles and trademarks</p>
+      <h2 id="own">What you can own today</h2>
+      <p>Open means unregistered or unclaimed when checked. Prices aren’t listed because they vary by registrar.</p>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Asset</th><th scope="col">Pagetape</th><th scope="col">Blokmix</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Bare .com</th>
+            <td><div class="item"><span class="mono">pagetape.com</span><span class="chip open">open</span></div></td>
+            <td><div class="item"><span class="mono">blokmix.com</span><span class="chip open">open</span></div></td></tr>
+          <tr><th scope="row">Short links</th>
+            <td><div class="item"><span class="mono">pagetape.fm</span><span class="chip open">open</span></div></td>
+            <td><div class="item"><span class="mono">blokmix.fm</span><span class="chip open">open</span></div></td></tr>
+          <tr><th scope="row">Brand + noun .com</th>
+            <td><div class="item"><span class="mono">pagetapekit.com · pagetapedeck.com · pagetapeapp.com · pagetapehq.com</span><span class="chip open">open</span></div></td>
+            <td><div class="item"><span class="mono">blokmixkit.com · blokmixdeck.com</span><span class="chip open">open</span></div></td></tr>
+          <tr><th scope="row">Other TLDs</th>
+            <td><div class="item"><span class="mono">.co · .io · .app · .design</span><span class="chip open">open</span></div></td>
+            <td><div class="item"><span class="mono">.co · .io · .app · .design</span><span class="chip open">open</span></div></td></tr>
+          <tr><th scope="row">Typo catcher</th>
+            <td><div class="item"><span class="mono">pagetapes.com</span><span class="chip open">open</span></div></td>
+            <td><div class="item"><span class="mono strike">blockmix.com</span><span class="chip warn">for sale</span></div><p class="note">Parked and listed at $1,999 on GoDaddy. Worth buying later so misspellings reach you.</p></td></tr>
+          <tr><th scope="row">X</th>
+            <td><div class="item"><span class="mono strike">@pagetape</span><span class="chip warn">blocked</span></div><div class="item"><span class="mono">@pagetapehq</span><span class="chip open">open</span></div></td>
+            <td><div class="item"><span class="mono">@blokmix</span><span class="chip open">open</span></div><div class="item"><span class="mono">@blokmixhq</span><span class="chip open">open</span></div><div class="item"><span class="mono strike">@blockmix</span><span class="chip taken">taken</span></div></td></tr>
+          <tr><th scope="row">Instagram</th>
+            <td><div class="item"><span class="mono">@pagetape</span><span class="chip open">no active profile</span></div></td>
+            <td><div class="item"><span class="mono strike">@blokmix</span><span class="chip taken">taken</span></div><div class="item"><span class="mono">@blokmixhq</span><span class="chip open">no active profile</span></div></td></tr>
+          <tr><th scope="row">USPTO</th>
+            <td><div class="item">No records for “pagetape”</div></td>
+            <td><div class="item">No records for “blokmix” or “blockmix”</div></td></tr>
+          <tr><th scope="row">Nearest names</th>
+            <td><div class="item">Pagetify, a Shopify page builder</div></td>
+            <td><div class="item">Storyblok’s “blok” spelling; a Devcon industrial mixer called DFense Blok</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- palette -->
+  <section class="section" aria-labelledby="pink">
+    <header>
+      <p class="eyebrow">Shared color system</p>
+      <h2 id="pink">Pink, with a job for each shade</h2>
+      <p>Both names use the same palette. The main pink is the CSS color keyword <span class="mono">hotpink</span>, a small nod for a web tool. It is too light for text on white, so text gets its own darker pink.</p>
+    </header>
+    <div class="swatches">
+      <div class="swatch"><div class="chipcolor" style="background:#FF69B4;color:#17121A">#FF69B4</div><div class="meta"><b>hotpink</b><span>Fills, tape, icons. Ink text on it: 7.0:1</span></div></div>
+      <div class="swatch"><div class="chipcolor" style="background:#FF1493;color:#17121A">#FF1493</div><div class="meta"><b>deeppink</b><span>Display type 24 px and up. 3.6:1 on white</span></div></div>
+      <div class="swatch"><div class="chipcolor" style="background:#C2185B;color:#FFFFFF">#C2185B</div><div class="meta"><b>pink text</b><span>Links and body text. 5.9:1 on white</span></div></div>
+      <div class="swatch"><div class="chipcolor" style="background:#17121A;color:#FBF8F9">#17121A</div><div class="meta"><b>ink</b><span>Text, section bars, dark tiles</span></div></div>
+      <div class="swatch"><div class="chipcolor" style="background:#FBF8F9;color:#17121A;border-bottom:1px solid #E7DEE4">#FBF8F9</div><div class="meta"><b>paper</b><span>Backgrounds, a white with a pink tint</span></div></div>
+    </div>
+  </section>
+
+  <!-- next -->
+  <section class="section" aria-labelledby="nextsteps">
+    <header>
+      <p class="eyebrow">Where this lands</p>
+      <h2 id="nextsteps">Next steps</h2>
+    </header>
+    <div class="pick">
+      <p>Lean: Pagetape.</p>
+      <p>It’s the clearest web-plus-mixtape name, and it has the cleanest availability, including a typo-catcher domain. Choose Blokmix if the K and X punch matters more than the blockmix.com risk.</p>
+    </div>
+    <div class="next">
+      <div>
+        <h3 class="eyebrow" style="margin-bottom:10px">If Pagetape</h3>
+        <ol>
+          <li>Register <span class="mono">pagetape.com</span>, <span class="mono">pagetape.fm</span> and <span class="mono">pagetapes.com</span>.</li>
+          <li>Claim <span class="mono">@pagetapehq</span> on X and <span class="mono">@pagetape</span> on Instagram.</li>
+          <li>Have a trademark attorney run a full clearance before you file.</li>
+        </ol>
+      </div>
+      <div>
+        <h3 class="eyebrow" style="margin-bottom:10px">If Blokmix</h3>
+        <ol>
+          <li>Register <span class="mono">blokmix.com</span> and <span class="mono">blokmix.fm</span>.</li>
+          <li>Claim <span class="mono">@blokmix</span> on X and <span class="mono">@blokmixhq</span> on Instagram.</li>
+          <li>Have a trademark attorney run a full clearance before you file.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="method">
+      <p>How this was checked, Oct 23, 2026. Domains: registry WHOIS and RDAP lookups. X: X’s sign-up availability check. Instagram: profile pages loaded while signed out. “No active profile” usually means the handle is free but can also be a deactivated account, so claim it in the app to be sure. Trademarks: an exact-word search of the <a href="https://tmsearch.uspto.gov/">USPTO trademark database</a>. This is a quick screen, not legal clearance.</p>
+      <p>Nearest-name sources: <a href="https://apps.shopify.com/pagetify">Pagetify on Shopify</a>, <a href="https://www.perigeedirect.com/products/devcon-11301-dfense-blok-power-mixer-with-paddle">Devcon DFense Blok mixer</a>.</p>
+    </div>
+  </section>
+
+</main>

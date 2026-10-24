@@ -44,7 +44,7 @@ export function ImageMenu({
             className={`h-7 flex-1 rounded-full text-[12px] font-semibold transition ${tab === t ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
           >
             {t === 'placeholder' ? 'Placeholder' : t === 'upload' ? 'Upload' : t === 'link' ? 'Link' : 'Stock'}
-            {fill && tabOf(fill) === t && <span className="ml-1 inline-block size-1.5 rounded-full bg-tape align-middle" />}
+            {fill && tabOf(fill) === t && <span className="ml-1 inline-block size-1.5 rounded-full bg-key align-middle" />}
           </button>
         ))}
       </div>
@@ -286,7 +286,7 @@ function Stock({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: Medi
       {fill?.source === 'stock' && fill.stock && (
         <p className="px-1 pt-1.5 text-[11px] text-zinc-500">
           Photo by{' '}
-          <a href={`${fill.stock.authorUrl}?utm_source=mixtape&utm_medium=referral`} target="_blank" rel="noreferrer" className="underline">
+          <a href={`${fill.stock.authorUrl}?utm_source=blokmix&utm_medium=referral`} target="_blank" rel="noreferrer" className="underline">
             {fill.stock.author}
           </a>{' '}
           on Unsplash

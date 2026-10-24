@@ -1,9 +1,9 @@
 @import 'tailwindcss';
 
 /*
- * Mixtape's tokens: the studio's shared system (Koati's neutrals, signals,
+ * Blokmix's tokens: the studio's shared system (Koati's neutrals, signals,
  * squircles, lit buttons and motion, as ReviseMy also uses them) with
- * Mixtape's own key, a cassette-label pink.
+ * Blokmix's own key, a bright pink.
  *
  * Like ReviseMy, the zinc ramp itself turns over under `.dark`, so classes are
  * written once in light-theme terms and `dark:` never matches. `night:` is the
@@ -50,7 +50,7 @@
   --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
   --ease-snap: cubic-bezier(0.2, 0, 0, 1);
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
-  /* Mixtape's own: the canvas is allowed to bounce. */
+  /* Blokmix's own: the canvas is allowed to bounce. */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   --radius-lg: var(--radius);
@@ -97,13 +97,11 @@
   --color-done-soft: var(--done-soft);
   --color-done-ink: var(--done-ink);
 
-  /* Mixtape's key. `tape` is the key; `tape-soft` its wash. */
+  /* Blokmix's key, a bright pink, with its wash and the dark ink that sits on it. */
   --color-key: var(--key);
   --color-key-hover: var(--key-hover);
   --color-key-ink: var(--key-ink);
-  --color-tape: var(--key);
-  --color-tape-soft: var(--key-soft);
-  --color-reel: var(--key-ink);
+  --color-key-soft: var(--key-soft);
 
   /* The agent ("suggested, not yours") is sky, as across the family. */
   --color-agent: var(--agent);
@@ -162,7 +160,7 @@
   --chip: hsl(0 0% 90%);
   --chip-hover: hsl(0 0% 85%);
 
-  /* Mixtape's key: cassette-label pink, with dark ink on it (like ReviseMy's yellow). */
+  /* Blokmix's key: a bright pink, with dark ink on it (like ReviseMy's yellow). */
   --key: #ff6aa8;
   --key-hover: #ff559b;
   --key-ink: hsl(330 40% 9%);
@@ -409,7 +407,7 @@ body {
 .sw-hover { transition: translate 200ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1), rotate 200ms cubic-bezier(0.23, 1, 0.32, 1), scale 200ms cubic-bezier(0.23, 1, 0.32, 1), background-size 260ms cubic-bezier(0.23, 1, 0.32, 1); }
 @media (hover: hover) and (pointer: fine) {
   .group:hover .sw-hover-lift { translate: 0 -3px; box-shadow: 0 8px 14px -6px rgb(0 0 0 / 0.45); }
-  .group:hover .sw-hover-glow { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-tape) 35%, transparent), 0 4px 14px -4px var(--color-tape); }
+  .group:hover .sw-hover-glow { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-key) 35%, transparent), 0 4px 14px -4px var(--color-key); }
   .group:hover .sw-hover-tilt { rotate: -5deg; }
   .group:hover .sw-hover-zoom { scale: 1.12; }
   .group:hover .sw-hover-nudge { translate: 4px 0; }
@@ -421,4 +419,11 @@ body {
 /* Mid-scroll, frames let the canvas have the wheel (see Canvas onWheel). */
 [data-wheeling] iframe {
   pointer-events: none !important;
+}
+
+/* The logo's loose block sliding home, while an agent works. */
+@keyframes blok-slide {
+  0%, 20% { transform: translate(0, 0); }
+  45%, 70% { transform: translate(-11px, 0); }
+  95%, 100% { transform: translate(0, 0); }
 }

@@ -1,4 +1,4 @@
-# Mixtape
+# Blokmix
 
 Clip sections from any site, remix them like a sliding-tile puzzle, resolve one style guide, and hand a packet to your agent to build in Astro or Next.js.
 
@@ -17,7 +17,7 @@ Open http://localhost:5173.
 2. **Keep.** Per section: layout, own style, source copy, motion (1–4).
 3. **Resolve.** Promote a clip's design (P, or "Use design") and settle contradictions per group in the Style guide. Flip **Original / Your style** (U) to see the difference.
 4. **Save version.** Enter (or ⌘S) snapshots the mix as a lettered version (A, B…). Remix any version to branch (B.1, B.2).
-5. **Export.** Send a version to the agent with Build, or open Export: `mixtape.json`, `MIXTAPE.md` liner notes, tokens (CSS + W3C DTCG), and runnable `astro/` and `next/` projects.
+5. **Export.** Send a version to the agent with Build, or open Export: `blokmix.json`, `BLOKMIX.md` build notes, tokens (CSS + W3C DTCG), and runnable `astro/` and `next/` projects.
 
 Sticky notes (S) dropped on a section or a version become instructions in the packet. Version frames carry review statuses (in progress → ready for review → changes requested / approved).
 

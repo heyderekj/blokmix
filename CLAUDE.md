@@ -1,4 +1,4 @@
-# Mixtape
+# Blokmix
 
 Canvas prototype for clipping website sections, remixing them like a sliding-tile
 puzzle, resolving one style guide, and handing a packet to an agent that builds
@@ -8,7 +8,7 @@ Inertia on Laravel Cloud later.
 
 ## Commands
 
-- `npm run dev`: Vite on http://localhost:5173 (Browser pane: launch config "mixtape")
+- `npm run dev`: Vite on http://localhost:5173 (Browser pane: launch config "blokmix")
 - `npm test`: Vitest (core logic, clip lint, exporters)
 - `npm run typecheck`, `npm run build`
 - `npm run export:demo`: writes the seeded demo packet to `.out/`
@@ -18,11 +18,11 @@ Inertia on Laravel Cloud later.
 Everything you can do on the canvas is a command in `resources/js/core/commands/schema.ts`
 (zod schemas → tool definitions), run by `resources/js/state/commands.ts` through the same store
 actions as the UI. Each write is validated and lands as one undo step; agent edits show a toast.
-- In the browser: `mixtape.tools()` and `mixtape.run(name, input)`.
+- In the browser: `blokmix.tools()` and `blokmix.run(name, input)`.
 - Over MCP: `npm run mcp` starts `scripts/mcp-bridge.ts` (stdio MCP server + a WebSocket on
-  127.0.0.1:4317 that only Mixtape's local origins may join). Add it to Claude Code with
-  `claude mcp add mixtape -- npm --prefix /Users/heyderekj/mixtape run -s mcp`, then turn on
-  "Let agents edit this tape" in Mixtape's menu (off by default). `scripts/mcp-smoke.ts` is a
+  127.0.0.1:4317 that only Blokmix's local origins may join). Add it to Claude Code with
+  `claude mcp add blokmix -- npm --prefix /Users/heyderekj/mixtape run -s mcp`, then turn on
+  "Let agents edit this mix" in Blokmix's menu (off by default). `scripts/mcp-smoke.ts` is a
   quick end-to-end check.
 - New capabilities should be added as commands first, then wired into the UI.
 
@@ -33,7 +33,7 @@ actions as the UI. Each write is validated and lands as one undo step; agent edi
 - `resources/js/state/`: zustand store (persist + zundo undo)
 - `resources/js/frame/`: sandboxed iframe rendering + postMessage bridge
 - `resources/js/ui/`: canvas, frames, panels
-- `samples/sources/*.json`: fictional source sites (`*.example`, `kind: "site"`) and Mixtape's built-in
+- `samples/sources/*.json`: fictional source sites (`*.example`, `kind: "site"`) and Blokmix's built-in
   layouts (`layout.json`, `kind: "layout"`), with their tokens
 - `samples/clips/<type>/<source>-<variant>/`: `clip.html`, `clip.css`, `motion.css` (optional), `clip.json`.
   Built-in layouts use the `layout` source: `samples/clips/<type>/layout-<variant>/`.
@@ -130,14 +130,14 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
   padding stays). A nav clipped with its own ticker uses that one; hiding either removes it.
 - Exports write each section's words to `src/content/<section>.json` (Next: `content/`). Components read
   `{content.heading}`, map lists whose items are built alike (`{content.features.map((item, i) => …)}`), and
-  carry `data-mx-src="<file>#<path>"` (Koati's `data-koati-src` idea). MIXTAPE.md points to Keystatic as an
+  carry `data-mx-src="<file>#<path>"` (Koati's `data-koati-src` idea). BLOKMIX.md points to Keystatic as an
   optional editor.
 
 ### Links
 
 Clips write links as `href="#"`; sections decide where they lead (`core/links.ts`, `BlockEdit.link`): a
 section on the page (exports give every section an anchor, `#pricing`), another page (`/about`, listed in
-MIXTAPE.md for the builder to create), a web address (new tab, `rel="noopener noreferrer"`), email or phone.
+BLOKMIX.md for the builder to create), a web address (new tab, `rel="noopener noreferrer"`), email or phone.
 Unset links follow their words ("Pricing", "Questions" → that section; emails and numbers → mailto/tel).
 A block is linkable when it is, or holds, its own `<a>`. Previews follow section links on the canvas.
 
@@ -158,7 +158,7 @@ IndexedDB via `lib/assets.ts`, never in the persisted store), or an Unsplash pho
 download-tracked; needs `VITE_UNSPLASH_ACCESS_KEY` in `.env.local`). Frames and exports layer an
 `<img class="mx-media">` over the block's own art, which keeps the size and shape. Exports write
 `public/media/*`; `npm run export:demo` squeezes raster images with Dinky's CLI (dinkyfiles.com) when
-`dinky` is on the PATH (or `DINKY=/path/to/dinky`), and MIXTAPE.md tells the agent the same command.
+`dinky` is on the PATH (or `DINKY=/path/to/dinky`), and BLOKMIX.md tells the agent the same command.
 Image blocks can also hold moving media: a video, a Lottie (`.lottie`/`.json`) or a YouTube/Vimeo embed
 (poster first, player on click), with a trigger (autoplay, hover, in view, click, scrub for Lotties), loop,
 lightbox and a custom thumbnail. `core/export/media-runtime.ts` is the one player for both the canvas frames

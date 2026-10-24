@@ -30,7 +30,7 @@ export async function runReferenceBuild(versionId: string, target: BuildTarget) 
   const guide = resolveGuide(parent.snapshot.guide)
   const conflicts = guide.conflicts.length
   const steps = [
-    'Reading MIXTAPE.md and mixtape.json',
+    'Reading BLOKMIX.md and blokmix.json',
     conflicts ? `Applying ${conflicts} resolved token decisions` : 'Applying the style guide',
     `Writing ${parent.snapshot.slots.length} section components`,
     `Wiring tokens.css into ${target === 'astro' ? 'src/layouts/Base.astro' : 'app/layout.tsx'}`,

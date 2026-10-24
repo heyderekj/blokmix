@@ -219,7 +219,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       }}
       onPointerDown={() => st().focusSlot(slot.id)}
       onDragOver={(e) => {
-        if (!e.dataTransfer.types.includes('application/x-mixtape-clip')) return
+        if (!e.dataTransfer.types.includes('application/x-blokmix-clip')) return
         e.preventDefault()
         e.stopPropagation()
         e.dataTransfer.dropEffect = 'copy'
@@ -227,7 +227,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       }}
       onDragLeave={() => setDropping(false)}
       onDrop={(e) => {
-        const clipId = e.dataTransfer.getData('application/x-mixtape-clip')
+        const clipId = e.dataTransfer.getData('application/x-blokmix-clip')
         setDropping(false)
         const clip = library.clips[clipId]
         if (!clip) return
@@ -274,13 +274,13 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
         })}
       </div>
 
-      {dropping && <div className="pointer-events-none absolute inset-0 z-10 bg-tape/15" style={{ boxShadow: 'inset 0 0 0 calc(4px / var(--z)) var(--color-tape)' }} />}
+      {dropping && <div className="pointer-events-none absolute inset-0 z-10 bg-key/15" style={{ boxShadow: 'inset 0 0 0 calc(4px / var(--z)) var(--color-key)' }} />}
 
       {/* focus ring */}
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-200 ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''}`}
         style={{
-          boxShadow: `inset 0 0 0 calc(3px / var(--z)) var(--color-tape)`,
+          boxShadow: `inset 0 0 0 calc(3px / var(--z)) var(--color-key)`,
           opacity: focused ? 1 : 0,
         }}
       />
@@ -359,14 +359,14 @@ function PickOutline({ rect, picked, label }: { rect: FrameRect | null; picked?:
         transform: `translate(${r.x}px, ${r.y}px)`,
         opacity: rect ? 1 : 0,
         borderRadius: 'calc(6px / var(--z))',
-        background: `color-mix(in oklab, var(--color-tape) ${picked ? 7 : 10}%, transparent)`,
-        boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--z)) var(--color-tape), 0 0 0 calc(${picked ? 6 : 5.5}px / var(--z)) color-mix(in oklab, var(--color-tape) 18%, transparent)`,
+        background: `color-mix(in oklab, var(--color-key) ${picked ? 7 : 10}%, transparent)`,
+        boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--z)) var(--color-key), 0 0 0 calc(${picked ? 6 : 5.5}px / var(--z)) color-mix(in oklab, var(--color-key) 18%, transparent)`,
         transition: 'opacity 140ms cubic-bezier(0.2, 0, 0, 1), transform 90ms cubic-bezier(0.2, 0, 0, 1), width 90ms cubic-bezier(0.2, 0, 0, 1), height 90ms cubic-bezier(0.2, 0, 0, 1)',
       }}
     >
       {label && (
         <span
-          className="absolute bottom-full left-0 mb-[calc(8px/var(--z))] origin-bottom-left whitespace-nowrap rounded-md bg-tape px-2 py-0.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.35)]"
+          className="absolute bottom-full left-0 mb-[calc(8px/var(--z))] origin-bottom-left whitespace-nowrap rounded-md bg-key px-2 py-0.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.35)]"
           style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}
         >
           {label}

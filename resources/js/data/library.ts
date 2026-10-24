@@ -12,7 +12,7 @@ const clipFiles = import.meta.glob('/samples/clips/**/*.{html,css,json}', {
 export const library = buildLibrary(Object.values(sourceFiles), rawClipsFromFiles(clipFiles))
 
 if (import.meta.env.DEV && library.warnings.length) {
-  console.groupCollapsed(`[mixtape] ${library.warnings.length} clip lint issue(s)`)
+  console.groupCollapsed(`[blokmix] ${library.warnings.length} clip lint issue(s)`)
   for (const w of library.warnings) console[w.level === 'error' ? 'error' : 'warn'](`${w.clipId}: ${w.message}`)
   console.groupEnd()
 }

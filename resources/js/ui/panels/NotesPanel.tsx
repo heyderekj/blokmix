@@ -13,7 +13,7 @@ import { KIND_TONE, STATUS_TONE } from '../notes/Marks'
 type StatusFilter = 'todo' | 'resolved' | 'all'
 
 /**
- * Every mark on the tape, most important first: a reading list, not a board.
+ * Every mark on the mix, most important first: a reading list, not a board.
  * Click one to fly to it; resolve and verify from here.
  */
 export function NotesPanel() {

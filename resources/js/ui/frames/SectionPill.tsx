@@ -229,7 +229,7 @@ function LookTab({ slot }: { slot: Slot }) {
               className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium transition active:scale-[0.97] ${on ? 'bg-zinc-900 text-white' : 'bg-lift text-zinc-600 hover:text-zinc-900'}`}
             >
               {GROUP_LABEL[g]}
-              {promoted.has(g) && <span className="size-1.5 rounded-full bg-tape" title="Already a candidate" />}
+              {promoted.has(g) && <span className="size-1.5 rounded-full bg-key" title="Already a candidate" />}
             </button>
           )
         })}
@@ -359,7 +359,7 @@ export function SectionRail({ slot, index, focused }: { slot: Slot; index: numbe
       {/* the rail's line, drawn in page space so it spans the whole section */}
       <div
         className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${
-          focused ? 'bg-tape' : 'bg-zinc-300 group-hover/row:bg-tape/70 group-hover/rail:bg-tape/70'
+          focused ? 'bg-key' : 'bg-zinc-300 group-hover/row:bg-key/70 group-hover/rail:bg-key/70'
         }`}
         style={{ width: 'calc(2px / var(--z))' }}
       />

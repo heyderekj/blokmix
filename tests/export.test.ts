@@ -79,13 +79,13 @@ describe('packet', () => {
       guide: resolveGuide(guideState),
       guideState,
       library,
-      tapeName: 'Test tape',
+      mixName: 'Test mix',
       targets: ['astro', 'next'],
     })
-    for (const f of ['mixtape.json', 'MIXTAPE.md', 'tokens.css', 'tokens.json', 'reference.html', 'astro/src/pages/index.astro', 'next/app/page.tsx', 'next/app/layout.tsx'])
+    for (const f of ['blokmix.json', 'BLOKMIX.md', 'tokens.css', 'tokens.json', 'reference.html', 'astro/src/pages/index.astro', 'next/app/page.tsx', 'next/app/layout.tsx'])
       expect(Object.keys(files)).toContain(f)
-    const json = JSON.parse(files['mixtape.json'] as string)
-    expect(json.schema).toBe('mixtape.packet/v1')
+    const json = JSON.parse(files['blokmix.json'] as string)
+    expect(json.schema).toBe('blokmix.packet/v1')
     expect(json.sections).toHaveLength(slots.length)
   })
 })

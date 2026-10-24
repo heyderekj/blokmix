@@ -67,7 +67,7 @@ export interface FontSource {
 
 export interface Source {
   id: string
-  /** 'site': clipped from a real site. 'layout': Mixtape's built-in, neutral layouts. */
+  /** 'site': clipped from a real site. 'layout': Blokmix's built-in, neutral layouts. */
   kind?: 'site' | 'layout'
   name: string
   url: string
@@ -93,7 +93,7 @@ export interface Clip {
   layoutPattern: string
   /** Visual rhythm, used to suggest layouts that contrast with their neighbours. */
   rhythm?: Rhythm
-  /** 'clip' came from a site you clipped; 'layout' is one of Mixtape's built-ins. */
+  /** 'clip' came from a site you clipped; 'layout' is one of Blokmix's built-ins. */
   origin: 'clip' | 'layout'
   rootClass: string // 'mx-hero-marginalia-split'
   html: string
@@ -256,7 +256,7 @@ export type NoteAnchor =
   /** The whole page. */
   | { kind: 'page' }
 
-export interface TapeSnapshot {
+export interface MixSnapshot {
   slots: Slot[]
   guide: GuideState
   content: ProjectContent
@@ -282,7 +282,7 @@ export interface VersionNode {
   status: Status
   createdAt: number
   kind: 'snapshot' | 'build'
-  snapshot: TapeSnapshot // builds keep a copy of the snapshot they were built from
+  snapshot: MixSnapshot // builds keep a copy of the snapshot they were built from
   build?: {
     by: 'reference' | 'agent'
     agentName: string

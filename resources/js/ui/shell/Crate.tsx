@@ -73,7 +73,7 @@ export function Crate() {
               }`}
             >
               {t === 'all' ? 'All' : TYPE_LABEL[t]}
-              {t !== 'all' && t === focusedType && <span className={`ml-1.5 inline-block size-1.5 rounded-full align-middle ${on ? 'bg-key' : 'bg-tape'}`} title="The section you’re on" />}
+              {t !== 'all' && t === focusedType && <span className={`ml-1.5 inline-block size-1.5 rounded-full align-middle ${on ? 'bg-key' : 'bg-key'}`} title="The section you’re on" />}
             </button>
           )
         })}
@@ -126,7 +126,7 @@ function ClipCard({ clip, used }: { clip: Clip; used: boolean }) {
         type="button"
         draggable
         onDragStart={(e) => {
-          e.dataTransfer.setData('application/x-mixtape-clip', clip.id)
+          e.dataTransfer.setData('application/x-blokmix-clip', clip.id)
           e.dataTransfer.effectAllowed = 'copy'
           setHover(false)
         }}
@@ -158,7 +158,7 @@ function ClipCard({ clip, used }: { clip: Clip; used: boolean }) {
             {clip.origin === 'layout' ? <LayoutTag /> : <span className="shrink-0 text-[11px] text-zinc-400">{TYPE_LABEL[clip.type]}</span>}
           </div>
           <div className="truncate text-[11.5px] text-zinc-500" title={clip.title}>
-            {used ? 'On the tape' : clip.origin === 'layout' ? TYPE_LABEL[clip.type] : clip.title}
+            {used ? 'In your mix' : clip.origin === 'layout' ? TYPE_LABEL[clip.type] : clip.title}
           </div>
           <div className="truncate font-mono text-[10px] text-zinc-400">{primaryFamily(t['font.display'])}</div>
         </div>
@@ -183,7 +183,7 @@ function HoverPreview({ clip, anchor }: { clip: Clip; anchor: DOMRect }) {
       <div style={{ transform: `scale(${scale})`, transformOrigin: '0 0', width: 1280 }}>
         <ClipFrame clip={clip} width={1280} state={state} onHeight={setH} />
       </div>
-      <div className="absolute bottom-1.5 left-1.5 rounded-md bg-zinc-900/80 px-1.5 py-0.5 font-mono text-[10px] text-white">{clip.origin === 'layout' ? 'Mixtape layout' : new URL(clip.capture.url).host}</div>
+      <div className="absolute bottom-1.5 left-1.5 rounded-md bg-zinc-900/80 px-1.5 py-0.5 font-mono text-[10px] text-white">{clip.origin === 'layout' ? 'Blokmix layout' : new URL(clip.capture.url).host}</div>
     </div>
   )
 }

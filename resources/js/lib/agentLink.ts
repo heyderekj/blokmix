@@ -5,7 +5,7 @@ import { useStore } from '@/state/store'
 
 /**
  * The tab's side of the local MCP bridge (scripts/mcp-bridge.ts). Only runs
- * while you've turned on "Let agents edit this tape"; reconnects quietly when
+ * while you've turned on "Let agents edit this mix"; reconnects quietly when
  * the bridge starts later.
  */
 type LinkStatus = 'off' | 'waiting' | 'connected'

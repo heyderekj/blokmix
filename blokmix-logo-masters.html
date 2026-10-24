@@ -1,0 +1,207 @@
+<title>Blokmix Logo Masters</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a print-shop proof sheet. Each master on its intended ground, then construction overlays and the file list. */
+:root {
+  --bg: #120E14; --surface: #1D1720; --text: #F6EEF3; --muted: #B3A6B0; --line: #352B38; --pink-text: #FFA6D2; --guide: #FF69B4;
+  color-scheme: dark;
+  --b-hot: #FF69B4; --b-ink: #17121A; --b-paper: #FBF8F9; --b-concrete: #2A2130;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: #FBF8F9; --surface: #FFFFFF; --text: #17121A; --muted: #6B6170; --line: #E7DEE4; --pink-text: #C2185B; --guide: #E0117F; color-scheme: light; }
+}
+:root[data-theme="light"] { --bg: #FBF8F9; --surface: #FFFFFF; --text: #17121A; --muted: #6B6170; --line: #E7DEE4; --pink-text: #C2185B; --guide: #E0117F; color-scheme: light; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-display); line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; padding-block: 40px 80px; display: grid; gap: 72px; }
+h1, h2, h3 { margin: 0; line-height: 1.05; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--pink-text); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--b-hot); outline-offset: 3px; }
+.label { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--font-mono); font-size: .86em; }
+img { display: block; max-width: 100%; height: auto; }
+
+.head { display: grid; gap: 16px; }
+.head h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-stretch: 125%; font-weight: 900; letter-spacing: -.025em; }
+.head p.lede { max-width: 66ch; color: var(--muted); font-size: 1.15rem; }
+
+.sec { display: grid; gap: 22px; }
+.sec > header { display: grid; gap: 8px; max-width: 70ch; }
+.sec h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-stretch: 125%; font-weight: 900; letter-spacing: -.02em; }
+.sec > header p { color: var(--muted); }
+
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.proof { margin: 0; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); display: grid; grid-template-rows: 1fr auto; min-width: 0; }
+.proof .ground { display: grid; place-items: center; padding: 36px; min-height: 180px; }
+.proof figcaption { padding: 10px 14px; background: var(--surface); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); }
+.proof figcaption span:first-child { font-weight: 700; font-stretch: 112%; }
+.proof figcaption span:last-child { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); }
+.g-paper { background: var(--b-paper); } .g-ink { background: var(--b-ink); } .g-pink { background: var(--b-hot); } .g-concrete { background: var(--b-concrete); } .g-white { background: #FFFFFF; } .g-black { background: #000000; }
+.c6 { grid-column: span 6; } .c4 { grid-column: span 4; } .c3 { grid-column: span 3; } .c2 { grid-column: span 2; }
+.wm-img { width: min(100%, 560px); }
+.icon-img { width: 132px; }
+.sizes { display: flex; gap: 28px; align-items: flex-end; flex-wrap: wrap; justify-content: center; }
+.sizes div { display: grid; gap: 8px; justify-items: center; }
+.sizes small { font-family: var(--font-mono); font-size: .68rem; color: #6B6170; }
+.g-ink .sizes small, .g-concrete .sizes small { color: #B3A6B0; }
+.px { image-rendering: pixelated; }
+
+/* construction */
+.build { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.plate { position: relative; background: var(--b-paper); border-radius: 6px; padding: 48px 28px 40px; border: 1px solid var(--line); }
+.plate .art { position: relative; }
+.hl { position: absolute; left: -12px; right: -12px; height: 0; border-top: 1px dashed var(--guide); }
+.hl span, .vl span { position: absolute; font-family: var(--font-mono); font-size: .62rem; color: #C2185B; background: var(--b-paper); padding: 0 4px; letter-spacing: .04em; white-space: nowrap; }
+.hl span { right: 0; top: -.75rem; }
+.vl { position: absolute; top: -18px; bottom: -14px; width: 0; border-left: 1px dashed var(--guide); }
+.vl span { top: -16px; left: 4px; }
+.box { position: absolute; outline: 1.5px solid #C2185B; outline-offset: 0; }
+.icon-plate { background: var(--b-concrete); border-radius: 6px; padding: 28px; display: grid; place-items: center; border: 1px solid var(--line); }
+.icon-plate .art { position: relative; width: min(100%, 340px); }
+.icon-plate .gl { position: absolute; background: rgba(255,105,180,.85); }
+.icon-plate .gl.v { top: 0; bottom: 0; width: 1px; }
+.icon-plate .gl.h { left: 0; right: 0; height: 1px; }
+
+.specs { display: grid; gap: 0; margin: 0; border-top: 1px solid var(--line); }
+.specs div { display: grid; grid-template-columns: 11em minmax(0, 1fr); gap: 14px; padding-block: 10px; border-bottom: 1px solid var(--line); }
+.specs dt { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: .2em; }
+.specs dd { margin: 0; min-width: 0; }
+
+.files { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .9rem; }
+th, td { text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+thead th { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+td:first-child { font-family: var(--font-mono); font-size: .8rem; white-space: nowrap; }
+.foot { color: var(--muted); font-size: .88rem; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 18px; max-width: 86ch; }
+
+@media (max-width: 900px) {
+  .c4, .c3, .c2 { grid-column: span 3; }
+  .build { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .c4, .c3, .c2 { grid-column: span 6; }
+  .specs div { grid-template-columns: 1fr; gap: 2px; }
+  .proof .ground { padding: 24px; }
+  .plate { padding: 40px 16px 32px; }
+  .hl span { display: none; }
+}
+</style>
+
+<main class="wrap">
+  <header class="head">
+    <p class="label">Blokmix · logo masters · v1.0 · Oct 23, 2026</p>
+    <h1>Logo masters</h1>
+    <p class="lede">The final vector files behind the <a href="https://claude.ai/artifact/5y1jH89cjn9KNpc2UcTP6n">Blokmix brand guide</a>. The wordmark is outlined, so it no longer depends on a font. Every file is made of filled shapes only, and the favicons are redrawn on whole pixels.</p>
+  </header>
+
+  <section class="sec" aria-labelledby="h-wm">
+    <header><p class="label">01 · Wordmark</p><h2 id="h-wm">Wordmark</h2><p>Use the ink version on light backgrounds and the paper version on dark. On hot pink, the block turns ink.</p></header>
+    <div class="grid">
+      <figure class="proof c6"><div class="ground g-paper"><img class="wm-img" src="svg/blokmix-wordmark-ink.svg" alt="Blokmix wordmark in ink with a hot pink block" width="560" height="90"></div><figcaption><span>Primary · ink</span><span>blokmix-wordmark-ink.svg</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-ink"><img class="wm-img" src="svg/blokmix-wordmark-paper.svg" alt="Blokmix wordmark in paper white for dark backgrounds" width="560" height="90"></div><figcaption><span>On dark · paper</span><span>blokmix-wordmark-paper.svg</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-pink"><img class="wm-img" src="svg/blokmix-wordmark-on-pink.svg" alt="Blokmix wordmark in ink for hot pink backgrounds" width="560" height="90"></div><figcaption><span>On pink</span><span>blokmix-wordmark-on-pink.svg</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-white"><img class="wm-img" src="svg/blokmix-wordmark-black.svg" alt="Blokmix wordmark in one color black" width="560" height="90"></div><figcaption><span>One color · black</span><span>blokmix-wordmark-black.svg</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-black"><img class="wm-img" src="svg/blokmix-wordmark-white.svg" alt="Blokmix wordmark in one color white" width="560" height="90"></div><figcaption><span>One color · white</span><span>blokmix-wordmark-white.svg</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-paper"><img class="wm-img" src="svg/blokmix-wordmark-shadow-ink.svg" alt="Alternate Blokmix wordmark: square o with a hot pink drop shadow" width="560" height="97"></div><figcaption><span>Alternate · shadow</span><span>blokmix-wordmark-shadow-ink.svg</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-ink"><img class="wm-img" src="svg/blokmix-wordmark-shadow-paper.svg" alt="Alternate Blokmix wordmark: square o with a hot pink drop shadow, for dark backgrounds" width="560" height="97"></div><figcaption><span>Alternate · shadow on dark</span><span>blokmix-wordmark-shadow-paper.svg</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-icon">
+    <header><p class="label">02 · Icon</p><h2 id="h-icon">App icon: the grab</h2><p>A glossy pink block grabbed and lifted out of its slot on a dotted canvas. The master is rendered in 3D in Blender. Flat vector versions drawn from the same geometry cover small sizes and anywhere a vector is needed.</p></header>
+    <div class="grid">
+      <figure class="proof c3"><div class="ground g-concrete"><img class="icon-img" src="app/blokmix-icon-render-light-512.png" alt="Primary Blokmix app icon, rendered: light canvas" width="160" height="160" style="width:160px"></div><figcaption><span>Primary · rendered</span><span>app-icon/master/blokmix-icon-render-light.png</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-paper"><img class="icon-img" src="app/blokmix-icon-render-dark-512.png" alt="Blokmix app icon, rendered: dark canvas" width="160" height="160" style="width:160px"></div><figcaption><span>Dark appearance · rendered</span><span>app-icon/master/blokmix-icon-render-dark.png</span></figcaption></figure>
+      <figure class="proof c2"><div class="ground g-ink"><img class="icon-img" src="svg/blokmix-icon-light.svg" alt="Flat vector Blokmix icon, light" width="132" height="132"></div><figcaption><span>Flat vector · light</span><span>blokmix-icon-light.svg</span></figcaption></figure>
+      <figure class="proof c2"><div class="ground g-paper"><img class="icon-img" src="svg/blokmix-icon-dark.svg" alt="Flat vector Blokmix icon, dark" width="132" height="132"></div><figcaption><span>Flat vector · dark</span><span>blokmix-icon-dark.svg</span></figcaption></figure>
+      <figure class="proof c2"><div class="ground g-pink"><img class="icon-img" src="svg/blokmix-x-mark.svg" alt="Blokmix X mark: five blocks forming an X on an ink tile" width="132" height="132"></div><figcaption><span>X mark · secondary</span><span>blokmix-x-mark.svg</span></figcaption></figure>
+      <figure class="proof c6"><div class="ground g-paper"><div class="sizes">
+        <div><img src="app/blokmix-icon-render-light-180.png" alt="" width="96" height="96"><small>96 · render</small></div>
+        <div><img src="app/blokmix-icon-render-light-64.png" alt="" width="64" height="64"><small>64 · render</small></div>
+        <div><img src="svg/blokmix-icon-simple-light.svg" alt="" width="40" height="40" style="width:40px"><small>40 · flat, no dots</small></div>
+        <div><img class="px" src="svg/favicon-32-light.svg" alt="" width="32" height="32"><small>32 · favicon</small></div>
+        <div><img class="px" src="svg/favicon-16-light.svg" alt="" width="16" height="16"><small>16 · favicon</small></div>
+        <div><img class="px" src="svg/favicon-16-light.svg" alt="16 pixel favicon shown at 6 times size" width="96" height="96"><small>16 at 6× zoom</small></div>
+      </div></div><figcaption><span>Size ladder</span><span>render · icon-simple · favicon-32 · favicon-16</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-lock">
+    <header><p class="label">03 · Lockups</p><h2 id="h-lock">Lockups</h2><p>In the horizontal lockup the icon matches the letter height. In the stacked lockup it is twice the letter height. Both use a half-block gap. On light backgrounds the lockup uses the ink-tile icon and on dark backgrounds the light tile, so the icon’s silhouette always holds.</p></header>
+    <div class="grid">
+      <figure class="proof c6"><div class="ground g-paper"><img src="svg/blokmix-lockup-horizontal-ink.svg" alt="Blokmix horizontal lockup for light backgrounds" width="620" height="82" style="width:min(100%,620px)"></div><figcaption><span>Horizontal · light</span><span>blokmix-lockup-horizontal-ink.svg</span></figcaption></figure>
+      <figure class="proof c6"><div class="ground g-ink"><img src="svg/blokmix-lockup-horizontal-paper.svg" alt="Blokmix horizontal lockup for dark backgrounds" width="620" height="82" style="width:min(100%,620px)"></div><figcaption><span>Horizontal · dark</span><span>blokmix-lockup-horizontal-paper.svg</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-paper"><img src="svg/blokmix-lockup-stacked-ink.svg" alt="Blokmix stacked lockup for light backgrounds" width="300" height="162" style="width:min(100%,300px)"></div><figcaption><span>Stacked · light</span><span>blokmix-lockup-stacked-ink.svg</span></figcaption></figure>
+      <figure class="proof c3"><div class="ground g-concrete"><img src="svg/blokmix-lockup-stacked-paper.svg" alt="Blokmix stacked lockup for dark backgrounds" width="300" height="162" style="width:min(100%,300px)"></div><figcaption><span>Stacked · dark</span><span>blokmix-lockup-stacked-paper.svg</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-build">
+    <header><p class="label">04 · Construction</p><h2 id="h-build">How it’s built</h2><p>Every measurement comes from the wordmark’s block, so the system holds together when someone redraws a piece.</p></header>
+    <div class="build">
+      <div class="plate" role="img" aria-label="Wordmark construction: the block is exactly one x-height square on the baseline">
+        <div class="art">
+          <img src="svg/blokmix-wordmark-ink.svg" alt="" width="640" height="103" style="width:100%">
+          <div class="hl" style="top:0%"><span>ascender 725</span></div>
+          <div class="hl" style="top:27%"><span>x-height 526</span></div>
+          <div class="hl" style="top:98.4%"><span>baseline 0</span></div>
+          <div class="box" style="left:22.83%;width:11.45%;top:27%;height:71.4%"></div>
+          <div class="vl" style="left:21.52%"><span>60</span></div>
+          <div class="vl" style="left:35.59%"><span>60</span></div>
+        </div>
+      </div>
+      <div class="icon-plate" role="img" aria-label="Icon construction: the slot and the lifted block on a 1024 canvas">
+        <div class="art">
+          <img src="svg/blokmix-icon-light.svg" alt="" width="340" height="340" style="width:100%">
+          <i class="gl v" style="left:20.3%"></i><i class="gl v" style="left:54.7%"></i><i class="gl v" style="left:39.5%"></i><i class="gl v" style="left:77.7%"></i>
+          <i class="gl h" style="top:46.1%"></i><i class="gl h" style="top:80.5%"></i><i class="gl h" style="top:25.6%"></i><i class="gl h" style="top:63.9%"></i>
+        </div>
+      </div>
+    </div>
+    <dl class="specs">
+      <div><dt>Letters</dt><dd>Archivo at width 125, weight 900, outlined. Tracking −45 units. Kerning k–m −10, i–x +6.</dd></div>
+      <div><dt>The block</dt><dd>One x-height square (526 units) on the baseline, with 60 units of space on each side, the same as the l’s stem.</dd></div>
+      <div><dt>Corners</dt><dd>Every block in the system has a corner radius of 7.5% of its side.</dd></div>
+      <div><dt>Icon layout</dt><dd>On a 1024 canvas: dots every 64 px, a 352 px slot carved in at (208, 472) with a 66 px radius, and a 392 px block (19% radius) lifted above the canvas, rotated −9° and tilted toward the light. Key light from the top left. The tile is a superellipse (n = 5).</dd></div>
+      <div><dt>Rendering</dt><dd>Built and rendered in Blender (Cycles) with the Standard view transform, so the pink stays true at #FF5CB0. The script is in source/blokmix_blender.py. The flat vector versions use solid fills only and the same geometry.</dd></div>
+      <div><dt>Clear space</dt><dd>One block on every side of any logo.</dd></div>
+      <div><dt>Minimum size</dt><dd>Wordmark 80 px or 20 mm wide. Rendered icon from 64 px, the flat icon without dots from 24 to 63 px, and the pixel-snapped favicons at 16 and 32 px.</dd></div>
+    </dl>
+  </section>
+
+  <section class="sec" aria-labelledby="h-files">
+    <header><p class="label">05 · Files</p><h2 id="h-files">What’s in the folder</h2><p>Everything is in the <span class="mono">blokmix-logo</span> folder of this project, with a README that repeats these rules.</p></header>
+    <div class="files">
+      <table>
+        <thead><tr><th scope="col">File</th><th scope="col">Use</th></tr></thead>
+        <tbody>
+          <tr><td>svg/blokmix-wordmark-*.svg</td><td>Ink, paper, on-pink, black and white wordmarks</td></tr>
+          <tr><td>svg/blokmix-wordmark-shadow-*.svg</td><td>Alternate: square o with a hot pink shadow (72 units down and right). Also blokmix-wordmark-square-o-ink.svg with no shadow</td></tr>
+          <tr><td>app-icon/master/</td><td>Blender renders: light and dark, squircle (transparent corners) and full-bleed square</td></tr>
+          <tr><td>app-icon/ios/</td><td>Xcode AppIcon.appiconset (1024 light + dark appearance) and every legacy iOS size</td></tr>
+          <tr><td>app-icon/macos/</td><td>Blokmix.icns plus the iconset; the 16 and 32 px slots use the pixel favicons</td></tr>
+          <tr><td>app-icon/web/</td><td>favicon.ico, favicon.svg, apple-touch-icon, 192 and 512 icons, 400 px avatars</td></tr>
+          <tr><td>svg/blokmix-icon-*.svg</td><td>Flat vector icon, light and dark, with and without dots</td></tr>
+          <tr><td>svg/blokmix-x-mark.svg</td><td>Secondary mark for stickers, merch and loading states</td></tr>
+          <tr><td>svg/blokmix-lockup-*.svg</td><td>Horizontal and stacked lockups for light and dark backgrounds</td></tr>
+          <tr><td>svg/favicon-*.svg</td><td>Pixel-snapped favicons at 16 and 32 px, light and dark</td></tr>
+          <tr><td>png/</td><td>Wordmarks 2000 wide and lockups</td></tr>
+          <tr><td>explorations*/ · archive/2x2-grid/</td><td>Every earlier icon round and the original 2×2 icon system, kept for future assets</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>The letterforms are outlined from Archivo by Omnibus-Type, which is licensed under the SIL Open Font License 1.1. That license allows artwork made from its outlines, including logos. The block, icon and lockups are original to Blokmix.</p>
+  </footer>
+</main>

@@ -11,7 +11,7 @@ export function contentVar(s: ComposedSection): string {
 }
 
 export function tokensCss(page: ComposedPage): string {
-  return `/* Mixtape style guide: generated, edit tokens in Mixtape and re-export. */\n${varsToCss(page.vars)}\n`
+  return `/* Blokmix style guide: generated, edit tokens in Blokmix and re-export. */\n${varsToCss(page.vars)}\n`
 }
 
 /** The head links for the page's fonts (Google Fonts and Fontshare). */

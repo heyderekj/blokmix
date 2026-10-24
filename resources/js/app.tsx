@@ -10,8 +10,10 @@ import { startAgentLink } from '@/lib/agentLink'
 import { loadAssets } from '@/lib/assets'
 
 if (import.meta.env.DEV) Object.assign(window, { __mx: { store: useStore, library, canvas: canvasApi } })
-// The same commands the app uses, for scripts and agents: mixtape.tools(), mixtape.run(name, input).
-Object.assign(window, { mixtape: { tools, run: (name: string, input?: unknown) => runCommand(name, input, 'agent') } })
+// The same commands the app uses, for scripts and agents: blokmix.tools(), blokmix.run(name, input).
+const agentApi = { tools, run: (name: string, input?: unknown) => runCommand(name, input, 'agent') }
+// window.mixtape is the name from before the rename, kept so older agent prompts still work.
+Object.assign(window, { blokmix: agentApi, mixtape: agentApi })
 
 startAgentLink()
 void loadAssets()

@@ -320,7 +320,7 @@ function WordsComposer({ draft, anchor }: { draft: MarkDraft; anchor: Extract<No
       }}
     >
       <div className="mb-1.5 px-1 text-[11px] font-semibold text-zinc-400">Change these words</div>
-      <div className="mb-1.5 rounded-lg bg-tape/10 px-2.5 py-1.5 text-[12.5px] text-zinc-600 line-through decoration-zinc-400">{anchor.quote}</div>
+      <div className="mb-1.5 rounded-lg bg-key/10 px-2.5 py-1.5 text-[12.5px] text-zinc-600 line-through decoration-zinc-400">{anchor.quote}</div>
       <input
         ref={input}
         autoFocus
@@ -381,7 +381,7 @@ export function MarkCard({ mark }: { mark: Note }) {
       {a.kind === 'block' && <div className="mb-1 truncate text-[11.5px] text-zinc-500">on {a.label}</div>}
       {a.kind === 'words' && (
         <div className="mb-1 truncate text-[11.5px] text-zinc-500">
-          on <span className="rounded bg-tape/15 px-1 text-zinc-700">“{a.quote}”</span> in {a.label}
+          on <span className="rounded bg-key/15 px-1 text-zinc-700">“{a.quote}”</span> in {a.label}
         </div>
       )}
       <p className="text-[13px] leading-snug text-zinc-800">{mark.text}</p>

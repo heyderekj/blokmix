@@ -132,8 +132,8 @@ describe('content as files', () => {
 
   it('tells the agent where words live, and the options still in play', () => {
     const slot = slotFor('hero.layout-centered', { options: { headline: [{ text: 'Mix the web.', by: 'you', keptAt: 1 }] } })
-    const files = packetFiles({ page: pageFor([slot]), guide: resolveGuide(emptyGuide()), library, tapeName: 'T', targets: ['astro'] } as never)
-    const md = files['MIXTAPE.md'] as string
+    const files = packetFiles({ page: pageFor([slot]), guide: resolveGuide(emptyGuide()), library, mixName: 'T', targets: ['astro'] } as never)
+    const md = files['BLOKMIX.md'] as string
     expect(md).toContain('`hero-layout-centered.json`')
     expect(md).toContain('Other ways to say headline')
     expect(md).toContain('Keystatic')
