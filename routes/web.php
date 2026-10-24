@@ -5,6 +5,11 @@ use App\Http\Controllers\MixController;
 use App\Http\Controllers\ShareController;
 use Illuminate\Support\Facades\Route;
 
+// Labs: design variations to compare, only on a local machine.
+if (app()->isLocal()) {
+    Route::inertia('/labs/sign-in', 'labs/sign-in');
+}
+
 // Share links work for people who aren't signed in yet (they sign up, then come back here).
 Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join');
 

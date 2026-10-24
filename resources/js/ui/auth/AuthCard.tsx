@@ -31,11 +31,11 @@ export function AuthCard({ title, lede, onSubmit, children, footer }: { title: s
 export function Field({ label, error, ...input }: { label: string; error?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[12px] font-semibold text-zinc-500">{label}</span>
+      <span className="mb-1 block text-[12px] font-semibold text-[var(--auth-label,#71717a)]">{label}</span>
       <input
         {...input}
         aria-invalid={!!error}
-        className="h-11 w-full rounded-xl bg-zinc-100 px-3.5 text-[15px] text-zinc-900 outline-none transition-[box-shadow] duration-150 placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-900/15 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-500/40"
+        className="h-11 w-full rounded-xl bg-[var(--auth-field,#f4f4f5)] px-3.5 text-[15px] text-[var(--auth-ink,#18181b)] outline-none transition-[box-shadow] duration-150 placeholder:text-zinc-400 focus:ring-2 focus:ring-[var(--auth-focus,rgb(24_24_27/0.15))] aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-500/40"
       />
       {error && <span className="mt-1.5 block text-[12.5px] text-red-600">{error}</span>}
     </label>
@@ -47,7 +47,7 @@ export function Submit({ busy, children }: { busy: boolean; children: ReactNode 
     <button
       type="submit"
       disabled={busy}
-      className="mt-1 h-11 w-full cursor-pointer rounded-full bg-zinc-900 text-[14px] font-semibold text-white transition-[scale,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-800"
+      className="mt-1 h-11 w-full cursor-pointer rounded-full bg-[var(--auth-button,#18181b)] text-[14px] font-semibold text-[var(--auth-button-ink,#fff)] transition-[scale,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-[var(--auth-button-hover,#27272a)]"
     >
       {children}
     </button>
