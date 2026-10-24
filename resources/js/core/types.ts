@@ -521,7 +521,7 @@ export type Rhythm = (typeof RHYTHMS)[number]
 export interface Library {
   sources: Record<string, Source>
   clips: Record<string, Clip>
-  /** Every clip and layout of a type: your clips first, then layouts. */
+  /** Every layout and clip of a type: layouts first, then your clips. */
   byType: Record<SectionType, string[]>
   /** Only the built-in layouts of a type. */
   layoutsByType: Record<SectionType, string[]>

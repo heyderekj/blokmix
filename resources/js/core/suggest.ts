@@ -157,8 +157,9 @@ const RHYTHM_WORD: Record<Rhythm, string> = { centered: 'Centered', split: 'Spli
  * Rank the clips and layouts for a section of `type` at `index`. With
  * `replace`, the section already at `index` is the one being swapped, so its
  * neighbours are index-1 and index+1; otherwise it's a new section inserted
- * there. Your clips come first, then layouts ordered by how well their rhythm
- * contrasts with the neighbours.
+ * there. Built-in layouts come first, ordered by how well their rhythm contrasts
+ * with the neighbours: they're the dependable start for a new section. Your clips
+ * follow (personal and specific, they stay a click away on their own shelf).
  */
 export function suggestClip(type: SectionType, slots: PageSlot[], index: number, library: Library, replace = false): ClipSuggestion[] {
   const above = slots[index - 1]
@@ -169,7 +170,7 @@ export function suggestClip(type: SectionType, slots: PageSlot[], index: number,
   return pickable(library, type)
     .map((clipId, order): ClipSuggestion & { order: number } => {
       const clip = library.clips[clipId]
-      let score = clip.origin === 'clip' ? 100 : 0
+      let score = clip.origin === 'layout' ? 100 : 0
       let reason = clip.origin === 'clip' ? 'From your clips' : ''
       const r = clip.rhythm
       if (r && aboveClip?.rhythm) {

@@ -68,8 +68,10 @@ describe('suggestClip', () => {
   const lib = { clips: Object.fromEntries(clips.map((c) => [c.id, c])), byType, layoutsByType: byType, sources: {}, warnings: [] } as unknown as Library
   const slots = [{ type: 'hero' as const, clipId: 'hero.split' }]
 
-  it('puts your clips first', () => {
-    expect(suggestClip('cta', slots, 1, lib)[0]).toMatchObject({ clipId: 'cta.mine', reason: 'From your clips' })
+  it('puts layouts first and keeps your clips after them', () => {
+    const ranked = suggestClip('cta', slots, 1, lib)
+    expect(ranked[0].clipId).toMatch(/layout/)
+    expect(ranked.at(-1)).toMatchObject({ clipId: 'cta.mine', reason: 'From your clips' })
   })
 
   it('orders layouts by rhythm contrast with the section above', () => {
@@ -80,6 +82,7 @@ describe('suggestClip', () => {
 
   it('uses the neighbours of the replaced section', () => {
     const withCta = [...slots, { type: 'cta' as const, clipId: 'cta.layout-split' }]
-    expect(suggestClip('cta', withCta, 1, lib, true).at(-1)!.clipId).toBe('cta.layout-split')
+    const layouts = suggestClip('cta', withCta, 1, lib, true).filter((s) => s.clipId.includes('layout'))
+    expect(layouts.at(-1)!.clipId).toBe('cta.layout-split')
   })
 })

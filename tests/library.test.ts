@@ -38,10 +38,10 @@ describe('built-in layouts', () => {
     for (const c of Object.values(library.clips)) expect(c.rhythm, c.id).toBeTruthy()
   })
 
-  it('lists your clips before layouts', () => {
+  it('lists layouts before your clips', () => {
     for (const t of SECTION_TYPES) {
       const origins = library.byType[t].map((id) => library.clips[id].origin)
-      expect(origins.indexOf('layout') === -1 || origins.lastIndexOf('clip') < origins.indexOf('layout'), t).toBe(true)
+      expect(origins.indexOf('clip') === -1 || origins.lastIndexOf('layout') < origins.indexOf('clip'), t).toBe(true)
     }
   })
 })

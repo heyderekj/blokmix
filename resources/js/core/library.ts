@@ -73,10 +73,11 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
     lib.clips[id] = clip
     if (clip.origin === 'layout') lib.layoutsByType[raw.type].push(id)
   }
-  // Your clips first, then layouts, so sliding through a section reaches real clips before built-ins.
+  // Layouts first, then your clips: sliding through a section starts with the dependable built-ins, and your own
+  // clips (personal, specific) follow.
   for (const t of SECTION_TYPES) {
     const ids = Object.values(lib.clips).filter((c) => c.type === t)
-    lib.byType[t] = [...ids.filter((c) => c.origin === 'clip'), ...ids.filter((c) => c.origin === 'layout')].map((c) => c.id)
+    lib.byType[t] = [...ids.filter((c) => c.origin === 'layout'), ...ids.filter((c) => c.origin === 'clip')].map((c) => c.id)
   }
   identifySourceIcons(lib)
   return lib
@@ -149,7 +150,7 @@ export function extendLibrary(lib: Library, sources: Source[], raws: RawClip[]):
     const isLayout = extra.layoutsByType[clip.type].includes(id)
     if (isLayout) layouts.push(id)
     const yours = lib.byType[clip.type].filter((x) => !layouts.includes(x))
-    lib.byType[clip.type] = [...(isLayout ? yours : [...yours, id]).sort(), ...layouts]
+    lib.byType[clip.type] = [...layouts, ...(isLayout ? yours : [...yours, id]).sort()]
   }
   lib.warnings.push(...extra.warnings.filter((w) => added.includes(w.clipId)))
   return added
