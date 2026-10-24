@@ -31,6 +31,12 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   edits survive a reload. `/mixes/local` is the browser-only mix (the Vite-only app's), which the index can
   copy to the server ("Save to your mixes").
 - `/api/*` skips Laravel's TrimStrings and ConvertEmptyStringsToNull: words are saved exactly as written.
+- Laravel Cloud: app `blokmix` (org Testament Made, us-east-1), environment `production` at
+  https://blokmix-production-l9esns.laravel.cloud with Postgres 18. Pushing `main` deploys. Build runs
+  `npm run build:laravel`; deploy runs `php artisan migrate --force` and `php artisan optimize`. The `cloud`
+  CLI (`composer global` laravel/cloud-cli) is signed in: `cloud deploy blokmix production`, `cloud cmd:run`.
+- Until accounts (4d) the app sits behind one shared password, `BLOKMIX_PASSWORD` (HTTP Basic, any user name;
+  `RequirePassword` middleware). Production returns 503 until it's set; locally it's open when unset.
 
 ## Agents
 
