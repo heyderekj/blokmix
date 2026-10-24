@@ -87,6 +87,12 @@ class Mix extends Model
         return $member ? MixRole::from($member->pivot->role) : null;
     }
 
+    /** Whoever owns the mix: its uploads count toward their plan. */
+    public function owner(): ?User
+    {
+        return $this->members()->wherePivot('role', MixRole::Owner->value)->first();
+    }
+
     /** Add someone, or raise their role; never lowers it. */
     public function admit(User $user, MixRole $role): MixRole
     {

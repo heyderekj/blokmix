@@ -49,6 +49,11 @@ class ClipController extends Controller
             throw ValidationException::withMessages(['files' => 'Send one clip at a time.']);
         }
 
+        // Saving a clip again replaces it, so only a new one counts toward the plan.
+        $exists = $request->user()->clips()->where('clip_id', $ids[0])->exists();
+        $why = $exists ? null : $request->user()->clipRefusal();
+        abort_if($why !== null, 403, (string) $why);
+
         $clip = $request->user()->clips()->updateOrCreate(['clip_id' => $ids[0]], ['files' => $files]);
 
         return response()->json(['id' => $clip->clip_id], 201);

@@ -88,9 +88,20 @@ const ago = (iso: string) => {
  * its own style guide, with its versions' status rings. The first tile starts a new mix; the ones shared with you and
  * the one kept only in this browser follow.
  */
+/** Your plan (config/blokmix.php `plans`): what it includes (null is unlimited) and what you've used. */
+interface Plan {
+  name: 'free' | 'plus'
+  limits: { mixes: number | null; clips: number | null; upload_mb: number | null }
+  usage: { mixes: number; clips: number; uploads: number }
+}
+const MIX_FULL = 'Free includes one mix. Plus, coming soon, has as many as you like.'
+
 export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
-  const auth = usePage<{ auth: { user: { name: string } | null; owner?: boolean } }>().props.auth
+  const auth = usePage<{ auth: { user: { name: string } | null; owner?: boolean; plan?: Plan | null } }>().props.auth
   const user = auth?.user
+  const plan = auth?.plan ?? null
+  // Starting, copying, importing or saving a mix makes one you own; Free has room for one.
+  const full = !!plan && plan.limits.mixes !== null && plan.usage.mixes >= plan.limits.mixes
   const local = useMemo(readLocal, [])
   const [moving, setMoving] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
@@ -107,42 +118,48 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
   /** A copy you own, with its versions and uploads; it shows up first in the gallery. */
   const duplicate = async (m: SavedMix) => {
     setProblem(null)
-    const res = await api('POST', `/api/mixes/${m.id}/duplicate`)
-    if (res.status === 201) router.reload({ only: ['mixes'] })
-    else setProblem('Couldn’t copy that mix. Try again.')
+    if (full) return setProblem(MIX_FULL)
+    const res = await api<{ message?: string }>('POST', `/api/mixes/${m.id}/duplicate`)
+    if (res.status === 201) router.reload({ only: ['mixes', 'auth'] })
+    else setProblem(res.body?.message ?? 'Couldn’t copy that mix. Try again.')
   }
 
   /** Delete a mix you own, after asking. */
   const remove = async (m: SavedMix) => {
     if (!window.confirm(`Delete “${m.name}” and its versions for everyone it’s shared with? This can’t be undone.`)) return
     const res = await api('DELETE', `/api/mixes/${m.id}`)
-    if (res.status === 204) router.reload({ only: ['mixes'] })
+    if (res.status === 204) router.reload({ only: ['mixes', 'auth'] })
   }
 
   /** Copy the browser's mix to the server (the browser keeps its copy) and open it. */
   const saveLocal = async () => {
     if (!local) return
+    setProblem(null)
+    if (full) return setProblem(MIX_FULL)
     setMoving(true)
     const { mixName, versions, ui: _ui, camera: _camera, ...data } = local.state
     void _ui
     void _camera
-    const res = await api<ServerMix & { short: string }>('POST', '/api/mixes', { name: mixName ?? local.name, data, versions: versions ?? {} })
+    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: mixName ?? local.name, data, versions: versions ?? {} })
     setMoving(false)
     if (res.status === 201) router.visit(`/${res.body.short}`)
+    else setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
   }
 
   const importFile = () =>
     pickFile('.json,application/json', async (f) => {
       setProblem(null)
+      // Checked first, so a refused import doesn't leave its clips behind.
+      if (full) return setProblem(MIX_FULL)
       try {
         const file = await readMixFile(f)
         setMoving(true)
         // Its captured clips join your account first, so the mix opens with every section.
         await importClips(file.clips ?? [])
-        const res = await api<ServerMix & { short: string }>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions })
+        const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions })
         setMoving(false)
         if (res.status === 201) router.visit(`/${res.body.short}`)
-        else setProblem('Couldn’t save that mix. Try again.')
+        else setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
       } catch (e) {
         setMoving(false)
         setProblem(e instanceof Error ? e.message : String(e))
@@ -173,7 +190,10 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
 
       <main className="mx-auto max-w-6xl px-6 pb-24 pt-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-[30px] font-bold tracking-tight text-[#17121A]">Your mixes</h1>
+          <div>
+            <h1 className="text-[30px] font-bold tracking-tight text-[#17121A]">Your mixes</h1>
+            {plan?.name === 'free' && <PlanLine plan={plan} />}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <label className="flex h-10 w-56 items-center gap-2 rounded-full bg-white px-3.5 shadow-[0_0_0_1px_rgb(23_18_26/0.08)] focus-within:ring-2 focus-within:ring-[#FF69B4]/45 max-sm:w-full">
               <Search size={15} className="shrink-0 text-zinc-400" />
@@ -216,7 +236,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         <ul className={GRID}>
           {!query && (
             <li className="animate-rise">
-              <NewMix mixes={mine} />
+              <NewMix mixes={mine} full={full} onRefused={setProblem} />
             </li>
           )}
           {mine.map((m, i) => (
@@ -303,13 +323,16 @@ const CARD =
 
 /** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It starts a mix in the
  * neutral style; "Start from a style guide" starts one from a saved guide or another mix's (the new mix keeps its own copy). */
-function NewMix({ mixes }: { mixes: SavedMix[] }) {
+function NewMix({ mixes, full, onRefused }: { mixes: SavedMix[]; full: boolean; onRefused: (why: string) => void }) {
   const [picking, setPicking] = useState(false)
   const [saved, setSaved] = useState<SavedGuide[] | null>(null)
   useEffect(() => {
     if (picking && saved === null) void listGuides().then(setSaved)
   }, [picking, saved])
-  const start = (guide?: GuideState) => router.post('/mixes', guide ? { guide: guide as unknown as Record<string, string> } : {})
+  const start = (guide?: GuideState) => {
+    if (full) return onRefused(MIX_FULL)
+    router.post('/mixes', guide ? { guide: guide as unknown as Record<string, string> } : {}, { onError: (e) => e.mix && onRefused(e.mix) })
+  }
   const styled = mixes.filter((m) => m.guide && Object.keys(m.guide.base ?? {}).length)
 
   if (picking)
@@ -346,14 +369,15 @@ function NewMix({ mixes }: { mixes: SavedMix[] }) {
         <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#17121A]">
           <Plus size={16} strokeWidth={2.4} /> New mix
         </span>
+        {full && <span className="-mt-2 text-[12.5px] text-[#6B5F68]">Free includes one mix</span>}
       </span>
-      <button
+      {!full && <button
         type="button"
         onClick={() => setPicking(true)}
         className="absolute bottom-4 left-1/2 flex h-8 -translate-x-1/2 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[12.5px] font-medium text-[#6B5F68] transition-[background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-[#17121A] active:scale-[0.97]"
       >
         <Palette size={14} /> Start from a style guide
-      </button>
+      </button>}
     </div>
   )
 }
@@ -544,5 +568,21 @@ function Name({ id, name }: { id: string; name: string }) {
       <span className="truncate">{value}</span>
       <Pencil size={13} className="shrink-0 text-zinc-400 opacity-0 transition-opacity duration-150 group-hover/name:opacity-100 [@media(hover:none)]:opacity-100" />
     </button>
+  )
+}
+
+/** On Free, what's used of what the plan includes: mixes, clips and uploads. */
+function PlanLine({ plan }: { plan: Plan }) {
+  const { limits: l, usage: u } = plan
+  const mb = u.uploads / (1024 * 1024)
+  const parts = [
+    l.mixes !== null && `${u.mixes} of ${l.mixes} ${l.mixes === 1 ? 'mix' : 'mixes'}`,
+    l.clips !== null && `${u.clips} of ${l.clips} clips`,
+    l.upload_mb !== null && `${mb < 10 ? mb.toFixed(1).replace(/\.0$/, '') : Math.round(mb)} of ${l.upload_mb} MB`,
+  ].filter(Boolean)
+  return (
+    <p className="mt-1 text-[13px] text-[#6B5F68]">
+      <span className="font-semibold text-[#17121A]">Free</span> · {parts.join(' · ')}
+    </p>
   )
 }

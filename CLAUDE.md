@@ -61,6 +61,13 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). New mix → "Start from a style guide"
   (neutral, a saved guide, or another mix's) posts `guide` to `/mixes`, which stores `data = {guide}`; the board fills
   the rest from a blank mix. Every mix keeps its own copy, so edits never spread.
+- Plans (`users.plan`, `config/blokmix.php` `plans`): Free is 1 mix you own, 40 clips and 100 MB of uploads; Plus is
+  unlimited mixes and clips and 10 GB. Mixes and uploads count toward the mix's owner (an editor's upload uses the
+  owner's room); clips toward whoever saved them; shared mixes, layouts and placeholder art never count. `User`
+  `mixRefusal`/`clipRefusal`/`uploadRefusal` say why, and the controllers refuse with 403 and that message (the web
+  New mix gets it as `errors.mix`). Existing work over a limit is kept; only adding more is refused. The people who run
+  Blokmix are always Plus. `plan` isn't fillable: checkout will set it. Inertia shares `auth.plan` (name, limits,
+  usage); the mixes page shows it, and the board flashes an upload refusal once and keeps the file in the browser.
 - Agents on the live site: the local MCP bridge also accepts Blokmix's hosted HTTPS origins (`HOSTED_ORIGINS` in
   `core/commands/bridge.ts`, plus BLOKMIX_ORIGINS). Chrome may ask once to let the site reach this device.
 - Waitlist (`waitlist`, `Api\WaitlistController`): blokmix.com's form posts to `POST /api/waitlist` (public, no CSRF

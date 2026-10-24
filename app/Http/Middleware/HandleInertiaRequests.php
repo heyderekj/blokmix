@@ -42,6 +42,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => fn () => $request->user()?->only('id', 'name', 'email'),
                 // Whether this account runs Blokmix (the waitlist link shows for them).
                 'owner' => fn () => (bool) $request->user()?->can('run-blokmix'),
+                // The plan, what it includes and what's used, for the mixes page and the board.
+                'plan' => fn () => $request->user() ? ['name' => $request->user()->planName(), 'limits' => $request->user()->limits(), 'usage' => $request->user()->usage()] : null,
             ],
             'flash' => fn () => $request->session()->get('flash'),
         ];

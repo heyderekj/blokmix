@@ -96,7 +96,7 @@ export async function importClips(list: { id: string; files: ClipFiles }[]): Pro
       headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...xsrf() },
       body: JSON.stringify({ files: c.files }),
     })
-    if (!res.ok) throw new Error(`Couldn’t save the clip ${c.id}. Try again.`)
+    if (!res.ok) throw new Error((await res.json().catch(() => null))?.message ?? `Couldn’t save the clip ${c.id}. Try again.`)
   }
   addToLibrary(fresh.map((c) => c.files))
   return fresh.length

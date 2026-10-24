@@ -31,6 +31,9 @@ class MixApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $this->guardSize($request);
+        // Importing a file and saving the browser's mix start a mix too.
+        $why = $request->user()->mixRefusal();
+        abort_if($why !== null, 403, (string) $why);
         $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'data' => ['nullable', 'array'],
@@ -133,6 +136,8 @@ class MixApiController extends Controller
     public function duplicate(Request $request, Mix $mix): JsonResponse
     {
         abort_unless($mix->roleOf($request->user()), 404);
+        $why = $request->user()->mixRefusal() ?? $request->user()->uploadRefusal((int) $mix->assets()->sum('size'));
+        abort_if($why !== null, 403, (string) $why);
         $disk = Storage::disk(config('blokmix.uploads_disk'));
 
         $copy = DB::transaction(function () use ($mix, $request, $disk) {

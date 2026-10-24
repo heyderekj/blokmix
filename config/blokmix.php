@@ -10,6 +10,16 @@ return [
     /** The largest upload: videos and Lotties are kept as they are (images are downscaled in the browser). */
     'upload_max_kb' => 40 * 1024,
 
+    /**
+     * What each plan includes (users.plan). Null is unlimited. Mixes and uploads count against the mix's owner; clips
+     * against whoever saved them. Shared mixes, built-in layouts and placeholder art never count. The people who run
+     * Blokmix (owners, below) are always on Plus.
+     */
+    'plans' => [
+        'free' => ['mixes' => 1, 'clips' => 40, 'upload_mb' => 100],
+        'plus' => ['mixes' => null, 'clips' => null, 'upload_mb' => 10 * 1024],
+    ],
+
     /** Unsplash's access key, kept on the server: the board searches through /api/unsplash. */
     'unsplash_key' => env('UNSPLASH_ACCESS_KEY'),
 

@@ -94,6 +94,9 @@ class MixController extends Controller
     {
         // A new mix can start from a style guide (a saved one, or another mix's); it keeps its own copy.
         $request->validate(['guide' => ['nullable', 'array'], 'guide.base' => ['required_with:guide', 'array']]);
+        if ($why = $request->user()->mixRefusal()) {
+            return back()->withErrors(['mix' => $why]);
+        }
         $guide = $request->input('guide'); // as sent: validate() keeps only the keys that have rules
         $mix = Mix::create(['name' => 'Untitled mix', 'data' => $guide ? ['guide' => $guide] : null]);
         $mix->admit($request->user(), MixRole::Owner);

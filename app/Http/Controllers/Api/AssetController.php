@@ -44,6 +44,15 @@ class AssetController extends Controller
             'poster' => ['nullable', 'file', 'max:4096'],
         ]);
 
+        // Uploads count toward the mix owner's plan, whoever adds them; replacing one only counts the difference.
+        $owner = $mix->owner() ?? $request->user();
+        $was = (int) $mix->assets()->where('key', $input['id'])->value('size');
+        $why = $owner->uploadRefusal($request->file('file')->getSize() - $was);
+        if ($why !== null && $owner->isNot($request->user())) {
+            $why = 'This mix’s owner is out of room for images and video. It stays in this browser.';
+        }
+        abort_if($why !== null, 403, (string) $why);
+
         $disk = Storage::disk(config('blokmix.uploads_disk'));
         $dir = "mixes/{$mix->id}";
         $path = $disk->putFileAs($dir, $request->file('file'), $input['id']);
