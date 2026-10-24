@@ -244,6 +244,28 @@ export function openMix(mix: ServerMix | 'local', opts: { force?: boolean; role?
   } else void syncAssets(null, [], false)
 }
 
+/**
+ * Labs: point the store at a throwaway copy of a mix that is never saved, so designs
+ * can be tried on real data without touching any mix. Opening a real mix leaves it.
+ */
+export function openSandbox(data: MixData) {
+  current?.close()
+  current = null
+  viewOnly?.()
+  viewOnly = null
+  openId = 'labs'
+  useAccount.setState({ role: 'owner' })
+  const start = { ...data, ui: useStore.getState().ui, camera: null } as Persisted
+  useStore.persist.setOptions({
+    name: 'blokmix:labs',
+    storage: { getItem: () => ({ state: start, version: 1 }), setItem: () => {}, removeItem: () => {} },
+  })
+  void useStore.persist.rehydrate()
+  useStore.temporal.getState().clear()
+  useSave.setState({ status: 'local', mixId: 'labs' })
+  void syncAssets(null, [], false)
+}
+
 /** What a viewer can't change: everything but the marks (notes) and their own view. */
 const HELD = ['mixName', 'site', 'guide', 'content', 'versions', 'branchFrom', 'head'] as const
 let viewOnly: (() => void) | null = null

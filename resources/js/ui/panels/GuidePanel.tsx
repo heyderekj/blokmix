@@ -10,30 +10,170 @@ import { CONTRAST_PAIRS, contrastRatio, expandTokens, GROUP_LABEL, keysInGroup, 
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
+import { useLabs } from '@/lib/labs'
+import { GUIDE_VARIANTS } from './guide'
 import { FontField } from './FontPicker'
 import { PanelSection } from './parts'
 
-function sourceOf(candidateId: string) {
+/** The style guide panel: the current design, or a direction being tried in labs (/labs/style-guide). */
+export function GuidePanel() {
+  const variant = useLabs((s) => s.guide)
+  const Variant = variant === 'now' ? CurrentGuide : GUIDE_VARIANTS[variant]
+  return <Variant />
+}
+
+export function sourceOf(candidateId: string) {
   const clip = library.clips[candidateId.split('#')[0]]
   return clip ? library.sources[clip.sourceId] : null
 }
 
-export function GuidePanel() {
+/** Copy the guide's CSS variables plus an instruction, for an agent. */
+export function useCopyGuide() {
   const guide = useResolvedGuide()
-  const state = useStore((s) => s.guide)
   const [copied, setCopied] = useState(false)
-  const st = useStore.getState
-  const conflicts = new Map(guide.conflicts.map((c) => [c.key, c]))
-  const open = openGroups(guide)
-
-  const copyValues = async () => {
+  const copy = async () => {
     const css = varsToCss(expandTokens(guide.tokens))
     const text = `Apply this style guide from Blokmix. Use only these CSS variables for color, type, radius, shadow, spacing and motion; replace hard-coded values with them.\n\n${css}\n`
     await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 1400)
   }
+  return { copied, copy }
+}
 
+/** Always in reach at the bottom of the panel, however far the guide scrolls. */
+export function CopyFooter() {
+  const { copied, copy } = useCopyGuide()
+  return (
+    <div className="sticky bottom-0 z-10 border-t border-zinc-950/6 px-4 py-3 backdrop-blur-md [background:var(--header-bg)]">
+      <button type="button" onClick={copy} className="btn-quiet flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-full text-[13px] font-medium">
+        {copied ? <Check size={14} className="text-green-600" /> : <ClipboardCopy size={14} />}
+        {copied ? 'Copied for your agent' : 'Copy values + instruction'}
+      </button>
+    </div>
+  )
+}
+
+export function BrandColours() {
+  const state = useStore((s) => s.guide)
+  const st = useStore.getState
+  return (
+    <PanelSection title="Brand colours" action={<AddSwatch />}>
+      {state.swatches?.length ? (
+        <div className="flex flex-wrap gap-1.5">
+          {state.swatches.map((w) => (
+            <span key={w.id} className="flex h-7 items-center gap-1.5 rounded-full border border-zinc-950/10 pl-1 pr-1 text-[12px] text-zinc-700">
+              <span className="size-5 rounded-full ring-1 ring-zinc-950/10" style={{ background: w.value }} />
+              {w.name}
+              <span className="font-mono text-[10.5px] text-zinc-400">{w.value}</span>
+              <button type="button" onClick={() => st().removeSwatch(w.id)} className="grid size-5 place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700" aria-label={`Remove ${w.name}`}>
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="text-[12px] text-zinc-500">Colours beyond your palette. Add one here, or from a block’s Style menu.</p>
+      )}
+    </PanelSection>
+  )
+}
+
+export function Components() {
+  const state = useStore((s) => s.guide)
+  const st = useStore.getState
+  return (
+    <PanelSection title="Components">
+      {state.components && Object.keys(state.components).length ? (
+        <div className="space-y-1">
+          {(Object.entries(state.components) as [BlockKind, ComponentDefault][]).map(([kind, d]) => (
+            <div key={kind} className="flex items-center gap-2 rounded-lg px-1 py-1 text-[12.5px]">
+              <span className="w-16 font-semibold text-zinc-900">All {BLOCK_LABEL[kind].toLowerCase()}s</span>
+              <span className="flex-1 truncate text-zinc-600">{describeLook(kind, d)}</span>
+              <button type="button" onClick={() => st().clearComponent(kind)} className="grid size-6 place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700" title="Stop using this look everywhere">
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-[12px] text-zinc-500">Select a block on the page, give it a look, then choose “Use for all” to make it the look for every block of its kind.</p>
+      )}
+    </PanelSection>
+  )
+}
+
+/** Each contrast pair, with its ratio and whether it passes AA. */
+export function useContrast() {
+  const tokens = useResolvedGuide().tokens
+  return CONTRAST_PAIRS.map(([fg, bg, label]) => {
+    const r = contrastRatio(tokens[fg], tokens[bg])
+    return { label, fg: tokens[fg], bg: tokens[bg], ratio: r, ok: r != null && r >= 4.5 }
+  })
+}
+
+export function Contrast() {
+  const pairs = useContrast()
+  return (
+    <PanelSection title="Contrast">
+      <div className="space-y-1.5">
+        {pairs.map((p) => (
+          <div key={p.label} className="flex items-center gap-2 text-[12px]">
+            <span className="grid h-6 w-9 place-items-center rounded-md border border-zinc-950/10 text-[11px] font-bold" style={{ background: p.bg, color: p.fg }}>
+              Aa
+            </span>
+            <span className="flex-1 text-zinc-600">{p.label}</span>
+            <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ${p.ok ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-600'}`}>
+              {p.ratio ?? '?'}:1 {p.ok ? 'AA' : 'low'}
+            </span>
+          </div>
+        ))}
+      </div>
+    </PanelSection>
+  )
+}
+
+export function Candidates() {
+  const state = useStore((s) => s.guide)
+  const st = useStore.getState
+  return (
+    <PanelSection title="Candidates">
+      {state.candidates.length ? (
+        <div className="flex flex-wrap gap-1.5">
+          {state.candidates.map((c) => (
+            <span key={c.id} className="flex h-7 items-center gap-1.5 rounded-full border border-zinc-950/10 pl-2.5 pr-1 text-[12px] text-zinc-700">
+              {sourceOf(c.id)?.name ?? c.clipId} · {GROUP_LABEL[c.group].toLowerCase()}
+              <button type="button" onClick={() => st().removeCandidate(c.id)} className="grid size-5 place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700" aria-label="Remove candidate">
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="text-[12px] text-zinc-500">Nothing promoted yet. Use a section’s “Use look” to start your style guide.</p>
+      )}
+    </PanelSection>
+  )
+}
+
+/** Every token in a group, with its knob, where it came from, and any disagreement to settle. */
+export function GroupTokens({ group }: { group: TokenGroup }) {
+  const guide = useResolvedGuide()
+  const state = useStore((s) => s.guide)
+  const conflicts = new Map(guide.conflicts.map((c) => [c.key, c]))
+  return (
+    <div className="space-y-3">
+      {keysInGroup(group).map((k) => (
+        <TokenRow key={k} k={k} value={guide.tokens[k]} provenance={guide.provenance[k]} conflict={conflicts.get(k)} chosen={!!state.choices[k]} />
+      ))}
+    </div>
+  )
+}
+
+/** The panel as it is today. */
+function CurrentGuide() {
+  const guide = useResolvedGuide()
+  const open = openGroups(guide)
   return (
     <div>
       <div className="px-4 pt-3.5">
@@ -59,105 +199,21 @@ export function GuidePanel() {
         <PanelSection key={g} title={GROUP_LABEL[g]} action={<GroupSummary group={g} tokens={guide.tokens} />}>
           <GroupDecision group={g} open={open.includes(g)} />
           <FineTune>
-            <div className="space-y-3">
-              {keysInGroup(g).map((k) => (
-                <TokenRow key={k} k={k} value={guide.tokens[k]} provenance={guide.provenance[k]} conflict={conflicts.get(k)} chosen={!!state.choices[k]} />
-              ))}
-            </div>
+            <GroupTokens group={g} />
           </FineTune>
         </PanelSection>
       ))}
 
-      <PanelSection title="Brand colours" action={<AddSwatch />}>
-        {state.swatches?.length ? (
-          <div className="flex flex-wrap gap-1.5">
-            {state.swatches.map((w) => (
-              <span key={w.id} className="flex h-7 items-center gap-1.5 rounded-full border border-zinc-950/10 pl-1 pr-1 text-[12px] text-zinc-700">
-                <span className="size-5 rounded-full ring-1 ring-zinc-950/10" style={{ background: w.value }} />
-                {w.name}
-                <span className="font-mono text-[10.5px] text-zinc-400">{w.value}</span>
-                <button type="button" onClick={() => st().removeSwatch(w.id)} className="grid size-5 place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700" aria-label={`Remove ${w.name}`}>
-                  <X size={12} />
-                </button>
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[12px] text-zinc-500">Colours beyond your palette. Add one here, or from a block’s Style menu.</p>
-        )}
-      </PanelSection>
-
-      <PanelSection title="Components">
-        {state.components && Object.keys(state.components).length ? (
-          <div className="space-y-1">
-            {(Object.entries(state.components) as [BlockKind, ComponentDefault][]).map(([kind, d]) => (
-              <div key={kind} className="flex items-center gap-2 rounded-lg px-1 py-1 text-[12.5px]">
-                <span className="w-16 font-semibold text-zinc-900">All {BLOCK_LABEL[kind].toLowerCase()}s</span>
-                <span className="flex-1 truncate text-zinc-600">{describeLook(kind, d)}</span>
-                <button type="button" onClick={() => st().clearComponent(kind)} className="grid size-6 place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700" title="Stop using this look everywhere">
-                  <X size={12} />
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[12px] text-zinc-500">Select a block on the page, give it a look, then choose “Use for all” to make it the look for every block of its kind.</p>
-        )}
-      </PanelSection>
-
-      <PanelSection title="Contrast">
-        <div className="space-y-1.5">
-          {CONTRAST_PAIRS.map(([fg, bg, label]) => {
-            const r = contrastRatio(guide.tokens[fg], guide.tokens[bg])
-            const ok = r != null && r >= 4.5
-            return (
-              <div key={label} className="flex items-center gap-2 text-[12px]">
-                <span className="grid h-6 w-9 place-items-center rounded-md border border-zinc-950/10 text-[11px] font-bold" style={{ background: guide.tokens[bg], color: guide.tokens[fg] }}>
-                  Aa
-                </span>
-                <span className="flex-1 text-zinc-600">{label}</span>
-                <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ${ok ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-600'}`}>
-                  {r ?? '?'}:1 {ok ? 'AA' : 'low'}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </PanelSection>
-
-      <PanelSection title="Candidates">
-        {state.candidates.length ? (
-          <div className="flex flex-wrap gap-1.5">
-            {state.candidates.map((c) => (
-              <span key={c.id} className="flex h-7 items-center gap-1.5 rounded-full border border-zinc-950/10 pl-2.5 pr-1 text-[12px] text-zinc-700">
-                {sourceOf(c.id)?.name ?? c.clipId} · {GROUP_LABEL[c.group].toLowerCase()}
-                <button type="button" onClick={() => st().removeCandidate(c.id)} className="grid size-5 place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700" aria-label="Remove candidate">
-                  <X size={12} />
-                </button>
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[12px] text-zinc-500">Nothing promoted yet. Use a section’s “Use look” to start your style guide.</p>
-        )}
-      </PanelSection>
-
-      {/* Always in reach at the bottom of the panel, however far the guide scrolls. */}
-      <div className="sticky bottom-0 z-10 border-t border-zinc-950/6 px-4 py-3 backdrop-blur-md [background:var(--header-bg)]">
-        <button
-          type="button"
-          onClick={copyValues}
-          className="btn-quiet flex h-9 w-full items-center justify-center gap-2 rounded-full text-[13px] font-medium"
-        >
-          {copied ? <Check size={14} className="text-green-600" /> : <ClipboardCopy size={14} />}
-          {copied ? 'Copied for your agent' : 'Copy values + instruction'}
-        </button>
-      </div>
+      <BrandColours />
+      <Components />
+      <Contrast />
+      <Candidates />
+      <CopyFooter />
     </div>
   )
 }
 
-function describeLook(kind: BlockKind, d: ComponentDefault): string {
+export function describeLook(kind: BlockKind, d: ComponentDefault): string {
   const parts: string[] = []
   const v = findVariant(kind, d.variant)
   if (v) parts.push(v.label)
@@ -168,7 +224,7 @@ function describeLook(kind: BlockKind, d: ComponentDefault): string {
   return parts.join(' · ') || 'Default'
 }
 
-function AddSwatch() {
+export function AddSwatch() {
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState('#7c5cff')
   const [name, setName] = useState('')
@@ -203,7 +259,7 @@ function AddSwatch() {
 }
 
 /** Token-level knobs stay folded away: most of the time a direction per group is enough. */
-function FineTune({ children }: { children: React.ReactNode }) {
+export function FineTune({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   return (
     <div>
@@ -222,7 +278,7 @@ function FineTune({ children }: { children: React.ReactNode }) {
 }
 
 /** The group's current values at a glance, beside its heading. */
-function GroupSummary({ group, tokens }: { group: TokenGroup; tokens: Record<TokenKey, string> }) {
+export function GroupSummary({ group, tokens }: { group: TokenGroup; tokens: Record<TokenKey, string> }) {
   if (group === 'color')
     return (
       <span className="flex -space-x-1">
@@ -241,7 +297,7 @@ function GroupSummary({ group, tokens }: { group: TokenGroup; tokens: Record<Tok
   return <span className="text-[12px] tabular-nums text-zinc-500">{text}</span>
 }
 
-function GroupDecision({ group, open }: { group: TokenGroup; open: boolean }) {
+export function GroupDecision({ group, open }: { group: TokenGroup; open: boolean }) {
   const state = useStore((s) => s.guide)
   const cands = state.candidates.filter((c) => c.group === group)
   if (cands.length < 2) return null
@@ -300,7 +356,7 @@ const TYPE_HINT: Record<TokenGroup, (t: Record<TokenKey, string>) => string> = {
   motion: (t) => t['motion.duration'],
 }
 
-function TokenRow({ k, value, provenance, conflict, chosen }: { k: TokenKey; value: string; provenance: string; conflict?: Conflict; chosen: boolean }) {
+export function TokenRow({ k, value, provenance, conflict, chosen }: { k: TokenKey; value: string; provenance: string; conflict?: Conflict; chosen: boolean }) {
   const st = useStore.getState
   const from = provenance === 'base' ? 'default' : provenance === 'custom' ? 'custom' : (sourceOf(provenance)?.name ?? '')
   return (
@@ -343,7 +399,7 @@ function TokenRow({ k, value, provenance, conflict, chosen }: { k: TokenKey; val
   )
 }
 
-function OptionPreview({ k, value }: { k: TokenKey; value: string }) {
+export function OptionPreview({ k, value }: { k: TokenKey; value: string }) {
   if (k.startsWith('color.')) return <span className="size-5 rounded-full border border-zinc-950/15" style={{ background: value }} />
   if (k.startsWith('font.'))
     return (
