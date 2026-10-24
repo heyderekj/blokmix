@@ -2,11 +2,15 @@
 
 use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\MixController;
+use App\Http\Controllers\UnlockController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('mixes.index');
 });
+
+Route::get('/unlock', [UnlockController::class, 'show'])->name('unlock');
+Route::post('/unlock', [UnlockController::class, 'attempt'])->middleware('throttle:6,1')->name('unlock.attempt');
 
 Route::get('/mixes', [MixController::class, 'index'])->name('mixes.index');
 Route::post('/mixes', [MixController::class, 'store'])->name('mixes.store');
