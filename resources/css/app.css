@@ -168,12 +168,12 @@
   --key-soft: #ffe3f1;
   --highlight: #ffd3e6;
 
-  /* The app icon's flat colors (blokmix-logo/svg/blokmix-icon-simple-*.svg). On light chrome the
-     icon is the ink tile, so its silhouette holds (as in the ink lockup); on dark chrome, the paper tile. */
-  --bm-tile: #17121a;
-  --bm-slot: #060407;
-  --bm-slot-floor: #0e0a10;
-  --bm-shadow: #0b080d;
+  /* The app icon's flat colors (blokmix-logo/svg/blokmix-icon-simple-*.svg): the light icon in
+     light mode, the dark icon in dark mode. */
+  --bm-tile: #f1ebee;
+  --bm-slot: #c9bdc6;
+  --bm-slot-floor: #dcd3d9;
+  --bm-shadow: #d3c8d0;
 
   --attention: hsl(36 92% 50%);
   --attention-soft: hsl(40 96% 92%);
@@ -221,10 +221,10 @@
   --chip-hover: hsl(0 0% 25%);
   --key-soft: hsl(330 45% 16%);
   --highlight: hsl(330 40% 26%);
-  --bm-tile: #f1ebee;
-  --bm-slot: #c9bdc6;
-  --bm-slot-floor: #dcd3d9;
-  --bm-shadow: #d3c8d0;
+  --bm-tile: #17121a;
+  --bm-slot: #060407;
+  --bm-slot-floor: #0e0a10;
+  --bm-shadow: #0b080d;
   --attention: hsl(38 92% 56%);
   --attention-soft: hsl(34 60% 15%);
   --attention-ink: hsl(40 96% 76%);

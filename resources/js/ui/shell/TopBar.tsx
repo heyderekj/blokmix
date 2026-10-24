@@ -22,7 +22,7 @@ import { canEdit, useAccount } from '@/lib/account'
 import { flushMix } from '@/lib/mixSync'
 import { SharePanel } from '../panels/SharePanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
-import { Lockup } from '../brand/Wordmark'
+import { Wordmark } from '../brand/Wordmark'
 import { BrandIcon } from '../brand/BrandIcon'
 import { SaveState } from './SaveState'
 
@@ -68,7 +68,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
             aria-label="Blokmix menu"
             aria-expanded={sheet === 'menu'}
           >
-            <Lockup height={18} className="max-lg:hidden" />
+            <Wordmark height={17} className="max-lg:hidden" />
             <span className="lg:hidden">
               <BrandIcon size={22} />
             </span>

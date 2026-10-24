@@ -1,5 +1,4 @@
 import type { FormEvent, ReactNode } from 'react'
-import { LogoTile } from '@/ui/shell/Logo'
 import { Wordmark } from '@/ui/brand/Wordmark'
 
 /** The card the sign-in and sign-up pages share. */
@@ -15,9 +14,8 @@ export function AuthCard({ title, lede, onSubmit, children, footer }: { title: s
           className="rounded-2xl bg-white p-6 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_16px_40px_-16px_rgb(0_0_0/0.18)]"
         >
           <div className="flex items-center gap-2.5">
-            <LogoTile size={32} />
             <span className="text-zinc-900">
-              <Wordmark height={16} />
+              <Wordmark height={18} />
             </span>
           </div>
           <h1 className="mt-6 text-[20px] font-semibold tracking-tight text-balance text-zinc-900">{title}</h1>

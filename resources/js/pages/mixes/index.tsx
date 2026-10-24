@@ -4,7 +4,6 @@ import { ArrowRight, CloudUpload, Layers, Plus, Trash2 } from 'lucide-react'
 import type { Site, Slot, VersionNode } from '@/core/types'
 import { STORAGE_KEY } from '@/state/store'
 import { api, type ServerMix } from '@/lib/mixSync'
-import { LogoTile } from '@/ui/shell/Logo'
 import { Wordmark } from '@/ui/brand/Wordmark'
 
 interface SavedMix {
@@ -83,9 +82,8 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     <div className="min-h-full bg-zinc-50">
       <Head title="Mixes" />
       <header className="flex items-center gap-2.5 px-6 py-5">
-        <LogoTile size={30} />
         <span className="flex-1 text-zinc-900">
-          <Wordmark height={16} />
+          <Wordmark height={18} />
         </span>
         {user && (
           <>
