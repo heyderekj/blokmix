@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { UploadData } from '@/core/media'
+import { xsrf } from './http'
 
 /**
  * Images you upload or paste, kept in this browser (IndexedDB), never in the
@@ -113,6 +114,7 @@ export async function addFile(file: File): Promise<Asset> {
   }
   await tx('readwrite', (s) => s.put(asset))
   useAssets.setState((st) => ({ assets: { ...st.assets, [asset.id]: asset } }))
+  void sendUp(asset)
   return asset
 }
 
@@ -158,6 +160,7 @@ export async function addImage(file: Blob, name = 'image'): Promise<Asset> {
   const asset: Asset = { id: `img_${Math.random().toString(36).slice(2, 10)}`, name, kind: 'image', dataUrl, width: w, height: h, addedAt: Date.now() }
   await tx('readwrite', (s) => s.put(asset))
   useAssets.setState((st) => ({ assets: { ...st.assets, [asset.id]: asset } }))
+  void sendUp(asset)
   return asset
 }
 
@@ -180,4 +183,97 @@ export async function removeAsset(id: string) {
     delete assets[id]
     return { assets }
   })
+}
+
+/*
+ * Saved mixes keep their uploads on the server too, so they open on any device and
+ * for everyone the mix is shared with. This browser stays the cache: opening a mix
+ * downloads what it lacks, and new uploads (and older ones the server hasn't seen)
+ * go up. Without a server mix nothing leaves the browser.
+ */
+interface ServerAsset {
+  id: string
+  kind: 'image' | 'video' | 'lottie'
+  name: string
+  mime: string
+  width: number
+  height: number
+  poster: boolean
+}
+let target: { mixId: string; canSend: boolean } | null = null
+const known = new Set<string>()
+/** Uploads the server answered with an error, so a broken one isn't retried on every open. */
+const failed = new Set<string>()
+
+const blobToDataUrl = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader()
+    r.onload = () => resolve(String(r.result))
+    r.onerror = () => reject(r.error)
+    r.readAsDataURL(blob)
+  })
+
+/** Send one upload to the open mix (when there is one, and you can edit it). */
+async function sendUp(a: Asset) {
+  if (!target?.canSend || known.has(a.id) || failed.has(a.id)) return
+  const mixId = target.mixId
+  const form = new FormData()
+  const file = a.kind === 'image' || !a.bytes ? await (await fetch(a.dataUrl ?? 'data:,')).blob() : new Blob([a.bytes], { type: a.mime })
+  form.append('id', a.id)
+  form.append('kind', a.kind ?? 'image')
+  form.append('name', a.name || a.id)
+  form.append('mime', a.kind === 'image' || !a.mime ? 'image/webp' : a.mime)
+  form.append('width', String(a.width || 0))
+  form.append('height', String(a.height || 0))
+  form.append('file', file, a.id)
+  if (a.poster) form.append('poster', await (await fetch(a.poster)).blob(), `${a.id}-poster`)
+  try {
+    const res = await fetch(`/api/mixes/${mixId}/assets`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', ...xsrf() }, body: form })
+    if (res.ok) known.add(a.id)
+    else failed.add(a.id)
+  } catch {
+    // Offline: it goes up the next time the mix opens.
+  }
+}
+
+/** Bring one of the mix's uploads into this browser. */
+async function bringDown(mixId: string, s: ServerAsset): Promise<Asset | null> {
+  const res = await fetch(`/api/mixes/${mixId}/assets/${s.id}`, { credentials: 'same-origin' })
+  if (!res.ok) return null
+  const blob = await res.blob()
+  const poster = s.poster ? await fetch(`/api/mixes/${mixId}/assets/${s.id}/poster`, { credentials: 'same-origin' }).then((r) => (r.ok ? r.blob() : null)) : null
+  return {
+    id: s.id,
+    name: s.name,
+    kind: s.kind,
+    ...(s.kind === 'image' ? { dataUrl: await blobToDataUrl(blob) } : { bytes: await blob.arrayBuffer(), mime: s.mime }),
+    poster: poster ? await blobToDataUrl(poster) : undefined,
+    width: s.width,
+    height: s.height,
+    addedAt: Date.now(),
+  }
+}
+
+/**
+ * Point uploads at a saved mix (null: none). Downloads the mix's uploads this browser
+ * lacks, and sends up the ones the mix uses that the server hasn't got.
+ */
+export async function syncAssets(mixId: string | null, used: string[], canSend: boolean) {
+  target = mixId ? { mixId, canSend } : null
+  known.clear()
+  if (!mixId || typeof fetch === 'undefined' || typeof document === 'undefined') return
+  // This browser's own uploads load at start-up; compare against them, not an empty list.
+  if (!useAssets.getState().loaded) await new Promise<void>((resolve) => { const off = useAssets.subscribe((s) => s.loaded && (off(), resolve())) })
+  try {
+    const res = await fetch(`/api/mixes/${mixId}/assets`, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    if (!res.ok) return
+    const list = (await res.json()) as ServerAsset[]
+    for (const s of list) known.add(s.id)
+    const have = useAssets.getState().assets
+    const missing = (await Promise.all(list.filter((s) => !have[s.id]).map((s) => bringDown(mixId, s).catch(() => null)))).filter((a): a is Asset => !!a)
+    if (missing.length && target?.mixId === mixId) await putAssets(missing)
+    for (const id of used) if (!known.has(id) && have[id]) await sendUp(have[id])
+  } catch {
+    // Offline: what's here still shows; the rest comes next time.
+  }
 }

@@ -34,6 +34,11 @@ class Mix extends Model
         return $this->belongsToMany(User::class, 'mix_members')->withPivot('role')->withTimestamps();
     }
 
+    public function assets(): HasMany
+    {
+        return $this->hasMany(MixAsset::class);
+    }
+
     public function shareLinks(): HasMany
     {
         return $this->hasMany(MixShareLink::class);

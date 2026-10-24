@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\MixApiController;
+use App\Http\Controllers\Api\UnsplashController;
 use App\Http\Controllers\MixController;
 use App\Http\Controllers\ShareController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +24,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/mixes/{mix}', [MixApiController::class, 'show'])->name('mixes.show');
         Route::put('/mixes/{mix}', [MixApiController::class, 'update'])->name('mixes.update');
         Route::delete('/mixes/{mix}', [MixApiController::class, 'destroy'])->name('mixes.destroy');
+
+        Route::get('/mixes/{mix}/assets', [AssetController::class, 'index'])->name('assets.index');
+        Route::post('/mixes/{mix}/assets', [AssetController::class, 'store'])->name('assets.store');
+        Route::get('/mixes/{mix}/assets/{key}', [AssetController::class, 'show'])->name('assets.show');
+        Route::get('/mixes/{mix}/assets/{key}/poster', [AssetController::class, 'poster'])->name('assets.poster');
+
+        Route::get('/unsplash/search', [UnsplashController::class, 'search'])->middleware('throttle:60,1')->name('unsplash.search');
+        Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');
 
         Route::get('/mixes/{mix}/share', [ShareController::class, 'index'])->name('share.index');
         Route::post('/mixes/{mix}/share/links', [ShareController::class, 'createLink'])->name('share.links.store');

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { isHosted } from '@/lib/host'
+import { xsrf } from '@/lib/http'
 import { ImagePlus, Search, Shuffle, Trash2, Upload } from 'lucide-react'
 import type { BlockInfo, MediaFill, MediaPlay, PlaceholderStyle, StockPhoto } from '@/core/types'
 import { PLACEHOLDER_STYLES } from '@/core/types'
@@ -228,8 +230,10 @@ function Uploads({ fill, onHover, onPick }: { fill?: MediaFill; onHover: (m: Med
 function Stock({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: MediaFill; onHover: (m: MediaFill | null) => void; onPick: (m: MediaFill) => void }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<(StockPhoto & { track: string })[]>([])
-  const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle')
-  if (!UNSPLASH_KEY)
+  const [state, setState] = useState<'idle' | 'loading' | 'error' | 'nokey'>('idle')
+  // Served by Laravel, Unsplash goes through the server (its key stays there); on its own, the Vite key.
+  const viaServer = isHosted()
+  if (!UNSPLASH_KEY && !viaServer)
     return (
       <div className="rounded-xl bg-zinc-950/[0.04] px-3 py-3 text-[12px] leading-relaxed text-zinc-600">
         Stock photos come from Unsplash. Add a free access key to <code className="rounded bg-white px-1 font-mono text-[11px]">.env.local</code> as{' '}
@@ -240,12 +244,19 @@ function Stock({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: Medi
     if (!q.trim()) return
     setState('loading')
     try {
-      const res = await fetch(unsplashSearchUrl(q.trim(), block.ratio), { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}`, 'Accept-Version': 'v1' } })
+      const direct = unsplashSearchUrl(q.trim(), block.ratio)
+      const res = viaServer
+        ? await fetch(`/api/unsplash/search?${new URLSearchParams({ query: q.trim(), orientation: new URL(direct).searchParams.get('orientation') ?? 'landscape' })}`, {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+          })
+        : await fetch(direct, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}`, 'Accept-Version': 'v1' } })
+      if (res.status === 503) throw new Error('nokey')
       if (!res.ok) throw new Error(String(res.status))
       setResults(parseUnsplash(await res.json()))
       setState('idle')
-    } catch {
-      setState('error')
+    } catch (e) {
+      setState(e instanceof Error && e.message === 'nokey' ? 'nokey' : 'error')
     }
   }
   return (
@@ -260,7 +271,8 @@ function Stock({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: Medi
         <Search size={13} className="text-zinc-400" />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search Unsplash" className="h-8 flex-1 bg-transparent text-[12.5px] outline-none" />
       </form>
-      {state === 'error' && <p className="px-1 pt-2 text-[12px] text-problem-ink">Unsplash didn’t answer. Check the key and try again.</p>}
+      {state === 'error' && <p className="px-1 pt-2 text-[12px] text-problem-ink">Unsplash didn’t answer. Try again in a moment.</p>}
+      {state === 'nokey' && <p className="px-1 pt-2 text-[12px] text-problem-ink">Stock photos need an Unsplash key on the server (UNSPLASH_ACCESS_KEY).</p>}
       <div className="mt-2 grid max-h-52 grid-cols-3 gap-1.5 overflow-y-auto thin-scroll" onMouseLeave={() => onHover(null)}>
         {results.map((p) => {
           const m: MediaFill = { source: 'stock', stock: p, fit: fill?.fit }
@@ -274,7 +286,10 @@ function Stock({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: Medi
               onClick={() => {
                 onPick(m)
                 // Unsplash asks apps to count a download when a photo is used.
-                void fetch(p.track, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } }).catch(() => {})
+                void (viaServer
+                  ? fetch('/api/unsplash/download', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...xsrf() }, body: JSON.stringify({ url: p.track }) })
+                  : fetch(p.track, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } })
+                ).catch(() => {})
               }}
               className="active:scale-[0.97]"
             >

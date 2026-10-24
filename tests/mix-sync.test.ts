@@ -18,6 +18,8 @@ type Call = { method: string; url: string; headers: Record<string, string>; body
 let calls: Call[] = []
 let reply: (c: Call) => { status: number; body: unknown } | Promise<never>
 const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
+  // Only saves are recorded; the uploads list (GET …/assets) answers empty.
+  if (!init?.method || init.method === 'GET') return { status: 200, ok: true, json: async () => [] } as unknown as Response
   const call = { method: String(init.method), url, headers: init.headers as Record<string, string>, body: init.body ? JSON.parse(String(init.body)) : undefined }
   calls.push(call)
   const r = await reply(call)

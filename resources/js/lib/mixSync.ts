@@ -4,6 +4,8 @@ import type { VersionNode } from '@/core/types'
 import { STORAGE_KEY, localMixStorage, useStore, type MixData, type Persisted } from '@/state/store'
 import { blankMix } from '@/state/seed'
 import { useAccount, type MixRole } from './account'
+import { xsrf } from './http'
+import { assetIdsIn, syncAssets } from './assets'
 
 /**
  * Saving a mix to the server. The store persists through whichever storage is
@@ -68,10 +70,6 @@ const nodeJson = (v: VersionNode) => {
   return s
 }
 
-function xsrf(): Record<string, string> {
-  const m = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/)
-  return m ? { 'X-XSRF-TOKEN': decodeURIComponent(m[1]) } : {}
-}
 
 export async function api<T>(method: string, url: string, body?: unknown, headers: Record<string, string> = {}, keepalive = false): Promise<{ status: number; body: T }> {
   const res = await fetch(url, {
@@ -239,6 +237,11 @@ export function openMix(mix: ServerMix | 'local', opts: { force?: boolean; role?
   void persist.rehydrate()
   useStore.temporal.getState().clear()
   if (role === 'viewer') viewOnly = holdStill()
+  // Uploads: fetch what this browser lacks, send what the server lacks.
+  if (mix !== 'local') {
+    const st = useStore.getState()
+    void syncAssets(mix.id, assetIdsIn([st.site, st.versions]), role !== 'viewer')
+  } else void syncAssets(null, [], false)
 }
 
 /** What a viewer can't change: everything but the marks (notes) and their own view. */
