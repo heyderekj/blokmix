@@ -1,4 +1,4 @@
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
@@ -404,11 +404,21 @@ const Tile = memo(function Tile(p: {
     [clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page, assets],
   )
   const isCurrent = p.rel === 0
-  const transition = p.jump
-    ? 'opacity 200ms'
-    : p.spinning
-      ? `transform ${SPIN_STEP - 10}ms linear, opacity 120ms`
-      : `transform ${SWAP}, opacity 160ms ease-out`
+  // Alternatives waiting under the current clip are invisible anyway: once measured and faded out,
+  // hide them for real so the browser stops painting them (and their animations) on every frame.
+  const [measured, setMeasured] = useState(false)
+  const asleep = !isCurrent && measured
+  const parentOnHeight = p.onHeight
+  const onHeight = useCallback(
+    (h: number) => {
+      setMeasured(true)
+      parentOnHeight(h)
+    },
+    [parentOnHeight],
+  )
+  const transition = `${
+    p.jump ? 'opacity 200ms' : p.spinning ? `transform ${SPIN_STEP - 10}ms linear, opacity 120ms` : `transform ${SWAP}, opacity 160ms ease-out`
+  }, visibility 0s linear ${asleep ? 280 : 0}ms`
   return (
     <div
       className={`absolute left-0 top-0 overflow-hidden ${p.edge}`}
@@ -416,6 +426,7 @@ const Tile = memo(function Tile(p: {
         // the outgoing clip shifts a little and fades while the next one shifts in from that side
         transform: `translateX(${Math.sign(p.rel) * p.width * NUDGE}px)`,
         opacity: isCurrent ? 1 : 0,
+        visibility: asleep ? 'hidden' : 'visible',
         transition,
         pointerEvents: isCurrent ? 'auto' : 'none',
       }}
@@ -425,7 +436,15 @@ const Tile = memo(function Tile(p: {
         p.onPick()
       }}
     >
-      <ClipFrame clip={clip} width={p.width} state={state} replayKey={p.replayKey} interactive={p.interactive} onHeight={p.onHeight} edit={p.edit} />
+      <ClipFrame
+        clip={clip}
+        width={p.width}
+        state={state}
+        replayKey={p.replayKey}
+        interactive={p.interactive}
+        onHeight={onHeight}
+        edit={p.edit}
+      />
     </div>
   )
 })

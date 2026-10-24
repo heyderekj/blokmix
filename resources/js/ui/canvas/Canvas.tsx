@@ -192,9 +192,15 @@ export function Canvas({ children }: { children: ReactNode }) {
   // Wheel: two-finger scroll pans, pinch / ⌘-scroll zooms.
   useEffect(() => {
     const el = root.current!
+    let wheeling = 0
     const onWheel = (e: WheelEvent) => {
       if ((e.target as HTMLElement).closest('[data-scroll-ok]')) return
       e.preventDefault()
+      // While a gesture lasts, frames stop taking the pointer: the rest of it comes straight here
+      // instead of through whichever frame is under it.
+      el.setAttribute('data-wheeling', '')
+      window.clearTimeout(wheeling)
+      wheeling = window.setTimeout(() => el.removeAttribute('data-wheeling'), 180)
       const r = el.getBoundingClientRect()
       const c = cam.current
       if (e.ctrlKey || e.metaKey) {
