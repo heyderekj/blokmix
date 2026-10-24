@@ -334,25 +334,10 @@ body {
 
 /* Lit buttons: a highlight inside the top edge, a shade inside the bottom, a shadow under. */
 @layer components {
-  .btn-lit, .btn-quiet {
+  .btn-quiet {
     box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
     transition-property: translate, box-shadow, background-color, border-color, color;
   }
-  .btn-lit {
-    --btn-key: var(--key);
-    --btn-sheen: 16%;
-    color: var(--btn-ink, var(--key-ink));
-    background-color: var(--btn-key);
-    background-image: linear-gradient(180deg, color-mix(in srgb, var(--btn-key), white var(--btn-sheen)), var(--btn-key) 58%, color-mix(in srgb, var(--btn-key), black 8%));
-    border: 1px solid color-mix(in srgb, var(--btn-key), black 22%);
-    --tw-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.3), inset 0 -2px 0 hsl(0 0% 0% / 0.1), 0 1px 1px hsl(0 0% 0% / 0.16), 0 5px 12px -5px hsl(0 0% 0% / 0.3);
-  }
-  /* The ink variant: the family's near-black primary (flips in the dark). */
-  .btn-ink {
-    --btn-key: var(--foreground);
-    --btn-ink: var(--background);
-  }
-  .btn-lit:hover { --btn-sheen: 26%; translate: 0 -1px; }
   .btn-quiet {
     color: var(--foreground);
     background-color: var(--raised);
@@ -385,15 +370,40 @@ body {
     transition-duration: 90ms;
     box-shadow: inset 0 2px 0 #ff8cc6, 0 0 0 #c2185b, 1px 2px 4px -2px rgb(23 18 26 / 0.3);
   }
+  /* The same block in ink, for every other primary: pink stays for the one main action. Flips in the dark. */
+  .btn-ink {
+    --ink-face: var(--foreground);
+    color: var(--background);
+    background-color: var(--ink-face);
+    box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--ink-face), white 22%), 0 3px 0 color-mix(in srgb, var(--ink-face), black 55%), 3px 7px 12px -4px rgb(23 18 26 / 0.35);
+    transition: translate 240ms cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 240ms cubic-bezier(0.3, 1.4, 0.5, 1), background-color 150ms;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-ink:hover {
+      translate: 0 -2px;
+      background-color: color-mix(in srgb, var(--ink-face), white 8%);
+      box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--ink-face), white 28%), 0 5px 0 color-mix(in srgb, var(--ink-face), black 55%), 5px 11px 16px -4px rgb(23 18 26 / 0.32);
+    }
+  }
+  .btn-ink:active {
+    translate: 0 3px;
+    transition-duration: 90ms;
+    box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--ink-face), white 22%), 0 0 0 transparent, 1px 2px 4px -2px rgb(23 18 26 / 0.3);
+  }
+  .btn-ink:focus-visible { outline: 2px solid var(--key); outline-offset: 3px; }
+  .btn-ink:disabled { opacity: 0.45; pointer-events: none; translate: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-ink { transition: background-color 150ms, box-shadow 150ms; translate: none !important; }
+  }
   .btn-key:focus-visible { outline: 2px solid var(--key); outline-offset: 3px; }
   .btn-key:disabled { opacity: 0.45; pointer-events: none; translate: none; }
   @media (prefers-reduced-motion: reduce) {
     .btn-key { transition: background-color 150ms, box-shadow 150ms; translate: none !important; }
   }
-  .btn-lit:active, .btn-quiet:active { translate: 0 1px; --tw-shadow: inset 0 1px 2px hsl(0 0% 0% / 0.22); }
-  .btn-lit:disabled, .btn-quiet:disabled { opacity: 0.45; translate: none; pointer-events: none; }
+  .btn-quiet:active { translate: 0 1px; --tw-shadow: inset 0 1px 2px hsl(0 0% 0% / 0.22); }
+  .btn-quiet:disabled { opacity: 0.45; translate: none; pointer-events: none; }
   @media (prefers-reduced-motion: reduce) {
-    .btn-lit, .btn-quiet { translate: none !important; }
+    .btn-quiet { translate: none !important; }
   }
 }
 

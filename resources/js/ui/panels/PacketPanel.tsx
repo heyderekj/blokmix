@@ -111,7 +111,7 @@ export function PacketPanel() {
             ))}
           </div>
         </div>
-        <button type="button" onClick={download} className="btn-lit btn-ink flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold">
+        <button type="button" onClick={download} className="btn-ink cursor-pointer flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold">
           <Download size={14} /> Download
         </button>
       </div>

@@ -701,7 +701,7 @@ function NewSwatch({ onDone }: { onDone: (name: string | null) => void }) {
         placeholder="Name, e.g. Sunset"
         className="h-7 min-w-0 flex-1 rounded-lg bg-white px-2 text-[12.5px] outline-none ring-1 ring-zinc-950/10 focus:ring-zinc-400"
       />
-      <button type="button" onClick={save} className="btn-lit btn-ink h-7 rounded-lg px-2.5 text-[12px] font-semibold">
+      <button type="button" onClick={save} className="btn-ink cursor-pointer h-7 rounded-lg px-2.5 text-[12px] font-semibold">
         Add
       </button>
     </div>

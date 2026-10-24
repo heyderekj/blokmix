@@ -343,7 +343,7 @@ function LinkTab({ fill, onPick }: { fill?: MediaFill; onPick: (m: MediaFill) =>
           placeholder="Paste a video, Lottie, YouTube or Vimeo link"
           className="h-8 min-w-0 flex-1 rounded-lg bg-white px-2.5 text-[12.5px] outline-none ring-1 ring-zinc-950/10 placeholder:text-zinc-400 focus:ring-zinc-400"
         />
-        <button type="submit" disabled={!found} className="btn-lit btn-ink h-8 rounded-lg px-3 text-[12px] font-semibold">
+        <button type="submit" disabled={!found} className="btn-ink cursor-pointer h-8 rounded-lg px-3 text-[12px] font-semibold">
           Use
         </button>
       </form>

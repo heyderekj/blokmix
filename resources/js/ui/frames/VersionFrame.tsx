@@ -304,7 +304,7 @@ function AttachUrl({ v, onClose }: { v: VersionNode; onClose: () => void }) {
             placeholder="http://localhost:4321"
             className="min-w-0 flex-1 rounded-lg bg-well px-2.5 py-1.5 text-[13px] outline-none"
           />
-          <button className="btn-lit btn-ink rounded-full px-3.5 text-[13px] font-medium">Attach</button>
+          <button className="btn-ink cursor-pointer rounded-full px-3.5 text-[13px] font-medium">Attach</button>
         </form>
     </div>
   )
