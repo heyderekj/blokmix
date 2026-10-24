@@ -90,6 +90,15 @@ class MixesTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->component('mixes/show')->where('mix.id', $mix->id)->where('mix.lock', 1)->where('mix.data', null)->where('role', 'owner'));
     }
 
+    public function test_a_new_mix_can_start_from_a_style_guide(): void
+    {
+        $guide = ['base' => ['color.primary' => '#7a4fd1'], 'candidates' => [['id' => 'hero.a#color']], 'choices' => ['color.text' => 'x']];
+        $this->post('/mixes', ['guide' => $guide])->assertRedirect();
+        $this->assertSame(['guide' => $guide], Mix::sole()->data);
+
+        $this->post('/mixes', ['guide' => ['choices' => []]])->assertSessionHasErrors('guide.base');
+    }
+
     public function test_the_browser_mix_still_opens(): void
     {
         $this->get('/local')->assertInertia(fn (Assert $page) => $page->component('mixes/show')->where('mix.id', 'local'));

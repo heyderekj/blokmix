@@ -12,10 +12,16 @@ import { xsrf } from './http'
  */
 export const useUserClips = create<{ ids: string[] }>()(() => ({ ids: [] }))
 
-/** Which shelf a clip sits on: the ones you captured, or the built-in layouts. */
-export type Shelf = 'yours' | 'layouts'
-export const SHELF_LABEL: Record<Shelf, string> = { yours: 'Your clips', layouts: 'Layouts' }
-export const shelfOf = (id: string): Shelf => (library.clips[id]?.origin === 'layout' ? 'layouts' : 'yours')
+/**
+ * The shelves: this mix's own clips, every clip in your library, or the built-in layouts. A clip of this mix is on
+ * both of the first two.
+ */
+export type Shelf = 'mix' | 'yours' | 'layouts'
+export const SHELF_LABEL: Record<Shelf, string> = { mix: 'This mix', yours: 'All your clips', layouts: 'Layouts' }
+/** A clip's home shelf in the library: one you captured, or a built-in layout. */
+export const shelfOf = (id: string): 'yours' | 'layouts' => (library.clips[id]?.origin === 'layout' ? 'layouts' : 'yours')
+/** Whether a clip shows on a shelf, given this mix's clips. */
+export const onShelf = (id: string, shelf: Shelf, mix: ReadonlySet<string>) => (shelf === 'mix' ? mix.has(id) : shelfOf(id) === shelf)
 
 /** Each account clip's files (and its site's source file), so a mix file can carry the clips it uses. */
 const filesOf: Record<string, ClipFiles> = {}

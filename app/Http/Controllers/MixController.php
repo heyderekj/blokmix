@@ -92,7 +92,10 @@ class MixController extends Controller
     /** A new, blank mix you own; the board fills it in on first save. */
     public function store(Request $request): RedirectResponse
     {
-        $mix = Mix::create(['name' => 'Untitled mix']);
+        // A new mix can start from a style guide (a saved one, or another mix's); it keeps its own copy.
+        $request->validate(['guide' => ['nullable', 'array'], 'guide.base' => ['required_with:guide', 'array']]);
+        $guide = $request->input('guide'); // as sent: validate() keeps only the keys that have rules
+        $mix = Mix::create(['name' => 'Untitled mix', 'data' => $guide ? ['guide' => $guide] : null]);
         $mix->admit($request->user(), MixRole::Owner);
 
         return redirect()->route('mixes.show', $mix);

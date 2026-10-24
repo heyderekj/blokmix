@@ -4,6 +4,8 @@ import { TOKEN_GROUPS } from '@/core/types'
 import { GROUP_LABEL, primaryFamily } from '@/core/tokens'
 import { BrandColours, Candidates, Components, CopyFooter, GroupDecision, GroupTokens, useContrast } from '../GuidePanel'
 import { FontLinks, sourceName, useGuideData, withCandidate } from './shared'
+import { SavedGuides } from './SavedGuides'
+import { isHosted } from '@/lib/host'
 
 /**
  * C · Board. A tile per group that shows the value rather than naming it; the open
@@ -41,6 +43,7 @@ export function GuideBoard() {
           ),
         )}
         <ContrastTile />
+        {isHosted() && <SavedGuides />}
         <div className="col-span-2 overflow-hidden rounded-2xl bg-[var(--lift)] shadow-[0_0_0_1px_rgb(0_0_0/0.06)]">
           <BrandColours />
           <Components />

@@ -23,6 +23,11 @@ class User extends Authenticatable
         return $this->hasMany(Clip::class);
     }
 
+    public function styleGuides(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StyleGuide::class);
+    }
+
     /** The mixes this person can open, with their role in each. */
     public function mixes(): BelongsToMany
     {

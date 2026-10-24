@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { Copy, CloudUpload, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react'
+import { Copy, CloudUpload, MessageSquare, Palette, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react'
 import { readMixFile } from '@/lib/mixFile'
 import { importClips } from '@/lib/userClips'
 import { pickFile } from '@/lib/pickFile'
 import type { GuideState, SectionType, Site, Slot, Status, VersionNode } from '@/core/types'
 import { STORAGE_KEY } from '@/state/store'
 import { api, type ServerMix } from '@/lib/mixSync'
+import { listGuides, type SavedGuide } from '@/lib/styleGuides'
 import { Wordmark } from '@/ui/brand/Wordmark'
 import { LiftedBlock, Slot as BlockSlot } from '@/ui/auth/AuthCard'
 import { StatusRing } from '@/ui/frames/FrameHeader'
@@ -215,7 +216,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         <ul className={GRID}>
           {!query && (
             <li className="animate-rise">
-              <NewMix />
+              <NewMix mixes={mine} />
             </li>
           )}
           {mine.map((m, i) => (
@@ -300,15 +301,44 @@ const CARD_BUTTON =
 const CARD =
   'group/card relative flex h-full flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_24px_48px_-28px_rgb(23_18_26/0.3)] transition-[translate,box-shadow,scale] duration-200 active:scale-[0.99] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_30px_56px_-26px_rgb(23_18_26/0.4)]'
 
-/** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. */
-function NewMix() {
+/** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It starts a mix in the
+ * neutral style; "Start from a style guide" starts one from a saved guide or another mix's (the new mix keeps its own copy). */
+function NewMix({ mixes }: { mixes: SavedMix[] }) {
+  const [picking, setPicking] = useState(false)
+  const [saved, setSaved] = useState<SavedGuide[] | null>(null)
+  useEffect(() => {
+    if (picking && saved === null) void listGuides().then(setSaved)
+  }, [picking, saved])
+  const start = (guide?: GuideState) => router.post('/mixes', guide ? { guide: guide as unknown as Record<string, string> } : {})
+  const styled = mixes.filter((m) => m.guide && Object.keys(m.guide.base ?? {}).length)
+
+  if (picking)
+    return (
+      <div className="relative flex h-full min-h-[260px] w-full flex-col rounded-[22px] bg-white p-3 shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_24px_48px_-28px_rgb(23_18_26/0.3)]">
+        <div className="flex items-center justify-between px-1.5 pb-1.5 pt-0.5">
+          <span className="text-[14px] font-semibold text-[#17121A]">Start from</span>
+          <button type="button" onClick={() => setPicking(false)} aria-label="Close" className="grid size-7 cursor-pointer place-items-center rounded-full text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700">
+            <X size={14} />
+          </button>
+        </div>
+        <ul className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+          <GuideRow name="Neutral" note="Blokmix’s plain starting style" onPick={() => start()} />
+          {saved === null ? (
+            <li className="px-2 py-2 text-[12px] text-zinc-400">Loading your style guides…</li>
+          ) : (
+            saved.map((g) => <GuideRow key={`s${g.id}`} name={g.name} note="Saved style guide" guide={g.guide} onPick={() => start(g.guide)} />)
+          )}
+          {styled.map((m) => (
+            <GuideRow key={m.id} name={m.name} note="This mix’s style guide" guide={m.guide!} onPick={() => start(m.guide!)} />
+          ))}
+        </ul>
+      </div>
+    )
+
   return (
-    <button
-      type="button"
-      onClick={() => router.post('/mixes')}
-      className="group/new relative grid h-full min-h-[260px] w-full cursor-pointer place-items-center rounded-[22px] border-2 border-dashed border-[#E4D9DF] transition-[border-color,background-color,scale] duration-200 active:scale-[0.99] [@media(hover:hover)_and_(pointer:fine)]:hover:border-[#FF69B4]/60 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/60"
-    >
-      <span className="grid justify-items-center gap-4">
+    <div className="group/new relative grid h-full min-h-[260px] w-full place-items-center rounded-[22px] border-2 border-dashed border-[#E4D9DF] transition-[border-color,background-color] duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-[#FF69B4]/60 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/60">
+      <button type="button" onClick={() => start()} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
+      <span className="pointer-events-none grid justify-items-center gap-4">
         <span className="relative block size-[64px]">
           <BlockSlot size={64} className="left-0 top-0" />
           <LiftedBlock size={64} className="left-[6px] top-[-14px] transition-transform duration-300 group-hover/new:-translate-y-1 group-hover/new:rotate-[-4deg]" />
@@ -317,7 +347,37 @@ function NewMix() {
           <Plus size={16} strokeWidth={2.4} /> New mix
         </span>
       </span>
-    </button>
+      <button
+        type="button"
+        onClick={() => setPicking(true)}
+        className="absolute bottom-4 left-1/2 flex h-8 -translate-x-1/2 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[12.5px] font-medium text-[#6B5F68] transition-[background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-[#17121A] active:scale-[0.97]"
+      >
+        <Palette size={14} /> Start from a style guide
+      </button>
+    </div>
+  )
+}
+
+/** A style guide to start from: its colors, its name in its display font, and where it comes from. */
+function GuideRow({ name, note, guide, onPick }: { name: string; note: string; guide?: GuideState; onPick: () => void }) {
+  const t = guide ? resolveGuide(guide).tokens : null
+  const swatch = t ? [t['color.bg'], t['color.text'], t['color.primary'], t['color.accent']] : ['#ffffff', '#18181b', '#e4e4e7', '#a1a1aa']
+  return (
+    <li>
+      <button type="button" onClick={onPick} className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-[background-color,scale] duration-150 hover:bg-zinc-950/[0.04] active:scale-[0.98]">
+        <span className="flex h-7 w-12 shrink-0 overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]">
+          {swatch.map((c, i) => (
+            <i key={i} className="flex-1" style={{ background: c }} />
+          ))}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[13.5px] font-semibold text-[#17121A]" style={t ? { fontFamily: t['font.display'] } : undefined}>
+            {name}
+          </span>
+          <span className="block truncate text-[11.5px] text-[#6B5F68]">{note}</span>
+        </span>
+      </button>
+    </li>
   )
 }
 

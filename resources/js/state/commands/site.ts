@@ -1,7 +1,8 @@
 import type { Page } from '@/core/types'
 import { type CommandInput } from '@/core/commands/schema'
 import { PAGE_TEMPLATES, pageView } from '@/core/site'
-import { useStore } from '../store'
+import { mixClipIds, useStore } from '../store'
+import { library } from '@/data/library'
 import { CommandError, findPage, clean } from './refs'
 
 function describePage(p: Page) {
@@ -19,6 +20,16 @@ function describePage(p: Page) {
 
 /** The site's pages: listing, adding from a template, renaming, showing the shared nav and footer, order. */
 export const read = {
+  list_mix_clips: () => {
+    const st = useStore.getState()
+    const mine = mixClipIds(st)
+    const used = new Set(mine.filter((id) => !(st.clips ?? []).includes(id)))
+    const all = Object.values(library.clips).filter((c) => c.origin === 'clip')
+    return {
+      clips: mine.map((id) => ({ id, title: library.clips[id]?.title ?? id, type: library.clips[id]?.type, onlyUsed: used.has(id) })),
+      inLibrary: all.filter((c) => !mine.includes(c.id)).map((c) => ({ id: c.id, title: c.title, type: c.type })),
+    }
+  },
   list_pages: () => {
     const st = useStore.getState()
     return { pages: st.site.pages.map(describePage), shared: { nav: st.site.shared.nav?.id ?? null, footer: st.site.shared.footer?.id ?? null } }
@@ -26,6 +37,17 @@ export const read = {
 }
 
 export const write = {
+  add_clips_to_mix: (i: CommandInput<'add_clips_to_mix'>) => {
+    const unknown = i.clips.filter((id) => library.clips[id]?.origin !== 'clip')
+    if (unknown.length) throw new CommandError(`Not clips in your library: ${unknown.join(', ')} (list_mix_clips lists them)`)
+    useStore.getState().addMixClips(i.clips)
+    return { clips: useStore.getState().clips }
+  },
+  remove_clip_from_mix: (i: CommandInput<'remove_clip_from_mix'>) => {
+    if (!(useStore.getState().clips ?? []).includes(i.clip)) throw new CommandError(`${i.clip} isn’t in this mix’s set`)
+    useStore.getState().removeMixClip(i.clip)
+    return { clips: useStore.getState().clips }
+  },
   rename_mix: (i: CommandInput<'rename_mix'>) => {
     useStore.getState().renameMix(i.name)
     return { name: useStore.getState().mixName }

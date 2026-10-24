@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Slot } from '@/core/types'
 import { DEFAULT_KEEP } from '@/core/types'
 import { allSlots, freePath, mapSlots, normalizePath, pageOfSlot, pageView, siteFromSlots, updateSlotIn } from '@/core/site'
@@ -147,6 +147,31 @@ describe('page commands', () => {
     expect(runCommand('rename_mix', { name: 'blokmix.com' })).toEqual({ name: 'blokmix.com' })
     expect(useStore.getState().mixName).toBe('blokmix.com')
     expect(() => runCommand('rename_mix', { name: '  ' })).toThrow()
+  })
+
+  it('keeps a mix’s own clips: add, list, take out (the library keeps them)', () => {
+    const used = new Set(allSlots(useStore.getState().site).map((x) => x.clipId))
+    const spare = Object.values(library.clips).find((c) => c.origin === 'clip' && !used.has(c.id))!
+    const layout = Object.values(library.clips).find((c) => c.origin === 'layout')!
+    runCommand('add_clips_to_mix', { clips: [spare.id] })
+    const listed = runCommand('list_mix_clips', {}) as { clips: { id: string; onlyUsed: boolean }[]; inLibrary: { id: string }[] }
+    expect(listed.clips.find((c) => c.id === spare.id)).toMatchObject({ onlyUsed: false })
+    expect(listed.inLibrary.some((c) => c.id === spare.id)).toBe(false)
+    expect(() => runCommand('add_clips_to_mix', { clips: [layout.id] })).toThrow(/Not clips/)
+    runCommand('remove_clip_from_mix', { clip: spare.id })
+    expect(useStore.getState().clips).not.toContain(spare.id)
+    expect(library.clips[spare.id]).toBeTruthy()
+  })
+
+  it('swaps in another style guide as one undo step', () => {
+    const before = useStore.getState().guide
+    const other = { ...emptyGuide(), base: { ...emptyGuide().base, 'color.primary': '#7a4fd1' } }
+    vi.useFakeTimers({ now: Date.now() + 1000 }) // past the undo throttle that merges a burst of changes
+    useStore.getState().replaceGuide(other)
+    vi.useRealTimers()
+    expect(resolveGuide(useStore.getState().guide).tokens['color.primary']).toBe('#7a4fd1')
+    useStore.temporal.getState().undo()
+    expect(useStore.getState().guide).toEqual(before)
   })
 
   it('lists the demo’s pages and reads another page by path', () => {

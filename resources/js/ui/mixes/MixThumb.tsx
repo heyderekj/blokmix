@@ -95,7 +95,7 @@ function Band({ type, y, h, p, heading }: { type: SectionType; y: number; h: num
         </g>
       )
     case 'logos':
-      return <g>{[0, 1, 2, 3, 4].map((i) => bar(14 + i * 28, mid - 1.5, 18, 3))}</g>
+      return <g>{[0, 1, 2, 3, 4].map((i) => <g key={i}>{bar(14 + i * 28, mid - 1.5, 18, 3)}</g>)}</g>
     case 'features':
     case 'team':
     case 'blog':

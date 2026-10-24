@@ -29,7 +29,7 @@ export interface ServerMix {
 }
 
 type MixFields = Omit<MixData, 'mixName' | 'versions'>
-const FIELDS = ['site', 'guide', 'content', 'notes', 'branchFrom', 'head', 'framePos'] as const
+const FIELDS = ['site', 'guide', 'content', 'notes', 'branchFrom', 'head', 'framePos', 'clips'] as const
 
 export type SaveStatus = 'local' | 'saved' | 'saving' | 'offline' | 'error'
 /** How saving is going, for the top bar. */
@@ -108,7 +108,8 @@ class MixSync {
     const cache = readCache(mix.id)
     if (cache?.unsent && cache.lock === mix.lock) return cache.unsent
     const view = { ui: cache?.ui, camera: cache?.camera ?? null }
-    const data = mix.data ?? fields(blankMix(mix.name))
+    // A new mix may hold only some fields (a guide it started from); a blank mix fills the rest.
+    const data = { ...fields(blankMix(mix.name)), ...mix.data }
     return { ...data, mixName: mix.name, versions: mix.versions ?? {}, ...view } as Persisted
   }
 
@@ -245,7 +246,7 @@ export function openMix(mix: ServerMix | 'local', opts: { force?: boolean; role?
 }
 
 /** What a viewer can't change: everything but the marks (notes) and their own view. */
-const HELD = ['mixName', 'site', 'guide', 'content', 'versions', 'branchFrom', 'head'] as const
+const HELD = ['mixName', 'site', 'guide', 'content', 'versions', 'branchFrom', 'head', 'clips'] as const
 let viewOnly: (() => void) | null = null
 
 /**

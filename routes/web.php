@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\ClipController;
 use App\Http\Controllers\Api\MixApiController;
+use App\Http\Controllers\Api\StyleGuideController;
 use App\Http\Controllers\Api\UnsplashController;
 use App\Http\Controllers\Api\WaitlistController;
 use App\Http\Controllers\MixController;
@@ -48,6 +49,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/clips', [ClipController::class, 'index'])->name('clips.index');
         Route::post('/clips', [ClipController::class, 'store'])->middleware('throttle:30,1')->name('clips.store');
+
+        Route::get('/style-guides', [StyleGuideController::class, 'index'])->name('style-guides.index');
+        Route::post('/style-guides', [StyleGuideController::class, 'store'])->middleware('throttle:30,1')->name('style-guides.store');
+        Route::delete('/style-guides/{guide}', [StyleGuideController::class, 'destroy'])->whereNumber('guide')->name('style-guides.destroy');
 
         Route::get('/unsplash/search', [UnsplashController::class, 'search'])->middleware('throttle:60,1')->name('unsplash.search');
         Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');

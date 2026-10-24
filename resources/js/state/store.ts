@@ -30,7 +30,7 @@ import type {
   VersionNode,
 } from '@/core/types'
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
-import { adoptDesign, choose, chooseGroup, promote, removeCandidate } from '@/core/guide'
+import { adoptDesign, choose, chooseGroup, emptyGuide, promote, removeCandidate } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
 import { pickable } from '@/core/library'
 import { BANNER_ID } from '@/core/banner'
@@ -101,6 +101,11 @@ export interface MixData {
   branchFrom: string | null
   head: string | null
   framePos: Record<string, { x: number; y: number }>
+  /**
+   * This mix's own clips (ids): its shelf and Crate show them first, and clips added while it's open join it. The
+   * account's whole library stays a tab away; a clip used on the page counts as the mix's too (mixClipIds).
+   */
+  clips: string[]
 }
 
 export interface State extends MixData {
@@ -155,6 +160,12 @@ export interface State extends MixData {
   addSwatch: (name: string, value: string) => string
   removeSwatch: (id: string) => void
   renameMix: (name: string) => void
+  /** Add clips to this mix's own set (already there: no change). */
+  addMixClips: (ids: string[]) => void
+  /** Take a clip out of this mix's set (it stays in your library, and on the page if it's used). */
+  removeMixClip: (id: string) => void
+  /** Swap in another style guide (a saved one, or another mix's), as one undo step. */
+  replaceGuide: (guide: GuideState) => void
 
   // guide + copy
   promoteClip: (clipId: string, groups: TokenGroup[]) => void
@@ -577,6 +588,13 @@ export const useStore = create<State>()(
             return get().addPage({ path: `${page.path === '/' ? '/home' : page.path}-copy`, title: `${page.title} copy`, slots: page.slots.map((s) => ({ ...structuredClone(s), id: uid('slot') })), show: page.show })
           },
           renameMix: (mixName) => set({ mixName }),
+          addMixClips: (ids) => {
+            const have = get().clips ?? []
+            const fresh = ids.filter((id) => library.clips[id] && !have.includes(id))
+            if (fresh.length) set({ clips: [...have, ...fresh] })
+          },
+          removeMixClip: (id) => set({ clips: (get().clips ?? []).filter((c) => c !== id) }),
+          replaceGuide: (guide) => set({ guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
 
           promoteClip: (clipId, groups) => {
             const clip = library.clips[clipId]
@@ -609,9 +627,9 @@ export const useStore = create<State>()(
       },
       {
         limit: 100,
-        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }),
+        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head, clips: s.clips }),
         equality: (a, b) =>
-          a.site === b.site && a.guide === b.guide && a.content === b.content && a.versions === b.versions && a.notes === b.notes,
+          a.site === b.site && a.guide === b.guide && a.content === b.content && a.versions === b.versions && a.notes === b.notes && a.clips === b.clips,
         handleSet: (handleSet) => leading(handleSet, 400),
       },
     ),
@@ -629,6 +647,7 @@ export const useStore = create<State>()(
         branchFrom: s.branchFrom,
         head: s.head,
         framePos: s.framePos,
+        clips: s.clips,
         ui: { ...s.ui, previewFrameId: null, editingNoteId: null, sheet: 'none' as const },
         camera: s.camera,
       }),
@@ -639,6 +658,8 @@ export const useStore = create<State>()(
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
         // Drop anything that points at clips that no longer exist in the sample library.
         merged.site = mapSlots(merged.site, (s) => (library.clips[s.clipId] ? s : null))
+        // A mix saved before mixes had their own clips starts with the clips it uses (never another mix's set).
+        merged.clips = (Array.isArray(p.clips) ? p.clips : mixClipIds({ ...merged, clips: [] })).filter((id) => library.clips[id]?.origin === 'clip')
         // Copy fields added since the mix was saved (a nav banner's messages) start from the defaults.
         if (merged.content?.fields) {
           const fields = { ...merged.content.fields }
@@ -674,3 +695,9 @@ export const undo = () => useStore.temporal.getState().undo()
 export const redo = () => useStore.temporal.getState().redo()
 export const pauseHistory = () => useStore.temporal.getState().pause()
 export const resumeHistory = () => useStore.temporal.getState().resume()
+
+/** This mix's clips: its own set, plus any of your clips used on its pages (shared nav and footer included). */
+export function mixClipIds(s: Pick<MixData, 'clips' | 'site'>): string[] {
+  const used = allSlots(s.site).map((slot) => slot.clipId).filter((id) => library.clips[id]?.origin === 'clip')
+  return [...new Set([...(s.clips ?? []), ...used])]
+}

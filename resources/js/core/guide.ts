@@ -26,7 +26,9 @@ export function candidateId(clipId: string, group: TokenGroup): string {
  * candidate value wins; several distinct values are a conflict (latest promotion
  * wins until the user picks); no candidates falls back to the base set.
  */
-export function resolveGuide(state: GuideState): ResolvedGuide {
+export function resolveGuide(saved: GuideState): ResolvedGuide {
+  // A guide from the server may be missing its empty parts (a saved guide, a mix that started from one).
+  const state: GuideState = { ...saved, candidates: saved.candidates ?? [], choices: saved.choices ?? {} }
   const tokens = { ...state.base } as TokenSet
   const provenance = {} as Record<TokenKey, Provenance>
   const conflicts: Conflict[] = []

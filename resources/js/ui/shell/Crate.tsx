@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { isHosted } from '@/lib/host'
 import { pickFile } from '@/lib/pickFile'
-import { addClipZip, SHELF_LABEL, shelfOf, useUserClips, type Shelf } from '@/lib/userClips'
+import { addClipZip, onShelf, SHELF_LABEL, useUserClips, type Shelf } from '@/lib/userClips'
 import { pickable } from '@/core/library'
 import { createPortal } from 'react-dom'
-import { Plus, Scissors } from 'lucide-react'
+import { Check, Plus, Scissors } from 'lucide-react'
 import type { Clip, SectionType } from '@/core/types'
 import { SECTION_TYPES } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { primaryFamily } from '@/core/tokens'
 import { library } from '@/data/library'
-import { useStore, currentSlots } from '@/state/store'
+import { useStore, currentSlots, mixClipIds } from '@/state/store'
 import { frameStateFor } from '@/state/derived'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { LayoutTag } from './Alternatives'
@@ -36,8 +36,12 @@ export function Crate() {
 
   // Clips added from your account change the library; redraw when they arrive.
   const yours = useUserClips((s) => s.ids.length)
-  const [shelf, setShelf] = useState<Shelf>(yours ? 'yours' : 'layouts')
-  const pool = (t: SectionType) => pickable(library, t).filter((id) => shelfOf(id) === shelf)
+  const site = useStore((s) => s.site)
+  const own = useStore((s) => s.clips)
+  const mix = useMemo(() => new Set(mixClipIds({ site, clips: own })), [site, own])
+  // This mix's clips first when it has some, then your whole library, then the built-in layouts.
+  const [shelf, setShelf] = useState<Shelf>(mix.size ? 'mix' : yours ? 'yours' : 'layouts')
+  const pool = (t: SectionType) => pickable(library, t).filter((id) => onShelf(id, shelf, mix))
   const ids = effective === 'all' ? SECTION_TYPES.flatMap(pool) : pool(effective)
   const scroller = useRef<HTMLDivElement>(null)
   const chip = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-1'
@@ -46,7 +50,7 @@ export function Crate() {
     <div className="pb-2 pt-3">
       <div className="mb-2 flex items-center gap-3 px-3">
         <div className="flex rounded-full bg-chip p-0.5" role="tablist">
-          {(['yours', 'layouts'] as const).map((k) => (
+          {(['mix', 'yours', 'layouts'] as const).filter((k) => k !== 'mix' || mix.size).map((k) => (
             <button
               key={k}
               type="button"
@@ -71,8 +75,10 @@ export function Crate() {
               pickFile('.zip,application/zip', async (f) => {
                 try {
                   const added = await addClipZip(f)
-                  setShelf('yours')
-                  st().showFlash(`Added ${added.map((id) => library.clips[id]?.title ?? id).join(', ')} to your clips`)
+                  // A clip added while a mix is open joins this mix too (and stays in your library for the others).
+                  st().addMixClips(added)
+                  setShelf('mix')
+                  st().showFlash(`Added ${added.map((id) => library.clips[id]?.title ?? id).join(', ')} to this mix and your clips`)
                 } catch (e) {
                   st().showFlash(e instanceof Error ? e.message : String(e))
                 }
@@ -113,7 +119,7 @@ export function Crate() {
         }}
       >
         {ids.map((id) => (
-          <ClipCard key={id} clip={library.clips[id]} used={used.has(id)} />
+          <ClipCard key={id} clip={library.clips[id]} used={used.has(id)} inMix={mix.has(id)} own={(own ?? []).includes(id)} />
         ))}
         {!ids.length && (
           <div className="col-span-full flex h-[60px] items-center gap-2 text-[12.5px] text-zinc-500">
@@ -128,7 +134,11 @@ export function Crate() {
   )
 }
 
-function ClipCard({ clip, used }: { clip: Clip; used: boolean }) {
+/**
+ * A clip in the crate: click or drag to use it. One of your clips also has a toggle to keep it in this mix's own set
+ * (a clip a section uses is in the mix anyway).
+ */
+function ClipCard({ clip, used, inMix, own }: { clip: Clip; used: boolean; inMix: boolean; own: boolean }) {
   const source = library.sources[clip.sourceId]
   const [hover, setHover] = useState(false)
   const timer = useRef<number>(0)
@@ -145,8 +155,9 @@ function ClipCard({ clip, used }: { clip: Clip; used: boolean }) {
     } else st.addSlot(clip.type, clip.id)
   }
 
+  const st = useStore.getState
   return (
-    <>
+    <div className="group/card relative">
       <button
         ref={ref}
         type="button"
@@ -164,7 +175,7 @@ function ClipCard({ clip, used }: { clip: Clip; used: boolean }) {
           window.clearTimeout(timer.current)
           setHover(false)
         }}
-        className={`group flex items-center gap-2.5 rounded-xl p-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 active:scale-[0.98] ${used ? 'bg-key-soft/70' : 'hover:bg-zinc-950/5'}`}
+        className={`group flex w-full items-center gap-2.5 rounded-xl p-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 active:scale-[0.98] ${used ? 'bg-key-soft/70' : 'hover:bg-zinc-950/5'}`}
       >
         <div
           className="relative grid h-12 w-14 shrink-0 place-items-center overflow-hidden rounded-lg border border-zinc-950/10 transition group-hover:-translate-y-0.5"
@@ -184,13 +195,26 @@ function ClipCard({ clip, used }: { clip: Clip; used: boolean }) {
             {clip.origin === 'layout' ? <LayoutTag /> : <span className="shrink-0 text-[11px] text-zinc-400">{TYPE_LABEL[clip.type]}</span>}
           </div>
           <div className="truncate text-[11.5px] text-zinc-500" title={clip.title}>
-            {used ? 'In your mix' : clip.origin === 'layout' ? TYPE_LABEL[clip.type] : clip.title}
+            {used ? 'On the page' : inMix ? 'In this mix' : clip.origin === 'layout' ? TYPE_LABEL[clip.type] : clip.title}
           </div>
           <div className="truncate font-mono text-[10px] text-zinc-400">{primaryFamily(t['font.display'])}</div>
         </div>
       </button>
+      {clip.origin === 'clip' && !used && (
+        <button
+          type="button"
+          title={own ? 'Take out of this mix (it stays in your library)' : 'Keep in this mix'}
+          aria-label={own ? `Take ${clip.title} out of this mix` : `Keep ${clip.title} in this mix`}
+          onClick={() => (own ? st().removeMixClip(clip.id) : st().addMixClips([clip.id]))}
+          className={`absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full text-[11px] transition active:scale-[0.97] ${
+            inMix ? 'bg-key-soft text-key-ink' : 'bg-white text-zinc-500 opacity-0 shadow-sm ring-1 ring-zinc-950/10 group-hover/card:opacity-100 focus-visible:opacity-100'
+          }`}
+        >
+          {inMix ? <Check size={13} strokeWidth={2.5} /> : <Plus size={13} strokeWidth={2.5} />}
+        </button>
+      )}
       {hover && ref.current && createPortal(<HoverPreview clip={clip} anchor={ref.current.getBoundingClientRect()} />, document.body)}
-    </>
+    </div>
   )
 }
 

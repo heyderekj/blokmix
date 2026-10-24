@@ -73,6 +73,7 @@ export function buildSeed(lib: Library): MixData {
     branchFrom: null,
     head: versionA.id,
     framePos: {},
+    clips: [],
   }
 }
 
@@ -88,5 +89,6 @@ export function blankMix(name = 'Untitled mix'): MixData {
     branchFrom: null,
     head: null,
     framePos: {},
+    clips: [],
   }
 }

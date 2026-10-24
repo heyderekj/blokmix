@@ -6,6 +6,22 @@ export const page = z.string().describe('A page: its path ("/about"), title ("Ab
 /** The site's pages. The nav and footer are shared by every page; each page can hide them. */
 export const SITE_COMMANDS = {
   rename_mix: { description: 'Rename the mix (the name on the board, your mixes list and exports).', input: z.object({ name: z.string().trim().min(1).max(120) }), write: true },
+  list_mix_clips: {
+    description:
+      'This mix’s own clips (its set, plus any of your clips used on its pages) and how many more are in your account’s library. Built-in layouts are separate (get_options lists every choice for a section).',
+    input: z.object({}),
+    write: false,
+  },
+  add_clips_to_mix: {
+    description: 'Add clips from your library to this mix’s own set, so its shelf and Crate show them first.',
+    input: z.object({ clips: z.array(z.string()).min(1).describe('Clip ids, e.g. "hero.nightshift-events"') }),
+    write: true,
+  },
+  remove_clip_from_mix: {
+    description: 'Take a clip out of this mix’s set. It stays in your library, and on the page if a section uses it.',
+    input: z.object({ clip: z.string() }),
+    write: true,
+  },
   list_pages: {
     description: 'List the site’s pages in order: path, title, how many sections, and whether each shows the shared nav and footer. Which page is open on the canvas.',
     input: z.object({}),

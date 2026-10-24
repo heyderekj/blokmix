@@ -25,7 +25,7 @@ export interface MixFile {
   clips?: { id: string; files: Record<string, string> }[]
 }
 
-const FIELDS = ['site', 'guide', 'content', 'notes', 'branchFrom', 'head', 'framePos'] as const
+const FIELDS = ['site', 'guide', 'content', 'notes', 'branchFrom', 'head', 'framePos', 'clips'] as const
 
 const toBase64 = (buf: ArrayBuffer) => {
   const bytes = new Uint8Array(buf)
@@ -44,7 +44,8 @@ export function mixFile(): MixFile {
     .map((id) => all[id])
     .filter((a): a is Asset => !!a)
     .map((a) => ({ ...a, bytes: a.bytes ? toBase64(a.bytes) : undefined }))
-  const used = new Set([...allSlots(st.site), ...Object.values(st.versions).flatMap((v) => allSlots(v.snapshot.site))].map((s) => s.clipId))
+  // The clips it uses, and the rest of its own set, travel with it.
+  const used = new Set([...[...allSlots(st.site), ...Object.values(st.versions).flatMap((v) => allSlots(v.snapshot.site))].map((s) => s.clipId), ...(st.clips ?? [])])
   const clips = [...used].flatMap((id) => {
     const files = clipFiles(id)
     return files ? [{ id, files }] : []
