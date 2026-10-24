@@ -82,7 +82,7 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
               e.stopPropagation()
               st().toggleLock(slot.id)
             }}
-            className={`grid size-8 shrink-0 place-items-center rounded-full transition active:scale-[0.97] ${slot.locked ? 'bg-key text-key-ink' : 'text-zinc-500 hover:bg-zinc-950/5'}`}
+            className={`grid size-8 shrink-0 place-items-center rounded-full transition active:scale-[0.97] ${slot.locked ? 'bg-key text-white' : 'text-zinc-500 hover:bg-zinc-950/5'}`}
           >
             {slot.locked ? <Lock size={14} strokeWidth={2.4} /> : <LockOpen size={14} />}
           </button>

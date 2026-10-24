@@ -7,12 +7,12 @@ export const block = z.string().describe('A block in that section: its id ("b3")
 export const space = z.number().int().min(0).max(10).describe('A step on the spacing scale: 0, 1 (XS), 2 (S), 4 (M), 6 (L), 8 (XL), up to 10')
 export const color = z
   .string()
-  .describe('A palette colour: primary, accent, text, muted, surface, bg, border, onPrimary, a brand colour as "x:<name>", optionally a tint like "primary/20"')
+  .describe('A palette color: primary, accent, text, muted, surface, bg, border, onPrimary, a brand color as "x:<name>", optionally a tint like "primary/20"')
 
 export const style = z
   .object({
     fill: color.nullable().optional(),
-    ink: color.nullable().optional().describe('Text colour'),
+    ink: color.nullable().optional().describe('Text color'),
     radius: z.enum(['none', 'sm', 'md', 'lg', 'pill']).nullable().optional(),
     shadow: z.enum(['none', 'soft', 'lifted', 'offset']).nullable().optional(),
     padding: space.nullable().optional(),

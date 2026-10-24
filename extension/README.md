@@ -23,7 +23,7 @@ Clips a section of any live site into Blokmix's clip format (CLAUDE.md, rules 1â
   background worker). The output is a plain JSON `Snapshot`.
 - `src/capture/` is pure TS that turns a snapshot into a clip (it runs in the panel, tests and scripts).
   It reuses `core/` for lint, parse/serialize, icons and fonts:
-  - `tokens.ts` infers the `Source` tokens: colours by role (button fill â†’ primary, reading text â†’
+  - `tokens.ts` infers the `Source` tokens: colors by role (button fill â†’ primary, reading text â†’
     mutedâ€¦), fonts (library or the page's Google Fonts link), type base and ratio, radius, stroke, shadow,
     section padding, motion.
   - `structure.ts` drops screen-reader-only and invisible nodes, swaps raster media for placeholder art
@@ -34,7 +34,7 @@ Clips a section of any live site into Blokmix's clip format (CLAUDE.md, rules 1â
   - `semantics.ts` finds repeating siblings, names copy from `FIELD_SCHEMA` (numbered per item:
     `f1Title`, `t2F3`, `col1L2`), and marks blocks, cards, mirrors and the nav/footer brand.
   - `css.ts` writes `clip.css`. Each element gets only what differs from Blokmix's base CSS and the
-    browser defaults, mapped to `--mx-*` tokens (colours become tokens or `color-mix()` of two, sizes go
+    browser defaults, mapped to `--mx-*` tokens (colors become tokens or `color-mix()` of two, sizes go
     on the type scale, spacing on the space scale, borders use `--mx-stroke`). It adds hover states under
     `(hover: hover)` and a generic `@media (max-width: 760px)` layout.
   - `motion.ts` writes `motion.css`: animations with keyframes renamed under the root class, and
@@ -54,10 +54,10 @@ Clips a section of any live site into Blokmix's clip format (CLAUDE.md, rules 1â
 
 ## What capture can't keep (and why the rules stay as they are)
 
-- **Inline styling inside copy** (a coloured word in a headline, a smaller `/mo` after a price) is
+- **Inline styling inside copy** (a colored word in a headline, a smaller `/mo` after a price) is
   flattened. Rule 8 puts each field on a leaf element, so styled spans inside copy can't survive. The
   panel notes each one.
-- **Multi-colour SVGs** become one colour (`currentColor`). Rule 3 allows no colour literals, and SVG
+- **Multi-color SVGs** become one color (`currentColor`). Rule 3 allows no color literals, and SVG
   presentation attributes can't hold `var()`.
 - **Photos and background images** become placeholder art (rule 5). The real image can be filled back
   in on the canvas.

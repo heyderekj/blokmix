@@ -97,7 +97,7 @@ export function shape(root: WEl): Shaped {
     if (top.parent) top.parent.kids = top.parent.kids.filter((k) => k !== top)
     out.media = out.media.filter((m) => m !== b)
   }
-  if (bgPhotos) out.notes.push(`Removed ${bgPhotos} background photo${bgPhotos > 1 ? 's' : ''} (clips use CSS/SVG art only); their colour layer stays`)
+  if (bgPhotos) out.notes.push(`Removed ${bgPhotos} background photo${bgPhotos > 1 ? 's' : ''} (clips use CSS/SVG art only); their color layer stays`)
 
   // 3. Text: whole runs of inline content become leaves; mixed content gets span leaves.
   const leafify = (el: WEl) => {
@@ -170,7 +170,7 @@ export function shape(root: WEl): Shaped {
   }
   regap(root)
 
-  // 5. SVGs: no styles or scripts, colours follow currentColor, icons get names.
+  // 5. SVGs: no styles or scripts, colors follow currentColor, icons get names.
   const svgs = (el: WEl) => {
     for (const k of els(el)) {
       if (k.svg) {
@@ -192,9 +192,9 @@ export function shape(root: WEl): Shaped {
             out.icons.named++
           } else out.icons.unnamed++
         }
-        // An illustration in several colours keeps its tones: each colour gets a class, drawn from a token.
-        // Logos and wordmarks stay one colour (they re-theme as marks); only pictures this size keep tones.
-        if (res.colours > 1 && !k.icon && h >= 40 && w >= 40 && !/logo|brand|wordmark/i.test(`${hint(k, 'class') ?? ''} ${hint(el, 'class') ?? ''} ${hint(el, 'aria-label') ?? ''}`)) {
+        // An illustration in several colors keeps its tones: each color gets a class, drawn from a token.
+        // Logos and wordmarks stay one color (they re-theme as marks); only pictures this size keep tones.
+        if (res.colors > 1 && !k.icon && h >= 40 && w >= 40 && !/logo|brand|wordmark/i.test(`${hint(k, 'class') ?? ''} ${hint(el, 'class') ?? ''} ${hint(el, 'aria-label') ?? ''}`)) {
           res = sanitizeSvg(node, { palette: true })
           k.svgNode = res.node
           k.svgPaints = res.paints
@@ -204,7 +204,7 @@ export function shape(root: WEl): Shaped {
     }
   }
   svgs(root)
-  if (svgColours) out.notes.push(`${svgColours} multi-colour illustration${svgColours > 1 ? 's keep' : ' keeps'} its tones, each colour drawn from the nearest token`)
+  if (svgColours) out.notes.push(`${svgColours} multi-color illustration${svgColours > 1 ? 's keep' : ' keeps'} its tones, each color drawn from the nearest token`)
   return out
 }
 
@@ -226,7 +226,7 @@ function titleOf(svg: HEl): string | undefined {
   return txt && txt.t === 'text' ? txt.v : undefined
 }
 
-/** The SVG inside a `url("data:image/svg+xml,…")` background, and the colour it draws in. */
+/** The SVG inside a `url("data:image/svg+xml,…")` background, and the color it draws in. */
 export function svgBackground(bg: string): { markup: string; color?: string } | null {
   // Computed styles quote the URL, escaping quotes inside it.
   const m = /url\(\s*"data:image\/svg\+xml(;base64)?,((?:[^"\\]|\\.)*)"\s*\)/s.exec(bg)
@@ -267,7 +267,7 @@ function closestOutOfFlow(el: WEl, root: WEl): boolean {
   return false
 }
 
-/** One colour of a multi-colour illustration: the class its shapes carry and the colour they drew in. */
+/** One color of a multi-color illustration: the class its shapes carry and the color they drew in. */
 export interface SvgPaint {
   cls: string
   prop: 'fill' | 'stroke'
@@ -302,9 +302,9 @@ export function ratioOf(w: number, h: number): string {
 
 const SVG_KEEP = /^(viewbox|width|height|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-miterlimit|stroke-dasharray|stroke-dashoffset|fill-rule|clip-rule|opacity|fill-opacity|stroke-opacity|d|cx|cy|r|rx|ry|x|y|x1|y1|x2|y2|points|transform|offset|stop-opacity|gradientunits|gradienttransform|patternunits|preserveaspectratio|aria-hidden|aria-label|role|id|href|xlink:href|clip-path|mask|font-size|font-weight|text-anchor|dominant-baseline|vector-effect|pathlength)$/i
 
-/** Strip an <svg> to drawing only, every colour becoming currentColor. */
-export function sanitizeSvg(svg: HEl, opts: { palette?: boolean } = {}): { node: HEl; colours: number; main?: string; paints: SvgPaint[] } {
-  const colours = new Set<string>()
+/** Strip an <svg> to drawing only, every color becoming currentColor. */
+export function sanitizeSvg(svg: HEl, opts: { palette?: boolean } = {}): { node: HEl; colors: number; main?: string; paints: SvgPaint[] } {
+  const colors = new Set<string>()
   const paints: SvgPaint[] = []
   const paintClass = (prop: 'fill' | 'stroke', v: string) => {
     const c = parseColor(v)
@@ -333,7 +333,7 @@ export function sanitizeSvg(svg: HEl, opts: { palette?: boolean } = {}): { node:
           const c = parseColor(v)
           if (c && c.a < 0.02) attrs.push([key, 'none'])
           else {
-            colours.add(v)
+            colors.add(v)
             attrs.push([key, 'currentColor'])
             if (opts.palette) classes.push(paintClass(key, v))
           }
@@ -344,7 +344,7 @@ export function sanitizeSvg(svg: HEl, opts: { palette?: boolean } = {}): { node:
       attrs.push([k, v])
     }
     if (classes.length) attrs.push(['class', classes.join(' ')])
-    // Gradient stops carry their colour in stop-color.
+    // Gradient stops carry their color in stop-color.
     if (n.tag === 'stop') attrs.push(['stop-color', 'currentColor'])
     if (isRoot && !attrs.some(([k]) => k === 'aria-hidden' || k === 'aria-label' || k === 'role')) attrs.push(['aria-hidden', 'true'])
     const kids: HNode[] = n.kids.filter((k): k is HEl => k.t === 'el' && !/^(script|style|foreignobject|image|title|desc|metadata)$/i.test(k.tag)).map((k) => clean(k, false))
@@ -353,7 +353,7 @@ export function sanitizeSvg(svg: HEl, opts: { palette?: boolean } = {}): { node:
     return { ...n, attrs, kids }
   }
   const node = clean(svg, true)
-  // The colour it drew in, which currentColor now has to carry.
-  const first = [...colours].map(parseColor).find((c) => c && c.a > 0.02)
-  return { node, colours: colours.size, main: first ? `rgba(${first.r}, ${first.g}, ${first.b}, ${first.a})` : undefined, paints }
+  // The color it drew in, which currentColor now has to carry.
+  const first = [...colors].map(parseColor).find((c) => c && c.a > 0.02)
+  return { node, colors: colors.size, main: first ? `rgba(${first.r}, ${first.g}, ${first.b}, ${first.a})` : undefined, paints }
 }

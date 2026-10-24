@@ -236,7 +236,7 @@ export const DEFAULT_CONTENT: ProjectContent = {
       p1Excerpt: 'What the extension keeps when you clip: structure, tokens and motion.',
       p1Meta: 'Oct 14 · 5 min',
       p2Title: 'One style guide from four sites',
-      p2Excerpt: 'Resolving clashing colours and type into a single set of tokens.',
+      p2Excerpt: 'Resolving clashing colors and type into a single set of tokens.',
       p2Meta: 'Oct 9 · 4 min',
       p3Title: 'Handing a packet to your agent',
       p3Excerpt: 'Build notes, tokens and a reference build, ready for Astro or Next.js.',

@@ -57,7 +57,7 @@ export const PACK_CREDIT: Record<Pack, string> = {
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 
 /**
- * An icon as SVG in a set, sized to fill its box and coloured by currentColor.
+ * An icon as SVG in a set, sized to fill its box and colored by currentColor.
  * `attrs` are kept from the clip's own <svg> (class, width, height, aria-*), so
  * the clip's sizing still applies.
  */

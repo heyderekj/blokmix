@@ -38,7 +38,7 @@ describe('advise', () => {
     expect(a.find((x) => x.rule === 'consistency')?.fix?.promote).toBe(true)
   })
 
-  it('mixes tints towards the page colour', () => {
+  it('mixes tints towards the page color', () => {
     expect(refToHex('primary/50', tokens, [])).toBe('#f1a8c6')
     expect(refToHex('x:Sunset', tokens, [{ id: 's', name: 'Sunset', value: '#ff7a00' }])).toBe('#ff7a00')
   })

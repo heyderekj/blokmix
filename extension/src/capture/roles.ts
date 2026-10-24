@@ -11,7 +11,7 @@ export function setContextBg(c: Rgba) {
   contextBg = c
 }
 
-/** The opaque colour showing behind an element (its ancestors' backgrounds over the page's). */
+/** The opaque color showing behind an element (its ancestors' backgrounds over the page's). */
 export function behind(el: WEl): Rgba {
   const stack: Rgba[] = []
   for (let p: WEl | null = el.parent; p; p = p.parent) {

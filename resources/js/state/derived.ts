@@ -21,10 +21,10 @@ export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
 
-/** Page-wide block defaults and extra colours, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
+/** Page-wide block defaults and extra colors, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
 export type PageStyle = Pick<GuideState, 'swatches' | 'components'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
 
-/** Page-wide things a section's frame needs: block defaults, extra colours, and the sections links can lead to. */
+/** Page-wide things a section's frame needs: block defaults, extra colors, and the sections links can lead to. */
 export function usePageStyle(): PageStyle {
   const swatches = useStore((s) => s.guide.swatches)
   const components = useStore((s) => s.guide.components)
@@ -181,7 +181,7 @@ function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, toke
   return Object.keys(out).length ? out : NO_MEDIA
 }
 
-/** Extra brand colours, as --mx-color-x-<name>. */
+/** Extra brand colors, as --mx-color-x-<name>. */
 export function swatchCss(swatches: Swatch[] | undefined): string {
   if (!swatches?.length) return ''
   return `\n:root { ${swatches.map((w) => `--mx-color-x-${slug(w.name)}: ${w.value};`).join(' ')} }`

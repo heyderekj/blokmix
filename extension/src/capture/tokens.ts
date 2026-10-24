@@ -61,7 +61,7 @@ export function inferTokens(root: WEl, snap: Snapshot): Inferred {
   const bg = rootBg ?? behind(root)
   const text = textColor(root)
 
-  // Text colours by how much text wears them; fills by area; borders by length.
+  // Text colors by how much text wears them; fills by area; borders by length.
   const texts = new Tally()
   const fills = new Tally()
   const borders = new Tally()

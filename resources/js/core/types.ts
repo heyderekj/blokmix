@@ -173,7 +173,7 @@ export interface GuideState {
   base: TokenSet
   candidates: Candidate[]
   choices: Partial<Record<TokenKey, Choice>>
-  /** Extra named brand colours beyond the core palette. */
+  /** Extra named brand colors beyond the core palette. */
   swatches?: Swatch[]
   /** Defaults for kinds of blocks across the whole page ("All buttons: outline"). */
   components?: Partial<Record<BlockKind, ComponentDefault>>
@@ -356,8 +356,8 @@ export interface BlockInfo {
 }
 
 /**
- * A colour from the palette: a guide token ('primary'), an extra swatch
- * ('x:brand'), optionally mixed towards the page colour ('primary/20' = 20% of
+ * A color from the palette: a guide token ('primary'), an extra swatch
+ * ('x:brand'), optionally mixed towards the page color ('primary/20' = 20% of
  * primary over the background). Never a raw hex, so it re-themes.
  */
 export type ColorRef = string

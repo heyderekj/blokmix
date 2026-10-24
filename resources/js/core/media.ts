@@ -25,7 +25,7 @@ function rng(seed: number) {
   }
 }
 
-/** Mix two hex colours (t = share of `a`). */
+/** Mix two hex colors (t = share of `a`). */
 export function mixHex(a: string, b: string, t: number): string {
   const x = hexToRgb(a)
   const y = hexToRgb(b)

@@ -2,9 +2,9 @@ import { UserRound } from 'lucide-react'
 import { hash } from '@/core/hash'
 
 /**
- * People and agents, told apart by kind rather than colour: a person is a
+ * People and agents, told apart by kind rather than color: a person is a
  * monogram, an agent is a woven pattern. Both stay neutral so status and the
- * key colour are the only hues in a header.
+ * key color are the only hues in a header.
  */
 export type Participant = { kind: 'person'; name: string } | { kind: 'agent'; name: string }
 

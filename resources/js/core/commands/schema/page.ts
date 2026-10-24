@@ -93,7 +93,7 @@ export const PAGE_COMMANDS = {
   },
   list_fonts: {
     description:
-      'Browse the free font library (Google Fonts, Fontshare and Fontsource, all free for commercial use), organised by vibe: studio (open-source families from studios and tool makers), display, sans, serif, humanist, rounded, mono, script, hand, retro. Filter by role to get faces that suit headings, body text or code. Then set one with set_token.',
+      'Browse the free font library (Google Fonts, Fontshare and Fontsource, all free for commercial use), organized by vibe: studio (open-source families from studios and tool makers), display, sans, serif, humanist, rounded, mono, script, hand, retro. Filter by role to get faces that suit headings, body text or code. Then set one with set_token.',
     input: z.object({
       query: z.string().optional(),
       vibe: z.enum(['studio', 'display', 'sans', 'serif', 'humanist', 'rounded', 'mono', 'script', 'hand', 'retro']).optional().describe('"studio": open-source families from studios and tool makers (Geist, Mona Sans, Plex, iA Writer…)'),
@@ -108,7 +108,7 @@ export const PAGE_COMMANDS = {
     write: true,
   },
   add_brand_colour: {
-    description: 'Add a named brand colour to the palette; use it as "x:<name>" in styles.',
+    description: 'Add a named brand color to the palette; use it as "x:<name>" in styles.',
     input: z.object({ name: z.string().min(1), value: z.string().regex(/^#[0-9a-f]{3,8}$/i) }),
     write: true,
   },

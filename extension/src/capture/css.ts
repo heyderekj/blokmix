@@ -159,7 +159,7 @@ export class TokenWriter {
     return `calc(var(--mx-vh) * ${Math.round((v / this.viewport.height) * 100)})`
   }
 
-  /** Any value: colours to tokens, vh to --mx-vh, borders to stroke. */
+  /** Any value: colors to tokens, vh to --mx-vh, borders to stroke. */
   value(prop: string, v: string, el?: WEl): string {
     if (/^(box-shadow)$/.test(prop)) return this.shadow(v)
     if (prop === 'font-family') return this.family(v, !!el && HEADING_TAGS.has(el.tag))
@@ -196,7 +196,7 @@ const neutralized = (el: WEl, prop: string) =>
 
 export interface ElementCss {
   decls: Decls
-  /** A multi-colour illustration's shapes, by class: `.pf1 { fill: … }`. */
+  /** A multi-color illustration's shapes, by class: `.pf1 { fill: … }`. */
   paints?: Record<string, Decls>
   hover?: Decls
   active?: Decls
@@ -309,7 +309,7 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
       else if (fills && W / pw > 0.3 && hasCopy && (parent.s['flex-wrap'] ?? 'nowrap') === 'nowrap' && sibs.length >= 2) put('flex', `0 1 ${Math.round((W / pw) * 100)}%`)
     }
   }
-  // In a column that centres its children, a box only keeps the width the page gave it if we say so.
+  // In a column that centers its children, a box only keeps the width the page gave it if we say so.
   const inFlexCol = /flex/.test(pdisp) && /column/.test(parent?.s['flex-direction'] ?? '')
   const alignment = s['align-self'] && s['align-self'] !== 'auto' ? s['align-self'] : parent?.s['align-items'] ?? 'normal'
   if (inFlexCol && !/stretch|normal/.test(alignment) && els(el).length && el.text === undefined && !isPressable(el) && !abs) {
@@ -343,7 +343,7 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
       else if (H > bottom + 24 && !stretched && (s['min-height'] ?? 'auto') === 'auto') put('min-height', big ? w.vh(H) : `${Math.round(H)}px`)
     }
   }
-  // A bar with a set height (a 72px nav row): its children sit centred in more room than they need.
+  // A bar with a set height (a 72px nav row): its children sit centered in more room than they need.
   const contentH = H - px(s['padding-top']) - px(s['padding-bottom']) - px(s['border-top-width']) - px(s['border-bottom-width'])
   const tallest = Math.max(0, ...els(el).filter((k) => (k.s.position ?? 'static') === 'static').map((k) => k.rect[3] + px(k.s['margin-top']) + px(k.s['margin-bottom'])))
   if (flex && !/column/.test(s['flex-direction'] ?? '') && /center/.test(s['align-items'] ?? '') && tallest > 0 && contentH > tallest + 6 && (s['min-height'] ?? 'auto') === 'auto') put('min-height', `${Math.round(H)}px`)
@@ -502,7 +502,7 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
     delete out['row-gap']
   }
   if (el.synthetic === 'art' && el.backdrop) {
-    // A backdrop is filled, not illustrated: its own colour, or a quiet wash of the primary.
+    // A backdrop is filled, not illustrated: its own color, or a quiet wash of the primary.
     // Light copy laid over a photo needs a dark wash in its place, and dark copy a light one.
     // Weighed by how much of the copy there is, so a big headline outvotes a small print line.
     const over = leavesOf(ctx.root).filter((l) => overlaps(l.rect, el.rect))
@@ -805,7 +805,7 @@ export function buildCss(root: WEl, rootClass: string, w: TokenWriter, defaults:
 
   let out = lines.filter((l, i, a) => !(l === '' && a[i - 1] === '')).join('\n')
   out = lintSafe(out, w)
-  if (w.colors.approximated) notes.add(`${w.colors.approximated} colour${w.colors.approximated > 1 ? 's' : ''} had no close token match and use the nearest token`)
+  if (w.colors.approximated) notes.add(`${w.colors.approximated} color${w.colors.approximated > 1 ? 's' : ''} had no close token match and use the nearest token`)
   return { css: out + '\n', notes: [...notes] }
 }
 

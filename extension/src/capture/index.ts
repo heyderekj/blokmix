@@ -188,7 +188,7 @@ function rootFor(picked: WEl, type: SectionType, snap: Snapshot): WEl {
     extra: { 'padding-inline': 'var(--mx-space-6)' },
   }
   picked.parent = wrap
-  // It was centred in the page: keep it centred and capped at its width.
+  // It was centered in the page: keep it centered and capped at its width.
   picked.extra = { ...picked.extra, 'margin-inline': 'auto', 'max-width': `${Math.round(picked.rect[2])}px` }
   return wrap
 }
@@ -274,7 +274,7 @@ function toHtml(el: WEl, type: SectionType, rootClass: string, isRoot = true): H
 }
 
 /**
- * Stand-in art for a picture (CLAUDE.md, rule 5): a small landscape glyph centred in the
+ * Stand-in art for a picture (CLAUDE.md, rule 5): a small landscape glyph centered in the
  * picture's own shape, so it reads as "an image goes here" at any size without filling it.
  */
 function placeholderArt(ratio = '4/3'): HEl {

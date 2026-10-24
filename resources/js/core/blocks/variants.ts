@@ -124,7 +124,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     {
       id: 'highlight',
       label: 'Highlight',
-      hint: 'A soft wash of colour behind the words on hover',
+      hint: 'A soft wash of color behind the words on hover',
       css: `color: ${ink('inherit')}; text-decoration: none; border-radius: var(--mx-radius-sm); padding-inline: 0.15em; margin-inline: -0.15em; transition: background-color var(--mx-motion-duration) var(--mx-motion-ease); &:hover { background: color-mix(in oklab, ${fill('var(--mx-color-accent)')} 22%, transparent); }`,
     },
     { id: 'dotted', label: 'Dotted', hint: 'A light dotted underline; footnotes and asides', css: `color: ${ink('inherit')}; text-decoration: underline dotted; text-decoration-thickness: 1.5px; text-underline-offset: 0.25em; &:hover { text-decoration-style: solid; text-decoration-color: ${fill('var(--mx-color-primary)')}; }` },
@@ -140,7 +140,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     {
       id: 'quiet',
       label: 'Quiet',
-      hint: 'Sits back: surface colour, muted words, a hairline',
+      hint: 'Sits back: surface color, muted words, a hairline',
       css: `background: ${fill('var(--mx-color-surface)')}; color: ${ink('var(--mx-color-muted)')}; border-block-end: var(--mx-stroke) solid var(--mx-color-border);`,
     },
     {
@@ -152,13 +152,13 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     {
       id: 'gradient',
       label: 'Gradient',
-      hint: 'Primary into accent: a launch strip with some colour',
+      hint: 'Primary into accent: a launch strip with some color',
       css: `background: linear-gradient(90deg, ${fill('var(--mx-color-primary)')}, var(--mx-color-accent)); color: ${ink('var(--mx-color-on-primary)')}; --mx-color-primary: var(--mx-color-on-primary); border-block-end: 0;`,
     },
     {
       id: 'mono',
       label: 'Mono caps',
-      hint: 'Small spaced capitals on the page colour, between hairlines',
+      hint: 'Small spaced capitals on the page color, between hairlines',
       css: `background: ${fill('var(--mx-color-bg)')}; color: ${ink('var(--mx-color-text)')}; border-block: var(--mx-stroke) solid var(--mx-color-border); font-family: var(--mx-font-mono); font-size: var(--mx-text-xs); letter-spacing: 0.12em; text-transform: uppercase;`,
     },
     {
@@ -172,7 +172,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
   badge: [
     { id: 'pill', label: 'Pill', hint: 'A soft tag that sits above a heading', css: `display: inline-flex; align-items: center; gap: var(--mx-space-2); padding: var(--mx-space-1) var(--mx-space-3); border-radius: 999px; background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 14%, transparent); color: ${ink('var(--mx-color-text)')}; font-size: var(--mx-text-sm); font-weight: 600;` },
     { id: 'outline', label: 'Outline', hint: 'Lighter than a pill', css: `display: inline-flex; padding: var(--mx-space-1) var(--mx-space-3); border-radius: 999px; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-text) 22%, transparent); background: none; color: ${ink('var(--mx-color-text)')}; font-size: var(--mx-text-sm); font-weight: 500;` },
-    { id: 'dot', label: 'Dot', hint: 'A coloured dot before plain text', css: `display: inline-flex; align-items: center; gap: var(--mx-space-2); padding: 0; background: none; border: 0; color: ${ink('var(--mx-color-muted)')}; font-size: var(--mx-text-sm); font-weight: 600; &::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: ${fill('var(--mx-color-accent)')}; }` },
+    { id: 'dot', label: 'Dot', hint: 'A colored dot before plain text', css: `display: inline-flex; align-items: center; gap: var(--mx-space-2); padding: 0; background: none; border: 0; color: ${ink('var(--mx-color-muted)')}; font-size: var(--mx-text-sm); font-weight: 600; &::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: ${fill('var(--mx-color-accent)')}; }` },
     { id: 'mono', label: 'Mono caps', hint: 'Editorial and technical', css: `display: inline-block; padding: 0; background: none; border: 0; color: ${ink('var(--mx-color-muted)')}; font-family: var(--mx-font-mono); font-size: var(--mx-text-xs); letter-spacing: 0.12em; text-transform: uppercase;` },
     { id: 'solid', label: 'Solid', hint: 'A filled tag that stands out: “New”, “Popular”', css: `display: inline-flex; align-items: center; gap: var(--mx-space-2); padding: var(--mx-space-1) var(--mx-space-3); border-radius: 999px; border: 0; background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; font-size: var(--mx-text-xs); font-weight: 600; letter-spacing: 0.02em;` },
     { id: 'square', label: 'Square', hint: 'A tinted label with small corners; tidy in dense layouts', css: `display: inline-flex; align-items: center; gap: var(--mx-space-2); padding: var(--mx-space-1) var(--mx-space-2); border-radius: ${radius('var(--mx-radius-sm)')}; border: 0; background: color-mix(in oklab, var(--mx-color-text) 7%, transparent); color: ${ink('var(--mx-color-text)')}; font-size: var(--mx-text-xs); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;` },
@@ -203,7 +203,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'caps', label: 'Tight caps', hint: 'Loud and architectural', css: `text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.95; color: ${ink('inherit')};` },
     { id: 'light', label: 'Light', hint: 'A thin, airy weight; elegant at large sizes', css: `font-weight: 300; letter-spacing: -0.03em; color: ${ink('inherit')};` },
     { id: 'heavy', label: 'Heavy', hint: 'Black weight and tight spacing: confident', css: `font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: ${ink('inherit')};` },
-    { id: 'accent', label: 'Accent', hint: 'Set in your accent colour; use once per page', css: `color: ${ink(fill('var(--mx-color-accent)'))};` },
+    { id: 'accent', label: 'Accent', hint: 'Set in your accent color; use once per page', css: `color: ${ink(fill('var(--mx-color-accent)'))};` },
   ],
   text: [
     { id: 'lead', label: 'Lead', hint: 'A larger opening paragraph', css: `font-size: var(--mx-text-lg); line-height: 1.5; color: ${ink('var(--mx-color-text)')};` },
@@ -219,7 +219,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'bordered', label: 'Bordered', hint: 'Calm structure for dense grids', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: ${shadow('none')};` },
     { id: 'raised', label: 'Raised', hint: 'Lifts off the page; one level of depth', css: `${CARD_BASE} background: ${fill('var(--mx-color-surface)')}; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-border) 50%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
     { id: 'tinted', label: 'Tinted', hint: 'A wash of your primary', css: `${CARD_BASE} background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 9%, var(--mx-color-bg)); border: var(--mx-stroke) solid color-mix(in oklab, ${fill('var(--mx-color-primary)')} 18%, transparent); box-shadow: ${shadow('none')};` },
-    { id: 'glass', label: 'Glass', hint: 'Frosted, over colour or imagery', css: `${CARD_BASE} background: color-mix(in oklab, var(--mx-color-bg) 62%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-bg) 70%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
+    { id: 'glass', label: 'Glass', hint: 'Frosted, over color or imagery', css: `${CARD_BASE} background: color-mix(in oklab, var(--mx-color-bg) 62%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-bg) 70%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
     { id: 'offset', label: 'Offset', hint: 'A hard shadow: bold and graphic', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: calc(var(--mx-stroke) * 2) solid var(--mx-color-text); box-shadow: 6px 6px 0 var(--mx-color-text);` },
     // Words inside follow the flip: muted text and borders are re-pointed at the primary's own ink.
     { id: 'inverse', label: 'Inverse', hint: 'Filled with your primary: the one card that leads', css: `${CARD_BASE} background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; --mx-color-text: ${ink('var(--mx-color-on-primary)')}; --mx-color-muted: color-mix(in oklab, ${ink('var(--mx-color-on-primary)')} 72%, transparent); --mx-color-border: color-mix(in oklab, ${ink('var(--mx-color-on-primary)')} 22%, transparent); border: var(--mx-stroke) solid transparent; box-shadow: ${shadow('none')};` },
@@ -240,7 +240,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
       css: `position: relative; isolation: isolate; overflow: hidden; border-radius: ${radius('var(--mx-radius-lg)')}; filter: grayscale(1) contrast(1.05); &::after { content: ""; position: absolute; inset: 0; background: ${fill('var(--mx-color-primary)')}; mix-blend-mode: color; pointer-events: none; }`,
     },
     { id: 'shadow', label: 'Shadow', hint: 'Rounded and lifted off the page', css: `border-radius: ${radius('var(--mx-radius-lg)')}; overflow: hidden; box-shadow: ${shadow('0 2px 4px color-mix(in oklab, var(--mx-color-text) 8%, transparent), 0 24px 48px -16px color-mix(in oklab, var(--mx-color-text) 32%, transparent)')};` },
-    { id: 'mat', label: 'Mat', hint: 'Framed on a surface-coloured mat, like a print', css: `padding: var(--mx-space-4); background: ${fill('var(--mx-color-surface)')}; border: var(--mx-stroke) solid var(--mx-color-border); border-radius: ${radius('var(--mx-radius-lg)')};` },
+    { id: 'mat', label: 'Mat', hint: 'Framed on a surface-colored mat, like a print', css: `padding: var(--mx-space-4); background: ${fill('var(--mx-color-surface)')}; border: var(--mx-stroke) solid var(--mx-color-border); border-radius: ${radius('var(--mx-radius-lg)')};` },
     { id: 'capsule', label: 'Capsule', hint: 'Fully rounded ends; soft and friendly', css: `border-radius: 999px; overflow: hidden;` },
   ],
   icon: [
@@ -248,7 +248,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'circle', label: 'Circle', hint: 'A solid round badge', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')};` },
     { id: 'bare', label: 'Bare', hint: 'Just the glyph', css: `background: none; border: 0; box-shadow: none; color: ${ink('var(--mx-color-text)')};` },
     { id: 'ring', label: 'Ring', hint: 'A hairline circle; light and precise', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: none; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-text) 24%, transparent); color: ${ink('var(--mx-color-text)')};` },
-    { id: 'accent', label: 'Accent', hint: 'Your accent colour, softly tiled', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: ${radius('var(--mx-radius)')}; background: color-mix(in oklab, ${fill('var(--mx-color-accent)')} 16%, transparent); color: ${ink(fill('var(--mx-color-accent)'))};` },
+    { id: 'accent', label: 'Accent', hint: 'Your accent color, softly tiled', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: ${radius('var(--mx-radius)')}; background: color-mix(in oklab, ${fill('var(--mx-color-accent)')} 16%, transparent); color: ${ink(fill('var(--mx-color-accent)'))};` },
     { id: 'raised', label: 'Raised', hint: 'A small card that holds the icon', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: ${radius('var(--mx-radius)')}; background: ${fill('var(--mx-color-bg)')}; border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: ${shadow('var(--mx-shadow-card)')}; color: ${ink('var(--mx-color-text)')};` },
   ],
   input: [

@@ -9,7 +9,7 @@ export function describeEdit(e: BlockEdit): string {
   if (e.variant) parts.push(`${e.variant} look`)
   const m = describeBlockMotion(e.motion)
   if (m) parts.push(m)
-  for (const [k, v] of Object.entries(e.style ?? {}) as [string, string | number | undefined][]) if (v !== undefined) parts.push(`${k} ${String(v).replace('x:', 'brand colour ')}`)
+  for (const [k, v] of Object.entries(e.style ?? {}) as [string, string | number | undefined][]) if (v !== undefined) parts.push(`${k} ${String(v).replace('x:', 'brand color ')}`)
   const phone = describeMobile(e.mobile)
   if (phone) parts.push(`on phones (≤${MOBILE_MAX}px): ${phone}`)
   return `${parts.join(', ')} (the section CSS has it in @layer blocks${phone ? `, phones in its @media (max-width: ${MOBILE_MAX}px)` : ''})`

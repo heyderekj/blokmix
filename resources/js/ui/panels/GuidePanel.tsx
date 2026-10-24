@@ -54,7 +54,7 @@ export function BrandColours() {
   const state = useStore((s) => s.guide)
   const st = useStore.getState
   return (
-    <PanelSection title="Brand colours" action={<AddSwatch />}>
+    <PanelSection title="Brand colors" action={<AddSwatch />}>
       {state.swatches?.length ? (
         <div className="flex flex-wrap gap-1.5">
           {state.swatches.map((w) => (
@@ -69,7 +69,7 @@ export function BrandColours() {
           ))}
         </div>
       ) : (
-        <p className="text-[12px] text-zinc-500">Colours beyond your palette. Add one here, or from a block’s Style menu.</p>
+        <p className="text-[12px] text-zinc-500">Colors beyond your palette. Add one here, or from a block’s Style menu.</p>
       )}
     </PanelSection>
   )
@@ -194,7 +194,7 @@ export function AddSwatch() {
   }
   return (
     <span className="flex items-center gap-1.5">
-      <input type="color" value={value} onChange={(e) => setValue(e.target.value)} className="size-6 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Colour" />
+      <input type="color" value={value} onChange={(e) => setValue(e.target.value)} className="size-6 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Color" />
       <input
         autoFocus
         value={name}

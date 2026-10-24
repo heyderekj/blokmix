@@ -52,7 +52,7 @@ export interface WEl {
   svg?: string
   /** The sanitized <svg>, ready to write out. */
   svgNode?: HEl
-  /** A multi-colour illustration's colours, by the class each colour's shapes carry. */
+  /** A multi-color illustration's colors, by the class each color's shapes carry. */
   svgPaints?: { cls: string; prop: 'fill' | 'stroke'; color: string }[]
   media?: SnapEl['media']
 

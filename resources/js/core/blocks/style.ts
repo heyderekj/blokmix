@@ -17,7 +17,7 @@ export function colorCss(ref: ColorRef): string | null {
   return mix && n > 0 && n < 100 ? `color-mix(in oklab, ${v} ${n}%, var(--mx-color-bg))` : v
 }
 
-export const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'colour'
+export const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'color'
 
 const RADIUS: Record<NonNullable<BlockStyle['radius']>, string> = {
   none: '0px',

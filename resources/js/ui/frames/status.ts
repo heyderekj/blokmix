@@ -11,7 +11,7 @@ export const STATUS_META: Record<Status, { label: string; color: string; icon: L
 
 export const STATUS_ORDER: Status[] = ['changes', 'archived', 'approved', 'ready', 'in-progress']
 
-/** Readable text colour for each status label (the signal's ink, or a neutral). */
+/** Readable text color for each status label (the signal's ink, or a neutral). */
 export const STATUS_INK: Record<Status, string> = {
   'in-progress': 'var(--n-700)',
   ready: 'var(--attention-ink)',

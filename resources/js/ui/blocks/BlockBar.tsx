@@ -45,7 +45,7 @@ const PLURAL: Record<BlockKind, string> = {
 
 /**
  * The selected block's controls, floating beside it on the page: where it sits
- * (a breadcrumb you can climb), its look (variant), its colours and shape, and
+ * (a breadcrumb you can climb), its look (variant), its colors and shape, and
  * whether the change is just here or for every block of its kind.
  */
 export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; rect: FrameRect | null }) {
@@ -133,7 +133,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             <ChevronDown size={12} className="text-zinc-400" />
           </BarButton>
         )}
-        <BarButton active={menu === 'style'} onClick={() => setMenu(menu === 'style' ? null : 'style')} icon={Palette} title="Colour and shape">
+        <BarButton active={menu === 'style'} onClick={() => setMenu(menu === 'style' ? null : 'style')} icon={Palette} title="Color and shape">
           <StyleDots style={edit?.style} />
         </BarButton>
         {block.kind === 'icon' && (
@@ -474,7 +474,7 @@ function LookRow({ kind, look, text, label, hint, on, onHover, onPick }: { kind:
   )
 }
 
-/* ---------- colour and shape ---------- */
+/* ---------- color and shape ---------- */
 
 const CORE: { ref: ColorRef; key: string; label: string }[] = [
   { ref: 'primary', key: 'color.primary', label: 'Primary' },
@@ -562,7 +562,7 @@ function StyleMenu({
         {prop === 'fill' && (
           <button
             type="button"
-            title="New colour"
+            title="New color"
             onClick={() => setAdding(true)}
             className="grid size-7 place-items-center rounded-full border border-dashed border-zinc-300 text-zinc-500 transition hover:border-zinc-500 hover:text-zinc-900"
           >
@@ -577,7 +577,7 @@ function StyleMenu({
     <Popover width={300}>
       <Row prop="fill" label="Fill" />
       {base && (
-        // Explore around the chosen colour: lighter mixes of it towards the page.
+        // Explore around the chosen color: lighter mixes of it towards the page.
         <div className="flex items-center gap-1.5 px-2 pb-1.5" onMouseLeave={() => onHover(null)}>
           <span className="w-12 text-[11px] font-medium text-zinc-400">Explore</span>
           {[12, 24, 45, 70].map((m) => {
@@ -678,18 +678,18 @@ function Segmented<T extends string>({ options, value, onHover, onPick }: { opti
   )
 }
 
-/** Add a brand colour to the palette; it becomes a swatch everywhere. */
+/** Add a brand color to the palette; it becomes a swatch everywhere. */
 function NewSwatch({ onDone }: { onDone: (name: string | null) => void }) {
   const [value, setValue] = useState('#7c5cff')
   const [name, setName] = useState('')
   const save = () => {
-    const n = name.trim() || `Colour ${(useStore.getState().guide.swatches?.length ?? 0) + 1}`
+    const n = name.trim() || `Color ${(useStore.getState().guide.swatches?.length ?? 0) + 1}`
     useStore.getState().addSwatch(n, value)
     onDone(n)
   }
   return (
     <div className="mx-2 mb-1.5 flex items-center gap-2 rounded-xl bg-zinc-950/[0.04] p-1.5">
-      <input type="color" value={value} onChange={(e) => setValue(e.target.value)} className="size-7 shrink-0 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Colour" />
+      <input type="color" value={value} onChange={(e) => setValue(e.target.value)} className="size-7 shrink-0 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Color" />
       <input
         autoFocus
         value={name}

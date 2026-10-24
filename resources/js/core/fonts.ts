@@ -1,4 +1,4 @@
-// The font library: a curated set of free fonts, organised by vibe the way
+// The font library: a curated set of free fonts, organized by vibe the way
 // "Usable Google Fonts" sorts them, from Google Fonts, Fontshare (the Indian
 // Type Foundry's free library) and Fontsource (open-source fonts that aren't on
 // Google, served by jsDelivr). It includes the open-source families studios

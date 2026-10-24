@@ -132,7 +132,7 @@ export function snapshotSection(root: Element, opts: SnapshotOptions = {}): Snap
   const MEDIA = new Set(['img', 'picture', 'video', 'iframe', 'canvas', 'object', 'embed'])
   const KEEP_ATTRS = /^(class|id|href|alt|role|aria-[\w-]+|type|name|placeholder|for|checked|open|title|rows|required|autocomplete|data-icon|data-lucide|data-feather|data-testid)$/
 
-  // ---- colours: every colour comes out as rgba(r, g, b, a) ----
+  // ---- colors: every color comes out as rgba(r, g, b, a) ----
   const canvas = doc.createElement('canvas')
   canvas.width = canvas.height = 1
   const ctx = canvas.getContext('2d', { willReadFrequently: true })
@@ -149,7 +149,7 @@ export function snapshotSection(root: Element, opts: SnapshotOptions = {}): Snap
       const a = m[4] === undefined ? 1 : m[4].endsWith('%') ? parseFloat(m[4]) / 100 : parseFloat(m[4])
       out = `rgba(${Math.round(+m[1])}, ${Math.round(+m[2])}, ${Math.round(+m[3])}, ${+a.toFixed(3)})`
     } else if (ctx) {
-      // The canvas parses any CSS colour and hands back sRGB pixels.
+      // The canvas parses any CSS color and hands back sRGB pixels.
       ctx.clearRect(0, 0, 1, 1)
       ctx.fillStyle = 'rgba(0, 0, 0, 0)'
       ctx.fillStyle = c

@@ -34,7 +34,7 @@ export function draftForBlock(slot: Slot, blockId: string, rect: FrameRect, word
   return { slotId: slot.id, rect, anchor: { kind: 'block', slotId: slot.id, clipId: slot.clipId, blockId: b.id, label: b.label, quote }, suggested: quote }
 }
 
-/* ---------- colours ---------- */
+/* ---------- colors ---------- */
 
 export const KIND_TONE: Record<NoteKind, { pin: string; chip: string; dot: string }> = {
   'must-fix': { pin: 'bg-problem text-white', chip: 'bg-problem-soft text-problem-ink', dot: 'bg-problem' },

@@ -23,7 +23,7 @@ export interface SnapEl {
   kids: SnapNode[]
   before?: Decls
   after?: Decls
-  /** Declarations from :hover rules on this element (vars resolved, colours as rgba()). */
+  /** Declarations from :hover rules on this element (vars resolved, colors as rgba()). */
   hover?: Decls
   /** :hover rules on this element that restyle a descendant (`.card:hover .title`). */
   groupHover?: { target: number; decls: Decls }[]

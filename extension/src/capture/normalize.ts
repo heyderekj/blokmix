@@ -11,7 +11,7 @@ const LEAD = new Set(['subhead', 'intro', 'lead'])
 const META = /^(note|meta|p\d+Meta|q\d+Role|m\d+Role)$/
 const BODY = /^(f\d+Body|faq\d+A|t\d+Desc|p\d+Excerpt|stat\d+Label|q\d+Quote)$/
 
-const centred = (el: WEl, within: WEl) => {
+const centered = (el: WEl, within: WEl) => {
   const left = el.rect[0] - within.rect[0]
   const right = within.rect[0] + within.rect[2] - (el.rect[0] + el.rect[2])
   return Math.abs(left - right) < 6
@@ -37,10 +37,10 @@ export function normalize(root: WEl, type: SectionType): { notes: string[] } {
     else if (el.field && META.test(el.field)) give(el, 'meta')
   }
 
-  // The content column: a centred box narrower than the section, holding most of its copy.
+  // The content column: a centered box narrower than the section, holding most of its copy.
   for (let el: WEl | undefined = root; el; ) {
     const kids = els(el)
-    const main = kids.find((k) => k.rect[2] < W - 40 && k.rect[2] > 240 && centred(k, root) && leavesOf(k).length >= leaves.length * 0.6)
+    const main = kids.find((k) => k.rect[2] < W - 40 && k.rect[2] > 240 && centered(k, root) && leavesOf(k).length >= leaves.length * 0.6)
     if (main) {
       give(main, main.rect[2] <= 800 ? 'container narrow' : 'container')
       break
@@ -53,7 +53,7 @@ export function normalize(root: WEl, type: SectionType): { notes: string[] } {
   if (heading) {
     let head: WEl = heading
     for (let p = heading.parent; p && p !== root && !p.role?.startsWith('container') && !heavy(p); p = p.parent) head = p
-    if (head !== heading && leavesOf(head).filter((l) => l.field).length >= 2) give(head, /center/.test(head.s['text-align'] ?? '') || centred(heading, head) ? 'head center' : 'head')
+    if (head !== heading && leavesOf(head).filter((l) => l.field).length >= 2) give(head, /center/.test(head.s['text-align'] ?? '') || centered(heading, head) ? 'head center' : 'head')
   }
 
   // Button rows.
@@ -103,7 +103,7 @@ export function normalize(root: WEl, type: SectionType): { notes: string[] } {
     if (side && (pic(a) !== pic(b)) && (heading ? contains(a, heading) || contains(b, heading) : true)) give(el, 'split')
   }
 
-  // An inset panel in its own colour, holding the section's header.
+  // An inset panel in its own color, holding the section's header.
   for (const el of allEls(root)) {
     if (el.role || !heading || !contains(el, heading) || el.rect[2] < W * 0.6 || el.rect[2] > W - 8) continue
     if (ownBg(el) && px(el.s['padding-top']) >= 24) give(el, 'band')

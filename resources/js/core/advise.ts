@@ -10,7 +10,7 @@ import { effectiveEdit, MOBILE_MAX } from './blocks/style'
  * Where a suggestion comes from. Like ReviseMy's craft lenses, these are our own
  * distillations of public craft sources, not quotes from or endorsed by them:
  * IIDS (Matt D. Smith / Shift Nudge) for hierarchy, spacing and type; Laws of UX
- * for behaviour; Emil Kowalski's design-engineering skill for motion and feel.
+ * for behavior; Emil Kowalski's design-engineering skill for motion and feel.
  */
 export type Lens = 'IIDS' | 'Laws of UX' | 'Motion' | 'Accessibility'
 
@@ -75,7 +75,7 @@ const ord = (id: string) => Number(id.slice(1))
 const CTA = new Set<BlockKind>(['button', 'link'])
 const VAGUE = /^(click here|submit|learn more|read more|more|go|here|ok|continue|button)$/i
 
-/** A palette ref as a hex colour, mixing tints towards the page colour. */
+/** A palette ref as a hex color, mixing tints towards the page color. */
 export function refToHex(ref: ColorRef, tokens: TokenSet, swatches: Swatch[] = []): string | null {
   const [name, mix] = ref.split('/')
   const base = name.startsWith('x:') ? swatches.find((w) => w.name === name.slice(2))?.value : (tokens as Record<string, string>)[`color.${name}`]
@@ -89,7 +89,7 @@ export function refToHex(ref: ColorRef, tokens: TokenSet, swatches: Swatch[] = [
   return `#${a.map((c, i) => Math.round(c * t + b[i] * (1 - t)).toString(16).padStart(2, '0')).join('')}`
 }
 
-/** Which palette colour reads best on a fill: text or page colour. */
+/** Which palette color reads best on a fill: text or page color. */
 export function bestInk(fillHex: string, tokens: TokenSet): ColorRef {
   const onText = contrastRatio(fillHex, tokens['color.text']) ?? 0
   const onBg = contrastRatio(fillHex, tokens['color.bg']) ?? 0

@@ -29,7 +29,7 @@ per-site patch. Re-run with `extension/scripts/recapture.ts` and check `.out/ins
 - **Text overlaps in rows.** Shotbase’s capture rows render a garbled line where a caption and a profile
   card overlap; Graphical’s window text runs into its heading area.
 - **A light nav on a light page disappears.** Shotbase’s dark pill nav came out with white links on a near-white
-  pill in B; colours that only worked over the source’s photo need a contrast check against the new background.
+  pill in B; colors that only worked over the source’s photo need a contrast check against the new background.
 - **Extra list items appear.** C’s feature grid shows a stray seventh card ("Nothing a team tool makes you set
   up first") built from leftover copy.
 

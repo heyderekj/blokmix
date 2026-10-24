@@ -1,5 +1,5 @@
-// Colour maths for capture: parse the snapshot's rgba() values, compare them in
-// OKLab, and write a colour as Blokmix tokens: a token, a color-mix() of two
+// Color maths for capture: parse the snapshot's rgba() values, compare them in
+// OKLab, and write a color as Blokmix tokens: a token, a color-mix() of two
 // tokens, or either at an alpha.
 
 export interface Rgba {
@@ -26,7 +26,7 @@ export function parseColor(v: string | undefined): Rgba | null {
 
 export const toHex = ({ r, g, b }: Rgba) => '#' + [r, g, b].map((c) => Math.round(Math.max(0, Math.min(255, c))).toString(16).padStart(2, '0')).join('')
 
-/** A colour composited over an opaque one. */
+/** A color composited over an opaque one. */
 export function over(top: Rgba, under: Rgba): Rgba {
   const a = top.a
   return { r: top.r * a + under.r * (1 - a), g: top.g * a + under.g * (1 - a), b: top.b * a + under.b * (1 - a), a: 1 }
@@ -86,12 +86,12 @@ const PREFERENCE: ColorToken[] = ['text', 'bg', 'primary', 'on-primary', 'accent
 const v = (t: ColorToken) => `var(--mx-color-${t})`
 
 /**
- * A colour written in tokens. Close to a token: that token. Otherwise the
+ * A color written in tokens. Close to a token: that token. Otherwise the
  * closest mix of two tokens (in 5% steps). Alpha mixes with transparent.
  */
 export class ColorMapper {
   private cache = new Map<string, string>()
-  /** How many colours only roughly matched a token. */
+  /** How many colors only roughly matched a token. */
   approximated = 0
 
   constructor(private palette: Palette) {}
@@ -106,7 +106,7 @@ export class ColorMapper {
     return out
   }
 
-  /** Every colour inside a value (a gradient, a shadow) written in tokens. */
+  /** Every color inside a value (a gradient, a shadow) written in tokens. */
   mapIn(value: string): string {
     return value.replace(COLOR_RE, (c) => this.map(c))
   }
@@ -118,7 +118,7 @@ export class ColorMapper {
 
   private solid(c: Rgba): string {
     let best = { d: Infinity, expr: '' }
-    // On a tie (primary and border can be the same colour) the meaning that travels best wins.
+    // On a tie (primary and border can be the same color) the meaning that travels best wins.
     for (const t of PREFERENCE) {
       const d = dist(c, this.palette[t])
       if (d < best.d) best = { d, expr: v(t) }

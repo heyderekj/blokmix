@@ -98,7 +98,7 @@ export interface ComposeInput {
   library: Library
   slotNotes?: Record<string, string[]>
   title?: string
-  /** Extra brand colours and page-wide block looks from the style guide. */
+  /** Extra brand colors and page-wide block looks from the style guide. */
   page?: Pick<GuideState, 'swatches' | 'components'>
   /** Uploaded images by asset id (data URLs), from the browser's asset store. */
   uploads?: (id: string) => UploadData | undefined

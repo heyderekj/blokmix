@@ -45,7 +45,7 @@ export const TYPE_ICON: Record<SectionType, typeof Star> = {
 
 /**
  * A live, shrunken section that fits its box instead of being cropped: short
- * sections (a nav, a logo row) sit centred on the page colour, tall ones scale
+ * sections (a nav, a logo row) sit centered on the page color, tall ones scale
  * down until they fit, cropping only the very tallest from the top.
  */
 export const Preview = memo(function Preview({

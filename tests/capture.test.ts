@@ -24,7 +24,7 @@ describe('capture: pure helpers', () => {
     accent: hex('#f59e0b'),
   }
 
-  it('writes colours as tokens, mixes and alphas', () => {
+  it('writes colors as tokens, mixes and alphas', () => {
     const m = new ColorMapper(palette)
     expect(m.map('rgba(91, 75, 255, 1)')).toBe('var(--mx-color-primary)')
     expect(m.map('rgba(91, 75, 255, 0.12)')).toBe('color-mix(in oklab, var(--mx-color-primary) 12%, transparent)')
