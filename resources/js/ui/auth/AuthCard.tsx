@@ -82,7 +82,7 @@ export function Submit({ busy, children }: { busy: boolean; children: ReactNode 
     <button
       type="submit"
       disabled={busy}
-      className="mt-1 h-11 w-full cursor-pointer rounded-full bg-[#FF69B4] text-[14px] font-semibold text-[#17121A] transition-[scale,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-[#FF1493]"
+      className="btn-key mt-1 h-11 w-full cursor-pointer rounded-full text-[14px] font-semibold"
     >
       {children}
     </button>

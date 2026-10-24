@@ -279,7 +279,7 @@ function ShipIsland() {
               type="button"
               onClick={() => pressVersionAndFly()}
               title="Save the working mix as a new version (⌘S)"
-              className="btn-lit ml-0.5 flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
+              className="btn-key ml-0.5 flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
             >
               Save version
             </button>
