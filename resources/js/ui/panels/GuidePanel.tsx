@@ -1,25 +1,21 @@
 import { useState } from 'react'
-import { Check, ChevronRight, ClipboardCopy, Plus, RotateCcw, TriangleAlert, X } from 'lucide-react'
+import { Check, ClipboardCopy, Plus, RotateCcw, X } from 'lucide-react'
 import type { BlockKind, ComponentDefault, Conflict, TokenGroup, TokenKey } from '@/core/types'
 import { BLOCK_LABEL } from '@/core/blocks'
 import { findVariant } from '@/core/blocks/variants'
 import { IconGlyph, IconSetPicker } from '../blocks/IconMenu'
-import { groupWinner, openGroups } from '@/core/guide'
-import { TOKEN_GROUPS } from '@/core/types'
+import { groupWinner } from '@/core/guide'
 import { CONTRAST_PAIRS, contrastRatio, expandTokens, GROUP_LABEL, keysInGroup, primaryFamily, TOKEN_LABEL, varsToCss } from '@/core/tokens'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
-import { useLabs } from '@/lib/labs'
-import { GUIDE_VARIANTS } from './guide'
+import { GuideBoard } from './guide/GuideBoard'
 import { FontField } from './FontPicker'
 import { PanelSection } from './parts'
 
-/** The style guide panel: the current design, or a direction being tried in labs (/labs/style-guide). */
+/** The style guide panel: a board of tiles, one per group, that open into their choices and knobs. */
 export function GuidePanel() {
-  const variant = useLabs((s) => s.guide)
-  const Variant = variant === 'now' ? CurrentGuide : GUIDE_VARIANTS[variant]
-  return <Variant />
+  return <GuideBoard />
 }
 
 export function sourceOf(candidateId: string) {
@@ -170,49 +166,6 @@ export function GroupTokens({ group }: { group: TokenGroup }) {
   )
 }
 
-/** The panel as it is today. */
-function CurrentGuide() {
-  const guide = useResolvedGuide()
-  const open = openGroups(guide)
-  return (
-    <div>
-      <div className="px-4 pt-3.5">
-        {open.length ? (
-          <div className="flex items-start gap-2.5 rounded-xl bg-attention-soft p-3 text-[12.5px] leading-snug text-attention-ink">
-            <TriangleAlert size={16} className="mt-px shrink-0 text-attention" />
-            <div>
-              <strong className="font-semibold">
-                {open.length} design decision{open.length > 1 ? 's' : ''}
-              </strong>{' '}
-              ({open.map((g) => GROUP_LABEL[g].toLowerCase()).join(', ')}): your picks disagree. Choose a direction for each; until then the latest
-              promotion wins.
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 rounded-xl bg-done-soft p-3 text-[12.5px] font-medium text-done-ink">
-            <Check size={16} /> One style guide, no contradictions.
-          </div>
-        )}
-      </div>
-
-      {TOKEN_GROUPS.map((g) => (
-        <PanelSection key={g} title={GROUP_LABEL[g]} action={<GroupSummary group={g} tokens={guide.tokens} />}>
-          <GroupDecision group={g} open={open.includes(g)} />
-          <FineTune>
-            <GroupTokens group={g} />
-          </FineTune>
-        </PanelSection>
-      ))}
-
-      <BrandColours />
-      <Components />
-      <Contrast />
-      <Candidates />
-      <CopyFooter />
-    </div>
-  )
-}
-
 export function describeLook(kind: BlockKind, d: ComponentDefault): string {
   const parts: string[] = []
   const v = findVariant(kind, d.variant)
@@ -256,45 +209,6 @@ export function AddSwatch() {
       />
     </span>
   )
-}
-
-/** Token-level knobs stay folded away: most of the time a direction per group is enough. */
-export function FineTune({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div>
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-7 items-center gap-1 rounded-full pr-2 text-[12px] font-medium text-zinc-500 transition hover:text-zinc-900"
-      >
-        <ChevronRight size={14} className={`transition-transform ${open ? 'rotate-90' : ''}`} />
-        Fine-tune
-      </button>
-      {open && <div className="animate-rise pt-2">{children}</div>}
-    </div>
-  )
-}
-
-/** The group's current values at a glance, beside its heading. */
-export function GroupSummary({ group, tokens }: { group: TokenGroup; tokens: Record<TokenKey, string> }) {
-  if (group === 'color')
-    return (
-      <span className="flex -space-x-1">
-        {(['color.bg', 'color.surface', 'color.text', 'color.primary', 'color.accent'] as const).map((k) => (
-          <span key={k} className="size-4 rounded-full ring-2 ring-[var(--lift)]" style={{ background: tokens[k] }} title={`${TOKEN_LABEL[k]} ${tokens[k]}`} />
-        ))}
-      </span>
-    )
-  if (group === 'type')
-    return (
-      <span className="text-[13px] text-zinc-700" style={{ fontFamily: tokens['font.display'], fontWeight: Number(tokens['type.displayWeight']) }}>
-        {primaryFamily(tokens['font.display'])}
-      </span>
-    )
-  const text = group === 'shape' ? `radius ${tokens['radius.base']}` : group === 'space' ? `section ${tokens['space.section']}` : `${tokens['motion.duration']}`
-  return <span className="text-[12px] tabular-nums text-zinc-500">{text}</span>
 }
 
 export function GroupDecision({ group, open }: { group: TokenGroup; open: boolean }) {

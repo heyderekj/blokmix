@@ -8,11 +8,6 @@ use App\Http\Controllers\MixController;
 use App\Http\Controllers\ShareController;
 use Illuminate\Support\Facades\Route;
 
-// Labs: designs being tried on the real app, only on a local machine (a sandboxed demo mix, never saved).
-if (app()->isLocal()) {
-    Route::inertia('/labs/style-guide', 'labs/style-guide');
-}
-
 // Share links work for people who aren't signed in yet (they sign up, then come back here).
 Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join');
 
