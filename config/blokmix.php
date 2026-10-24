@@ -12,4 +12,13 @@ return [
 
     /** Unsplash's access key, kept on the server: the board searches through /api/unsplash. */
     'unsplash_key' => env('UNSPLASH_ACCESS_KEY'),
+
+    /**
+     * Who runs Blokmix: these accounts see the waitlist (/waitlist). Comma-separated emails in BLOKMIX_OWNERS;
+     * without it, Derek's account.
+     */
+    'owners' => array_values(array_filter(array_map(
+        fn ($e) => strtolower(trim($e)),
+        explode(',', (string) env('BLOKMIX_OWNERS', 'derekj@hey.com')),
+    ))),
 ];

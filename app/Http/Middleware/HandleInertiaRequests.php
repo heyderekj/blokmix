@@ -38,7 +38,11 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            'auth' => ['user' => fn () => $request->user()?->only('id', 'name', 'email')],
+            'auth' => [
+                'user' => fn () => $request->user()?->only('id', 'name', 'email'),
+                // Whether this account runs Blokmix (the waitlist link shows for them).
+                'owner' => fn () => (bool) $request->user()?->can('run-blokmix'),
+            ],
             'flash' => fn () => $request->session()->get('flash'),
         ];
     }

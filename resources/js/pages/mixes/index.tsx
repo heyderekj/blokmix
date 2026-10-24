@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { ArrowRight, CloudUpload, Layers, Plus, Trash2, Upload } from 'lucide-react'
+import { ArrowRight, CloudUpload, Layers, Plus, Trash2, Upload, Users } from 'lucide-react'
 import { readMixFile } from '@/lib/mixFile'
 import { importClips } from '@/lib/userClips'
 import { pickFile } from '@/lib/pickFile'
@@ -56,7 +56,8 @@ const ago = (iso: string) => {
 
 /** Every mix you can open: the ones saved here, and the one still kept only in this browser. */
 export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
-  const user = usePage<{ auth: { user: { name: string } | null } }>().props.auth?.user
+  const auth = usePage<{ auth: { user: { name: string } | null; owner?: boolean } }>().props.auth
+  const user = auth?.user
   const local = useMemo(readLocal, [])
   const [moving, setMoving] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
@@ -91,6 +92,14 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         </span>
         {user && (
           <>
+            {auth.owner && (
+              <Link
+                href="/waitlist"
+                className="flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-zinc-600 transition-[background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
+              >
+                <Users size={15} /> Waitlist
+              </Link>
+            )}
             <span className="truncate text-[13px] text-zinc-500 max-sm:hidden">{user.name}</span>
             <button
               type="button"

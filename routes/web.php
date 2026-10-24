@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\UnsplashController;
 use App\Http\Controllers\Api\WaitlistController;
 use App\Http\Controllers\MixController;
 use App\Http\Controllers\ShareController;
+use App\Http\Controllers\WaitlistController as WaitlistPage;
 use Illuminate\Support\Facades\Route;
 
 // Share links work for people who aren't signed in yet (they sign up, then come back here).
@@ -22,6 +23,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/mixes', [MixController::class, 'store'])->name('mixes.store');
     Route::get('/mixes/local', [MixController::class, 'local'])->name('mixes.local');
     Route::get('/mixes/{mix}', [MixController::class, 'show'])->name('mixes.show');
+
+    // The waitlist, for the people who run Blokmix (404 for everyone else).
+    Route::get('/waitlist', [WaitlistPage::class, 'index'])->name('waitlist.index');
+    Route::get('/waitlist/export', [WaitlistPage::class, 'export'])->name('waitlist.export');
+    Route::delete('/waitlist/{id}', [WaitlistPage::class, 'destroy'])->whereNumber('id')->name('waitlist.destroy');
 
     // Where the board saves, and who it's shared with (same session and CSRF protection as the pages).
     Route::prefix('api')->name('api.')->group(function () {

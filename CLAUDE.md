@@ -55,6 +55,8 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Waitlist (`waitlist`, `Api\WaitlistController`): blokmix.com's form posts to `POST /api/waitlist` (public, no CSRF
   token, throttled, a hidden `website` field drops bots). JSON gets `{joined: true}`; a plain form post goes back to
   `/?joined=1#waitlist`. One row per email.
+  The people who run Blokmix (`config('blokmix.owners')`, BLOKMIX_OWNERS, default Derek's account; Gate `run-blokmix`)
+  see it at `/waitlist` (linked from the mixes page): search, copy emails, Export CSV, take someone off. Others get 404.
 - Mixes have members (`mix_members`): owner (shares, deletes), editor (changes anything), viewer (looks and
   leaves marks). Non-members get 404. Share links (`mix_share_links`, `/share/{token}`) add whoever opens them
   with a role (never lowering one); signed-out people sign up first. The Share panel (top bar, hosted only) makes
