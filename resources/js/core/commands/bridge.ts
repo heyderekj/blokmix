@@ -7,12 +7,19 @@ export const BRIDGE_URL = `ws://127.0.0.1:${BRIDGE_PORT}${BRIDGE_PATH}`
 export const COMMAND_TIMEOUTS: Record<string, number> = { prepare_build: 120_000, review: 30_000 }
 export const timeoutFor = (name: string) => COMMAND_TIMEOUTS[name] ?? 15_000
 
-/** Only Blokmix itself, served locally, may connect. */
-export function allowedOrigin(origin: string | undefined): boolean {
+/** Blokmix where it's hosted. Exact origins only: these may drive your local agent bridge from your browser. */
+export const HOSTED_ORIGINS = ['https://blokmix.com', 'https://www.blokmix.com', 'https://blokmix-production-l9esns.laravel.cloud']
+
+/**
+ * Only Blokmix itself may connect: served locally (any port), or from one of its hosted
+ * origins over HTTPS (plus any in `extra`, from BLOKMIX_ORIGINS). Nothing else.
+ */
+export function allowedOrigin(origin: string | undefined, extra: string[] = []): boolean {
   if (!origin) return false
   try {
     const u = new URL(origin)
-    return (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname.endsWith('.localhost')) && (u.protocol === 'http:' || u.protocol === 'https:')
+    if ((u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname.endsWith('.localhost')) && (u.protocol === 'http:' || u.protocol === 'https:')) return true
+    return u.protocol === 'https:' && [...HOSTED_ORIGINS, ...extra].includes(u.origin)
   } catch {
     return false
   }

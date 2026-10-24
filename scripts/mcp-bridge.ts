@@ -77,9 +77,12 @@ function buildMessage(ws: WebSocket, msg: { id: number; build?: { dir: string };
   return false
 }
 
+/** More hosted origins to trust (a preview or staging address), comma-separated: BLOKMIX_ORIGINS=https://… */
+const EXTRA_ORIGINS = (process.env.BLOKMIX_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+
 const wss = new WebSocketServer({ host: '127.0.0.1', port: BRIDGE_PORT, path: BRIDGE_PATH })
 wss.on('connection', (ws, req) => {
-  if (!allowedOrigin(req.headers.origin)) {
+  if (!allowedOrigin(req.headers.origin, EXTRA_ORIGINS)) {
     log(`refused a connection from ${req.headers.origin ?? 'an unknown origin'}`)
     ws.close(1008, 'origin not allowed')
     return
