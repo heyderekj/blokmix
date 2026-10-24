@@ -143,6 +143,12 @@ describe('page commands', () => {
     useStore.temporal.getState().clear()
   })
 
+  it('renames the mix', () => {
+    expect(runCommand('rename_mix', { name: 'blokmix.com' })).toEqual({ name: 'blokmix.com' })
+    expect(useStore.getState().mixName).toBe('blokmix.com')
+    expect(() => runCommand('rename_mix', { name: '  ' })).toThrow()
+  })
+
   it('lists the demo’s pages and reads another page by path', () => {
     const { pages } = runCommand('list_pages', {}) as { pages: { path: string; open: boolean }[] }
     expect(pages.map((p) => p.path)).toEqual(['/', '/about'])

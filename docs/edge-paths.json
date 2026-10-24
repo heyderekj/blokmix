@@ -1,0 +1,5 @@
+{
+  "about": "Paths the edge in front of blokmix.com sends to this app; everything else is the website. `/` goes to the app only with the cookie below (MarkSignedIn). tests/Feature/EdgePathsTest.php fails when a route isn't covered. The blokmix.com repo keeps a copy in worker/edge-paths.json.",
+  "cookie": "blokmix_signed_in",
+  "prefixes": ["/_inertia", "/api", "/build", "/fonts", "/forgot-password", "/login", "/logout", "/mixes", "/register", "/reset-password", "/share", "/storage", "/up", "/user"]
+}

@@ -5,6 +5,7 @@ export const page = z.string().describe('A page: its path ("/about"), title ("Ab
 
 /** The site's pages. The nav and footer are shared by every page; each page can hide them. */
 export const SITE_COMMANDS = {
+  rename_mix: { description: 'Rename the mix (the name on the board, your mixes list and exports).', input: z.object({ name: z.string().trim().min(1).max(120) }), write: true },
   list_pages: {
     description: 'List the site’s pages in order: path, title, how many sections, and whether each shows the shared nav and footer. Which page is open on the canvas.',
     input: z.object({}),

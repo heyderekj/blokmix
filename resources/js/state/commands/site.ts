@@ -26,6 +26,10 @@ export const read = {
 }
 
 export const write = {
+  rename_mix: (i: CommandInput<'rename_mix'>) => {
+    useStore.getState().renameMix(i.name)
+    return { name: useStore.getState().mixName }
+  },
   add_page: (i: CommandInput<'add_page'>) => {
     const st = useStore.getState()
     const t = PAGE_TEMPLATES[i.template ?? 'blank']
