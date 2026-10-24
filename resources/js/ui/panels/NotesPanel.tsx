@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Check, CheckCheck } from 'lucide-react'
 import type { Note, NoteKind, NoteStatus } from '@/core/types'
 import { NOTE_KINDS } from '@/core/types'
-import { KIND_LABEL, STATUS_LABEL, SOURCE_LABEL, isMark, outstanding, sortMarks } from '@/core/notes'
+import { KIND_LABEL, STATUS_LABEL, SOURCE_LABEL, isMark, outstanding, slotOf, sortMarks } from '@/core/notes'
 import { TYPE_LABEL } from '@/core/content'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
@@ -28,7 +28,7 @@ export function NotesPanel() {
 
   const groups = new Map<string, Note[]>()
   for (const m of shown) {
-    const key = 'slotId' in m.anchor ? m.anchor.slotId : 'page'
+    const key = slotOf(m.anchor) ?? 'page'
     groups.set(key, [...(groups.get(key) ?? []), m])
   }
   const order = [...groups.keys()].sort((a, b) => slots.findIndex((s) => s.id === a) - slots.findIndex((s) => s.id === b))
@@ -103,8 +103,9 @@ function Row({ mark }: { mark: Note }) {
   const a = mark.anchor
   const goTo = () => {
     const s = useStore.getState()
-    if ('slotId' in a) {
-      const row = useLayout.getState().rows[a.slotId]
+    const slot = slotOf(a)
+    if (slot) {
+      const row = useLayout.getState().rows[slot]
       const w = VIEW_W[s.ui.viewport]
       if (row) canvasApi.focusRect({ x: -40, y: row.top - 60, w: w + 80, h: Math.min(row.height, 1400) + 120 }, 0.8)
     }

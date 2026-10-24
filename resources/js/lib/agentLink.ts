@@ -31,14 +31,16 @@ function connect() {
     } catch {
       return
     }
-    let reply: { id: number; ok: boolean; result?: unknown; error?: string }
-    try {
-      reply = { id: msg.id, ok: true, result: runCommand(msg.name, msg.input, 'agent') }
-      useAgentLink.setState({ lastCommand: msg.name })
-    } catch (err) {
-      reply = { id: msg.id, ok: false, error: (err as Error).message }
-    }
-    ws?.send(JSON.stringify(reply))
+    // Some commands take a moment (measuring a page, composing a packet): wait for them.
+    Promise.resolve()
+      .then(() => runCommand(msg.name, msg.input, 'agent'))
+      .then(
+        (result) => {
+          useAgentLink.setState({ lastCommand: msg.name })
+          ws?.send(JSON.stringify({ id: msg.id, ok: true, result }))
+        },
+        (err) => ws?.send(JSON.stringify({ id: msg.id, ok: false, error: (err as Error).message })),
+      )
   }
   ws.onclose = () => {
     ws = null

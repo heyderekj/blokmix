@@ -15,9 +15,13 @@ Inertia on Laravel Cloud later.
 
 ## Agents
 
-Everything you can do on the canvas is a command in `resources/js/core/commands/schema.ts`
-(zod schemas → tool definitions), run by `resources/js/state/commands.ts` through the same store
-actions as the UI. Each write is validated and lands as one undo step; agent edits show a toast.
+Everything you can do on the canvas is a command in `resources/js/core/commands/schema/` (zod schemas →
+tool definitions, one file per area: page, blocks, notes, versions), run by `resources/js/state/commands/`
+(`index.ts` runs them; `refs.ts` finds sections, blocks and notes; one module per area) through the same
+store actions as the UI. Each write is validated and lands as one undo step; agent edits show a toast.
+Commands that need a moment (measuring a page, composing a packet) are async: `prepare`, then `apply` as one
+step; the browser link awaits them and the bridge gives them longer (`timeoutFor`). The packet is assembled
+by `lib/packet.ts` `packetInputFor`, shared by the export panel and agent commands.
 - In the browser: `blokmix.tools()` and `blokmix.run(name, input)`.
 - Over MCP: `npm run mcp` starts `scripts/mcp-bridge.ts` (stdio MCP server + a WebSocket on
   127.0.0.1:4317 that only Blokmix's local origins may join). Add it to Claude Code with

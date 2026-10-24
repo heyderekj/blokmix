@@ -1,14 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Check, ChevronDown, ChevronRight, ClipboardCopy, Download, FileCode2, FileJson, FileText, Files, Folder, Layers, StickyNote, SwatchBook } from 'lucide-react'
 import type { BuildTarget } from '@/core/types'
-import { openGroups, resolveGuide } from '@/core/guide'
-import { composePage } from '@/core/compose'
+import { openGroups } from '@/core/guide'
 import { agentPrompt, packetFiles, type PacketInput } from '@/core/export/packet'
 import { zipFiles } from '@/core/export/zip'
-import { uploadData, useAssets } from '@/lib/assets'
+import { useAssets } from '@/lib/assets'
+import { packetInputFor } from '@/lib/packet'
 import { slug } from '@/core/export/astro'
-import { dfsOrder, generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
-import { library } from '@/data/library'
+import { dfsOrder } from '@/core/versions'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { Segmented } from '../shell/TopBar'
@@ -33,34 +32,12 @@ export function PacketPanel() {
   const version = source !== 'mix' ? versions[source] : null
 
   const assets = useAssets((s) => s.assets)
-  const input: PacketInput = useMemo(() => {
-    const snap = version?.snapshot ?? { slots, guide: guideState, content, slotNotes: slotNotesFor(slots, notes), marks: marksFor(slots, notes), generalNotes: generalNotesFor(notes) }
-    const guide = resolveGuide(snap.guide)
-    // Notes pinned on a version frame land in the packet, tagged with the section they sit on.
-    const frameNotes = version
-      ? notes
-          .filter((n) => n.anchor.kind === 'frame' && n.anchor.frameId === version.id && n.text.trim())
-          .map((n) => {
-            const dy = n.anchor.kind === 'frame' ? n.anchor.dy : 0
-            const sec = (sections[version.id] ?? []).find((s) => dy >= s.top && dy < s.top + s.height)
-            const slot = sec && snap.slots.find((s) => s.id === sec.slot)
-            return slot ? `[${slot.type}] ${n.text.trim()}` : n.text.trim()
-          })
-      : []
-    const parent = version?.parentId ? versions[version.parentId] : null
-    return {
-      page: composePage({ slots: snap.slots.filter((s) => library.clips[s.clipId]), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: uploadData }),
-      guide,
-      guideState: snap.guide,
-      library,
-      mixName,
-      version: version ? { id: version.id, letter: version.letter, title: version.title, status: version.status, parentLetter: parent?.letter } : null,
-      targets,
-      notes: [...(snap.generalNotes ?? []), ...frameNotes],
-      // A version's marks live on with the mix, so read them live rather than from the snapshot.
-      marks: version ? marksFor(snap.slots, notes) : snap.marks,
-    }
-  }, [version, versions, slots, guideState, content, notes, sections, mixName, targets, assets])
+  const input: PacketInput = useMemo(
+    () => packetInputFor({ mixName, slots, guide: guideState, content, notes, versions }, { version, targets, sections }),
+    // Uploads load from the browser's store after start-up; rebuild when they arrive.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [version, versions, slots, guideState, content, notes, sections, mixName, targets, assets],
+  )
 
   const files = useMemo(() => packetFiles(input), [input])
   const paths = Object.keys(files)

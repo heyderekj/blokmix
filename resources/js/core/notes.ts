@@ -1,7 +1,7 @@
 // Marks: specific feedback pinned to blocks and areas, with the kinds, statuses
 // and hand-off shape ReviseMy and Koati use, so the three read as siblings.
 
-import type { Note, NoteKind, NoteSource, NoteStatus } from './types'
+import type { Note, NoteAnchor, NoteKind, NoteSource, NoteStatus } from './types'
 
 export const KIND_LABEL: Record<NoteKind, string> = {
   'must-fix': 'Must fix',
@@ -24,7 +24,17 @@ export const STATUS_LABEL: Record<NoteStatus, string> = {
   verified: 'Verified',
 }
 
-export const SOURCE_LABEL: Record<NoteSource, string> = { you: 'You', agent: 'Agent', checklist: 'Checklist' }
+export const SOURCE_LABEL: Record<NoteSource, string> = { you: 'You', agent: 'Agent', checklist: 'Checklist', review: 'Review' }
+
+/** The section a note is about, if it's about one (a mark on a build's preview may not be). */
+export function slotOf(a: NoteAnchor): string | undefined {
+  return 'slotId' in a ? a.slotId : undefined
+}
+
+/** The section of the working mix a note is pinned to: marks on a build's preview belong to that build instead. */
+export function onSection(a: NoteAnchor): string | undefined {
+  return a.kind === 'preview' ? undefined : slotOf(a)
+}
 
 /** Agents can pick work up and say it's done; only a person verifies. */
 export const AGENT_STATUSES: NoteStatus[] = ['in_progress', 'resolved']

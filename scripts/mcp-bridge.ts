@@ -13,7 +13,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 import { toolDefinitions } from '../resources/js/core/commands/schema'
-import { BRIDGE_PORT, BRIDGE_PATH, allowedOrigin } from '../resources/js/core/commands/bridge'
+import { BRIDGE_PORT, BRIDGE_PATH, allowedOrigin, timeoutFor } from '../resources/js/core/commands/bridge'
 
 // stdout belongs to the MCP protocol; anything human goes to stderr.
 const log = (...a: unknown[]) => console.error('[blokmix]', ...a)
@@ -63,7 +63,7 @@ function call(name: string, input: unknown): Promise<unknown> {
     const timer = setTimeout(() => {
       pending.delete(id)
       reject(new Error('Blokmix didn’t answer in time'))
-    }, 15000)
+    }, timeoutFor(name))
     pending.set(id, { resolve, reject, timer })
     tab!.send(JSON.stringify({ id, name, input }))
   })

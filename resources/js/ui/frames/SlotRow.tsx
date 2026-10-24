@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
 import { sectionClip } from '@/core/lists'
+import { onSection } from '@/core/notes'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { frameStateFor, usePageStyle } from '@/state/derived'
@@ -148,7 +149,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
     rowRef.current?.querySelectorAll('iframe').forEach((f) => postState(f.contentWindow, { clearSelection: true }))
   }, [drafting])
   const openNote = useStore((s) => s.ui.openNoteId)
-  const noteOpen = drafting || (!!openNote && notes.some((n) => n.id === openNote && 'slotId' in n.anchor && n.anchor.slotId === slot.id))
+  const noteOpen = drafting || (!!openNote && notes.some((n) => n.id === openNote && onSection(n.anchor) === slot.id))
   const edit = useMemo(
     () => ({
       active: canEdit || noting,

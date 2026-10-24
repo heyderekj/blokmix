@@ -3,7 +3,7 @@ import { create } from 'zustand'
 import { Check, CheckCheck, CornerDownLeft, RotateCcw, Trash2 } from 'lucide-react'
 import type { Note, NoteAnchor, NoteKind, Slot } from '@/core/types'
 import { NOTE_KINDS } from '@/core/types'
-import { KIND_HINT, KIND_LABEL, SOURCE_LABEL, STATUS_LABEL, isMark, replaceWords } from '@/core/notes'
+import { KIND_HINT, KIND_LABEL, SOURCE_LABEL, STATUS_LABEL, isMark, onSection, replaceWords } from '@/core/notes'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
 import { slotClip } from '@/data/library'
 import { useStore } from '@/state/store'
@@ -74,7 +74,7 @@ export function SectionMarks({
   const openId = useStore((s) => s.ui.openNoteId)
   const draft = useMarkDraft((s) => (s.draft?.slotId === slot.id ? s.draft : null))
   const [hovered, setHovered] = useState<string | null>(null)
-  const marks = useMemo(() => notes.filter((n) => isMark(n) && 'slotId' in n.anchor && n.anchor.slotId === slot.id), [notes, slot.id])
+  const marks = useMemo(() => notes.filter((n) => isMark(n) && onSection(n.anchor) === slot.id), [notes, slot.id])
 
   const boxOf = (n: Note): FrameRect | null => {
     const a = n.anchor

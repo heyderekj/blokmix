@@ -28,17 +28,18 @@ import type {
 } from '@/core/types'
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, promote, removeCandidate } from '@/core/guide'
-import { autoTitle, descendants, nextLetter } from '@/core/versions'
 import { library, slotClip } from '@/data/library'
 import { BANNER_ID } from '@/core/banner'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
 import { keepOption, putBackOption, retireOption, showWords } from '@/core/words'
 import { suggestClip } from '@/core/suggest'
 import { BASE_TOKENS } from '@/core/tokens'
-import { initialStatus, nextNumber } from '@/core/notes'
 import { buildSeed } from './seed'
+import { onSection } from '@/core/notes'
+import { uid } from './uid'
+import { versionActions } from './slices/versions'
+import { noteActions } from './slices/notes'
 import { DEFAULT_CONTENT } from '@/core/content'
-import { snapshotOf } from './snapshot'
 
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
@@ -174,7 +175,7 @@ export interface State extends MixData {
   resetDemo: () => void
 }
 
-const uid = (p: string) => `${p}_${Math.random().toString(36).slice(2, 9)}`
+
 
 const DEFAULT_UI: UiState = {
   mode: 'unified',
@@ -426,7 +427,7 @@ export const useStore = create<State>()(
               const i = st.slots.findIndex((s) => s.id === slotId)
               const slots = st.slots.filter((s) => s.id !== slotId)
               const focus = slots[Math.min(i, slots.length - 1)]?.id ?? null
-              return { slots, notes: st.notes.filter((n) => !('slotId' in n.anchor && n.anchor.slotId === slotId)), ui: { ...st.ui, focusedSlotId: focus } }
+              return { slots, notes: st.notes.filter((n) => onSection(n.anchor) !== slotId), ui: { ...st.ui, focusedSlotId: focus } }
             }),
           renameMix: (mixName) => set({ mixName }),
 
@@ -447,119 +448,8 @@ export const useStore = create<State>()(
             })),
           setBrand: (brand) => set((st) => ({ content: { ...st.content, brand } })),
 
-          pressVersion: () => {
-            const st = get()
-            const id = uid('v')
-            const parentId = st.branchFrom && st.versions[st.branchFrom] ? st.branchFrom : null
-            const node: VersionNode = {
-              id,
-              letter: nextLetter(st.versions, parentId),
-              parentId,
-              title: autoTitle(st.slots, library),
-              status: 'in-progress',
-              createdAt: Date.now(),
-              kind: 'snapshot',
-              snapshot: snapshotOf(st),
-            }
-            set({ versions: { ...st.versions, [id]: node }, head: id, ui: { ...st.ui, selectedFrameId: id } })
-            return id
-          },
-          remix: (versionId) => {
-            const v = get().versions[versionId]
-            if (!v) return
-            const snap = structuredClone(v.snapshot)
-            const slots = snap.slots.filter((s) => library.clips[s.clipId])
-            set((st) => ({
-              slots,
-              guide: snap.guide,
-              content: snap.content,
-              branchFrom: v.kind === 'build' ? v.parentId : v.id,
-              head: v.kind === 'build' ? v.parentId : v.id,
-              ui: { ...st.ui, selectedFrameId: 'mix', focusedSlotId: slots[0]?.id ?? null, mode: 'unified' },
-            }))
-          },
-          setStatus: (versionId, status) =>
-            set((st) => (st.versions[versionId] ? { versions: { ...st.versions, [versionId]: { ...st.versions[versionId], status } } } : {})),
-          renameVersion: (versionId, title) =>
-            set((st) => (st.versions[versionId] ? { versions: { ...st.versions, [versionId]: { ...st.versions[versionId], title } } } : {})),
-          deleteVersion: (versionId) =>
-            set((st) => {
-              const gone = new Set([versionId, ...descendants(st.versions, versionId)])
-              const versions = Object.fromEntries(Object.entries(st.versions).filter(([id]) => !gone.has(id)))
-              return {
-                versions,
-                notes: st.notes.filter((n) => !(n.anchor.kind === 'frame' && gone.has(n.anchor.frameId))),
-                branchFrom: st.branchFrom && gone.has(st.branchFrom) ? null : st.branchFrom,
-                head: st.head && gone.has(st.head) ? null : st.head,
-                ui: { ...st.ui, selectedFrameId: gone.has(st.ui.selectedFrameId ?? '') ? null : st.ui.selectedFrameId, packetSource: gone.has(st.ui.packetSource) ? 'mix' : st.ui.packetSource },
-              }
-            }),
-          startBuild: (versionId, target, agentName = 'Claude') => {
-            const st = get()
-            const parent = st.versions[versionId]
-            const id = uid('b')
-            const node: VersionNode = {
-              id,
-              letter: nextLetter(st.versions, versionId),
-              parentId: versionId,
-              title: `${target === 'astro' ? 'Astro' : 'Next.js'} build`,
-              status: 'in-progress',
-              createdAt: Date.now(),
-              kind: 'build',
-              snapshot: structuredClone(parent.snapshot),
-              build: { by: 'reference', agentName, target, steps: [], done: false },
-            }
-            set({ versions: { ...st.versions, [id]: node }, agent: { versionId: id, name: agentName, step: 0 } })
-            return id
-          },
-          updateBuild: (buildId, patch, status) =>
-            set((st) => {
-              const v = st.versions[buildId]
-              if (!v?.build) return {}
-              return { versions: { ...st.versions, [buildId]: { ...v, status: status ?? v.status, build: { ...v.build, ...patch } } } }
-            }),
-          setAgent: (agent) => set((st) => ({ agent: { ...st.agent, ...agent } })),
-          moveFrame: (frameId, x, y) => set((st) => ({ framePos: { ...st.framePos, [frameId]: { x, y } } })),
-
-          addNote: (anchor, color = 'yellow') => {
-            const id = uid('n')
-            set((st) => ({ notes: [...st.notes, { id, text: '', color, anchor, createdAt: Date.now() }], ui: { ...st.ui, editingNoteId: id, tool: 'select' } }))
-            return id
-          },
-          updateNote: (id, patch) => set((st) => ({ notes: st.notes.map((n) => (n.id === id ? { ...n, ...patch } : n)) })),
-          deleteNote: (id) => set((st) => ({ notes: st.notes.filter((n) => n.id !== id), ui: { ...st.ui, openNoteId: st.ui.openNoteId === id ? null : st.ui.openNoteId } })),
-          addMark: ({ anchor, kind, text, suggestedCopy, source = 'you', author }) => {
-            const id = uid('mark')
-            set((st) => ({
-              notes: [
-                ...st.notes,
-                {
-                  id,
-                  text,
-                  color: 'yellow',
-                  anchor,
-                  createdAt: Date.now(),
-                  kind,
-                  status: initialStatus(kind),
-                  source,
-                  author: author ?? (source === 'you' ? st.ui.myName : source === 'agent' ? 'Agent' : 'Checklist'),
-                  number: nextNumber(st.notes),
-                  suggestedCopy: suggestedCopy?.trim() || undefined,
-                },
-              ],
-            }))
-            return id
-          },
-          setMarkStatus: (id, status, resolution) =>
-            set((st) => ({ notes: st.notes.map((n) => (n.id === id ? { ...n, status, ...(resolution !== undefined ? { resolution: resolution || undefined } : {}) } : n)) })),
-          replyToMark: (id, text, source = 'you', author) =>
-            set((st) => ({
-              notes: st.notes.map((n) =>
-                n.id === id
-                  ? { ...n, replies: [...(n.replies ?? []), { id: uid('r'), text, source, author: author ?? (source === 'you' ? st.ui.myName : 'Agent'), at: Date.now() }] }
-                  : n,
-              ),
-            })),
+          ...versionActions(set, get),
+          ...noteActions(set),
 
           setUi: (patch) => set((st) => ({ ui: { ...st.ui, ...patch } })),
           setCamera: (camera) => set({ camera }),

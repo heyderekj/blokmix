@@ -1,6 +1,7 @@
-import type { BlockEdit, Note } from '../types'
+import type { Note } from '../types'
 import { MARK_GUIDANCE, workPackets, type WorkItem } from '../notes'
-import { describeBlockMotion, describeSectionMotion } from '../motion'
+import { describeSectionMotion } from '../motion'
+import { describeEdit } from './describe'
 import { PACK_CREDIT, iconSet } from '../icons'
 import type { BuildTarget, GuideState, Library, ResolvedGuide, Status } from '../types'
 import type { ComposedPage } from '../compose'
@@ -293,16 +294,6 @@ export function packetFiles(i: PacketInput): FileMap {
   if (i.targets.includes('astro')) Object.assign(files, astroFiles(i.page))
   if (i.targets.includes('next')) Object.assign(files, nextFiles(i.page))
   return files
-}
-
-function describeEdit(e: BlockEdit): string {
-  if (e.hidden) return 'hidden; leave it out'
-  const parts: string[] = []
-  if (e.variant) parts.push(`${e.variant} look`)
-  const m = describeBlockMotion(e.motion)
-  if (m) parts.push(m)
-  for (const [k, v] of Object.entries(e.style ?? {}) as [string, string | undefined][]) if (v) parts.push(`${k} ${v.replace('x:', 'brand colour ')}`)
-  return `${parts.join(', ')} (the section CSS has it in @layer blocks)`
 }
 
 function packetsOf(i: PacketInput) {

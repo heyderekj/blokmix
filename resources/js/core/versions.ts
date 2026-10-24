@@ -1,5 +1,6 @@
 import type { Library, Note, Slot, MixSnapshot, VersionNode } from './types'
 import { stableStringify } from './hash'
+import { slotOf } from './notes'
 
 export function letterFor(index: number): string {
   let n = index
@@ -60,7 +61,10 @@ export function generalNotesFor(notes: Note[]): string[] {
 /** Marks that belong to these sections (or the whole page). */
 export function marksFor(slots: Slot[], notes: Note[]): Note[] {
   const ids = new Set(slots.map((s) => s.id))
-  return notes.filter((n) => n.kind && (n.anchor.kind === 'page' || ('slotId' in n.anchor && ids.has(n.anchor.slotId))))
+  return notes.filter((n) => {
+    const slot = slotOf(n.anchor)
+    return n.kind && (n.anchor.kind === 'page' || (slot !== undefined && ids.has(slot)))
+  })
 }
 
 /** A short, playful auto-title from the sources used, e.g. "Monolith × Marginalia × Puffin". */

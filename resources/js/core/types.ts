@@ -210,7 +210,8 @@ export type NoteKind = (typeof NOTE_KINDS)[number]
 /** open → in_progress (agent working) → resolved (agent says done) → verified (only a person). */
 export const NOTE_STATUSES = ['open', 'in_progress', 'resolved', 'verified'] as const
 export type NoteStatus = (typeof NOTE_STATUSES)[number]
-export type NoteSource = 'you' | 'agent' | 'checklist'
+/** Who left it: you, an agent, the design checklist, or a review (ReviseMy) brought back in. */
+export type NoteSource = 'you' | 'agent' | 'checklist' | 'review'
 
 export interface NoteReply {
   id: string
@@ -241,6 +242,8 @@ export interface Note {
   /** What was done, when an agent resolves it. */
   resolution?: string
   replies?: NoteReply[]
+  /** A mark that came from a review elsewhere (ReviseMy), so fixes can be mirrored back to it. */
+  external?: { tool: 'revisemy'; reviewId: string; markId: string }
 }
 export type NoteColor = 'yellow' | 'pink' | 'blue' | 'green'
 export type NoteAnchor =
@@ -255,6 +258,11 @@ export type NoteAnchor =
   | { kind: 'area'; slotId: string; clipId: string; rect: { x: number; y: number; w: number; h: number } }
   /** The whole page. */
   | { kind: 'page' }
+  /**
+   * A point (or area) on a build's live preview, as fractions of the page at a width, for marks
+   * brought back from a review. `slotId` when it could be traced to a section.
+   */
+  | { kind: 'preview'; versionId: string; width: number; x: number; y: number; w?: number; h?: number; slotId?: string; pagePath?: string }
 
 export interface MixSnapshot {
   slots: Slot[]
@@ -290,7 +298,13 @@ export interface VersionNode {
     previewUrl?: string
     steps: string[]
     done: boolean
+    /** Where an agent build's packet was written. */
+    dir?: string
+    /** The preview's full height, by page path, so its frame is the right size. */
+    previewHeight?: Record<string, number>
   }
+  /** A review of this version elsewhere (ReviseMy), whose marks come back as notes. */
+  review?: { tool: 'revisemy'; id: string; url: string; status: string; syncedAt: number }
 }
 
 /**
@@ -354,6 +368,8 @@ export type SectionSpace = 'none' | 'tight' | 'default' | 'roomy'
 export interface SectionSpacing {
   top?: SectionSpace
   bottom?: SectionSpace
+  /** Different spacing at phone widths (≤760px). */
+  mobile?: { top?: SectionSpace; bottom?: SectionSpace }
 }
 
 export const ENTER_PRESETS = ['rise', 'fade', 'pop', 'drop', 'slide', 'blur'] as const
@@ -451,7 +467,12 @@ export interface BlockEdit {
   /** Links and buttons: where they lead (absent = from their words, else nowhere). */
   link?: LinkTarget
   hidden?: boolean
+  /** Phone widths (≤760px) only: spacing and hiding that differ from desktop. */
+  mobile?: { style?: MobileSpacing; hidden?: boolean }
 }
+
+/** The spacing a block can have differently on phones. */
+export type MobileSpacing = Pick<BlockStyle, 'padding' | 'above' | 'below' | 'gap'>
 
 /** Where a link leads. */
 export type LinkTarget =
