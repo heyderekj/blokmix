@@ -6,6 +6,7 @@ use App\Enums\MixRole;
 use App\Models\Mix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,20 +16,47 @@ use Inertia\Response;
  */
 class MixController extends Controller
 {
+    /**
+     * Your mixes as a gallery: enough of each to draw it small (the first page's sections and the style guide, resolved
+     * in the browser), its versions' letters and statuses, open marks, and who owns the ones shared with you.
+     */
     public function index(Request $request): Response
     {
+        $mixes = $request->user()->mixes()->withCount('versions')->latest('updated_at')
+            ->get(['mixes.id', 'mixes.short', 'mixes.name', 'mixes.updated_at', 'mixes.data']);
+        $ids = $mixes->pluck('id');
+        $heads = DB::table('mix_versions')->whereIn('mix_id', $ids)->orderBy('letter')
+            ->get(['mix_id', 'letter', 'node->status as status'])->groupBy('mix_id');
+        $owners = DB::table('mix_members')->join('users', 'users.id', '=', 'mix_members.user_id')
+            ->whereIn('mix_id', $ids)->where('role', MixRole::Owner->value)->pluck('users.name', 'mix_id');
+
         return Inertia::render('mixes/index', [
-            'mixes' => $request->user()->mixes()
-                ->withCount('versions')
-                ->latest('updated_at')
-                ->get(['mixes.id', 'mixes.name', 'mixes.updated_at'])
-                ->map(fn (Mix $m) => [
+            'mixes' => $mixes->map(function (Mix $m) use ($heads, $owners) {
+                $site = $m->data['site'] ?? null;
+                $page = $site['pages'][0] ?? null;
+                $sections = collect($page['slots'] ?? [])->pluck('type');
+                if ($page && ($page['show']['nav'] ?? true) && isset($site['shared']['nav'])) {
+                    $sections->prepend($site['shared']['nav']['type'] ?? 'nav');
+                }
+                if ($page && ($page['show']['footer'] ?? true) && isset($site['shared']['footer'])) {
+                    $sections->push($site['shared']['footer']['type'] ?? 'footer');
+                }
+
+                return [
                     'id' => $m->id,
+                    'short' => $m->short,
                     'name' => $m->name,
                     'updated_at' => $m->updated_at,
                     'versions' => $m->versions_count,
                     'role' => $m->pivot->role,
-                ]),
+                    'owner' => $owners[$m->id] ?? null,
+                    'pages' => count($site['pages'] ?? []),
+                    'sections' => $sections->filter()->values(),
+                    'guide' => $m->data['guide'] ?? null,
+                    'heads' => ($heads[$m->id] ?? collect())->map(fn ($v) => ['letter' => $v->letter, 'status' => $v->status ?? 'in-progress'])->values(),
+                    'marks' => collect($m->data['notes'] ?? [])->filter(fn ($n) => in_array($n['status'] ?? 'open', ['open', 'in_progress'], true))->count(),
+                ];
+            }),
         ]);
     }
 
@@ -43,6 +71,14 @@ class MixController extends Controller
         abort_unless($role, 404);
 
         return Inertia::render('mixes/show', ['mix' => $mix->load('versions')->toBoard(), 'role' => $role->value]);
+    }
+
+    /** An old /mixes/{ulid} address: forward to the mix's short one (members only, like the board). */
+    public function moved(Request $request, Mix $mix): RedirectResponse
+    {
+        abort_unless($mix->roleOf($request->user()), 404);
+
+        return redirect()->route('mixes.show', $mix, 301);
     }
 
     /** A new, blank mix you own; the board fills it in on first save. */

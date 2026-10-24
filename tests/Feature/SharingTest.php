@@ -52,7 +52,7 @@ class SharingTest extends TestCase
         $this->get($url)->assertRedirect('/register');
         $this->post('/register', ['name' => 'Grace', 'email' => 'grace@example.test', 'password' => 'a-long-password-1', 'password_confirmation' => 'a-long-password-1'])
             ->assertRedirect($url);
-        $this->get($url)->assertRedirect("/mixes/{$this->mix->id}");
+        $this->get($url)->assertRedirect("/{$this->mix->short}");
 
         $grace = User::where('email', 'grace@example.test')->sole();
         $this->assertSame(MixRole::Editor, $this->mix->roleOf($grace));
@@ -79,7 +79,7 @@ class SharingTest extends TestCase
     {
         $viewer = User::factory()->create();
         $this->mix->admit($viewer, MixRole::Viewer);
-        $this->actingAs($viewer)->get("/mixes/{$this->mix->id}")->assertInertia(fn (Assert $page) => $page->where('role', 'viewer'));
+        $this->actingAs($viewer)->get("/{$this->mix->short}")->assertInertia(fn (Assert $page) => $page->where('role', 'viewer'));
 
         $this->putJson("/api/mixes/{$this->mix->id}", [
             'name' => 'Renamed by a viewer',
@@ -109,7 +109,7 @@ class SharingTest extends TestCase
         $this->postJson("/api/mixes/{$this->mix->id}/share/links", ['role' => 'owner'])->assertUnprocessable();
         $this->deleteJson("/api/mixes/{$this->mix->id}/share/members/{$this->owner->id}")->assertStatus(422);
         $this->deleteJson("/api/mixes/{$this->mix->id}/share/members/{$editor->id}")->assertNoContent();
-        $this->actingAs($editor)->get("/mixes/{$this->mix->id}")->assertNotFound();
+        $this->actingAs($editor)->get("/{$this->mix->short}")->assertNotFound();
     }
 
     public function test_a_share_link_says_which_mix_on_sign_up(): void

@@ -1,5 +1,6 @@
 {
-  "about": "Paths the edge in front of blokmix.com sends to this app; everything else is the website. `/` goes to the app only with the cookie below (MarkSignedIn). tests/Feature/EdgePathsTest.php fails when a route isn't covered. The blokmix.com repo keeps a copy in worker/edge-paths.json.",
+  "about": "Paths the edge in front of blokmix.com sends to this app; everything else is the website. `patterns` are whole paths the app answers too: a mix's short address (blokmix.com/k3x9, Mix::SHORT_PATTERN). `/` goes to the app only with the cookie below (MarkSignedIn). tests/Feature/EdgePathsTest.php fails when a route isn't covered. The blokmix.com repo keeps a copy in worker/edge-paths.json.",
   "cookie": "blokmix_signed_in",
-  "prefixes": ["/_inertia", "/api", "/build", "/fonts", "/forgot-password", "/login", "/logout", "/mixes", "/register", "/reset-password", "/share", "/storage", "/up", "/user", "/waitlist"]
+  "prefixes": ["/_inertia", "/api", "/build", "/fonts", "/forgot-password", "/local", "/login", "/logout", "/mixes", "/register", "/reset-password", "/share", "/storage", "/up", "/user", "/waitlist"],
+  "patterns": ["^/(?=[a-z0-9]*[0-9])[a-z0-9]{4,8}$"]
 }

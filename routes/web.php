@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\Api\UnsplashController;
 use App\Http\Controllers\Api\WaitlistController;
 use App\Http\Controllers\MixController;
+use App\Models\Mix;
 use App\Http\Controllers\ShareController;
 use App\Http\Controllers\WaitlistController as WaitlistPage;
 use Illuminate\Support\Facades\Route;
@@ -21,8 +22,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [MixController::class, 'index'])->name('mixes.index');
     Route::redirect('/mixes', '/');
     Route::post('/mixes', [MixController::class, 'store'])->name('mixes.store');
-    Route::get('/mixes/local', [MixController::class, 'local'])->name('mixes.local');
-    Route::get('/mixes/{mix}', [MixController::class, 'show'])->name('mixes.show');
+    // A mix lives at its short address (blokmix.com/k3x9, the route last in this file); the old addresses forward there.
+    Route::get('/local', [MixController::class, 'local'])->name('mixes.local');
+    Route::permanentRedirect('/mixes/local', '/local');
+    Route::get('/mixes/{mix}', [MixController::class, 'moved'])->whereUlid('mix');
 
     // The waitlist, for the people who run Blokmix (404 for everyone else).
     Route::get('/waitlist', [WaitlistPage::class, 'index'])->name('waitlist.index');
@@ -54,3 +57,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/mixes/{mix}/share/members/{user}', [ShareController::class, 'removeMember'])->name('share.members.destroy');
     });
 });
+
+// A mix at its short address. Last, so named paths (/login, /waitlist…) always win; the pattern needs a digit.
+Route::middleware('auth')->get('/{mix:short}', [MixController::class, 'show'])->where('mix', Mix::SHORT_PATTERN)->name('mixes.show');

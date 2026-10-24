@@ -40,7 +40,7 @@ export function AuthCard({ title, lede, onSubmit, children, footer }: { title: s
 }
 
 /** The lifted block: tilted −9° toward a top-left light, with its side and shadow. */
-function LiftedBlock({ size, className = '', style }: { size: number; className?: string; style?: CSSProperties }) {
+export function LiftedBlock({ size, className = '', style }: { size: number; className?: string; style?: CSSProperties }) {
   return (
     <span aria-hidden className={`pointer-events-none absolute ${className}`} style={{ width: size, height: size, ...style }}>
       <span className="absolute inset-0 translate-x-[8%] translate-y-[10%] -rotate-[9deg] rounded-[22%] bg-[rgb(23_18_26/0.16)] blur-[6px]" />
@@ -53,7 +53,7 @@ function LiftedBlock({ size, className = '', style }: { size: number; className?
 }
 
 /** The slot carved into the canvas, where the block came from. */
-function Slot({ size, className = '' }: { size: number; className?: string }) {
+export function Slot({ size, className = '' }: { size: number; className?: string }) {
   return (
     <span
       aria-hidden

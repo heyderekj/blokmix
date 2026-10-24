@@ -57,6 +57,7 @@ class MixesTest extends TestCase
         $theirs->admit(User::factory()->create(), MixRole::Owner);
 
         $this->get('/')->assertInertia(fn (Assert $page) => $page->has('mixes', 0));
+        $this->get("/{$theirs->short}")->assertNotFound();
         $this->get("/mixes/{$theirs->id}")->assertNotFound();
         $this->getJson("/api/mixes/{$theirs->id}")->assertNotFound();
         $this->putJson("/api/mixes/{$theirs->id}", ['name' => 'Mine now'], ['If-Match' => '"1"'])->assertNotFound();
@@ -80,18 +81,62 @@ class MixesTest extends TestCase
         $response = $this->post('/mixes');
         $mix = Mix::sole();
         $this->assertSame(MixRole::Owner, $mix->roleOf($this->me));
-        $response->assertRedirect("/mixes/{$mix->id}");
+        $response->assertRedirect("/{$mix->short}");
         $this->assertNull($mix->data);
 
-        $this->get("/mixes/{$mix->id}")
+        $this->get("/{$mix->short}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('mixes/show')->where('mix.id', $mix->id)->where('mix.lock', 1)->where('mix.data', null)->where('role', 'owner'));
     }
 
     public function test_the_browser_mix_still_opens(): void
     {
-        $this->get('/mixes/local')->assertInertia(fn (Assert $page) => $page->component('mixes/show')->where('mix.id', 'local'));
+        $this->get('/local')->assertInertia(fn (Assert $page) => $page->component('mixes/show')->where('mix.id', 'local'));
+        $this->get('/mixes/local')->assertRedirect('/local');
         $this->get('/mixes/nope')->assertNotFound();
+        $this->get('/k3x8')->assertNotFound();
+    }
+
+    public function test_a_mix_lives_at_a_short_address(): void
+    {
+        $mix = $this->mine(['name' => 'Short']);
+        $this->assertMatchesRegularExpression('/^'.Mix::SHORT_PATTERN.'$/', $mix->short);
+        $this->assertSame(4, strlen($mix->short));
+        $this->assertMatchesRegularExpression('/[0-9]/', $mix->short);
+        $this->assertDoesNotMatchRegularExpression('/[ilo01]/', $mix->short);
+
+        // Old addresses forward to it, for members only.
+        $this->get("/mixes/{$mix->id}")->assertStatus(301)->assertRedirect("/{$mix->short}");
+        $this->get("/{$mix->short}")->assertInertia(fn (Assert $page) => $page->where('mix.short', $mix->short)->where('mix.id', $mix->id));
+        // Words never match (no digit), so they stay the website's.
+        $this->get('/about')->assertNotFound();
+    }
+
+    public function test_the_gallery_gets_enough_to_draw_each_mix(): void
+    {
+        $mix = $this->mine(['name' => 'Drawn', 'data' => [
+            'site' => [
+                'pages' => [['id' => 'p1', 'path' => '/', 'title' => 'Home', 'show' => ['nav' => true, 'footer' => false], 'slots' => [['type' => 'hero'], ['type' => 'features']]]],
+                'shared' => ['nav' => ['type' => 'nav'], 'footer' => ['type' => 'footer']],
+            ],
+            'guide' => ['base' => ['color.primary' => '#ff69b4'], 'candidates' => [], 'choices' => []],
+            'notes' => [['status' => 'open'], ['status' => 'resolved']],
+        ]]);
+        $mix->versions()->create(['key' => 'v_A', 'letter' => 'A', 'node' => [...$this->node('A'), 'status' => 'approved']]);
+
+        $this->get('/')->assertInertia(fn (Assert $page) => $page
+            ->where('mixes.0.short', $mix->short)
+            ->where('mixes.0.sections', ['nav', 'hero', 'features'])
+            ->where('mixes.0.pages', 1)
+            ->where('mixes.0.guide.base', ['color.primary' => '#ff69b4'])
+            ->where('mixes.0.heads', [['letter' => 'A', 'status' => 'approved']])
+            ->where('mixes.0.marks', 1));
+    }
+
+    public function test_short_addresses_are_unique(): void
+    {
+        $shorts = collect(range(1, 40))->map(fn () => $this->mine(['name' => 'Many'])->short);
+        $this->assertCount(40, $shorts->unique());
     }
 
     public function test_saving_a_browser_mix_keeps_its_versions(): void

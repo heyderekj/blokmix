@@ -90,7 +90,7 @@ export function StatusMenu({ status, onChange, trigger }: { status: Status; onCh
           e.stopPropagation()
           setOpen((o) => !o)
         }}
-        className={trigger ? 'block rounded-full transition active:scale-[0.97]' : 'grid size-8 place-items-center rounded-full transition hover:bg-zinc-950/5 active:scale-[0.97]'}
+        className={trigger ? 'group/status block rounded-full transition active:scale-[0.97]' : 'grid size-8 place-items-center rounded-full transition hover:bg-zinc-950/5 active:scale-[0.97]'}
         style={trigger ? undefined : { color: meta.color }}
       >
         {trigger ?? <Icon size={16} strokeWidth={2.25} />}
@@ -266,17 +266,20 @@ export function OverflowMenu({ items }: { items: MenuItem[] }) {
   )
 }
 
-/** The version letter wearing its status as a ring: dashed while in progress, solid after, with a badge once it's been judged. */
-export function StatusRing({ letter, status }: { letter: string; status: Status }) {
+/**
+ * The version letter wearing its status as a ring: dashed while in progress (turning only while you point at it), solid
+ * after, with a badge once it's been judged. `small` is the gallery's size.
+ */
+export function StatusRing({ letter, status, small }: { letter: string; status: Status; small?: boolean }) {
   const m = STATUS_META[status]
   const dashed = status === 'in-progress'
   const badge = status === 'ready' || status === 'changes' || status === 'approved'
   return (
-    <span className="relative grid size-10 shrink-0 place-items-center">
-      <svg viewBox="0 0 40 40" className={`absolute inset-0 transition-transform ${dashed ? 'animate-[spin_6s_linear_infinite]' : ''}`} aria-hidden>
+    <span className={`relative grid shrink-0 place-items-center ${small ? 'size-7' : 'size-10'}`}>
+      <svg viewBox="0 0 40 40" className={`absolute inset-0 transition-transform ${dashed ? 'group-hover/status:animate-[spin_6s_linear_infinite] motion-reduce:!animate-none' : ''}`} aria-hidden>
         <circle cx="20" cy="20" r="18" fill="var(--lift)" stroke={m.color} strokeWidth="2.5" strokeDasharray={dashed ? '5 4' : undefined} />
       </svg>
-      <span className="relative text-[15px] font-bold text-zinc-900">{letter}</span>
+      <span className={`relative font-bold text-zinc-900 ${small ? 'text-[11.5px]' : 'text-[15px]'}`}>{letter}</span>
       <AnimatePresence>
         {badge && (
           <motion.span
@@ -285,10 +288,10 @@ export function StatusRing({ letter, status }: { letter: string; status: Status 
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.6, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 600, damping: 26 }}
-            className="absolute -bottom-0.5 -right-0.5 grid size-4 place-items-center rounded-full text-white ring-2 ring-[var(--lift)]"
+            className={`absolute -bottom-0.5 -right-0.5 grid place-items-center rounded-full text-white ring-2 ring-[var(--lift)] ${small ? 'size-3' : 'size-4'}`}
             style={{ background: m.color }}
           >
-            <m.icon size={10} strokeWidth={3} />
+            <m.icon size={small ? 8 : 10} strokeWidth={3} />
           </motion.span>
         )}
       </AnimatePresence>

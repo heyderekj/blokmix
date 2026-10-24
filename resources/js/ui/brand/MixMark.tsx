@@ -1,7 +1,7 @@
 import type { SectionType } from '@/core/types'
 
 /** Roughly how tall each kind of section is, so the mark reads as the page's silhouette. */
-const WEIGHT: Record<SectionType, number> = {
+export const WEIGHT: Record<SectionType, number> = {
   nav: 1,
   hero: 4,
   header: 2.5,
