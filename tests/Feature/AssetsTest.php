@@ -76,6 +76,8 @@ class AssetsTest extends TestCase
     {
         config(['blokmix.uploads_disk' => 'local']);
         $this->app->detectEnvironment(fn () => 'production');
+        // (Production turns CSRF checks back on; this test is about the disk.)
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
         $this->actingAs($this->owner)->upload()->assertStatus(503);
     }
 }
