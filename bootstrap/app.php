@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RequirePassword;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,9 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [
+        $middleware->web(prepend: [
+            RequirePassword::class,
+        ], append: [
             HandleInertiaRequests::class,
         ]);
+        // Laravel Cloud terminates HTTPS in front of the app.
+        $middleware->trustProxies(at: '*');
         // A mix is saved exactly as the board sends it: words keep their spaces, and empty words stay empty.
         $saves = fn (Request $request) => $request->is('api/*');
         $middleware->trimStrings(except: [$saves]);
