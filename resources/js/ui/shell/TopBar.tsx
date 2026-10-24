@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Bot, CircleHelp, Eye, LayoutGrid, LogOut, Users, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
-import { useStore, undo, redo, type Sheet } from '@/state/store'
+import { Bot, CircleHelp, Download, Eye, LayoutGrid, LogOut, Upload, Users, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
+import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
+import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
+import { pickFile } from '@/lib/pickFile'
 import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
 import { pressVersionAndFly } from '@/lib/actions'
@@ -95,6 +97,24 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
             <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
           </>
         )}
+        <MenuItem icon={Download} label="Export mix as a file" onClick={() => (st().setUi({ sheet: 'none' }), downloadMix())} />
+        {!isHosted() && (
+          <MenuItem
+            icon={Upload}
+            label="Import a mix file…"
+            onClick={() =>
+              pickFile('.json,application/json', async (f) => {
+                try {
+                  const file = await readMixFile(f)
+                  if (window.confirm(`Replace the mix in this browser with “${file.name}”? Export this one first if you want to keep it.`)) replaceLocalMix(file, STORAGE_KEY)
+                } catch (e) {
+                  st().showFlash(e instanceof Error ? e.message : String(e))
+                }
+              })
+            }
+          />
+        )}
+        <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         <MenuItem icon={Undo2} label="Undo" kbd="⌘Z" onClick={undo} />
         <MenuItem icon={Redo2} label="Redo" kbd="⇧⌘Z" onClick={redo} />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />

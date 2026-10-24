@@ -161,6 +161,18 @@ export async function addImage(file: Blob, name = 'image'): Promise<Asset> {
   return asset
 }
 
+/** Store uploads that came from elsewhere (an imported mix file, another device). */
+export async function putAssets(list: Asset[]) {
+  if (!list.length) return
+  for (const a of list) await tx('readwrite', (s) => s.put(a))
+  useAssets.setState((st) => ({ assets: { ...st.assets, ...Object.fromEntries(list.map((a) => [a.id, a])) } }))
+}
+
+/** The uploads a mix refers to (in its blocks' fills, thumbnails and versions). */
+export function assetIdsIn(value: unknown): string[] {
+  return [...new Set(JSON.stringify(value ?? null).match(/\b(?:img|vid|lot)_[a-z0-9]{8}\b/g) ?? [])]
+}
+
 export async function removeAsset(id: string) {
   await tx('readwrite', (s) => s.delete(id))
   useAssets.setState((st) => {

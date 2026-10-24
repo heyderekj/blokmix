@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { ArrowRight, CloudUpload, Layers, Plus, Trash2 } from 'lucide-react'
+import { ArrowRight, CloudUpload, Layers, Plus, Trash2, Upload } from 'lucide-react'
+import { readMixFile } from '@/lib/mixFile'
+import { pickFile } from '@/lib/pickFile'
 import type { Site, Slot, VersionNode } from '@/core/types'
 import { STORAGE_KEY } from '@/state/store'
 import { api, type ServerMix } from '@/lib/mixSync'
@@ -56,6 +58,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
   const user = usePage<{ auth: { user: { name: string } | null } }>().props.auth?.user
   const local = useMemo(readLocal, [])
   const [moving, setMoving] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
   const mine = mixes.filter((m) => m.role === 'owner')
   const shared = mixes.filter((m) => m.role !== 'owner')
 
@@ -102,6 +105,30 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
       <main className="mx-auto max-w-3xl px-6 pb-24 pt-8">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-[28px] font-semibold tracking-tight text-balance text-zinc-900">Your mixes</h1>
+          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={moving}
+            onClick={() =>
+              pickFile('.json,application/json', async (f) => {
+                setProblem(null)
+                try {
+                  const file = await readMixFile(f)
+                  setMoving(true)
+                  const res = await api<ServerMix>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions })
+                  setMoving(false)
+                  if (res.status === 201) router.visit(`/mixes/${res.body.id}`)
+                  else setProblem('Couldn’t save that mix. Try again.')
+                } catch (e) {
+                  setMoving(false)
+                  setProblem(e instanceof Error ? e.message : String(e))
+                }
+              })
+            }
+            className="flex h-10 cursor-pointer items-center gap-1.5 rounded-full px-4 text-[13.5px] font-semibold text-zinc-700 transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.97] disabled:opacity-50"
+          >
+            <Upload size={15} /> Import
+          </button>
           <button
             type="button"
             onClick={() => router.post('/mixes')}
@@ -109,7 +136,10 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
           >
             <Plus size={15} strokeWidth={2.4} /> New mix
           </button>
+          </div>
         </div>
+
+        {problem && <p className="mt-4 rounded-xl bg-red-50 px-4 py-2.5 text-[13px] text-red-700">{problem}</p>}
 
         {mixes.length > 0 ? (
           <>
