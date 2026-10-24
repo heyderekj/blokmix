@@ -26,6 +26,14 @@ describe('built-in layouts', () => {
     for (const t of SECTION_TYPES) expect(library.layoutsByType[t].length, t).toBeGreaterThan(0)
   })
 
+  it('offers a range of layouts for every section type, in more than one shape', () => {
+    for (const t of SECTION_TYPES) {
+      const layouts = library.layoutsByType[t].map((id) => library.clips[id])
+      expect(layouts.length, t).toBeGreaterThanOrEqual(7)
+      expect(new Set(layouts.map((c) => c.rhythm)).size, t).toBeGreaterThanOrEqual(2)
+    }
+  })
+
   it('every clip and layout declares a rhythm', () => {
     for (const c of Object.values(library.clips)) expect(c.rhythm, c.id).toBeTruthy()
   })
