@@ -1,7 +1,7 @@
 import { uploadData } from '@/lib/assets'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import { Bot, Eye, Link2, Package, Shuffle, Trash2 } from 'lucide-react'
+import { Bot, Copy, Eye, Link2, Package, Shuffle, Trash2 } from 'lucide-react'
 import type { BuildTarget, VersionNode } from '@/core/types'
 import { resolveGuide } from '@/core/guide'
 import { composePage } from '@/core/compose'
@@ -12,6 +12,9 @@ import { useLayout } from '@/state/layout'
 import { VIEWPORT_VH } from '@/state/derived'
 import { PageFrame } from '@/frame/PageFrame'
 import { runReferenceBuild } from '@/lib/agent-sim'
+import { useAgentLink } from '@/lib/agentLink'
+import { REVIEW_WIDTHS } from '@/core/export/packet'
+import { PreviewMarksBar, PreviewPins } from '../notes/PreviewMarks'
 import { FlashTitle, FrameHeader, OverflowMenu, StatusMenu, StatusRing } from './FrameHeader'
 import { Avatar, AvatarStack } from '../shell/Avatar'
 import { agent, useMe } from '@/lib/people'
@@ -44,7 +47,14 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
     return referenceHtml(page, { vh: VIEWPORT_VH[viewport], tagSlots: true })
   }, [v.snapshot, viewport])
 
-  const building = v.kind === 'build' && !v.build?.done
+  // An agent's build shows its preview as soon as it reports one, even while it keeps working.
+  const live = v.build?.previewUrl
+  const building = v.kind === 'build' && !v.build?.done && !live
+  // A live preview renders at the width it's reviewed at (1440, 390) and is drawn to fit the frame, so review pins line up.
+  const pageW = live ? (viewport === 'desktop' ? REVIEW_WIDTHS[0] : REVIEW_WIDTHS[1]) : p.w
+  const scale = p.w / pageW
+  const reported = live ? (v.build?.previewHeight?.[`/@${pageW}`] ?? v.build?.previewHeight?.['/']) : undefined
+  const frameH = useLayout((s) => s.frameHeights[v.id] ?? 0)
   const meta = STATUS_META[v.status]
   const [attaching, setAttaching] = useState(false)
   const parent = useStore((s) => (v.parentId ? s.versions[v.parentId] : null))
@@ -79,11 +89,12 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
             {metaLine && <span className="text-zinc-500"> · {metaLine}</span>}
           </div>
         </div>
+        <PreviewMarksBar v={v} width={pageW} />
         <span className="@max-[420px]:hidden">
           <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [me]} />
         </span>
         {v.kind === 'snapshot' ? (
-          <SendToAgent disabled={agentBusy} onSend={(t) => runReferenceBuild(v.id, t)} />
+          <SendToAgent v={v} disabled={agentBusy} onReference={(t) => runReferenceBuild(v.id, t)} />
         ) : (
           <button type="button" onClick={() => remix(v)} title="Remix" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2 @max-[220px]:hidden">
             <Shuffle size={13} /> <span className="@max-[340px]:hidden">Remix</span>
@@ -115,10 +126,15 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
       >
         {building ? (
           <BuildProgress v={v} />
+        ) : live ? (
+          <div style={{ width: p.w, height: frameH || undefined, overflow: 'hidden' }}>
+            <div style={{ width: pageW, transform: `scale(${scale})`, transformOrigin: '0 0' }}>
+              <PageFrame src={live} srcHeight={reported} width={pageW} title={`${v.letter}: ${v.title}`} interactive={previewing} onHeight={(h) => setFrameHeight(v.id, Math.round(h * scale))} />
+            </div>
+          </div>
         ) : (
           <PageFrame
-            srcdoc={v.build?.previewUrl ? undefined : srcdoc}
-            src={v.build?.previewUrl}
+            srcdoc={srcdoc}
             width={p.w}
             title={`${v.letter}: ${v.title}`}
             interactive={previewing}
@@ -126,7 +142,15 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
             onSections={(s) => setSections(v.id, s)}
           />
         )}
-        {v.kind === 'build' && v.build?.done && !v.build.previewUrl && (
+        {!building && <PreviewPins v={v} width={pageW} frameW={p.w} frameH={frameH} />}
+        {live && !v.build?.done && (
+          <div className="pointer-events-none absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }}>
+            <span className="m-2 inline-block rounded-md bg-zinc-900/85 px-2 py-1 text-[11px] font-medium text-white">
+              {v.build?.agentName} is still working{v.build?.steps.length ? `: ${v.build.steps[v.build.steps.length - 1]}` : ''}
+            </span>
+          </div>
+        )}
+        {v.kind === 'build' && v.build?.done && !v.build.previewUrl && v.build.by === 'reference' && (
           <div className="pointer-events-none absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }}>
             <span className="m-2 inline-block rounded-md bg-zinc-900/85 px-2 py-1 text-[11px] font-medium text-white">
               Reference build · what the {v.build.target === 'astro' ? 'Astro' : 'Next.js'} export renders
@@ -175,21 +199,43 @@ function Title({ v }: { v: VersionNode }) {
   )
 }
 
-function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: BuildTarget) => void }) {
+function SendToAgent({ v, disabled, onReference }: { v: VersionNode; disabled: boolean; onReference: (t: BuildTarget) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const link = useAgentLink((s) => s.status)
   useEffect(() => {
     if (!open) return
     const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
     window.addEventListener('pointerdown', close, true)
     return () => window.removeEventListener('pointerdown', close, true)
   }, [open])
+  const name = (t: BuildTarget) => (t === 'astro' ? 'Astro' : 'Next.js')
+  const ask = (t: BuildTarget) => {
+    setOpen(false)
+    const prompt = `Use blokmix to build version ${v.letter} in ${name(t)}`
+    const st = useStore.getState()
+    void navigator.clipboard?.writeText(prompt).catch(() => {})
+    st.showFlash(link === 'connected' ? `Copied “${prompt}”: paste it to your agent` : `Copied “${prompt}”. Turn on “Let agents edit this mix” so your agent can reach Blokmix`)
+  }
+  const Row = ({ t, onClick, icon }: { t: BuildTarget; onClick: () => void; icon?: React.ReactNode }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] font-medium text-zinc-800 transition hover:bg-zinc-950/5"
+    >
+      <span className="flex items-center gap-2">
+        {t === 'astro' ? <AstroIcon size={15} /> : <NextIcon size={15} />}
+        {name(t)}
+      </span>
+      <span className="text-zinc-400">{icon ?? '→'}</span>
+    </button>
+  )
   return (
     <div ref={ref} className="relative @max-[220px]:hidden">
       <button
         type="button"
         disabled={disabled}
-        title={disabled ? 'The agent is busy' : 'Send this version to your agent'}
+        title={disabled ? 'The agent is busy' : 'Build this version'}
         onClick={(e) => {
           e.stopPropagation()
           setOpen((o) => !o)
@@ -199,26 +245,27 @@ function SendToAgent({ disabled, onSend }: { disabled: boolean; onSend: (t: Buil
         <Bot size={14} /> <span className="@max-[340px]:hidden">Build</span>
       </button>
       {open && (
-        <div className="glass-menu absolute right-0 top-full z-50 mt-2 w-64 animate-pop rounded-2xl p-2">
-          <p className="px-2 pb-2 pt-1 text-[12px] leading-snug text-zinc-500">
-            Hand this version’s packet to the agent. Until MCP is connected, it renders the exporter’s reference build.
+        <div className="glass-menu absolute right-0 top-full z-50 mt-2 w-72 animate-pop rounded-2xl p-2">
+          <div className="px-2 pb-1 pt-1 text-[12.5px] font-semibold text-zinc-900">Build with your agent</div>
+          <p className="px-2 pb-1.5 text-[12px] leading-snug text-zinc-500">
+            Copies a prompt for Claude Code with the blokmix MCP. It writes the packet, builds it, and puts the preview here
+            {link === 'connected' ? '.' : '. Turn on “Let agents edit this mix” first.'}
           </p>
           {(['astro', 'next'] as const).map((t) => (
-            <button
+            <Row key={t} t={t} onClick={() => ask(t)} icon={<Copy size={13} />} />
+          ))}
+          <div className="mx-2 my-1.5 border-t border-zinc-950/5" />
+          <div className="px-2 pb-1 pt-0.5 text-[12.5px] font-semibold text-zinc-900">Reference build</div>
+          <p className="px-2 pb-1.5 text-[12px] leading-snug text-zinc-500">Renders what the exporter writes, right here, without an agent.</p>
+          {(['astro', 'next'] as const).map((t) => (
+            <Row
               key={t}
-              type="button"
+              t={t}
               onClick={() => {
                 setOpen(false)
-                onSend(t)
+                onReference(t)
               }}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] font-medium text-zinc-800 transition hover:bg-zinc-950/5"
-            >
-              <span className="flex items-center gap-2">
-                {t === 'astro' ? <AstroIcon size={15} /> : <NextIcon size={15} />}
-                Build with {t === 'astro' ? 'Astro' : 'Next.js'}
-              </span>
-              <span className="text-zinc-400">→</span>
-            </button>
+            />
           ))}
         </div>
       )}

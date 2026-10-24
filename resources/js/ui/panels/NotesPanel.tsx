@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react'
 import { Check, CheckCheck } from 'lucide-react'
 import type { Note, NoteKind, NoteStatus } from '@/core/types'
 import { NOTE_KINDS } from '@/core/types'
-import { KIND_LABEL, STATUS_LABEL, SOURCE_LABEL, isMark, outstanding, slotOf, sortMarks } from '@/core/notes'
+import { KIND_LABEL, STATUS_LABEL, SOURCE_LABEL, isMark, onSection, outstanding, sortMarks } from '@/core/notes'
 import { TYPE_LABEL } from '@/core/content'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { canvasApi } from '../canvas/Canvas'
-import { VIEW_W } from '../canvas/geometry'
+import { VIEW_W, placeVersions } from '../canvas/geometry'
 import { KIND_TONE, STATUS_TONE } from '../notes/Marks'
 
 type StatusFilter = 'todo' | 'resolved' | 'all'
@@ -19,6 +19,7 @@ type StatusFilter = 'todo' | 'resolved' | 'all'
 export function NotesPanel() {
   const notes = useStore((s) => s.notes)
   const slots = useStore((s) => s.slots)
+  const versions = useStore((s) => s.versions)
   const [kind, setKind] = useState<NoteKind | 'all'>('all')
   const [status, setStatus] = useState<StatusFilter>('todo')
   const marks = useMemo(() => sortMarks(notes.filter(isMark)), [notes])
@@ -28,10 +29,12 @@ export function NotesPanel() {
 
   const groups = new Map<string, Note[]>()
   for (const m of shown) {
-    const key = slotOf(m.anchor) ?? 'page'
+    // Marks from a review of a build's preview group under that build, after the mix's own sections.
+    const key = m.anchor.kind === 'preview' ? `v:${m.anchor.versionId}` : (onSection(m.anchor) ?? 'page')
     groups.set(key, [...(groups.get(key) ?? []), m])
   }
-  const order = [...groups.keys()].sort((a, b) => slots.findIndex((s) => s.id === a) - slots.findIndex((s) => s.id === b))
+  const rank = (k: string) => (k.startsWith('v:') ? slots.length + 1 : slots.findIndex((s) => s.id === k))
+  const order = [...groups.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
   const toVerify = marks.filter((m) => m.status === 'resolved').length
 
   return (
@@ -85,7 +88,9 @@ export function NotesPanel() {
           const slot = slots.find((s) => s.id === key)
           return (
             <section key={key} className="border-b border-zinc-950/5 px-2 py-2 last:border-0">
-              <h4 className="eyebrow px-2 pb-1 pt-1">{slot ? `${slots.indexOf(slot) + 1}. ${TYPE_LABEL[slot.type]}` : 'Whole page'}</h4>
+              <h4 className="eyebrow px-2 pb-1 pt-1">
+                {slot ? `${slots.indexOf(slot) + 1}. ${TYPE_LABEL[slot.type]}` : key.startsWith('v:') ? `${versions[key.slice(2)]?.letter ?? 'Build'} · preview` : 'Whole page'}
+              </h4>
               {groups.get(key)!.map((m) => (
                 <Row key={m.id} mark={m} />
               ))}
@@ -103,8 +108,13 @@ function Row({ mark }: { mark: Note }) {
   const a = mark.anchor
   const goTo = () => {
     const s = useStore.getState()
-    const slot = slotOf(a)
-    if (slot) {
+    const slot = onSection(a)
+    if (a.kind === 'preview') {
+      const p = placeVersions(s.versions, s.ui.viewport, s.framePos).find((x) => x.id === a.versionId)
+      const h = useLayout.getState().frameHeights[a.versionId] ?? 2400
+      const y = a.y >= 0 ? p && p.y + a.y * h : p?.y
+      if (p && y !== undefined) canvasApi.focusRect({ x: p.x - 40, y: y - 300, w: p.w + 80, h: 700 }, 0.8)
+    } else if (slot) {
       const row = useLayout.getState().rows[slot]
       const w = VIEW_W[s.ui.viewport]
       if (row) canvasApi.focusRect({ x: -40, y: row.top - 60, w: w + 80, h: Math.min(row.height, 1400) + 120 }, 0.8)
@@ -118,7 +128,7 @@ function Row({ mark }: { mark: Note }) {
       </button>
       <button type="button" onClick={goTo} className="min-w-0 flex-1 text-left">
         <div className="flex items-center gap-1.5 text-[11.5px] text-zinc-500">
-          <span className="truncate">{a.kind === 'block' ? a.label : a.kind === 'area' ? 'An area' : 'Whole page'}</span>
+          <span className="truncate">{a.kind === 'block' ? a.label : a.kind === 'area' ? 'An area' : a.kind === 'preview' ? `Preview at ${a.width}px` : 'Whole page'}</span>
           <span>·</span>
           <span className="shrink-0">{mark.author ?? SOURCE_LABEL[mark.source ?? 'you']}</span>
         </div>

@@ -11,7 +11,7 @@ import * as pageCmds from './page'
 
 export { CommandError, describeNote } from './refs'
 
-const READ = { ...read.read, ...review.read, ...notes.read }
+const READ = { ...read.read, ...review.read, ...notes.read, ...versions.read }
 const WRITE = { ...pageCmds.write, ...blocks.write, ...words.write, ...notes.write, ...versions.write }
 
 /**
@@ -31,8 +31,8 @@ export interface AsyncCommand<P = unknown> {
   prepare: (input: never) => Promise<P>
   apply: (input: never, prepared: P) => unknown
 }
-// Modules export `later` maps of async commands; merge them here (none yet).
-const ASYNC: Record<string, AsyncCommand> = {}
+// Modules export `later` maps of async commands; merge them here.
+const ASYNC: Record<string, AsyncCommand> = { ...versions.later } as Record<string, AsyncCommand>
 
 export function runCommand(name: string, raw: unknown, by: Caller = 'agent'): unknown {
   if (!(name in COMMANDS)) throw new CommandError(`Unknown command "${name}". Known: ${Object.keys(COMMANDS).join(', ')}`)
@@ -87,6 +87,12 @@ function summary(name: string, input: Record<string, unknown>): string {
       return `left a ${String(input.kind).replace('-', ' ')} note${sec ? ` on${sec}` : ''}`
     case 'update_note':
       return `marked N${String(input.note).replace(/^n/i, '')} ${String(input.status).replace('_', ' ')}`
+    case 'prepare_build':
+      return `started building ${input.version}`
+    case 'report_build':
+      return input.done ? `finished ${input.build}` : input.preview_url ? `put ${input.build}’s preview up` : `${input.build}: ${input.step ?? 'updated'}`
+    case 'import_review_marks':
+      return `brought back ${(input.marks as unknown[]).length} review marks`
     case 'reply_note':
       return `replied on N${String(input.note).replace(/^n/i, '')}`
     default:

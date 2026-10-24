@@ -138,3 +138,102 @@ export function replaceWords(full: string, quote: string, next: string): string 
   const re = new RegExp(words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+'))
   return re.test(full) ? full.replace(re, next) : null
 }
+
+/* ---------- marks from a review elsewhere (ReviseMy) ---------- */
+
+/** One mark as ReviseMy hands it over (work_packets.pins), in Blokmix's words. */
+export interface ReviewMarkInput {
+  /** ReviseMy's mark id (work_packets.pins[].id). */
+  id: string | number
+  kind: NoteKind
+  status: NoteStatus
+  /** ReviseMy marks a mark verified only when a person checked it; anything else that says verified counts as resolved. */
+  verified_by_person?: boolean
+  body: string
+  suggested_copy?: string | null
+  resolution?: string | null
+  author?: string | null
+  /** The section's anchor on the built page ("pricing", "#pricing"). */
+  section?: string | null
+  /** Where on the screenshot, as fractions of its width and height: the point, or an area's top-left with its size. */
+  x?: number | null
+  y?: number | null
+  w?: number | null
+  h?: number | null
+  /** The screenshot's CSS width (1440, 390). */
+  width?: number | null
+  page?: string | null
+}
+
+/** A preview anchor traced only to a section has no point: x and y are -1. */
+export const hasPoint = (a: Extract<NoteAnchor, { kind: 'preview' }>) => a.x >= 0 && a.y >= 0
+
+/**
+ * Where a review mark lands: a section anchor becomes a preview mark on that section (with its point
+ * when there is one), a bare point a preview mark at that point, and neither the whole page.
+ */
+export function reviewAnchor(m: ReviewMarkInput, versionId: string, anchors: Record<string, string>): NoteAnchor {
+  const frac = (n: number | null | undefined) => (typeof n === 'number' && Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : undefined)
+  const name = m.section?.replace(/^.*#/, '').trim().toLowerCase()
+  const slotId = name ? Object.keys(anchors).find((id) => anchors[id] === name) : undefined
+  const x = frac(m.x)
+  const y = frac(m.y)
+  const point = x !== undefined && y !== undefined
+  if (!slotId && !point) return { kind: 'page' }
+  const w = frac(m.w)
+  const h = frac(m.h)
+  return {
+    kind: 'preview',
+    versionId,
+    width: Math.round(m.width ?? 1440),
+    x: point ? x : -1,
+    y: point ? y : -1,
+    ...(point && w ? { w } : {}),
+    ...(point && h ? { h } : {}),
+    ...(slotId ? { slotId } : {}),
+    ...(m.page ? { pagePath: m.page } : {}),
+  }
+}
+
+/** ReviseMy's status, kept honest: only a person verifies. */
+export function reviewStatus(m: Pick<ReviewMarkInput, 'kind' | 'status' | 'verified_by_person'>): NoteStatus {
+  if (m.kind === 'keep') return 'verified'
+  return m.status === 'verified' && !m.verified_by_person ? 'resolved' : m.status
+}
+
+/**
+ * Brings a review's marks in as notes, matched by ReviseMy's mark id, so running it again updates
+ * them instead of adding copies. Replies left in Blokmix stay.
+ */
+export function importReviewMarks(
+  notes: Note[],
+  review: { id: string },
+  marks: ReviewMarkInput[],
+  ctx: { versionId: string; anchors: Record<string, string>; now: number; newId: () => string },
+): { notes: Note[]; added: string[]; updated: string[] } {
+  const out = [...notes]
+  const added: string[] = []
+  const updated: string[] = []
+  for (const m of marks) {
+    const markId = String(m.id)
+    const i = out.findIndex((n) => n.external?.tool === 'revisemy' && n.external.reviewId === review.id && n.external.markId === markId)
+    const fields = {
+      text: m.body,
+      anchor: reviewAnchor(m, ctx.versionId, ctx.anchors),
+      kind: m.kind,
+      status: reviewStatus(m),
+      suggestedCopy: m.suggested_copy?.trim() || undefined,
+      resolution: m.resolution?.trim() || undefined,
+      author: m.author?.trim() || 'ReviseMy',
+    }
+    if (i >= 0) {
+      out[i] = { ...out[i], ...fields }
+      updated.push(out[i].id)
+    } else {
+      const id = ctx.newId()
+      out.push({ id, color: 'yellow', createdAt: ctx.now, source: 'review', number: nextNumber(out), external: { tool: 'revisemy', reviewId: review.id, markId }, ...fields })
+      added.push(id)
+    }
+  }
+  return { notes: out, added, updated }
+}

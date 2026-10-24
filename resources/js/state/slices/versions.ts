@@ -52,7 +52,7 @@ export function versionActions(set: Set, get: Get): Pick<State, 'pressVersion' |
         const versions = Object.fromEntries(Object.entries(st.versions).filter(([id]) => !gone.has(id)))
         return {
           versions,
-          notes: st.notes.filter((n) => !(n.anchor.kind === 'frame' && gone.has(n.anchor.frameId))),
+          notes: st.notes.filter((n) => !((n.anchor.kind === 'frame' && gone.has(n.anchor.frameId)) || (n.anchor.kind === 'preview' && gone.has(n.anchor.versionId)))),
           branchFrom: st.branchFrom && gone.has(st.branchFrom) ? null : st.branchFrom,
           head: st.head && gone.has(st.head) ? null : st.head,
           ui: { ...st.ui, selectedFrameId: gone.has(st.ui.selectedFrameId ?? '') ? null : st.ui.selectedFrameId, packetSource: gone.has(st.ui.packetSource) ? 'mix' : st.ui.packetSource },
