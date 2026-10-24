@@ -8,11 +8,12 @@ import * as versions from './versions'
 import * as blocks from './blocks'
 import * as words from './words'
 import * as pageCmds from './page'
+import * as siteCmds from './site'
 
 export { CommandError, describeNote } from './refs'
 
-const READ = { ...read.read, ...notes.read, ...versions.read }
-const WRITE = { ...pageCmds.write, ...blocks.write, ...words.write, ...notes.write, ...versions.write }
+const READ = { ...read.read, ...siteCmds.read, ...notes.read, ...versions.read }
+const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...words.write, ...notes.write, ...versions.write }
 
 /**
  * Runs the commands in core/commands/schema.ts against the live mix. Every
@@ -56,7 +57,7 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
   // (Notes are part of the undoable state, so an agent's marks are one ⌘Z away too.)
   const t = useStore.temporal.getState()
   const s = useStore.getState()
-  const before = { slots: s.slots, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }
+  const before = { site: s.site, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }
   t.pause()
   let result: unknown
   try {
@@ -65,7 +66,7 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
     t.resume()
   }
   const after = useStore.getState()
-  if (after.slots !== before.slots || after.guide !== before.guide || after.content !== before.content || after.versions !== before.versions || after.notes !== before.notes) {
+  if (after.site !== before.site || after.guide !== before.guide || after.content !== before.content || after.versions !== before.versions || after.notes !== before.notes) {
     useStore.temporal.setState((x) => ({ pastStates: [...x.pastStates, before].slice(-100), futureStates: [] }))
     if (by === 'agent') after.showFlash(`Agent: ${summary(name, input)}`, { undo: true })
   }
@@ -83,6 +84,8 @@ function summary(name: string, input: Record<string, unknown>): string {
       return `rewrote${sec}`
     case 'add_section':
       return `added a ${input.type}`
+    case 'add_page':
+      return `added ${input.path}`
     case 'add_note':
       return `left a ${String(input.kind).replace('-', ' ')} note${sec ? ` on${sec}` : ''}`
     case 'update_note':

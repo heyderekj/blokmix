@@ -3,6 +3,7 @@ import { type CommandInput } from '@/core/commands/schema'
 import { buildDirName } from '@/core/commands/bridge'
 import { agentPrompt, packetFiles } from '@/core/export/packet'
 import { outstanding } from '@/core/notes'
+import { allSlots } from '@/core/site'
 import { dfsOrder, nextLetter } from '@/core/versions'
 import { pressVersionAndFly } from '@/lib/actions'
 import { bridgeWriter } from '@/lib/agentLink'
@@ -38,7 +39,8 @@ function describeVersion(v: VersionNode) {
     kind: v.kind,
     status: v.status,
     parent: v.parentId ? (vs[v.parentId]?.letter ?? null) : null,
-    sections: v.snapshot.slots.length,
+    sections: allSlots(v.snapshot.site).length,
+    pages: v.snapshot.site.pages.map((p) => p.path),
     build: b
       ? { by: b.by, agent: b.agentName, target: b.target, steps: b.steps, done: b.done, preview_url: b.previewUrl ?? null, dir: b.dir ?? null, preview_height: b.previewHeight ?? null }
       : null,

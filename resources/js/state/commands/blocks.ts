@@ -5,9 +5,9 @@ import { type CommandInput } from '@/core/commands/schema'
 import { variantsFor } from '@/core/blocks/variants'
 import { resolveGuide } from '@/core/guide'
 import { slotClip } from '@/data/library'
-import { sectionAnchors, sectionLinks } from '@/core/links'
+import { sectionLinks } from '@/core/links'
 import { useStore } from '../store'
-import { CommandError, findSection, findBlock, wordsFor, describeSection, clean, styleFrom } from './refs'
+import { CommandError, findSection, findBlock, wordsFor, describeSection, clean, styleFrom, linkScopeFor } from './refs'
 
 /** Changing one block (or every block of a kind): looks, style, spacing, media, icons, motion, links, banners. */
 export const write = {
@@ -149,9 +149,8 @@ export const write = {
         link = undefined
     }
     useStore.getState().editBlock(slot.id, b.id, { link })
-    const st = useStore.getState()
     const live = findSection(slot.id)
-    const l = sectionLinks(slotClip(live).blocks, live.edits?.[live.clipId], wordsFor(live), st.slots, live.id, sectionAnchors(st.slots))[b.id]
+    const l = sectionLinks(slotClip(live).blocks, live.edits?.[live.clipId], wordsFor(live), linkScopeFor(live.id), live.id)[b.id]
     return { block: b.label, href: l.href, newTab: l.newTab, auto: l.auto }
   },
   set_banner: (i: CommandInput<'set_banner'>) => {

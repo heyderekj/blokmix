@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { Keep } from '@/core/types'
-import { useStore, undo, redo } from '@/state/store'
+import { useStore, undo, redo, currentSlots } from '@/state/store'
 import { canvasApi } from '@/ui/canvas/Canvas'
 import { pressVersionAndFly } from '@/lib/actions'
 import { library, slotClip } from '@/data/library'
@@ -21,7 +21,7 @@ export function useShortcuts(onHelp: () => void) {
       if (typing(e.target)) return
       const st = useStore.getState()
       const mod = e.metaKey || e.ctrlKey
-      const focused = st.slots.find((s) => s.id === st.ui.focusedSlotId)
+      const focused = currentSlots(st).find((s) => s.id === st.ui.focusedSlotId)
       const k = e.key
 
       if (mod && k.toLowerCase() === 'z') {
@@ -83,7 +83,7 @@ export function useShortcuts(onHelp: () => void) {
       }
       if (e.altKey && !mod && (k === 'ArrowUp' || k === 'ArrowDown') && focused) {
         e.preventDefault()
-        const i = st.slots.indexOf(focused)
+        const i = currentSlots(st).indexOf(focused)
         st.moveSlot(focused.id, i + (k === 'ArrowUp' ? -1 : 1))
         return
       }
@@ -96,7 +96,7 @@ export function useShortcuts(onHelp: () => void) {
         case 'ArrowLeft':
         case 'ArrowRight': {
           e.preventDefault()
-          const target = focused ?? st.slots[0]
+          const target = focused ?? currentSlots(st)[0]
           if (!target) return
           if (!focused) st.focusSlot(target.id)
           st.cycle(target.id, k === 'ArrowRight' ? 1 : -1)
@@ -157,7 +157,7 @@ export function useShortcuts(onHelp: () => void) {
             st.showFlash('Block hidden', { undo: true })
             return
           }
-          if (focused && st.slots.length > 1) st.removeSlot(focused.id)
+          if (focused && currentSlots(st).length > 1) st.removeSlot(focused.id)
           return
         case 'Escape':
           if (st.ui.openNoteId) st.setUi({ openNoteId: null })

@@ -11,7 +11,7 @@ import { parseHtml } from '@/core/html/parse'
 import { astroFiles } from '@/core/export/astro'
 import { nextFiles } from '@/core/export/next'
 import { packetFiles } from '@/core/export/packet'
-import { useStore } from '@/state/store'
+import { currentSlots, useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
 
 const slotFor = (clipId: string, extra: Partial<Slot> = {}): Slot => ({ id: 's1', type: library.clips[clipId].type, clipId, locked: false, keep: { ...DEFAULT_KEEP }, ...extra })
@@ -207,7 +207,7 @@ describe('content commands', () => {
   })
 
   it('adds and removes a banner on the nav', () => {
-    const nav = useStore.getState().slots.find((s) => s.type === 'nav')!
+    const nav = currentSlots(useStore.getState()).find((s) => s.type === 'nav')!
     const ownBanner = sectionClip(library.clips[nav.clipId]).blocks.some((b) => b.kind === 'banner')
     const off = runCommand('set_banner', { section: 'nav', on: false }) as { banner: unknown }
     expect(off.banner).toBeNull()

@@ -17,6 +17,7 @@ import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
 import { useAgentLink } from '@/lib/agentLink'
 import { Switch } from '../panels/parts'
+import { PagesPanel, PageSwitch } from './PagesMenu'
 
 export const toggleSheet = (s: Sheet) => {
   const st = useStore.getState()
@@ -40,14 +41,15 @@ export function TopBar({ onHelp }: { onHelp: () => void }) {
 
 /** Logo + mix name; grows into the small app menu. */
 function BrandIsland({ onHelp }: { onHelp: () => void }) {
-  const open = useStore((s) => s.ui.sheet === 'menu')
+  const sheet = useStore((s) => s.ui.sheet)
+  const open = sheet === 'menu' || sheet === 'pages'
   const mixName = useStore((s) => s.mixName)
   const theme = useStore((s) => s.ui.theme)
   const st = useStore.getState
   return (
     <Island
       open={open}
-      width={300}
+      width={sheet === 'pages' ? 340 : 300}
       onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       bar={
         <>
@@ -59,10 +61,15 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
           <span className="max-md:hidden">
             <MixName value={mixName} onChange={(v) => st().renameMix(v)} />
           </span>
+          <span className="px-0.5 text-zinc-300 max-md:hidden">/</span>
+          <PageSwitch />
         </>
       }
     >
-      <div className="p-1.5">
+      {sheet === 'pages' ? (
+        <PagesPanel />
+      ) : (
+        <div className="p-1.5">
         <NameField />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         <MenuItem icon={Undo2} label="Undo" kbd="⌘Z" onClick={undo} />
@@ -91,7 +98,8 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
             st().showFlash('Demo mix reset', { undo: true })
           }}
         />
-      </div>
+        </div>
+      )}
     </Island>
   )
 }

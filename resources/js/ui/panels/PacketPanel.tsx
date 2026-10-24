@@ -19,7 +19,7 @@ export function PacketPanel() {
   const targets = useMemo<BuildTarget[]>(() => [target], [target])
   const versions = useStore((s) => s.versions)
   const mixName = useStore((s) => s.mixName)
-  const slots = useStore((s) => s.slots)
+  const site = useStore((s) => s.site)
   const guideState = useStore((s) => s.guide)
   const content = useStore((s) => s.content)
   const notes = useStore((s) => s.notes)
@@ -33,10 +33,10 @@ export function PacketPanel() {
 
   const assets = useAssets((s) => s.assets)
   const input: PacketInput = useMemo(
-    () => packetInputFor({ mixName, slots, guide: guideState, content, notes, versions }, { version, targets, sections }),
+    () => packetInputFor({ mixName, site, guide: guideState, content, notes, versions }, { version, targets, sections }),
     // Uploads load from the browser's store after start-up; rebuild when they arrive.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [version, versions, slots, guideState, content, notes, sections, mixName, targets, assets],
+    [version, versions, site, guideState, content, notes, sections, mixName, targets, assets],
   )
 
   const files = useMemo(() => packetFiles(input), [input])

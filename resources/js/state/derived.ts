@@ -9,7 +9,7 @@ import { uploadData } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
 import { sectionClip, type SectionClip } from '@/core/lists'
-import { sectionAnchors, sectionLinks } from '@/core/links'
+import { sectionLinks, siteScope, type LinkScope } from '@/core/links'
 import { BANNER_CSS, BANNER_MOTION, bannerMoves } from '@/core/banner'
 import { BASE_FONTS, expandTokens, fontHrefs, fontsForTokens, varsToCss } from '@/core/tokens'
 import { allFonts } from '@/core/library'
@@ -21,18 +21,32 @@ export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
 
-/** Page-wide block defaults and extra colours, for frameStateFor. */
-export type PageStyle = Pick<GuideState, 'swatches' | 'components'> & { slots?: Pick<Slot, 'id' | 'type'>[] }
+/** Page-wide block defaults and extra colours, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
+export type PageStyle = Pick<GuideState, 'swatches' | 'components'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
 
 /** Page-wide things a section's frame needs: block defaults, extra colours, and the sections links can lead to. */
 export function usePageStyle(): PageStyle {
   const swatches = useStore((s) => s.guide.swatches)
   const components = useStore((s) => s.guide.components)
-  const order = useStore((s) => s.slots.map((x) => `${x.id}:${x.type}`).join(','))
-  return useMemo(
-    () => ({ swatches, components, slots: order ? order.split(',').map((x) => ({ id: x.split(':')[0], type: x.split(':')[1] as Slot['type'] })) : [] }),
-    [swatches, components, order],
-  )
+  // Only the site's shape matters to links (pages, paths, which sections where), not every edit.
+  const shape = useStore((s) => {
+    const { pages, shared } = s.site
+    const ids = (xs: Slot[]) => xs.map((x) => `${x.id}:${x.type}`).join(',')
+    return `${s.ui.pageId}|${shared.nav?.id}|${shared.footer?.id}|${pages.map((p) => `${p.id}:${p.path}:${p.title}:${+p.show.nav}${+p.show.footer}[${ids(p.slots)}]`).join('|')}`
+  })
+  return useMemo(() => {
+    const { site, ui } = useStore.getState()
+    const here = site.pages.find((p) => p.id === ui.pageId) ?? site.pages[0]
+    const sharedIds = [site.shared.nav?.id, site.shared.footer?.id].filter((x): x is string => !!x)
+    return { swatches, components, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [swatches, components, shape])
+}
+
+/** Where one section's links can lead: from its page, or from everywhere for the shared nav and footer. */
+export function useLinkScope(slotId: string): LinkScope {
+  const { link } = usePageStyle()
+  return link!.sharedIds.includes(slotId) ? link!.shared : link!.page
 }
 
 /** A token value you're hovering in a picker (a font), shown on the page before you choose it. Not undoable state. */
@@ -97,17 +111,17 @@ export function frameStateFor(
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? null : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
     lists: clip.patches.length ? clip.patches : NO_LISTS,
-    links: linksFor(clip, slot, content, page?.slots),
+    links: linksFor(clip, slot, content, slot.id && page?.link ? (page.link.sharedIds.includes(slot.id) ? page.link.shared : page.link.page) : undefined),
   }
 }
 
 const NO_LINKS: FrameState['links'] = {}
 const linkCache = new Map<string, FrameState['links']>()
 /** Where the section's links lead, so previews can follow them. */
-function linksFor(clip: SectionClip, slot: Parameters<typeof frameStateFor>[1] & object, content: ProjectContent, slots: PageStyle['slots']): FrameState['links'] {
-  if (!slots || !slot.id || !clip.blocks.some((b) => b.linkable)) return NO_LINKS
+function linksFor(clip: SectionClip, slot: Parameters<typeof frameStateFor>[1] & object, content: ProjectContent, scope: LinkScope | undefined): FrameState['links'] {
+  if (!scope || !slot.id || !clip.blocks.some((b) => b.linkable)) return NO_LINKS
   const fields = resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields
-  const resolved = sectionLinks(clip.blocks, slot.edits?.[clip.id], fields, slots, slot.id, sectionAnchors(slots))
+  const resolved = sectionLinks(clip.blocks, slot.edits?.[clip.id], fields, scope, slot.id)
   const out = Object.fromEntries(Object.entries(resolved).map(([id, l]) => [id, { href: l.href, slot: l.slotId, newTab: l.newTab }]))
   const key = JSON.stringify(out)
   const hit = linkCache.get(key)

@@ -1,7 +1,8 @@
 // The commands anyone can run on a mix: the app's own controls, a prompt, or an
 // agent over MCP. Pure zod, so the MCP bridge can list them without the app.
 //
-// Sections are referred to by id, by position (1 = top) or by type ("pricing").
+// Sections are referred to by id, by position (1 = top) or by type ("pricing") on
+// the open page (or the one `page` names), by anchor, or as "/about#team".
 // Blocks are referred to by id ("b3") or by label ("Pricing · Plan 2 · Button").
 
 import { z } from 'zod'
@@ -9,8 +10,9 @@ import { PAGE_COMMANDS } from './page'
 import { BLOCK_COMMANDS } from './blocks'
 import { NOTE_COMMANDS } from './notes'
 import { VERSION_COMMANDS } from './versions'
+import { SITE_COMMANDS } from './site'
 
-export const COMMANDS = { ...PAGE_COMMANDS, ...BLOCK_COMMANDS, ...NOTE_COMMANDS, ...VERSION_COMMANDS } as const
+export const COMMANDS = { ...PAGE_COMMANDS, ...SITE_COMMANDS, ...BLOCK_COMMANDS, ...NOTE_COMMANDS, ...VERSION_COMMANDS } as const
 
 export type CommandName = keyof typeof COMMANDS
 export type CommandInput<N extends CommandName> = z.infer<(typeof COMMANDS)[N]['input']>

@@ -257,15 +257,32 @@ export type NoteAnchor =
   /** A drawn area of a section, as fractions of its box so it holds at any width. */
   | { kind: 'area'; slotId: string; clipId: string; rect: { x: number; y: number; w: number; h: number } }
   /** The whole page. */
-  | { kind: 'page' }
+  | { kind: 'page'; pageId?: string }
   /**
    * A point (or area) on a build's live preview, as fractions of the page at a width, for marks
    * brought back from a review. `slotId` when it could be traced to a section.
    */
   | { kind: 'preview'; versionId: string; width: number; x: number; y: number; w?: number; h?: number; slotId?: string; pagePath?: string }
 
-export interface MixSnapshot {
+/** One page of the site: its own sections, between the site's shared nav and footer (unless it hides them). */
+export interface Page {
+  id: string
+  /** Its route: "/" for home, "/about", "/blog/launch". */
+  path: string
+  title: string
   slots: Slot[]
+  /** Whether this page shows the site's shared nav and footer. */
+  show: { nav: boolean; footer: boolean }
+}
+
+/** The whole site: its pages, and the nav and footer they share. */
+export interface Site {
+  pages: Page[]
+  shared: { nav?: Slot; footer?: Slot }
+}
+
+export interface MixSnapshot {
+  site: Site
   guide: GuideState
   content: ProjectContent
   /** Sticky notes attached to slots at the time of the snapshot, by slot id. */
@@ -477,7 +494,7 @@ export type MobileSpacing = Pick<BlockStyle, 'padding' | 'above' | 'below' | 'ga
 /** Where a link leads. */
 export type LinkTarget =
   | { to: 'section'; slotId: string }
-  | { to: 'page'; path: string }
+  | { to: 'page'; path: string; pageId?: string }
   | { to: 'url'; url: string; newTab?: boolean }
   | { to: 'email'; address: string }
   | { to: 'phone'; number: string }

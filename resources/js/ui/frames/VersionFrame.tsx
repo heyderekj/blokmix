@@ -4,7 +4,8 @@ import { motion } from 'motion/react'
 import { Bot, Copy, Eye, Link2, Package, Shuffle, Trash2 } from 'lucide-react'
 import type { BuildTarget, VersionNode } from '@/core/types'
 import { resolveGuide } from '@/core/guide'
-import { composePage } from '@/core/compose'
+import { composeSite } from '@/core/compose'
+import { allSlots, mapSlots } from '@/core/site'
 import { referenceHtml } from '@/core/export/reference-html'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
@@ -34,9 +35,13 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
   const st = useStore.getState
   const me = useMe()
 
+  // A version of a site shows one page at a time.
+  const pages = v.snapshot.site.pages
+  const [pageId, setPageId] = useState(pages[0]?.id)
+  const shown = pages.find((x) => x.id === pageId) ?? pages[0]
   const srcdoc = useMemo(() => {
-    const page = composePage({
-      slots: v.snapshot.slots.filter((s) => library.clips[s.clipId]),
+    const page = composeSite({
+      site: mapSlots(v.snapshot.site, (s) => (library.clips[s.clipId] ? s : null)),
       guide: resolveGuide(v.snapshot.guide),
       content: v.snapshot.content,
       library,
@@ -44,8 +49,8 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
       page: v.snapshot.guide,
       uploads: uploadData,
     })
-    return referenceHtml(page, { vh: VIEWPORT_VH[viewport], tagSlots: true })
-  }, [v.snapshot, viewport])
+    return referenceHtml(page, { vh: VIEWPORT_VH[viewport], tagSlots: true, pageId: shown?.id })
+  }, [v.snapshot, viewport, shown?.id])
 
   // An agent's build shows its preview as soon as it reports one, even while it keeps working.
   const live = v.build?.previewUrl
@@ -59,10 +64,10 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
   const [attaching, setAttaching] = useState(false)
   const parent = useStore((s) => (v.parentId ? s.versions[v.parentId] : null))
   const sources = useMemo(() => {
-    return [...new Set(v.snapshot.slots.map((sl) => library.clips[sl.clipId]?.sourceId).filter(Boolean))]
+    return [...new Set(allSlots(v.snapshot.site).map((sl) => library.clips[sl.clipId]?.sourceId).filter(Boolean))]
   }, [v.snapshot])
   const metaLine = [
-    `${v.snapshot.slots.length} sections · ${sources.length} sites`,
+    `${pages.length > 1 ? `${pages.length} pages · ` : ''}${allSlots(v.snapshot.site).length} sections · ${sources.length} sites`,
     v.kind === 'build' ? `${v.build?.agentName} · ${v.build?.target === 'astro' ? 'Astro' : 'Next.js'}${v.build?.previewUrl ? ' · live preview' : ''}` : parent ? `from ${parent.letter}` : null,
     isBranchBase ? 'in the mix' : null,
   ]
@@ -89,6 +94,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
             {metaLine && <span className="text-zinc-500"> · {metaLine}</span>}
           </div>
         </div>
+        {pages.length > 1 && !live && !building && <PageTabs pages={pages} current={shown.id} onPick={setPageId} />}
         <PreviewMarksBar v={v} width={pageW} />
         <span className="@max-[420px]:hidden">
           <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [me]} />
@@ -326,6 +332,28 @@ function BuildProgress({ v }: { v: VersionNode }) {
           </ul>
         </div>
       </div>
+    </div>
+  )
+}
+
+/** Which page of a version's site the frame shows. */
+function PageTabs({ pages, current, onPick }: { pages: { id: string; title: string; path: string }[]; current: string; onPick: (id: string) => void }) {
+  return (
+    <div role="tablist" aria-label="Pages" className="flex shrink-0 items-center gap-0.5 rounded-full bg-zinc-100 p-0.5 @max-[560px]:hidden">
+      {pages.map((pg) => (
+        <button
+          key={pg.id}
+          type="button"
+          role="tab"
+          aria-selected={pg.id === current}
+          title={pg.path}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onPick(pg.id)}
+          className={`h-7 max-w-[120px] truncate rounded-full px-2.5 text-[12px] font-semibold transition-[background-color,color] duration-150 active:scale-[0.97] ${pg.id === current ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+        >
+          {pg.title}
+        </button>
+      ))}
     </div>
   )
 }

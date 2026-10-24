@@ -9,7 +9,8 @@ import { spawnSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { library } from '../resources/js/data/library'
 import { buildSeed } from '../resources/js/state/seed'
-import { composePage } from '../resources/js/core/compose'
+import { composeSite } from '../resources/js/core/compose'
+import { siteFromSlots } from '../resources/js/core/site'
 import { resolveGuide } from '../resources/js/core/guide'
 import { packetFiles } from '../resources/js/core/export/packet'
 import { listOrder, nextNumber, sectionClip } from '../resources/js/core/lists'
@@ -19,7 +20,7 @@ const out = join(process.cwd(), '.out', 'packet')
 const seed = buildSeed(library)
 const version = seed.versions[seed.head!]
 const allLayouts = process.argv.includes('--layouts')
-const slots: Slot[] = allLayouts
+const layouts: Slot[] = allLayouts
   ? SECTION_TYPES.flatMap((t) => library.layoutsByType[t]).map((clipId, i) => ({
       id: `layout-${i}`,
       type: library.clips[clipId].type,
@@ -57,7 +58,9 @@ const slots: Slot[] = allLayouts
         },
       },
     }))
-  : version.snapshot.slots
+  : []
+// Every layout on one page; otherwise the demo site as saved (Home and About).
+const site = allLayouts ? siteFromSlots(layouts) : version.snapshot.site
 function demoLists(clipId: string): Slot['lists'] {
   const clip = sectionClip(library.clips[clipId])
   const list = clip.blocks.find((b) => b.listKey)
@@ -77,10 +80,10 @@ function demoMedia(n: number): MediaFill {
 const guideState = allLayouts
   ? { ...version.snapshot.guide, swatches: [{ id: 'sw', name: 'Sunset', value: '#ff7a00' }], components: { badge: { variant: 'dot' } } }
   : version.snapshot.guide
-const snap = { ...version.snapshot, slots, guide: guideState }
+const snap = { ...version.snapshot, site, guide: guideState }
 const guide = resolveGuide(snap.guide)
 const files = packetFiles({
-  page: composePage({ slots: snap.slots, guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide }),
+  page: composeSite({ site: snap.site, guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide }),
   guide,
   guideState: snap.guide,
   library,

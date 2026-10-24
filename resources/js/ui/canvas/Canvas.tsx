@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import type { NoteAnchor } from '@/core/types'
 import { clampZ, fitRect, MIX_ID, placeVersions, VIEW_W, zoomAt, type Camera } from './geometry'
@@ -41,7 +41,7 @@ export function anchorAt(wx: number, wy: number): NoteAnchor {
   const lay = useLayout.getState()
   const w = VIEW_W[st.ui.viewport]
   if (wx >= 0 && wx <= w && wy >= 0) {
-    for (const slot of st.slots) {
+    for (const slot of currentSlots(st)) {
       const r = lay.rows[slot.id]
       if (r && wy >= r.top && wy <= r.top + r.height) return { kind: 'slot', slotId: slot.id, dx: wx, dy: wy - r.top }
     }
@@ -313,7 +313,7 @@ export function Canvas({ children }: { children: ReactNode }) {
         const type = clipId.split('.')[0] as Parameters<typeof st.addSlot>[0]
         if (!clipId) return
         e.preventDefault()
-        st.addSlot(type, clipId, st.slots.length)
+        st.addSlot(type, clipId, currentSlots(st).length)
       }}
       data-canvas
     >

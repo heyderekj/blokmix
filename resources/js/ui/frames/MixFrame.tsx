@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Disc3, Eye, Plus } from 'lucide-react'
 import { snapshotKey } from '@/core/versions'
-import { useStore } from '@/state/store'
+import { pageOf } from '@/core/site'
+import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { useResolvedGuide } from '@/state/derived'
 import { MIX_ID, VIEW_W } from '../canvas/geometry'
@@ -10,7 +11,9 @@ import { SlotRow } from './SlotRow'
 import { AddSectionMenu } from '../shell/AddSection'
 
 export function MixFrame() {
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
+  const site = useStore((s) => s.site)
+  const page = pageOf(site, useStore((s) => s.ui.pageId))
   const viewport = useStore((s) => s.ui.viewport)
   const focused = useStore((s) => s.ui.focusedSlotId)
   const selected = useStore((s) => s.ui.selectedFrameId === MIX_ID)
@@ -22,8 +25,8 @@ export function MixFrame() {
   const guideState = useStore((s) => s.guide)
   const content = useStore((s) => s.content)
   const dirty = useMemo(
-    () => !head || snapshotKey(head.snapshot) !== snapshotKey({ slots, guide: guideState, content }),
-    [head, slots, guideState, content],
+    () => !head || snapshotKey(head.snapshot) !== snapshotKey({ site, guide: guideState, content }),
+    [head, site, guideState, content],
   )
 
   const [addAt, setAddAt] = useState<number | null>(null)
@@ -42,7 +45,10 @@ export function MixFrame() {
         <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-key-soft">
           <Disc3 size={18} className={`text-key-ink ${dirty ? 'animate-[spin_3s_linear_infinite]' : ''}`} strokeWidth={2} />
         </span>
-        <HeaderTitle title="Working mix" meta={`${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} sections`} />
+        <HeaderTitle
+          title={site.pages.length > 1 ? `Working mix · ${page.title}` : 'Working mix'}
+          meta={`${site.pages.length > 1 ? `${page.path} · ` : ''}${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} sections`}
+        />
         <span className="@max-[220px]:hidden">
         <HeaderButton
           icon={Eye}
@@ -57,6 +63,7 @@ export function MixFrame() {
         className="frame-r relative shadow-[0_30px_80px_-20px_rgb(0_0_0/0.25),0_0_0_1px_rgb(0_0_0/0.06)] transition-shadow"
         style={{ background: guide.tokens['color.bg'] }}
       >
+        {!previewing && site.shared.nav && !page.show.nav && <HiddenShared kind="nav" pageId={page.id} />}
         {slots.map((slot, i) => (
           <SlotRow
             key={slot.id}
@@ -67,6 +74,7 @@ export function MixFrame() {
             focused={focused === slot.id}
           />
         ))}
+        {!previewing && site.shared.footer && !page.show.footer && <HiddenShared kind="footer" pageId={page.id} />}
         {!slots.length && (
           <div className="grid place-items-center py-40 text-center" style={{ fontSize: 'calc(16px / var(--z))' }}>
             <p className="text-zinc-400">Nothing here yet. Add a section to start mixing.</p>
@@ -83,7 +91,7 @@ export function MixFrame() {
 
 /** The "+" at each gap between sections, in the gutter beside the rail. Opens Add section there. */
 function Seams({ onAdd }: { onAdd: (at: number) => void }) {
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const rows = useLayout((s) => s.rows)
   const last = slots.length ? rows[slots[slots.length - 1].id] : undefined
   const ys = slots.map((s) => rows[s.id]?.top)
@@ -121,7 +129,7 @@ function Seams({ onAdd }: { onAdd: (at: number) => void }) {
 
 /** The Add section menu, pinned at the gap it was opened from. */
 function AddAt({ at, onClose }: { at: number; onClose: () => void }) {
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const rows = useLayout((s) => s.rows)
   const frameH = slots.length ? (rows[slots[slots.length - 1].id]?.top ?? 0) + (rows[slots[slots.length - 1].id]?.height ?? 0) : 0
   const y = at < slots.length ? (rows[slots[at].id]?.top ?? 0) : frameH
@@ -154,6 +162,26 @@ function AddSection({ width, onAdd }: { width: number; onAdd: () => void }) {
           className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-95 @max-[150px]:px-2.5"
         >
           <Plus size={15} /> <span className="@max-[150px]:hidden">Add a section</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/** Where the shared nav or footer would be on a page that hides it, with a way to show it again. */
+function HiddenShared({ kind, pageId }: { kind: 'nav' | 'footer'; pageId: string }) {
+  return (
+    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))' }} data-chrome>
+      <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+        <span className="text-[12.5px]">No {kind} on this page</span>
+        <span className="text-zinc-300">·</span>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => useStore.getState().updatePage(pageId, { show: { [kind]: true } })}
+          className="cursor-pointer rounded-full px-2 py-0.5 text-[12.5px] font-semibold text-zinc-800 transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.97]"
+        >
+          Show
         </button>
       </div>
     </div>

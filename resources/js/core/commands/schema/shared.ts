@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { ENTER_PRESETS, HOVER_PRESETS, LOOP_PRESETS, SCROLL_PRESETS } from '../../types'
 
 /** Building blocks the command schemas share. */
-export const section = z.union([z.string(), z.number().int().min(1)]).describe('A section: its id, its position from the top (1 = first), or its type such as "hero"')
+export const section = z.union([z.string(), z.number().int().min(1)]).describe('A section: its id, its position from the top of the page (1 = first), its type such as "hero", its anchor ("team"), or a page and anchor ("/about#team"). "nav" and "footer" are the shared ones')
 export const block = z.string().describe('A block in that section: its id ("b3") or its label ("Pricing · Plan 2 · Button")')
 export const space = z.number().int().min(0).max(10).describe('A step on the spacing scale: 0, 1 (XS), 2 (S), 4 (M), 6 (L), 8 (XL), up to 10')
 export const color = z

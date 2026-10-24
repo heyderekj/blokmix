@@ -3,7 +3,7 @@ import { Library } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { library } from '@/data/library'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { Preview } from './Preview'
 import { suggestClip } from '@/core/suggest'
 
@@ -25,7 +25,7 @@ type Shelf = 'clips' | 'layouts'
 export function Alternatives({ slot }: { slot: Slot }) {
   const ids = library.byType[slot.type]
   const pos = ids.indexOf(slot.clipId) + 1
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const index = slots.findIndex((s) => s.id === slot.id)
   // Each shelf is ordered by how well its clips sit between this section's neighbours.
   const ranked = useMemo(() => suggestClip(slot.type, slots, index, library, true), [slot.type, slots, index])

@@ -1,15 +1,18 @@
-import type { GuideState, Note, ProjectContent, Slot, MixSnapshot } from '@/core/types'
+import type { GuideState, Note, ProjectContent, Site, MixSnapshot } from '@/core/types'
+import { allSlots } from '@/core/site'
 import { generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
 import { library } from '@/data/library'
 
-export function snapshotOf(st: { slots: Slot[]; guide: GuideState; content: ProjectContent; notes: Note[] }): MixSnapshot {
+/** The whole site as it is now, for a version. */
+export function snapshotOf(st: { site: Site; guide: GuideState; content: ProjectContent; notes: Note[] }): MixSnapshot {
+  const slots = allSlots(st.site)
   return structuredClone({
-    slots: st.slots,
+    site: st.site,
     guide: st.guide,
     content: st.content,
-    slotNotes: slotNotesFor(st.slots, st.notes),
+    slotNotes: slotNotesFor(slots, st.notes),
     generalNotes: generalNotesFor(st.notes),
-    marks: marksFor(st.slots, st.notes),
-    clipHashes: Object.fromEntries(st.slots.map((s) => [s.clipId, library.clips[s.clipId]?.hash ?? ''])),
+    marks: marksFor(slots, st.notes),
+    clipHashes: Object.fromEntries(slots.map((s) => [s.clipId, library.clips[s.clipId]?.hash ?? ''])),
   })
 }

@@ -39,8 +39,8 @@ export function descendants(versions: Record<string, VersionNode>, id: string): 
   return kids.flatMap((k) => [k.id, ...descendants(versions, k.id)])
 }
 
-export function snapshotKey(s: Pick<MixSnapshot, 'slots' | 'guide' | 'content'>): string {
-  return stableStringify({ slots: s.slots, guide: { candidates: s.guide.candidates, choices: s.guide.choices }, content: s.content })
+export function snapshotKey(s: Pick<MixSnapshot, 'site' | 'guide' | 'content'>): string {
+  return stableStringify({ site: s.site, guide: { candidates: s.guide.candidates, choices: s.guide.choices }, content: s.content })
 }
 
 export function slotNotesFor(slots: Slot[], notes: Note[]): Record<string, string[]> {

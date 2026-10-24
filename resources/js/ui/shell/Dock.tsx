@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus } from 'lucide-react'
-import { useStore, type Tool } from '@/state/store'
+import { useStore, type Tool, currentSlots } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
@@ -24,7 +24,7 @@ export function Dock() {
   const open = useStore((s) => s.ui.sheet === 'crate')
   // On a section (and nothing else open), the dock grows that section's alternatives,
   // but not while you're working on one of its blocks: the clips would compete with it.
-  const focused = useStore((s) => (s.ui.sheet === 'none' && !s.ui.selectedBlockId ? s.slots.find((x) => x.id === s.ui.focusedSlotId) : undefined))
+  const focused = useStore((s) => (s.ui.sheet === 'none' && !s.ui.selectedBlockId ? currentSlots(s).find((x) => x.id === s.ui.focusedSlotId) : undefined))
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3" data-dock>
       <FirstRunTip />
@@ -178,7 +178,7 @@ function FirstRunTip() {
   const dismissed = useStore((s) => s.ui.hintDismissed)
   const sheetOpen = useStore((s) => s.ui.sheet !== 'none' || !!s.ui.focusedSlotId)
   const seq = useStore((s) => s.shuffleSeq)
-  const key = useStore((s) => s.slots.map((x) => x.clipId).join())
+  const key = useStore((s) => currentSlots(s).map((x) => x.clipId).join())
   const [initial] = useState(key)
   const played = seq > 0 || key !== initial
   useEffect(() => {

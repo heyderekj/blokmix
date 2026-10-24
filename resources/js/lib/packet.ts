@@ -1,6 +1,7 @@
 import type { BuildTarget, MixSnapshot, Note, VersionNode } from '@/core/types'
 import { resolveGuide } from '@/core/guide'
-import { composePage } from '@/core/compose'
+import { composeSite } from '@/core/compose'
+import { allSlots, mapSlots } from '@/core/site'
 import type { PacketInput } from '@/core/export/packet'
 import { generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
 import { library } from '@/data/library'
@@ -23,16 +24,18 @@ export interface PacketSource {
  * style guide, notes and marks. No React, so the export panel and agent
  * commands (prepare_build) build the same packet.
  */
-export function packetInputFor(st: Pick<MixData, 'mixName' | 'slots' | 'guide' | 'content' | 'notes' | 'versions'>, src: PacketSource): PacketInput {
+export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 'content' | 'notes' | 'versions'>, src: PacketSource): PacketInput {
   const { version, targets, sections = {} } = src
-  const snap: Pick<MixSnapshot, 'slots' | 'guide' | 'content' | 'slotNotes' | 'marks' | 'generalNotes'> = version?.snapshot ?? {
-    slots: st.slots,
+  const live = allSlots(st.site)
+  const snap: Pick<MixSnapshot, 'site' | 'guide' | 'content' | 'slotNotes' | 'marks' | 'generalNotes'> = version?.snapshot ?? {
+    site: st.site,
     guide: st.guide,
     content: st.content,
-    slotNotes: slotNotesFor(st.slots, st.notes),
-    marks: marksFor(st.slots, st.notes),
+    slotNotes: slotNotesFor(live, st.notes),
+    marks: marksFor(live, st.notes),
     generalNotes: generalNotesFor(st.notes),
   }
+  const slots = allSlots(snap.site)
   const guide = resolveGuide(snap.guide)
   // Notes pinned on a version frame land in the packet, tagged with the section they sit on.
   const frameNotes = version
@@ -41,13 +44,13 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'slots' | 'guide' |
         .map((n) => {
           const dy = n.anchor.kind === 'frame' ? n.anchor.dy : 0
           const sec = (sections[version.id] ?? []).find((s) => dy >= s.top && dy < s.top + s.height)
-          const slot = sec && snap.slots.find((s) => s.id === sec.slot)
+          const slot = sec && slots.find((s) => s.id === sec.slot)
           return slot ? `[${slot.type}] ${n.text.trim()}` : n.text.trim()
         })
     : []
   const parent = version?.parentId ? st.versions[version.parentId] : null
   return {
-    page: composePage({ slots: snap.slots.filter((s) => library.clips[s.clipId]), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: uploadData }),
+    page: composeSite({ site: mapSlots(snap.site, (s) => (library.clips[s.clipId] ? s : null)), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: uploadData }),
     guide,
     guideState: snap.guide,
     library,
@@ -56,6 +59,6 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'slots' | 'guide' |
     targets,
     notes: [...(snap.generalNotes ?? []), ...frameNotes],
     // A version's marks live on with the mix, so read them live rather than from the snapshot.
-    marks: version ? marksFor(snap.slots, st.notes) : snap.marks,
+    marks: version ? marksFor(slots, st.notes) : snap.marks,
   }
 }

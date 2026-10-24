@@ -1,4 +1,4 @@
-import type { LinkTarget, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
+import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
@@ -7,7 +7,8 @@ import { swapIcons } from './icons'
 import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
 import { resolveFields } from './content'
 import { sectionClip } from './lists'
-import { applyLinks, sectionAnchors, sectionLinks } from './links'
+import { applyLinks, pageScope, sectionAnchors, sectionLinks, siteScope, type LinkScope } from './links'
+import { pageView } from './site'
 import { BANNER_CSS, BANNER_MOTION, bannerMoves } from './banner'
 import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
@@ -79,8 +80,15 @@ export interface ComposedPage {
   mediaFiles: Record<string, string | Uint8Array>
   /** Some section has video, a Lottie, an embed or a lightbox: ship the media player. */
   moving: boolean
-  /** Other pages of the site that links lead to (/about): for the agent to build. */
+  /** Other pages that links lead to but the site doesn't have yet (/careers): for the agent to build. */
   pages: string[]
+  /** A site of pages: the shared nav and footer, composed once, and each page's own sections. `sections` lists them all. */
+  site?: ComposedSite
+}
+
+export interface ComposedSite {
+  shared: { nav?: ComposedSection; footer?: ComposedSection }
+  pages: { id: string; path: string; title: string; show: { nav: boolean; footer: boolean }; sections: ComposedSection[] }[]
 }
 
 export interface ComposeInput {
@@ -96,6 +104,14 @@ export interface ComposeInput {
   uploads?: (id: string) => UploadData | undefined
   /** Keep each block's data-mx-b in the markup, so the page can be measured block by block (lib/measure.ts). */
   keepBlockIds?: boolean
+  /** Class and media prefix, unique per page of a site so pages share one stylesheet safely (default "s": mx-s1-…). */
+  key?: string
+  /** Component names already taken (by other pages of the site). */
+  used?: Map<string, number>
+  /** Where links can lead and their hrefs from this page (default: this page's own sections). */
+  link?: LinkScope
+  /** Section anchors, when the page's view includes sections composed elsewhere (the shared nav). */
+  anchors?: Record<string, string>
 }
 
 const pascal = (s: string) =>
@@ -117,11 +133,13 @@ export function composePage(input: ComposeInput): ComposedPage {
   const addFonts = (t: TokenSet) => fontsForTokens(t, catalog).forEach((f) => fonts.set(f.family, f))
   addFonts(input.guide.tokens)
 
-  const used = new Map<string, number>()
+  const used = input.used ?? new Map<string, number>()
+  const key = input.key ?? 's'
+  const scope = input.link ?? pageScope(input.slots)
   const mediaFiles: Record<string, string | Uint8Array> = {}
   const sections: ComposedSection[] = []
 
-  const anchors = sectionAnchors(input.slots)
+  const anchors = input.anchors ?? sectionAnchors(input.slots)
   input.slots.forEach((slot, position) => {
     const libraryClip = input.library.clips[slot.clipId]
     if (!libraryClip) return
@@ -140,7 +158,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const changed = clip.blocks
       .map((b) => ({ b, edit: effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]) }))
       .filter((x): x is { b: (typeof x)['b']; edit: BlockEdit } => !!x.edit)
-    const blockClass = (id: string) => `mx-s${position + 1}-${id.replace(/\./g, '-')}`
+    const blockClass = (id: string) => `mx-${key}${position + 1}-${id.replace(/\./g, '-')}`
     const preset = slot.motion?.mode === 'preset' ? slot.motion : undefined
     // Staggered sections animate their top-level blocks, so those need a class too.
     const staggered = preset?.stagger ? clip.blocks.filter((b) => !b.parent || clip.blocks.find((x) => x.id === b.parent)?.kind === 'list').map((b) => b.id) : []
@@ -159,7 +177,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       const fill = edit.media
       const r = renderMedia(fill, input.guide.tokens, b.ratio, input.uploads ?? (() => undefined))
       if (!r) continue
-      const base = `media/s${position + 1}-${b.id.replace(/\./g, '-')}`
+      const base = `media/${key}${position + 1}-${b.id.replace(/\./g, '-')}`
       let src = r.src
       let poster = r.poster
       if (fill.source === 'placeholder') {
@@ -211,7 +229,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const marked = mapTree(source, (el) => {
       if (attr(el, 'data-mx-section') !== undefined) {
         // Every section has an anchor, so links can lead to it (#pricing).
-        const root = spaced ? addClass(el, `mx-s${position + 1}`) : el
+        const root = spaced ? addClass(el, `mx-${key}${position + 1}`) : el
         return { ...root, attrs: [...root.attrs.filter(([k]) => k !== 'id'), ['id', anchors[slot.id]]] }
       }
       if (attr(el, 'data-mx-block') === undefined) return el
@@ -226,7 +244,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       return { ...block, kids: [...block.kids, ...mediaElements(m, w, h)] }
     })
     // Where its links lead: what you set, else what their words name.
-    const links = sectionLinks(clip.blocks, edits, fields, input.slots, slot.id, anchors)
+    const links = sectionLinks(clip.blocks, edits, fields, scope, slot.id)
     const linked = applyLinks(marked, links)
     // Blocks you hid (a banner you don't want) leave the markup and the content file altogether.
     // Hidden only on phones stays: it's still on the page at desktop widths, and CSS hides it below.
@@ -240,7 +258,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       edits,
       components: input.page?.components,
       select: (b) => `.${clip.rootClass}.${blockClass(b.id)}, .${clip.rootClass} .${blockClass(b.id)}`,
-    }) + (spaced ? `\n${sectionSpacingCss(slot.spacing, `.${clip.rootClass}.mx-s${position + 1}`)}` : '')
+    }) + (spaced ? `\n${sectionSpacingCss(slot.spacing, `.${clip.rootClass}.mx-${key}${position + 1}`)}` : '')
     const mediaCss = media
       .map((m) => {
         const sel = `.${clip.rootClass} .${blockClass(m.blockId)}`
@@ -249,14 +267,14 @@ export function composePage(input: ComposeInput): ComposedPage {
         return `@layer clip { :where(${sel}) { position: relative; } }\n@layer blocks {\n${sel} { overflow: hidden; }\n${sel} > :not(.mx-media, .mx-play) { visibility: hidden; }\n${sel} > .mx-media { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: ${fit}; display: block; border: 0; border-radius: inherit; }\n}`
       })
       .join('\n')
-    const rootSel = `.${clip.rootClass}.mx-s${position + 1}`
+    const rootSel = `.${clip.rootClass}.mx-${key}${position + 1}`
     const generated = presetMotionCss({
       blocks: clip.blocks,
       edits: (b) => effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]),
       section: slot.motion,
       select: (b) => `.${clip.rootClass} .${blockClass(b.id)}`,
       root: rootSel,
-      prefix: `mx-s${position + 1}-m`,
+      prefix: `mx-${key}${position + 1}-m`,
     })
 
     let localVars: CssVars | null = null
@@ -327,6 +345,38 @@ export function composePage(input: ComposeInput): ComposedPage {
     mediaFiles,
     moving: sections.some((x) => x.media.some((m) => m.kind !== 'image' || m.lightbox)),
     pages: [...new Set(sections.flatMap((x) => x.links.filter((l) => l.to === 'page').map((l) => l.href)))].sort(),
+  }
+}
+
+/**
+ * A whole site: the shared nav and footer composed once, then each page's own
+ * sections, with class prefixes and component names unique across the site and
+ * links that know other pages. `sections` lists everything, nav first.
+ */
+export function composeSite(input: Omit<ComposeInput, 'slots' | 'key' | 'used' | 'link' | 'anchors'> & { site: Site }): ComposedPage {
+  const { site, ...base } = input
+  const used = new Map<string, number>()
+  const one = (slots: Site['pages'][number]['slots'], key: string, here: string | null, viewOf?: string) =>
+    composePage({ ...base, slots, key, used, link: siteScope(site, here), anchors: viewOf ? sectionAnchors(pageView(site, viewOf)) : undefined })
+  const nav = site.shared.nav ? one([site.shared.nav], 'nav', null) : null
+  const pages = site.pages.map((p, i) => ({ page: p, composed: one(p.slots, i === 0 ? 's' : `p${i + 1}s`, p.id, p.id) }))
+  const footer = site.shared.footer ? one([site.shared.footer], 'ft', null) : null
+  const all = [nav, ...pages.map((x) => x.composed), footer].filter((x): x is ComposedPage => !!x)
+  const fonts = new Map(all.flatMap((c) => c.fonts.map((f) => [f.family, f] as const)))
+  const paths = new Set(site.pages.map((p) => p.path))
+  const first = all[0] ?? composePage({ ...base, slots: [] })
+  return {
+    ...first,
+    title: input.title ?? input.content.brand,
+    fonts: [...fonts.values()],
+    sections: all.flatMap((c) => c.sections),
+    mediaFiles: Object.assign({}, ...all.map((c) => c.mediaFiles)),
+    moving: all.some((c) => c.moving),
+    pages: [...new Set(all.flatMap((c) => c.pages))].filter((p) => !paths.has(p)).sort(),
+    site: {
+      shared: { nav: nav?.sections[0], footer: footer?.sections[0] },
+      pages: pages.map(({ page, composed }) => ({ id: page.id, path: page.path, title: page.title, show: page.show, sections: composed.sections })),
+    },
   }
 }
 

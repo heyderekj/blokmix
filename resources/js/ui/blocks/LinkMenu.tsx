@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { AtSign, Check, ExternalLink, FileText, Hash, Phone, RotateCcw, Unlink } from 'lucide-react'
 import type { BlockInfo, LinkTarget, Slot } from '@/core/types'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
-import { describeLink, linkWords, resolveLink, sectionAnchors, suggestLink } from '@/core/links'
+import { describeLink, linkWords, resolveLink, suggestLink } from '@/core/links'
 import { slotClip } from '@/data/library'
 import { useStore } from '@/state/store'
+import { useLinkScope } from '@/state/derived'
 import { Switch } from '../panels/parts'
 
 type Tab = 'section' | 'page' | 'url' | 'email' | 'phone'
@@ -21,21 +22,21 @@ const PAGES = ['/about', '/pricing', '/blog', '/contact', '/careers', '/docs', '
 
 /** Where a link block leads now: what was set, or what its words suggest. */
 export function useLink(slot: Slot, block: BlockInfo) {
-  const slots = useStore((s) => s.slots)
+  const scope = useLinkScope(slot.id)
   const content = useStore((s) => s.content)
   const clip = slotClip(slot)
   const fields = resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields
   const words = linkWords(block, clip.blocks, fields)
   const set = slot.edits?.[slot.clipId]?.[block.id]?.link
-  const resolved = resolveLink(set, words, slots, slot.id, sectionAnchors(slots))
-  return { set, resolved, suggestion: suggestLink(words, slots, slot.id), slots, words }
+  const resolved = resolveLink(set, words, scope, slot.id)
+  return { set, resolved, suggestion: suggestLink(words, scope, slot.id), scope, words }
 }
 
 /** The bar's short name for a destination. */
 export function LinkLabel({ slot, block }: { slot: Slot; block: BlockInfo }) {
-  const { resolved, slots } = useLink(slot, block)
+  const { resolved, scope } = useLink(slot, block)
   if (!resolved.target || resolved.target.to === 'none') return <span className="text-zinc-400">Link</span>
-  return <span className="max-w-[110px] truncate">{describeLink(resolved.target, slots).replace(/ section$/, '')}</span>
+  return <span className="max-w-[110px] truncate">{describeLink(resolved.target, scope).replace(/ section( on |$)/, '$1')}</span>
 }
 
 /**
@@ -45,7 +46,8 @@ export function LinkLabel({ slot, block }: { slot: Slot; block: BlockInfo }) {
  * otherwise.
  */
 export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
-  const { set, resolved, suggestion, slots } = useLink(slot, block)
+  const { set, resolved, suggestion, scope } = useLink(slot, block)
+  const slots = scope.slots
   const current = resolved.target
   const [tab, setTab] = useState<Tab>(current && current.to !== 'none' ? current.to : 'section')
   const st = useStore.getState
@@ -55,7 +57,7 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
     <div className="glass-menu w-[352px] animate-pop rounded-2xl p-1.5">
       <div className="flex items-center gap-2 px-2 pb-1.5 pt-1 text-[12px]">
         <span className="text-zinc-500">Goes to</span>
-        <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{describeLink(current, slots)}</span>
+        <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{describeLink(current, scope)}</span>
         {resolved.auto && <span className="rounded-md bg-zinc-950/[0.05] px-1.5 py-0.5 text-[10.5px] font-semibold text-zinc-500" title="From its words; set one to change it">Auto</span>}
       </div>
       <div className="mb-1.5 flex gap-0.5 rounded-xl bg-zinc-950/[0.04] p-0.5">
@@ -86,7 +88,10 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
                 className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12.5px] transition disabled:opacity-35 ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
               >
                 <span className="w-5 text-[11px] tabular-nums text-zinc-400">{String(i + 1).padStart(2, '0')}</span>
-                <span className="flex-1 font-medium text-zinc-800">{TYPE_LABEL[s.type]}</span>
+                <span className="flex-1 truncate font-medium text-zinc-800">
+                  {TYPE_LABEL[s.type]}
+                  {scope.elsewhere?.[s.id] && <span className="font-normal text-zinc-400"> · {scope.elsewhere[s.id]}</span>}
+                </span>
                 {suggested && <span className="text-[10.5px] font-semibold text-zinc-400">Its words say so</span>}
                 {s.id === slot.id && <span className="text-[10.5px] text-zinc-400">This section</span>}
                 {on && <Check size={13} className="text-zinc-900" />}
@@ -100,9 +105,14 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
           key="page"
           placeholder="/about"
           initial={current?.to === 'page' ? current.path : ''}
-          hint="Another page of the site. The packet asks your agent to make it."
-          onSave={(v) => v && apply({ to: 'page', path: v.startsWith('/') ? v : `/${v}` })}
-          chips={PAGES}
+          hint="A page of the site. One that isn’t made yet goes in the packet for your agent to make."
+          onSave={(v) => {
+            if (!v) return
+            const path = v.startsWith('/') ? v : `/${v}`
+            const known = scope.pages?.find((x) => x.path === path)
+            apply(known ? { to: 'page', path, pageId: known.id } : { to: 'page', path })
+          }}
+          chips={[...(scope.pages ?? []).map((x) => x.path), ...PAGES.filter((x) => !scope.pages?.some((y) => y.path === x))].slice(0, 8)}
         />
       )}
       {tab === 'url' && <UrlField initial={current?.to === 'url' ? current : null} onSave={(url, newTab) => url && apply({ to: 'url', url, newTab })} />}
@@ -115,7 +125,7 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
         </button>
         {set && (
           <button type="button" onClick={() => apply(undefined)} className="flex h-7 items-center gap-1.5 rounded-lg px-2 text-[12px] font-medium text-zinc-600 transition hover:bg-zinc-950/5">
-            <RotateCcw size={12} className="text-zinc-400" /> {suggestion ? `Back to ${describeLink(suggestion, slots)}` : 'Clear'}
+            <RotateCcw size={12} className="text-zinc-400" /> {suggestion ? `Back to ${describeLink(suggestion, scope)}` : 'Clear'}
           </button>
         )}
       </div>

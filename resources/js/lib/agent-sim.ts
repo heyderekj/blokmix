@@ -1,4 +1,5 @@
 import type { BuildTarget } from '@/core/types'
+import { allSlots } from '@/core/site'
 import { resolveGuide } from '@/core/guide'
 import { useStore, pauseHistory, resumeHistory } from '@/state/store'
 import { useLayout } from '@/state/layout'
@@ -32,7 +33,7 @@ export async function runReferenceBuild(versionId: string, target: BuildTarget) 
   const steps = [
     'Reading BLOKMIX.md and blokmix.json',
     conflicts ? `Applying ${conflicts} resolved token decisions` : 'Applying the style guide',
-    `Writing ${parent.snapshot.slots.length} section components`,
+    `Writing ${allSlots(parent.snapshot.site).length} section components${parent.snapshot.site.pages.length > 1 ? ` across ${parent.snapshot.site.pages.length} pages` : ''}`,
     `Wiring tokens.css into ${target === 'astro' ? 'src/layouts/Base.astro' : 'app/layout.tsx'}`,
     'Rendering the preview',
   ]

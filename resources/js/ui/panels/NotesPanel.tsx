@@ -4,7 +4,7 @@ import type { Note, NoteKind, NoteStatus } from '@/core/types'
 import { NOTE_KINDS } from '@/core/types'
 import { KIND_LABEL, STATUS_LABEL, SOURCE_LABEL, isMark, onSection, outstanding, sortMarks } from '@/core/notes'
 import { TYPE_LABEL } from '@/core/content'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { canvasApi } from '../canvas/Canvas'
 import { VIEW_W, placeVersions } from '../canvas/geometry'
@@ -18,7 +18,7 @@ type StatusFilter = 'todo' | 'resolved' | 'all'
  */
 export function NotesPanel() {
   const notes = useStore((s) => s.notes)
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const versions = useStore((s) => s.versions)
   const [kind, setKind] = useState<NoteKind | 'all'>('all')
   const [status, setStatus] = useState<StatusFilter>('todo')

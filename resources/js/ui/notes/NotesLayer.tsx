@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useRef } from 'react'
 import { Trash2 } from 'lucide-react'
 import type { Note, NoteColor } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { anchorAt, canvasApi } from '../canvas/Canvas'
 import type { FramePlacement } from '../canvas/geometry'
@@ -42,7 +42,7 @@ export function NotesLayer({ placements }: { placements: FramePlacement[] }) {
 
 const StickyNote = memo(function StickyNote({ note, x, y, placements }: { note: Note; x: number; y: number; placements: FramePlacement[] }) {
   const editing = useStore((s) => s.ui.editingNoteId === note.id)
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const ref = useRef<HTMLTextAreaElement>(null)
   const st = useStore.getState
   const c = NOTE_COLORS[note.color]

@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
-import { composePage } from '@/core/compose'
+import { composeSite } from '@/core/compose'
+import { mapSlots } from '@/core/site'
 import { referenceHtml } from '@/core/export/reference-html'
 import { resolveGuide } from '@/core/guide'
 import { library } from '@/data/library'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { useLayout, type BlockRects } from '@/state/layout'
 import { VIEWPORT_VH } from '@/state/derived'
 import { uploadData } from './assets'
@@ -13,10 +14,10 @@ export const MEASURE_WIDTHS = { desktop: 1280, mobile: 390 } as const
 export type MeasureWidth = (typeof MEASURE_WIDTHS)[keyof typeof MEASURE_WIDTHS]
 
 /** The page as it ships (the reference build), with each section tagged so blocks can be found by id. */
-function pageHtml(width: MeasureWidth): string {
+function pageHtml(width: MeasureWidth, pageId?: string | null): string {
   const st = useStore.getState()
-  const page = composePage({
-    slots: st.slots.filter((s) => library.clips[s.clipId]),
+  const page = composeSite({
+    site: mapSlots(st.site, (s) => (library.clips[s.clipId] ? s : null)),
     guide: resolveGuide(st.guide),
     content: st.content,
     library,
@@ -25,7 +26,7 @@ function pageHtml(width: MeasureWidth): string {
     uploads: uploadData,
     keepBlockIds: true,
   })
-  return referenceHtml(page, { vh: VIEWPORT_VH[width === MEASURE_WIDTHS.mobile ? 'mobile' : 'desktop'], tagSlots: true })
+  return referenceHtml(page, { vh: VIEWPORT_VH[width === MEASURE_WIDTHS.mobile ? 'mobile' : 'desktop'], tagSlots: true, pageId: pageId ?? st.ui.pageId ?? undefined })
 }
 
 const frames = new Map<number, HTMLIFrameElement>()
@@ -78,11 +79,11 @@ function readRects(doc: Document): BlockRects {
  * box, cached in useLayout.blockRects until the page changes. Calls for the
  * same width wait their turn.
  */
-export function measurePage(width: MeasureWidth): Promise<BlockRects> {
+export function measurePage(width: MeasureWidth, pageId?: string | null): Promise<BlockRects> {
   // Nothing to lay out with outside a browser: the checklist runs without measurements.
   if (typeof document === 'undefined') return Promise.resolve({})
   const run = async () => {
-    const html = pageHtml(width)
+    const html = pageHtml(width, pageId)
     const hit = useLayout.getState().blockRects[width]
     if (hit?.key === html) return hit.rects
     const doc = await load(frameFor(width), html)
@@ -105,7 +106,7 @@ export async function measureWidths(widths: MeasureWidth[] = [MEASURE_WIDTHS.des
 
 /** Keeps the measured boxes fresh while something is watching them (the block bar), a moment after the page settles. */
 export function useMeasuredPage(on: boolean) {
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const guide = useStore((s) => s.guide)
   const content = useStore((s) => s.content)
   useEffect(() => {

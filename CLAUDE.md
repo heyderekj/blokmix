@@ -42,6 +42,9 @@ fixtures in `extension/fixtures/` in real Chrome.
 
 - `resources/js/core/`: pure TS, no React or Vite APIs (reused by the future extension and MCP server)
 - `resources/js/data/library.ts`: loads `samples/` via `import.meta.glob`
+- `resources/js/core/site.ts`: the site model. Each page holds its own sections; one nav and one footer are shared
+  (`site.shared`) and a page can hide them. `pageView` reads a page top to bottom, `allSlots` every section, and the
+  store's `currentSlots` is the open page. Links are `#anchor` on the same page and `/path#anchor` across pages.
 - `resources/js/state/`: zustand store (persist + zundo undo)
 - `resources/js/frame/`: sandboxed iframe rendering + postMessage bridge
 - `resources/js/ui/`: canvas, frames, panels

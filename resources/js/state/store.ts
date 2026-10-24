@@ -21,6 +21,8 @@ import type {
   SectionSpacing,
   MobileSpacing,
   SectionType,
+  Page,
+  Site,
   Slot,
   Status,
   TokenGroup,
@@ -36,6 +38,7 @@ import { keepOption, putBackOption, retireOption, showWords } from '@/core/words
 import { suggestClip } from '@/core/suggest'
 import { BASE_TOKENS } from '@/core/tokens'
 import { buildSeed } from './seed'
+import { allSlots, freePath, mapSlots, pageOf, pageOfSlot, pageView, setPageSlots, siteFromSlots, titleFromPath, updatePage as updatePageIn, updateSlotIn } from '@/core/site'
 import { onSection } from '@/core/notes'
 import { uid } from './uid'
 import { versionActions } from './slices/versions'
@@ -45,7 +48,7 @@ import { DEFAULT_CONTENT } from '@/core/content'
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
 /** The one surface that can be open at a time; each grows out of the control that summons it. */
-export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'menu' | 'notes'
+export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'menu' | 'notes' | 'pages'
 export type Tool = 'select' | 'hand' | 'sticky' | 'note'
 
 export interface Camera {
@@ -82,11 +85,14 @@ export interface UiState {
   agentAccess: boolean
   /** The mark whose card is open on the canvas. */
   openNoteId: string | null
+  /** The page open on the canvas (null: the first). */
+  pageId: string | null
 }
 
 export interface MixData {
   mixName: string
-  slots: Slot[]
+  /** The pages, and the nav and footer they share. */
+  site: Site
   guide: GuideState
   content: ProjectContent
   versions: Record<string, VersionNode>
@@ -112,8 +118,17 @@ export interface State extends MixData {
   focusSlot: (slotId: string | null) => void
   focusNext: (dir: 1 | -1) => void
   moveSlot: (slotId: string, toIndex: number) => void
-  addSlot: (type: SectionType, clipId?: string, atIndex?: number) => void
+  /** Add a section to a page (the open one by default) at a position in its view; a nav or footer becomes the site's shared one. */
+  addSlot: (type: SectionType, clipId?: string, atIndex?: number, pageId?: string) => void
   removeSlot: (slotId: string) => void
+
+  // pages
+  openPage: (pageId: string) => void
+  addPage: (p?: { path?: string; title?: string; slots?: Slot[]; show?: Partial<Page['show']>; open?: boolean }) => string
+  updatePage: (pageId: string, patch: { path?: string; title?: string; show?: Partial<Page['show']> }) => void
+  removePage: (pageId: string) => void
+  movePage: (pageId: string, toIndex: number) => void
+  duplicatePage: (pageId: string) => string
 
   // blocks
   selectBlock: (blockId: string | null) => void
@@ -197,6 +212,7 @@ const DEFAULT_UI: UiState = {
   selectedBlockId: null,
   agentAccess: false,
   openNoteId: null,
+  pageId: null,
 }
 
 function pickDifferent(options: string[], current: string): string {
@@ -234,6 +250,38 @@ export function carryOver(ls: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'
   }
 }
 
+/** The sections of the page open on the canvas, top to bottom (shared nav and footer included). */
+/** The page to show a section on: its own, or for the shared nav and footer this one if it shows them. */
+function pageFor(site: Site, slotId: string, here: string | null): string | null {
+  const own = pageOfSlot(site, slotId)
+  if (own) return own.id
+  if (pageView(site, here).some((s) => s.id === slotId)) return here
+  const kind = site.shared.nav?.id === slotId ? 'nav' : 'footer'
+  return site.pages.find((p) => p.show[kind])?.id ?? here
+}
+
+export const currentSlots = (st: Pick<State, 'site' | 'ui'>) => pageView(st.site, st.ui.pageId)
+
+/**
+ * Saved state from before pages: one list of sections becomes a site (its nav
+ * and footer shared, the rest the home page), in the mix and in every version.
+ */
+export function siteState(persisted: Record<string, unknown>): Record<string, unknown> {
+  const p = { ...persisted }
+  const toSite = <T extends Record<string, unknown>>(o: T): T => {
+    if (!o || o.site || !Array.isArray(o.slots)) return o
+    const { slots, ...rest } = o
+    return { ...rest, site: siteFromSlots(slots as Slot[]) } as unknown as T
+  }
+  Object.assign(p, toSite(p))
+  delete p.slots
+  if (p.versions && typeof p.versions === 'object')
+    p.versions = Object.fromEntries(
+      Object.entries(p.versions as Record<string, VersionNode>).map(([id, v]) => [id, v.snapshot ? { ...v, snapshot: toSite(v.snapshot as unknown as Record<string, unknown>) } : v]),
+    )
+  return p
+}
+
 /** Saved state in today's words: "proof" sections are "testimonials", and what was the tape's name is the mix's. */
 export function renamedState(persisted: unknown): Record<string, unknown> {
   const p = JSON.parse(
@@ -253,8 +301,7 @@ export const useStore = create<State>()(
   persist(
     temporal(
       (set, get) => {
-        const updateSlot = (slotId: string, fn: (s: Slot) => Slot) =>
-          set((st) => ({ slots: st.slots.map((s) => (s.id === slotId ? fn(s) : s)) }))
+        const updateSlot = (slotId: string, fn: (s: Slot) => Slot) => set((st) => ({ site: updateSlotIn(st.site, slotId, fn) }))
 
         return {
           ...buildSeed(library),
@@ -273,15 +320,16 @@ export const useStore = create<State>()(
             }),
           setClip: (slotId, clipId) => updateSlot(slotId, (s) => (library.clips[clipId]?.type === s.type ? { ...s, clipId } : s)),
           shuffle: () => {
-            const { slots } = get()
-            if (slots.every((s) => s.locked)) return get().showFlash('Every section is locked')
-            let next = slots
+            const st = get()
+            const view = currentSlots(st)
+            if (view.every((s) => s.locked)) return st.showFlash('Every section is locked')
+            let picks = new Map<string, string>()
             // Never "shuffle" into the same arrangement.
             for (let tries = 0; tries < 8; tries++) {
-              next = slots.map((s) => (s.locked ? s : { ...s, clipId: pickDifferent(library.byType[s.type], s.clipId) }))
-              if (next.some((s, i) => s.clipId !== slots[i].clipId)) break
+              picks = new Map(view.filter((s) => !s.locked).map((s) => [s.id, pickDifferent(library.byType[s.type], s.clipId)]))
+              if (view.some((s) => picks.has(s.id) && picks.get(s.id) !== s.clipId)) break
             }
-            set((st) => ({ slots: next, shuffleSeq: st.shuffleSeq + 1 }))
+            set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? { ...s, clipId: picks.get(s.id)! } : s)), shuffleSeq: x.shuffleSeq + 1 }))
           },
           toggleLock: (slotId) => updateSlot(slotId, (s) => ({ ...s, locked: !s.locked })),
           toggleKeep: (slotId, key) => updateSlot(slotId, (s) => ({ ...s, keep: { ...s.keep, [key]: !s.keep[key] } })),
@@ -289,6 +337,8 @@ export const useStore = create<State>()(
             set((st) => ({
               ui: {
                 ...st.ui,
+                // A section on another page opens that page (a shared one stays put while it's shown here).
+                pageId: slotId ? pageFor(st.site, slotId, st.ui.pageId) : st.ui.pageId,
                 focusedSlotId: slotId,
                 selectedBlockId: slotId === st.ui.focusedSlotId ? st.ui.selectedBlockId : null,
                 ...(slotId ? { selectedFrameId: 'mix' } : {}),
@@ -297,7 +347,7 @@ export const useStore = create<State>()(
 
           selectBlock: (blockId) => set((st) => ({ ui: { ...st.ui, selectedBlockId: blockId } })),
           setBanner: (slotId, on) => {
-            const slot = get().slots.find((s) => s.id === slotId)
+            const slot = allSlots(get().site).find((s) => s.id === slotId)
             if (!slot || slot.type !== 'nav') return
             const own = slotClip({ ...slot, banner: false }).blocks.find((b) => b.kind === 'banner')
             if (own) get().editBlock(slotId, own.id, { hidden: on ? undefined : true })
@@ -342,7 +392,7 @@ export const useStore = create<State>()(
               return { ...s, words }
             }),
           editList: (slotId, change) => {
-            const slot = get().slots.find((s) => s.id === slotId)
+            const slot = allSlots(get().site).find((s) => s.id === slotId)
             if (!slot) return null
             const clip = slotClip(slot)
             let next: Slot
@@ -387,7 +437,7 @@ export const useStore = create<State>()(
             }),
           promoteBlock: (slotId, blockId) => {
             const st = get()
-            const slot = st.slots.find((x) => x.id === slotId)
+            const slot = allSlots(st.site).find((x) => x.id === slotId)
             const block = slot && slotClip(slot).blocks.find((b) => b.id === blockId)
             const edit = slot?.edits?.[slot.clipId]?.[blockId]
             if (!slot || !block || !edit) return
@@ -410,40 +460,115 @@ export const useStore = create<State>()(
           },
           removeSwatch: (id) => set((s) => ({ guide: { ...s.guide, swatches: (s.guide.swatches ?? []).filter((w) => w.id !== id) } })),
           focusNext: (dir) => {
-            const { slots, ui } = get()
+            const st = get()
+            const slots = currentSlots(st)
             if (!slots.length) return
-            const i = slots.findIndex((s) => s.id === ui.focusedSlotId)
+            const i = slots.findIndex((s) => s.id === st.ui.focusedSlotId)
             const n = i < 0 ? (dir > 0 ? 0 : slots.length - 1) : Math.min(slots.length - 1, Math.max(0, i + dir))
-            get().focusSlot(slots[n].id)
+            st.focusSlot(slots[n].id)
           },
           moveSlot: (slotId, toIndex) =>
             set((st) => {
-              const from = st.slots.findIndex((s) => s.id === slotId)
-              if (from < 0) return {}
-              const slots = [...st.slots]
-              const [s] = slots.splice(from, 1)
-              slots.splice(Math.max(0, Math.min(slots.length, toIndex)), 0, s)
-              return { slots }
+              // The shared nav stays first and the footer last; a page's own sections move between them.
+              const page = pageOfSlot(st.site, slotId)
+              if (!page) return {}
+              const offset = st.site.shared.nav && page.show.nav ? 1 : 0
+              const slots = page.slots.filter((s) => s.id !== slotId)
+              const moving = page.slots.find((s) => s.id === slotId)!
+              slots.splice(Math.max(0, Math.min(slots.length, toIndex - offset)), 0, moving)
+              return { site: setPageSlots(st.site, page.id, slots) }
             }),
-          addSlot: (type, clipId, atIndex) =>
-            set((st) => {
-              const id = uid('slot')
-              const focused = st.slots.findIndex((s) => s.id === st.ui.focusedSlotId)
-              const at = atIndex ?? (focused >= 0 ? focused + 1 : defaultIndexFor(type, st.slots))
-              // With no clip named, take the one that suits this spot best.
-              const slot: Slot = { id, type, clipId: clipId ?? suggestClip(type, st.slots, at, library)[0]?.clipId, locked: false, keep: { ...DEFAULT_KEEP } }
-              if (!slot.clipId) return {}
-              const slots = [...st.slots]
-              slots.splice(at, 0, slot)
-              return { slots, ui: { ...st.ui, focusedSlotId: id, selectedFrameId: 'mix' } }
-            }),
+          addSlot: (type, clipId, atIndex, pageId) => {
+            const st = get()
+            const page = pageOf(st.site, pageId ?? st.ui.pageId)
+            const view = pageView(st.site, page.id)
+            const focused = view.findIndex((s) => s.id === st.ui.focusedSlotId)
+            const at = atIndex ?? (focused >= 0 ? focused + 1 : defaultIndexFor(type, view))
+            const chrome = type === 'nav' || type === 'footer' ? type : null
+            if (chrome && st.site.shared[chrome]) {
+              // One nav and one footer for the whole site: show it here, or say where it already is.
+              if (!page.show[chrome]) {
+                set((x) => ({ site: updatePageIn(x.site, page.id, { show: { ...page.show, [chrome]: true } }) }))
+                return st.showFlash(`Showing the site ${chrome} on this page`, { undo: true })
+              }
+              return st.showFlash(`The site already has a ${chrome}. Swap its clip instead.`)
+            }
+            // With no clip named, take the one that suits this spot best.
+            const slot: Slot = { id: uid('slot'), type, clipId: clipId ?? suggestClip(type, view, at, library)[0]?.clipId, locked: false, keep: { ...DEFAULT_KEEP } }
+            if (!slot.clipId) return
+            set((x) => {
+              let site: Site
+              if (chrome) site = updatePageIn({ ...x.site, shared: { ...x.site.shared, [chrome]: slot } }, page.id, { show: { ...page.show, [chrome]: true } })
+              else {
+                const offset = x.site.shared.nav && page.show.nav ? 1 : 0
+                const slots = [...page.slots]
+                slots.splice(Math.max(0, Math.min(slots.length, at - offset)), 0, slot)
+                site = setPageSlots(x.site, page.id, slots)
+              }
+              return { site, ui: { ...x.ui, pageId: page.id, focusedSlotId: slot.id, selectedFrameId: 'mix' } }
+            })
+          },
           removeSlot: (slotId) =>
             set((st) => {
-              const i = st.slots.findIndex((s) => s.id === slotId)
-              const slots = st.slots.filter((s) => s.id !== slotId)
-              const focus = slots[Math.min(i, slots.length - 1)]?.id ?? null
-              return { slots, notes: st.notes.filter((n) => onSection(n.anchor) !== slotId), ui: { ...st.ui, focusedSlotId: focus } }
+              const view = currentSlots(st)
+              const i = view.findIndex((s) => s.id === slotId)
+              const { nav, footer } = st.site.shared
+              // Removing the shared nav or footer takes it off every page.
+              const site: Site =
+                nav?.id === slotId
+                  ? { ...st.site, shared: { ...st.site.shared, nav: undefined } }
+                  : footer?.id === slotId
+                    ? { ...st.site, shared: { ...st.site.shared, footer: undefined } }
+                    : { ...st.site, pages: st.site.pages.map((p) => ({ ...p, slots: p.slots.filter((s) => s.id !== slotId) })) }
+              const rest = view.filter((s) => s.id !== slotId)
+              const focus = rest[Math.min(i, rest.length - 1)]?.id ?? null
+              return { site, notes: st.notes.filter((n) => onSection(n.anchor) !== slotId), ui: { ...st.ui, focusedSlotId: focus } }
             }),
+
+          openPage: (pageId) => set((st) => ({ ui: { ...st.ui, pageId, focusedSlotId: null, selectedBlockId: null, selectedFrameId: 'mix' } })),
+          addPage: (p = {}) => {
+            const id = uid('page')
+            set((st) => {
+              const path = freePath(st.site, p.path ?? `/page-${st.site.pages.length + 1}`)
+              const page: Page = { id, path, title: p.title?.trim() || titleFromPath(path), slots: p.slots ?? [], show: { nav: true, footer: true, ...p.show } }
+              return { site: { ...st.site, pages: [...st.site.pages, page] }, ...(p.open === false ? {} : { ui: { ...st.ui, pageId: id, focusedSlotId: null, selectedBlockId: null } }) }
+            })
+            return id
+          },
+          updatePage: (pageId, patch) =>
+            set((st) => {
+              const page = pageOf(st.site, pageId)
+              const others = { ...st.site, pages: st.site.pages.filter((x) => x.id !== page.id) }
+              const path = patch.path !== undefined ? freePath(others, patch.path) : page.path
+              return { site: updatePageIn(st.site, page.id, { path, title: patch.title?.trim() || page.title, show: { ...page.show, ...patch.show } }) }
+            }),
+          removePage: (pageId) =>
+            set((st) => {
+              if (st.site.pages.length < 2) return {}
+              const gone = st.site.pages.find((x) => x.id === pageId)
+              if (!gone) return {}
+              const ids = new Set(gone.slots.map((s) => s.id))
+              const pages = st.site.pages.filter((x) => x.id !== pageId)
+              return {
+                site: { ...st.site, pages },
+                notes: st.notes.filter((n) => !ids.has(onSection(n.anchor) ?? '')),
+                ui: { ...st.ui, pageId: st.ui.pageId === pageId ? pages[0].id : st.ui.pageId, focusedSlotId: null, selectedBlockId: null },
+              }
+            }),
+          movePage: (pageId, toIndex) =>
+            set((st) => {
+              const pages = [...st.site.pages]
+              const from = pages.findIndex((x) => x.id === pageId)
+              if (from < 0) return {}
+              const [moving] = pages.splice(from, 1)
+              pages.splice(Math.max(0, Math.min(pages.length, toIndex)), 0, moving)
+              return { site: { ...st.site, pages } }
+            }),
+          duplicatePage: (pageId) => {
+            const page = pageOf(get().site, pageId)
+            // A copy is its own page: fresh section ids, the same clips, words, edits and looks.
+            return get().addPage({ path: `${page.path === '/' ? '/home' : page.path}-copy`, title: `${page.title} copy`, slots: page.slots.map((s) => ({ ...structuredClone(s), id: uid('slot') })), show: page.show })
+          },
           renameMix: (mixName) => set({ mixName }),
 
           promoteClip: (clipId, groups) => {
@@ -477,9 +602,9 @@ export const useStore = create<State>()(
       },
       {
         limit: 100,
-        partialize: (s) => ({ slots: s.slots, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }),
+        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }),
         equality: (a, b) =>
-          a.slots === b.slots && a.guide === b.guide && a.content === b.content && a.versions === b.versions && a.notes === b.notes,
+          a.site === b.site && a.guide === b.guide && a.content === b.content && a.versions === b.versions && a.notes === b.notes,
         handleSet: (handleSet) => leading(handleSet, 400),
       },
     ),
@@ -489,7 +614,7 @@ export const useStore = create<State>()(
       storage: createJSONStorage(() => carryOver(localStorage)),
       partialize: (s) => ({
         mixName: s.mixName,
-        slots: s.slots,
+        site: s.site,
         guide: s.guide,
         content: s.content,
         versions: s.versions,
@@ -501,12 +626,12 @@ export const useStore = create<State>()(
         camera: s.camera,
       }),
       merge: (persisted, current) => {
-        const p = renamedState(persisted) as Partial<State>
+        const p = siteState(renamedState(persisted)) as Partial<State>
         const merged = { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } } as State
         // Tokens added since the mix was saved (e.g. line weight) start at their defaults.
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
         // Drop anything that points at clips that no longer exist in the sample library.
-        merged.slots = (merged.slots ?? []).filter((s) => library.clips[s.clipId])
+        merged.site = mapSlots(merged.site, (s) => (library.clips[s.clipId] ? s : null))
         // Copy fields added since the mix was saved (a nav banner's messages) start from the defaults.
         if (merged.content?.fields) {
           const fields = { ...merged.content.fields }

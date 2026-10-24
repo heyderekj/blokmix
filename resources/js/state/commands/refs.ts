@@ -1,11 +1,12 @@
-import type { BlockInfo, BlockStyle, Note, Slot } from '@/core/types'
+import type { BlockInfo, BlockStyle, Note, Page, Slot } from '@/core/types'
+import { allSlots, isShared, normalizePath, pageOf, pageOfSlot, pageView, updateSlotIn } from '@/core/site'
 import { isMark, SOURCE_LABEL } from '@/core/notes'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
 import { effectiveEdit } from '@/core/blocks/style'
 import { advise } from '@/core/advise'
 import { resolveGuide } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
-import { sectionAnchors, sectionLinks } from '@/core/links'
+import { sectionAnchors, sectionLinks, siteScope } from '@/core/links'
 import { editList, ListError, type ListOp } from '@/core/lists'
 import { outline, type OutlineList, type OutlineNode } from '@/core/outline'
 import { parseHtml } from '@/core/html/parse'
@@ -15,15 +16,64 @@ import { useStore } from '../store'
 
 export class CommandError extends Error {}
 
-export function findSection(ref: string | number): Slot {
-  const { slots } = useStore.getState()
+/** A page by path ("/about"), title ("About") or id; the page open on the canvas when none is given. */
+export function findPage(ref?: string | null): Page {
+  const { site, ui } = useStore.getState()
+  if (ref == null || ref === '') return pageOf(site, ui.pageId)
+  const r = ref.trim().toLowerCase()
+  const hit = site.pages.find((p) => p.id === ref) ?? site.pages.find((p) => p.path === normalizePath(ref)) ?? site.pages.find((p) => p.title.toLowerCase() === r)
+  if (!hit) throw new CommandError(`No page "${ref}". Pages: ${site.pages.map((p) => `${p.path} (${p.title})`).join(', ')}`)
+  return hit
+}
+
+/**
+ * A section: its id (anywhere on the site), its position or type on a page (the
+ * open one unless `page` says), its anchor ("team"), or a page and anchor
+ * ("/about#team"). "nav" and "footer" are the site's shared ones.
+ */
+export function findSection(ref: string | number, page?: string | null): Slot {
+  const { site } = useStore.getState()
   if (typeof ref === 'string' && /^\d+$/.test(ref)) ref = Number(ref)
+  if (typeof ref === 'string' && ref.includes('#')) {
+    const [path, anchor] = ref.split('#')
+    return findSection(anchor, path || '/')
+  }
+  const byId = typeof ref === 'string' ? allSlots(site).find((s) => s.id === ref) : undefined
+  if (byId) return byId
+  const p = findPage(page)
+  const view = pageView(site, p.id)
+  const anchors = sectionAnchors(view)
+  const r = typeof ref === 'string' ? ref.toLowerCase() : ''
   const hit =
     typeof ref === 'number'
-      ? slots[ref - 1]
-      : (slots.find((s) => s.id === ref) ?? slots.find((s) => s.type === ref.toLowerCase()) ?? slots.find((s) => TYPE_LABEL[s.type].toLowerCase() === ref.toLowerCase()))
-  if (!hit) throw new CommandError(`No section "${ref}". Sections: ${slots.map((s, i) => `${i + 1} ${s.type} (${s.id})`).join(', ')}`)
+      ? view[ref - 1]
+      : r === 'nav' || r === 'footer'
+        ? (site.shared[r] ?? view.find((s) => s.type === r))
+        : (view.find((s) => s.type === r) ?? view.find((s) => TYPE_LABEL[s.type].toLowerCase() === r) ?? view.find((s) => anchors[s.id] === r))
+  if (!hit) throw new CommandError(`No section "${ref}" on ${p.title} (${p.path}). Sections: ${view.map((s, i) => `${i + 1} ${s.type} (${s.id})`).join(', ')}`)
   return hit
+}
+
+/** Where a section's links can lead, from its own page (the shared nav and footer see every page). */
+export function linkScopeFor(slotId: string) {
+  const { site } = useStore.getState()
+  return siteScope(site, pageOfSlot(site, slotId)?.id ?? null)
+}
+
+/** Where a section sits top to bottom on its page (the shared ones: on the page asked about). 0 when hidden there. */
+export function positionOf(slot: Slot, pageRef?: string | null): number {
+  const { site } = useStore.getState()
+  const p = pageOfSlot(site, slot.id) ?? findPage(pageRef)
+  return pageView(site, p.id).indexOf(slot) + 1
+}
+
+/** "Hero (section 2 of About)". */
+export function placeOf(slot: Slot): string {
+  const { site } = useStore.getState()
+  if (isShared(site, slot.id)) return `${TYPE_LABEL[slot.type]} (shared on every page)`
+  const p = pageOfSlot(site, slot.id)
+  const i = p ? pageView(site, p.id).indexOf(slot) + 1 : 0
+  return `${TYPE_LABEL[slot.type]} (section ${i}${p && site.pages.length > 1 ? ` of ${p.title}` : ''})`
 }
 
 export function findBlock(slot: Slot, ref: string): BlockInfo {
@@ -49,9 +99,9 @@ export function describeNote(n: Note) {
   let on = 'the whole page'
   let section: string | null = null
   if ('slotId' in a) {
-    const slot = st.slots.find((s) => s.id === a.slotId)
+    const slot = allSlots(st.site).find((s) => s.id === a.slotId)
     section = slot?.id ?? null
-    const name = slot ? `${TYPE_LABEL[slot.type]} (section ${st.slots.indexOf(slot) + 1})` : 'a removed section'
+    const name = slot ? placeOf(slot) : 'a removed section'
     if (a.kind === 'block') on = `${a.label}${slot && slot.clipId !== a.clipId ? ' (on a clip that’s no longer shown)' : ''}`
     else if (a.kind === 'words') on = `the words “${a.quote}” in ${a.label} (field ${a.field})`
     else if (a.kind === 'area') on = `an area of ${name} (${Math.round(a.rect.x * 100)}% across, ${Math.round(a.rect.y * 100)}% down, ${Math.round(a.rect.w * 100)}% × ${Math.round(a.rect.h * 100)}%)`
@@ -84,7 +134,7 @@ export function describeSection(slot: Slot, position: number) {
   const st = useStore.getState()
   const clip = slotClip(slot)
   const words = wordsFor(slot)
-  const links = sectionLinks(clip.blocks, slot.edits?.[clip.id], words, st.slots, slot.id, sectionAnchors(st.slots))
+  const links = sectionLinks(clip.blocks, slot.edits?.[clip.id], words, linkScopeFor(slot.id), slot.id)
   return {
     id: slot.id,
     position,
@@ -156,7 +206,7 @@ export function changeList(slot: Slot, change: ListOp): Slot {
   }
 }
 
-export const putSlot = (next: Slot) => useStore.setState((st) => ({ slots: st.slots.map((x) => (x.id === next.id ? next : x)) }))
+export const putSlot = (next: Slot) => useStore.setState((st) => ({ site: updateSlotIn(st.site, next.id, () => next) }))
 
 export const itemsOf = (slot: Slot, listId: string) => slotClip(slot).blocks.filter((b) => b.parent === listId && b.kind === 'item')
 
@@ -177,7 +227,7 @@ export function adviceFor(slot: Slot, at?: { width: number; rects?: Record<strin
     tokens: resolveGuide(st.guide).tokens,
     swatches: st.guide.swatches,
     fields: wordsFor(slot),
-    links: sectionLinks(clip.blocks, slot.edits?.[clip.id], wordsFor(slot), st.slots, slot.id, sectionAnchors(st.slots)),
+    links: sectionLinks(clip.blocks, slot.edits?.[clip.id], wordsFor(slot), linkScopeFor(slot.id), slot.id),
   })
 }
 

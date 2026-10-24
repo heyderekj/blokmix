@@ -4,7 +4,7 @@ import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
 import { sectionClip } from '@/core/lists'
 import { onSection } from '@/core/notes'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { frameStateFor, usePageStyle } from '@/state/derived'
 import { postState, type BlockEvent, type FrameRect } from '@/frame/bridge'
@@ -175,7 +175,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
         if ('drag' in e) setDrawing(e.drag ?? null)
         if (e.words) {
           const w = e.words
-          const live = useStore.getState().slots.find((x) => x.id === slot.id)!
+          const live = currentSlots(useStore.getState()).find((x) => x.id === slot.id)!
           const b = slotClip(live).blocks.find((x) => x.id === w.block)
           st().setUi({ openNoteId: null })
           useMarkDraft.getState().open({
@@ -184,7 +184,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
             anchor: { kind: 'words', slotId: live.id, clipId: live.clipId, blockId: b?.id ?? '', label: b?.label ?? TYPE_LABEL[live.type], field: w.field, quote: w.quote },
           })
         } else if ('notePick' in e || e.area) {
-          const live = useStore.getState().slots.find((x) => x.id === slot.id)!
+          const live = currentSlots(useStore.getState()).find((x) => x.id === slot.id)!
           // Marking doesn't focus the section: the dock stays small and the page stays in view.
           st().setUi({ openNoteId: null })
           const clip = slotClip(live)

@@ -7,7 +7,8 @@ import { TYPE_LABEL } from '@/core/content'
 import { GROUP_LABEL, primaryFamily } from '@/core/tokens'
 import { library, slotClip } from '@/data/library'
 import { Switch } from '../panels/parts'
-import { useStore } from '@/state/store'
+import { updateSlotIn } from '@/core/site'
+import { useStore, currentSlots } from '@/state/store'
 import { MORPH } from '../shell/Island'
 import { DeviceSwitch, SectionSpacingRows, useDevice } from '../blocks/Spacing'
 import { SectionMotionRows } from '../blocks/MotionMenu'
@@ -30,6 +31,12 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
   const clip = library.clips[slot.clipId]
   const source = library.sources[clip?.sourceId ?? '']
   const sheet = useStore((s) => s.ui.sheet)
+  // The shared nav and footer: on how many pages (0 when the section is a page's own).
+  const sharedOn = useStore((s) => {
+    const kind = s.site.shared.nav?.id === slot.id ? 'nav' : s.site.shared.footer?.id === slot.id ? 'footer' : null
+    return kind ? s.site.pages.filter((p) => p.show[kind]).length : 0
+  })
+  const multi = useStore((s) => s.site.pages.length > 1)
   const [tab, setTab] = useState<Tab | null>(null)
   const st = useStore.getState
 
@@ -59,6 +66,11 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
             <div className="text-[15px] font-semibold leading-tight text-zinc-900">{TYPE_LABEL[slot.type]}</div>
             <div className="truncate text-[12px] text-zinc-500">
               {source?.name} · {pos} of {total}
+              {sharedOn > 0 && multi ? (
+                <span className="ml-1 rounded-full bg-key-soft px-1.5 py-px text-[11px] font-semibold text-key-ink" title="Edits here show on every page that shows it">
+                  Shared · on {sharedOn} {sharedOn === 1 ? 'page' : 'pages'}
+                </span>
+              ) : null}
               {yours.length ? <span className="text-zinc-400"> · your {yours.join(' & ')}</span> : null}
             </div>
           </div>
@@ -278,8 +290,7 @@ function SpacingGroup({ slot }: { slot: Slot }) {
   // Show them all again as one undo step.
   const showAll = () =>
     useStore.setState((st) => ({
-      slots: st.slots.map((x) => {
-        if (x.id !== slot.id) return x
+      site: updateSlotIn(st.site, slot.id, (x) => {
         const forClip = { ...x.edits?.[x.clipId] }
         for (const [id] of hiddenOnPhones) {
           const { mobile, ...rest } = forClip[id]
@@ -335,7 +346,7 @@ function BannerRow({ slot }: { slot: Slot }) {
         onChange={() => {
           st().setBanner(slot.id, !on)
           if (!on) setTimeout(() => {
-            const b = slotClip(useStore.getState().slots.find((s) => s.id === slot.id)!).blocks.find((x) => x.kind === 'banner')
+            const b = slotClip(currentSlots(useStore.getState()).find((s) => s.id === slot.id)!).blocks.find((x) => x.kind === 'banner')
             if (b) st().selectBlock(b.id)
           })
         }}

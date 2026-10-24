@@ -1,10 +1,10 @@
-import type { ComposedPage } from '../compose'
+import type { ComposedPage, ComposedSection } from '../compose'
 import { serialize } from '../html/serialize'
 import type { HNode } from '../html/parse'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
 import { slug } from './astro'
-import { contentVar, fontLinks, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+import { contentVar, sitePages, fontLinks, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
 
 export const NEXT_VERSION = '^16.4.3'
@@ -77,7 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
 ${links.map((l) => `        ${l}\n`).join('')}      </head>
       <body>
-        <main>{children}</main>
+        {children}
 ${page.moving ? '        <Script src="/mx-media.js" strategy="afterInteractive" />\n' : ''}      </body>
     </html>
   )
@@ -103,17 +103,28 @@ ${jsxBody(bindContent(s.source, s.outline, file, true))}
 `
   }
 
-  files[`${root}app/page.tsx`] = `${page.sections
-    .flatMap((s) => [`import ${s.component} from '@/components/sections/${s.component}'`, ...(s.outline.length ? [`import ${contentVar(s)} from '@/content/${s.contentName}.json'`] : [])])
-    .join('\n')}
-
+  // Each route renders the shared nav and footer (unless it turns them off) around its own <main>.
+  const site = sitePages(page)
+  const use = (s: ComposedSection) => (s.outline.length ? `<${s.component} content={${contentVar(s)}} />` : `<${s.component} />`)
+  const importsFor = (secs: ComposedSection[]) =>
+    secs.flatMap((s) => [`import ${s.component} from '@/components/sections/${s.component}'`, ...(s.outline.length ? [`import ${contentVar(s)} from '@/content/${s.contentName}.json'`] : [])])
+  for (const p of site.pages) {
+    const nav = p.show.nav ? site.shared.nav : undefined
+    const footer = p.show.footer ? site.shared.footer : undefined
+    const route = p.path === '/' ? 'app/page.tsx' : `app${p.path}/page.tsx`
+    const meta = p.path === '/' ? '' : `\nexport const metadata = { title: ${JSON.stringify(`${p.title} · ${page.title}`)} }\n`
+    files[`${root}${route}`] = `${[...new Set(importsFor([...(nav ? [nav] : []), ...p.sections, ...(footer ? [footer] : [])]))].join('\n')}
+${meta}
 export default function Page() {
   return (
     <>
-${page.sections.map((s) => (s.outline.length ? `      <${s.component} content={${contentVar(s)}} />` : `      <${s.component} />`)).join('\n')}
-    </>
+${nav ? `      ${use(nav)}\n` : ''}      <main>
+${p.sections.map((s) => `        ${use(s)}`).join('\n')}
+      </main>
+${footer ? `      ${use(footer)}\n` : ''}    </>
   )
 }
 `
+  }
   return files
 }

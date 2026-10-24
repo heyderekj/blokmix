@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useStore } from '@/state/store'
+import { currentSlots, useStore } from '@/state/store'
 import { runCommand, tools } from '@/state/commands'
 
 // The checklist lays the page out in hidden frames; here a fake layout stands in, per width.
@@ -12,7 +12,7 @@ vi.mock('@/lib/measure', async (orig) => {
       measured.calls.push(width)
       const { useStore } = await import('@/state/store')
       const { slotClip } = await import('@/data/library')
-      const hero = useStore.getState().slots.find((s) => s.type === 'hero')!
+      const hero = currentSlots(useStore.getState()).find((s) => s.type === 'hero')!
       const btn = slotClip(hero).blocks.find((b) => b.kind === 'button')!
       // The hero's button is a comfortable size on desktop and too small on a phone.
       return { [hero.id]: { [btn.id]: { x: 0, y: 0, w: 140, h: width === 390 ? 30 : 48 } } }
@@ -67,7 +67,7 @@ describe('commands', () => {
     runCommand('set_section_spacing', { section: added.id, top: 'tight' })
     runCommand('set_look_for_all', { kind: 'button', look: 'pill' })
     const s = useStore.getState()
-    const faq = s.slots.find((x) => x.id === added.id)!
+    const faq = currentSlots(s).find((x) => x.id === added.id)!
     expect(faq.words?.heading).toBe('Questions, answered')
     expect(faq.spacing).toEqual({ top: 'tight' })
     expect(s.guide.components?.button?.variant).toBe('pill')

@@ -6,7 +6,7 @@ import { NOTE_KINDS } from '@/core/types'
 import { KIND_HINT, KIND_LABEL, SOURCE_LABEL, STATUS_LABEL, isMark, onSection, replaceWords } from '@/core/notes'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
 import { slotClip } from '@/data/library'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import type { FrameRect } from '@/frame/bridge'
 import { keepInView } from '../canvas/inView'
 
@@ -166,7 +166,7 @@ function Pin({ mark, x, y, onHover }: { mark: Note; x: number; y: number; onHove
 /* ---------- writing a mark ---------- */
 
 function Composer({ draft }: { draft: MarkDraft }) {
-  const slot = useStore((s) => s.slots.find((x) => x.id === draft.slotId))
+  const slot = useStore((s) => currentSlots(s).find((x) => x.id === draft.slotId))
   const [kind, setKind] = useState<NoteKind>('must-fix')
   const [text, setText] = useState('')
   const [copy, setCopy] = useState('')
@@ -260,7 +260,7 @@ function Composer({ draft }: { draft: MarkDraft }) {
 
 /** Words you selected: change them now, or suggest the change as a note (Koati's "select text to change it"). */
 function WordsComposer({ draft, anchor }: { draft: MarkDraft; anchor: Extract<NoteAnchor, { kind: 'words' }> }) {
-  const slot = useStore((s) => s.slots.find((x) => x.id === draft.slotId))
+  const slot = useStore((s) => currentSlots(s).find((x) => x.id === draft.slotId))
   const content = useStore((s) => s.content)
   const [next, setNext] = useState(anchor.quote)
   const [why, setWhy] = useState('')

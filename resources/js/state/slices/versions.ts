@@ -1,6 +1,7 @@
 import type { VersionNode } from '@/core/types'
 import { autoTitle, descendants, nextLetter } from '@/core/versions'
 import { library } from '@/data/library'
+import { allSlots, mapSlots, pageOf } from '@/core/site'
 import { snapshotOf } from '../snapshot'
 import { uid } from '../uid'
 import type { State } from '../store'
@@ -19,7 +20,7 @@ export function versionActions(set: Set, get: Get): Pick<State, 'pressVersion' |
         id,
         letter: nextLetter(st.versions, parentId),
         parentId,
-        title: autoTitle(st.slots, library),
+        title: autoTitle(allSlots(st.site), library),
         status: 'in-progress',
         createdAt: Date.now(),
         kind: 'snapshot',
@@ -32,14 +33,15 @@ export function versionActions(set: Set, get: Get): Pick<State, 'pressVersion' |
       const v = get().versions[versionId]
       if (!v) return
       const snap = structuredClone(v.snapshot)
-      const slots = snap.slots.filter((s) => library.clips[s.clipId])
+      const site = mapSlots(snap.site, (s) => (library.clips[s.clipId] ? s : null))
       set((st) => ({
-        slots,
+        site,
         guide: snap.guide,
         content: snap.content,
         branchFrom: v.kind === 'build' ? v.parentId : v.id,
         head: v.kind === 'build' ? v.parentId : v.id,
-        ui: { ...st.ui, selectedFrameId: 'mix', focusedSlotId: slots[0]?.id ?? null, mode: 'unified' },
+        // Stay on the same page if the version has it.
+        ui: { ...st.ui, selectedFrameId: 'mix', focusedSlotId: null, pageId: pageOf(site, st.ui.pageId).id, mode: 'unified' },
       }))
     },
     setStatus: (versionId, status) =>

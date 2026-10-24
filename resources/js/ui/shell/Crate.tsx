@@ -6,7 +6,7 @@ import { SECTION_TYPES } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { primaryFamily } from '@/core/tokens'
 import { library } from '@/data/library'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { frameStateFor } from '@/state/derived'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { LayoutTag } from './Alternatives'
@@ -17,9 +17,9 @@ import { LayoutTag } from './Alternatives'
  */
 export function Crate() {
   const filter = useStore((s) => s.ui.crateFilter)
-  const focusedType = useStore((s) => s.slots.find((x) => x.id === s.ui.focusedSlotId)?.type ?? null)
+  const focusedType = useStore((s) => currentSlots(s).find((x) => x.id === s.ui.focusedSlotId)?.type ?? null)
   const focusedId = useStore((s) => s.ui.focusedSlotId)
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const used = useMemo(() => new Set(slots.map((s) => s.clipId)), [slots])
   const st = useStore.getState
   const effective: SectionType | 'all' = filter === 'auto' ? (focusedType ?? 'all') : filter
@@ -111,8 +111,8 @@ function ClipCard({ clip, used }: { clip: Clip; used: boolean }) {
 
   const place = () => {
     const st = useStore.getState()
-    const focused = st.slots.find((s) => s.id === st.ui.focusedSlotId)
-    const target = focused?.type === clip.type ? focused : st.slots.find((s) => s.type === clip.type)
+    const focused = currentSlots(st).find((s) => s.id === st.ui.focusedSlotId)
+    const target = focused?.type === clip.type ? focused : currentSlots(st).find((s) => s.type === clip.type)
     if (target) {
       st.setClip(target.id, clip.id)
       st.focusSlot(target.id)

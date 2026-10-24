@@ -3,8 +3,9 @@ import type { Advice } from '@/core/advise'
 import { slotClip } from '@/data/library'
 import { measurePage, MEASURE_WIDTHS } from '@/lib/measure'
 import type { BlockRects } from '../layout'
+import { pageView } from '@/core/site'
 import { useStore } from '../store'
-import { findSection, adviceFor } from './refs'
+import { findPage, findSection, adviceFor } from './refs'
 import type { AsyncCommand } from './index'
 
 type Rects = Record<number, BlockRects>
@@ -18,11 +19,13 @@ export const later = {
   review: {
     prepare: async (i: CommandInput<'review'>): Promise<Rects> => {
       const widths = (i.widths ?? ['desktop', 'mobile']).map((w) => MEASURE_WIDTHS[w])
-      return Object.fromEntries(await Promise.all(widths.map(async (w) => [w, await measurePage(w)] as const)))
+      const page = findPage(i.page).id
+      return Object.fromEntries(await Promise.all(widths.map(async (w) => [w, await measurePage(w, page)] as const)))
     },
     apply: (i: CommandInput<'review'>, rects: Rects) => {
       const st = useStore.getState()
-      const slots = i.section !== undefined ? [findSection(i.section)] : st.slots
+      const page = findPage(i.page)
+      const slots = i.section !== undefined ? [findSection(i.section, page.id)] : pageView(st.site, page.id)
       const widths = (i.widths ?? ['desktop', 'mobile']).map((w) => MEASURE_WIDTHS[w])
       return slots.flatMap((s) => {
         const blocks = slotClip(s).blocks

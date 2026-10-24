@@ -9,19 +9,24 @@ import { PROVIDER_LABEL, PROVIDER_LICENSE, searchFonts } from '@/core/fonts'
 import { listContext } from '@/core/lists'
 import { contentJson, type OutlineNode } from '@/core/outline'
 import { wordChoices } from '@/core/words'
+import { pageView } from '@/core/site'
+import { revealSection } from '@/lib/actions'
 import { useStore } from '../store'
-import { findSection, findBlock, wordsFor, describeSection, outlineOf, adviceFor } from './refs'
+import { findPage, findSection, findBlock, wordsFor, describeSection, outlineOf, adviceFor, positionOf } from './refs'
 
 /** Reads about the page: its sections, words, fonts and options, and focusing one. */
 export const read = {
   get_page: (i: CommandInput<'get_page'>) => {
     const st = useStore.getState()
     const guide = resolveGuide(st.guide)
-    const sections = i.section !== undefined ? [findSection(i.section)] : st.slots
+    const page = findPage(i.page)
+    const sections = i.section !== undefined ? [findSection(i.section, page.id)] : pageView(st.site, page.id)
     return {
       mix: st.mixName,
+      page: { path: page.path, title: page.title, nav: page.show.nav, footer: page.show.footer },
+      pages: st.site.pages.map((p) => p.path),
       mode: st.ui.mode === 'unified' ? 'your style' : 'original',
-      sections: sections.map((s) => describeSection(s, st.slots.indexOf(s) + 1)),
+      sections: sections.map((s) => describeSection(s, positionOf(s, page.id))),
       styleGuide: {
         tokens: guide.tokens,
         openDecisions: openGroups(guide),
@@ -34,7 +39,8 @@ export const read = {
   },
   get_content: (i: CommandInput<'get_content'>) => {
     const st = useStore.getState()
-    const sections = i.section !== undefined ? [findSection(i.section)] : st.slots
+    const page = findPage(i.page)
+    const sections = i.section !== undefined ? [findSection(i.section, page.id)] : pageView(st.site, page.id)
     return sections.map((s) => {
       const clip = slotClip(s)
       const nodes = outlineOf(s)
@@ -63,7 +69,7 @@ export const read = {
           return kept.length || retired.length ? [[f, { kept: kept.map((c) => ({ text: c.text, by: c.option?.by ?? 'you' })), retired: retired.map((o) => o.text) }]] : []
         }),
       )
-      return { section: s.id, position: st.slots.indexOf(s) + 1, type: s.type, content: contentJson(nodes, wordsFor(s)), lists, options }
+      return { section: s.id, position: positionOf(s, page.id), type: s.type, content: contentJson(nodes, wordsFor(s)), lists, options }
     })
   },
   list_fonts: (i: CommandInput<'list_fonts'>) => {
@@ -76,8 +82,10 @@ export const read = {
   },
   get_options: (i: CommandInput<'get_options'>) => {
     const st = useStore.getState()
+    const page = findPage(i.page)
+    const view = pageView(st.site, page.id)
     if (i.section !== undefined && i.block) {
-      const slot = findSection(i.section)
+      const slot = findSection(i.section, page.id)
       const b = findBlock(slot, i.block)
       const clip = slotClip(slot)
       const fields = wordsFor(slot)
@@ -92,17 +100,24 @@ export const read = {
       }
     }
     if (i.section !== undefined) {
-      const slot = findSection(i.section)
-      return { section: slot.id, options: suggestClip(slot.type, st.slots, st.slots.indexOf(slot), library, true).map((o) => ({ ...o, title: library.clips[o.clipId].title, origin: library.clips[o.clipId].origin })) }
+      const slot = findSection(i.section, page.id)
+      const at = Math.max(0, view.indexOf(slot))
+      return { section: slot.id, options: suggestClip(slot.type, view, at, library, true).map((o) => ({ ...o, title: library.clips[o.clipId].title, origin: library.clips[o.clipId].origin })) }
     }
-    const at = i.at ?? st.slots.length
-    return { at, types: suggestTypes(st.slots, at).map((t) => ({ ...t, available: library.byType[t.type].length > 0 })) }
+    const at = i.at ?? view.length
+    return { page: page.path, at, types: suggestTypes(view, at).map((t) => ({ ...t, available: library.byType[t.type].length > 0 })) }
   },
   show: (i: CommandInput<'show'>) => {
     const st = useStore.getState()
-    const slot = findSection(i.section)
+    const page = findPage(i.page)
+    if (i.section === undefined) {
+      st.openPage(page.id)
+      return { page: page.path }
+    }
+    const slot = findSection(i.section, page.id)
     st.focusSlot(slot.id)
+    revealSection(slot.id)
     st.selectBlock(i.block ? findBlock(slot, i.block).id : null)
-    return { focused: slot.id }
+    return { page: findPage().path, focused: slot.id }
   },
 }

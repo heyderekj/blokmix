@@ -14,6 +14,8 @@ import { referenceHtml } from './reference-html'
 import { keepSummary, tokensCss, type FileMap } from './shared'
 
 export const PACKET_SCHEMA = 'blokmix.packet/v1'
+/** A site of pages: adds `site`, with each page's route and sections and the shared nav and footer. */
+export const PACKET_SCHEMA_SITE = 'blokmix.packet/v2'
 
 export interface PacketInput {
   page: ComposedPage
@@ -75,7 +77,7 @@ function provenanceLabel(lib: Library, p: string): string {
 export function packetJson(i: PacketInput) {
   const { page, guide, library } = i
   return {
-    schema: PACKET_SCHEMA,
+    schema: page.site ? PACKET_SCHEMA_SITE : PACKET_SCHEMA,
     generatedAt: i.generatedAt ?? new Date().toISOString(),
     mix: {
       name: i.mixName,
@@ -128,6 +130,12 @@ export function packetJson(i: PacketInput) {
       motionCss: s.clip.motionCss,
     })),
     pages: page.pages,
+    site: page.site
+      ? {
+          pages: page.site.pages.map((p) => ({ path: p.path, title: p.title, showsNav: p.show.nav, showsFooter: p.show.footer, sections: p.sections.map((s) => s.component) })),
+          shared: { nav: page.site.shared.nav?.component ?? null, footer: page.site.shared.footer?.component ?? null },
+        }
+      : null,
     rules: AGENT_RULES,
     integrations: { revisemy: REVISEMY, koati: null },
   }
@@ -149,9 +157,32 @@ export function buildNotes(i: PacketInput): string {
   const open = openGroups(guide)
   lines.push(`- **Open style decisions:** ${open.length ? open.map((g) => GROUP_LABEL[g]).join(', ') : 'none'}`)
   lines.push('')
+  if (page.site && page.site.pages.length > 1) {
+    lines.push('## Pages')
+    lines.push('')
+    lines.push('One nav and one footer are shared by every page (in the layout), unless a page turns them off. Each page has its own sections between them.')
+    lines.push('')
+    lines.push('| Route | Title | Nav | Footer | Sections |')
+    lines.push('|---|---|---|---|---|')
+    for (const p of page.site.pages) lines.push(`| \`${p.path}\` | ${p.title} | ${p.show.nav ? 'yes' : 'no'} | ${p.show.footer ? 'yes' : 'no'} | ${p.sections.map((s) => TYPE_LABEL[s.type]).join(', ') || '(empty)'} |`)
+    lines.push('')
+  }
   lines.push('## Sections')
   lines.push('')
+  // On a site, sections are grouped by where they live: shared, then each page.
+  const placeOf = new Map<string, string>()
+  if (page.site) {
+    for (const s of [page.site.shared.nav, page.site.shared.footer]) if (s) placeOf.set(s.slotId, 'Shared on every page')
+    for (const p of page.site.pages) for (const s of p.sections) placeOf.set(s.slotId, `Page \`${p.path}\`: ${p.title}`)
+  }
+  let place = ''
   page.sections.forEach((s) => {
+    const here = placeOf.get(s.slotId)
+    if (here && here !== place && page.site && page.site.pages.length > 1) {
+      place = here
+      lines.push(`#### ${here}`)
+      lines.push('')
+    }
     const src = library.sources[s.clip.sourceId]
     lines.push(`### ${s.position + 1}. ${TYPE_LABEL[s.type]}: \`${s.component}\``)
     lines.push('')
@@ -271,7 +302,7 @@ export function buildNotes(i: PacketInput): string {
   if (page.pages.length) {
     lines.push('## Other pages')
     lines.push('')
-    lines.push(`Links on this page lead to ${page.pages.map((p) => `\`${p}\``).join(', ')}. Create those pages with the same layout, tokens and nav, even if only as a simple page for now, so no link is broken. Sections link to each other by their anchors (\`#pricing\`).`)
+    lines.push(`Links lead to ${page.pages.map((p) => `\`${p}\``).join(', ')}, which the site doesn’t have yet. Create those pages with the same layout, tokens and nav, even if only as a simple page for now, so no link is broken. Sections link to each other by their anchors (\`#pricing\`, or \`/about#team\` on another page).`)
     lines.push('')
   }
   lines.push('## Content')
@@ -324,6 +355,8 @@ export function packetFiles(i: PacketInput): FileMap {
     'tokens.css': tokensCss(i.page),
     'tokens.json': JSON.stringify(toDtcg(i.guide.tokens), null, 2) + '\n',
     'reference.html': referenceHtml(i.page),
+    // Every other page of a site gets its own reference file.
+    ...Object.fromEntries((i.page.site?.pages ?? []).filter((p) => p.path !== '/').map((p) => [`reference${p.path}.html`, referenceHtml(i.page, { pageId: p.id })])),
   }
   for (const t of i.targets) files[`PROMPT.${t}.md`] = agentPrompt(i, t)
   if (i.targets.includes('astro')) Object.assign(files, astroFiles(i.page))

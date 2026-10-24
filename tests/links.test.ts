@@ -4,7 +4,7 @@ import { composePage } from '@/core/compose'
 import { emptyGuide, resolveGuide } from '@/core/guide'
 import { DEFAULT_CONTENT } from '@/core/content'
 import { DEFAULT_KEEP, type Slot } from '@/core/types'
-import { hrefFor, sectionAnchors, suggestLink } from '@/core/links'
+import { hrefFor, pageScope, sectionAnchors, suggestLink } from '@/core/links'
 import { serialize } from '@/core/html/serialize'
 import { sectionClip } from '@/core/lists'
 import { packetFiles } from '@/core/export/packet'
@@ -22,13 +22,13 @@ describe('links', () => {
   })
 
   it('leads words that name a section there, and emails and phone numbers to mail and calls', () => {
-    expect(suggestLink('Pricing', slots, 'n')).toEqual({ to: 'section', slotId: 'p' })
-    expect(suggestLink('Questions', slots, 'n')).toEqual({ to: 'section', slotId: 'f' })
-    expect(suggestLink('Start a mix', slots, 'n')).toBeNull()
-    expect(suggestLink('hello@blokmix.example', slots, 'n')).toEqual({ to: 'email', address: 'hello@blokmix.example' })
-    expect(suggestLink('+1 (555) 010-2026', slots, 'n')).toEqual({ to: 'phone', number: '+1 (555) 010-2026' })
-    expect(hrefFor({ to: 'phone', number: '+1 (555) 010-2026' }, {})).toBe('tel:+15550102026')
-    expect(hrefFor({ to: 'url', url: 'stripe.com' }, {})).toBe('https://stripe.com')
+    expect(suggestLink('Pricing', pageScope(slots), 'n')).toEqual({ to: 'section', slotId: 'p' })
+    expect(suggestLink('Questions', pageScope(slots), 'n')).toEqual({ to: 'section', slotId: 'f' })
+    expect(suggestLink('Start a mix', pageScope(slots), 'n')).toBeNull()
+    expect(suggestLink('hello@blokmix.example', pageScope(slots), 'n')).toEqual({ to: 'email', address: 'hello@blokmix.example' })
+    expect(suggestLink('+1 (555) 010-2026', pageScope(slots), 'n')).toEqual({ to: 'phone', number: '+1 (555) 010-2026' })
+    expect(hrefFor({ to: 'phone', number: '+1 (555) 010-2026' }, { hrefs: {} })).toBe('tel:+15550102026')
+    expect(hrefFor({ to: 'url', url: 'stripe.com' }, { hrefs: {} })).toBe('https://stripe.com')
   })
 
   it('writes anchors and destinations into exports, and lists other pages for the agent', () => {

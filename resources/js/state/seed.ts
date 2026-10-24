@@ -1,4 +1,5 @@
-import type { Library, SectionType, Slot, VersionNode } from '@/core/types'
+import type { Library, SectionType, Site, Slot, VersionNode } from '@/core/types'
+import { allSlots, siteFromSlots } from '@/core/site'
 import { DEFAULT_KEEP } from '@/core/types'
 import { emptyGuide, promote } from '@/core/guide'
 import { DEFAULT_CONTENT } from '@/core/content'
@@ -25,12 +26,24 @@ const SEED_PROMOTIONS: [string, 'color' | 'type' | 'shape'][] = [
   ['features.puffin-bento', 'shape'],
 ]
 
+/** A second page, so the demo is a site: About, built from Blokmix's own layouts. */
+const ABOUT_PICKS: [SectionType, string][] = [
+  ['header', 'header.layout-centered'],
+  ['team', 'team.layout-grid'],
+  ['cta', 'cta.layout-band'],
+]
+
 export function buildSeed(lib: Library): MixData {
-  const slots: Slot[] = []
-  SEED_PICKS.forEach(([type, want], i) => {
-    const clipId = lib.clips[want] ? want : lib.byType[type][0]
-    if (clipId) slots.push({ id: `slot_seed${i}`, type, clipId, locked: false, keep: { ...DEFAULT_KEEP } })
-  })
+  const pick = (picks: [SectionType, string][], prefix: string) =>
+    picks.flatMap(([type, want], i): Slot[] => {
+      const clipId = lib.clips[want] ? want : lib.byType[type][0]
+      return clipId ? [{ id: `${prefix}${i}`, type, clipId, locked: false, keep: { ...DEFAULT_KEEP } }] : []
+    })
+  const home = siteFromSlots(pick(SEED_PICKS, 'slot_seed'))
+  const site: Site = {
+    ...home,
+    pages: [...home.pages, { id: 'page_about', path: '/about', title: 'About', slots: pick(ABOUT_PICKS, 'slot_about'), show: { nav: true, footer: true } }],
+  }
 
   let guide = emptyGuide()
   SEED_PROMOTIONS.forEach(([clipId, group], i) => {
@@ -43,16 +56,16 @@ export function buildSeed(lib: Library): MixData {
     id: 'v_seedA',
     letter: 'A',
     parentId: null,
-    title: autoTitle(slots, lib),
+    title: autoTitle(allSlots(site), lib),
     status: 'ready',
     createdAt: 1,
     kind: 'snapshot',
-    snapshot: snapshotOf({ slots, guide, content, notes: [] }),
+    snapshot: snapshotOf({ site, guide, content, notes: [] }),
   }
 
   return {
     mixName: 'Blokmix launch page',
-    slots,
+    site,
     guide,
     content,
     versions: { [versionA.id]: versionA },

@@ -7,7 +7,7 @@ import { outline, type OutlineList, type OutlineNode } from '@/core/outline'
 import { listContext, type SectionClip } from '@/core/lists'
 import { currentWords, wordChoices } from '@/core/words'
 import { slotClip } from '@/data/library'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { PanelSection } from './parts'
 
 const WORD: Record<string, string> = {
@@ -38,7 +38,7 @@ export function wordLabel(key: string): string {
  * export writes to src/content/<section>.json.
  */
 export function ContentPanel() {
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const brand = useStore((s) => s.content.brand)
   const st = useStore.getState
   if (!slots.length) return <p className="px-4 py-6 text-[12.5px] text-zinc-500">Add a section to start writing.</p>

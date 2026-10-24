@@ -7,8 +7,8 @@ import { variantsFor } from '@/core/blocks/variants'
 import { advise, suggestedVariants, type Advice } from '@/core/advise'
 import { resolveFields } from '@/core/content'
 import { slotClip } from '@/data/library'
-import { useStore } from '@/state/store'
-import { useResolvedGuide } from '@/state/derived'
+import { useStore, currentSlots } from '@/state/store'
+import { useLinkScope, useResolvedGuide } from '@/state/derived'
 import { useBlockPreview } from './preview'
 import type { FrameRect } from '@/frame/bridge'
 import { keepInView } from '../canvas/inView'
@@ -22,7 +22,7 @@ import { ImageMenu } from './ImageMenu'
 import { IconMenu } from './IconMenu'
 import { blockIconName } from '@/core/icons'
 import { listContext } from '@/core/lists'
-import { sectionAnchors, sectionLinks } from '@/core/links'
+import { sectionLinks } from '@/core/links'
 import { WordsCycler, WordsMenu } from './WordsMenu'
 import { LinkLabel, LinkMenu } from './LinkMenu'
 
@@ -722,7 +722,8 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
   const swatches = useStore((s) => s.guide.swatches)
   const components = useStore((s) => s.guide.components)
   const content = useStore((s) => s.content)
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
+  const linkScope = useLinkScope(slot.id)
   return useMemo(() => {
     const clip = slotClip(slot)
     const fields = resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields
@@ -737,7 +738,7 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
         pageStyles[k] = [...new Set([...(pageStyles[k] ?? []), key])]
       }
     }
-    const links = sectionLinks(clip.blocks, slot.edits?.[slot.clipId], fields, slots, slot.id, sectionAnchors(slots))
+    const links = sectionLinks(clip.blocks, slot.edits?.[slot.clipId], fields, linkScope, slot.id)
     const seen = new Set<string>()
     return [MEASURE_WIDTHS.desktop, MEASURE_WIDTHS.mobile].flatMap((width) => {
       const shownHere = (viewport === 'mobile') === (width === MEASURE_WIDTHS.mobile)
@@ -750,5 +751,5 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
         return true
       })
     })
-  }, [slot, block.id, rect, guide.tokens, swatches, components, content, slots, measured, viewport])
+  }, [slot, block.id, rect, guide.tokens, swatches, components, content, slots, linkScope, measured, viewport])
 }

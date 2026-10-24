@@ -5,14 +5,14 @@ import { SECTION_TYPES } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { suggestClip, suggestTypes } from '@/core/suggest'
 import { library } from '@/data/library'
-import { useStore } from '@/state/store'
+import { useStore, currentSlots } from '@/state/store'
 import { Preview, TYPE_ICON } from './Preview'
 import { keepInView } from '../canvas/inView'
 
 /** Insert a section at `at`, picking the clip or layout that suits that spot best. */
 export function insertSection(type: SectionType, at: number) {
   const st = useStore.getState()
-  const best = suggestClip(type, st.slots, at, library)[0]
+  const best = suggestClip(type, currentSlots(st), at, library)[0]
   if (best) st.addSlot(type, best.clipId, at)
 }
 
@@ -22,7 +22,7 @@ export function insertSection(type: SectionType, at: number) {
  * the highlighted type and why it fits. ↑/↓ to move, ↵ to add.
  */
 export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => void }) {
-  const slots = useStore((s) => s.slots)
+  const slots = useStore(currentSlots)
   const ranked = useMemo(() => suggestTypes(slots, at), [slots, at])
   const usable = (t: SectionType) => library.byType[t].length > 0
   const suggested = ranked.filter((s) => s.allowed && s.score > 0 && usable(s.type)).slice(0, 3)

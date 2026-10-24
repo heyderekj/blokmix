@@ -3,6 +3,7 @@ import { hasPoint, importReviewMarks, isMark, MARK_GUIDANCE, sortMarks } from '@
 import { type CommandInput } from '@/core/commands/schema'
 import { TYPE_LABEL } from '@/core/content'
 import { sectionAnchors } from '@/core/links'
+import { allSlots } from '@/core/site'
 import { library } from '@/data/library'
 import { useStore } from '../store'
 import { uid } from '../uid'
@@ -19,7 +20,7 @@ function describe(n: Note) {
   const external = n.external ? { tool: n.external.tool, review: n.external.reviewId, mark: n.external.markId } : null
   if (a.kind !== 'preview') return { ...d, external }
   const v = useStore.getState().versions[a.versionId]
-  const slot = a.slotId ? v?.snapshot.slots.find((s) => s.id === a.slotId) : undefined
+  const slot = a.slotId ? (v ? allSlots(v.snapshot.site) : []).find((s) => s.id === a.slotId) : undefined
   const where = hasPoint(a) ? `${Math.round(a.x * 100)}% across, ${Math.round(a.y * 100)}% down` : null
   const on = [`${v?.letter ?? 'a removed build'}’s preview at ${a.width}px`, slot ? `the ${TYPE_LABEL[slot.type]} section` : null, where].filter(Boolean).join(', ')
   return { ...d, on, section: null, version: v?.letter ?? null, preview: { width: a.width, x: hasPoint(a) ? a.x : null, y: hasPoint(a) ? a.y : null, page: a.pagePath ?? '/' }, external }
@@ -69,7 +70,7 @@ export const write = {
   import_review_marks: (i: CommandInput<'import_review_marks'>) => {
     const v = findVersion(i.version)
     const st = useStore.getState()
-    const anchors = sectionAnchors(v.snapshot.slots.filter((s) => library.clips[s.clipId]))
+    const anchors = sectionAnchors(allSlots(v.snapshot.site).filter((s) => library.clips[s.clipId]))
     const { notes, added, updated } = importReviewMarks(st.notes, i.review, i.marks, { versionId: v.id, anchors, now: Date.now(), newId: () => uid('mark') })
     const review = { tool: 'revisemy' as const, id: i.review.id, url: i.review.url, status: i.review.status, syncedAt: Date.now() }
     useStore.setState((s) => ({ notes, versions: { ...s.versions, [v.id]: { ...s.versions[v.id], review } } }))

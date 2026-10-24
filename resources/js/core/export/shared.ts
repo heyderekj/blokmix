@@ -1,4 +1,4 @@
-import type { ComposedPage, ComposedSection } from '../compose'
+import type { ComposedPage, ComposedSection, ComposedSite } from '../compose'
 import { fontHrefs, fontLinkTags, varsToCss } from '../tokens'
 import { TYPE_LABEL } from '../content'
 
@@ -42,4 +42,19 @@ export function sectionHeader(s: ComposedSection, lang: 'html' | 'js' | 'css'): 
 
 export function sectionCss(s: ComposedSection): string {
   return `${sectionHeader(s, 'css')}\n${s.css}\n${s.motionCss ? `\n/* Motion (dropped when reduced motion is requested) */\n${s.motionCss}\n` : ''}`
+}
+
+/**
+ * The pages to write. A site gives its pages and the shared nav and footer; a
+ * single composed page is one page at "/" with everything inline, as before.
+ */
+export function sitePages(page: ComposedPage): ComposedSite {
+  return page.site ?? { shared: {}, pages: [{ id: 'page', path: '/', title: page.title, show: { nav: false, footer: false }, sections: page.sections }] }
+}
+
+/** Where a route's file goes under a pages folder, and how far it sits below that folder ("/" → index, "/a/b" → a/b). */
+export function routeFile(path: string): { file: string; depth: number } {
+  if (path === '/') return { file: 'index', depth: 0 }
+  const parts = path.split('/').filter(Boolean)
+  return { file: parts.join('/'), depth: parts.length - 1 }
 }

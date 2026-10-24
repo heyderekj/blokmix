@@ -5,6 +5,7 @@ import { agentPrompt, packetJson } from '@/core/export/packet'
 import { buildDirName, safeBuildDir, safeBuildPath } from '@/core/commands/bridge'
 import { reviewAnchor, reviewStatus } from '@/core/notes'
 import { sectionAnchors } from '@/core/links'
+import { pageView } from '@/core/site'
 import { runCommand } from '@/state/commands'
 
 beforeEach(() => {
@@ -69,7 +70,7 @@ describe('review marks', () => {
 
   it('imports as notes on the build, upserting by mark id', () => {
     const { b } = versionAndBuild()
-    const anchor = sectionAnchors(b.snapshot.slots)[b.snapshot.slots[1].id]
+    const anchor = sectionAnchors(pageView(b.snapshot.site, null))[pageView(b.snapshot.site, null)[1].id]
     const review = { id: 'R1', url: 'https://revisemy.com/r/abc', status: 'changes_requested' }
     const marks = [
       { id: 23, kind: 'must-fix', status: 'open', body: 'Button is cramped', x: 0.5, y: 0.1, width: 1440, section: anchor },
@@ -82,7 +83,7 @@ describe('review marks', () => {
     expect(st.versions[b.id].review).toMatchObject({ tool: 'revisemy', id: 'R1', url: review.url, status: 'changes_requested' })
     const notes = st.notes.filter((n) => n.external?.reviewId === 'R1')
     expect(notes.map((n) => n.status)).toEqual(['open', 'open', 'resolved'])
-    expect(notes[0].anchor).toMatchObject({ kind: 'preview', versionId: b.id, width: 1440, slotId: b.snapshot.slots[1].id })
+    expect(notes[0].anchor).toMatchObject({ kind: 'preview', versionId: b.id, width: 1440, slotId: pageView(b.snapshot.site, null)[1].id })
     expect(notes[2].anchor).toEqual({ kind: 'page' })
     expect(notes.every((n) => n.source === 'review')).toBe(true)
     expect(useStore.temporal.getState().pastStates).toHaveLength(1)

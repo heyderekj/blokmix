@@ -1,37 +1,40 @@
 import { z } from 'zod'
 import { SECTION_TYPES, TOKEN_KEYS } from '../../types'
 import { section, block } from './shared'
+import { page } from './site'
 
 /** The page, its sections, words, lists, style guide and reads. */
 export const PAGE_COMMANDS = {
   get_page: {
     description:
-      'Read the page: every section in order with its clip, keep settings, spacing, its words and its blocks (id, label, kind, words, look). Start here.',
-    input: z.object({ section: section.optional().describe('Only this section') }),
+      'Read a page (the open one unless `page` says): every section in order with its clip, keep settings, spacing, its words and its blocks (id, label, kind, words, look). Start here.',
+    input: z.object({ page: page.optional(), section: section.optional().describe('Only this section') }),
     write: false,
   },
   get_options: {
     description:
       'What could go somewhere. With "section", the clips and layouts that could replace it, ranked with reasons. With "at", the section types that fit a new section at that position, ranked with reasons. With "block", the looks for that block (suggested first) and the checklist’s advice.',
-    input: z.object({ section: section.optional(), block: block.optional(), at: z.number().int().min(0).optional().describe('Insert position: 0 = top') }),
+    input: z.object({ page: page.optional(), section: section.optional(), block: block.optional(), at: z.number().int().min(0).optional().describe('Insert position: 0 = top') }),
     write: false,
   },
   review: {
     description:
       'Run the design checklist (one main action, contrast, tap targets, clear labels, heading and line length, consistency) over the page or one section. It measures the page at desktop (1280px) and mobile (390px) widths; each item says which (at).',
     input: z.object({
+      page: page.optional(),
       section: section.optional(),
       widths: z.array(z.enum(['desktop', 'mobile'])).min(1).optional().describe('Which widths to check; default both'),
     }),
     write: false,
   },
   add_section: {
-    description: 'Insert a section. Without clip_id, the clip or layout that suits that spot best is used.',
-    input: z.object({ type: z.enum(SECTION_TYPES), at: z.number().int().min(0).optional().describe('Insert position: 0 = top; default = where it usually goes'), clip_id: z.string().optional() }),
+    description:
+      'Insert a section on a page. Without clip_id, the clip or layout that suits that spot best is used. A nav or footer is shared by every page: adding one shows the site’s on this page.',
+    input: z.object({ page: page.optional(), type: z.enum(SECTION_TYPES), at: z.number().int().min(0).optional().describe('Insert position: 0 = top; default = where it usually goes'), clip_id: z.string().optional() }),
     write: true,
   },
-  remove_section: { description: 'Remove a section.', input: z.object({ section }), write: true },
-  move_section: { description: 'Move a section to a new position (1 = top).', input: z.object({ section, to: z.number().int().min(1) }), write: true },
+  remove_section: { description: 'Remove a section. Removing the shared nav or footer takes it off every page.', input: z.object({ section }), write: true },
+  move_section: { description: 'Move a section to a new position on its page (1 = top).', input: z.object({ page: page.optional(), section, to: z.number().int().min(1) }), write: true },
   swap_section: {
     description: 'Swap a section to another clip or layout of the same type (see get_options).',
     input: z.object({ section, clip_id: z.string() }),
@@ -50,7 +53,7 @@ export const PAGE_COMMANDS = {
   get_content: {
     description:
       'Read the words as content: each section’s content file (fields, and lists as arrays, as exported to src/content/<section>.json), its lists (id, items, whether you can add or remove items and how many fit), and each field’s word options (kept, retired, by whom).',
-    input: z.object({ section: section.optional() }),
+    input: z.object({ page: page.optional(), section: section.optional() }),
     write: false,
   },
   word_options: {
@@ -110,8 +113,8 @@ export const PAGE_COMMANDS = {
     write: true,
   },
   show: {
-    description: 'Point the person at something: focus a section (and select a block) on the canvas.',
-    input: z.object({ section, block: block.optional() }),
+    description: 'Point the person at something: open a page, focus a section on it (and select a block) on the canvas.',
+    input: z.object({ page: page.optional(), section: section.optional(), block: block.optional() }),
     write: false,
   },
 } as const

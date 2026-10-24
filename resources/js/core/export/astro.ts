@@ -1,8 +1,8 @@
-import type { ComposedPage } from '../compose'
+import type { ComposedPage, ComposedSection } from '../compose'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
-import { contentVar, fontLinks, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
+import { contentVar, fontLinks, routeFile, sectionCss, sectionHeader, sitePages, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
 
 export const ASTRO_VERSION = '~7.3.0' // 7.4 needs Node >= 22.23.4; 7.3 runs on any Node 22.12+
@@ -29,14 +29,27 @@ export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
   files[`${root}src/styles/base.css`] = BASE_CSS_LAYERED + (page.moving ? `\n${MEDIA_CSS}` : '')
   if (page.moving) files[`${root}public/mx-media.js`] = MEDIA_JS
 
+  const site = sitePages(page)
+  const { nav, footer } = site.shared
+  // The shared nav and footer live in the layout; each page can turn either off.
+  const chrome = (s: ComposedSection | undefined, flag: string) => (s ? `{${flag} && ${use(s, '  ')}}` : '')
+  const use = (s: ComposedSection, pad = '') => (s.outline.length ? `<${s.component} content={${contentVar(s)}} />` : `<${s.component} />`).replace(/^/, pad).trim()
+  const importsFor = (secs: ComposedSection[], up: string) =>
+    secs.flatMap((s) => [
+      `import ${s.component} from '${up}components/sections/${s.component}.astro'`,
+      ...(s.outline.length ? [`import ${contentVar(s)} from '${up}content/${s.contentName}.json'`] : []),
+    ])
   files[`${root}src/layouts/Base.astro`] = `---
 import '../styles/tokens.css'
 import '../styles/base.css'
+${importsFor([nav, footer].filter((x): x is ComposedSection => !!x), '../').join('\n')}
 
 interface Props {
   title: string
+  nav?: boolean
+  footer?: boolean
 }
-const { title } = Astro.props
+const { title, nav = true, footer = true } = Astro.props
 ---
 <html lang="en">
   <head>
@@ -45,10 +58,10 @@ const { title } = Astro.props
     <title>{title}</title>
 ${links.map((l) => `    ${l}\n`).join('')}${page.moving ? '    <script is:inline src="/mx-media.js" defer></script>\n' : ''}  </head>
   <body>
-    <main>
+${nav ? `    ${chrome(nav, 'nav')}\n` : ''}    <main>
       <slot />
     </main>
-  </body>
+${footer ? `    ${chrome(footer, 'footer')}\n` : ''}  </body>
 </html>
 `
 
@@ -75,20 +88,19 @@ ${serialize(bindContent(s.source, s.outline, file, false), 'html')}
 `
   }
 
-  const imports = page.sections
-    .flatMap((s) => [
-      `import ${s.component} from '../components/sections/${s.component}.astro'`,
-      ...(s.outline.length ? [`import ${contentVar(s)} from '../content/${s.contentName}.json'`] : []),
-    ])
-    .join('\n')
-  files[`${root}src/pages/index.astro`] = `---
-import Base from '../layouts/Base.astro'
-${imports}
+  for (const p of site.pages) {
+    const { file, depth } = routeFile(p.path)
+    const up = '../'.repeat(depth + 1)
+    const off = [!p.show.nav && nav ? ' nav={false}' : '', !p.show.footer && footer ? ' footer={false}' : ''].join('')
+    files[`${root}src/pages/${file}.astro`] = `---
+import Base from '${up}layouts/Base.astro'
+${importsFor(p.sections, up).join('\n')}
 ---
-<Base title=${JSON.stringify(page.title)}>
-${page.sections.map((s) => (s.outline.length ? `  <${s.component} content={${contentVar(s)}} />` : `  <${s.component} />`)).join('\n')}
+<Base title=${JSON.stringify(p.path === '/' ? page.title : `${p.title} · ${page.title}`)}${off}>
+${p.sections.map((s) => `  ${use(s)}`).join('\n')}
 </Base>
 `
+  }
   return files
 }
 
