@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Blokmix Clipper",
+  "version": "0.1.0",
+  "description": "Clip a section of any site into a Blokmix clip: markup, tokens, copy fields, lists, icons and motion.",
+  "minimum_chrome_version": "116",
+  "action": { "default_title": "Clip a section with Blokmix" },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "side_panel": { "default_path": "panel.html" },
+  "permissions": ["activeTab", "scripting", "sidePanel", "storage", "unlimitedStorage"],
+  "host_permissions": ["<all_urls>"],
+  "commands": {
+    "_execute_action": { "suggested_key": { "default": "Alt+Shift+B" }, "description": "Clip a section" }
+  }
+}

@@ -30,6 +30,14 @@ by `lib/packet.ts` `packetInputFor`, shared by the export panel and agent comman
   quick end-to-end check.
 - New capabilities should be added as commands first, then wired into the UI.
 
+## Capture extension
+
+`extension/` is the Chrome (MV3) clipper that writes clips in this format from live sites (see
+`extension/README.md`). `npm run extension:build`, then load `extension/dist` unpacked. The page side is
+`src/snapshot.ts`; everything else in `src/capture/` is pure and reuses `core/` (lint, parse, icons,
+fonts). `npm run clip:add -- <zip>` adds a downloaded clip and lints it. Capture tests run the saved
+fixtures in `extension/fixtures/` in real Chrome.
+
 ## Layout
 
 - `resources/js/core/`: pure TS, no React or Vite APIs (reused by the future extension and MCP server)
