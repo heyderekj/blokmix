@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join');
 
 Route::middleware('auth')->group(function () {
-    Route::redirect('/', '/mixes');
-
-    Route::get('/mixes', [MixController::class, 'index'])->name('mixes.index');
+    // Your mixes are the home page when you're signed in (signed out, blokmix.com's edge serves the website).
+    Route::get('/', [MixController::class, 'index'])->name('mixes.index');
+    Route::redirect('/mixes', '/');
     Route::post('/mixes', [MixController::class, 'store'])->name('mixes.store');
     Route::get('/mixes/local', [MixController::class, 'local'])->name('mixes.local');
     Route::get('/mixes/{mix}', [MixController::class, 'show'])->name('mixes.show');

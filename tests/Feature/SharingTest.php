@@ -36,9 +36,9 @@ class SharingTest extends TestCase
         $this->get('/login')->assertInertia(fn (Assert $page) => $page->component('auth/login'));
         $this->get('/register')->assertInertia(fn (Assert $page) => $page->component('auth/register'));
         $this->post('/register', ['name' => 'Grace', 'email' => 'grace@example.test', 'password' => 'a-long-password-1', 'password_confirmation' => 'a-long-password-1'])
-            ->assertRedirect('/mixes');
+            ->assertRedirect('/');
         $this->assertAuthenticated();
-        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page->where('auth.user.name', 'Grace'));
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('auth.user.name', 'Grace'));
     }
 
     public function test_a_share_link_brings_a_new_person_in_through_sign_up(): void
@@ -53,7 +53,7 @@ class SharingTest extends TestCase
 
         $grace = User::where('email', 'grace@example.test')->sole();
         $this->assertSame(MixRole::Editor, $this->mix->roleOf($grace));
-        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page->where('mixes.0.role', 'editor'));
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('mixes.0.role', 'editor'));
     }
 
     public function test_a_link_never_lowers_a_role_and_stops_working_when_revoked(): void
@@ -68,7 +68,7 @@ class SharingTest extends TestCase
         $id = $this->actingAs($this->owner)->getJson("/api/mixes/{$this->mix->id}/share")->json('links.0.id');
         $this->deleteJson("/api/mixes/{$this->mix->id}/share/links/{$id}")->assertNoContent();
         $stranger = User::factory()->create();
-        $this->actingAs($stranger)->get($viewLink)->assertRedirect('/mixes');
+        $this->actingAs($stranger)->get($viewLink)->assertRedirect('/');
         $this->assertNull($this->mix->roleOf($stranger));
     }
 

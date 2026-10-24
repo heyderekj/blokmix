@@ -37,15 +37,17 @@ class MixesTest extends TestCase
         return ['id' => "v_$letter", 'letter' => $letter, 'title' => "Version $letter", 'snapshot' => ['site' => ['pages' => []]]];
     }
 
-    public function test_the_home_page_lists_mixes(): void
+    public function test_the_home_page_lists_your_mixes_and_marks_you_signed_in(): void
     {
-        $this->get('/')->assertRedirect('/mixes');
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('mixes/index'))->assertCookie('blokmix_signed_in', '1', false);
+        $this->get('/mixes')->assertRedirect('/');
     }
 
     public function test_signed_out_people_are_asked_to_sign_in(): void
     {
         auth()->logout();
-        $this->get('/mixes')->assertRedirect('/login');
+        $this->get('/')->assertRedirect('/login');
+        $this->withCookie('blokmix_signed_in', '1')->get('/login')->assertCookieExpired('blokmix_signed_in');
         $this->getJson('/api/mixes/x')->assertUnauthorized();
     }
 
@@ -54,7 +56,7 @@ class MixesTest extends TestCase
         $theirs = Mix::create(['name' => 'Theirs']);
         $theirs->admit(User::factory()->create(), MixRole::Owner);
 
-        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page->has('mixes', 0));
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->has('mixes', 0));
         $this->get("/mixes/{$theirs->id}")->assertNotFound();
         $this->getJson("/api/mixes/{$theirs->id}")->assertNotFound();
         $this->putJson("/api/mixes/{$theirs->id}", ['name' => 'Mine now'], ['If-Match' => '"1"'])->assertNotFound();
@@ -65,7 +67,7 @@ class MixesTest extends TestCase
         $this->mine(['name' => 'Older'])->forceFill(['updated_at' => now()->subDay()])->save();
         $this->mine(['name' => 'Newer'])->versions()->create(['key' => 'v_A', 'letter' => 'A', 'node' => $this->node('A')]);
 
-        $this->get('/mixes')
+        $this->get('/')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('mixes/index')
                 ->has('mixes', 2)

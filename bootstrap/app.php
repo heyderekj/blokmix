@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\MarkSignedIn;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,7 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             HandleInertiaRequests::class,
+            MarkSignedIn::class,
         ]);
+        // The signed-in flag is read at the edge, so it isn't encrypted (it holds nothing but "1").
+        $middleware->encryptCookies(except: [MarkSignedIn::COOKIE]);
         $middleware->redirectGuestsTo(fn () => route('login'));
         // Laravel Cloud terminates HTTPS in front of the app.
         $middleware->trustProxies(at: '*');

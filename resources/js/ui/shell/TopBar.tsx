@@ -93,7 +93,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         {isHosted() && (
           <>
-            <MenuItem icon={LayoutGrid} label="All mixes" onClick={() => (st().setUi({ sheet: 'none' }), router.visit('/mixes'))} />
+            <MenuItem icon={LayoutGrid} label="All mixes" onClick={() => (st().setUi({ sheet: 'none' }), router.visit('/'))} />
             <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
           </>
         )}
