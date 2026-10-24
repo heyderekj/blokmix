@@ -1,0 +1,27 @@
+.mx-cta-layout-card {
+  & .band { animation: mx-cta-layout-card-lift calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) both; }
+  & .head > * { animation: mx-cta-layout-card-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; animation-delay: 120ms; }
+  & .head > :nth-child(2) { animation-delay: 180ms; }
+  & .head > :nth-child(3) { animation-delay: 240ms; }
+  & .head > :nth-child(4) { animation-delay: 300ms; }
+  & .head > :nth-child(5) { animation-delay: 360ms; }
+  & .shape span { animation: mx-cta-layout-card-ring calc(var(--mx-motion-duration) * 3) var(--mx-motion-ease) both; animation-delay: 200ms; }
+  & .shape span:nth-child(2) { animation-delay: 260ms; }
+  & .shape span:nth-child(3) { animation-delay: 320ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .band, & .head > *, & .shape span { animation-name: mx-cta-layout-card-fade; }
+  }
+}
+@keyframes mx-cta-layout-card-lift {
+  from { opacity: 0; transform: translateY(24px); }
+}
+@keyframes mx-cta-layout-card-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-cta-layout-card-ring {
+  from { opacity: 0; transform: scale(0.9); }
+}
+@keyframes mx-cta-layout-card-fade {
+  from { opacity: 0; }
+}

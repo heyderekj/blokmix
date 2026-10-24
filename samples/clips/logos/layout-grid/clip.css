@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .inner {
+  & .container {
     max-width: 1120px;
     margin: 0 auto;
     display: grid;
@@ -101,7 +101,7 @@
   }
 
   @media (max-width: 960px) {
-    & .inner { grid-template-columns: 1fr; gap: var(--mx-space-8); }
+    & .container { grid-template-columns: 1fr; gap: var(--mx-space-8); }
   }
 
   @media (max-width: 760px) {

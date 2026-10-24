@@ -1,0 +1,12 @@
+{
+  "title": "Team bento",
+  "layoutPattern": "bento-lead-portrait-plus-four",
+  "rhythm": "grid",
+  "motionNotes": "The head rises, then the portraits follow in a short stagger, the large one first; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

@@ -1,0 +1,76 @@
+.mx-testimonials-layout-logos {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .stack { display: flex; flex-direction: column; gap: var(--mx-space-6); }
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-4 { grid-column-end: span 4; }
+  & .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mx-space-3);
+    padding: var(--mx-space-6);
+    background: var(--mx-color-bg);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .card.soft { background: var(--mx-color-surface); border-color: transparent; }
+  & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+
+  & .body-wrap { gap: var(--mx-space-9); }
+  & .grid > li { display: flex; }
+  & .grid .card { flex: 1; justify-content: space-between; gap: var(--mx-space-7); padding: var(--mx-space-7); }
+  & .quote p { font-size: var(--mx-text-lg); line-height: 1.5; }
+  & .who { display: flex; flex-direction: column; gap: var(--mx-space-1); padding-top: var(--mx-space-5); border-top: var(--mx-stroke) solid var(--mx-color-border); }
+  & .name { font-weight: 600; line-height: 1.3; }
+
+  /* The strip: six wordmarks on one hairline. */
+  & .logos {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--mx-space-6);
+    align-items: center;
+    padding-top: var(--mx-space-8);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
+  }
+  & .logos > li { display: flex; justify-content: center; }
+  & .wordmark {
+    font-family: var(--mx-font-display);
+    font-weight: 700;
+    font-size: var(--mx-text-lg);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    color: color-mix(in oklab, var(--mx-color-text) 55%, transparent);
+  }
+  & .logos > li:nth-child(even) .wordmark { font-family: var(--mx-font-body); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; font-size: var(--mx-text-sm); }
+
+  @media (max-width: 1080px) {
+    & .grid { column-gap: var(--mx-space-5); }
+    & .grid .card { gap: var(--mx-space-5); padding: var(--mx-space-5); }
+    & .grid .quote p { font-size: var(--mx-text-base); }
+    & .logos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
+    & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
+    & .body-wrap { gap: var(--mx-space-8); }
+    & .grid .card { padding: var(--mx-space-6); }
+    & .logos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mx-space-5); }
+  }
+}

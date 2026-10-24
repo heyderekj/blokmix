@@ -1,0 +1,12 @@
+{
+  "title": "Prose with a breakout quote",
+  "layoutPattern": "reading-column-wide-pull-quote",
+  "rhythm": "stack",
+  "motionNotes": "The breakout quote and its caption rise into place; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

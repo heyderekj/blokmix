@@ -4,7 +4,7 @@
   font-family: var(--mx-font-body);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .inner { max-width: 1120px; margin: 0 auto; }
+  & .container { max-width: 1120px; margin: 0 auto; }
 
   /* Header */
   & .head {
@@ -30,7 +30,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
-  & .intro {
+  & .lead {
     margin-top: var(--mx-space-4);
     max-width: 48ch;
     font-size: var(--mx-text-lg);
@@ -201,7 +201,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-4);
     & .heading { font-size: clamp(var(--mx-text-2xl), 8vw, var(--mx-text-3xl)); }
-    & .intro { font-size: var(--mx-text-base); }
+    & .lead { font-size: var(--mx-text-base); }
     & .tiers { margin-top: var(--mx-space-8); gap: var(--mx-space-4); }
     & .tier { padding: var(--mx-space-6); }
     & .amt { font-size: var(--mx-text-4xl); }

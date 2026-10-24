@@ -1,0 +1,12 @@
+{
+  "title": "One price in a band",
+  "layoutPattern": "inverse-band-price-left-features-right",
+  "rhythm": "band",
+  "motionNotes": "The band fades up, the price rises after the heading and the features follow in a short stagger; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

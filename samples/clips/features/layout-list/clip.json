@@ -1,0 +1,12 @@
+{
+  "title": "Numbered feature rows",
+  "layoutPattern": "numbered-hairline-rows-title-body",
+  "rhythm": "stack",
+  "motionNotes": "The head rises in a short stagger, then each row follows in order; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

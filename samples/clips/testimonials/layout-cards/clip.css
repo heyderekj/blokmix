@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .inner { max-width: 1120px; margin: 0 auto; }
+  & .container { max-width: 1120px; margin: 0 auto; }
 
   & .head {
     max-width: 720px;

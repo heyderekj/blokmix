@@ -1,0 +1,12 @@
+{
+  "title": "Sticky picture with numbered list",
+  "layoutPattern": "sticky-head-media-left-numbered-list-right",
+  "rhythm": "split",
+  "motionNotes": "No motion of its own; on a scrolling page the head and picture stay pinned while the six numbered features pass by.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

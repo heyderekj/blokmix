@@ -1,0 +1,12 @@
+{
+  "title": "Form with detail cards",
+  "layoutPattern": "form-beside-stacked-detail-cards",
+  "rhythm": "split",
+  "motionNotes": "No entrance motion; inputs ring on focus and the button presses in.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Links and tools",
+  "layoutPattern": "brand-links-left-search-login-cta-right",
+  "rhythm": "band",
+  "motionNotes": "No entrance. Links brighten on hover, the round search button fills with the surface colour, and the quiet text link takes the accent.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .inner { max-width: 1120px; margin: 0 auto; }
+  & .container { max-width: 1120px; margin: 0 auto; }
 
   & .head {
     max-width: 680px;
@@ -36,7 +36,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
-  & .intro {
+  & .lead {
     margin-top: var(--mx-space-4);
     max-width: 48ch;
     font-size: var(--mx-text-lg);
@@ -111,7 +111,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
-    & .intro { font-size: var(--mx-text-base); }
+    & .lead { font-size: var(--mx-text-base); }
     & .cards { margin-top: var(--mx-space-8); gap: var(--mx-space-3); }
     & .card { padding: var(--mx-space-5) var(--mx-space-4); }
     & .bars { margin-bottom: var(--mx-space-5); height: 24px; }

@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .inner {
+  & .container {
     max-width: 1120px;
     margin: 0 auto;
     display: grid;
@@ -144,7 +144,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
-    & .inner { grid-template-columns: 1fr; gap: var(--mx-space-8); }
+    & .container { grid-template-columns: 1fr; gap: var(--mx-space-8); }
     & .portrait { order: -1; aspect-ratio: 4 / 3; }
     & .figure { left: 26%; right: 26%; height: 80%; }
     & .quote { margin-top: var(--mx-space-5); }

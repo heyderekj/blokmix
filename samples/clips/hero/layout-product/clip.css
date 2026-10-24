@@ -31,7 +31,7 @@
     font-size: var(--mx-text-xs);
     font-weight: 600;
   }
-  & .headline {
+  & .heading {
     margin-top: var(--mx-space-6);
     max-width: 18ch;
     font-family: var(--mx-font-display);
@@ -41,7 +41,7 @@
     letter-spacing: -0.03em;
     text-wrap: balance;
   }
-  & .subhead {
+  & .lead {
     margin-top: var(--mx-space-5);
     max-width: 50ch;
     font-size: var(--mx-text-lg);
@@ -258,7 +258,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-4) 0;
-    & .subhead { font-size: var(--mx-text-base); }
+    & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-self: stretch; }
     & .shot { margin-top: var(--mx-space-8); padding: var(--mx-space-2) var(--mx-space-2) 0; }
     & .app { grid-template-columns: minmax(0, 1fr); min-height: 0; }

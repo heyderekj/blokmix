@@ -1,0 +1,22 @@
+.mx-logos-layout-roster {
+  & .head > * { animation: mx-logos-layout-roster-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .row { animation: mx-logos-layout-roster-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; animation-delay: 140ms; }
+  & .row:nth-child(2) { animation-delay: 180ms; }
+  & .row:nth-child(3) { animation-delay: 220ms; }
+  & .row:nth-child(4) { animation-delay: 260ms; }
+  & .row:nth-child(5) { animation-delay: 300ms; }
+  & .row:nth-child(6) { animation-delay: 340ms; }
+  & .row:nth-child(7) { animation-delay: 380ms; }
+  & .row:nth-child(8) { animation-delay: 420ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .row { animation-name: mx-logos-layout-roster-fade; }
+  }
+}
+@keyframes mx-logos-layout-roster-rise {
+  from { opacity: 0; transform: translateY(10px); }
+}
+@keyframes mx-logos-layout-roster-fade {
+  from { opacity: 0; }
+}

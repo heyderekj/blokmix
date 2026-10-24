@@ -1,0 +1,12 @@
+{
+  "title": "Scrolling row of quotes",
+  "layoutPattern": "scroll-snap-quote-row",
+  "rhythm": "grid",
+  "motionNotes": "No entrance motion: the row scrolls and snaps card by card on its own.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Portrait intro",
+  "layoutPattern": "name-led-copy-7-arched-portrait-5",
+  "rhythm": "split",
+  "motionNotes": "The name-led headline and copy rise in a stagger while the arched portrait lifts in and its offset ring slides into place behind it; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

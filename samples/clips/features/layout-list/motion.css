@@ -1,0 +1,21 @@
+.mx-features-layout-list {
+  & .head > * { animation: mx-features-layout-list-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .row { animation: mx-features-layout-list-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; animation-delay: 180ms; }
+  & .row:nth-child(2) { animation-delay: 230ms; }
+  & .row:nth-child(3) { animation-delay: 280ms; }
+  & .row:nth-child(4) { animation-delay: 330ms; }
+  & .row:nth-child(5) { animation-delay: 380ms; }
+  & .row:nth-child(6) { animation-delay: 430ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .row { animation-name: mx-features-layout-list-fade; }
+  }
+}
+@keyframes mx-features-layout-list-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-features-layout-list-fade {
+  from { opacity: 0; }
+}

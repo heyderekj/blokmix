@@ -1,0 +1,12 @@
+{
+  "title": "Compact with contact card",
+  "layoutPattern": "narrow-accordion-contact-card",
+  "rhythm": "stack",
+  "motionNotes": "The head and list rise in a short stagger and the contact card follows; an opened answer fades in. Reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

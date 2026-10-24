@@ -1,0 +1,12 @@
+{
+  "title": "One line with the email",
+  "layoutPattern": "heading-and-large-email-link",
+  "rhythm": "split",
+  "motionNotes": "No entrance motion; the arrow nudges up and right on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

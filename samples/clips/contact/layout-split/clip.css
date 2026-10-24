@@ -4,7 +4,7 @@
   font-family: var(--mx-font-body);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .wrap {
+  & .container {
     max-width: 1120px;
     margin: 0 auto;
     display: grid;
@@ -29,7 +29,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
-  & .intro {
+  & .lead {
     margin-top: var(--mx-space-5);
     max-width: 40ch;
     font-size: var(--mx-text-lg);
@@ -121,7 +121,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
-    & .wrap { grid-template-columns: 1fr; gap: var(--mx-space-7); }
+    & .container { grid-template-columns: 1fr; gap: var(--mx-space-7); }
     & .info { padding-top: 0; }
     & .card { padding: var(--mx-space-5); }
     & .foot { flex-direction: column; align-items: stretch; }

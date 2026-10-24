@@ -1,0 +1,12 @@
+{
+  "title": "Inverse",
+  "layoutPattern": "primary-ground-cta-beside-columns",
+  "rhythm": "band",
+  "motionNotes": "On the primary colour, the heading, line and button rise in a short stagger, then the columns follow left to right and the brand row fades in; reduced motion keeps only the fades. Links brighten to full strength on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

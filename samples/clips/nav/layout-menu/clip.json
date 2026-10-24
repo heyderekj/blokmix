@@ -1,0 +1,12 @@
+{
+  "title": "Menu button",
+  "layoutPattern": "brand-cta-menu-toggle",
+  "rhythm": "split",
+  "motionNotes": "No entrance. The round menu button opens a panel under the bar with the links at display size; a link shifts over and takes the accent on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Large index",
+  "layoutPattern": "brand-ask-over-display-index-and-small-columns",
+  "rhythm": "grid",
+  "motionNotes": "No entrance. The large index links slide over a step and take the accent on hover; the smaller columns only take the accent.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

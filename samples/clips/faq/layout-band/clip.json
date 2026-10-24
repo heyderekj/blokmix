@@ -1,0 +1,12 @@
+{
+  "title": "Accordion in a band",
+  "layoutPattern": "inverse-band-narrow-accordion",
+  "rhythm": "band",
+  "motionNotes": "No entrance motion; opening a question turns its plus into a cross.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

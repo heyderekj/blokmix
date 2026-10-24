@@ -1,0 +1,12 @@
+{
+  "title": "Plain centred",
+  "layoutPattern": "centered-question-two-actions",
+  "rhythm": "centered",
+  "motionNotes": "No entrance motion: a quiet, generous close to the page. Buttons press in on tap.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

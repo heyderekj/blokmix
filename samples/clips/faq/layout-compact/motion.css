@@ -1,0 +1,21 @@
+.mx-faq-layout-compact {
+  & .head > * { animation: mx-faq-layout-compact-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .list { animation: mx-faq-layout-compact-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) 180ms both; }
+  & .contact { animation: mx-faq-layout-compact-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) 260ms both; }
+  & .qa[open] .answer { animation: mx-faq-layout-compact-open var(--mx-motion-duration) var(--mx-motion-ease) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .list, & .contact, & .qa[open] .answer { animation-name: mx-faq-layout-compact-fade; }
+  }
+}
+@keyframes mx-faq-layout-compact-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-faq-layout-compact-open {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes mx-faq-layout-compact-fade {
+  from { opacity: 0; }
+}

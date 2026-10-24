@@ -1,0 +1,21 @@
+.mx-pricing-layout-band {
+  & .band { animation: mx-pricing-layout-band-fade calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; }
+  & .side > * { animation: mx-pricing-layout-band-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; animation-delay: 120ms; }
+  & .side > :nth-child(2) { animation-delay: 200ms; }
+  & .side > :nth-child(3) { animation-delay: 260ms; }
+  & .detail > * { animation: mx-pricing-layout-band-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; animation-delay: 220ms; }
+  & .feats li { animation: mx-pricing-layout-band-rise var(--mx-motion-duration) var(--mx-motion-ease) both; animation-delay: 300ms; }
+  & .feats li:nth-child(2) { animation-delay: 350ms; }
+  & .feats li:nth-child(3) { animation-delay: 400ms; }
+  & .feats li:nth-child(4) { animation-delay: 450ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .side > *, & .detail > *, & .feats li { animation-name: mx-pricing-layout-band-fade; }
+  }
+}
+@keyframes mx-pricing-layout-band-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-pricing-layout-band-fade {
+  from { opacity: 0; }
+}

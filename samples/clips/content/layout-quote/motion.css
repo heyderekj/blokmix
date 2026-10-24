@@ -1,0 +1,14 @@
+.mx-content-layout-quote {
+  & .quote, & .pull .meta { animation: mx-content-layout-quote-rise calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) both; animation-delay: 120ms; }
+  & .pull .meta { animation-delay: 200ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .quote, & .pull .meta { animation-name: mx-content-layout-quote-fade; }
+  }
+}
+@keyframes mx-content-layout-quote-rise {
+  from { opacity: 0; transform: translateY(20px); }
+}
+@keyframes mx-content-layout-quote-fade {
+  from { opacity: 0; }
+}

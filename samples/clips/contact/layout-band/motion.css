@@ -1,0 +1,18 @@
+.mx-contact-layout-band {
+  & .band { animation: mx-contact-layout-band-fade calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; }
+  & .head > *, & .mailrow, & .foot { animation: mx-contact-layout-band-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; animation-delay: 120ms; }
+  & .head > :nth-child(2) { animation-delay: 180ms; }
+  & .head > :nth-child(3) { animation-delay: 240ms; }
+  & .mailrow { animation-delay: 300ms; }
+  & .foot { animation-delay: 360ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .mailrow, & .foot { animation-name: mx-contact-layout-band-fade; }
+  }
+}
+@keyframes mx-contact-layout-band-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-contact-layout-band-fade {
+  from { opacity: 0; }
+}

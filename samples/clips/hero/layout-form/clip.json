@@ -1,0 +1,12 @@
+{
+  "title": "Email capture",
+  "layoutPattern": "centered-head-inline-email-form",
+  "rhythm": "centered",
+  "motionNotes": "No entrance motion: the form is the point. The field rings softly in the accent on focus and the button presses in on tap.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

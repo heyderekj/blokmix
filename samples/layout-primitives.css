@@ -1,0 +1,156 @@
+/*
+ * Blokmix layout primitives: the shared class names every built-in layout
+ * (samples/clips/<type>/layout-*) is built from, so the library reads as one
+ * component system and captured clips can be normalised onto the same names.
+ *
+ * Clips stay self-contained (rule 2), so this file is never loaded: a clip
+ * copies the rules it uses, nested under its own root. Replace `.mx-section`
+ * with `.mx-<type>-<folder>`, keep the values, then add the clip's own rules
+ * (its art, its distinctive shape) after them. See "Layout primitives" in CLAUDE.md.
+ */
+.mx-section {
+  /* Section: the root sets the surface and the page gutter. */
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  /* Container: content width. .narrow for reading columns and centred stacks. */
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container.narrow { max-width: 760px; }
+
+  /* Head: eyebrow, heading, lead and actions, in that order. .center centres it. */
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  /* Display: the one hero-sized heading on a page. */
+  & .heading.display { font-size: clamp(var(--mx-text-3xl), 5vw, var(--mx-text-6xl)); line-height: 1.04; letter-spacing: -0.03em; }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .head .actions { margin-top: var(--mx-space-4); }
+  & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+
+  /* Actions: a row of buttons. One .primary per section; the rest .secondary. */
+  & .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mx-space-3); }
+  & .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mx-space-2);
+    min-height: 44px;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius-pill);
+    font-weight: 600;
+    line-height: 1.1;
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .btn:active { scale: 0.97; }
+  & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+
+  /* Stack: a vertical run of siblings that share one spacing step. */
+  & .stack { display: flex; flex-direction: column; gap: var(--mx-space-6); }
+
+  /* Grid: the 12-column rail. Children take .col-N (span N of 12) and optionally .start-N.
+     2-up = col-6, 3-up = col-4, 4-up = col-3, 7/5 split = col-7 + col-5, centred 8 = col-8 start-3. */
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-3 { grid-column-end: span 3; }
+  & .col-4 { grid-column-end: span 4; }
+  & .col-5 { grid-column-end: span 5; }
+  & .col-6 { grid-column-end: span 6; }
+  & .col-7 { grid-column-end: span 7; }
+  & .col-8 { grid-column-end: span 8; }
+  & .col-12 { grid-column-end: span 12; }
+  & .start-2 { grid-column-start: 2; }
+  & .start-3 { grid-column-start: 3; }
+  & .start-5 { grid-column-start: 5; }
+  & .start-7 { grid-column-start: 7; }
+  /* Any other span or start follows the same pattern. A .grid nested in a column needs room for its
+     11 gaps (352px at 32px): nest one only in col-6 or wider, or give it a narrower column-gap. */
+  /* Split: a grid of two columns (copy and media), centred against each other. .reverse puts media first on desktop. */
+  & .split { align-items: center; }
+  & .split.top { align-items: start; }
+  & .split.reverse > :last-child { order: -1; }
+
+  /* Band: an inset panel that sets a stretch apart. .inverse flips to the primary colour. */
+  & .band { padding: var(--mx-space-9) var(--mx-space-8); background: var(--mx-color-surface); border-radius: var(--mx-radius-lg); }
+  & .band.inverse { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & .inverse .eyebrow, & .inverse .lead, & .inverse .note { color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
+  & .inverse .btn.primary { background: var(--mx-color-on-primary); color: var(--mx-color-primary); }
+  & .inverse .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) color-mix(in oklab, var(--mx-color-on-primary) 40%, transparent); }
+
+  /* Card: a self-contained group. Bordered on the page; .soft fills with the surface instead. */
+  & .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mx-space-3);
+    padding: var(--mx-space-6);
+    background: var(--mx-color-bg);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .card.soft { background: var(--mx-color-surface); border-color: transparent; }
+  /* Inside items and cards: a title, body copy and small meta text. */
+  & .title { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+  & .body { color: var(--mx-color-muted); line-height: 1.6; }
+  & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+
+  /* Media: a picture's frame with placeholder art inside (soft surface, subtle shapes from tokens). */
+  & .media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .art { position: absolute; inset: 0; }
+  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
+  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
+  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
+  /* Avatar: a gradient circle with initials, standing in for a portrait. */
+  & .avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: linear-gradient(135deg, color-mix(in oklab, var(--mx-color-accent) 70%, var(--mx-color-bg)), var(--mx-color-primary));
+    color: var(--mx-color-on-primary);
+    font-size: var(--mx-text-sm);
+    font-weight: 600;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
+    & .btn.secondary:hover { background: var(--mx-color-surface); }
+  }
+
+  /* Tablet: .t-col-N re-spans a child from 1080px down. */
+  @media (max-width: 1080px) {
+    & .grid { column-gap: var(--mx-space-5); }
+    & .grid > .t-col-6 { grid-column: auto / span 6; }
+    & .grid > .t-col-12 { grid-column: auto / span 12; }
+  }
+
+  /* Phone: every column goes full width (whatever its tablet span) unless it asks for .m-col-6; gaps tighten. */
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
+    & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
+    & .grid > .m-col-6 { grid-column: auto / span 6; }
+    & .split.reverse > :last-child { order: 0; }
+    & .lead { font-size: var(--mx-text-base); }
+    & .band { padding: var(--mx-space-8) var(--mx-space-5); }
+  }
+}

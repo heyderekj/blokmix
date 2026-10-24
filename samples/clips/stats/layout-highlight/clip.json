@@ -1,0 +1,12 @@
+{
+  "title": "Headline stat with supporting figures",
+  "layoutPattern": "featured-stat-panel-left-3-rows-right",
+  "rhythm": "split",
+  "motionNotes": "No motion of its own; the headline panel carries the weight without help.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

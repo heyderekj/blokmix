@@ -1,0 +1,12 @@
+{
+  "title": "Numbered steps beside a heading",
+  "layoutPattern": "head-left-numbered-timeline-right",
+  "rhythm": "split",
+  "motionNotes": "The head rises, then the steps follow down the line in a short stagger; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

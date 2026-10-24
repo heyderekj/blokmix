@@ -4,7 +4,7 @@
   font-family: var(--mx-font-body);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .col {
+  & .container {
     max-width: 680px;
     margin: 0 auto;
     display: flex;
@@ -70,7 +70,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
-    & .col { gap: var(--mx-space-6); }
+    & .container { gap: var(--mx-space-6); }
     & .head { padding-bottom: var(--mx-space-6); }
     & .lead { font-size: var(--mx-text-lg); }
     & .body { font-size: var(--mx-text-base); }

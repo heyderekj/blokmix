@@ -1,0 +1,12 @@
+{
+  "title": "Map with details and form",
+  "layoutPattern": "map-image-beside-details-and-short-form",
+  "rhythm": "split",
+  "motionNotes": "The map fades in while its pin settles, and the side column rises in a short stagger. Reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

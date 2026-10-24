@@ -1,0 +1,12 @@
+{
+  "title": "Slim banner",
+  "layoutPattern": "one-line-strip-copy-left-actions-right",
+  "rhythm": "band",
+  "motionNotes": "No entrance motion: a slim strip that should sit quietly between sections. Buttons press in on tap.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

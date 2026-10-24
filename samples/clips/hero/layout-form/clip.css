@@ -1,0 +1,140 @@
+.mx-hero-layout-form {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container.narrow { max-width: 760px; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .heading.display { font-size: clamp(var(--mx-text-3xl), 5vw, var(--mx-text-6xl)); line-height: 1.04; letter-spacing: -0.03em; }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+
+  & .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mx-space-2);
+    min-height: 44px;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius-pill);
+    font-weight: 600;
+    line-height: 1.1;
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .btn:active { scale: 0.97; }
+  & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+
+  /* Graph paper behind the head, fading out from the middle. */
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  & .paper {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--mx-color-text) 8%, transparent) var(--mx-stroke), transparent var(--mx-stroke)),
+      linear-gradient(90deg, color-mix(in oklab, var(--mx-color-text) 8%, transparent) var(--mx-stroke), transparent var(--mx-stroke));
+    background-size: 48px 48px;
+    background-position: center top;
+    mask-image: radial-gradient(ellipse 60% 70% at 50% 30%, currentColor, transparent);
+  }
+
+  /* The form: one field and the primary action in a single pill. */
+  & .signup {
+    display: flex;
+    align-items: center;
+    gap: var(--mx-space-2);
+    max-width: 520px;
+    margin-inline: auto;
+    margin-top: var(--mx-space-8);
+    padding: var(--mx-space-2);
+    background: var(--mx-color-bg);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-pill);
+    box-shadow: var(--mx-shadow-card);
+    transition: border-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+  & .signup:focus-within {
+    border-color: color-mix(in oklab, var(--mx-color-accent) 60%, var(--mx-color-border));
+    box-shadow: var(--mx-shadow-card), 0 0 0 4px color-mix(in oklab, var(--mx-color-accent) 16%, transparent);
+  }
+  & .input {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 var(--mx-space-5);
+    border: 0;
+    background: transparent;
+    color: var(--mx-color-text);
+    font-size: var(--mx-text-base);
+    outline: none;
+  }
+  & .input::placeholder { color: var(--mx-color-muted); opacity: 1; }
+  & .signup .btn { flex: none; }
+  & .btn:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+
+  & .meta-row {
+    margin-top: var(--mx-space-5);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mx-space-2) var(--mx-space-5);
+  }
+  & .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--mx-text-sm);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--mx-color-text) 30%, transparent);
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: text-decoration-color var(--mx-motion-duration) var(--mx-motion-ease);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
+    & .link:hover { text-decoration-color: currentColor; }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .lead { font-size: var(--mx-text-base); }
+    & .signup {
+      margin-top: var(--mx-space-7);
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      gap: var(--mx-space-3);
+    }
+    & .signup:focus-within { box-shadow: none; }
+    & .input {
+      background: var(--mx-color-bg);
+      border: var(--mx-stroke) solid var(--mx-color-border);
+      border-radius: var(--mx-radius-pill);
+      text-align: center;
+    }
+    & .input:focus { border-color: color-mix(in oklab, var(--mx-color-accent) 60%, var(--mx-color-border)); }
+    & .meta-row { flex-direction: column; gap: 0; }
+  }
+}

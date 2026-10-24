@@ -1,0 +1,17 @@
+.mx-nav-layout-notice {
+  & .notice { animation: mx-nav-layout-notice-open calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .note { animation: mx-nav-layout-notice-fade calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; animation-delay: 140ms; }
+  & .note:nth-child(2) { animation-delay: 200ms; }
+  & .note:nth-child(3) { animation-delay: 260ms; }
+  & .bar > * { animation: mx-nav-layout-notice-fade var(--mx-motion-duration) var(--mx-motion-ease) both; animation-delay: 80ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .notice { animation-name: mx-nav-layout-notice-fade; }
+  }
+}
+@keyframes mx-nav-layout-notice-open {
+  from { opacity: 0; transform: translateY(-100%); }
+}
+@keyframes mx-nav-layout-notice-fade {
+  from { opacity: 0; }
+}

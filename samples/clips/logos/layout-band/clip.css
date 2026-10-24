@@ -1,0 +1,76 @@
+.mx-logos-layout-band {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-3 { grid-column-end: span 3; }
+
+  & .band { padding: var(--mx-space-9) var(--mx-space-8); background: var(--mx-color-surface); border-radius: var(--mx-radius-lg); }
+  & .band.inverse { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & .inverse .eyebrow { color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
+
+  /* Wordmarks: text set as logos, each with its own small mark. */
+  & .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mx-space-2);
+    white-space: nowrap;
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: var(--mx-text-base);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: color-mix(in oklab, var(--mx-color-text) 62%, transparent);
+  }
+  & .logo::before { content: ''; flex: none; width: 14px; height: 14px; background: currentColor; }
+  & .l1::before { border-radius: 50%; }
+  & .l2 { font-family: var(--mx-font-body); font-weight: 500; letter-spacing: 0; }
+  & .l2::before { width: 4px; height: 16px; border-radius: 2px; }
+  & .l3 { text-transform: uppercase; font-size: var(--mx-text-xs); letter-spacing: 0.14em; font-weight: 700; }
+  & .l3::before { clip-path: polygon(0 0, 100% 50%, 0 100%, 25% 50%); }
+  & .l4 { font-size: var(--mx-text-lg); letter-spacing: -0.04em; }
+  & .l4::before { display: none; }
+  & .l5::before { background: transparent; border: calc(var(--mx-stroke) * 2) solid currentColor; border-radius: 50%; }
+  & .l6 { font-family: var(--mx-font-mono); font-weight: 500; text-transform: lowercase; letter-spacing: -0.03em; }
+  & .l6::before { border-radius: 3px 3px 7px 7px; }
+  & .l7 { text-transform: uppercase; font-size: var(--mx-text-sm); letter-spacing: 0.04em; }
+  & .l7::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  & .l8 { font-weight: 500; letter-spacing: -0.01em; }
+  & .l8::before { background: radial-gradient(circle, currentColor 0 2px, transparent 2.5px) 0 0 / 5px 5px; border-radius: 50%; }
+
+  /* The logos sit on the band in two calm rows, in the band’s own ink. */
+  & .band { padding-block: var(--mx-space-10); }
+  & .heading { font-size: clamp(var(--mx-text-xl), 2.6vw, var(--mx-text-3xl)); }
+  & .cells { row-gap: var(--mx-space-8); }
+  & .cell { display: grid; place-items: center; min-height: 44px; }
+  & .logo { font-size: var(--mx-text-lg); color: color-mix(in oklab, var(--mx-color-on-primary) 82%, transparent); }
+  & .l3 { font-size: var(--mx-text-sm); }
+  & .l4 { font-size: var(--mx-text-xl); }
+  & .l7 { font-size: var(--mx-text-base); }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-3); }
+    & .grid > * { grid-column: auto / span 12; }
+    & .grid > .m-col-6 { grid-column: auto / span 6; }
+    & .band { padding: var(--mx-space-9) var(--mx-space-5); }
+    & .logo { font-size: var(--mx-text-base); }
+    & .l4 { font-size: var(--mx-text-lg); }
+    & .l3, & .l7 { font-size: var(--mx-text-xs); }
+  }
+}

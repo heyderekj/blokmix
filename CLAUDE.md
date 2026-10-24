@@ -242,6 +242,32 @@ use CSS/SVG placeholders for imagery (soft surface-coloured blocks with subtle s
 initials or gradient circles from tokens). They must look finished under the neutral tokens AND under
 every site's tokens, since in "Your style" they take the user's style guide.
 
+### Layout primitives
+
+Built-in layouts share one set of class names, so the library reads as one component system and captured clips
+can later be normalised onto the same names. `samples/layout-primitives.css` holds the canonical rules: a clip
+copies the ones it uses under its own root (rule 2) and adds its own after them. `npx vite-node
+scripts/lint-clips.ts <type|clip id>` lints and summarises clips; `npx vite-node scripts/render-clips.ts <type|clip id>
+--sources layout,nightowl` screenshots them at 1440 and 390 into `.out/renders/clips/`.
+- **Section** (the root): surface, `--mx-space-section` top and bottom, a `--mx-space-8` gutter (`--mx-space-5` on phones).
+- **`.container`**: 1200px content width; `.container.narrow` 760px for reading columns and centred stacks.
+- **`.head`**: the header group, in order `.eyebrow`, `.heading` (`.heading.display` for the hero-sized one), `.lead`
+  (intro, subhead, lead), `.actions`; `.head.center` centres it. Whatever follows a head sits `--mx-space-9` below.
+- **`.actions`** of `.btn.primary` (one per section) and `.btn.secondary`; `.note` for the small line under them.
+- **`.stack`**: a vertical run sharing one spacing step.
+- **`.grid`**: a 12-column rail. Children take `.col-N` (span N) and `.start-N`: 2-up `col-6`, 3-up `col-4`, 4-up
+  `col-3`, splits `col-7` + `col-5`, a centred column `col-8 start-3`. Below 1080px `.t-col-6`/`.t-col-12` re-span;
+  at 760px every child goes full width unless it is `.m-col-6`. Lists are grids too (`<ul class="grid">` of
+  `<li class="col-4">`), so added items keep their span. Other spans and starts (`col-10`, `start-7`) follow the same
+  pattern; a clip's own 1080px re-span must be repeated in its 760px rule, or it beats `.grid > *` there. A grid nested
+  in a column needs room for its 11 gaps (352px): nest one in `col-6` or wider, or narrow its `column-gap`.
+- **`.split`** (on a `.grid`): copy and media side by side, centred (`.top` aligns to the top, `.reverse` puts the
+  last child first on desktop).
+- **`.band`**: an inset surface panel; `.band.inverse` flips to the primary colour (eyebrow, lead and buttons follow).
+- **`.card`** (bordered; `.card.soft` filled) holding `.title`, `.body` and `.meta`.
+- **`.media`**: a picture's frame (`data-mx-block="image"`) with placeholder art from `.art`, `.dots`, `.orb`, `.slab`;
+  `.avatar` is a gradient circle with initials.
+
 ### Token variables
 
 | Var | Meaning |

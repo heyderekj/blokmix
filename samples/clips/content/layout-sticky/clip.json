@@ -1,0 +1,12 @@
+{
+  "title": "Sticky heading with prose",
+  "layoutPattern": "sticky-head-left-prose-right",
+  "rhythm": "split",
+  "motionNotes": "No entrance motion: the head stays pinned on the left while the prose scrolls past on the right.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

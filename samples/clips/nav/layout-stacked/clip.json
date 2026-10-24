@@ -1,0 +1,12 @@
+{
+  "title": "Stacked masthead",
+  "layoutPattern": "centred-brand-over-ruled-links",
+  "rhythm": "stack",
+  "motionNotes": "The brand row drops in, then the links fade in left to right along their ruled row; a short underline draws under a link on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

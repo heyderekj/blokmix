@@ -4,7 +4,7 @@
   font-family: var(--mx-font-body);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .wrap {
+  & .container {
     max-width: 1120px;
     margin: 0 auto;
     display: grid;
@@ -107,7 +107,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
-    & .wrap { grid-template-columns: 1fr; gap: var(--mx-space-7); }
+    & .container { grid-template-columns: 1fr; gap: var(--mx-space-7); }
     & .text { gap: var(--mx-space-4); }
     & .lead { font-size: var(--mx-text-lg); }
     & .frame { aspect-ratio: 4 / 5; }

@@ -4,7 +4,7 @@
   font-family: var(--mx-font-body);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .wrap {
+  & .container {
     max-width: 1120px;
     margin: 0 auto;
     display: flex;
@@ -33,7 +33,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
-  & .intro {
+  & .lead {
     max-width: 42ch;
     font-size: var(--mx-text-lg);
     line-height: 1.55;
@@ -77,7 +77,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
-    & .wrap { gap: var(--mx-space-6); }
+    & .container { gap: var(--mx-space-6); }
     & .head { grid-template-columns: 1fr; gap: var(--mx-space-4); }
     & .row {
       grid-template-columns: 40px minmax(0, 1fr);

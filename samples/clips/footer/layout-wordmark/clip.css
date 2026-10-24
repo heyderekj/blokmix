@@ -5,7 +5,7 @@
   border-top: var(--mx-stroke) solid var(--mx-color-border);
   padding: var(--mx-space-section) var(--mx-space-8) 0;
 
-  & .inner {
+  & .container {
     max-width: 1280px;
     margin: 0 auto;
     display: flex;
@@ -19,7 +19,7 @@
     justify-content: space-between;
     gap: var(--mx-space-6);
   }
-  & .cta-copy {
+  & .head {
     display: flex;
     flex-direction: column;
     gap: var(--mx-space-4);
@@ -112,7 +112,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5) 0;
-    & .inner { gap: var(--mx-space-8); }
+    & .container { gap: var(--mx-space-8); }
     & .cta { flex-direction: column; align-items: flex-start; }
     & .cols {
       grid-template-columns: repeat(2, minmax(0, 1fr));

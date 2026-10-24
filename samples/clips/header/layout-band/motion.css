@@ -1,0 +1,23 @@
+.mx-header-layout-band {
+  & .head > * { animation: mx-header-layout-band-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .head > :nth-child(4) { animation-delay: 180ms; }
+  & .marks span { transform-origin: bottom; animation: mx-header-layout-band-grow calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) 200ms both; }
+  & .marks span:nth-child(2) { animation-delay: 260ms; }
+  & .marks span:nth-child(3) { animation-delay: 320ms; }
+  & .marks span:nth-child(4) { animation-delay: 380ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .marks span { animation-name: mx-header-layout-band-fade; }
+  }
+}
+@keyframes mx-header-layout-band-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+@keyframes mx-header-layout-band-grow {
+  from { opacity: 0; transform: scaleY(0.4); }
+}
+@keyframes mx-header-layout-band-fade {
+  from { opacity: 0; }
+}

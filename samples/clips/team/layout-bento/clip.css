@@ -1,0 +1,77 @@
+.mx-team-layout-bento {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+  & .media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .art { position: absolute; inset: 0; }
+  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
+  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
+
+  /* The bento: the first member takes a double tile, the rest fill the grid beside it. */
+  & .bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--mx-space-4); }
+  & .member { position: relative; display: flex; }
+  & .member .portrait { flex: 1; aspect-ratio: 4 / 5; }
+  & .feature { grid-column: span 2; grid-row: span 2; }
+  & .feature .portrait { aspect-ratio: auto; }
+  & .head-shape { left: 34%; top: 20%; width: 32%; aspect-ratio: 1; border-radius: 50%; }
+  & .shoulders { left: 14%; right: 14%; bottom: -14%; height: 42%; border-radius: 50% 50% 0 0; }
+  & .member:nth-child(even) .portrait { background: color-mix(in oklab, var(--mx-color-text) 5%, var(--mx-color-surface)); }
+
+  /* Name tag sitting on the photo. */
+  & .tag {
+    position: absolute;
+    z-index: 1;
+    left: var(--mx-space-3);
+    bottom: var(--mx-space-3);
+    max-width: calc(100% - var(--mx-space-3) * 2);
+    display: flex;
+    flex-direction: column;
+    padding: var(--mx-space-2) var(--mx-space-4);
+    background: var(--mx-color-bg);
+    border-radius: var(--mx-radius);
+    box-shadow: var(--mx-shadow-card);
+  }
+  & .feature .tag { left: var(--mx-space-5); bottom: var(--mx-space-5); padding: var(--mx-space-3) var(--mx-space-5); }
+  & .name { font-size: var(--mx-text-base); font-weight: 600; line-height: 1.3; }
+  & .feature .name { font-size: var(--mx-text-xl); letter-spacing: -0.01em; }
+
+  @media (max-width: 1080px) {
+    & .member:not(.feature) .tag { left: var(--mx-space-2); bottom: var(--mx-space-2); max-width: calc(100% - var(--mx-space-2) * 2); padding: var(--mx-space-2) var(--mx-space-3); }
+    & .member:not(.feature) .name { font-size: var(--mx-text-sm); }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .lead { font-size: var(--mx-text-base); }
+    & .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mx-space-3); }
+    & .feature { grid-row: auto; }
+    & .feature .portrait { aspect-ratio: 4 / 3; }
+    & .member:not(.feature) { flex-direction: column; gap: var(--mx-space-3); }
+    & .member:not(.feature) .tag { position: static; max-width: none; padding: 0; background: none; box-shadow: none; }
+    & .member:not(.feature) .name { font-size: var(--mx-text-base); }
+    & .feature .tag { left: var(--mx-space-3); bottom: var(--mx-space-3); padding: var(--mx-space-2) var(--mx-space-4); }
+    & .feature .name { font-size: var(--mx-text-lg); }
+  }
+}

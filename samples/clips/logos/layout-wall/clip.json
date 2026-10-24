@@ -1,0 +1,12 @@
+{
+  "title": "Open logo wall",
+  "layoutPattern": "head-over-hairline-logo-wall-4x2",
+  "rhythm": "grid",
+  "motionNotes": "No motion of its own; the wall stays still and lets the logos read.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

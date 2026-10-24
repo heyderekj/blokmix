@@ -1,0 +1,12 @@
+{
+  "title": "Email in a band",
+  "layoutPattern": "inverse-band-big-email-button",
+  "rhythm": "band",
+  "motionNotes": "The band fades up, then the heading and the big email rise one after the other. Reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

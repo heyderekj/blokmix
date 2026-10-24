@@ -1,0 +1,12 @@
+{
+  "title": "Three plans in one panel",
+  "layoutPattern": "three-columns-one-panel-hairlines",
+  "rhythm": "grid",
+  "motionNotes": "No entrance motion; buttons press in slightly and fill on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

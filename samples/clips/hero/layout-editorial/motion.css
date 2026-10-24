@@ -1,0 +1,17 @@
+.mx-hero-layout-editorial {
+  & .head > * { animation: mx-hero-layout-editorial-rise calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 70ms; }
+  & .under { animation: mx-hero-layout-editorial-fade calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) 220ms both; }
+  & .under .stack > * { animation: mx-hero-layout-editorial-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; animation-delay: 300ms; }
+  & .under .stack > :nth-child(2) { animation-delay: 360ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .under .stack > * { animation-name: mx-hero-layout-editorial-fade; }
+  }
+}
+@keyframes mx-hero-layout-editorial-rise {
+  from { opacity: 0; transform: translateY(20px); }
+}
+@keyframes mx-hero-layout-editorial-fade {
+  from { opacity: 0; }
+}

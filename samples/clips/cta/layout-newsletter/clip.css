@@ -4,7 +4,7 @@
   font-family: var(--mx-font-body);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .inner {
+  & .container {
     max-width: 640px;
     margin: 0 auto;
     display: flex;
@@ -40,7 +40,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
-  & .body {
+  & .lead {
     margin-top: var(--mx-space-4);
     max-width: 44ch;
     font-size: var(--mx-text-lg);
@@ -121,7 +121,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-4);
     & .heading { font-size: clamp(var(--mx-text-2xl), 8vw, var(--mx-text-3xl)); }
-    & .body { font-size: var(--mx-text-base); }
+    & .lead { font-size: var(--mx-text-base); }
     & .form {
       flex-direction: column;
       padding: 0;

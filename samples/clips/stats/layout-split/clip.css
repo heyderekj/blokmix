@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .inner {
+  & .container {
     max-width: 1120px;
     margin: 0 auto;
     display: grid;
@@ -39,7 +39,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
-  & .intro {
+  & .lead {
     margin-top: var(--mx-space-5);
     max-width: 44ch;
     font-size: var(--mx-text-lg);
@@ -90,8 +90,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
-    & .inner { grid-template-columns: 1fr; gap: var(--mx-space-8); }
-    & .intro { font-size: var(--mx-text-base); }
+    & .container { grid-template-columns: 1fr; gap: var(--mx-space-8); }
+    & .lead { font-size: var(--mx-text-base); }
     & .stats { gap: var(--mx-space-7) var(--mx-space-5); }
     & .stat { padding-top: var(--mx-space-5); }
     & .value { font-size: clamp(var(--mx-text-2xl), 11vw, var(--mx-text-4xl)); }
