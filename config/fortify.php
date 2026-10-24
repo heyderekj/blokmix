@@ -162,8 +162,9 @@ return [
     */
 
     'features' => [
-        // Sign up and sign in only, for now: password reset waits for a mail service.
+        // Sign up, sign in, and a reset link by email (sent once a mail service is set, see MAIL_MAILER).
         Features::registration(),
+        Features::resetPasswords(),
     ],
 
 ];

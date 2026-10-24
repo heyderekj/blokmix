@@ -25,6 +25,8 @@ class ShareController extends Controller
             return redirect()->route($request->user() ? 'mixes.index' : 'login')->with('flash', 'That share link no longer works. Ask for a new one.');
         }
         if (! $request->user()) {
+            $request->session()->put('invite', ['mix' => $link->mix->name, 'role' => $link->role->value]);
+
             return redirect()->guest(route('register'));
         }
         $link->mix->admit($request->user(), $link->role);

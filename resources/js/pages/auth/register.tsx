@@ -1,14 +1,16 @@
 import { Head, Link, useForm } from '@inertiajs/react'
 import { AuthCard, Field, Submit } from '@/ui/auth/AuthCard'
 
-export default function Register() {
+const ROLE_WORDS = { editor: 'edit', viewer: 'view', owner: 'own' } as const
+
+export default function Register({ invite }: { invite?: { mix: string; role: keyof typeof ROLE_WORDS } | null }) {
   const form = useForm({ name: '', email: '', password: '', password_confirmation: '' })
   return (
     <>
       <Head title="Create an account" />
       <AuthCard
-        title="Create your Blokmix account"
-        lede="Your name shows on the marks you leave and the versions you save."
+        title={invite ? `You’re invited to ${ROLE_WORDS[invite.role]} “${invite.mix}”` : 'Create your Blokmix account'}
+        lede={invite ? 'Create your account to open it. Your name shows on the marks you leave and the versions you save.' : 'Your name shows on the marks you leave and the versions you save.'}
         onSubmit={() => form.post('/register', { onFinish: () => form.reset('password', 'password_confirmation') })}
         footer={
           <>

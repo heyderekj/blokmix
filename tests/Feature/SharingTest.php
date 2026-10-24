@@ -5,7 +5,10 @@ namespace Tests\Feature;
 use App\Enums\MixRole;
 use App\Models\Mix;
 use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -107,5 +110,33 @@ class SharingTest extends TestCase
         $this->deleteJson("/api/mixes/{$this->mix->id}/share/members/{$this->owner->id}")->assertStatus(422);
         $this->deleteJson("/api/mixes/{$this->mix->id}/share/members/{$editor->id}")->assertNoContent();
         $this->actingAs($editor)->get("/mixes/{$this->mix->id}")->assertNotFound();
+    }
+
+    public function test_a_share_link_says_which_mix_on_sign_up(): void
+    {
+        $url = $this->link('viewer');
+        auth()->logout();
+        $this->get($url);
+        $this->get('/register')->assertInertia(fn (Assert $page) => $page->where('invite.mix', 'Launch')->where('invite.role', 'viewer'));
+    }
+
+    public function test_forgotten_passwords_reset_by_email(): void
+    {
+        Notification::fake();
+        auth()->logout();
+        $this->get('/login')->assertInertia(fn (Assert $page) => $page->where('canReset', false));
+        config(['mail.default' => 'resend']);
+        $this->get('/login')->assertInertia(fn (Assert $page) => $page->where('canReset', true));
+
+        $this->post('/forgot-password', ['email' => $this->owner->email])->assertSessionHas('status');
+        $token = null;
+        Notification::assertSentTo($this->owner, ResetPassword::class, function (ResetPassword $n) use (&$token) {
+            $token = $n->token;
+
+            return true;
+        });
+        $this->get("/reset-password/{$token}?email=".urlencode($this->owner->email))->assertInertia(fn (Assert $page) => $page->component('auth/reset-password')->where('token', $token));
+        $this->post('/reset-password', ['token' => $token, 'email' => $this->owner->email, 'password' => 'a-brand-new-pass-1', 'password_confirmation' => 'a-brand-new-pass-1'])->assertRedirect();
+        $this->assertTrue(Hash::check('a-brand-new-pass-1', $this->owner->refresh()->password));
     }
 }
