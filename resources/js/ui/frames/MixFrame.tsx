@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Eye, Plus } from 'lucide-react'
-import { BrandIcon } from '../brand/BrandIcon'
+import { MixMark } from '../brand/MixMark'
 import { snapshotKey } from '@/core/versions'
 import { pageOf } from '@/core/site'
 import { useStore, currentSlots } from '@/state/store'
@@ -30,6 +30,9 @@ export function MixFrame() {
     [head, site, guideState, content],
   )
 
+  // The pink row: the section you're on, or the first after the nav.
+  const focusedAt = slots.findIndex((s) => s.id === focused)
+  const markAt = focusedAt >= 0 ? focusedAt : slots[0]?.type === 'nav' && slots.length > 1 ? 1 : 0
   const [addAt, setAddAt] = useState<number | null>(null)
   const closeAdd = useCallback(() => setAddAt(null), [])
   const st = useStore.getState
@@ -43,9 +46,9 @@ export function MixFrame() {
       data-frame={MIX_ID}
     >
       <FrameHeader width={W} selected={selected} tint={undefined}>
-        {/* The block sits in its slot when the mix is saved, and lifts out while it has edits. */}
+        {/* The page's tracklist: the section you're on is pink, and lifts out while there are edits. */}
         <span title={dirty ? 'Edited since the last version' : 'Saved as a version'}>
-          <BrandIcon size={32} dropped={!dirty} />
+          <MixMark types={slots.map((s) => s.type)} active={markAt} edited={dirty} />
         </span>
         <HeaderTitle
           title={site.pages.length > 1 ? `Working mix · ${page.title}` : 'Working mix'}

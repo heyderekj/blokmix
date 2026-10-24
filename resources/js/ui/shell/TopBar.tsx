@@ -12,7 +12,6 @@ import { PacketPanel } from '../panels/PacketPanel'
 import { NotesPanel } from '../panels/NotesPanel'
 import { outstanding } from '@/core/notes'
 import { Divider, Island, MORPH } from './Island'
-import { LogoTile } from './Logo'
 import { Avatar } from './Avatar'
 import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
@@ -23,7 +22,8 @@ import { canEdit, useAccount } from '@/lib/account'
 import { flushMix } from '@/lib/mixSync'
 import { SharePanel } from '../panels/SharePanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
-import { Wordmark } from '../brand/Wordmark'
+import { Lockup } from '../brand/Wordmark'
+import { BrandIcon } from '../brand/BrandIcon'
 import { SaveState } from './SaveState'
 
 export const toggleSheet = (s: Sheet) => {
@@ -60,12 +60,19 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
       onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       bar={
         <>
-          <button type="button" onClick={() => toggleSheet('menu')} className="ml-0.5 rounded-lg transition active:scale-[0.97]" title="Menu" aria-label="Menu">
-            <LogoTile size={30} />
+          <button
+            type="button"
+            onClick={() => toggleSheet('menu')}
+            className="flex h-8 cursor-pointer items-center rounded-lg px-1.5 text-zinc-900 transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.97]"
+            title="Menu"
+            aria-label="Blokmix menu"
+            aria-expanded={sheet === 'menu'}
+          >
+            <Lockup height={18} className="max-lg:hidden" />
+            <span className="lg:hidden">
+              <BrandIcon size={22} />
+            </span>
           </button>
-          <span className="pl-2 text-zinc-900 max-lg:hidden">
-            <Wordmark height={15} />
-          </span>
           <span className="px-0.5 text-zinc-300 max-lg:hidden">/</span>
           <span className="max-md:hidden">
             <MixName value={mixName} onChange={(v) => st().renameMix(v)} />
