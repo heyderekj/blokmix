@@ -52,6 +52,9 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   library (`core/library.ts` `extendLibrary`) before the board opens a mix.
 - Agents on the live site: the local MCP bridge also accepts Blokmix's hosted HTTPS origins (`HOSTED_ORIGINS` in
   `core/commands/bridge.ts`, plus BLOKMIX_ORIGINS). Chrome may ask once to let the site reach this device.
+- Waitlist (`waitlist`, `Api\WaitlistController`): blokmix.com's form posts to `POST /api/waitlist` (public, no CSRF
+  token, throttled, a hidden `website` field drops bots). JSON gets `{joined: true}`; a plain form post goes back to
+  `/?joined=1#waitlist`. One row per email.
 - Mixes have members (`mix_members`): owner (shares, deletes), editor (changes anything), viewer (looks and
   leaves marks). Non-members get 404. Share links (`mix_share_links`, `/share/{token}`) add whoever opens them
   with a role (never lowering one); signed-out people sign up first. The Share panel (top bar, hosted only) makes

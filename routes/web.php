@@ -4,12 +4,16 @@ use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\ClipController;
 use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\Api\UnsplashController;
+use App\Http\Controllers\Api\WaitlistController;
 use App\Http\Controllers\MixController;
 use App\Http\Controllers\ShareController;
 use Illuminate\Support\Facades\Route;
 
 // Share links work for people who aren't signed in yet (they sign up, then come back here).
 Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join');
+
+// blokmix.com's waitlist form (signed out, no CSRF token: see WaitlistController).
+Route::post('/api/waitlist', [WaitlistController::class, 'store'])->middleware('throttle:6,1')->name('waitlist.store');
 
 Route::middleware('auth')->group(function () {
     // Your mixes are the home page when you're signed in (signed out, blokmix.com's edge serves the website).
