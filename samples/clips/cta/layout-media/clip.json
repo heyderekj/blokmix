@@ -1,0 +1,12 @@
+{
+  "title": "Fanned work above",
+  "layoutPattern": "three-fanned-images-over-centered-copy",
+  "rhythm": "stack",
+  "motionNotes": "Three prints are dealt onto the table one after another, then the question and actions rise in a short stagger; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

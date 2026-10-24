@@ -1,0 +1,12 @@
+{
+  "title": "Inverse card",
+  "layoutPattern": "left-aligned-copy-in-primary-card-corner-rings",
+  "rhythm": "band",
+  "motionNotes": "The card lifts in, its copy rises in a short stagger and the corner rings swell into place from the inside out; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

@@ -82,7 +82,7 @@
     padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
-    & .actions { flex-direction: column; align-self: stretch; }
+    & .actions { flex-direction: column; align-items: stretch; justify-self: stretch; }
     & .media { aspect-ratio: 4 / 3; }
     & .window { inset: 8% 6% -6%; }
   }

@@ -1,0 +1,12 @@
+{
+  "title": "Editorial headline",
+  "layoutPattern": "oversized-left-headline-offset-copy-under-rule",
+  "rhythm": "stack",
+  "motionNotes": "The oversized headline rises first; the hairline row fades in after it and the subhead and actions follow in a short stagger.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

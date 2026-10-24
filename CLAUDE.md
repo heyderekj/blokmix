@@ -250,7 +250,9 @@ scripts/lint-clips.ts <type|clip id>` lints and summarises clips; `npx vite-node
 - **`.grid`**: a 12-column rail. Children take `.col-N` (span N) and `.start-N`: 2-up `col-6`, 3-up `col-4`, 4-up
   `col-3`, splits `col-7` + `col-5`, a centred column `col-8 start-3`. Below 1080px `.t-col-6`/`.t-col-12` re-span;
   at 760px every child goes full width unless it is `.m-col-6`. Lists are grids too (`<ul class="grid">` of
-  `<li class="col-4">`), so added items keep their span.
+  `<li class="col-4">`), so added items keep their span. Other spans and starts (`col-10`, `start-7`) follow the same
+  pattern; a clip's own 1080px re-span must be repeated in its 760px rule, or it beats `.grid > *` there. A grid nested
+  in a column needs room for its 11 gaps (352px): nest one in `col-6` or wider, or narrow its `column-gap`.
 - **`.split`** (on a `.grid`): copy and media side by side, centred (`.top` aligns to the top, `.reverse` puts the
   last child first on desktop).
 - **`.band`**: an inset surface panel; `.band.inverse` flips to the primary colour (eyebrow, lead and buttons follow).

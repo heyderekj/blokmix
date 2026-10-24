@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .panel {
+  & .band {
     max-width: 1120px;
     margin: 0 auto;
     padding: var(--mx-space-9) var(--mx-space-8);
@@ -33,7 +33,7 @@
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
-  & .body {
+  & .lead {
     margin-top: var(--mx-space-4);
     max-width: 46ch;
     font-size: var(--mx-text-lg);
@@ -72,7 +72,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
-    & .panel { padding: var(--mx-space-8) var(--mx-space-5); }
+    & .band { padding: var(--mx-space-8) var(--mx-space-5); }
     & .actions { flex-direction: column; align-self: stretch; }
     & .btn { justify-content: center; }
   }

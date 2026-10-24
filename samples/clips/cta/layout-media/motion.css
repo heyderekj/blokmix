@@ -1,0 +1,23 @@
+.mx-cta-layout-media {
+  & .shot { animation: mx-cta-layout-media-deal calc(var(--mx-motion-duration) * 2.2) var(--mx-motion-ease) both; }
+  & .s2 { animation-delay: 60ms; }
+  & .s3 { animation-delay: 120ms; }
+  & .head > * { animation: mx-cta-layout-media-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; animation-delay: 200ms; }
+  & .head > :nth-child(2) { animation-delay: 260ms; }
+  & .head > :nth-child(3) { animation-delay: 320ms; }
+  & .head > :nth-child(4) { animation-delay: 380ms; }
+  & .head > :nth-child(5) { animation-delay: 440ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .shot, & .head > * { animation-name: mx-cta-layout-media-fade; }
+  }
+}
+@keyframes mx-cta-layout-media-deal {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+}
+@keyframes mx-cta-layout-media-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-cta-layout-media-fade {
+  from { opacity: 0; }
+}

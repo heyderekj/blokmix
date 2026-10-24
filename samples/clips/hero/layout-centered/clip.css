@@ -17,7 +17,7 @@
     background: radial-gradient(closest-side, color-mix(in oklab, var(--mx-color-accent) 10%, transparent), transparent);
     pointer-events: none;
   }
-  & .inner {
+  & .container {
     position: relative;
     max-width: 880px;
     margin: 0 auto;
@@ -46,7 +46,7 @@
     background: var(--mx-color-accent);
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--mx-color-accent) 22%, transparent);
   }
-  & .headline {
+  & .heading {
     margin-top: var(--mx-space-6);
     max-width: 16ch;
     font-family: var(--mx-font-display);
@@ -56,7 +56,7 @@
     letter-spacing: -0.03em;
     text-wrap: balance;
   }
-  & .subhead {
+  & .lead {
     margin-top: var(--mx-space-6);
     max-width: 52ch;
     font-size: var(--mx-text-lg);
@@ -104,8 +104,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5) var(--mx-space-9);
-    & .headline { font-size: clamp(var(--mx-text-3xl), 10vw, var(--mx-text-4xl)); }
-    & .subhead { font-size: var(--mx-text-base); }
+    & .heading { font-size: clamp(var(--mx-text-3xl), 10vw, var(--mx-text-4xl)); }
+    & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-self: stretch; }
   }
 }

@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .inner {
+  & .container {
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
@@ -17,7 +17,7 @@
     letter-spacing: 0.02em;
     color: var(--mx-color-accent);
   }
-  & .headline {
+  & .heading {
     margin-top: var(--mx-space-4);
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -26,7 +26,7 @@
     letter-spacing: -0.03em;
     text-wrap: balance;
   }
-  & .subhead {
+  & .lead {
     margin-top: var(--mx-space-6);
     max-width: 44ch;
     font-size: var(--mx-text-lg);
@@ -144,8 +144,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
-    & .inner { grid-template-columns: minmax(0, 1fr); gap: var(--mx-space-8); }
-    & .subhead { font-size: var(--mx-text-base); }
+    & .container { grid-template-columns: minmax(0, 1fr); gap: var(--mx-space-8); }
+    & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; }
     & .card { width: 56%; padding: var(--mx-space-3); }
   }
