@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Orbit · Observability for people who sleep</title>
+<style>
+  :root { --bg: #0b0d12; --panel: #141821; --fg: #e8ecf4; --dim: #8b93a7; --rule: #232836; --acid: #b6f36a; --violet: #8b7bff; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; }
+  h2, p, blockquote, figure { margin: 0; }
+  .container { width: min(1120px, 100% - 64px); margin-inline: auto; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  /* Logos marquee */
+  #logos { padding: 48px 0; border-block: 1px solid var(--rule); overflow: hidden; }
+  #logos p { text-align: center; color: var(--dim); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .track { margin-top: 24px; display: flex; gap: 64px; width: max-content; animation: slide 30s linear infinite; }
+  .track ul { display: flex; gap: 64px; list-style: none; margin: 0; padding: 0; }
+  .track li { font-weight: 700; font-size: 20px; color: var(--dim); letter-spacing: -0.01em; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+
+  /* Testimonials */
+  #quotes { padding: 120px 0; }
+  #quotes h2 { font-size: 48px; line-height: 1.1; letter-spacing: -0.03em; font-weight: 600; max-width: 14ch; }
+  .quotes { margin-top: 56px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .quote { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+  .quote blockquote { font-size: 17px; line-height: 1.55; }
+  .who { display: flex; gap: 12px; align-items: center; }
+  .who img { width: 40px; height: 40px; border-radius: 50%; background: var(--rule); }
+  .who strong { display: block; font-size: 14px; }
+  .who span { display: block; font-size: 13px; color: var(--dim); }
+
+  /* Stats */
+  #numbers { padding: 80px 0; background: var(--panel); }
+  #numbers .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+  .stat { border-left: 2px solid var(--acid); padding-left: 20px; }
+  .stat .value { font-size: 56px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; color: var(--acid); }
+  .stat .label { margin-top: 8px; color: var(--dim); font-size: 14px; }
+
+  /* CTA */
+  #cta { padding: 96px 0; text-align: center; background: radial-gradient(60% 80% at 50% 0%, rgba(139, 123, 255, 0.35), transparent 70%), var(--bg); }
+  #cta h2 { font-size: 52px; letter-spacing: -0.03em; font-weight: 600; }
+  #cta p { margin: 16px auto 0; max-width: 46ch; color: var(--dim); font-size: 18px; }
+  .buttons { margin-top: 36px; display: flex; justify-content: center; gap: 12px; }
+  .b { display: inline-block; padding: 14px 22px; border-radius: 6px; font-weight: 600; text-decoration: none; transition: all 180ms ease-out; }
+  .b-acid { background: var(--acid); color: #0b0d12; }
+  .b-acid:hover { background: #c8ff82; }
+  .b-line { color: var(--fg); box-shadow: inset 0 0 0 1px var(--rule); }
+  .b-line:hover { box-shadow: inset 0 0 0 1px var(--dim); }
+  .cmd { margin-top: 28px; font-size: 13px; color: var(--dim); }
+</style>
+</head>
+<body>
+<section id="logos">
+  <p>Trusted by on-call teams at</p>
+  <div class="track">
+    <ul>
+      <li>Northwind</li><li>Kestrel</li><li>Fathom</li><li>Quill</li><li>Ironbark</li>
+    </ul>
+    <ul aria-hidden="true">
+      <li>Northwind</li><li>Kestrel</li><li>Fathom</li><li>Quill</li><li>Ironbark</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quotes">
+  <div class="container">
+    <h2>Fewer pages. Better nights.</h2>
+    <div class="quotes">
+      <figure class="quote">
+        <blockquote>"We cut our alert volume by 80% in the first month. The rotation finally feels humane."</blockquote>
+        <figcaption class="who"><img src="/a/1.jpg" alt=""><div><strong>Amara Osei</strong><span>SRE lead, Kestrel</span></div></figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>"Orbit's traces read like a story. New hires debug production in their first week."</blockquote>
+        <figcaption class="who"><img src="/a/2.jpg" alt=""><div><strong>Theo Lindqvist</strong><span>Staff engineer, Fathom</span></div></figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>"It's the only dashboard our product team opens without being asked."</blockquote>
+        <figcaption class="who"><img src="/a/3.jpg" alt=""><div><strong>Priya Raman</strong><span>VP Engineering, Quill</span></div></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="numbers">
+  <div class="container grid">
+    <div class="stat"><div class="value mono">80%</div><div class="label">fewer alerts in month one</div></div>
+    <div class="stat"><div class="value mono">4.2s</div><div class="label">median time to first trace</div></div>
+    <div class="stat"><div class="value mono">99.99%</div><div class="label">ingest uptime, last 12 months</div></div>
+    <div class="stat"><div class="value mono">1,400+</div><div class="label">teams on call with Orbit</div></div>
+  </div>
+</section>
+
+<section id="cta">
+  <div class="container">
+    <h2>Sleep through the night</h2>
+    <p>Connect a service in five minutes. Your first million events each month are on us.</p>
+    <div class="buttons">
+      <a class="b b-acid" href="/start">Start for free</a>
+      <a class="b b-line" href="/sales">Talk to an engineer</a>
+    </div>
+    <p class="cmd mono">$ npx orbit init</p>
+  </div>
+</section>
+</body>
+</html>

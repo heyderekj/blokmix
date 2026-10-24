@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lumen — Ship docs your team actually reads</title>
+<meta property="og:site_name" content="Lumen">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --brand: #5b4bff;
+    --brand-ink: #ffffff;
+    --ink: #14131a;
+    --ink-soft: #5d5b6b;
+    --paper: #ffffff;
+    --tint: #f5f4fb;
+    --line: #e6e4f0;
+    --radius: 12px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Inter", system-ui, sans-serif; color: var(--ink); background: var(--paper); font-size: 16px; line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3, p { margin: 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+  /* Nav */
+  .site-header { border-bottom: 1px solid var(--line); background: var(--paper); }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .logo svg { width: 28px; height: 28px; color: var(--brand); }
+  .menu { display: flex; gap: 32px; list-style: none; margin: 0; padding: 0; }
+  .menu a { color: var(--ink-soft); font-size: 15px; font-weight: 500; transition: color 160ms var(--ease); }
+  .menu a:hover { color: var(--ink); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 15px; transition: transform 160ms var(--ease), background-color 160ms var(--ease); }
+  .btn-primary { background: var(--brand); color: var(--brand-ink); }
+  .btn-primary:hover { background: #4a3be6; transform: translateY(-1px); }
+  .btn-ghost { border: 1px solid var(--line); color: var(--ink); }
+  .btn-ghost:hover { border-color: var(--ink-soft); }
+
+  /* Hero */
+  .hero { padding: 112px 0 96px; background: linear-gradient(180deg, var(--tint), var(--paper)); }
+  .hero .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: rgba(91, 75, 255, 0.12); color: var(--brand); font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+  .hero h1 { margin-top: 20px; font-size: 64px; line-height: 1.05; letter-spacing: -0.03em; font-weight: 800; }
+  .hero h1 em { font-style: normal; color: var(--brand); }
+  .hero p.lead { margin-top: 20px; font-size: 20px; color: var(--ink-soft); max-width: 520px; }
+  .actions { margin-top: 32px; }
+  .actions .btn + .btn { margin-left: 12px; }
+  .fine { margin-top: 16px; font-size: 13px; color: var(--ink-soft); }
+  .shot { border-radius: 16px; box-shadow: 0 20px 60px rgba(20, 19, 26, 0.12); width: 100%; aspect-ratio: 4 / 3; background: var(--tint); display: block; }
+  .reveal { animation: rise 700ms var(--ease) both; }
+  .reveal-2 { animation-delay: 120ms; }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+  /* Features */
+  .features { padding: 96px 0; }
+  .features header { text-align: center; max-width: 640px; margin: 0 auto 56px; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 13px; font-weight: 700; color: var(--brand); }
+  .features h2 { margin-top: 12px; font-size: 40px; line-height: 1.15; letter-spacing: -0.02em; font-weight: 800; }
+  .features header .sub { margin-top: 16px; color: var(--ink-soft); font-size: 18px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .card { padding: 28px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); transition: box-shadow 200ms var(--ease), transform 200ms var(--ease); }
+  .card:hover { box-shadow: 0 12px 32px rgba(20, 19, 26, 0.08); transform: translateY(-2px); }
+  .card .ico { width: 44px; height: 44px; border-radius: 10px; background: var(--tint); color: var(--brand); display: grid; place-items: center; }
+  .card h3 { margin-top: 20px; font-size: 18px; font-weight: 700; }
+  .card p { margin-top: 8px; color: var(--ink-soft); font-size: 15px; }
+  .card .more { margin-top: 16px; display: inline-flex; gap: 6px; align-items: center; color: var(--brand); font-weight: 600; font-size: 14px; }
+
+  /* Pricing */
+  .pricing { padding: 96px 0; background: var(--tint); }
+  .pricing h2 { text-align: center; font-size: 40px; font-weight: 800; letter-spacing: -0.02em; }
+  .plans { margin-top: 48px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .plan { background: var(--paper); border-radius: var(--radius); padding: 32px; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 16px; }
+  .plan.popular { border: 2px solid var(--brand); }
+  .plan h3 { font-size: 16px; font-weight: 600; color: var(--ink-soft); }
+  .price { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; }
+  .price small { font-size: 16px; font-weight: 500; color: var(--ink-soft); }
+  .plan ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .plan li { display: flex; gap: 10px; align-items: center; font-size: 15px; }
+  .plan li svg { color: var(--brand); flex: none; }
+  .plan .btn { justify-content: center; }
+  .note { margin-top: 32px; text-align: center; font-size: 14px; color: var(--ink-soft); }
+
+  /* FAQ */
+  .faq { padding: 96px 0; }
+  .faq .wrap { max-width: 760px; }
+  .faq h2 { font-size: 36px; font-weight: 800; }
+  .faq details { border-bottom: 1px solid var(--line); padding: 20px 0; }
+  .faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 18px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq details p { margin-top: 12px; color: var(--ink-soft); }
+
+  /* Footer */
+  .site-footer { background: var(--ink); color: #cfcde0; padding: 64px 0 32px; }
+  .site-footer .cols { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+  .site-footer .brand { font-weight: 700; color: #fff; font-size: 20px; }
+  .site-footer .tag { margin-top: 12px; font-size: 14px; max-width: 280px; }
+  .site-footer h4 { margin: 0 0 12px; color: #fff; font-size: 14px; }
+  .site-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+  .site-footer a:hover { color: #fff; }
+  .legal { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.12); font-size: 13px; }
+</style>
+</head>
+<body>
+<header class="site-header" id="top">
+  <div class="wrap">
+    <a href="/" class="logo" aria-label="Lumen home">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="#ffffff"/></svg>
+      <span>Lumen</span>
+    </a>
+    <ul class="menu">
+      <li><a href="/product">Product</a></li>
+      <li><a href="/customers">Customers</a></li>
+      <li><a href="/pricing">Pricing</a></li>
+      <li><a href="/docs">Docs</a></li>
+    </ul>
+    <a href="/signup" class="btn btn-primary">Start free</a>
+  </div>
+</header>
+
+<section class="hero" id="hero">
+  <div class="wrap">
+    <div class="copy">
+      <span class="pill reveal">New: AI summaries</span>
+      <h1 class="reveal reveal-2">Docs your team <em>actually</em> reads</h1>
+      <p class="lead">Lumen turns scattered notes into a living handbook. Write once, and it stays current across every tool you use.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="/signup">Start free <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+        <a class="btn btn-ghost" href="/demo">Book a demo</a>
+      </div>
+      <p class="fine">Free for teams up to 10 · No card needed</p>
+    </div>
+    <img class="shot" src="/img/app.png" alt="The Lumen editor" width="560" height="420">
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">Why Lumen</p>
+      <h2>Everything a handbook needs, nothing it doesn't</h2>
+      <p class="sub">Write, link and search in one calm place. Lumen keeps the boring parts tidy so your docs stay true.</p>
+    </header>
+    <div class="grid">
+      <article class="card">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg></div>
+        <h3>Search that understands</h3>
+        <p>Ask in plain words and land on the paragraph that answers it.</p>
+        <a class="more" href="/search">Learn more <span class="sr-only">about search</span></a>
+      </article>
+      <article class="card">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg></div>
+        <h3>Links that never rot</h3>
+        <p>Rename a page and every link to it updates itself.</p>
+      </article>
+      <article class="card">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></div>
+        <h3>Gentle reminders</h3>
+        <p>Owners get a nudge when a page hasn't been checked in a while.</p>
+      </article>
+      <article class="card">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></div>
+        <h3>Private by default</h3>
+        <p>Granular sharing, SSO and audit logs on every plan.</p>
+      </article>
+      <article class="card">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <h3>Fast everywhere</h3>
+        <p>Pages open in under 100ms, even with ten thousand of them.</p>
+      </article>
+      <article class="card">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg></div>
+        <h3>In every language</h3>
+        <p>Write in one, read in thirty. Translations stay in sync.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="wrap">
+    <h2>Simple, fair pricing</h2>
+    <div class="plans">
+      <div class="plan">
+        <h3>Starter</h3>
+        <div class="price">$0 <small>/mo</small></div>
+        <p>For small teams finding their feet.</p>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Up to 10 editors</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Unlimited pages</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Search</li>
+        </ul>
+        <a class="btn btn-ghost" href="/signup">Start free</a>
+      </div>
+      <div class="plan popular">
+        <h3>Team</h3>
+        <div class="price">$12 <small>/mo</small></div>
+        <p>Everything a growing team needs.</p>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Unlimited editors</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>AI summaries</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Reminders</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Version history</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Priority support</li>
+        </ul>
+        <a class="btn btn-primary" href="/signup?plan=team">Try Team</a>
+      </div>
+      <div class="plan">
+        <h3>Enterprise</h3>
+        <div class="price">Custom</div>
+        <p>For companies with compliance needs.</p>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>SSO and SCIM</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>Audit logs</li>
+        </ul>
+        <a class="btn btn-ghost" href="/contact">Talk to sales</a>
+      </div>
+    </div>
+    <p class="note">Prices in USD. Billed yearly, or monthly for 20% more.</p>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="wrap">
+    <h2>Questions, answered</h2>
+    <details open>
+      <summary>Can I import from Notion? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg></summary>
+      <p>Yes. Paste a workspace link and Lumen brings over pages, links and images.</p>
+    </details>
+    <details>
+      <summary>Is there a free plan? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg></summary>
+      <p>Starter is free forever for up to ten editors.</p>
+    </details>
+    <details>
+      <summary>Where is my data stored? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg></summary>
+      <p>In the EU or the US, your choice, encrypted at rest.</p>
+    </details>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div class="brand">Lumen</div>
+        <p class="tag">The handbook that writes itself down.</p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <ul><li><a href="/features">Features</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/changelog">Changelog</a></li></ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul><li><a href="/about">About</a></li><li><a href="/careers">Careers</a></li><li><a href="/press">Press</a></li></ul>
+      </div>
+      <div>
+        <h4>Help</h4>
+        <ul><li><a href="/docs">Docs</a></li><li><a href="/status">Status</a></li><li><a href="/contact">Contact</a></li></ul>
+      </div>
+    </div>
+    <p class="legal">© 2026 Lumen Labs, Inc. All rights reserved.</p>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node", "chrome"],
+    "paths": {
+      "@/*": ["../resources/js/*"]
+    }
+  },
+  "include": ["src", "scripts", "*.ts"]
+}
