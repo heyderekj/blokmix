@@ -61,7 +61,7 @@
 
   /* Grid: the 12-column rail. Children take .col-N (span N of 12) and optionally .start-N.
      2-up = col-6, 3-up = col-4, 4-up = col-3, 7/5 split = col-7 + col-5, centred 8 = col-8 start-3. */
-  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-8); }
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-3 { grid-column-end: span 3; }
   & .col-4 { grid-column-end: span 4; }
   & .col-5 { grid-column-end: span 5; }
@@ -132,16 +132,17 @@
 
   /* Tablet: .t-col-N re-spans a child from 1080px down. */
   @media (max-width: 1080px) {
+    & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-6 { grid-column: auto / span 6; }
     & .grid > .t-col-12 { grid-column: auto / span 12; }
   }
 
-  /* Phone: every column goes full width unless it asks for .m-col-6; gutters and steps tighten. */
+  /* Phone: every column goes full width (whatever its tablet span) unless it asks for .m-col-6; gaps tighten. */
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
-    & .grid { gap: var(--mx-space-6); }
-    & .grid > * { grid-column: auto / span 12; }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
+    & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .grid > .m-col-6 { grid-column: auto / span 6; }
     & .split.reverse > :last-child { order: 0; }
     & .lead { font-size: var(--mx-text-base); }

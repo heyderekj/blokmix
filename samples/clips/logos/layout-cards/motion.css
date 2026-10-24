@@ -1,0 +1,22 @@
+.mx-logos-layout-cards {
+  & .head > * { animation: mx-logos-layout-cards-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .tile { animation: mx-logos-layout-cards-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; animation-delay: 140ms; }
+  & .tile:nth-child(2) { animation-delay: 180ms; }
+  & .tile:nth-child(3) { animation-delay: 220ms; }
+  & .tile:nth-child(4) { animation-delay: 260ms; }
+  & .tile:nth-child(5) { animation-delay: 300ms; }
+  & .tile:nth-child(6) { animation-delay: 340ms; }
+  & .tile:nth-child(7) { animation-delay: 380ms; }
+  & .tile:nth-child(8) { animation-delay: 420ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .tile { animation-name: mx-logos-layout-cards-fade; }
+  }
+}
+@keyframes mx-logos-layout-cards-rise {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+@keyframes mx-logos-layout-cards-fade {
+  from { opacity: 0; }
+}

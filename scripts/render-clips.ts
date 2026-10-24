@@ -51,8 +51,29 @@ for (const sourceId of sources) {
       await tab.waitForTimeout(1600)
       const file = join(out, `${id}@${sourceId}-${width}.png`)
       await tab.screenshot({ path: file, fullPage: true })
-      const overflow = await tab.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
-      console.log(`${file}${overflow > 0 ? `  ⚠ ${overflow}px horizontal overflow` : ''}`)
+      // Page overflow, and elements poking past the section's content box even when something clips them
+      // (intentional scrollers, like a scroll-snap row, and absolutely placed art are left out).
+      const { page: overflow, spill } = await tab.evaluate(() => {
+        const root = document.querySelector('body > section, body > header, body > footer, body > nav, body section, body header, body footer, body nav') as HTMLElement
+        const box = root.getBoundingClientRect()
+        const pad = parseFloat(getComputedStyle(root).paddingLeft)
+        const scrolls = (el: Element | null): boolean => {
+          for (; el && el !== root; el = el.parentElement) {
+            const s = getComputedStyle(el)
+            if (/auto|scroll/.test(s.overflowX) || s.position === 'absolute' || s.position === 'fixed') return true
+          }
+          return false
+        }
+        const spill: string[] = []
+        for (const el of root.querySelectorAll('*')) {
+          const r = el.getBoundingClientRect()
+          if (!r.width || scrolls(el)) continue
+          if (r.right > box.right - pad + 1 || r.left < box.left + pad - 1) spill.push(`${el.tagName.toLowerCase()}.${[...el.classList].join('.')} (${Math.round(r.left)}–${Math.round(r.right)})`)
+        }
+        return { page: document.documentElement.scrollWidth - window.innerWidth, spill: [...new Set(spill)].slice(0, 4) }
+      })
+      const notes = [overflow > 0 ? `${overflow}px horizontal overflow` : '', spill.length ? `past the gutter: ${spill.join(', ')}` : ''].filter(Boolean)
+      console.log(`${file}${notes.length ? `  ⚠ ${notes.join('; ')}` : ''}`)
       await tab.close()
     }
   }

@@ -1,0 +1,12 @@
+{
+  "title": "Inline logo strip",
+  "layoutPattern": "eyebrow-left-logo-row-one-line",
+  "rhythm": "band",
+  "motionNotes": "No motion of its own: a quiet strip meant to sit between louder sections.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

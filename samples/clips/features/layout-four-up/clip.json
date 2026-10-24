@@ -1,0 +1,12 @@
+{
+  "title": "Four-up icon features",
+  "layoutPattern": "centered-head-feature-row-4col",
+  "rhythm": "grid",
+  "motionNotes": "No motion of its own: a quiet row that sits well under a section motion preset.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

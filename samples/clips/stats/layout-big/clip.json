@@ -1,0 +1,12 @@
+{
+  "title": "Big figures in rows",
+  "layoutPattern": "huge-figures-stacked-rows-label-right",
+  "rhythm": "stack",
+  "motionNotes": "The head rises, then each huge figure lifts in with its label fading in just after; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-24T00:00:00Z"
+  }
+}

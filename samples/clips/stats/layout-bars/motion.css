@@ -1,0 +1,22 @@
+.mx-stats-layout-bars {
+  & .head > * { animation: mx-stats-layout-bars-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .fill { animation: mx-stats-layout-bars-grow calc(var(--mx-motion-duration) * 3.5) var(--mx-motion-ease) both; animation-delay: 220ms; }
+  & .meter:nth-child(2) .fill { animation-delay: 280ms; }
+  & .meter:nth-child(3) .fill { animation-delay: 340ms; }
+  & .meter:nth-child(4) .fill { animation-delay: 400ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .fill { animation-name: mx-stats-layout-bars-fade; }
+  }
+}
+@keyframes mx-stats-layout-bars-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-stats-layout-bars-grow {
+  from { transform: scaleX(0.04); }
+}
+@keyframes mx-stats-layout-bars-fade {
+  from { opacity: 0; }
+}

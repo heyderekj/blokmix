@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-9) var(--mx-space-8);
 
-  & .inner {
+  & .container {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -71,7 +71,7 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5);
-    & .inner { gap: var(--mx-space-6); }
+    & .container { gap: var(--mx-space-6); }
     & .row {
       display: grid;
       grid-template-columns: repeat(2, 1fr);

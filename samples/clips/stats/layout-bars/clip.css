@@ -1,0 +1,63 @@
+.mx-stats-layout-bars {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-8 { grid-column-end: span 8; }
+  & .start-3 { grid-column-start: 3; }
+
+  /* Each figure sits on a meter; the fill shortens by position, a picture of the share rather than a chart. */
+  & .meters { row-gap: var(--mx-space-7); }
+  & .meter { display: grid; gap: var(--mx-space-3); }
+  & .line { display: flex; align-items: baseline; justify-content: space-between; gap: var(--mx-space-5); }
+  & .label { font-size: var(--mx-text-lg); font-weight: 500; }
+  & .value {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: var(--mx-text-3xl);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+  }
+  & .track {
+    display: block;
+    height: 12px;
+    border-radius: var(--mx-radius-pill);
+    background: color-mix(in oklab, var(--mx-color-text) 8%, transparent);
+    overflow: hidden;
+  }
+  & .fill { display: block; height: 100%; width: 90%; border-radius: inherit; background: var(--mx-color-primary); transform-origin: left center; }
+  & .meter:nth-child(2) .fill { width: 64%; background: color-mix(in oklab, var(--mx-color-primary) 72%, var(--mx-color-bg)); }
+  & .meter:nth-child(3) .fill { width: 38%; background: color-mix(in oklab, var(--mx-color-primary) 52%, var(--mx-color-bg)); }
+  & .meter:nth-child(n + 4) .fill { width: 22%; background: color-mix(in oklab, var(--mx-color-primary) 36%, var(--mx-color-bg)); }
+
+  @media (max-width: 1080px) {
+    & .meter { grid-column: 2 / span 10; }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .lead { font-size: var(--mx-text-base); }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-3); }
+    & .grid > * { grid-column: auto / span 12; }
+    & .label { font-size: var(--mx-text-base); }
+    & .value { font-size: var(--mx-text-2xl); }
+    & .track { height: 10px; }
+  }
+}
