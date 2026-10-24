@@ -17,7 +17,7 @@ Inertia on Laravel Cloud later.
 
 Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The board still runs on its own:
 - `npm run dev:laravel` (or `composer dev`): `php artisan serve` on http://localhost:8000 plus Vite on 5174.
-  `/mixes` lists mixes, `/mixes/local` is the board. `resources/views/app.blade.php` marks the page
+  `/` lists your mixes (signed in), `/mixes/{id}` is the board, `/mixes/local` the browser-only mix. `resources/views/app.blade.php` marks the page
   (`<meta name="blokmix-host">`, `lib/host.ts` `isHosted()`), and `app.tsx` then mounts Inertia pages from
   `resources/js/pages/` instead of the bare board.
 - `npm run build:laravel` writes `public/build`; `npm run build` still writes the Vite-only `dist/`.
@@ -37,6 +37,21 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   CLI (`composer global` laravel/cloud-cli) is signed in: `cloud deploy blokmix production`, `cloud cmd:run`.
 - Accounts (Fortify: sign up, sign in, sign out; Inertia pages in `pages/auth/`). Sign-up is open. Password reset
   is off until there's a mail service. The board takes your account's name for marks and versions.
+- `/` is your mixes when signed in (`/mixes` redirects there). `MarkSignedIn` sets a plain `blokmix_signed_in=1`
+  cookie while you're signed in, so the edge in front of blokmix.com can send `/` to the app or the website.
+- Password reset by email (Fortify): the "Forgot password?" link shows only when MAIL_MAILER is a real mailer
+  (Cloud's Email resource connects Resend). Signing up from a share link names the mix you're invited to.
+- Uploads (`mix_assets`, `AssetController`) live on the uploads disk (Cloud bucket `blokmix_production`, disk
+  `uploads`, default), per mix. The browser stays the cache: `lib/assets.ts` `syncAssets` (run by `openMix`)
+  downloads what it lacks and sends up what the server lacks; new uploads go up as they're added. Unsplash goes
+  through `/api/unsplash` with UNSPLASH_ACCESS_KEY on the server (the Vite-only app still uses its VITE_ key).
+- A mix exports to and imports from one file (`lib/mixFile.ts`, `blokmix.mix/v1`, uploads included): Export in
+  the board menu; Import on the mixes page (a new saved mix) or in the menu without Laravel (replaces the local mix).
+- Captured clips (`clips`, `ClipController`, `lib/userClips.ts`): the extension's zip, added from the Crate, linted
+  in the browser, saved to your account. You get yours and those of people you share mixes with; they join the
+  library (`core/library.ts` `extendLibrary`) before the board opens a mix.
+- Agents on the live site: the local MCP bridge also accepts Blokmix's hosted HTTPS origins (`HOSTED_ORIGINS` in
+  `core/commands/bridge.ts`, plus BLOKMIX_ORIGINS). Chrome may ask once to let the site reach this device.
 - Mixes have members (`mix_members`): owner (shares, deletes), editor (changes anything), viewer (looks and
   leaves marks). Non-members get 404. Share links (`mix_share_links`, `/share/{token}`) add whoever opens them
   with a role (never lowering one); signed-out people sign up first. The Share panel (top bar, hosted only) makes
