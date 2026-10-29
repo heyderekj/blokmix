@@ -2,6 +2,8 @@
   "title": "Large heading over a rule",
   "layoutPattern": "oversized-heading-hairline-intro-and-cta-row",
   "rhythm": "stack",
+  "feel": ["editorial", "bold"],
+  "density": "airy",
   "motionNotes": "The heading rises first; the hairline row fades in after it and the intro and button follow in a short stagger.",
   "capture": {
     "path": "/",

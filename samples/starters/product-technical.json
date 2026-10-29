@@ -1,0 +1,23 @@
+{
+  "name": "Developer tool",
+  "blurb": "Dark and precise, for a tool developers try from the terminal.",
+  "kind": "product",
+  "vibe": "technical",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.nightowl-command",
+        "hero.nightowl-terminal",
+        "logos.layout-marquee",
+        "features.layout-tabs",
+        "stats.layout-row",
+        "pricing.nightowl-usage",
+        "faq.layout-columns",
+        "cta.layout-centered",
+        "footer.nightowl-minimal"
+      ]
+    }
+  ]
+}

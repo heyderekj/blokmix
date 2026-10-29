@@ -2,6 +2,8 @@
   "title": "Newspaper masthead with double rule",
   "layoutPattern": "centered-masthead",
   "rhythm": "centered",
+  "feel": ["editorial"],
+  "density": "balanced",
   "motionNotes": "The wordmark fades in as its wide tracking settles, the double rule draws outward from the center, then the dateline, button and section links fade up in a slow stagger. Links grow a centered underline on hover.",
   "capture": {
     "path": "/",

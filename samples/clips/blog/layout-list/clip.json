@@ -2,6 +2,8 @@
   "title": "Post rows",
   "layoutPattern": "head-then-ruled-rows-meta-title-arrow",
   "rhythm": "stack",
+  "feel": ["editorial", "calm"],
+  "density": "balanced",
   "motionNotes": "The head rises in a short stagger, then the rows follow one after another; reduced motion keeps only the fades. On hover a row’s title takes the accent and its round arrow fills and turns.",
   "capture": {
     "path": "/",

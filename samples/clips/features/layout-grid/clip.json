@@ -2,6 +2,8 @@
   "title": "Three-up feature grid",
   "layoutPattern": "feature-grid-3col",
   "rhythm": "grid",
+  "feel": ["calm"],
+  "density": "dense",
   "motionNotes": "Header rises in a short stagger, then the six features follow in reading order; icon tiles fill with the primary colour on hover.",
   "capture": {
     "path": "/",

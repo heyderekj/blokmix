@@ -2,6 +2,8 @@
   "title": "Simple bar",
   "layoutPattern": "brand-links-cta",
   "rhythm": "band",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "Brand, links and button fade down in a quick stagger on load; links pick up a soft tint and the button lifts on hover.",
   "capture": {
     "path": "/",

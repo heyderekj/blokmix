@@ -10,6 +10,7 @@ import * as blocks from './blocks'
 import * as words from './words'
 import * as pageCmds from './page'
 import * as siteCmds from './site'
+import * as start from './start'
 
 export { CommandError, describeNote } from './refs'
 
@@ -34,7 +35,7 @@ export interface AsyncCommand<P = unknown> {
   apply: (input: never, prepared: P) => unknown
 }
 // Modules export `later` maps of async commands; merge them here.
-const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later } as Record<string, AsyncCommand>
+const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later, ...start.later } as Record<string, AsyncCommand>
 
 /** What a viewer can still do: leave and answer marks. */
 const MARKS = new Set(['add_note', 'update_note', 'reply_note'])
@@ -102,6 +103,8 @@ function summary(name: string, input: Record<string, unknown>): string {
       return input.done ? `finished ${input.build}` : input.preview_url ? `put ${input.build}’s preview up` : `${input.build}: ${input.step ?? 'updated'}`
     case 'import_review_marks':
       return `brought back ${(input.marks as unknown[]).length} review marks`
+    case 'apply_start':
+      return `started over from a ${input.vibe} start`
     case 'reply_note':
       return `replied on N${String(input.note).replace(/^n/i, '')}`
     default:

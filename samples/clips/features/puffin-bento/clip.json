@@ -2,6 +2,8 @@
   "title": "Bento grid of floaty feature cards",
   "layoutPattern": "bento-grid-4col",
   "rhythm": "grid",
+  "feel": ["friendly"],
+  "density": "dense",
   "motionNotes": "Header and cards spring in with a staggered pop; icon blobs, the dragged board tile and the integration orbit float on gentle loops; a blurred gradient blob drifts behind the grid; cards lift and tilt with a bouncy spring on hover.",
   "capture": {
     "path": "/",

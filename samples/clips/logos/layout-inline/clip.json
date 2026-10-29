@@ -2,6 +2,8 @@
   "title": "Inline logo strip",
   "layoutPattern": "eyebrow-left-logo-row-one-line",
   "rhythm": "band",
+  "feel": ["calm"],
+  "density": "airy",
   "motionNotes": "No motion of its own: a quiet strip meant to sit between louder sections.",
   "capture": {
     "path": "/",

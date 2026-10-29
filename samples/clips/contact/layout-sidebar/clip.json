@@ -2,6 +2,8 @@
   "title": "Form with detail cards",
   "layoutPattern": "form-beside-stacked-detail-cards",
   "rhythm": "split",
+  "feel": ["friendly"],
+  "density": "balanced",
   "motionNotes": "No entrance motion; inputs ring on focus and the button presses in.",
   "capture": {
     "path": "/",

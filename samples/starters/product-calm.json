@@ -1,0 +1,23 @@
+{
+  "name": "Simple product launch",
+  "blurb": "A clear page for an app or product: what it does, who trusts it, what it costs.",
+  "kind": "product",
+  "vibe": "calm",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-simple",
+        "hero.layout-media-below",
+        "logos.layout-row",
+        "features.layout-grid",
+        "testimonials.layout-cards",
+        "pricing.layout-tiers",
+        "faq.layout-accordion",
+        "cta.layout-band",
+        "footer.layout-columns"
+      ]
+    }
+  ]
+}

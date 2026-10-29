@@ -2,6 +2,8 @@
   "title": "Project packages",
   "layoutPattern": "three-packages-from-price-inverse-middle",
   "rhythm": "grid",
+  "feel": ["bold", "friendly"],
+  "density": "balanced",
   "motionNotes": "The head rises, then the three packages lift in a short stagger with the middle one last; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

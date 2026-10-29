@@ -2,6 +2,8 @@
   "title": "Featured post",
   "layoutPattern": "featured-plus-list",
   "rhythm": "split",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "Header rises, the featured post follows, then the side list cascades; titles tint on hover.",
   "capture": {
     "path": "/",

@@ -2,6 +2,8 @@
   "title": "Two-column accordion",
   "layoutPattern": "two-column-accordion-cards",
   "rhythm": "grid",
+  "feel": ["friendly", "calm"],
+  "density": "balanced",
   "motionNotes": "The head rises, then the question cards follow in a short stagger; an opened answer fades in and its chevron turns. Reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

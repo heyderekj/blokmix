@@ -2,6 +2,8 @@
   "title": "Split with media",
   "layoutPattern": "split-copy-media",
   "rhythm": "split",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "Copy rises in a short stagger while the media window settles in and its tiles fade up; buttons lift on hover.",
   "capture": {
     "path": "/",

@@ -15,6 +15,8 @@ import { StatusRing } from '@/ui/frames/FrameHeader'
 import { MixThumb } from '@/ui/mixes/MixThumb'
 import { resolveGuide } from '@/core/guide'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
+import { StartFlow } from '@/ui/start/StartFlow'
+import { mixFromStart } from '@/lib/start'
 
 interface SavedMix {
   id: string
@@ -152,6 +154,19 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     else setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
   }
 
+  // New mix opens the guided start; the start you pick becomes the mix, the others its versions.
+  const [guided, setGuided] = useState(false)
+  const startGuided = () => (full ? setProblem(MIX_FULL) : (setProblem(null), setGuided(true)))
+  const saveStart: Parameters<typeof StartFlow>[0]['onDone'] = async (input, starts, chosen) => {
+    const { mixName, versions, ...data } = mixFromStart(input, starts, chosen)
+    setMoving(true)
+    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: mixName, data, versions })
+    if (res.status === 201) return router.visit(`/${res.body.short}`)
+    setMoving(false)
+    setGuided(false)
+    setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
+  }
+
   const importFile = () =>
     pickFile('.json,application/json', async (f) => {
       setProblem(null)
@@ -175,6 +190,14 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
   return (
     <div className="min-h-full" style={{ background: '#FBF8F9', backgroundImage: 'radial-gradient(#DDD2D9 1.2px, transparent 1.3px)', backgroundSize: '24px 24px' }}>
       <Head title="Mixes" />
+      {guided && (
+        <StartFlow
+          busy={moving}
+          onClose={() => setGuided(false)}
+          onBlank={() => router.post('/mixes', {}, { onError: (e) => (setGuided(false), e.mix && setProblem(e.mix)) })}
+          onDone={saveStart}
+        />
+      )}
       <header className="flex items-center gap-2.5 px-6 py-5">
         <span className="flex-1 text-[#17121A]">
           <Wordmark height={18} />
@@ -242,7 +265,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         <ul className={GRID}>
           {!query && (
             <li className="animate-rise">
-              <NewMix mixes={mine} full={full} onRefused={setProblem} />
+              <NewMix mixes={mine} full={full} onRefused={setProblem} onGuided={startGuided} />
             </li>
           )}
           {mine.map((m, i) => (
@@ -329,7 +352,7 @@ const CARD =
 
 /** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It starts a mix in the
  * neutral style; "Start from a style guide" starts one from a saved guide or another mix's (the new mix keeps its own copy). */
-function NewMix({ mixes, full, onRefused }: { mixes: SavedMix[]; full: boolean; onRefused: (why: string) => void }) {
+function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full: boolean; onRefused: (why: string) => void; onGuided: () => void }) {
   const [picking, setPicking] = useState(false)
   const [saved, setSaved] = useState<SavedGuide[] | null>(null)
   useEffect(() => {
@@ -366,7 +389,7 @@ function NewMix({ mixes, full, onRefused }: { mixes: SavedMix[]; full: boolean; 
 
   return (
     <div className="group/new relative grid h-full min-h-[260px] w-full place-items-center rounded-[22px] border-2 border-dashed border-[#E4D9DF] transition-[border-color,background-color] duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-[#FF69B4]/60 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/60">
-      <button type="button" onClick={() => start()} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
+      <button type="button" onClick={onGuided} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
       <span className="pointer-events-none grid justify-items-center gap-4">
         <span className="relative block size-[64px]">
           <BlockSlot size={64} className="left-0 top-0" />

@@ -2,6 +2,8 @@
   "title": "Row of round portraits",
   "layoutPattern": "centered-round-avatars-6up",
   "rhythm": "centered",
+  "feel": ["friendly", "calm"],
+  "density": "dense",
   "motionNotes": "The head rises, then each round portrait fades up from 95% in a quick stagger; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

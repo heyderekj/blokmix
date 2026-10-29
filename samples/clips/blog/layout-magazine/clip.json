@@ -2,6 +2,8 @@
   "title": "Magazine",
   "layoutPattern": "wide-horizontal-lead-story-then-three-up",
   "rhythm": "split",
+  "feel": ["editorial"],
+  "density": "balanced",
   "motionNotes": "The head rises, then the lead story and the three posts under it follow in a stagger; reduced motion keeps only the fades. On hover a post’s title takes the accent and its picture’s frame darkens.",
   "capture": {
     "path": "/",

@@ -2,6 +2,8 @@
   "title": "Three plans in one panel",
   "layoutPattern": "three-columns-one-panel-hairlines",
   "rhythm": "grid",
+  "feel": ["editorial"],
+  "density": "dense",
   "motionNotes": "No entrance motion; buttons press in slightly and fill on hover.",
   "capture": {
     "path": "/",

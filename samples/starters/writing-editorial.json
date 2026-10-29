@@ -1,0 +1,20 @@
+{
+  "name": "Newsletter",
+  "blurb": "For writers: the latest issues up front and a sign-up everywhere.",
+  "kind": "writing",
+  "vibe": "editorial",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-stacked",
+        "hero.layout-form",
+        "blog.layout-magazine",
+        "testimonials.layout-quote",
+        "cta.layout-newsletter",
+        "footer.layout-newsletter"
+      ]
+    }
+  ]
+}

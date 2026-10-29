@@ -2,6 +2,8 @@
   "title": "Compact footer with status light and CTA strip",
   "layoutPattern": "cta-strip-brand-left-three-columns",
   "rhythm": "grid",
+  "feel": ["technical"],
+  "density": "dense",
   "motionNotes": "Strip, columns and legal line fade up in sequence; the status dot pulses like a heartbeat and the CTA button’s glow breathes.",
   "capture": {
     "path": "/",

@@ -2,6 +2,8 @@
   "title": "Four-up icon features",
   "layoutPattern": "centered-head-feature-row-4col",
   "rhythm": "grid",
+  "feel": ["calm"],
+  "density": "dense",
   "motionNotes": "No motion of its own: a quiet row that sits well under a section motion preset.",
   "capture": {
     "path": "/",

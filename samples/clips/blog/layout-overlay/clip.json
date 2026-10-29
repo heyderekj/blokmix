@@ -2,6 +2,8 @@
   "title": "Caption over picture",
   "layoutPattern": "split-head-three-tall-tiles-inset-captions",
   "rhythm": "grid",
+  "feel": ["friendly", "calm"],
+  "density": "balanced",
   "motionNotes": "The head rises, then each tile’s picture fades in and its caption panel rises over it, tile by tile; reduced motion keeps only the fades. On hover the caption lifts a step and the title takes the accent.",
   "capture": {
     "path": "/",

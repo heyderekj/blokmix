@@ -2,6 +2,8 @@
   "title": "Centred form card",
   "layoutPattern": "centred-head-form-card",
   "rhythm": "centered",
+  "feel": ["friendly", "calm"],
+  "density": "balanced",
   "motionNotes": "The head rises in a short stagger, then the form card lifts into place; inputs ring on focus. Reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

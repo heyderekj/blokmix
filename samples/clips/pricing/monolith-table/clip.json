@@ -2,6 +2,8 @@
   "title": "Boxed tier table with sticker and billing toggle",
   "layoutPattern": "three-tier-boxed-highlight",
   "rhythm": "grid",
+  "feel": ["bold"],
+  "density": "dense",
   "motionNotes": "Header copy snaps up, then the three tier boxes stamp down in sequence and the “Popular” sticker slaps onto the middle tier. Flipping the monthly/yearly radio toggle drops the new prices in. Tiers and buttons jump up-left onto a deeper hard shadow on hover.",
   "capture": {
     "path": "/trade",

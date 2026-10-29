@@ -2,6 +2,8 @@
   "title": "Accordion in a band",
   "layoutPattern": "inverse-band-narrow-accordion",
   "rhythm": "band",
+  "feel": ["bold", "calm"],
+  "density": "balanced",
   "motionNotes": "No entrance motion; opening a question turns its plus into a cross.",
   "capture": {
     "path": "/",

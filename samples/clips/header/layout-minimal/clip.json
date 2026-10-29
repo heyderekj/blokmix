@@ -2,6 +2,8 @@
   "title": "Minimal with breadcrumb",
   "layoutPattern": "left-aligned-compact-header-breadcrumb",
   "rhythm": "stack",
+  "feel": ["editorial", "calm"],
+  "density": "airy",
   "motionNotes": "No entrance motion: a quiet inner-page header that should feel instant. The button presses in on tap.",
   "capture": {
     "path": "/",

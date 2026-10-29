@@ -46,11 +46,25 @@ This keeps the free tier useful for completing one starting point while the lice
 - Not tied to production hosting. Library items become part of your mix; publishing is still the noindex, account-specific snapshot on blok.page.
 - Not an AI-generated default library. The point is real, varied sections that already exist in the wild.
 
+## What's built
+
+- **Two shelves.** *Plain* is Blokmix's own built-in layouts (neutral structure that takes any style guide). *Real
+  sites* is sections captured from live sites. A clip's shelf follows where it came from; it isn't stored.
+- **Tags** in each `clip.json`: `feel` (one or more of calm, friendly, editorial, technical, bold) and `density`
+  (airy, balanced, dense). Layout type is the clip's `rhythm` (centered, split, grid, stack, band); tone (light,
+  dark, vivid) is read from the clip's own colors. The Crate's Library tab filters by all of these in plain words.
+- **Starter mixes** live in `samples/starters/*.json`: a name, what it's for, a feel, and its pages' sections.
+  The guided start offers the ones that match first.
+- A `tier` (`free` or `full`) can be set on clips and starters for the license later; nothing enforces it yet.
+
 ## Open questions
 
 - Exact size and makeup of the free limited selection.
-- How deeply to categorize (style, type, color, density, etc.).
-- Whether early library content is entirely curated by us or includes a small set of high-quality community mixes from the start.
+- Whether early library content includes a small set of high-quality community mixes from the start. For now it is
+  curated by us.
 - How (or whether) to keep any Landbook-style organization in sync with external inspiration sources over time.
+- Real-site sections join the shared library only once capture cleans them fully (`capture-issues.md`): every piece
+  of copy in fields, no source names or logos left in, quiet placeholders. Nothing in the library carries another
+  brand.
 
 Last updated: 2026-10-29

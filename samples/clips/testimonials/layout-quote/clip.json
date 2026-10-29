@@ -2,6 +2,8 @@
   "title": "Single centered quote",
   "layoutPattern": "centered-quote",
   "rhythm": "centered",
+  "feel": ["calm"],
+  "density": "airy",
   "motionNotes": "Eyebrow rises, the quote mark pops in, then the quote and the person follow in a gentle stagger.",
   "capture": {
     "path": "/",

@@ -2,6 +2,8 @@
   "title": "Sticky picture with numbered list",
   "layoutPattern": "sticky-head-media-left-numbered-list-right",
   "rhythm": "split",
+  "feel": ["editorial", "technical"],
+  "density": "balanced",
   "motionNotes": "No motion of its own; on a scrolling page the head and picture stay pinned while the six numbered features pass by.",
   "capture": {
     "path": "/",

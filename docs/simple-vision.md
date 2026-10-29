@@ -16,7 +16,9 @@ Secondary: designers who want a fast remix surface, but the primary promise is t
 
 ## The loop
 
-1. **Start** — Clip real sections or choose a light wireframe. Either (or both) is valid. No required sequence.
+1. **Start** — Clip real sections, pick from the library (sections or a starter mix, see `library.md`), or let the
+   guided start suggest one. A **Sketch** feel is the light wireframe: grey, plain, for deciding the layout first.
+   No required sequence.
 2. **Style** — A style guide (from the clips, from an existing site/brand, or dialed) transforms the sections into live previews. Simple dials for tuning by feel (spacing, type, color, radius, light/dark).
 3. **Mark & hand off** — Notes and marks live on the sections ("keep this layout", "try tighter"). Export a packet (styled components + notes + tokens) for your agent, or publish the mix.
 
@@ -35,11 +37,23 @@ Optional: publish the current mix to a noindex/nofollow page on blok.page so you
 - **blokmix.com** — marketing site and the app.
 - **blok.page** — published, noindex snapshots of a mix + style guide (lightweight shareable view only).
 
+## Guided start
+
+New mix asks three light questions: what you're making (a product, a studio, a local business, an event, a
+portfolio, a newsletter), a feel (Calm, Friendly, Editorial, Technical, Bold, or Sketch), and optionally one brand
+color. It then shows three real starts side by side, A/B/C: matching starter mixes first, then mixes put together
+from the library. Each start is measured before you see it, in plain words: does the headline and button show on a
+laptop and a phone without scrolling, does anything spill sideways at any width. Pick one; the other two stay as
+versions to come back to.
+
+The measuring borrows from Shu Ding's "The Calculus of Interfaces" (a page is a function of a few inputs, so you can
+ask what fills the first screen and what moves it). We don't compile pages into math; we render the real sections
+in hidden frames at several widths and read what we see.
+
 ## Pricing direction
 
-- Free: one active mix, limited clips, full dials and marks, optional publish of that mix.
-- Paid (~$10–12/month or ~$100/year): unlimited mixes, more clips/storage, saved style guides, multiple published mixes.
-- Editors and viewers free. No seat math.
+See `pricing.md`: a free tier that completes one real starting point, and a $29 one-time license for the full
+library and unlimited mixes. No subscription. Editors and viewers free. No seat math.
 
 ## Relationship to the rest of the suite
 
@@ -54,4 +68,4 @@ Blokmix can exist as a small, separate product because the job is different from
 - Friend feedback (software dev who is not strong at websites): useful handoff to existing AI tools/stacks, stands apart from Figma-like apps, do not become Squarespace.
 - Published pages are snapshots for sharing, not production sites.
 
-Last updated: 2026-10-27
+Last updated: 2026-10-29

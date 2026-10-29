@@ -2,6 +2,8 @@
   "title": "Scrolling row",
   "layoutPattern": "head-then-edge-bleeding-scroll-snap-row",
   "rhythm": "band",
+  "feel": ["bold", "calm"],
+  "density": "balanced",
   "motionNotes": "The head rises, then the cards slide in from the right one after another; reduced motion keeps only the fades. The row scrolls sideways and snaps card by card; a card’s fill deepens on hover.",
   "capture": {
     "path": "/",

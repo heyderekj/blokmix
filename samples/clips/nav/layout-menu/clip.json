@@ -2,6 +2,8 @@
   "title": "Menu button",
   "layoutPattern": "brand-cta-menu-toggle",
   "rhythm": "split",
+  "feel": ["technical"],
+  "density": "balanced",
   "motionNotes": "No entrance. The round menu button opens a panel under the bar with the links at display size; a link shifts over and takes the accent on hover.",
   "capture": {
     "path": "/",

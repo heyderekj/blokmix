@@ -2,6 +2,10 @@
 
 Notes from product discussion (Oct 2026) on who Blokmix is for and how complete the app should be.
 
+> **Since then (2026-10-27):** the primary audience moved to non-designers (founders, marketers, developers who don't
+> design); see `simple-vision.md`. Designers and small studios are now the secondary audience. The scope notes below
+> still hold.
+
 ## Primary audience
 
 Independent designers and small studios (roughly 1–5 people) who regularly build client marketing sites.

@@ -2,6 +2,8 @@
   "title": "Open logo wall",
   "layoutPattern": "head-over-hairline-logo-wall-4x2",
   "rhythm": "grid",
+  "feel": ["editorial"],
+  "density": "dense",
   "motionNotes": "No motion of its own; the wall stays still and lets the logos read.",
   "capture": {
     "path": "/",

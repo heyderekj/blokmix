@@ -2,6 +2,8 @@
   "title": "Sidebar with accordion",
   "layoutPattern": "sticky-sidebar-accordion",
   "rhythm": "split",
+  "feel": ["editorial", "calm"],
+  "density": "balanced",
   "motionNotes": "The side column rises in a short stagger while question cards follow down the right; opening a question tints its card and fades the answer in.",
   "capture": {
     "path": "/",

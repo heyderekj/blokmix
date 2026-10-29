@@ -2,6 +2,8 @@
   "title": "Split with abstract media",
   "layoutPattern": "split-media-right",
   "rhythm": "split",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "Copy rises in a stagger while the media panel scales in; the orb and ring drift slowly on a loop and the floating card slides up last.",
   "capture": {
     "path": "/",

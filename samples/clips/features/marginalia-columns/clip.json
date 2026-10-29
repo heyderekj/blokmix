@@ -2,6 +2,8 @@
   "title": "Editorial chapters in ruled columns",
   "layoutPattern": "three-column-ruled-grid",
   "rhythm": "grid",
+  "feel": ["editorial"],
+  "density": "dense",
   "motionNotes": "Heading and drop-cap intro rise in a gentle stagger, the heavy top rule inks in, then the six chapters fade upward one by one. On hover a chapter’s top rule draws across in the primary ink and its numeral warms to the accent.",
   "capture": {
     "path": "/",
