@@ -270,13 +270,15 @@
 html, body, #app { height: 100%; }
 body {
   margin: 0;
-  overflow: hidden;
   font-family: var(--font-sans);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   background: var(--canvas-bg);
   overscroll-behavior: none;
 }
+/* The canvas board pans and zooms on its own, so the window never scrolls under it; every other page (your mixes, the
+   waitlist, sign-in on a short screen) scrolls as usual. */
+body:has([data-board]) { overflow: hidden; }
 
 ::selection { background-color: var(--highlight); color: var(--foreground); }
 

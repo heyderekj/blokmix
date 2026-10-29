@@ -24,7 +24,7 @@ export default function Board() {
   }, [theme])
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div className="relative h-full w-full overflow-hidden" data-board>
       <Canvas>
         <World />
       </Canvas>
