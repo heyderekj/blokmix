@@ -5,8 +5,8 @@ import { addClipZip, onShelf, SHELF_LABEL, useUserClips, type Shelf } from '@/li
 import { pickable } from '@/core/library'
 import { createPortal } from 'react-dom'
 import { Check, Plus, Scissors } from 'lucide-react'
-import type { Clip, SectionType } from '@/core/types'
-import { SECTION_TYPES } from '@/core/types'
+import type { Clip, Density, Feel, SectionType } from '@/core/types'
+import { DENSITIES, FEELS, SECTION_TYPES } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { primaryFamily } from '@/core/tokens'
 import { library } from '@/data/library'
@@ -41,7 +41,11 @@ export function Crate() {
   const mix = useMemo(() => new Set(mixClipIds({ site, clips: own })), [site, own])
   // This mix's clips first when it has some, then your whole library, then the built-in layouts.
   const [shelf, setShelf] = useState<Shelf>(mix.size ? 'mix' : yours ? 'yours' : 'layouts')
-  const pool = (t: SectionType) => pickable(library, t).filter((id) => onShelf(id, shelf, mix))
+  // Browse by feel and how much is on it, like a gallery of real sites (docs/library.md).
+  const [feel, setFeel] = useState<Feel | null>(null)
+  const [density, setDensity] = useState<Density | null>(null)
+  const fits = (c: Clip) => (!feel || !!c.feel?.includes(feel)) && (!density || c.density === density)
+  const pool = (t: SectionType) => pickable(library, t).filter((id) => onShelf(id, shelf, mix) && fits(library.clips[id]))
   const ids = effective === 'all' ? SECTION_TYPES.flatMap(pool) : pool(effective)
   const scroller = useRef<HTMLDivElement>(null)
   const chip = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-1'
@@ -110,6 +114,35 @@ export function Crate() {
           )
         })}
       </div>
+      <div className="fade-x mb-2.5 flex scroll-px-3 items-center gap-1 overflow-x-auto px-3 py-0.5 no-scrollbar" aria-label="Feel">
+        {([null, ...FEELS] as const).map((f) => (
+          <button
+            key={f ?? 'any'}
+            type="button"
+            aria-pressed={feel === f}
+            onClick={() => setFeel(f)}
+            className={`h-6 shrink-0 rounded-full px-2.5 text-[12px] font-medium capitalize transition active:scale-[0.97] ${chip} ${
+              feel === f ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-chip'
+            }`}
+          >
+            {f ?? 'Any feel'}
+          </button>
+        ))}
+        <span className="mx-1 h-4 w-px shrink-0 bg-zinc-200" />
+        {DENSITIES.map((d) => (
+          <button
+            key={d}
+            type="button"
+            aria-pressed={density === d}
+            onClick={() => setDensity(density === d ? null : d)}
+            className={`h-6 shrink-0 rounded-full px-2.5 text-[12px] font-medium capitalize transition active:scale-[0.97] ${chip} ${
+              density === d ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-chip'
+            }`}
+          >
+            {d}
+          </button>
+        ))}
+      </div>
       <div
         ref={scroller}
         className="thin-scroll fade-x grid scroll-px-3 auto-cols-[208px] grid-flow-col gap-2 overflow-x-auto px-3 pb-1.5"
@@ -123,7 +156,7 @@ export function Crate() {
         ))}
         {!ids.length && (
           <div className="col-span-full flex h-[60px] items-center gap-2 text-[12.5px] text-zinc-500">
-            No {effective === 'all' ? '' : `${TYPE_LABEL[effective]} `}clips yet.
+            {feel || density ? `Nothing ${[feel, density].filter(Boolean).join(' and ')} here yet.` : `No ${effective === 'all' ? '' : `${TYPE_LABEL[effective]} `}clips yet.`}
             <button type="button" onClick={() => setShelf('layouts')} className={`rounded-full px-2 py-0.5 font-semibold text-zinc-800 hover:bg-zinc-950/5 ${chip}`}>
               Browse layouts
             </button>

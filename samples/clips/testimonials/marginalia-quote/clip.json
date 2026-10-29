@@ -2,6 +2,8 @@
   "title": "Pull quote with reader letters and figures",
   "layoutPattern": "pull-quote-with-sidebar",
   "rhythm": "split",
+  "feel": ["editorial"],
+  "density": "balanced",
   "motionNotes": "The oversized quotation mark settles in from a slight scale, the pull quote rises slowly beneath it, then the figures, the two letters and the row of small-caps wordmarks fade in on a long, unhurried stagger. Wordmarks darken on hover.",
   "capture": {
     "path": "/",

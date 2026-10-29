@@ -2,6 +2,8 @@
   "title": "Team beside a sticky head",
   "layoutPattern": "sticky-head-left-member-cards-2up-right",
   "rhythm": "split",
+  "feel": ["editorial", "friendly"],
+  "density": "balanced",
   "motionNotes": "No entrance motion: the head holds its place on the left while the member cards run down the right.",
   "capture": {
     "path": "/",

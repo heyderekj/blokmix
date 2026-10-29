@@ -2,6 +2,8 @@
   "title": "Slim command bar with search pill",
   "layoutPattern": "inline-bar-command-search",
   "rhythm": "band",
+  "feel": ["technical"],
+  "density": "balanced",
   "motionNotes": "Bar items drop in on load while a glowing hairline scans across the bottom edge; the primary button’s glow breathes slowly on a loop.",
   "capture": {
     "path": "/",

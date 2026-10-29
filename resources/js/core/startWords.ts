@@ -1,0 +1,230 @@
+// Starter words for each kind of site, for every section type, so a guided start
+// reads like a bakery, a studio or a newsletter from top to bottom instead of
+// like Blokmix's own demo. Plain and specific enough to be believable, general
+// enough to fit most of that kind; meant to be rewritten. `{name}` is the site's
+// name, `{email}` an address made from it, `{year}` this year.
+
+import type { Kind, SectionType } from './types'
+
+type Words = Partial<Record<SectionType, Record<string, string>>>
+
+/** Words every kind shares: form labels, people's names, made-up customer logos. */
+export const SHARED_WORDS: Words = {
+  logos: { logo1: 'Northwind', logo2: 'Fieldnote', logo3: 'Paperplane', logo4: 'Lumen', logo5: 'Orbital', logo6: 'Kettle', logo7: 'Ridgeway', logo8: 'Halftone' },
+  testimonials: { logo1: 'Northwind', logo2: 'Fieldnote', logo3: 'Paperplane', logo4: 'Lumen', logo5: 'Orbital', logo6: 'Kettle' },
+  contact: { email: '{email}', nameLabel: 'Your name', emailLabel: 'Email', messageLabel: 'Message', submit: 'Send message' },
+  footer: { brand: '{name}', legal: '© {year} {name}. All rights reserved.' },
+  nav: { brand: '{name}' },
+}
+
+export const KIND_WORDS: Record<Kind, Words> = {
+  product: {
+    nav: {
+      link1: 'Features', link2: 'Customers', link3: 'Pricing', link4: 'Docs', cta: 'Get started',
+      notice1: 'New: {name} for teams', notice2: 'Free for 14 days', notice3: 'No credit card needed', notice4: 'Works with the tools you use', notice5: 'Set up in minutes', notice6: 'Loved by small teams',
+    },
+    hero: { eyebrow: 'New', headline: '{name} does the busywork, so you don’t have to', subhead: 'Say what it does and who it’s for in a sentence or two. Keep it plain and specific.', ctaPrimary: 'Get started', ctaSecondary: 'See how it works', note: 'Free to try · No credit card' },
+    header: { eyebrow: 'About {name}', heading: 'Why we built {name}', intro: 'The problem we kept running into, and what we made to fix it.', ctaPrimary: 'Try it free' },
+    logos: { eyebrow: 'Trusted by teams at', heading: 'Teams that moved to {name}' },
+    features: {
+      eyebrow: 'Features', heading: 'Everything you need, nothing you don’t', intro: 'The few things {name} does, done properly.',
+      f1Title: 'Set up in minutes', f1Body: 'Sign up, connect what you already use, and you’re running before lunch.',
+      f2Title: 'Works where you work', f2Body: 'Fits alongside the tools your team opens every day.',
+      f3Title: 'Fewer steps', f3Body: 'The routine parts happen on their own, so you can get to the real work.',
+      f4Title: 'Clear at a glance', f4Body: 'See where everything stands without digging through settings.',
+      f5Title: 'Safe by default', f5Body: 'Your data is encrypted, backed up and yours to export any time.',
+      f6Title: 'Help from people', f6Body: 'Real humans answer, usually within the hour.',
+    },
+    stats: { eyebrow: 'By the numbers', heading: 'Less busywork, more done', intro: 'What changes for teams in their first month.', stat1Value: '5 min', stat1Label: 'to set up', stat2Value: '6 hrs', stat2Label: 'saved a week', stat3Value: '98%', stat3Label: 'stay after the trial', stat4Value: '24/7', stat4Label: 'support' },
+    content: { eyebrow: 'Our story', heading: 'Why {name} exists', lead: 'We were tired of doing the same busywork every week, so we built the tool we wanted.', body1: 'Most tools ask you to change how you work. We wanted one that fit around it.', body2: '{name} started as a weekend project for our own team, and grew as friends asked to use it.', body3: 'Today it helps teams of every size spend less time on routine and more on what matters.', quote: 'The best tool is the one you forget you’re using.', caption: 'The {name} team' },
+    team: { eyebrow: 'Team', heading: 'The people behind {name}', intro: 'A small team that cares about the details.', m1Name: 'Rae Okafor', m1Role: 'Co-founder, product', m2Name: 'Jonah Fields', m2Role: 'Co-founder, engineering', m3Name: 'Priya Natarajan', m3Role: 'Design', m4Name: 'Theo Grant', m4Role: 'Engineering', m5Name: 'Mina Sato', m5Role: 'Customer success', m6Name: 'Lea Park', m6Role: 'Marketing' },
+    testimonials: { eyebrow: 'Customers', heading: 'Teams love {name}', q1Quote: 'We set it up on a Monday and stopped talking about the old tool by Friday.', q1Name: 'Rae Okafor', q1Role: 'Operations lead, Northwind', q2Quote: 'It does one thing really well, and it does it every single day.', q2Name: 'Jonah Fields', q2Role: 'Founder, Lumen', q3Quote: 'The support team answered before I’d finished my coffee.', q3Name: 'Priya Natarajan', q3Role: 'Product manager, Orbital', stat1Value: '2,000+', stat1Label: 'teams', stat2Value: '4.9', stat2Label: 'average rating', stat3Value: '6 hrs', stat3Label: 'saved a week' },
+    pricing: {
+      eyebrow: 'Pricing', heading: 'Simple pricing', intro: 'Start free. Upgrade when your team grows.',
+      t1Name: 'Starter', t1Price: '$0', t1PriceYearly: '$0', t1Desc: 'For trying it out', t1Cta: 'Start free', t1F1: '1 workspace', t1F2: 'Up to 3 people', t1F3: 'Core features', t1F4: 'Email support',
+      t2Name: 'Team', t2Price: '$12', t2PriceYearly: '$10', t2Desc: 'For growing teams', t2Cta: 'Start a trial', t2F1: 'Unlimited workspaces', t2F2: 'Unlimited people', t2F3: 'Integrations', t2F4: 'Priority support',
+      t3Name: 'Business', t3Price: '$29', t3PriceYearly: '$24', t3Desc: 'For larger companies', t3Cta: 'Talk to sales', t3F1: 'Everything in Team', t3F2: 'Single sign-on', t3F3: 'Admin controls', t3F4: 'A dedicated contact',
+      footnote: 'Per person, per month. Yearly saves about 20%.',
+    },
+    blog: { eyebrow: 'Blog', heading: 'News and guides', intro: 'Product updates and ways to get more out of {name}.', p1Title: 'What’s new this month', p1Excerpt: 'The features and fixes we shipped, and what’s coming next.', p1Meta: 'Oct 14 · 3 min', p2Title: 'Five ways teams use {name}', p2Excerpt: 'Real setups from customers, from tiny teams to large ones.', p2Meta: 'Oct 9 · 6 min', p3Title: 'Moving from spreadsheets', p3Excerpt: 'A step-by-step guide to bringing your work across.', p3Meta: 'Oct 2 · 5 min', p4Title: 'How we think about security', p4Excerpt: 'What we do to keep your data safe, in plain words.', p4Meta: 'Sep 25 · 4 min', cta: 'All posts' },
+    faq: { eyebrow: 'FAQ', heading: 'Questions, answered', intro: 'Everything you might want to know before you start.', faq1Q: 'Is there a free trial?', faq1A: 'Yes. Every paid plan is free for 14 days, no credit card needed.', faq2Q: 'Can I cancel any time?', faq2A: 'Yes. Cancel from your settings and you won’t be charged again.', faq3Q: 'Does it work with my other tools?', faq3A: 'It connects with the tools most teams already use, and more are added every month.', faq4Q: 'Is my data safe?', faq4A: 'Your data is encrypted, backed up daily and never sold.', faq5Q: 'Can I bring my team?', faq5A: 'Invite as many people as your plan allows; they can join in a click.', faq6Q: 'Do you offer discounts?', faq6A: 'Nonprofits and schools get half off. Just ask.', contactText: 'Still have a question?', contactCta: 'Talk to us' },
+    contact: { eyebrow: 'Contact', heading: 'Get in touch', intro: 'Questions about {name}, pricing or a demo for your team. We read everything.', phone: '+1 (555) 010-2026', address: 'San Francisco, California', note: 'We reply within a day.' },
+    cta: { eyebrow: 'Ready when you are', heading: 'Ready to try {name}?', body: 'Set up in minutes. Keep it if it helps.', ctaPrimary: 'Get started', ctaSecondary: 'Book a demo', note: 'Free for 14 days' },
+    footer: { tagline: 'Less busywork, more done.', ctaHeading: 'Try {name} free', ctaButton: 'Get started', col1Title: 'Product', col1L1: 'Features', col1L2: 'Pricing', col1L3: 'Integrations', col1L4: 'Changelog', col2Title: 'Company', col2L1: 'About', col2L2: 'Blog', col2L3: 'Careers', col2L4: 'Contact', col3Title: 'Resources', col3L1: 'Help center', col3L2: 'Guides', col3L3: 'Status', col3L4: 'Privacy' },
+  },
+
+  studio: {
+    nav: {
+      link1: 'Work', link2: 'Services', link3: 'About', link4: 'Journal', cta: 'Start a project',
+      notice1: 'Taking on projects for next season', notice2: 'New: brand refresh packages', notice3: 'Read our latest case study', notice4: 'Small team, senior people', notice5: 'Based here, working everywhere', notice6: 'Say hello',
+    },
+    hero: { eyebrow: 'Independent studio', headline: '{name} makes considered work for good companies', subhead: 'A line about what you do, for whom, and what it’s like to work with you.', ctaPrimary: 'Start a project', ctaSecondary: 'See the work', note: 'Taking on projects for next season' },
+    header: { eyebrow: 'About', heading: 'The people behind {name}', intro: 'How you started, what you care about, and how you work.', ctaPrimary: 'Start a project' },
+    logos: { eyebrow: 'Selected clients', heading: 'Who we’ve worked with' },
+    features: {
+      eyebrow: 'Services', heading: 'What we do', intro: 'A few things, done carefully, from first sketch to launch.',
+      f1Title: 'Brand identity', f1Body: 'Names, logos and the system that holds them together.',
+      f2Title: 'Websites', f2Body: 'Sites that look right, read well and are easy to keep up.',
+      f3Title: 'Product design', f3Body: 'Apps and tools people understand the first time.',
+      f4Title: 'Strategy', f4Body: 'Clear goals before anything gets made.',
+      f5Title: 'Content', f5Body: 'Words and pictures that sound like you.',
+      f6Title: 'Ongoing support', f6Body: 'A team on hand after launch, for as long as you need.',
+    },
+    stats: { eyebrow: 'In numbers', heading: 'Small studio, steady work', intro: 'A few numbers from the last few years.', stat1Value: '12', stat1Label: 'years in practice', stat2Value: '140+', stat2Label: 'projects shipped', stat3Value: '70%', stat3Label: 'of clients come back', stat4Value: '6', stat4Label: 'people, all senior' },
+    content: { eyebrow: 'Our approach', heading: 'How we work', lead: 'We keep teams small and conversations direct, so good ideas don’t get lost on the way.', body1: 'Every project starts with listening: what you need, who it’s for, and what success looks like.', body2: 'Then we make things early and often, so you see real work in the first weeks, not a slide deck.', body3: 'We stay with you after launch, because the best work keeps improving.', quote: 'Good work comes from good conversations.', caption: 'The {name} team' },
+    team: { eyebrow: 'Team', heading: 'The people you’ll work with', intro: 'A small team. Everyone here makes the work.', m1Name: 'Ana Ruiz', m1Role: 'Founder, creative director', m2Name: 'Sam Okoye', m2Role: 'Design director', m3Name: 'Lea Park', m3Role: 'Designer', m4Name: 'Theo Grant', m4Role: 'Developer', m5Name: 'Mina Sato', m5Role: 'Writer', m6Name: 'Jonah Fields', m6Role: 'Producer' },
+    testimonials: { eyebrow: 'Kind words', heading: 'What clients say', q1Quote: 'They understood what we were trying to say before we did.', q1Name: 'Rae Okafor', q1Role: 'Founder, Fieldnote', q2Quote: 'The calmest launch we’ve ever had. Everything was ready a week early.', q2Name: 'Jonah Fields', q2Role: 'Marketing lead, Kettle', q3Quote: 'Our new site finally sounds like us.', q3Name: 'Priya Natarajan', q3Role: 'Director, Ridgeway', stat1Value: '140+', stat1Label: 'projects', stat2Value: '70%', stat2Label: 'repeat clients', stat3Value: '12', stat3Label: 'years' },
+    pricing: {
+      eyebrow: 'Packages', heading: 'Ways to work together', intro: 'Fixed prices for common projects. Bigger ones are quoted.',
+      t1Name: 'Refresh', t1Price: '$4k', t1PriceYearly: '$4k', t1Desc: 'A sharper version of what you have', t1Cta: 'Ask about it', t1F1: 'Logo and color tune-up', t1F2: 'Type and style guide', t1F3: 'Two weeks', t1F4: 'One round of changes',
+      t2Name: 'Launch', t2Price: '$12k', t2PriceYearly: '$12k', t2Desc: 'A new brand and website', t2Cta: 'Start a project', t2F1: 'Full identity', t2F2: 'Website design and build', t2F3: 'Six weeks', t2F4: 'Launch support',
+      t3Name: 'Partner', t3Price: 'From $6k', t3PriceYearly: 'From $5k', t3Desc: 'An ongoing design team', t3Cta: 'Let’s talk', t3F1: 'Monthly design time', t3F2: 'A dedicated lead', t3F3: 'Priority scheduling', t3F4: 'Quarterly reviews',
+      footnote: 'Prices in US dollars. Every project starts with a free call.',
+    },
+    blog: { eyebrow: 'Journal', heading: 'Notes from the studio', intro: 'Case studies, process and things we’ve learned.', p1Title: 'A new identity for Fieldnote', p1Excerpt: 'How a small name change turned into a whole new voice.', p1Meta: 'Oct 14 · 6 min', p2Title: 'Why we start with words', p2Excerpt: 'Writing the homepage before designing it.', p2Meta: 'Oct 9 · 4 min', p3Title: 'Behind the Kettle launch', p3Excerpt: 'Six weeks, one website, no late nights.', p3Meta: 'Oct 2 · 5 min', p4Title: 'Our favorite tools this year', p4Excerpt: 'What we use every day, and what we stopped using.', p4Meta: 'Sep 25 · 3 min', cta: 'All posts' },
+    faq: { eyebrow: 'FAQ', heading: 'Good questions', intro: 'What people usually ask before we start.', faq1Q: 'How long does a project take?', faq1A: 'Most take four to eight weeks, depending on size.', faq2Q: 'How much does it cost?', faq2A: 'Our packages start at $4k. Larger projects are quoted after a call.', faq3Q: 'Do you work with small companies?', faq3A: 'Mostly. We like working directly with founders and small teams.', faq4Q: 'Can you work with our developers?', faq4A: 'Yes. We hand over clean files and stay on hand while they build.', faq5Q: 'Where are you based?', faq5A: 'We have a studio in town and work with clients everywhere.', faq6Q: 'What happens after launch?', faq6A: 'We check in after a month, and many clients keep us on for ongoing work.', contactText: 'Have something in mind?', contactCta: 'Start a project' },
+    contact: { eyebrow: 'Contact', heading: 'Start a project', intro: 'Tell us a little about what you need and when. We’ll reply within two days.', phone: '+1 (555) 010-2026', address: 'Brooklyn, New York', note: 'We reply within two days.' },
+    cta: { eyebrow: 'Let’s work together', heading: 'Have a project in mind?', body: 'Tell us a little about it and we’ll reply within two days.', ctaPrimary: 'Get in touch', ctaSecondary: 'See the work', note: 'Taking on projects for next season' },
+    footer: { tagline: 'Considered work for good companies.', ctaHeading: 'Have a project in mind?', ctaButton: 'Get in touch', col1Title: 'Studio', col1L1: 'Work', col1L2: 'Services', col1L3: 'About', col1L4: 'Journal', col2Title: 'Contact', col2L1: 'Start a project', col2L2: 'Careers', col2L3: 'Press', col2L4: 'Newsletter', col3Title: 'Follow', col3L1: 'Instagram', col3L2: 'LinkedIn', col3L3: 'Dribbble', col3L4: 'Behance' },
+  },
+
+  local: {
+    nav: {
+      link1: 'Menu', link2: 'Visit', link3: 'About', link4: 'Gift cards', cta: 'Book a table',
+      notice1: 'Open every day', notice2: 'New seasonal menu', notice3: 'Gift cards available', notice4: 'Walk-ins welcome', notice5: 'Private events', notice6: 'See you soon',
+    },
+    hero: { eyebrow: 'Open every day', headline: 'Welcome to {name}', subhead: 'What makes your place worth the trip, in a sentence or two.', ctaPrimary: 'Book a table', ctaSecondary: 'See the menu', note: 'Open 8am–6pm · Walk-ins welcome' },
+    header: { eyebrow: 'About us', heading: 'The story of {name}', intro: 'How it started, who runs it, and why we do things the way we do.', ctaPrimary: 'Plan a visit' },
+    logos: { eyebrow: 'As featured in', heading: 'Kind words from the press' },
+    features: {
+      eyebrow: 'What we offer', heading: 'Made here, every day', intro: 'A few reasons people keep coming back.',
+      f1Title: 'Fresh every morning', f1Body: 'Everything is made in-house, early, in small batches.',
+      f2Title: 'Local ingredients', f2Body: 'We buy from growers and makers we know by name.',
+      f3Title: 'Room to stay', f3Body: 'Plenty of seats, good light and no rush.',
+      f4Title: 'Something for everyone', f4Body: 'Vegetarian, vegan and gluten-free choices, every day.',
+      f5Title: 'Take it home', f5Body: 'Order ahead and pick it up on your way.',
+      f6Title: 'Private events', f6Body: 'Book the whole place for birthdays, showers and team mornings.',
+    },
+    stats: { eyebrow: 'Since we opened', heading: 'A neighborhood favorite', intro: 'A few numbers we’re proud of.', stat1Value: '9', stat1Label: 'years on this street', stat2Value: '300', stat2Label: 'regulars by name', stat3Value: '12', stat3Label: 'local suppliers', stat4Value: '4.8', stat4Label: 'average review' },
+    content: { eyebrow: 'Our story', heading: 'How {name} began', lead: 'It started with one idea: a place where people would want to stay a little longer.', body1: 'We opened on a quiet corner with a handful of tables and whatever we could make well.', body2: 'Our neighbors became regulars, then friends, and the menu grew with them.', body3: 'Today we still make everything here, still know most of you by name, and still love opening the doors each morning.', quote: 'Come as a guest, leave as a regular.', caption: 'The owners of {name}' },
+    team: { eyebrow: 'Our people', heading: 'Who you’ll meet', intro: 'The friendly faces behind the counter.', m1Name: 'Ana Ruiz', m1Role: 'Owner', m2Name: 'Sam Okoye', m2Role: 'Head baker', m3Name: 'Lea Park', m3Role: 'Kitchen', m4Name: 'Theo Grant', m4Role: 'Front of house', m5Name: 'Mina Sato', m5Role: 'Events', m6Name: 'Jonah Fields', m6Role: 'Weekend crew' },
+    testimonials: { eyebrow: 'Reviews', heading: 'What our guests say', q1Quote: 'My favorite spot in the neighborhood. The staff remember my order.', q1Name: 'Rae Okafor', q1Role: 'Regular since day one', q2Quote: 'We hosted our daughter’s birthday here and it couldn’t have been easier.', q2Name: 'Jonah Fields', q2Role: 'Local parent', q3Quote: 'Worth crossing town for. Get there early on Saturdays.', q3Name: 'Priya Natarajan', q3Role: 'Weekend visitor', stat1Value: '4.8', stat1Label: 'average review', stat2Value: '1,200+', stat2Label: 'reviews', stat3Value: '9', stat3Label: 'years open' },
+    pricing: {
+      eyebrow: 'Events and catering', heading: 'Bring {name} to your table', intro: 'Simple options for gatherings big and small.',
+      t1Name: 'Small gathering', t1Price: '$15', t1PriceYearly: '$15', t1Desc: 'Per guest, up to 12 people', t1Cta: 'Ask about dates', t1F1: 'Reserved table', t1F2: 'Set menu', t1F3: 'Drinks included', t1F4: 'Two hours',
+      t2Name: 'Private morning', t2Price: '$600', t2PriceYearly: '$600', t2Desc: 'The whole place, before we open', t2Cta: 'Book it', t2F1: 'Up to 40 guests', t2F2: 'Full menu', t2F3: 'Your own playlist', t2F4: 'Setup and cleanup',
+      t3Name: 'Catering', t3Price: 'From $200', t3PriceYearly: 'From $200', t3Desc: 'We bring it to you', t3Cta: 'Get a quote', t3F1: 'Platters and boxes', t3F2: 'Delivery nearby', t3F3: 'Dietary options', t3F4: 'Order 48 hours ahead',
+      footnote: 'Prices before tax. Ask us about anything not listed.',
+    },
+    blog: { eyebrow: 'News', heading: 'What’s happening', intro: 'New things on the menu, events and notes from the kitchen.', p1Title: 'The autumn menu is here', p1Excerpt: 'Five new things we’ve been testing all summer.', p1Meta: 'Oct 14 · 2 min', p2Title: 'Meet our new supplier', p2Excerpt: 'A small farm just outside town, and why we love working with them.', p2Meta: 'Oct 9 · 3 min', p3Title: 'Holiday hours', p3Excerpt: 'When we’re open, and how to order ahead for the season.', p3Meta: 'Oct 2 · 1 min', p4Title: 'Our first workshop', p4Excerpt: 'Learn to make our most-asked-for recipe with the team.', p4Meta: 'Sep 25 · 2 min', cta: 'All news' },
+    faq: { eyebrow: 'Good to know', heading: 'Before you visit', intro: 'The things people ask us most.', faq1Q: 'Do I need to book?', faq1A: 'Walk-ins are always welcome. Booking guarantees a table on weekends.', faq2Q: 'What are your hours?', faq2A: 'We’re open 8am to 6pm, every day of the week.', faq3Q: 'Is there parking?', faq3A: 'There’s street parking out front and a public lot around the corner.', faq4Q: 'Do you have options for allergies?', faq4A: 'Yes. Ask the team and we’ll walk you through what’s safe.', faq5Q: 'Are dogs welcome?', faq5A: 'Well-behaved dogs are welcome at our outdoor tables.', faq6Q: 'Do you sell gift cards?', faq6A: 'Yes, in store and online, in any amount.', contactText: 'Something else?', contactCta: 'Call us' },
+    contact: { eyebrow: 'Visit', heading: 'Come and see us', intro: 'We’re easy to find, and happy to help with bookings, events and orders.', phone: '+1 (555) 010-2026', address: '42 Elm Street', note: 'Open 8am–6pm, every day.' },
+    cta: { eyebrow: 'See you soon', heading: 'Come by {name}', body: 'We’d love to see you. Walk in or book a table ahead.', ctaPrimary: 'Book a table', ctaSecondary: 'Get directions', note: 'Open every day' },
+    footer: { tagline: 'Made here, every day.', ctaHeading: 'Come and see us', ctaButton: 'Book a table', col1Title: 'Visit', col1L1: 'Menu', col1L2: 'Hours', col1L3: 'Directions', col1L4: 'Book a table', col2Title: 'About', col2L1: 'Our story', col2L2: 'Team', col2L3: 'Events', col2L4: 'Jobs', col3Title: 'Follow', col3L1: 'Instagram', col3L2: 'Facebook', col3L3: 'Newsletter', col3L4: 'Gift cards' },
+  },
+
+  event: {
+    nav: {
+      link1: 'About', link2: 'Schedule', link3: 'Speakers', link4: 'FAQ', cta: 'Join the list',
+      notice1: 'Coming soon', notice2: 'Early access opens first to the list', notice3: 'Limited spots', notice4: 'Join the waitlist', notice5: 'Be first in line', notice6: 'Tell a friend',
+    },
+    hero: { eyebrow: 'Coming soon', headline: '{name} is almost here', subhead: 'What’s coming, when, and why someone should care. Leave your email to hear first.', ctaPrimary: 'Join the waitlist', ctaSecondary: 'Learn more', note: 'No spam. One email when it’s ready.' },
+    header: { eyebrow: 'About', heading: 'What {name} is about', intro: 'Why we’re doing this, who it’s for, and what to expect.', ctaPrimary: 'Join the waitlist' },
+    logos: { eyebrow: 'With support from', heading: 'Partners and friends' },
+    features: {
+      eyebrow: 'What to expect', heading: 'Why you’ll want to be there', intro: 'A few reasons to save the date.',
+      f1Title: 'Something new', f1Body: 'A first look at what we’ve been working on.',
+      f2Title: 'Good company', f2Body: 'Meet people who care about the same things you do.',
+      f3Title: 'Hands on', f3Body: 'Try it yourself, with people on hand to help.',
+      f4Title: 'Early perks', f4Body: 'People on the list get in first, and pay less.',
+      f5Title: 'Easy to join', f5Body: 'In person or online, whichever suits you.',
+      f6Title: 'Worth remembering', f6Body: 'Recordings and notes afterwards for everyone who signed up.',
+    },
+    stats: { eyebrow: 'So far', heading: 'The list is growing', intro: 'Where things stand right now.', stat1Value: '3,000+', stat1Label: 'on the waitlist', stat2Value: '24', stat2Label: 'days to go', stat3Value: '12', stat3Label: 'speakers and guests', stat4Value: '1', stat4Label: 'day to remember' },
+    content: { eyebrow: 'The idea', heading: 'Why we’re doing this', lead: 'We wanted to bring people together around something we think is worth talking about.', body1: 'For a while now, we’ve been working quietly on what comes next.', body2: 'Rather than announce it, we wanted to share it with the people who’d care most, first.', body3: 'So we’re opening the doors to a small group before anyone else. You can be one of them.', quote: 'The best things start with the right people in the room.', caption: 'The {name} team' },
+    team: { eyebrow: 'Speakers', heading: 'Who you’ll hear from', intro: 'People doing interesting work, sharing what they’ve learned.', m1Name: 'Ana Ruiz', m1Role: 'Opening talk', m2Name: 'Sam Okoye', m2Role: 'Workshop lead', m3Name: 'Lea Park', m3Role: 'Panel host', m4Name: 'Theo Grant', m4Role: 'Live demo', m5Name: 'Mina Sato', m5Role: 'Closing talk', m6Name: 'Jonah Fields', m6Role: 'Host' },
+    testimonials: { eyebrow: 'Early word', heading: 'People are excited', q1Quote: 'I signed up the minute I heard about it. Can’t wait.', q1Name: 'Rae Okafor', q1Role: 'On the waitlist', q2Quote: 'Last time was the best day of my year. Already counting down.', q2Name: 'Jonah Fields', q2Role: 'Came last year', q3Quote: 'Finally, something made for people like us.', q3Name: 'Priya Natarajan', q3Role: 'Early supporter', stat1Value: '3,000+', stat1Label: 'signed up', stat2Value: '24', stat2Label: 'days to go', stat3Value: '100%', stat3Label: 'worth it' },
+    pricing: {
+      eyebrow: 'Tickets', heading: 'Save your spot', intro: 'People on the waitlist get first pick, at the best price.',
+      t1Name: 'Online', t1Price: '$0', t1PriceYearly: '$0', t1Desc: 'Watch from anywhere', t1Cta: 'Sign up', t1F1: 'Live stream', t1F2: 'Recordings after', t1F3: 'Online chat', t1F4: 'Slides and notes',
+      t2Name: 'In person', t2Price: '$99', t2PriceYearly: '$79', t2Desc: 'The full day', t2Cta: 'Get a ticket', t2F1: 'Every talk', t2F2: 'Workshops', t2F3: 'Lunch included', t2F4: 'Evening meetup',
+      t3Name: 'Supporter', t3Price: '$249', t3PriceYearly: '$199', t3Desc: 'Help make it happen', t3Cta: 'Support us', t3F1: 'Everything in person', t3F2: 'Front-row seats', t3F3: 'Speakers’ dinner', t3F4: 'Your name on the wall',
+      footnote: 'Early prices for people on the waitlist.',
+    },
+    blog: { eyebrow: 'Updates', heading: 'Latest news', intro: 'Announcements as they happen.', p1Title: 'The date is set', p1Excerpt: 'When and where, and how to make sure you get in.', p1Meta: 'Oct 14 · 2 min', p2Title: 'First speakers announced', p2Excerpt: 'Meet the people opening the day.', p2Meta: 'Oct 9 · 3 min', p3Title: 'Why we started {name}', p3Excerpt: 'A note from the organizers.', p3Meta: 'Oct 2 · 4 min', p4Title: 'How the waitlist works', p4Excerpt: 'Who gets in first, and when you’ll hear from us.', p4Meta: 'Sep 25 · 2 min', cta: 'All updates' },
+    faq: { eyebrow: 'FAQ', heading: 'Questions, answered', intro: 'The essentials before the day.', faq1Q: 'When is it?', faq1A: 'We’ll announce the date to the waitlist first, a month ahead.', faq2Q: 'Where is it?', faq2A: 'In person in the city, and streamed online for everyone else.', faq3Q: 'How does the waitlist work?', faq3A: 'Join with your email and we’ll write once when spots open.', faq4Q: 'Can I bring a friend?', faq4A: 'Yes. Each ticket can add one guest while spots last.', faq5Q: 'Is it accessible?', faq5A: 'The venue is step-free and every talk is captioned.', faq6Q: 'What if I can’t make it?', faq6A: 'Everyone who signs up gets the recordings afterwards.', contactText: 'Another question?', contactCta: 'Email us' },
+    contact: { eyebrow: 'Contact', heading: 'Get in touch', intro: 'Questions about tickets, speaking or partnering with us.', phone: '+1 (555) 010-2026', address: 'The Hall, Downtown', note: 'We reply within a day.' },
+    cta: { eyebrow: 'Don’t miss it', heading: 'Be first in line', body: 'Get one email when {name} opens.', ctaPrimary: 'Join the waitlist', ctaSecondary: 'Learn more', note: 'No spam, ever.' },
+    footer: { tagline: 'Coming soon.', ctaHeading: 'Be first in line', ctaButton: 'Join the waitlist', col1Title: 'Event', col1L1: 'About', col1L2: 'Schedule', col1L3: 'Speakers', col1L4: 'Tickets', col2Title: 'Help', col2L1: 'FAQ', col2L2: 'Accessibility', col2L3: 'Venue', col2L4: 'Contact', col3Title: 'Follow', col3L1: 'Newsletter', col3L2: 'Instagram', col3L3: 'LinkedIn', col3L4: 'YouTube' },
+  },
+
+  personal: {
+    nav: {
+      link1: 'About', link2: 'Work', link3: 'Writing', link4: 'Contact', cta: 'Say hello',
+      notice1: 'Open to new work', notice2: 'New post this week', notice3: 'Speaking this autumn', notice4: 'Say hello', notice5: 'Read my latest', notice6: 'Thanks for visiting',
+    },
+    hero: { eyebrow: 'Hello', headline: 'I’m {name}', subhead: 'What you do, what you’re into, and what you’re working on now.', ctaPrimary: 'Say hello', ctaSecondary: 'See my work', note: 'Open to new work' },
+    header: { eyebrow: 'About', heading: 'A little about me', intro: 'Where I’ve been, what I care about, and what I’m up to now.', ctaPrimary: 'Get in touch' },
+    logos: { eyebrow: 'I’ve worked with', heading: 'Places I’ve worked' },
+    features: {
+      eyebrow: 'What I do', heading: 'How I can help', intro: 'A few things I’m good at, and like doing.',
+      f1Title: 'Design', f1Body: 'Clear, useful things that look the way they should.',
+      f2Title: 'Writing', f2Body: 'Words that explain hard things simply.',
+      f3Title: 'Speaking', f3Body: 'Talks and workshops for teams and events.',
+      f4Title: 'Advising', f4Body: 'A second pair of eyes for founders and small teams.',
+      f5Title: 'Teaching', f5Body: 'Short courses for people starting out.',
+      f6Title: 'Side projects', f6Body: 'Small experiments I make for fun.',
+    },
+    stats: { eyebrow: 'So far', heading: 'A few numbers', intro: 'Some of what I’ve done over the years.', stat1Value: '10', stat1Label: 'years doing this', stat2Value: '60+', stat2Label: 'projects', stat3Value: '120', stat3Label: 'posts written', stat4Value: '1', stat4Label: 'very good dog' },
+    content: { eyebrow: 'About', heading: 'How I got here', lead: 'I’ve spent the last decade making things for the web, and writing about what I learn.', body1: 'I started out curious about how things work, and that never really stopped.', body2: 'Since then I’ve worked with small teams and large ones, on products people use every day.', body3: 'These days I split my time between client work, writing and the occasional side project.', quote: 'Stay curious, keep making things.', caption: '{name}' },
+    team: { eyebrow: 'Collaborators', heading: 'People I work with', intro: 'Friends I team up with on bigger projects.', m1Name: 'Ana Ruiz', m1Role: 'Designer', m2Name: 'Sam Okoye', m2Role: 'Developer', m3Name: 'Lea Park', m3Role: 'Writer', m4Name: 'Theo Grant', m4Role: 'Photographer', m5Name: 'Mina Sato', m5Role: 'Illustrator', m6Name: 'Jonah Fields', m6Role: 'Producer' },
+    testimonials: { eyebrow: 'Kind words', heading: 'What people say', q1Quote: 'Thoughtful, quick and a genuine pleasure to work with.', q1Name: 'Rae Okafor', q1Role: 'Founder, Fieldnote', q2Quote: 'The best workshop our team has done all year.', q2Name: 'Jonah Fields', q2Role: 'Design lead, Kettle', q3Quote: 'Their writing changed how I think about my own work.', q3Name: 'Priya Natarajan', q3Role: 'Reader', stat1Value: '60+', stat1Label: 'projects', stat2Value: '120', stat2Label: 'posts', stat3Value: '10', stat3Label: 'years' },
+    pricing: {
+      eyebrow: 'Work with me', heading: 'Ways we can work together', intro: 'Pick what fits, or write to me about something else.',
+      t1Name: 'A quick call', t1Price: '$150', t1PriceYearly: '$150', t1Desc: 'An hour to talk something through', t1Cta: 'Book a call', t1F1: 'One hour', t1F2: 'Notes afterwards', t1F3: 'Follow-up by email', t1F4: 'Book within a week',
+      t2Name: 'A project', t2Price: 'From $3k', t2PriceYearly: 'From $3k', t2Desc: 'Something made together', t2Cta: 'Tell me about it', t2F1: 'A clear scope', t2F2: 'Weekly check-ins', t2F3: 'Two rounds of changes', t2F4: 'Handover files',
+      t3Name: 'A talk', t3Price: 'From $1k', t3PriceYearly: 'From $1k', t3Desc: 'For your team or event', t3Cta: 'Ask about dates', t3F1: 'Talk or workshop', t3F2: 'In person or online', t3F3: 'Slides shared after', t3F4: 'Q&A included',
+      footnote: 'Rates in US dollars. Reduced rates for nonprofits.',
+    },
+    blog: { eyebrow: 'Writing', heading: 'Recent posts', intro: 'Notes on work, making and whatever I’m thinking about.', p1Title: 'What I learned this year', p1Excerpt: 'A few lessons, some of them learned twice.', p1Meta: 'Oct 14 · 6 min', p2Title: 'How I plan a week', p2Excerpt: 'The simple routine that keeps me sane.', p2Meta: 'Oct 9 · 4 min', p3Title: 'Notes from a talk', p3Excerpt: 'The slides, and the parts I forgot to say.', p3Meta: 'Oct 2 · 5 min', p4Title: 'Small projects, big lessons', p4Excerpt: 'Why I keep making things nobody asked for.', p4Meta: 'Sep 25 · 3 min', cta: 'All writing' },
+    faq: { eyebrow: 'FAQ', heading: 'Things people ask', intro: 'Quick answers before you write.', faq1Q: 'Are you taking on new work?', faq1A: 'Yes, a few projects at a time. Write and tell me what you have in mind.', faq2Q: 'Do you work remotely?', faq2A: 'Mostly, with the odd trip when a project needs it.', faq3Q: 'Can you speak at our event?', faq3A: 'I’d love to hear about it. Send the date and the audience.', faq4Q: 'How do you price projects?', faq4A: 'By the project, after a short call about what you need.', faq5Q: 'Can I republish your writing?', faq5A: 'Ask first. I usually say yes with a link back.', faq6Q: 'What’s the best way to reach you?', faq6A: 'Email. I read everything and reply within a few days.', contactText: 'Something else?', contactCta: 'Say hello' },
+    contact: { eyebrow: 'Contact', heading: 'Say hello', intro: 'Work, a talk, or just to say something nice. I read everything.', phone: '+1 (555) 010-2026', address: 'Portland, Oregon', note: 'I reply within a few days.' },
+    cta: { eyebrow: 'Get in touch', heading: 'Let’s talk', body: 'The best way to reach me is email.', ctaPrimary: 'Say hello', ctaSecondary: 'See my work', note: 'Open to new work' },
+    footer: { tagline: 'Thanks for stopping by.', ctaHeading: 'Let’s talk', ctaButton: 'Say hello', col1Title: 'Me', col1L1: 'About', col1L2: 'Work', col1L3: 'Writing', col1L4: 'Contact', col2Title: 'Elsewhere', col2L1: 'Instagram', col2L2: 'LinkedIn', col2L3: 'GitHub', col2L4: 'Newsletter', col3Title: 'More', col3L1: 'Speaking', col3L2: 'Uses', col3L3: 'Now', col3L4: 'Colophon' },
+  },
+
+  writing: {
+    nav: {
+      link1: 'Archive', link2: 'About', link3: 'Popular', link4: 'Search', cta: 'Subscribe',
+      notice1: 'New issue this Sunday', notice2: 'Free to read', notice3: 'Join thousands of readers', notice4: 'Read the latest', notice5: 'Support the work', notice6: 'Thanks for reading',
+    },
+    hero: { eyebrow: 'A newsletter', headline: '{name}: ideas worth a slow read', subhead: 'What you write about and how often, so people know what they’re signing up for.', ctaPrimary: 'Subscribe', ctaSecondary: 'Read the latest', note: 'Free · Every other Sunday' },
+    header: { eyebrow: 'About', heading: 'About {name}', intro: 'What this is, who writes it, and why it exists.', ctaPrimary: 'Subscribe' },
+    logos: { eyebrow: 'Read by people at', heading: 'Where our readers work' },
+    features: {
+      eyebrow: 'What you get', heading: 'Why people subscribe', intro: 'One good email, no noise.',
+      f1Title: 'One essay an issue', f1Body: 'A single idea, explored properly.',
+      f2Title: 'A few good links', f2Body: 'Things worth your time from around the web.',
+      f3Title: 'No ads', f3Body: 'Supported by readers, never by sponsors.',
+      f4Title: 'Every other Sunday', f4Body: 'Arrives in time for a slow morning.',
+      f5Title: 'The full archive', f5Body: 'Every past issue, free to read and search.',
+      f6Title: 'Replies welcome', f6Body: 'Hit reply. Every email gets read.',
+    },
+    stats: { eyebrow: 'Readers', heading: 'Growing slowly, on purpose', intro: 'A few numbers since the first issue.', stat1Value: '8,000+', stat1Label: 'readers', stat2Value: '120', stat2Label: 'issues sent', stat3Value: '58%', stat3Label: 'open every issue', stat4Value: '0', stat4Label: 'ads, ever' },
+    content: { eyebrow: 'Why I write', heading: 'Why {name} exists', lead: 'I started writing to think more clearly. It turned out other people wanted to think along.', body1: 'The first issue went to a few friends. Some of them forwarded it, and it grew from there.', body2: 'Each issue takes one idea and stays with it long enough to say something useful.', body3: 'It’s free, it always will be, and readers who want to support it can.', quote: 'Read less, but better.', caption: '{name}' },
+    team: { eyebrow: 'Contributors', heading: 'Who writes here', intro: 'A few regular voices, and guests now and then.', m1Name: 'Ana Ruiz', m1Role: 'Editor', m2Name: 'Sam Okoye', m2Role: 'Contributing writer', m3Name: 'Lea Park', m3Role: 'Contributing writer', m4Name: 'Theo Grant', m4Role: 'Illustrator', m5Name: 'Mina Sato', m5Role: 'Copy editor', m6Name: 'Jonah Fields', m6Role: 'Guest writer' },
+    testimonials: { eyebrow: 'Readers say', heading: 'From the inbox', q1Quote: 'The one newsletter I actually read all the way through.', q1Name: 'Rae Okafor', q1Role: 'Reader since issue 1', q2Quote: 'Every issue gives me something to think about for the week.', q2Name: 'Jonah Fields', q2Role: 'Reader', q3Quote: 'I forward it to a friend almost every time.', q3Name: 'Priya Natarajan', q3Role: 'Paid supporter', stat1Value: '8,000+', stat1Label: 'readers', stat2Value: '120', stat2Label: 'issues', stat3Value: '58%', stat3Label: 'open rate' },
+    pricing: {
+      eyebrow: 'Subscribe', heading: 'Read for free, or support the work', intro: 'Every issue is free. Supporters keep it that way.',
+      t1Name: 'Free', t1Price: '$0', t1PriceYearly: '$0', t1Desc: 'Every issue, in your inbox', t1Cta: 'Subscribe', t1F1: 'Every other Sunday', t1F2: 'The full archive', t1F3: 'No ads', t1F4: 'Unsubscribe any time',
+      t2Name: 'Supporter', t2Price: '$6', t2PriceYearly: '$5', t2Desc: 'Help keep it going', t2Cta: 'Become a supporter', t2F1: 'Everything in Free', t2F2: 'Bonus issues', t2F3: 'Supporter chats', t2F4: 'Our thanks',
+      t3Name: 'Founding member', t3Price: '$12', t3PriceYearly: '$10', t3Desc: 'For the biggest fans', t3Cta: 'Join as a founder', t3F1: 'Everything in Supporter', t3F2: 'A yearly printed edition', t3F3: 'Your name in the colophon', t3F4: 'A call with the writer',
+      footnote: 'Per month. Yearly saves about 20%. Cancel any time.',
+    },
+    blog: { eyebrow: 'Latest issues', heading: 'From the archive', intro: 'Recent issues, free to read.', p1Title: 'On doing less, better', p1Excerpt: 'Why the most useful thing I did this year was stop.', p1Meta: 'Issue 120 · 7 min', p2Title: 'The case for slow mornings', p2Excerpt: 'What happens when you don’t check your phone first.', p2Meta: 'Issue 119 · 6 min', p3Title: 'Letters from readers', p3Excerpt: 'Your replies to last month’s question, and what they taught me.', p3Meta: 'Issue 118 · 5 min', p4Title: 'Ten years of notebooks', p4Excerpt: 'What I found when I read them all back.', p4Meta: 'Issue 117 · 8 min', cta: 'Read the archive' },
+    faq: { eyebrow: 'FAQ', heading: 'Before you subscribe', intro: 'What to expect in your inbox.', faq1Q: 'How often does it arrive?', faq1A: 'Every other Sunday morning, about a ten-minute read.', faq2Q: 'Is it really free?', faq2A: 'Yes. Every issue is free. Supporters help keep it that way.', faq3Q: 'Can I read past issues?', faq3A: 'The whole archive is online and free to read.', faq4Q: 'Will you share my email?', faq4A: 'Never. Your address is only used to send the newsletter.', faq5Q: 'How do I unsubscribe?', faq5A: 'One click at the bottom of any email.', faq6Q: 'Can I write for {name}?', faq6A: 'Sometimes. Send a short pitch and a sample of your writing.', contactText: 'Another question?', contactCta: 'Write to us' },
+    contact: { eyebrow: 'Contact', heading: 'Write to us', intro: 'Replies, pitches and corrections are all welcome.', phone: '+1 (555) 010-2026', address: 'Somewhere quiet', note: 'Every email gets read.' },
+    cta: { eyebrow: 'Subscribe', heading: 'Get {name} in your inbox', body: 'One thoughtful email, every other week.', ctaPrimary: 'Subscribe', ctaSecondary: 'Read the latest', note: 'Free · Unsubscribe any time' },
+    footer: { tagline: 'Ideas worth a slow read.', ctaHeading: 'Get the next issue', ctaButton: 'Subscribe', col1Title: 'Read', col1L1: 'Latest', col1L2: 'Archive', col1L3: 'Popular', col1L4: 'Search', col2Title: 'About', col2L1: 'About', col2L2: 'Contributors', col2L3: 'Support', col2L4: 'Contact', col3Title: 'Follow', col3L1: 'RSS', col3L2: 'Instagram', col3L3: 'Bluesky', col3L4: 'LinkedIn' },
+  },
+}

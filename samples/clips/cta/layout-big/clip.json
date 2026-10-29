@@ -2,6 +2,8 @@
   "title": "Big statement",
   "layoutPattern": "oversized-heading-left-round-arrow-action",
   "rhythm": "stack",
+  "feel": ["bold"],
+  "density": "airy",
   "motionNotes": "The oversized heading rises first, the body follows, and the round arrow rolls in beside its label; on hover the disc turns to point up and right.",
   "capture": {
     "path": "/",

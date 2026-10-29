@@ -2,6 +2,8 @@
   "title": "Big contact details",
   "layoutPattern": "large-type-contact-rows",
   "rhythm": "stack",
+  "feel": ["bold"],
+  "density": "airy",
   "motionNotes": "No entrance motion; each address underlines in the accent on hover.",
   "capture": {
     "path": "/",

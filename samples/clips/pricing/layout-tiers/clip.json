@@ -2,6 +2,8 @@
   "title": "Three tiers with billing toggle",
   "layoutPattern": "three-tier-featured-center",
   "rhythm": "grid",
+  "feel": ["technical"],
+  "density": "balanced",
   "motionNotes": "Header and cards rise in a short stagger; the toggle thumb slides and prices fade in when the billing period changes.",
   "capture": {
     "path": "/",

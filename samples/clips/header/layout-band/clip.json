@@ -2,6 +2,8 @@
   "title": "Inset band header",
   "layoutPattern": "header-inside-inset-panel",
   "rhythm": "band",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "The head rises in a short stagger inside the panel while four bars grow from the baseline one after another; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

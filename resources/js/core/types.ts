@@ -93,6 +93,11 @@ export interface Clip {
   layoutPattern: string
   /** Visual rhythm, used to suggest layouts that contrast with their neighbours. */
   rhythm?: Rhythm
+  /** How it feels, for browsing the library and the guided start (`core/vibes.ts`). */
+  feel?: Feel[]
+  density?: Density
+  /** Which part of the library it belongs to once the license exists. Not enforced yet. */
+  tier?: Tier
   /** 'clip' came from a site you clipped; 'layout' is one of Blokmix's built-ins. */
   origin: 'clip' | 'layout'
   rootClass: string // 'mx-hero-marginalia-split'
@@ -518,6 +523,33 @@ export interface Swatch {
 export const RHYTHMS = ['centered', 'split', 'grid', 'stack', 'band'] as const
 export type Rhythm = (typeof RHYTHMS)[number]
 
+/** Library tags, in plain words (`docs/library.md`). */
+export const FEELS = ['calm', 'friendly', 'editorial', 'technical', 'bold'] as const
+export type Feel = (typeof FEELS)[number]
+export const DENSITIES = ['airy', 'balanced', 'dense'] as const
+export type Density = (typeof DENSITIES)[number]
+export type Tier = 'free' | 'full'
+
+/** What someone is making, from the guided start's first question. */
+export const KINDS = ['product', 'studio', 'local', 'event', 'personal', 'writing'] as const
+export type Kind = (typeof KINDS)[number]
+
+/**
+ * A starter mix: a short, ready combination of sections under a feel, the library's
+ * stand-in for a template (`samples/starters/*.json`).
+ */
+export interface Starter {
+  id: string
+  name: string
+  blurb: string
+  kind: Kind
+  /** A vibe id from `core/vibes.ts`. */
+  vibe: string
+  /** Home first. Each page lists its sections' clip ids top to bottom, nav and footer included. */
+  pages: { path: string; title: string; sections: string[] }[]
+  tier?: Tier
+}
+
 export interface Library {
   sources: Record<string, Source>
   clips: Record<string, Clip>
@@ -525,6 +557,8 @@ export interface Library {
   byType: Record<SectionType, string[]>
   /** Only the built-in layouts of a type. */
   layoutsByType: Record<SectionType, string[]>
+  /** Starter mixes, for the guided start and the Crate's library. */
+  starters: Starter[]
   warnings: LintIssue[]
 }
 

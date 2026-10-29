@@ -2,6 +2,8 @@
   "title": "Split with form",
   "layoutPattern": "split-details-form",
   "rhythm": "split",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "Text column rises in a short stagger; the form card follows. Inputs ring on focus, the button lifts on hover.",
   "capture": {
     "path": "/",

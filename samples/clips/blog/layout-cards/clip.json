@@ -2,6 +2,8 @@
   "title": "Post cards",
   "layoutPattern": "three-post-cards",
   "rhythm": "grid",
+  "feel": ["friendly"],
+  "density": "balanced",
   "motionNotes": "Header rises, then the three cards stagger in; cards lift on hover and the all-posts arrow nudges.",
   "capture": {
     "path": "/",

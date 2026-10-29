@@ -2,6 +2,8 @@
   "title": "Numbered feature rows",
   "layoutPattern": "numbered-hairline-rows-title-body",
   "rhythm": "stack",
+  "feel": ["editorial", "technical"],
+  "density": "balanced",
   "motionNotes": "The head rises in a short stagger, then each row follows in order; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

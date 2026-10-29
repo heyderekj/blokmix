@@ -201,6 +201,10 @@ export interface State extends MixData {
   setCamera: (c: Camera) => void
   showFlash: (text: string, opts?: { undo?: boolean }) => void
   resetDemo: () => void
+  /** The guided start on the open mix: its pages, style guide and words (versions and notes stay). */
+  applyStart: (start: Pick<MixData, 'site' | 'guide' | 'content'>) => void
+  /** Open a whole new mix in place of this one (the guided start without Laravel). Undo starts fresh. */
+  openMixData: (data: MixData) => void
 }
 
 
@@ -245,6 +249,14 @@ function leading<T extends (...a: never[]) => void>(fn: T, ms: number): T {
 
 /** Where saved work lives in this browser. Before the rename it lived under the old name. */
 export const STORAGE_KEY = 'blokmix:v1'
+/** Nothing saved in this browser yet (read before the store loads): the browser-only mix opens on the guided start. */
+export const FIRST_VISIT = (() => {
+  try {
+    return !localStorage.getItem(STORAGE_KEY) && !localStorage.getItem('mixtape:v1')
+  } catch {
+    return false
+  }
+})()
 const LEGACY_KEY = 'mixtape:v1'
 
 /**
@@ -619,8 +631,10 @@ export const useStore = create<State>()(
           setUi: (patch) => set((st) => ({ ui: { ...st.ui, ...patch } })),
           setCamera: (camera) => set({ camera }),
           showFlash: (text, opts) => set((st) => ({ flash: { id: (st.flash?.id ?? 0) + 1, text, undo: opts?.undo } })),
-          resetDemo: () => {
-            set((st) => ({ ...buildSeed(library), ui: { ...DEFAULT_UI, theme: st.ui.theme, hintDismissed: st.ui.hintDismissed }, camera: null, agent: { versionId: null, name: 'Claude', step: 0 } }))
+          resetDemo: () => get().openMixData(buildSeed(library)),
+          applyStart: (start) => set((st) => ({ site: start.site, guide: start.guide, content: start.content, ui: { ...st.ui, pageId: null, focusedSlotId: null, selectedBlockId: null } })),
+          openMixData: (data) => {
+            set((st) => ({ ...data, ui: { ...DEFAULT_UI, theme: st.ui.theme, hintDismissed: st.ui.hintDismissed }, camera: null, agent: { versionId: null, name: 'Claude', step: 0 } }))
             useStore.temporal.getState().clear()
           },
         }

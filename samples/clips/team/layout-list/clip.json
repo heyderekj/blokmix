@@ -2,6 +2,8 @@
   "title": "Team list",
   "layoutPattern": "hairline-rows",
   "rhythm": "stack",
+  "feel": ["editorial", "calm"],
+  "density": "balanced",
   "motionNotes": "Header rises, then rows cascade in; rows tint softly on hover.",
   "capture": {
     "path": "/",

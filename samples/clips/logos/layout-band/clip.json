@@ -2,6 +2,8 @@
   "title": "Logos on an inverse band",
   "layoutPattern": "inverse-band-centered-head-logos-4x2",
   "rhythm": "band",
+  "feel": ["bold", "calm"],
+  "density": "dense",
   "motionNotes": "No motion of its own; the band reads as one solid block.",
   "capture": {
     "path": "/",

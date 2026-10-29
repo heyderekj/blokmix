@@ -2,6 +2,8 @@
   "title": "Stat cards",
   "layoutPattern": "stat-cards-4up",
   "rhythm": "grid",
+  "feel": ["friendly", "technical"],
+  "density": "dense",
   "motionNotes": "Header rises, cards follow in a stagger and the little bar charts grow from the baseline; cards lift with a soft shadow on hover.",
   "capture": {
     "path": "/",

@@ -2,6 +2,8 @@
   "title": "Split page header",
   "layoutPattern": "heading-left-intro-right",
   "rhythm": "split",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "The heading rises in while the intro column slides in from the right behind its hairline; the outlined button fills and its arrow nudges on hover.",
   "capture": {
     "path": "/",

@@ -2,6 +2,8 @@
   "title": "Brutalist cell bar with ticker strip",
   "layoutPattern": "nav-cell-bar-ticker",
   "rhythm": "band",
+  "feel": ["bold"],
+  "density": "balanced",
   "motionNotes": "An inverted ticker strip scrolls on a loop; the bar cells drop in one after another and the CTA arrow jabs right in hard steps. Links invert and the logo mark snaps a quarter turn on hover.",
   "capture": {
     "path": "/",

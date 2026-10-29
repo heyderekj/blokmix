@@ -2,6 +2,8 @@
   "title": "Map with details and form",
   "layoutPattern": "map-image-beside-details-and-short-form",
   "rhythm": "split",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "The map fades in while its pin settles, and the side column rises in a short stagger. Reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

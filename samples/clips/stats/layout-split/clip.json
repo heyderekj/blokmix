@@ -2,6 +2,8 @@
   "title": "Heading with stat grid",
   "layoutPattern": "heading-left-stats-2x2",
   "rhythm": "split",
+  "feel": ["technical"],
+  "density": "balanced",
   "motionNotes": "Heading block rises, the four figures follow in a stagger and the short marker above each one draws in.",
   "capture": {
     "path": "/",

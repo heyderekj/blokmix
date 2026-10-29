@@ -1,0 +1,21 @@
+{
+  "name": "Launch waitlist",
+  "blurb": "Loud and simple: say what's coming and collect emails.",
+  "kind": "event",
+  "vibe": "bold",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.monolith-bar",
+        "hero.layout-form",
+        "features.monolith-index",
+        "stats.layout-big",
+        "faq.layout-rows",
+        "cta.layout-newsletter",
+        "footer.monolith-mega"
+      ]
+    }
+  ]
+}

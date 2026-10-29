@@ -2,6 +2,8 @@
   "title": "Usage tiers in one hairline panel",
   "layoutPattern": "three-tier-joined-panel",
   "rhythm": "grid",
+  "feel": ["technical"],
+  "density": "balanced",
   "motionNotes": "Header and tiers rise in a stagger, feature rows slide in after; the recommended tier’s glowing border breathes on a slow loop.",
   "capture": {
     "path": "/pricing",

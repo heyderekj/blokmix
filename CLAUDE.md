@@ -81,6 +81,19 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   and revokes links and changes roles. Viewers: the server keeps only `notes` from their saves, `lib/mixSync.ts`
   puts any other change back on the board, and commands other than add_note/update_note/reply_note refuse.
 
+## Guided start
+
+The audience is non-designers first (`docs/simple-vision.md`). New mix (and the browser-only mix's first visit, or
+"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx`: what you're making (`KINDS`), a feel (`core/vibes.ts`:
+Calm, Friendly, Editorial, Technical, Bold, Sketch), an optional brand color (`core/palette.ts` `paletteFrom`, AA on
+every `CONTRAST_PAIRS`), then three starts. `core/start.ts` `startCandidates` offers matching starter mixes
+(`samples/starters/*.json`, checked by `checkStarters`) first, then fills the kind's `RECIPES` from the library with
+`suggestClip` plus feel tags. Its words come from `core/startWords.ts`: every field of every section, per kind, with the
+name, an email and the year filled in (a test keeps Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone and widths between
+(`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its first screen
+holds up (after Shu Ding's "The Calculus of Interfaces"). The pick becomes the mix; every start is kept as a version
+(A/B/C). Hosted, it posts to `POST /api/mixes`; agents use `suggest_starts` and `apply_start`.
+
 ## Agents
 
 Everything you can do on the canvas is a command in `resources/js/core/commands/schema/` (zod schemas →
@@ -159,7 +172,9 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
 10. Use typographic quotes (’ “ ”). Avoid `{` `}` in text unless inside `<pre>`/`<code>`.
 11. Each clip must look right at 1440px and 390px (nest `@media (max-width: 760px)` inside the root).
 12. `clip.json` sets `rhythm` (`centered | split | grid | stack | band`): the section's dominant shape.
-    Suggestions use it to pick layouts that contrast with their neighbours.
+    Suggestions use it to pick layouts that contrast with their neighbours. It also sets `feel` (one or more of
+    `calm | friendly | editorial | technical | bold`) and `density` (`airy | balanced | dense`): the library's
+    browsing tags (`docs/library.md`), used by the Crate's filters and the guided start.
 13. Blocks: mark what people will select, swap and restyle with `data-mx-block="<kind>"`.
     - Small blocks go on the element itself (often the same element as its `data-mx-field`):
       `heading`, `text`, `button`, `link`, `badge` (eyebrows, tags, pills), `icon`, `input`.

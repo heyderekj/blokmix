@@ -2,6 +2,8 @@
   "title": "Headline stat with supporting figures",
   "layoutPattern": "featured-stat-panel-left-3-rows-right",
   "rhythm": "split",
+  "feel": ["technical", "calm"],
+  "density": "balanced",
   "motionNotes": "No motion of its own; the headline panel carries the weight without help.",
   "capture": {
     "path": "/",

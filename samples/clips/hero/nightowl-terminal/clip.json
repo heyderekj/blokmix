@@ -2,6 +2,8 @@
   "title": "Centered hero over grid with live terminal",
   "layoutPattern": "centered-stack-terminal-below",
   "rhythm": "centered",
+  "feel": ["technical"],
+  "density": "balanced",
   "motionNotes": "Copy rises in a stagger; the terminal slides up and its lines print one by one before the caret settles into a blink. The status dot pulses and the green glow behind the headline breathes slowly.",
   "capture": {
     "path": "/",

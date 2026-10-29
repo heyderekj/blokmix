@@ -2,6 +2,8 @@
   "title": "Editorial split with illustrated plate",
   "layoutPattern": "split-media-right",
   "rhythm": "split",
+  "feel": ["editorial"],
+  "density": "balanced",
   "motionNotes": "Copy rises in a staggered fade on load; the illustrated plate drifts and its sun slowly sets on a loop.",
   "capture": {
     "path": "/",

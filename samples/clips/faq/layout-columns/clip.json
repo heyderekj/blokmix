@@ -2,6 +2,8 @@
   "title": "Two-column questions",
   "layoutPattern": "two-column-qa-grid",
   "rhythm": "grid",
+  "feel": ["calm"],
+  "density": "balanced",
   "motionNotes": "Header rises, then question pairs follow row by row and the contact band settles in last.",
   "capture": {
     "path": "/",

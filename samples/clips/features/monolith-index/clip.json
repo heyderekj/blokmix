@@ -2,6 +2,8 @@
   "title": "Numbered spec-sheet index",
   "layoutPattern": "numbered-row-index",
   "rhythm": "stack",
+  "feel": ["bold"],
+  "density": "dense",
   "motionNotes": "The eyebrow tag and giant heading stamp in with a hard overshoot, then the six rows slam in from the left one after another; the tag’s square blinks like a cursor. Rows invert to the primary color on hover and their arrows snap to a diagonal.",
   "capture": {
     "path": "/how-we-stock",

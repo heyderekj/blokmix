@@ -2,6 +2,8 @@
   "title": "Floating testimonial cards with stat pills and logo row",
   "layoutPattern": "three-card-testimonials",
   "rhythm": "grid",
+  "feel": ["friendly"],
+  "density": "balanced",
   "motionNotes": "Header fades up and stat pills spring in; the three quote cards pop in staggered, then float on offset loops; logos fade up one by one; a blurred gradient blob drifts in the corner. Cards and pills lift with a bouncy spring on hover.",
   "capture": {
     "path": "/",

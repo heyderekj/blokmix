@@ -2,6 +2,8 @@
   "title": "Logo marquee with stat strip and quote cards",
   "layoutPattern": "marquee-stats-quote-grid",
   "rhythm": "centered",
+  "feel": ["technical"],
+  "density": "balanced",
   "motionNotes": "Mono wordmarks scroll in an endless marquee (pauses on hover) between faded edges; stats and quote cards rise in a stagger and the green tick above each stat slowly stretches and glows.",
   "capture": {
     "path": "/",

@@ -4,6 +4,8 @@ import { mapSlots } from '@/core/site'
 import { referenceHtml } from '@/core/export/reference-html'
 import { resolveGuide } from '@/core/guide'
 import { library } from '@/data/library'
+import type { GuideState, ProjectContent, Site } from '@/core/types'
+import type { PageMeasure } from '@/core/score'
 import { useStore, currentSlots } from '@/state/store'
 import { useLayout, type BlockRects } from '@/state/layout'
 import { VIEWPORT_VH } from '@/state/derived'
@@ -13,9 +15,11 @@ import { uploadData } from './assets'
 export const MEASURE_WIDTHS = { desktop: 1280, mobile: 390 } as const
 export type MeasureWidth = (typeof MEASURE_WIDTHS)[keyof typeof MEASURE_WIDTHS]
 
+type PageData = { site: Site; guide: GuideState; content: ProjectContent }
+
 /** The page as it ships (the reference build), with each section tagged so blocks can be found by id. */
-function pageHtml(width: MeasureWidth, pageId?: string | null): string {
-  const st = useStore.getState()
+function pageHtml(width: number, pageId?: string | null, data?: PageData): string {
+  const st = data ?? useStore.getState()
   const page = composeSite({
     site: mapSlots(st.site, (s) => (library.clips[s.clipId] ? s : null)),
     guide: resolveGuide(st.guide),
@@ -26,11 +30,15 @@ function pageHtml(width: MeasureWidth, pageId?: string | null): string {
     uploads: uploadData,
     keepBlockIds: true,
   })
-  return referenceHtml(page, { vh: VIEWPORT_VH[width === MEASURE_WIDTHS.mobile ? 'mobile' : 'desktop'], tagSlots: true, pageId: pageId ?? st.ui.pageId ?? undefined })
+  const current = data ? null : useStore.getState().ui.pageId
+  return referenceHtml(page, { vh: VIEWPORT_VH[width < 760 ? 'mobile' : 'desktop'], tagSlots: true, pageId: pageId ?? current ?? undefined })
 }
 
 const frames = new Map<number, HTMLIFrameElement>()
 const queue = new Map<number, Promise<unknown>>()
+
+/** A mix's first page as it ships, at a width: what the guided start shows in its previews. */
+export const previewHtml = (data: PageData, width: number) => pageHtml(width, data.site.pages[0]?.id, data)
 
 /** One hidden, off-screen iframe per width, reused. Same-origin and script-free, so we read its layout directly. */
 function frameFor(width: number): HTMLIFrameElement {
@@ -92,6 +100,50 @@ export function measurePage(width: MeasureWidth, pageId?: string | null): Promis
     const rects = readRects(doc)
     useLayout.getState().setBlockRects(width, html, rects)
     return rects
+  }
+  const next = (queue.get(width) ?? Promise.resolve()).then(run, run)
+  queue.set(width, next)
+  return next
+}
+
+/**
+ * Lays a mix's page out at a width (and a screen height for the fold) and reads
+ * what the first screen shows: the nav's bottom edge, the opening section's
+ * headline and first button, and whether anything spills sideways. For mixes
+ * that aren't open, like the guided start's candidates.
+ */
+export async function measureFirstScreen(data: PageData, width: number, height: number): Promise<PageMeasure> {
+  const html = pageHtml(width, data.site.pages[0]?.id, data)
+  const run = async (): Promise<PageMeasure> => {
+    const doc = await load(frameFor(width), html)
+    await doc.fonts?.ready
+    // A frame to settle in; a hidden tab skips frames, so don't wait on one for long.
+    await new Promise((r) => {
+      requestAnimationFrame(() => r(null))
+      setTimeout(r, 50)
+    })
+    const box = (el: Element | null | undefined) => (el ? el.getBoundingClientRect() : null)
+    const top = (doc.scrollingElement ?? doc.documentElement).scrollTop
+    const nav = data.site.shared.nav && data.site.pages[0]?.show.nav ? box(doc.querySelector(`[data-mx-slot="${data.site.shared.nav.id}"]`)) : null
+    const opening = data.site.pages[0]?.slots.find((s) => s.type === 'hero' || s.type === 'header')
+    const blocks = opening ? (library.clips[opening.clipId]?.blocks ?? []) : []
+    const pick = (kind: string, field: string) => blocks.find((b) => b.kind === kind && b.field === field) ?? blocks.find((b) => b.kind === kind)
+    const section = opening ? doc.querySelector(`[data-mx-slot="${opening.id}"]`) : null
+    const within = (id?: string) => (id && section ? (section.matches(`[data-mx-b="${id}"]`) ? section : section.querySelector(`[data-mx-b="${id}"]`)) : null)
+    const head = within(pick('heading', opening?.type === 'header' ? 'heading' : 'headline')?.id)
+    const btn = within(pick('button', 'ctaPrimary')?.id)
+    const hb = box(head)
+    const bb = box(btn)
+    const lineHeight = head ? parseFloat(getComputedStyle(head).lineHeight) || parseFloat(getComputedStyle(head).fontSize) * 1.2 : 0
+    return {
+      width,
+      height,
+      scrollWidth: doc.documentElement.scrollWidth,
+      docHeight: doc.documentElement.scrollHeight,
+      navBottom: nav ? Math.round(nav.bottom + top) : 0,
+      headline: hb && hb.height ? { top: Math.round(hb.top + top), bottom: Math.round(hb.bottom + top), lines: Math.max(1, Math.round(hb.height / lineHeight)) } : undefined,
+      button: bb && bb.height ? { top: Math.round(bb.top + top), bottom: Math.round(bb.bottom + top) } : undefined,
+    }
   }
   const next = (queue.get(width) ?? Promise.resolve()).then(run, run)
   queue.set(width, next)

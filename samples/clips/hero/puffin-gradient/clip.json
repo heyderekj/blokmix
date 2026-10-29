@@ -2,6 +2,8 @@
   "title": "Centered gradient hero with floating app window",
   "layoutPattern": "centered-stack-media-below",
   "rhythm": "centered",
+  "feel": ["friendly"],
+  "density": "balanced",
   "motionNotes": "Copy springs in with a staggered pop; the app window rises in and bobs on a loop while its chart bars grow; two badge cards pop on and float out of sync; the blurred gradient blobs slowly drift.",
   "capture": {
     "path": "/",
