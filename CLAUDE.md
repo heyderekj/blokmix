@@ -83,6 +83,15 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `/?joined=1#waitlist`. One row per email.
   The people who run Blokmix (`config('blokmix.owners')`, BLOKMIX_OWNERS, default Derek's account; Gate `run-blokmix`)
   see it at `/waitlist` (linked from the mixes page): search, copy emails, Export CSV, take someone off. Others get 404.
+- Site library (server): real websites captured by the library CLI (`library_sites` → `library_pages` →
+  `library_sections`, screenshots in `library_assets` on the uploads disk under `library/<slug>/`, never counted toward
+  a plan; `Api\LibraryController`). Owners (Gate `run-blokmix`, else 403) `POST /api/library/sites` a bundle (multipart
+  `site` = site.json, `files[]` = the WebP/PNG/JPEG screenshots it names by file name; 15 MB each, 200 MB in all): it
+  upserts by slug, replacing pages, sections and files but keeping status (new sites are drafts) and whatever site.json
+  leaves out. Signed in: `GET /api/library` (published cards; owners `?drafts=1`), `/api/library/sites/{slug}` (hidden
+  sections only for owners), `/api/library/assets/{ls_id}`. Owners `PATCH` sites (name, industry, tags, status) and
+  `sections/{id}` (layout_id, status, type; a layout id matches a section), and `DELETE` a site with its files.
+  `/library/admin[/{slug}]` (owners, 404 otherwise; linked from the mixes page) curates over the screenshot.
 - Mixes have members (`mix_members`): owner (shares, deletes), editor (changes anything), viewer (looks and
   leaves marks). Non-members get 404. Share links (`mix_share_links`, `/share/{token}`) add whoever opens them
   with a role (never lowering one); signed-out people sign up first. The Share panel (top bar, hosted only) makes

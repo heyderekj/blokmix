@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\ClipController;
+use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\Api\StyleGuideController;
 use App\Http\Controllers\Api\UnsplashController;
 use App\Http\Controllers\Api\WaitlistController;
+use App\Http\Controllers\LibraryAdminController;
 use App\Http\Controllers\MixController;
 use App\Models\Mix;
 use App\Http\Controllers\ShareController;
@@ -33,6 +35,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/waitlist/export', [WaitlistPage::class, 'export'])->name('waitlist.export');
     Route::delete('/waitlist/{id}', [WaitlistPage::class, 'destroy'])->whereNumber('id')->name('waitlist.destroy');
 
+    // Curating the site library, for the people who run Blokmix (404 for everyone else).
+    Route::get('/library/admin/{slug?}', [LibraryAdminController::class, 'index'])->name('library.admin');
+
     // Where the board saves, and who it's shared with (same session and CSRF protection as the pages).
     Route::prefix('api')->name('api.')->group(function () {
         Route::post('/mixes', [MixApiController::class, 'store'])->name('mixes.store');
@@ -56,6 +61,15 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/unsplash/search', [UnsplashController::class, 'search'])->middleware('throttle:60,1')->name('unsplash.search');
         Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');
+
+        // The site library: signed-in people browse published sites; the people who run Blokmix upload and curate.
+        Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
+        Route::post('/library/sites', [LibraryController::class, 'store'])->middleware('throttle:30,1')->name('library.store');
+        Route::get('/library/sites/{slug}', [LibraryController::class, 'show'])->name('library.show');
+        Route::patch('/library/sites/{slug}', [LibraryController::class, 'update'])->name('library.update');
+        Route::delete('/library/sites/{slug}', [LibraryController::class, 'destroy'])->name('library.destroy');
+        Route::patch('/library/sections/{section}', [LibraryController::class, 'updateSection'])->whereNumber('section')->name('library.sections.update');
+        Route::get('/library/assets/{id}', [LibraryController::class, 'asset'])->where('id', 'ls_[a-z0-9]{8}')->name('library.assets.show');
 
         Route::get('/mixes/{mix}/share', [ShareController::class, 'index'])->name('share.index');
         Route::post('/mixes/{mix}/share/links', [ShareController::class, 'createLink'])->name('share.links.store');
