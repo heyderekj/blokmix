@@ -6,7 +6,7 @@
   padding: var(--mx-space-4) var(--mx-space-8);
   border-bottom: var(--mx-stroke) solid var(--mx-color-border);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .btn {
     display: inline-flex;
     align-items: center;
@@ -171,6 +171,8 @@
 
   @media (max-width: 1080px) {
     padding-inline: var(--mx-space-6);
+  }
+  @container (max-width: 1080px) {
     & .bar { gap: var(--mx-space-4); }
     & .trigger, & .link { padding-inline: var(--mx-space-3); }
   }
@@ -178,6 +180,12 @@
   /* Phone: the links fold into a menu under the bar; the mega panel opens in place as a list. */
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-5);
+    &:has(.burger input:checked) {
+      & .open-icon { display: none; }
+      & .close-icon { display: block; }
+      & .drawer { display: flex; }
+    }}
+  @container (max-width: 760px) {
     & .bar { flex-wrap: wrap; column-gap: var(--mx-space-3); row-gap: 0; }
     & .brand { flex: 1 1 0; min-width: 0; font-size: var(--mx-text-base); white-space: normal; }
     & .bar > .btn { padding-inline: var(--mx-space-4); }
@@ -195,11 +203,6 @@
     }
     & .burger:active { scale: 0.97; }
     & .close-icon { display: none; }
-    &:has(.burger input:checked) {
-      & .open-icon { display: none; }
-      & .close-icon { display: block; }
-      & .drawer { display: flex; }
-    }
     & .drawer {
       order: 10;
       flex-basis: 100%;

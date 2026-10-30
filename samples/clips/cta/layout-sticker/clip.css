@@ -4,7 +4,7 @@
   padding: var(--mx-space-section) var(--mx-space-8);
   overflow: clip;
 
-  & .container { position: relative; max-width: 1200px; margin-inline: auto; }
+  & .container { position: relative; max-width: var(--mx-width-content); margin-inline: auto; }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -134,13 +134,15 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @media (max-width: 960px) {
+  @container (max-width: 960px) {
     & .foot { grid-template-columns: minmax(0, 1fr); padding-left: 0; }
     & .foot .stack { justify-self: start; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-10) var(--mx-space-5) var(--mx-space-9);
+  }
+  @container (max-width: 760px) {
     & .title { width: auto; max-width: none; padding-top: var(--mx-space-9); }
     & .heading { font-size: clamp(var(--mx-text-3xl), 12vw, var(--mx-text-5xl)); }
     & .sticker { top: calc(var(--mx-space-7) * -1); right: var(--mx-space-1); width: 112px; }

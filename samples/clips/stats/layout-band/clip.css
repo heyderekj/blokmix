@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
   & .heading {
@@ -43,7 +43,7 @@
   }
   & .label { font-size: var(--mx-text-sm); line-height: 1.45; color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .grid > .t-col-6 { grid-column: auto / span 6; }
     & .top > * { grid-column: auto / span 12; }
     & .top { gap: var(--mx-space-5); }
@@ -51,6 +51,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .grid { gap: var(--mx-space-7) var(--mx-space-3); }
     & .grid > * { grid-column: auto / span 12; }
     & .grid > .m-col-6 { grid-column: auto / span 6; }

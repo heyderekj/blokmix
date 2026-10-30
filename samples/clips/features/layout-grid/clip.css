@@ -91,12 +91,14 @@
     text-wrap: pretty;
   }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .lead { font-size: var(--mx-text-base); }
     & .grid {
       margin-top: var(--mx-space-8);

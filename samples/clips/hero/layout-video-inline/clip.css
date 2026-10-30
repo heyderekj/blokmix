@@ -3,8 +3,8 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
-  & .container.narrow { max-width: 760px; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
+  & .container.narrow { max-width: var(--mx-width-text); }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .head + * { margin-top: var(--mx-space-9); }
@@ -72,12 +72,14 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .lead { font-size: var(--mx-text-base); }
@@ -144,7 +146,7 @@
   & .controls .track::before { content: ""; display: block; width: 28%; height: 100%; background: var(--mx-color-accent); }
   & .controls .time { width: 40px; height: 6px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 22%, transparent); }
 
-  @media (max-width: 760px) {
+  @container (max-width: 760px) {
     & .window { padding: var(--mx-space-2); border-radius: calc(var(--mx-radius-lg) + var(--mx-space-2)); }
     & .chrome { padding-bottom: var(--mx-space-2); }
     & .address { max-width: 160px; height: 18px; }

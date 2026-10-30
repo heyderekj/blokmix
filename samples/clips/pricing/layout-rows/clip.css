@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
@@ -82,7 +82,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .who { grid-column: auto / span 12; }
     & .grid > .feats { grid-column: auto / span 7; }
@@ -91,6 +91,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }

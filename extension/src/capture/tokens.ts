@@ -215,6 +215,8 @@ export function inferTokens(root: WEl, snap: Snapshot): Inferred {
     'shadow.card': mode(shadows) ?? BASE_TOKENS['shadow.card'],
     'space.base': '4px',
     'space.section': padY >= 40 ? `${Math.round(padY / 4) * 4}px` : BASE_TOKENS['space.section'],
+    'space.content': BASE_TOKENS['space.content'],
+    'space.text': BASE_TOKENS['space.text'],
     'motion.duration': `${mode(durations) ?? 240}ms`,
     'motion.ease': ease.replace(/\s+/g, ' '),
   }

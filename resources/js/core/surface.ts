@@ -32,3 +32,24 @@ export function surfaceTokens(t: TokenSet, surface: Surface | undefined): TokenS
     'color.onPrimary': bg,
   }
 }
+
+/**
+ * A section's width: how far its content runs, against the guide's content width. Narrow pulls a section in (a quote,
+ * a single plan), wide lets a gallery or a product shot breathe, full runs edge to edge inside the gutter.
+ */
+export type SectionWidth = 'standard' | NonNullable<Slot['width']>
+export const SECTION_WIDTHS: readonly SectionWidth[] = ['narrow', 'standard', 'wide', 'full']
+export const SECTION_WIDTH_LABEL: Record<SectionWidth, string> = { narrow: 'Narrow', standard: 'Standard', wide: 'Wide', full: 'Full width' }
+
+export function widthTokens(t: TokenSet, width: SectionWidth | undefined): TokenSet {
+  if (!width || width === 'standard') return t
+  const content = parseFloat(t['space.content']) || 1200
+  const text = parseFloat(t['space.text']) || 760
+  if (width === 'full') return { ...t, 'space.content': '100%' }
+  if (width === 'narrow') return { ...t, 'space.content': `${Math.round(Math.max(text, content * 0.75) / 10) * 10}px`, 'space.text': `${Math.round(Math.min(text, content * 0.6) / 10) * 10}px` }
+  return { ...t, 'space.content': `${Math.round((content * 1.2) / 10) * 10}px` }
+}
+
+/** The tokens a section renders with: its surface's colors, then its width. */
+export const sectionTokens = (t: TokenSet, slot: Pick<Slot, 'surface' | 'width'>): TokenSet => widthTokens(surfaceTokens(t, slot.surface), slot.width)
+

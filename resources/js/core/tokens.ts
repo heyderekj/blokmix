@@ -23,6 +23,8 @@ export const TOKEN_GROUP_OF: Record<TokenKey, TokenGroup> = {
   'shadow.card': 'shape',
   'space.base': 'space',
   'space.section': 'space',
+  'space.content': 'space',
+  'space.text': 'space',
   'motion.duration': 'motion',
   'motion.ease': 'motion',
 }
@@ -48,6 +50,8 @@ export const TOKEN_LABEL: Record<TokenKey, string> = {
   'shadow.card': 'Card shadow',
   'space.base': 'Space unit',
   'space.section': 'Section padding',
+  'space.content': 'Content width',
+  'space.text': 'Reading width',
   'motion.duration': 'Duration',
   'motion.ease': 'Easing',
 }
@@ -86,6 +90,8 @@ export const BASE_TOKENS: TokenSet = {
   'shadow.card': '0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)',
   'space.base': '4px',
   'space.section': '96px',
+  'space.content': '1200px',
+  'space.text': '760px',
   'motion.duration': '320ms',
   'motion.ease': 'cubic-bezier(0.22, 1, 0.36, 1)',
 }
@@ -110,7 +116,8 @@ export function cssVarName(key: TokenKey): string {
  */
 export function expandTokens(t: TokenSet, opts: { vh?: string } = {}): CssVars {
   const vars: CssVars = {}
-  for (const key of TOKEN_KEYS) vars[cssVarName(key)] = t[key]
+  // Tokens added since a guide was saved fall back to the neutral defaults.
+  for (const key of TOKEN_KEYS) vars[cssVarName(key)] = t[key] ?? BASE_TOKENS[key]
 
   const base = px(t['type.base'])
   const ratio = parseFloat(t['type.ratio']) || 1.25
@@ -142,6 +149,10 @@ export function expandTokens(t: TokenSet, opts: { vh?: string } = {}): CssVars {
   const stroke = px(t['stroke.width'] ?? '') || 1
   vars['--mx-stroke-width'] = `${stroke}px`
   vars['--mx-stroke'] = `${stroke}px`
+
+  // Widths: the content column (.container) and the reading column (.narrow, prose, centered stacks).
+  vars['--mx-width-content'] = t['space.content'] ?? BASE_TOKENS['space.content']
+  vars['--mx-width-text'] = t['space.text'] ?? BASE_TOKENS['space.text']
 
   vars['--mx-vh'] = opts.vh ?? '1vh'
   return vars

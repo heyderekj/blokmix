@@ -128,6 +128,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
+  }
+  @container (max-width: 760px) {
     & .container { gap: var(--mx-space-6); }
     & .top { flex-direction: column; align-items: flex-start; gap: var(--mx-space-5); }
     & .grid { grid-template-columns: 1fr; gap: var(--mx-space-4); }

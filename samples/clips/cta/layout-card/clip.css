@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
   & .heading {
@@ -79,6 +79,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .lead { font-size: var(--mx-text-base); }
     & .band { padding: var(--mx-space-9) var(--mx-space-5) calc(var(--mx-space-10) * 1.5); }
     & .shape { right: -24%; bottom: -18%; width: 80%; }

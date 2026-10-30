@@ -407,6 +407,10 @@ function Knob({ k, value, onChange }: { k: TokenKey; value: string; onChange: (v
       return <Slider value={n} min={2} max={8} unit="px" onChange={onChange} />
     case 'space.section':
       return <Slider value={n} min={40} max={180} step={4} unit="px" onChange={onChange} />
+    case 'space.content':
+      return <Slider value={n} min={960} max={1600} step={20} unit="px" onChange={onChange} />
+    case 'space.text':
+      return <Slider value={n} min={560} max={960} step={10} unit="px" onChange={onChange} />
     case 'motion.duration':
       return <Slider value={n} min={60} max={1200} step={20} unit="ms" onChange={onChange} />
     case 'motion.ease':

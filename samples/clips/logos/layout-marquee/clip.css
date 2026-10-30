@@ -81,6 +81,8 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-8) 0;
     gap: var(--mx-space-6);
+  }
+  @container (max-width: 760px) {
     & .marquee { mask-image: linear-gradient(90deg, transparent, var(--mx-color-text) 10%, var(--mx-color-text) 90%, transparent); }
     & .set { gap: var(--mx-space-8); padding-right: var(--mx-space-8); }
     & .logo { font-size: var(--mx-text-lg); }

@@ -64,6 +64,12 @@ export const BLOCK_COMMANDS = {
     input: z.object({ section, surface: z.enum(['page', 'soft', 'inverse', 'brand']) }),
     write: true,
   },
+  set_section_width: {
+    description:
+      'How wide a section’s content runs against the style guide’s content width (token space.content): narrow (pulled in, for a quote or a single plan), standard, wide (a gallery, a product shot) or full (edge to edge inside the gutter).',
+    input: z.object({ section, width: z.enum(['narrow', 'standard', 'wide', 'full']) }),
+    write: true,
+  },
   set_image: {
     description:
       'Fill an image block: a placeholder drawn from the palette (style mesh, shapes, arch, waves, grid or portrait; it re-themes with the style guide), or remove to go back to the clip’s own art. Always set alt text for real pictures.',

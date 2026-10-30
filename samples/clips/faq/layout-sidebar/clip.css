@@ -132,6 +132,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-4);
+  }
+  @container (max-width: 760px) {
     & .container { display: flex; flex-direction: column; gap: 0; }
     & .side, & .head { display: contents; }
     & .list { margin-top: var(--mx-space-7); }

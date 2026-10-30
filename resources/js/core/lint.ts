@@ -3,6 +3,7 @@ import { FIELD_SCHEMA } from './content'
 import { attr, parseHtml, walk } from './html/parse'
 import { lintBlocks } from './blocks'
 import { ICON_NAMES } from './icons'
+import { viewportWidthRules } from './containerize'
 
 const ROOT_TAGS = new Set(['section', 'header', 'footer', 'nav'])
 
@@ -98,6 +99,10 @@ function checkCss(
     if (!v.startsWith('var(--mx-font-') && v !== 'inherit') err(`${file}: font-family must come from var(--mx-font-*)`)
   }
   if (/!important/.test(css)) warn(`${file}: avoid !important`)
+  // Responsive rules answer to the section, so a layout fits wherever it sits (core/containerize.ts).
+  const viewport = viewportWidthRules(raw)
+  if (viewport) warn(`${file}: ${viewport} width breakpoint${viewport > 1 ? 's' : ''} on the viewport; use @container (max-width: …) for what's inside the section`)
+  if (/(^|[;{\s])max-width\s*:\s*(1200|760)px\s*[;}]/.test(css)) warn(`${file}: fixed content width; use var(--mx-width-content) or var(--mx-width-text)`)
   // Line weight follows the style guide: borders are var(--mx-stroke) or calc() multiples of it.
   for (const m of css.matchAll(/(?<![\w-])(border(?:-(?:top|bottom|left|right|block|inline)(?:-(?:start|end))?)?(?:-width)?)\s*:\s*([^;{}]*)/g))
     if (/\d*\.?\d+px/.test(m[2])) err(`${file}: ${m[1]} uses a fixed width; use var(--mx-stroke) (or calc(var(--mx-stroke) * n))`)

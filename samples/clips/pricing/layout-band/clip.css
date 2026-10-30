@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
@@ -80,23 +80,25 @@
     & .inverse .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 88%, var(--mx-color-primary)); }
   }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .side, & .grid > .detail { grid-column: auto / span 12; }
     & .detail { padding-left: 0; padding-top: var(--mx-space-8); border-left: 0; border-top: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-on-primary) 20%, transparent); }
   }
 
   @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    padding-inline: var(--mx-space-4);
+  }
+  @container (max-width: 760px) {
     /* A big price never outgrows a phone, whatever the type scale. */
     & .amt { font-size: min(var(--mx-text-5xl), 17vw); }
     & .price { flex-wrap: wrap; row-gap: var(--mx-space-1); }
-    padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .lead { font-size: var(--mx-text-base); }
     & .band { padding: var(--mx-space-8) var(--mx-space-5); }
-    padding-inline: var(--mx-space-4);
     & .side .actions { margin-top: var(--mx-space-7); }
     & .side .actions .btn { flex: 1; }
     & .grid.feats { gap: var(--mx-space-4); }

@@ -24,6 +24,8 @@
     "icon.set": "lucide:regular",
     "shadow.card": "0 1px 2px #18181b0f, 0 8px 24px #18181b0f",
     "space.base": "4px",
+    "space.content": "1200px",
+    "space.text": "760px",
     "space.section": "96px",
     "motion.duration": "320ms",
     "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"

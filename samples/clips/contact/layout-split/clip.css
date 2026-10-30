@@ -121,6 +121,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
+  }
+  @container (max-width: 760px) {
     & .container { grid-template-columns: 1fr; gap: var(--mx-space-7); }
     & .info { padding-top: 0; }
     & .card { padding: var(--mx-space-5); }

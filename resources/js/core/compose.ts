@@ -1,6 +1,6 @@
 import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet, ListBinding } from './types'
 import { applyBindings, findList, sortedEntries, type BindContext, type Collection } from './collections'
-import { surfaceTokens } from './surface'
+import { sectionTokens, widthTokens } from './surface'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
@@ -247,8 +247,8 @@ export function composePage(input: ComposeInput): ComposedPage {
     const source = mapTree(swapped, (el) => (el.tag === 'svg' && attr(el, 'data-mx-icon') ? { ...el, attrs: [...el.attrs.filter(([k]) => k !== 'data-icon'), ['data-icon', attr(el, 'data-mx-icon')!]] } : el))
     const marked = mapTree(source, (el) => {
       if (attr(el, 'data-mx-section') !== undefined) {
-        // Every section has an anchor, so links can lead to it (#pricing).
-        const root = spaced ? addClass(el, `mx-${key}${position + 1}`) : el
+        // Every section has an anchor, so links can lead to it (#pricing), and is a size container (base CSS).
+        const root = addClass(spaced ? addClass(el, `mx-${key}${position + 1}`) : el, 'mx-section')
         return { ...root, attrs: [...root.attrs.filter(([k]) => k !== 'id'), ['id', anchors[slot.id]]] }
       }
       if (attr(el, 'data-mx-block') === undefined) return el
@@ -299,13 +299,13 @@ export function composePage(input: ComposeInput): ComposedPage {
     let localVars: CssVars | null = null
     let css = clip.css
     if (slot.keep.style) {
-      const { ['--mx-vh']: _vh, ...rest } = expandTokens(clip.tokens)
+      const { ['--mx-vh']: _vh, ...rest } = expandTokens(widthTokens(clip.tokens, slot.width))
       localVars = rest
       css = `${varsToCss(rest, `.${clip.rootClass}`)}\n\n${css}`
       addFonts(clip.tokens)
-    } else if (slot.surface && slot.surface !== 'page') {
-      // A band in the guide's own colors: the section's tokens, re-mixed, on this section only.
-      const { ['--mx-vh']: _vh, ...rest } = expandTokens(surfaceTokens(input.guide.tokens, slot.surface))
+    } else if ((slot.surface && slot.surface !== 'page') || slot.width) {
+      // A band in the guide's own colors, or its own width: the section's tokens, re-mixed, on this section only.
+      const { ['--mx-vh']: _vh, ...rest } = expandTokens(sectionTokens(input.guide.tokens, slot))
       localVars = rest
       css = `${varsToCss(rest, rootSel)}\n\n${css}`
     }

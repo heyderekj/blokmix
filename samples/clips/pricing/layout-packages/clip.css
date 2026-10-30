@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .head + * { margin-top: var(--mx-space-9); }
@@ -93,14 +93,16 @@
     & .inverse .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 88%, var(--mx-color-primary)); }
   }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .package { padding: var(--mx-space-7) var(--mx-space-6); }
   }
 
   @media (max-width: 760px) {
-    & .amt { font-size: min(var(--mx-text-4xl), 13vw); }
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
+    & .amt { font-size: min(var(--mx-text-4xl), 13vw); }
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }

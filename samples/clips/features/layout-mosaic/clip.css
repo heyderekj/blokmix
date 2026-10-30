@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
@@ -95,7 +95,7 @@
   & .b2 { right: 10%; top: 52%; width: 48%; background: color-mix(in oklab, var(--mx-color-accent) 22%, var(--mx-color-bg)); }
   & .pin { position: absolute; left: 14%; bottom: 14%; width: 14px; aspect-ratio: 1; border-radius: 50%; background: var(--mx-color-accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--mx-color-accent) 22%, transparent); }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .mosaic {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-areas:
@@ -108,6 +108,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .mosaic {

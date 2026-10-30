@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .container.narrow { max-width: 880px; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
@@ -106,6 +106,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .head + * { margin-top: var(--mx-space-7); }
     & .slides { padding-top: var(--mx-space-7); }
     & .panel { gap: var(--mx-space-5); margin-bottom: var(--mx-space-6); }

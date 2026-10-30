@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   border-bottom: var(--mx-stroke) solid var(--mx-color-border);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .btn {
     display: inline-flex;
     align-items: center;
@@ -102,7 +102,7 @@
     & .link:hover { color: var(--mx-color-text); background: var(--mx-color-surface); }
   }
 
-  @media (max-width: 760px) {
+  @container (max-width: 760px) {
     & .notice { padding: var(--mx-space-2) var(--mx-space-5); }
     & .note:nth-child(n + 2) { display: none; }
     & .bar {

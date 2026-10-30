@@ -57,7 +57,7 @@ export function signatureOf(clip: Pick<Clip, 'type' | 'rhythm' | 'html' | 'css' 
     if (span) columns = Math.max(1, Math.round(12 / Number(span)))
   }
   if (!columns) {
-    // Desktop rules only: media queries (phones, hover) are dropped, nested braces and all.
+    // Desktop rules only: breakpoints (phones, hover) are dropped, nested braces and all.
     const desktop = withoutMedia(clip.css)
     const rep = [...desktop.matchAll(/repeat\(\s*(\d+)\s*,/g)].map((m) => Number(m[1])).filter((n) => n > 1 && n <= 6)
     columns = rep[rep.length - 1] ?? Math.min(items, 4)
@@ -100,8 +100,11 @@ export function signatureOf(clip: Pick<Clip, 'type' | 'rhythm' | 'html' | 'css' 
 
 function withoutMedia(css: string): string {
   let out = ''
+  const breakpoint = /@(media|container)\b/g
   for (let i = 0; i < css.length; ) {
-    const at = css.indexOf('@media', i)
+    // Breakpoints, on the viewport or the section, with their nested rules.
+    breakpoint.lastIndex = i
+    const at = breakpoint.exec(css)?.index ?? -1
     if (at < 0) return out + css.slice(i)
     out += css.slice(i, at)
     let j = css.indexOf('{', at)

@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
   & .heading {
@@ -62,13 +62,15 @@
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
   }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .marks { display: none; }
     & .band { grid-template-columns: minmax(0, 1fr); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .lead { font-size: var(--mx-text-base); }
     & .band { padding: var(--mx-space-8) var(--mx-space-5); }
   }

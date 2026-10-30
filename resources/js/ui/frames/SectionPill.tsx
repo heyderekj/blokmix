@@ -13,7 +13,7 @@ import { MORPH } from '../shell/Island'
 import { DeviceSwitch, SectionSpacingRows, useDevice } from '../blocks/Spacing'
 import { SectionMotionRows } from '../blocks/MotionMenu'
 import { useResolvedGuide } from '@/state/derived'
-import { SURFACES, SURFACE_LABEL, surfaceTokens } from '@/core/surface'
+import { SURFACES, SURFACE_LABEL, surfaceTokens, SECTION_WIDTHS, SECTION_WIDTH_LABEL } from '@/core/surface'
 import { runCommand } from '@/state/commands'
 import { siteLibraryAvailable } from '@/lib/siteLibrary'
 
@@ -101,6 +101,8 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
               ))}
               <span className="mx-0.5 h-4 w-px bg-zinc-950/10" />
               <SurfaceDots slot={slot} />
+              <span className="mx-0.5 h-4 w-px bg-zinc-950/10" />
+              <WidthPicks slot={slot} />
               <span className="mx-0.5 h-4 w-px bg-zinc-950/10" />
               <Util label="Move up (⌥↑)" disabled={index === 0} onClick={() => st().moveSlot(slot.id, index - 1)}>
                 <ArrowUp size={14} />
@@ -451,6 +453,35 @@ function SurfaceDots({ slot }: { slot: Slot }) {
           </button>
         )
       })}
+    </div>
+  )
+}
+
+/** How far the section's content runs: a frame per width, its bar as wide as the content would be. */
+function WidthPicks({ slot }: { slot: Slot }) {
+  const on = slot.width ?? 'standard'
+  const bar = { narrow: 6, standard: 9, wide: 12, full: 14 } as const
+  return (
+    <div className="flex items-center" role="radiogroup" aria-label="Section width">
+      {SECTION_WIDTHS.map((w) => (
+        <button
+          key={w}
+          type="button"
+          role="radio"
+          aria-checked={on === w}
+          title={`${SECTION_WIDTH_LABEL[w]} content`}
+          onClick={(e) => {
+            e.stopPropagation()
+            useStore.getState().setSectionWidth(slot.id, w)
+          }}
+          className={`grid h-7 w-6 cursor-pointer place-items-center rounded-md transition-[background-color,scale] active:scale-[0.97] ${on === w ? 'bg-zinc-950/[0.07] text-zinc-900' : 'text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700'}`}
+        >
+          <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="15" height="11" rx="2" fill="none" stroke="currentColor" opacity="0.45" />
+            <rect x={(16 - bar[w]) / 2} y="4" width={bar[w]} height="4" rx="1" fill="currentColor" />
+          </svg>
+        </button>
+      ))}
     </div>
   )
 }

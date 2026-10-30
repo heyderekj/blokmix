@@ -5,6 +5,7 @@ import type { LintIssue, Rhythm, SectionType, Source, TokenSet } from '@/core/ty
 import { TYPE_LABEL } from '@/core/content'
 import { lintClip } from '@/core/lint'
 import { identifyIconSet } from '@/core/icons'
+import { toContainerQueries } from '@/core/containerize'
 import { serialize } from '@/core/html/serialize'
 import type { HEl, HNode } from '@/core/html/parse'
 import { allEls, buildTree, els, hint, isEl, leavesOf, type WEl } from './tree'
@@ -111,7 +112,9 @@ export function captureClip(snap: Snapshot, opts: CaptureOptions): CaptureResult
 
   const w = new TokenWriter(tokens, inferred.palette, inferred.families, snap.viewport)
   const moving = new Set(allEls(root).filter((e) => (e.s['animation-name'] ?? 'none') !== 'none' || (e.s['transition-duration'] ?? '0s').split(',').some((d) => parseFloat(d) > 0)))
-  const cssRes = buildCss(root, rootClass, w, snap.defaults, type, moving)
+  const built = buildCss(root, rootClass, w, snap.defaults, type, moving)
+  // Breakpoints answer to the section, like the built-in layouts.
+  const cssRes = { ...built, css: toContainerQueries(built.css) }
   notes.push(...cssRes.notes)
   const hoverProps = (el: WEl) => Object.keys(el.hover ?? {}).filter((k) => !/^(transition|animation|cursor)/.test(k)).map((k) => k.replace(/^border-(top|right|bottom|left)-color$/, 'border-color')).filter((k, i, a) => a.indexOf(k) === i)
   const motion = buildMotion(root, rootClass, w, snap.keyframes, hoverProps)

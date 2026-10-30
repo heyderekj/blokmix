@@ -77,6 +77,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
+  }
+  @container (max-width: 760px) {
     & .container { gap: var(--mx-space-6); }
     & .head { grid-template-columns: 1fr; gap: var(--mx-space-4); }
     & .row {

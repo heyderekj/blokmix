@@ -31,7 +31,7 @@
     background: linear-gradient(100deg, color-mix(in oklab, var(--mx-color-bg) 94%, transparent) 0%, color-mix(in oklab, var(--mx-color-bg) 84%, transparent) 55%, color-mix(in oklab, var(--mx-color-bg) 70%, transparent) 100%);
   }
 
-  & .container { position: relative; max-width: 1200px; margin-inline: auto; }
+  & .container { position: relative; max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 640px; justify-items: start; }
   & .head + * { margin-top: var(--mx-space-10); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-text); }
@@ -63,13 +63,15 @@
   }
   & .label { font-size: var(--mx-text-sm); line-height: 1.45; font-weight: 500; color: var(--mx-color-text); }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .col-3 { grid-column: auto / span 6; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .scrim { background: linear-gradient(180deg, color-mix(in oklab, var(--mx-color-bg) 92%, transparent), color-mix(in oklab, var(--mx-color-bg) 80%, transparent)); }
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }

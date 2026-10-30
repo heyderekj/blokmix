@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
@@ -56,13 +56,15 @@
   & .name { font-size: var(--mx-text-base); font-weight: 600; line-height: 1.3; }
   & .feature .name { font-size: var(--mx-text-xl); letter-spacing: -0.01em; }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .member:not(.feature) .tag { left: var(--mx-space-2); bottom: var(--mx-space-2); max-width: calc(100% - var(--mx-space-2) * 2); padding: var(--mx-space-2) var(--mx-space-3); }
     & .member:not(.feature) .name { font-size: var(--mx-text-sm); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mx-space-3); }

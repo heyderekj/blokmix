@@ -258,6 +258,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-4) 0;
+  }
+  @container (max-width: 760px) {
     & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-self: stretch; }
     & .shot { margin-top: var(--mx-space-8); padding: var(--mx-space-2) var(--mx-space-2) 0; }

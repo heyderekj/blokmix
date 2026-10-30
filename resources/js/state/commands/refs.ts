@@ -155,6 +155,7 @@ export function describeSection(slot: Slot, position: number) {
     keep: { layout: slot.keep.layout, style: slot.keep.style, copy: slot.keep.content, motion: slot.keep.motion, locked: slot.locked },
     spacing: slot.spacing ?? {},
     surface: slot.surface ?? 'page',
+    width: slot.width ?? 'standard',
     motion: slot.motion ?? { mode: slot.keep.motion ? 'captured' : 'none' },
     words,
     blocks: clip.blocks.map((b) => {

@@ -11,7 +11,7 @@ export const TYPE_RATIOS = ['1.125', '1.2', '1.25', '1.333', '1.414', '1.5', '1.
 /** The ratios the Type dial moves through: past 1.333, display headings outgrow a phone. The knob still has them all. */
 const DIAL_RATIOS = TYPE_RATIOS.slice(0, 4)
 
-export const DIAL_NAMES = ['spacing', 'type', 'roundness', 'weight'] as const
+export const DIAL_NAMES = ['spacing', 'type', 'roundness', 'weight', 'width'] as const
 export type DialName = (typeof DIAL_NAMES)[number]
 
 interface Dial {
@@ -54,6 +54,13 @@ export const DIALS: Record<DialName, Dial> = {
     ends: ['Light', 'Heavy'],
     read: (t) => Math.round(at(parseFloat(t['type.displayWeight']) || 700, 300, 800)),
     write: (v) => ({ 'type.displayWeight': String(to(v, 300, 800, 100)), 'stroke.width': `${to(v, 1, 2.5, 0.5)}px` }),
+  },
+  width: {
+    label: 'Width',
+    ends: ['Narrow', 'Wide'],
+    // The content column, with the reading column moving along inside the 45–75 characters a line should hold.
+    read: (t) => Math.round(at(px(t['space.content'] ?? '1200px'), 1040, 1440)),
+    write: (v) => ({ 'space.content': `${to(v, 1040, 1440, 40)}px`, 'space.text': `${to(v, 680, 840, 20)}px` }),
   },
 }
 

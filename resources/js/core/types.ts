@@ -43,6 +43,8 @@ export const TOKEN_KEYS = [
   'shadow.card',
   'space.base',
   'space.section',
+  'space.content',
+  'space.text',
   'motion.duration',
   'motion.ease',
 ] as const
@@ -144,6 +146,8 @@ export interface Slot {
   bind?: SlotBinding
   /** The band it sits on, from the style guide's colors (`core/surface.ts`); unset is the page. */
   surface?: 'page' | 'soft' | 'inverse' | 'brand'
+  /** How wide its content runs against the guide's content width (`core/surface.ts`); unset is standard. */
+  width?: 'narrow' | 'wide' | 'full'
   motion?: SectionMotion
   /** Other ways to say a field's words, kept to switch between (by field). */
   options?: Record<string, WordOption[]>

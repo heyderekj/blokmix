@@ -4,7 +4,7 @@
   padding: var(--mx-space-9) var(--mx-space-8) var(--mx-space-7);
   border-top: var(--mx-stroke) solid var(--mx-color-border);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
 
   & .btn {
     display: inline-flex;
@@ -109,12 +109,14 @@
     & .col-links a:hover { color: var(--mx-color-text); }
   }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5) var(--mx-space-6);
+  }
+  @container (max-width: 760px) {
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .grid > .m-col-6 { grid-column: auto / span 6; }

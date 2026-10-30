@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
@@ -98,13 +98,15 @@
   & .o4 { left: 50%; top: 22%; width: 26%; translate: -50% 0; }
   & .ground { left: 10%; right: 10%; bottom: 14%; height: 18%; }
 
-  @media (max-width: 960px) {
+  @container (max-width: 960px) {
     & .tabs { min-height: 440px; padding-right: 52%; }
     & .panel .media { width: 48%; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .tabs { min-height: 0; padding-right: 0; }

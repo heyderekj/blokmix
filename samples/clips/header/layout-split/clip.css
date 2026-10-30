@@ -5,7 +5,7 @@
   border-bottom: var(--mx-stroke) solid var(--mx-color-border);
 
   & .container {
-    max-width: 1200px;
+    max-width: var(--mx-width-content);
     margin: 0 auto;
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
@@ -67,6 +67,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .container { grid-template-columns: minmax(0, 1fr); gap: var(--mx-space-6); }
     & .aside {
       padding-left: 0;

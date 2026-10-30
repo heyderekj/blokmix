@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
@@ -66,9 +66,11 @@
   & .l7 { font-size: var(--mx-text-lg); }
 
   @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     /* On phones every child spans the row; a narrow column gap keeps the 12 tracks inside it. */
     & .grid { column-gap: var(--mx-space-4); }
-    padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid > * { grid-column: auto / span 12; }
     & .grid > .m-col-6 { grid-column: auto / span 6; }

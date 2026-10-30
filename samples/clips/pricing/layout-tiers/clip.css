@@ -194,12 +194,14 @@
     color: var(--mx-color-muted);
   }
 
-  @media (max-width: 960px) {
+  @container (max-width: 960px) {
     & .tiers { grid-template-columns: 1fr; max-width: 440px; margin-inline: auto; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-4);
+  }
+  @container (max-width: 760px) {
     & .heading { font-size: clamp(var(--mx-text-2xl), 8vw, var(--mx-text-3xl)); }
     & .lead { font-size: var(--mx-text-base); }
     & .tiers { margin-top: var(--mx-space-8); gap: var(--mx-space-4); }

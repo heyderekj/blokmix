@@ -24,6 +24,10 @@ a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 img, svg { display: block; max-width: 100%; }
 input, select, textarea { font: inherit; color: inherit; }
+/* Every section answers to its own width: a clip's breakpoints are container queries (core/containerize.ts), so a
+   layout fits wherever it sits. Containment makes each section its own layer, so a nav's dropdown stays above the rest. */
+[data-mx-section], .mx-section { container-type: inline-size; }
+:where([data-mx-section="nav"], nav.mx-section) { position: relative; z-index: 10; }
 `
 
 /** Later layers win: a block's look always beats the clip, whatever the clip's selectors. */

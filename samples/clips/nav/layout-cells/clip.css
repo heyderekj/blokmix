@@ -3,7 +3,7 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-4) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: -4px; }
 
   /* A ruled strip of cells: brand, one cell per link, the button filling the last. */
@@ -83,12 +83,14 @@
     & .go:hover .arrow { transform: translate(2px, -2px); }
   }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .num { display: none; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .cells { grid-template-columns: minmax(0, 1fr) auto; }
     & .brand { min-height: 52px; padding: 0 var(--mx-space-4); font-size: var(--mx-text-base); }
     & .go { grid-column: 2; grid-row: 1; min-height: 52px; padding: 0 var(--mx-space-4); }

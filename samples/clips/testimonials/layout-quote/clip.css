@@ -54,6 +54,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .mark { margin-top: var(--mx-space-6); width: 36px; height: 27px; }
     & .quote { margin-top: var(--mx-space-5); }
     & .quote p { font-size: var(--mx-text-xl); line-height: 1.35; }

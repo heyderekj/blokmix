@@ -4,7 +4,7 @@
   padding: var(--mx-space-9) var(--mx-space-8) var(--mx-space-6);
 
   & .container {
-    max-width: 1200px;
+    max-width: var(--mx-width-content);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -88,6 +88,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .cta { flex-direction: column; align-items: flex-start; }
     & .row { flex-direction: column; align-items: flex-start; }
     & .links { margin-right: 0; gap: var(--mx-space-2) var(--mx-space-5); }

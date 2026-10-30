@@ -3,8 +3,8 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1200px; margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 760px; justify-items: start; }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
   & .heading {
@@ -100,7 +100,7 @@
   & .tag i { height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 18%, transparent); }
   & .tag i:last-child { width: 60%; }
 
-  @media (max-width: 1080px) {
+  @container (max-width: 1080px) {
     & .stage { padding-left: 0; }
     & .step .title { font-size: var(--mx-text-xl); }
   }
@@ -108,6 +108,8 @@
   /* Phone: the picture comes first and scrolls with the page; the steps follow. */
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
+  }
+  @container (max-width: 760px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-7) var(--mx-space-4); }

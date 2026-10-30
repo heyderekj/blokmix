@@ -104,6 +104,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5) var(--mx-space-9);
+  }
+  @container (max-width: 760px) {
     & .heading { font-size: clamp(var(--mx-text-3xl), 10vw, var(--mx-text-4xl)); }
     & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-self: stretch; }

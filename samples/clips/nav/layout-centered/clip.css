@@ -4,7 +4,7 @@
   padding: var(--mx-space-5) var(--mx-space-8);
 
   & .bar {
-    max-width: 1200px;
+    max-width: var(--mx-width-content);
     margin: 0 auto;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -89,6 +89,8 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-4) var(--mx-space-4) 0;
+  }
+  @container (max-width: 760px) {
     & .bar {
       /* Two equal halves, so long links wrap inside theirs instead of pushing the button off the edge. */
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

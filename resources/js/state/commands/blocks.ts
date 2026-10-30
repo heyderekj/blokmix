@@ -60,6 +60,11 @@ export const write = {
     useStore.getState().setSectionSpacing(slot.id, patch)
     return { spacing: findSection(slot.id).spacing ?? {} }
   },
+  set_section_width: (i: CommandInput<'set_section_width'>) => {
+    const slot = findSection(i.section)
+    useStore.getState().setSectionWidth(slot.id, i.width)
+    return { section: slot.id, width: findSection(slot.id).width ?? 'standard' }
+  },
   set_section_surface: (i: CommandInput<'set_section_surface'>) => {
     const slot = findSection(i.section)
     useStore.getState().setSurface(slot.id, i.surface)

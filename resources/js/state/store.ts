@@ -165,6 +165,7 @@ export interface State extends MixData {
   chooseWords: (slotId: string, field: string, text: string) => void
   setSectionSpacing: (slotId: string, patch: Partial<SectionSpacing>) => void
   setSurface: (slotId: string, surface: Slot['surface']) => void
+  setSectionWidth: (slotId: string, width: Slot['width'] | 'standard') => void
   /** null = as clipped. */
   setSectionMotion: (slotId: string, motion: SectionMotion | null) => void
   /** Make this block's variant and style the default for every block of its kind. */
@@ -469,6 +470,7 @@ export const useStore = create<State>()(
           putBackWords: (slotId, field, text) => updateSlot(slotId, (s) => putBackOption(s, field, text)),
           chooseWords: (slotId, field, text) => updateSlot(slotId, (s) => showWords(s, slotClip(s), get().content, field, text)),
           setSurface: (slotId, surface) => updateSlot(slotId, (s) => ({ ...s, surface: surface === 'page' ? undefined : surface })),
+          setSectionWidth: (slotId, width) => updateSlot(slotId, (s) => ({ ...s, width: width === 'standard' ? undefined : width })),
           setSectionSpacing: (slotId, patch) =>
             updateSlot(slotId, (s) => {
               const spacing = { ...s.spacing, ...patch }

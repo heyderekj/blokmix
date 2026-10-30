@@ -199,7 +199,13 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
 9. Siblings that need visual space between them get it from flex/grid `gap`, never from whitespace
    between inline elements (JSX drops it).
 10. Use typographic quotes (’ “ ”). Avoid `{` `}` in text unless inside `<pre>`/`<code>`.
-11. Each clip must look right at 1440px and 390px (nest `@media (max-width: 760px)` inside the root).
+11. Each clip must look right at 1440px and 390px, and at 1080 and 768 in between. Breakpoints answer to the section, not
+    the viewport: nest `@container (max-width: 760px)` (and 1080px) inside the root for what's inside it. Every section root
+    is a size container (`.mx-section`, `[data-mx-section]` in the base CSS), so a layout fits wherever it sits: a page, a
+    column, a preview. A container can't query itself, so the root's own declarations (its gutter) and rules on the root
+    itself (`&.reverse`, `&::before`) stay in `@media`. Lint warns on viewport width breakpoints; `npx vite-node
+    scripts/containerize-clips.ts [ids]` converts them (`core/containerize.ts`, also run on every capture). Bleeds to the
+    window's edge (`calc(50% - 50vw)`) stay in `vw`.
 12. `clip.json` sets `rhythm` (`centered | split | grid | stack | band`): the section's dominant shape.
     Suggestions use it to pick layouts that contrast with their neighbours. It also sets `style`
     (`minimal | editorial | bold | playful | technical | warm`) and `density` (`airy | balanced | dense`), for
@@ -262,12 +268,14 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
 - Starter mixes (`samples/starters/<id>.json`, `core/starters.ts` `buildStarter`): pages of layout ids plus `tokens`,
   a sample style guide that lands as your own values. The demo seed (layouts, neutral guide) is built the same way. New mix
   offers them; agents use `list_starters` and `start_from_starter` (replaces pages and guide, one undo step).
-- Dials (`core/dials.ts`, the Feel tile atop the Style guide): spacing, type size, roundness and weight each move a
-  few tokens at once (`chooseTokens`, one undo step); Light/Dark (`setTone`) swaps background and text, re-mixes
+- Dials (`core/dials.ts`, the Feel tile atop the Style guide): spacing, type size, roundness, weight and width (the content
+  and reading columns together) each move a few tokens at once (`chooseTokens`, one undo step); Light/Dark (`setTone`) swaps background and text, re-mixes
   surface, border and muted, and lifts a primary that would vanish. Agents use `set_dial` and `set_tone`; `get_page`
   reports `dials` and `tone`. The Type dial stops at a 1.333 ratio (bigger ones outgrow phones; the knob has them).
 - Section surfaces (`slot.surface`, `core/surface.ts`): page, soft, inverse or brand, a band in the guide's own colors,
   set from the dots in the section bar or `set_section_surface`. Frames and exports re-mix that section's tokens only.
+- Section widths (`slot.width`, `widthTokens`): narrow, standard, wide or full, against the guide's content width, from
+  the width picks in the section bar or `set_section_width`. `sectionTokens` applies surface then width.
 - The block bar steps through a block's looks with ‹ › around Look.
 - List items move like sliding tiles: pointing at or selecting anything in an item shows its arrows on each side that
   has a neighbour on screen (`tileNeighbor`, by position, so "below" in a grid is three places on), and a click swaps
@@ -378,7 +386,8 @@ copies the ones it uses under its own root (rule 2) and adds its own after them.
 scripts/lint-clips.ts <type|clip id>` lints and summarises clips; `npx vite-node scripts/render-clips.ts <type|clip id>
 --sources layout` screenshots them at 1440 and 390 into `.out/renders/clips/`.
 - **Section** (the root): surface, `--mx-space-section` top and bottom, a `--mx-space-8` gutter (`--mx-space-5` on phones).
-- **`.container`**: 1200px content width; `.container.narrow` 760px for reading columns and centered stacks.
+- **`.container`**: the content width, `max-width: var(--mx-width-content)` (1200px by default); `.container.narrow`
+  `var(--mx-width-text)` (760px) for reading columns and centered stacks. Never a fixed px width (lint warns).
 - **`.head`**: the header group, in order `.eyebrow`, `.heading` (`.heading.display` for the hero-sized one), `.lead`
   (intro, subhead, lead), `.actions`; `.head.center` centers it. Whatever follows a head sits `--mx-space-9` below.
 - **`.actions`** of `.btn.primary` (one per section) and `.btn.secondary`; `.note` for the small line under them.
@@ -410,4 +419,5 @@ scripts/lint-clips.ts <type|clip id>` lints and summarises clips; `npx vite-node
 | `--mx-stroke` | line weight for borders and rules (`stroke.width`) |
 | `--mx-shadow-card` | card shadow |
 | `--mx-motion-duration/--mx-motion-ease` | motion |
+| `--mx-width-content` / `--mx-width-text` | the content column and the reading column (tokens `space.content`, `space.text`) |
 | `--mx-vh` | 1% of the captured viewport height |
