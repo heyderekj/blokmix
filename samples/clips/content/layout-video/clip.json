@@ -1,0 +1,14 @@
+{
+  "title": "Inline video",
+  "layoutPattern": "centered-video-reading-column",
+  "rhythm": "centered",
+  "style": "editorial",
+  "density": "airy",
+  "motionNotes": "Header rises, the video frame scales up from 0.97, then the reading column fades in.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

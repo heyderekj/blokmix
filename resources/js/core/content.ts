@@ -7,7 +7,7 @@ const range = (n: number, f: (i: number) => string[]) => Array.from({ length: n 
  * clip of a type render your copy instead of the source's.
  */
 export const FIELD_SCHEMA: Record<SectionType, string[]> = {
-  nav: ['brand', 'link1', 'link2', 'link3', 'link4', 'cta', ...range(6, (i) => [`notice${i}`])],
+  nav: ['brand', 'link1', 'link2', 'link3', 'link4', 'cta', ...range(6, (i) => [`notice${i}`]), ...range(6, (i) => [`menu${i}`])],
   hero: ['eyebrow', 'headline', 'subhead', 'ctaPrimary', 'ctaSecondary', 'note'],
   features: ['eyebrow', 'heading', 'intro', ...range(6, (i) => [`f${i}Title`, `f${i}Body`])],
   testimonials: [
@@ -35,6 +35,7 @@ export const FIELD_SCHEMA: Record<SectionType, string[]> = {
   logos: ['eyebrow', 'heading', ...range(8, (i) => [`logo${i}`])],
   stats: ['eyebrow', 'heading', 'intro', ...range(4, (i) => [`stat${i}Value`, `stat${i}Label`])],
   content: ['eyebrow', 'heading', 'lead', 'body1', 'body2', 'body3', 'quote', 'caption'],
+  gallery: ['eyebrow', 'heading', 'intro', ...range(8, (i) => [`g${i}Caption`]), 'cta'],
   team: ['eyebrow', 'heading', 'intro', ...range(6, (i) => [`m${i}Name`, `m${i}Role`])],
   blog: ['eyebrow', 'heading', 'intro', ...range(4, (i) => [`p${i}Title`, `p${i}Excerpt`, `p${i}Meta`]), 'cta'],
   faq: ['eyebrow', 'heading', 'intro', ...range(6, (i) => [`faq${i}Q`, `faq${i}A`]), 'contactText', 'contactCta'],
@@ -46,6 +47,7 @@ export const FIELD_SCHEMA: Record<SectionType, string[]> = {
     'ctaHeading',
     'ctaButton',
     ...range(3, (i) => [`col${i}Title`, ...range(4, (j) => [`col${i}L${j}`])]),
+    ...range(4, (i) => [`perk${i}`]),
     'legal',
   ],
 }
@@ -58,6 +60,7 @@ export const TYPE_LABEL: Record<SectionType, string> = {
   logos: 'Logos',
   stats: 'Stats',
   content: 'Content',
+  gallery: 'Gallery',
   team: 'Team',
   testimonials: 'Testimonials',
   blog: 'Blog',
@@ -85,6 +88,12 @@ export const DEFAULT_CONTENT: ProjectContent = {
       notice4: 'Clip any site',
       notice5: 'MCP handoff',
       notice6: 'Made for tinkerers',
+      menu1: 'Clipping',
+      menu2: 'Style guide',
+      menu3: 'Content',
+      menu4: 'Collections',
+      menu5: 'Agents',
+      menu6: 'Changelog',
     },
     hero: {
       eyebrow: 'Now in private beta',
@@ -211,6 +220,20 @@ export const DEFAULT_CONTENT: ProjectContent = {
       quote: 'Taste is a collection. Blokmix makes it a starting point.',
       caption: 'The Blokmix team, October 2026',
     },
+    gallery: {
+      eyebrow: 'Gallery',
+      heading: 'Sites people mixed this month',
+      intro: 'Every one started from sections someone clipped, restyled in their own style guide.',
+      g1Caption: 'A studio site with a quiet, editorial grid',
+      g2Caption: 'A launch page built from four different sources',
+      g3Caption: 'A portfolio that keeps one bold section',
+      g4Caption: 'A café menu with warm, rounded cards',
+      g5Caption: 'A product tour told in sticky panels',
+      g6Caption: 'A nonprofit page with a full-bleed photo band',
+      g7Caption: 'A conference site with a big date and schedule',
+      g8Caption: 'A newsletter landing page with one clear ask',
+      cta: 'See more mixes',
+    },
     team: {
       eyebrow: 'Team',
       heading: 'The people behind the mix',
@@ -306,6 +329,10 @@ export const DEFAULT_CONTENT: ProjectContent = {
       col3L2: 'MCP guide',
       col3L3: 'Templates',
       col3L4: 'Community',
+      perk1: 'Free to start',
+      perk2: 'Exports to Astro and Next.js',
+      perk3: 'Your copy, your style',
+      perk4: 'Hand off to any agent',
       legal: '© 2026 Blokmix. Made with clipped inspiration.',
     },
   },

@@ -32,12 +32,13 @@ export interface ClipSuggestion {
  */
 const NEXT: Record<SectionType, SectionType[]> = {
   nav: ['hero', 'header'],
-  hero: ['logos', 'features', 'stats', 'content'],
+  hero: ['logos', 'features', 'stats', 'content', 'gallery'],
   header: ['content', 'team', 'contact', 'blog', 'features'],
   logos: ['features', 'testimonials', 'stats'],
   features: ['stats', 'testimonials', 'pricing', 'cta', 'content'],
   stats: ['testimonials', 'features', 'pricing'],
-  content: ['team', 'stats', 'features', 'cta'],
+  content: ['team', 'stats', 'features', 'cta', 'gallery'],
+  gallery: ['testimonials', 'cta', 'content'],
   team: ['testimonials', 'content', 'contact', 'cta'],
   testimonials: ['pricing', 'cta', 'faq'],
   pricing: ['faq', 'testimonials', 'cta'],

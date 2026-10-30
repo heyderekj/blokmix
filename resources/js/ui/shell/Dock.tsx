@@ -8,6 +8,7 @@ import { canvasApi } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
 import { Alternatives } from './Alternatives'
+import { LooksTray } from '../blocks/LooksTray'
 import { toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
@@ -21,7 +22,9 @@ const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
 
 /** The dock: how you work the canvas. The Clips button grows it upward into the crate. */
 export function Dock() {
-  const open = useStore((s) => s.ui.sheet === 'crate')
+  const sheet = useStore((s) => s.ui.sheet)
+  // The Clips button grows the crate; a block's Look button grows its looks (the block stays in view above).
+  const open = sheet === 'crate' || sheet === 'looks'
   // On a section (and nothing else open) the dock offers that section's other layouts, but only grows them when asked:
   // focusing a section opens nothing, so the section's own card stays clear. Not while you're working on one of its
   // blocks, either: the clips would compete with it.
@@ -59,8 +62,8 @@ export function Dock() {
               onClick={() => toggleSheet('crate')}
               title={`Clips: ${Object.keys(library.clips).length} sections (C)`}
               aria-label="Clips"
-              aria-expanded={open}
-              className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
+              aria-expanded={sheet === 'crate'}
+              className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${sheet === 'crate' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
             >
               <Library size={16} />
             </button>
@@ -69,7 +72,7 @@ export function Dock() {
           </>
         }
       >
-        {open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
+        {sheet === 'looks' ? <LooksTray /> : open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
       </Island>
     </div>
   )
@@ -102,6 +105,7 @@ function ViewMenu() {
   const [z, setZ] = useState(useStore.getState().camera?.z ?? 0.3)
   const [open, setOpen] = useState(false)
   const viewport = useStore((s) => s.ui.viewport)
+  const mode = useStore((s) => s.ui.mode)
   const sheet = useStore((s) => s.ui.sheet)
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => useStore.subscribe((s) => s.camera && setZ(s.camera.z)), [])
@@ -141,6 +145,22 @@ function ViewMenu() {
                 </button>
               ))}
             </div>
+            {/* What the canvas shows: every section in your style guide, or each as it was clipped (U). */}
+            <div className="mb-1 flex gap-0.5 rounded-lg bg-well p-0.5" role="radiogroup" aria-label="Sections show">
+              {(['unified', 'captured'] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m}
+                  title={m === 'unified' ? 'Your style guide and copy on every section (U)' : 'Every section exactly as it was clipped (U)'}
+                  onClick={() => useStore.getState().setUi({ mode: m })}
+                  className={`flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md text-[12px] font-medium transition ${mode === m ? 'bg-lift text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+                >
+                  {m === 'unified' ? 'In your style' : 'As clipped'}
+                </button>
+              ))}
+            </div>
             {row(Plus, 'Zoom in', '+', () => canvasApi.zoomBy(1.3), true)}
             {row(Minus, 'Zoom out', '−', () => canvasApi.zoomBy(1 / 1.3), true)}
             {row(Disc3, 'Back to the mix', '⇧0', () => canvasApi.fitMix())}
@@ -160,14 +180,14 @@ function ViewMenu() {
   )
 }
 
-export function Presence() {
+export function Presence({ size = 28, inline = false }: { size?: number; inline?: boolean }) {
   const agent = useStore((s) => s.agent)
   const me = useMe()
   const active = !!agent.versionId
   return (
-    <div className="flex items-center pl-0.5 pr-1">
+    <div className={`flex items-center ${inline ? '' : 'pl-0.5 pr-1'}`}>
       <div className="flex -space-x-1.5">
-        <Avatar who={me} />
+        <Avatar who={me} size={size} />
         <AnimatePresence>
           {active && (
             <motion.span
@@ -178,7 +198,7 @@ export function Presence() {
               className="relative grid animate-pulse-ring place-items-center rounded-full"
               title={`${agent.name} is building`}
             >
-              <Avatar who={agentP(agent.name)} />
+              <Avatar who={agentP(agent.name)} size={size} />
             </motion.span>
           )}
         </AnimatePresence>

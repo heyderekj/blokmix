@@ -1,0 +1,59 @@
+{
+  "name": "Studio portfolio",
+  "description": "An editorial site for a small studio: a quiet hero, selected work, the people, and a way to get in touch.",
+  "tokens": {
+    "color.bg": "#f6f1e7",
+    "color.surface": "#ece4d3",
+    "color.text": "#1f1a14",
+    "color.muted": "#6b6155",
+    "color.border": "#d6c9b1",
+    "color.primary": "#7a1f1f",
+    "color.onPrimary": "#f6f1e7",
+    "color.accent": "#c2602e",
+    "font.display": "'Fraunces', Georgia, serif",
+    "font.body": "'Newsreader', Georgia, serif",
+    "font.mono": "'IBM Plex Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "380",
+    "radius.base": "2px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 0 #d6c9b1",
+    "space.base": "4px",
+    "space.section": "112px",
+    "motion.duration": "700ms",
+    "motion.ease": "cubic-bezier(0.16, 1, 0.3, 1)"
+  },
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-stacked",
+        "hero.layout-editorial",
+        "content.layout-columns",
+        "blog.layout-magazine",
+        "testimonials.layout-split",
+        "cta.layout-centered",
+        "footer.layout-index"
+      ]
+    },
+    {
+      "path": "/about",
+      "title": "About",
+      "sections": [
+        "header.layout-split",
+        "team.layout-founder",
+        "stats.layout-highlight"
+      ]
+    },
+    {
+      "path": "/contact",
+      "title": "Contact",
+      "sections": [
+        "header.layout-minimal",
+        "contact.layout-details"
+      ]
+    }
+  ]
+}

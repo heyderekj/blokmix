@@ -1,9 +1,13 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
 import { pickable } from '@/core/library'
-import { sectionClip } from '@/core/lists'
+import { editList as applyListEdit, listContext, listOrder, sectionClip, tileNeighbor, type TileDir } from '@/core/lists'
+import { useTiles } from './tiles'
+import { applyBindings, emptyTargets } from '@/core/collections'
+import { entryPathFor, templateEntry, useCollections } from '@/state/collections'
+import { createPortal } from 'react-dom'
 import { onSection } from '@/core/notes'
 import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
@@ -37,7 +41,18 @@ interface Props {
  * the row slides between them. Neighbors peek out beside the page so it reads
  * like a sliding-tile puzzle.
  */
-export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focused }: Props) {
+export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, focused }: Props) {
+  // A section bound to your collections shows their entries: everything below draws (and selects in) that.
+  const collections = useCollections((s) => s.bySlug)
+  const pages = useStore((s) => s.site.pages)
+  const picked = useStore((s) => s.ui.previewEntry)
+  const { slot, targets } = useMemo(() => {
+    if (!own.bind || !library.clips[own.clipId]) return { slot: own, targets: null }
+    const targets = emptyTargets()
+    // On a collection's template page, fields bound to "the entry" show the one it previews.
+    const entry = templateEntry(pages.find((p) => p.slots.some((s) => s.id === own.id)), picked, collections)
+    return { slot: applyBindings(own, library.clips[own.clipId], { collections, entryPath: entryPathFor({ pages }), entry }, targets), targets }
+  }, [own, collections, pages, picked])
   const mode = useStore((s) => s.ui.mode)
   const viewport = useStore((s) => s.ui.viewport)
   const content = useStore((s) => s.content)
@@ -54,7 +69,18 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const editText = useBlockPreview((s) => s.editText)
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
-  const live = useMemo(() => withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop }), [slot, pSlot, pBlock, pPatch, pWords, pBackdrop])
+  // While an item is dragged, the section shows the list as it would be with the item dropped where it is now.
+  const [sorting, setSorting] = useState<{ itemId: string; from: number; to: number } | null>(null)
+  const live = useMemo(() => {
+    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop })
+    if (sorting && sorting.to !== sorting.from)
+      try {
+        s = applyListEdit(s, slotClip(s), content, { op: 'move', itemId: sorting.itemId, to: sorting.to })
+      } catch {
+        /* not movable after all: show it as it is */
+      }
+    return s
+  }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, sorting, content])
   const ids = pickable(library, slot.type)
   const W = VIEW_W[viewport]
 
@@ -122,6 +148,12 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const noting = tool === 'note' && current
   const [hover, setHover] = useState<{ id: string; rect: FrameRect } | null>(null)
   const [selRect, setSelRect] = useState<FrameRect | null>(null)
+  // While a look is previewed on the selected block, the bar stays where it was: a preview that changes the block's
+  // size would otherwise move the menu under the pointer, which previews another look, and so on (jitter).
+  const barRef = useRef<FrameRect | null>(null)
+  const previewingHere = pSlot === slot.id && !!pPatch
+  if (selRect && (!previewingHere || !barRef.current)) barRef.current = selRect
+  const barAt = selRect ? barRef.current : null
   const [typing, setTyping] = useState(false)
   const [rects, setRects] = useState<Record<string, FrameRect>>({})
   const [drawing, setDrawing] = useState<FrameRect | null>(null)
@@ -131,8 +163,38 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   useEffect(() => {
     if (!selectedBlock) setSelRect(null)
   }, [selectedBlock])
-  const blocks = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists, { banner: slot.banner }).blocks : []
+  const sectioned = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists, { banner: slot.banner }) : null
+  const blocks = sectioned?.blocks ?? []
   const block = selectedBlock ? blocks.find((b) => b.id === selectedBlock) : undefined
+  // List items can be dragged among their siblings. Pointing at (or selecting) anything inside an item shows its grip;
+  // it stays on that item while the pointer travels to it. The frame reports where every movable item is.
+  const itemOf = useCallback(
+    (id: string | null | undefined) => {
+      for (let b = blocks.find((x) => x.id === id); b; b = blocks.find((x) => x.id === b!.parent)) if (b.kind === 'item') return b
+      return undefined
+    },
+    [blocks],
+  )
+  const movable = useMemo(
+    () => (canEdit && sectioned ? blocks.filter((b) => b.kind === 'item' && listContext(sectioned, slot, b.id)?.count! > 1) : []),
+    [canEdit, sectioned, slot, blocks],
+  )
+  const [pointed, setPointed] = useState<string | null>(null)
+  useEffect(() => {
+    if (!hover) return // the pointer left the frame (maybe for the grip): keep the last item
+    setPointed(itemOf(hover.id)?.id ?? null)
+  }, [hover, itemOf])
+  useEffect(() => {
+    if (!canEdit) setPointed(null)
+  }, [canEdit])
+  const grabbed = sorting?.itemId ?? itemOf(selectedBlock)?.id ?? pointed
+  const items = useMemo(() => {
+    const ctx = sectioned && grabbed && canEdit ? listContext(sectioned, slot, grabbed) : null
+    if (!ctx?.item || ctx.count < 2 || !sectioned) return null
+    const order = listOrder(sectioned, ctx.list.id)
+    const siblings = blocks.filter((b) => b.parent === ctx.list.id && b.kind === 'item' && b.n != null).sort((a, b) => order.indexOf(a.n!) - order.indexOf(b.n!))
+    return { item: ctx.item, index: ctx.index, siblings }
+  }, [sectioned, grabbed, canEdit, slot, blocks])
   // Blocks with a pin on them: the frame reports where they are.
   const notes = useStore((s) => s.notes)
   const track = useMemo(
@@ -143,6 +205,16 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
     ],
     [notes, slot.id, shown],
   )
+  // The sliding-tile arrows and ⌥ + arrow keys look for neighbours among the active item's siblings.
+  useEffect(() => {
+    if (!items) return
+    const ids = items.siblings.map((b) => b.id)
+    useTiles.getState().set(slot.id, ids, Object.fromEntries(ids.flatMap((id) => (rects[id] ? [[id, rects[id]]] : []))))
+  }, [items, rects, slot.id])
+  useEffect(() => {
+    if (!items && useTiles.getState().slotId === slot.id) useTiles.getState().set(null, [], {})
+  }, [items, slot.id])
+  const trackAll = useMemo(() => (movable.length ? [...new Set([...track, ...movable.map((b) => b.id)])] : track), [track, movable])
   const frameH = heights[shown] ?? 520
   const drafting = useMarkDraft((s) => s.draft?.slotId === slot.id)
   // When a note on selected words closes, let go of the text selection in the page.
@@ -158,12 +230,16 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       noteMode: noting,
       selected: canEdit ? selectedBlock : null,
       editText: canEdit && editText && blocks.some((b) => b.id === editText.id) ? editText : null,
-      track,
+      track: trackAll,
       onEvent: (e: BlockEvent) => {
         if ('hover' in e) setHover(e.hover ?? null)
         if ('pick' in e) st().selectBlock(e.pick ?? null)
         if ('selRect' in e) setSelRect(e.selRect ?? null)
-        if (e.word) {
+        // Words typed into a field that shows a collection go to its entry.
+        const bound = e.word ? targets?.fields.get(e.word.field) : undefined
+        if (e.word && bound) {
+          useCollections.getState().updateEntry(bound.collection, bound.entry, { data: { [bound.field]: e.word.value } })
+        } else if (e.word) {
           st().setWord(slot.id, e.word.field, e.word.value)
           // "Another way to say it": what you just wrote is kept as an option too.
           const k = useBlockPreview.getState().keepNext
@@ -207,7 +283,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canEdit, noting, selectedBlock, editText, shown, slot.id, track, focused, W, frameH],
+    [canEdit, noting, selectedBlock, editText, shown, slot.id, trackAll, focused, W, frameH, targets],
   )
 
   return (
@@ -303,7 +379,7 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
 
       {/* block outlines, in page pixels: the current frame sits at 0,0 at 1:1 */}
       {/* Koati's picker: one outline that glides to whatever's under the pointer, with a chip naming it */}
-      <PickOutline rect={canEdit && hover && hover.id !== selectedBlock ? hover.rect : null} label={hover ? partLabel(blocks.find((b) => b.id === hover.id)?.label) : ''} />
+      <PickOutline rect={canEdit && !sorting && hover && hover.id !== selectedBlock ? hover.rect : null} label={hover ? partLabel(blocks.find((b) => b.id === hover.id)?.label) : ''} />
       {/* Note mode snaps to the block under the pointer; a drag lets go and draws an area instead */}
       {noting && hover && !drawing && (
         <div
@@ -318,18 +394,22 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
           </span>
         </div>
       )}
-      {canEdit && block && selRect && (
+      {canEdit && block && selRect && !sorting && (
         <>
           <PickOutline rect={selRect} picked />
           {!typing && (
             // Below the block, menus opening downwards, so the block stays in view while you preview looks on it.
-            <div className="absolute z-30" style={{ left: selRect.x, top: selRect.y + selRect.h, width: 0, height: 0 }}>
-              <div className="absolute left-0 top-0 w-max origin-top-left pt-2" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+            <div className="absolute z-30" style={{ left: barAt!.x, top: barAt!.y + barAt!.h, width: 0, height: 0 }}>
+              <div className="absolute left-0 top-0 w-max origin-top-left pt-3.5" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
                 <BlockBar slot={slot} block={block} rect={selRect} />
               </div>
             </div>
           )}
         </>
+      )}
+
+      {items && rects[items.item.id] && !typing && (
+        <ItemDrag slotId={slot.id} items={items} rect={rects[items.item.id]} rects={rects} row={rowRef} pageW={W} sorting={sorting} onSort={setSorting} />
       )}
 
       <SectionMarks slot={slot} width={W} height={frameH} rects={rects} drawing={drawing} />
@@ -348,6 +428,193 @@ const partLabel = (label: string | undefined) => label?.split(' · ').slice(1).j
  * border with a faint fill and a soft halo, thicker once picked. It stays mounted and
  * glides between blocks instead of blinking from one to the next.
  */
+/**
+ * Drag a list item among its siblings, like a sortable list: grab the grip, and as the pointer passes over another
+ * item the list reflows live in the section (the others make room); letting go keeps that order (one undo step, like
+ * ⌥←/→). Escape puts it back. A screen-wide layer takes the pointer while dragging, so the section's frame can't
+ * swallow it.
+ */
+function ItemDrag({
+  slotId,
+  items,
+  rect,
+  rects,
+  row,
+  pageW,
+  sorting,
+  onSort,
+}: {
+  slotId: string
+  items: { item: { id: string }; index: number; siblings: { id: string }[] }
+  rect: FrameRect
+  rects: Record<string, FrameRect>
+  row: React.RefObject<HTMLDivElement | null>
+  pageW: number
+  sorting: { itemId: string; from: number; to: number } | null
+  onSort: (s: { itemId: string; from: number; to: number } | null) => void
+}) {
+  const [ghost, setGhost] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  const state = useRef({ to: items.index, at: 0, grab: { x: 0, y: 0 }, rects, order: items.siblings.map((b) => b.id) })
+  state.current.rects = rects
+  // The pointer in page pixels (the row is drawn at the canvas zoom).
+  const at = (e: { clientX: number; clientY: number }) => {
+    const box = row.current!.getBoundingClientRect()
+    const k = box.width / pageW
+    return { x: (e.clientX - box.left) / k, y: (e.clientY - box.top) / k }
+  }
+  const start = (e: React.PointerEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    const st = state.current
+    // The committed order, and where in the item the pointer took hold.
+    st.order = items.siblings.map((b) => b.id)
+    st.to = items.index
+    // A wide item travels as a compact card, held at the same spot.
+    const p0 = at(e)
+    const k = Math.min(1, 360 / rect.w)
+    st.grab = { x: (p0.x - rect.x) * k, y: (p0.y - rect.y) * k }
+    setGhost({ x: p0.x - st.grab.x, y: p0.y - st.grab.y, w: rect.w * k, h: rect.h * k })
+    onSort({ itemId: items.item.id, from: items.index, to: items.index })
+  }
+  const move = (e: React.PointerEvent) => {
+    const st = state.current
+    const p = at(e)
+    setGhost((g) => (g ? { ...g, x: p.x - st.grab.x, y: p.y - st.grab.y } : g))
+    // Wait for the last reflow to land before reading where things are now.
+    if (performance.now() - st.at < 140) return
+    // The order on screen right now: the committed one with the dragged item at its preview place.
+    const shown = st.order.filter((id) => id !== items.item.id)
+    shown.splice(st.to, 0, items.item.id)
+    const over = shown.find((id) => {
+      if (id === items.item.id) return false
+      const r = st.rects[id]
+      return r && p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h
+    })
+    if (!over) return
+    const to = shown.indexOf(over)
+    if (to === st.to) return
+    st.to = to
+    st.at = performance.now()
+    onSort({ itemId: items.item.id, from: items.index, to })
+  }
+  const end = (commit: boolean) => {
+    const to = state.current.to
+    setGhost(null)
+    if (commit && to !== items.index) useStore.getState().editList(slotId, { op: 'move', itemId: items.item.id, to })
+    onSort(null)
+  }
+  useEffect(() => {
+    if (!sorting) return
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && end(false)
+    window.addEventListener('keydown', esc)
+    return () => window.removeEventListener('keydown', esc)
+  }) // eslint-disable-line react-hooks/exhaustive-deps
+  const dragging = !!ghost
+  return (
+    <>
+      {/* The item's place: a dashed outline (and while dragging, the gap it will drop into). */}
+      <div
+        className="pointer-events-none absolute left-0 top-0 z-10"
+        style={{
+          width: rect.w,
+          height: rect.h,
+          transform: `translate(${rect.x}px, ${rect.y}px)`,
+          transition: 'transform 160ms cubic-bezier(0.23, 1, 0.32, 1), width 160ms cubic-bezier(0.23, 1, 0.32, 1), height 160ms cubic-bezier(0.23, 1, 0.32, 1)',
+          borderRadius: 'calc(6px / var(--z))',
+          outline: `calc(${dragging ? 2 : 1.5}px / var(--z)) dashed color-mix(in oklab, var(--color-key) ${dragging ? 100 : 70}%, transparent)`,
+          outlineOffset: 'calc(3px / var(--z))',
+          background: dragging ? 'color-mix(in oklab, var(--color-key) 8%, transparent)' : undefined,
+        }}
+      />
+      {ghost && (
+        // What you're carrying, under the pointer.
+        <div
+          className="pointer-events-none absolute left-0 top-0 z-40"
+          style={{
+            width: ghost.w,
+            height: ghost.h,
+            transform: `translate(${ghost.x}px, ${ghost.y}px) rotate(-1deg)`,
+            borderRadius: 'calc(8px / var(--z))',
+            background: 'color-mix(in oklab, var(--color-key) 16%, transparent)',
+            boxShadow: '0 0 0 calc(2px / var(--z)) var(--color-key), 0 calc(24px / var(--z)) calc(48px / var(--z)) calc(-16px / var(--z)) rgb(0 0 0 / 0.45)',
+          }}
+        />
+      )}
+      <div className="absolute z-30" style={{ left: rect.x, top: rect.y, width: 0, height: 0 }} data-chrome>
+        <button
+          type="button"
+          title="Drag to move this item among the others (or ⌥← ⌥→)"
+          aria-label="Drag to move this item"
+          onPointerDown={start}
+          className={`absolute left-[calc(8px/var(--z))] top-[calc(8px/var(--z))] grid origin-top-left place-items-center rounded-full bg-key text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.4)] transition-transform ${dragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`}
+          style={{ width: 26, height: 26, scale: 'min(calc(1 / var(--z)), 3.4)', touchAction: 'none' }}
+        >
+          <GripVertical size={14} />
+        </button>
+      </div>
+      {!dragging && <TileArrows slotId={slotId} itemId={items.item.id} rect={rect} rects={rects} ids={items.siblings.map((b) => b.id)} />}
+      {dragging &&
+        createPortal(
+          // Takes the pointer for the whole drag, above the canvas frames.
+          <div
+            className="fixed inset-0 z-[100] cursor-grabbing"
+            style={{ touchAction: 'none' }}
+            onPointerMove={move}
+            onPointerUp={() => end(true)}
+            onPointerCancel={() => end(false)}
+            onContextMenu={(e) => e.preventDefault()}
+          />,
+          document.body,
+        )}
+    </>
+  )
+}
+
+const TILE_ARROW = { up: ArrowUp, down: ArrowDown, left: ArrowLeft, right: ArrowRight } as const
+
+/**
+ * Sliding-tile arrows on an item's edges: one for each side that has a neighbour on screen. A click swaps the two
+ * (the item below in a grid, the next question in a stack), one undo step; ⌥ + arrow keys do the same.
+ */
+function TileArrows({ slotId, itemId, rect, rects, ids }: { slotId: string; itemId: string; rect: FrameRect; rects: Record<string, FrameRect>; ids: string[] }) {
+  const dirs = (['up', 'down', 'left', 'right'] as TileDir[]).flatMap((d) => {
+    const other = tileNeighbor(rects, ids, itemId, d)
+    return other ? [{ d, other }] : []
+  })
+  const place: Record<TileDir, { left: number; top: number }> = {
+    up: { left: rect.x + rect.w / 2, top: rect.y },
+    down: { left: rect.x + rect.w / 2, top: rect.y + rect.h },
+    left: { left: rect.x, top: rect.y + rect.h / 2 },
+    right: { left: rect.x + rect.w, top: rect.y + rect.h / 2 },
+  }
+  const keys: Record<TileDir, string> = { up: '↑', down: '↓', left: '←', right: '→' }
+  return (
+    <>
+      {dirs.map(({ d, other }) => {
+        const Icon = TILE_ARROW[d]
+        return (
+          <div key={d} className="absolute z-30" style={{ ...place[d], width: 0, height: 0 }} data-chrome>
+            <button
+              type="button"
+              title={`Swap with the item ${d === 'up' ? 'above' : d === 'down' ? 'below' : `to the ${d}`} (⌥${keys[d]})`}
+              aria-label={`Swap with the item ${d === 'up' ? 'above' : d === 'down' ? 'below' : `to the ${d}`}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                useStore.getState().editList(slotId, { op: 'swap', itemId, withId: other })
+              }}
+              className="absolute grid -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white text-key-ink shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_4px_12px_-4px_rgb(0_0_0/0.35)] transition-[scale,background-color] duration-150 hover:bg-key hover:text-white active:scale-[0.92]"
+              style={{ width: 28, height: 28, scale: 'min(calc(1 / var(--z)), 3.4)' }}
+            >
+              <Icon size={14} strokeWidth={2.4} />
+            </button>
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
 function PickOutline({ rect, picked, label }: { rect: FrameRect | null; picked?: boolean; label?: string }) {
   const last = useRef<FrameRect | null>(null)
   if (rect) last.current = rect
@@ -357,11 +624,12 @@ function PickOutline({ rect, picked, label }: { rect: FrameRect | null; picked?:
     <div
       className="pointer-events-none absolute left-0 top-0 z-10"
       style={{
-        width: r.w,
-        height: r.h,
-        transform: `translate(${r.x}px, ${r.y}px)`,
+        // A little breathing room outside the element, the same on screen at any zoom.
+        width: `calc(${r.w}px + 10px / var(--z))`,
+        height: `calc(${r.h}px + 10px / var(--z))`,
+        transform: `translate(calc(${r.x}px - 5px / var(--z)), calc(${r.y}px - 5px / var(--z)))`,
         opacity: rect ? 1 : 0,
-        borderRadius: 'calc(6px / var(--z))',
+        borderRadius: 'calc(8px / var(--z))',
         background: `color-mix(in oklab, var(--color-key) ${picked ? 7 : 10}%, transparent)`,
         boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--z)) var(--color-key), 0 0 0 calc(${picked ? 6 : 5.5}px / var(--z)) color-mix(in oklab, var(--color-key) 18%, transparent)`,
         transition: 'opacity 140ms cubic-bezier(0.2, 0, 0, 1), transform 90ms cubic-bezier(0.2, 0, 0, 1), width 90ms cubic-bezier(0.2, 0, 0, 1), height 90ms cubic-bezier(0.2, 0, 0, 1)',

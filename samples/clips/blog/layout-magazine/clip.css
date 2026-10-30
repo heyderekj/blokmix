@@ -68,7 +68,9 @@
     letter-spacing: -0.015em;
     text-wrap: balance;
   }
-  & .feature {
+  /* Whichever post is first runs the full width (a position, not a post: it stays first when posts move). */
+  & .post:first-child {
+    grid-column-end: span 12;
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
     align-items: center;
@@ -76,10 +78,10 @@
     padding-bottom: var(--mx-space-8);
     border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
-  & .feature .media { aspect-ratio: 16 / 10; }
-  & .feature .text { gap: var(--mx-space-4); }
-  & .feature .title { font-size: clamp(var(--mx-text-2xl), 3vw, var(--mx-text-4xl)); line-height: 1.1; letter-spacing: -0.02em; }
-  & .feature .body { font-size: var(--mx-text-lg); }
+  & .post:first-child .media { aspect-ratio: 16 / 10; }
+  & .post:first-child .text { gap: var(--mx-space-4); }
+  & .post:first-child .title { font-size: clamp(var(--mx-text-2xl), 3vw, var(--mx-text-4xl)); line-height: 1.1; letter-spacing: -0.02em; }
+  & .post:first-child .body { font-size: var(--mx-text-lg); }
   & .link { cursor: pointer; transition: color var(--mx-motion-duration) var(--mx-motion-ease); }
   & .link::after { content: ""; position: absolute; inset: 0; }
   & .link:focus-visible { outline: none; }
@@ -114,7 +116,7 @@
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .top { flex-direction: column; align-items: flex-start; }
     & .posts { margin-top: var(--mx-space-8); row-gap: var(--mx-space-8); }
-    & .feature { grid-template-columns: minmax(0, 1fr); gap: var(--mx-space-5); padding-bottom: var(--mx-space-8); }
-    & .feature .body { font-size: var(--mx-text-base); }
+    & .post:first-child { grid-template-columns: minmax(0, 1fr); gap: var(--mx-space-5); padding-bottom: var(--mx-space-8); }
+    & .post:first-child .body { font-size: var(--mx-text-base); }
   }
 }

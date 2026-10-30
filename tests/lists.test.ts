@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { library } from '@/data/library'
-import { listOrder, nextNumber, sectionClip } from '@/core/lists'
+import { editList, listOrder, nextNumber, sectionClip, tileNeighbor } from '@/core/lists'
+import { DEFAULT_CONTENT } from '@/core/content'
+import { DEFAULT_KEEP, type Slot } from '@/core/types'
 import { indexBlocks } from '@/core/blocks'
 import { parseHtml } from '@/core/html/parse'
 
@@ -24,6 +26,47 @@ describe('lists', () => {
       expect(s.fields, c.id).toEqual(c.fields)
       expect(s.patches).toEqual([])
     }
+  })
+
+  it('swaps two items like sliding tiles: they trade places, nothing else moves', () => {
+    const c = clip('features.layout-grid')
+    const base = sectionClip(c)
+    const list = base.blocks.find((b) => b.kind === 'list')!
+    const items = base.blocks.filter((b) => b.parent === list.id && b.kind === 'item')
+    const slot: Slot = { id: 's', type: c.type, clipId: c.id, locked: false, keep: { ...DEFAULT_KEEP } }
+    const next = editList(slot, base, DEFAULT_CONTENT, { op: 'swap', itemId: items[0].id, withId: items[3].id })
+    const order = listOrder(sectionClip(c, next.lists), list.id)
+    const first = listOrder(base, list.id)
+    expect(order).toEqual([first[3], first[1], first[2], first[0], ...first.slice(4)])
+    expect(() => editList(slot, base, DEFAULT_CONTENT, { op: 'swap', itemId: items[0].id, withId: list.id })).toThrow()
+  })
+
+  it('finds the tile beside, above and below by where items sit, not their order', () => {
+    // A 3-across grid: a b c / d e f
+    const r = (x: number, y: number) => ({ x, y, w: 100, h: 80 })
+    const rects = { a: r(0, 0), b: r(120, 0), c: r(240, 0), d: r(0, 100), e: r(120, 100), f: r(240, 100) }
+    const ids = Object.keys(rects)
+    expect(tileNeighbor(rects, ids, 'b', 'down')).toBe('e')
+    expect(tileNeighbor(rects, ids, 'e', 'up')).toBe('b')
+    expect(tileNeighbor(rects, ids, 'e', 'left')).toBe('d')
+    expect(tileNeighbor(rects, ids, 'e', 'right')).toBe('f')
+    expect(tileNeighbor(rects, ids, 'a', 'left')).toBeNull()
+    expect(tileNeighbor(rects, ids, 'c', 'up')).toBeNull()
+    // A stack: only up and down.
+    const stack = { p: { x: 0, y: 0, w: 600, h: 50 }, q: { x: 0, y: 60, w: 600, h: 50 } }
+    expect(tileNeighbor(stack, ['p', 'q'], 'p', 'down')).toBe('q')
+    expect(tileNeighbor(stack, ['p', 'q'], 'p', 'right')).toBeNull()
+  })
+
+  it('keeps what only the first item has (a wide tile, an open answer) with the first position', () => {
+    // The team bento's first member is the wide one; its members' art differs, which travels with each member.
+    const moved = sectionClip(clip('team.layout-bento'), { m: [{ n: 2 }, { n: 3 }, { n: 4 }, { n: 1 }] })
+    expect(moved.html.indexOf('m2Name')).toBeLessThan(moved.html.indexOf('m1Name'))
+    const lis = [...moved.html.matchAll(/<(?:li|article|div)[^>]*data-mx-block="item"[^>]*>/g)].map((m) => m[0])
+    expect(lis[0]).toContain('feature')
+    expect(lis.slice(1).some((t) => /class="[^"]*feature/.test(t))).toBe(false)
+    const faq = sectionClip(clip('faq.layout-compact'), { faq: [{ n: 2 }, { n: 1 }, { n: 3 }] })
+    expect([...faq.html.matchAll(/<details[^>]*>/g)].map((m) => /\bopen\b/.test(m[0]))).toEqual([true, false, false])
   })
 
   it('reorders, removes and adds items, renumbering copies and keeping ids stable', () => {

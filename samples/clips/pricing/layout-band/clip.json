@@ -2,6 +2,8 @@
   "title": "One price in a band",
   "layoutPattern": "inverse-band-price-left-features-right",
   "rhythm": "band",
+  "style": "bold",
+  "density": "airy",
   "motionNotes": "The band fades up, the price rises after the heading and the features follow in a short stagger; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

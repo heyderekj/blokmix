@@ -1,0 +1,30 @@
+.mx-hero-layout-collage {
+  & .eyebrow, & .headline, & .copy { animation: mx-hero-layout-collage-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; }
+  & .headline { animation-delay: 60ms; }
+  & .copy { animation-delay: 140ms; }
+  & .shot { animation: mx-hero-layout-collage-drop calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) both; }
+  & .shot.a1 { animation-delay: 180ms; }
+  & .shot.a2 { animation-delay: 240ms; }
+  & .shot.a3 { animation-delay: 300ms; }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .shot { transition: translate 260ms cubic-bezier(0.23, 1, 0.32, 1); }
+    & .collage:hover .shot.a1 { translate: -6px -4px; }
+    & .collage:hover .shot.a2 { translate: 6px -6px; }
+    & .collage:hover .shot.a3 { translate: 0 6px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .eyebrow, & .headline, & .copy, & .shot { animation-name: mx-hero-layout-collage-fade; }
+    & .collage:hover .shot { translate: none; }
+  }
+}
+@keyframes mx-hero-layout-collage-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes mx-hero-layout-collage-drop {
+  from { opacity: 0; transform: translateY(-20px) scale(0.96); }
+}
+@keyframes mx-hero-layout-collage-fade {
+  from { opacity: 0; }
+}

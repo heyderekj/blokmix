@@ -2,6 +2,8 @@
   "title": "Quote with portrait",
   "layoutPattern": "quote-left-portrait-right",
   "rhythm": "split",
+  "style": "editorial",
+  "density": "balanced",
   "motionNotes": "The quote, person and stats rise in a stagger while the portrait panel settles into place and its small badge floats up last.",
   "capture": {
     "path": "/",

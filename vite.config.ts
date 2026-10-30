@@ -20,5 +20,7 @@ export default defineConfig({
   server: hosted ? { port: 5174, strictPort: true } : { port: 5173 },
   test: {
     include: ['tests/**/*.test.ts'],
+    // Clip stylesheets load as text (?raw); without this Vitest hands them over empty.
+    css: { include: [/samples\/clips\//] },
   },
 })

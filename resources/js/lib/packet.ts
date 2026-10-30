@@ -1,4 +1,5 @@
 import type { BuildTarget, MixSnapshot, Note, VersionNode } from '@/core/types'
+import { bindContextFor } from '@/state/collections'
 import { resolveGuide } from '@/core/guide'
 import { composeSite } from '@/core/compose'
 import { allSlots, mapSlots } from '@/core/site'
@@ -50,7 +51,7 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 
     : []
   const parent = version?.parentId ? st.versions[version.parentId] : null
   return {
-    page: composeSite({ site: mapSlots(snap.site, (s) => (library.clips[s.clipId] ? s : null)), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: uploadData }),
+    page: composeSite({ site: mapSlots(snap.site, (s) => (library.clips[s.clipId] ? s : null)), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: uploadData, bind: bindContextFor(snap.site) }),
     guide,
     guideState: snap.guide,
     library,

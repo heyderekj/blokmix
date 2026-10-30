@@ -5,6 +5,7 @@ import { GROUP_LABEL, primaryFamily } from '@/core/tokens'
 import { BrandColours, Candidates, Components, CopyFooter, GroupDecision, GroupTokens, useContrast } from '../GuidePanel'
 import { FontLinks, sourceName, useGuideData, withCandidate } from './shared'
 import { SavedGuides } from './SavedGuides'
+import { Dials } from './Dials'
 import { isHosted } from '@/lib/host'
 import { useStore } from '@/state/store'
 import { EffectsArt, EffectsPanel } from '../../dials/EffectsTile'
@@ -21,6 +22,7 @@ export function GuideBoard() {
     <div>
       <FontLinks tokens={[tokens, ...TOKEN_GROUPS.flatMap((g) => candidates(g).map((c) => withCandidate(tokens, c)))]} />
       <div className="grid grid-cols-2 gap-2 p-3">
+        <Dials />
         {TOKEN_GROUPS.map((g) =>
           opened === g ? (
             <div key={g} className="col-span-2 animate-rise rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_12px_28px_-14px_rgb(0_0_0/0.3)]">

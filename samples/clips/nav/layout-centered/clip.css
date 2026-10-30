@@ -90,7 +90,8 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-4) var(--mx-space-4) 0;
     & .bar {
-      grid-template-columns: 1fr auto;
+      /* Two equal halves, so long links wrap inside theirs instead of pushing the button off the edge. */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       grid-template-areas: "brand cta" "left right";
       row-gap: var(--mx-space-4);
       column-gap: var(--mx-space-5);
@@ -99,7 +100,7 @@
     & .brand { grid-area: brand; justify-self: start; flex-direction: row; font-size: var(--mx-text-lg); }
     & .right { display: contents; }
     & .cta { grid-area: cta; justify-self: end; }
-    & .left { grid-area: left; gap: var(--mx-space-5); }
-    & .right .links { grid-area: right; justify-self: start; gap: var(--mx-space-5); }
+    & .left { grid-area: left; flex-wrap: wrap; gap: var(--mx-space-2) var(--mx-space-5); }
+    & .right .links { grid-area: right; justify-self: start; flex-wrap: wrap; gap: var(--mx-space-2) var(--mx-space-5); }
   }
 }

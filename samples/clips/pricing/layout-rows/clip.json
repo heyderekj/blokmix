@@ -2,6 +2,8 @@
   "title": "Plans as rows",
   "layoutPattern": "plan-rows-name-features-price",
   "rhythm": "stack",
+  "style": "editorial",
+  "density": "dense",
   "motionNotes": "No entrance motion; buttons press in slightly and fill on hover.",
   "capture": {
     "path": "/",

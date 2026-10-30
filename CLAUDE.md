@@ -57,10 +57,18 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
   drops one, and sections it uses always count. The Crate and Alternatives show This mix / All your clips / Layouts (a focused section opens nothing by itself: the dock's Layouts button grows its alternatives);
   agents use `list_mix_clips`, `add_clips_to_mix`, `remove_clip_from_mix`.
+- Site library (Landbook-style, `lib/siteLibrary.ts`, `ui/library/SiteLibrary.tsx`): real sites captured offline, each page's
+  sections matched to built-in layouts (`GET /api/library`, `GET /api/library/sites/{slug}`; Vite-only dev uses the made-up
+  `data/librarySample.ts`). Opened from the Crate's "Sites". Clipping lands the MATCHED LAYOUT (never the site's words or
+  pictures) and credits it (`slot.inspiredBy`, shown in the Source tab, written to blokmix.json and BLOKMIX.md; a slot
+  without one falls back to its clip's). A site's look joins the style guide as candidates `src:site:<slug>#<group>`
+  (`promoteSource`, `candidateSource`). Agents: `list_library_sites`, `get_library_site`, `clip_from_site`, `use_site_style`.
+  New mix → "Start from a site" posts a page's layouts plus the site's look (`mixFromSitePage`).
 - Saved style guides (`style_guides`, `Api\StyleGuideController`, `lib/styleGuides.ts`): save a mix's guide under a
-  name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). New mix → "Start from a style guide"
-  (neutral, a saved guide, or another mix's) posts `guide` to `/mixes`, which stores `data = {guide}`; the board fills
-  the rest from a blank mix. Every mix keeps its own copy, so edits never spread.
+  name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). New mix → "Start from…" offers
+  starter mixes and style guides (neutral, a saved guide, or another mix's): it posts `guide` (and a starter's `site`
+  and `name`) to `/mixes`, which stores `data = {guide, site}`; the board fills the rest from a blank mix. Every mix
+  keeps its own copy, so edits never spread.
 - Plans (`users.plan`, `config/blokmix.php` `plans`): Free is 1 mix you own, 40 clips and 100 MB of uploads; Plus is
   unlimited mixes and clips and 10 GB. Mixes and uploads count toward the mix's owner (an editor's upload uses the
   owner's room); clips toward whoever saved them; shared mixes, layouts and placeholder art never count. `User`
@@ -78,7 +86,8 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Site library (server): real websites captured by the library CLI (`library_sites` → `library_pages` →
   `library_sections`, screenshots in `library_assets` on the uploads disk under `library/<slug>/`, never counted toward
   a plan; `Api\LibraryController`). Owners (Gate `run-blokmix`, else 403) `POST /api/library/sites` a bundle (multipart
-  `site` = site.json, `files[]` = the WebP/PNG/JPEG screenshots it names by file name; 15 MB each, 200 MB in all): it
+  `site` = site.json plus the WebP/PNG/JPEG screenshots it names by file name, as `files[]` or one zip `bundle`, since
+  PHP takes 20 files per request; 15 MB each, 200 MB in all): it
   upserts by slug, replacing pages, sections and files but keeping status (new sites are drafts) and whatever site.json
   leaves out. Signed in: `GET /api/library` (published cards; owners `?drafts=1`), `/api/library/sites/{slug}` (hidden
   sections only for owners), `/api/library/assets/{ls_id}`. Owners `PATCH` sites (name, industry, tags, status) and
@@ -124,6 +133,29 @@ fixtures in `extension/fixtures/` in real Chrome.
   saves each raw snapshot to `.out/inspo/snaps/`; `extension/scripts/recapture.ts [filter]` re-runs capture on
   them offline and writes original-vs-clip pairs to `.out/inspo/compare/`, the loop for improving fidelity.
 
+## Site library engine
+
+Curated real sites become library entries offline (`docs/site-library.md`): capture → split → type → match → draft.
+- `npx vite-node scripts/library/capture-site.ts <url> [--pages /,/about] | --seed <industry|firstRun>` (seed list:
+  `samples/library/seed.json`) writes `.out/library/<slug>/`: WebP screenshots (page at 1440 and 390, one per section,
+  thumb), `site.json` (sections with box, type + confidence, captured clip, signature, top matches) and `upload.json`
+  (the `POST /api/library/sites` shape). It respects robots.txt, rejects cookie banners, settles lazy content. Page side:
+  `extension/src/sections.ts` (`findSections`, `guessSectionType`, `pageFacts`, `dismissConsent`); site-wide tokens:
+  `extension/src/capture/siteTokens.ts`. `--debug` draws the section boxes.
+- Matching (`core/match.ts`, pure): `signatureOf` reads the same structural signature off a layout or a capture
+  (rhythm, main list's items and columns, cards, pictures and where, video, centered head, band, form, accordion,
+  tabs/slides, scrolling row, nested lists, overlap, buttons); `similarity` scores two with the misses that cost most;
+  `matchLayouts` ranks a type's layouts (drafts only when asked). At or above `MATCH_THRESHOLD` a section shows as that
+  layout; below, it needs one. Every layout must match itself first (`tests/match.test.ts`).
+- `npx vite-node scripts/library/match.ts [--rematch [--save] [--include-drafts]] [--compare]` prints match rates per
+  site and type (the engine's training number), the common misses and the sections needing a layout; `--compare`
+  renders each match under the site's tokens beside its screenshot.
+- `npx vite-node scripts/library/draft-layouts.ts` writes a brief per unmatched section to `.out/library/drafts/`; an
+  agent authors the layout with `"status": "draft"` and `"inspiredBy"` in clip.json (drafts stay out of suggestions and
+  matching until review removes the status), then `match.ts --rematch --save` points the section at it.
+- `npx vite-node scripts/library/upload.ts <slug|--all> [--base http://localhost:8000]` posts bundles as an owner (refuses
+  production hosts without `--production`). `docs/layout-coverage.md` maps archetypes to layouts.
+
 ## Layout
 
 - `resources/js/core/`: pure TS, no React or Vite APIs (reused by the future extension and MCP server)
@@ -134,8 +166,9 @@ fixtures in `extension/fixtures/` in real Chrome.
 - `resources/js/state/`: zustand store (persist + zundo undo)
 - `resources/js/frame/`: sandboxed iframe rendering + postMessage bridge
 - `resources/js/ui/`: canvas, frames, panels
-- `samples/sources/*.json`: fictional source sites (`*.example`, `kind: "site"`) and Blokmix's built-in
-  layouts (`layout.json`, `kind: "layout"`), with their tokens
+- `samples/sources/*.json`: Blokmix's built-in layouts (`layout.json`, `kind: "layout"`) and their tokens. The
+  library starts fresh from these (the fictional sample sites and earlier captures are gone); captured clips join
+  per account. A source clipped from a site is `kind: "site"`.
 - `samples/clips/<type>/<source>-<variant>/`: `clip.html`, `clip.css`, `motion.css` (optional), `clip.json`.
   Built-in layouts use the `layout` source: `samples/clips/<type>/layout-<variant>/`.
 
@@ -169,7 +202,9 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
 10. Use typographic quotes (’ “ ”). Avoid `{` `}` in text unless inside `<pre>`/`<code>`.
 11. Each clip must look right at 1440px and 390px (nest `@media (max-width: 760px)` inside the root).
 12. `clip.json` sets `rhythm` (`centered | split | grid | stack | band`): the section's dominant shape.
-    Suggestions use it to pick layouts that contrast with their neighbours.
+    Suggestions use it to pick layouts that contrast with their neighbours. It also sets `style`
+    (`minimal | editorial | bold | playful | technical | warm`) and `density` (`airy | balanced | dense`), for
+    browsing; captured clips may leave them out.
 13. Blocks: mark what people will select, swap and restyle with `data-mx-block="<kind>"`.
     - Small blocks go on the element itself (often the same element as its `data-mx-field`):
       `heading`, `text`, `button`, `link`, `badge` (eyebrows, tags, pills), `icon`, `input`.
@@ -182,7 +217,8 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
       continues the number: `t1F1`, `t1F2`). That number is how a section adds, duplicates and reorders items
       (`core/lists.ts`), so every item needs it. A count printed in the item ("01", "2.") as its first static
       text follows position; an attribute only the first item has (`open`, a wide first tile) belongs to the
-      first position. Anything else about an item travels with it.
+      first position (`firstPosition` compares only the items' own attributes). Anything else about an item
+      travels with it, so a treatment for "whichever comes first" is better written as `:first-child` in CSS.
     - Pictures (CSS/SVG art standing in for a photo, illustration, screenshot or avatar):
       `data-mx-block="image" data-mx-media="<name>" data-mx-ratio="<w>/<h>"`. Keep the placeholder art inside;
       a real image replaces it later. Media names are unique in the clip.
@@ -216,6 +252,66 @@ Nudge) for hierarchy, spacing and type; Laws of UX for behavior; Emil Kowalski's
   actions or things seen many times a day; reduced motion keeps fades, drops movement. Lint warns on
   `transition: all`, `scale(0)` and `ease-in`. Motion presets (`core/motion.ts`) are written to these
   rules; a section preset replaces the clip's own motion.css.
+
+### Browsing, starters and dials
+
+From `docs/library.md` and `docs/simple-vision.md`: start from real sections, dial a style by feel.
+- The Crate searches and filters (`core/browse.ts`): words match title, pattern, type, source and tags; facets are
+  layout (`rhythm`), `style` and `density` from clip.json, plus tone, color family and pictures read off the clip
+  itself (OR within a group, AND across groups; a group shows only when the shelf's clips differ in it). Search and
+  filters live in `ui.crateQuery` / `ui.crateFacets` and survive picking another section.
+- Starter mixes (`samples/starters/<id>.json`, `core/starters.ts` `buildStarter`): pages of layout ids plus `tokens`,
+  a sample style guide that lands as your own values. The demo seed (layouts, neutral guide) is built the same way. New mix
+  offers them; agents use `list_starters` and `start_from_starter` (replaces pages and guide, one undo step).
+- Dials (`core/dials.ts`, the Feel tile atop the Style guide): spacing, type size, roundness and weight each move a
+  few tokens at once (`chooseTokens`, one undo step); Light/Dark (`setTone`) swaps background and text, re-mixes
+  surface, border and muted, and lifts a primary that would vanish. Agents use `set_dial` and `set_tone`; `get_page`
+  reports `dials` and `tone`. The Type dial stops at a 1.333 ratio (bigger ones outgrow phones; the knob has them).
+- Section surfaces (`slot.surface`, `core/surface.ts`): page, soft, inverse or brand, a band in the guide's own colors,
+  set from the dots in the section bar or `set_section_surface`. Frames and exports re-mix that section's tokens only.
+- The block bar steps through a block's looks with ‹ › around Look.
+- List items move like sliding tiles: pointing at or selecting anything in an item shows its arrows on each side that
+  has a neighbour on screen (`tileNeighbor`, by position, so "below" in a grid is three places on), and a click swaps
+  the two (list op `swap`, one undo step; ⌥ + arrow keys too; agents: `edit_list` op `swap`). Its grip drags it: the
+  list reflows live in the frame as it passes over the others (a preview `move`), a screen-wide layer holds the pointer
+  over the frames, Escape cancels, letting go commits one `move`. `ui/frames/tiles.ts` shares the item rects.
+- Stress-test layouts against the dials: `npx vite-node scripts/render-clips.ts <types> --variants min,max,dark`
+  (also `<dial>0`/`<dial>100`); it flags page overflow, spill past the gutter and clipped text. On phones a `.grid`'s
+  column gap stays at `--mx-space-4` or less (its 11 gaps must fit a phone at the widest spacing), single columns are
+  `minmax(0, 1fr)`, and big prices cap at a share of the viewport (`min(var(--mx-text-5xl), 17vw)`).
+
+### Collections
+
+Your content apart from any one section (blog posts, team, products), with a schema, like Astro content collections
+or Sanity's JSON; the UI says Collections, inside Content, never "CMS". They belong to your account and every mix you
+use them in shows the same entries.
+- Model (`core/collections.ts`, pure): `Collection { slug, name, schema { fields, titleField }, entries }`, field types
+  text, longText, markdown (rich text), image (a `MediaFill` subset), date (YYYY-MM-DD), number, url, select, list.
+  `inferSchema` learns fields from a list's items (keys as in the content file: title, excerpt, cover);
+  `entriesFromList` turns its items into entries; rename/retype/remove fields migrate entries.
+- Store (`state/collections.ts` `useCollections`): its own zundo history (mix undo never rewinds your content), saved
+  in localStorage (`blokmix:collections`) until the server sync lands. Toasts take `undo: 'collections'`.
+- Binding (`slot.bind`): `lists[listKey] = { collection, map (item key → field), image?, sort?, filter?, limit? }`, and
+  on a template page `entry.fields` (field → entry field, `body#2` = a rich-text field's 2nd paragraph) and
+  `entry.media`. `applyBindings` derives the section (lists, words, pictures, each item's link to its entry page) and
+  never writes back; SlotRow, compose (exports, versions, measure) and the read commands (`shownSlot`) all use it.
+  Typing into a bound field updates the entry; list ops on a bound list act on entries (`listOpOnEntries`); unbinding
+  keeps the words it showed.
+- Template pages (`Page.template`, path `/<collection>/[slug]`; `normalizePath` keeps one `[param]`): sections bound to
+  "the entry" preview one at a time (`ui.previewEntry`, the switcher in the frame header).
+- UI: Content → Collections (`ui/panels/collections/`: entries, entry form, fields), the block bar's Collection button
+  on a list item (make one from these items, show one you have, open, stop showing), Pages → "A page for each entry of".
+- Commands: `list_collections`, `get_collection`, `create_collection` (with `from` a list), `update_schema`,
+  `add_entry`, `update_entry`, `remove_entry`, `reorder_entries`, `bind_list`, `unbind_list`, `add_collection_page`,
+  `preview_entry`, `bind_field`.
+- Exports (`core/export/collections.ts`): Astro writes `src/content.config.ts` (a `glob` loader and zod schema per
+  collection) and one file per entry (`.md` with the rich-text body, else `.json`); Next writes
+  `content/collections/<collection>/*.json` and a typed `lib/collections.ts`. Bound lists are filled from `entries()`
+  in the page (shaped like the section's content file, so components don't change); template pages become
+  `[slug].astro` with `getStaticPaths` / `app/…/[slug]/page.tsx` with `generateStaticParams`. Entry pictures go to
+  `public/media/collections/`.
+- Not yet: the account sync on the server (`collections` tables, API, access, plan limits) and rendering a whole
+  rich-text body as HTML in a section (template pages show its first paragraphs).
 
 ### Content
 
@@ -304,7 +400,7 @@ Built-in layouts share one set of class names, so the library reads as one compo
 can later be normalised onto the same names. `samples/layout-primitives.css` holds the canonical rules: a clip
 copies the ones it uses under its own root (rule 2) and adds its own after them. `npx vite-node
 scripts/lint-clips.ts <type|clip id>` lints and summarises clips; `npx vite-node scripts/render-clips.ts <type|clip id>
---sources layout,nightowl` screenshots them at 1440 and 390 into `.out/renders/clips/`.
+--sources layout` screenshots them at 1440 and 390 into `.out/renders/clips/`.
 - **Section** (the root): surface, `--mx-space-section` top and bottom, a `--mx-space-8` gutter (`--mx-space-5` on phones).
 - **`.container`**: 1200px content width; `.container.narrow` 760px for reading columns and centered stacks.
 - **`.head`**: the header group, in order `.eyebrow`, `.heading` (`.heading.display` for the hero-sized one), `.lead`

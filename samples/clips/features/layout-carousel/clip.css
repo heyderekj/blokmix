@@ -1,0 +1,98 @@
+.mx-features-layout-carousel {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .title { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+  & .body { color: var(--mx-color-muted); line-height: 1.6; }
+
+  & .media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .art { position: absolute; inset: 0; }
+  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
+  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
+  & .slab { position: absolute; border-radius: var(--mx-radius); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
+
+  /* Head on the left, a quiet scroll hint on the right. */
+  & .top { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--mx-space-8); }
+  & .hint {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--mx-space-2);
+    font-size: var(--mx-text-sm);
+    color: var(--mx-color-muted);
+  }
+
+  /* The row runs to the window's edges; the first card lines up with the container and the rest peek past it. */
+  & .track {
+    --edge: calc(var(--mx-space-8) + max(0px, (100% - 1200px) / 2));
+    display: flex;
+    gap: var(--mx-space-6);
+    margin: var(--mx-space-9) calc(var(--mx-space-8) * -1) 0;
+    padding: var(--mx-space-1) var(--edge) var(--mx-space-5);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--edge);
+    scrollbar-width: thin;
+    scrollbar-color: var(--mx-color-border) transparent;
+  }
+  & .track:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: -2px; }
+  & .slide {
+    display: flex;
+    flex: 0 0 min(360px, 78%);
+    flex-direction: column;
+    gap: var(--mx-space-5);
+    scroll-snap-align: start;
+  }
+  & .text { display: grid; gap: var(--mx-space-2); padding-right: var(--mx-space-4); }
+
+  /* Placeholder art, one scene per card */
+  & .s1 { left: 12%; top: 16%; width: 52%; height: 68%; background: var(--mx-color-bg); border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: var(--mx-shadow-card); }
+  & .o1 { right: 12%; top: 22%; width: 20%; }
+  & .bar { position: absolute; left: 14%; height: 12%; border-radius: var(--mx-radius-pill); background: var(--mx-color-bg); border: var(--mx-stroke) solid var(--mx-color-border); }
+  & .r1 { top: 24%; width: 64%; }
+  & .r2 { top: 44%; width: 48%; background: var(--mx-color-primary); border-color: transparent; }
+  & .r3 { top: 64%; width: 56%; }
+  & .ring { position: absolute; left: 50%; top: 50%; width: 46%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; border: calc(var(--mx-stroke) * 2) dashed color-mix(in oklab, var(--mx-color-text) 26%, transparent); }
+  & .o3 { left: 50%; top: 50%; width: 16%; translate: -50% -50%; }
+  & .s4a { left: 14%; top: 18%; width: 44%; height: 64%; background: var(--mx-color-primary); }
+  & .s4b { left: 42%; top: 30%; width: 44%; height: 52%; background: var(--mx-color-bg); border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: var(--mx-shadow-card); }
+  & .tile { position: absolute; width: 30%; height: 30%; border-radius: var(--mx-radius); background: var(--mx-color-bg); border: var(--mx-stroke) solid var(--mx-color-border); }
+  & .t1 { left: 18%; top: 16%; }
+  & .t2 { left: 52%; top: 16%; background: color-mix(in oklab, var(--mx-color-accent) 30%, var(--mx-color-bg)); }
+  & .t3 { left: 18%; top: 54%; }
+  & .t4 { left: 52%; top: 54%; }
+  & .o6 { left: 56%; top: 16%; width: 22%; }
+  & .ground { left: 10%; right: 10%; bottom: 16%; height: 20%; }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .lead { font-size: var(--mx-text-base); }
+    & .top { display: grid; gap: var(--mx-space-5); }
+    & .track {
+      --edge: var(--mx-space-5);
+      gap: var(--mx-space-4);
+      margin: var(--mx-space-8) calc(var(--mx-space-5) * -1) 0;
+    }
+    & .slide { flex-basis: 80%; gap: var(--mx-space-4); }
+  }
+}

@@ -11,6 +11,7 @@ import { nextFiles } from '@/core/export/next'
 import { packetFiles } from '@/core/export/packet'
 import { referenceHtml } from '@/core/export/reference-html'
 import { library, slotClip } from '@/data/library'
+import { extendLibrary, rawClipsFromFiles } from '@/core/library'
 import { currentSlots, siteState, useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
 
@@ -150,6 +151,14 @@ describe('page commands', () => {
   })
 
   it('keeps a mix’s own clips: add, list, take out (the library keeps them)', () => {
+    // A captured clip, as the extension saves it: a built-in hero re-sourced to a new site.
+    const base = library.clips[library.layoutsByType.hero[0]]
+    const root = (src: string) => src.split(base.rootClass).join('mx-hero-acme-split')
+    extendLibrary(library, [{ ...library.sources.layout, id: 'acme', name: 'Acme', kind: 'site' }], rawClipsFromFiles({
+      'samples/clips/hero/acme-split/clip.html': root(base.html),
+      'samples/clips/hero/acme-split/clip.css': root(base.css),
+      'samples/clips/hero/acme-split/clip.json': JSON.stringify({ title: 'Split hero', layoutPattern: 'split', capture: { capturedAt: '2026-10-24', viewport: { w: 1440, h: 900 } } }),
+    }))
     const used = new Set(allSlots(useStore.getState().site).map((x) => x.clipId))
     const spare = Object.values(library.clips).find((c) => c.origin === 'clip' && !used.has(c.id))!
     const layout = Object.values(library.clips).find((c) => c.origin === 'layout')!

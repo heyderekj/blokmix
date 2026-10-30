@@ -1,0 +1,14 @@
+{
+  "title": "Sticker call to action",
+  "layoutPattern": "display-heading-rotated-sticker-offset-shapes",
+  "rhythm": "stack",
+  "style": "playful",
+  "density": "balanced",
+  "motionNotes": "Heading and pitch rise; the sticker slaps on with a small overshoot just after; the squiggle wiggles slowly. Reduced motion keeps fades and stills the squiggle.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

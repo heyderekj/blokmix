@@ -1,0 +1,81 @@
+.mx-stats-layout-over-media {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  /* The picture fills the whole section; a scrim of the page colour sits over it, so the words
+     keep the guide's own text-on-background contrast whatever the picture is. */
+  & .media { position: absolute; inset: 0; z-index: -2; overflow: hidden; background: var(--mx-color-surface); }
+  & .art { position: absolute; inset: 0; }
+  & .sky { background: linear-gradient(180deg, color-mix(in oklab, var(--mx-color-primary) 40%, var(--mx-color-surface)), color-mix(in oklab, var(--mx-color-accent) 30%, var(--mx-color-surface)) 70%); }
+  & .orb {
+    position: absolute;
+    right: 18%;
+    top: 14%;
+    width: 18%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent));
+  }
+  & .ridge { position: absolute; border-radius: 50% 50% 0 0; }
+  & .r1 { left: -10%; right: 40%; bottom: -20%; height: 70%; background: color-mix(in oklab, var(--mx-color-primary) 55%, var(--mx-color-surface)); }
+  & .r2 { left: 30%; right: -15%; bottom: -30%; height: 75%; background: color-mix(in oklab, var(--mx-color-primary) 75%, var(--mx-color-text)); }
+  & .r3 { left: -20%; right: 20%; bottom: -45%; height: 60%; background: color-mix(in oklab, var(--mx-color-text) 70%, var(--mx-color-primary)); }
+  & .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(100deg, color-mix(in oklab, var(--mx-color-bg) 94%, transparent) 0%, color-mix(in oklab, var(--mx-color-bg) 84%, transparent) 55%, color-mix(in oklab, var(--mx-color-bg) 70%, transparent) 100%);
+  }
+
+  & .container { position: relative; max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 640px; justify-items: start; }
+  & .head + * { margin-top: var(--mx-space-10); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-text); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.8vw, var(--mx-text-5xl));
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+  }
+  & .lead { max-width: 52ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-text); }
+
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-3 { grid-column-end: span 3; }
+  & .stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mx-space-2);
+    padding-top: var(--mx-space-5);
+    border-top: calc(var(--mx-stroke) * 2) solid var(--mx-color-text);
+  }
+  & .value {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-3xl), 4.4vw, var(--mx-text-6xl));
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  & .label { font-size: var(--mx-text-sm); line-height: 1.45; font-weight: 500; color: var(--mx-color-text); }
+
+  @media (max-width: 1080px) {
+    & .grid { column-gap: var(--mx-space-5); }
+    & .grid > .col-3 { grid-column: auto / span 6; }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .scrim { background: linear-gradient(180deg, color-mix(in oklab, var(--mx-color-bg) 92%, transparent), color-mix(in oklab, var(--mx-color-bg) 80%, transparent)); }
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .lead { font-size: var(--mx-text-base); }
+    & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
+    & .grid > * { grid-column: auto / span 12; }
+    & .grid > .m-col-6, & .grid > .col-3.m-col-6 { grid-column: auto / span 6; }
+    & .value { font-size: var(--mx-text-3xl); }
+  }
+}

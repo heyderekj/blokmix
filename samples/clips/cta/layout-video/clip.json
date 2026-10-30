@@ -1,0 +1,14 @@
+{
+  "title": "Video backdrop call to action",
+  "layoutPattern": "inset-stage-video-scrim-head-bottom-left",
+  "rhythm": "band",
+  "style": "bold",
+  "density": "airy",
+  "motionNotes": "Copy rises in a 60ms stagger; the placeholder sun drifts slowly. A real video autoplays muted behind an inverse scrim. Reduced motion keeps fades only.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

@@ -2,6 +2,8 @@
   "title": "Founder with collaborators",
   "layoutPattern": "founder-portrait-intro-and-collaborators",
   "rhythm": "split",
+  "style": "editorial",
+  "density": "airy",
   "motionNotes": "No entrance motion: a large portrait beside the founder’s intro, with a quiet row of collaborators.",
   "capture": {
     "path": "/",

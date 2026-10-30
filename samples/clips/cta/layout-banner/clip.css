@@ -63,7 +63,9 @@
     padding: var(--mx-space-6) var(--mx-space-5);
     & .strip { flex-direction: column; align-items: stretch; }
     & .say { flex-direction: column; align-items: flex-start; }
-    & .actions { display: grid; grid-template-columns: 1fr 1fr; }
-    & .actions .note { grid-column: 1 / -1; margin-right: 0; }
+    /* Buttons share the row and keep their words on one line; when they don't fit, they stack. */
+    & .actions { display: flex; flex-wrap: wrap; }
+    & .actions .btn { flex: 1 1 auto; white-space: nowrap; }
+    & .actions .note { flex-basis: 100%; margin-right: 0; }
   }
 }

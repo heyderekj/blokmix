@@ -1,0 +1,17 @@
+{
+  "title": "Masonry wall",
+  "layoutPattern": "centered-head-then-css-columns-masonry-caption-chips",
+  "rhythm": "grid",
+  "style": "warm",
+  "density": "dense",
+  "motionNotes": "The head rises and the pictures settle in one after another; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

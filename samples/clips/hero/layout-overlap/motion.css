@@ -1,0 +1,22 @@
+.mx-hero-layout-overlap {
+  & .shot { animation: mx-hero-layout-overlap-reveal calc(var(--mx-motion-duration) * 3) var(--mx-motion-ease) both; }
+  & .panel { animation: mx-hero-layout-overlap-slide calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) 160ms both; }
+  & .glow { animation: mx-hero-layout-overlap-breathe 9s ease-in-out infinite alternate; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .shot, & .panel { animation-name: mx-hero-layout-overlap-fade; }
+    & .glow { animation: none; }
+  }
+}
+@keyframes mx-hero-layout-overlap-reveal {
+  from { opacity: 0; transform: scale(1.03); }
+}
+@keyframes mx-hero-layout-overlap-slide {
+  from { opacity: 0; transform: translateX(-24px); }
+}
+@keyframes mx-hero-layout-overlap-breathe {
+  to { opacity: 0.45; }
+}
+@keyframes mx-hero-layout-overlap-fade {
+  from { opacity: 0; }
+}

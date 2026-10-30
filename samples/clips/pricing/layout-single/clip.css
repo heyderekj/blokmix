@@ -127,13 +127,13 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-4);
-    & .container { grid-template-columns: 1fr; gap: var(--mx-space-8); }
+    & .container { grid-template-columns: minmax(0, 1fr); gap: var(--mx-space-8); }
     & .heading { font-size: clamp(var(--mx-text-2xl), 8vw, var(--mx-text-3xl)); }
     & .lead { font-size: var(--mx-text-base); }
     & .footnote { margin-top: var(--mx-space-5); }
     & .card { padding: var(--mx-space-6); gap: var(--mx-space-6); }
     & .pricing { padding-bottom: var(--mx-space-6); }
-    & .amt { font-size: var(--mx-text-5xl); }
+    & .amt { font-size: min(var(--mx-text-5xl), 17vw); }
     & .feats { grid-template-columns: 1fr; }
   }
 }

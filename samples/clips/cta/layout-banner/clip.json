@@ -2,6 +2,8 @@
   "title": "Slim banner",
   "layoutPattern": "one-line-strip-copy-left-actions-right",
   "rhythm": "band",
+  "style": "minimal",
+  "density": "balanced",
   "motionNotes": "No entrance motion: a slim strip that should sit quietly between sections. Buttons press in on tap.",
   "capture": {
     "path": "/",

@@ -2,6 +2,8 @@
   "title": "Centred rows",
   "layoutPattern": "centred-brand-link-rows-legal",
   "rhythm": "centered",
+  "style": "minimal",
+  "density": "balanced",
   "motionNotes": "No entrance. Links take the accent on hover.",
   "capture": {
     "path": "/",

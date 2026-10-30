@@ -4,8 +4,10 @@ import type {
   Clip,
   Conflict,
   GuideState,
+  Library,
   Provenance,
   ResolvedGuide,
+  Source,
   TokenGroup,
   TokenKey,
   TokenSet,
@@ -19,6 +21,43 @@ export function emptyGuide(): GuideState {
 
 export function candidateId(clipId: string, group: TokenGroup): string {
   return `${clipId}#${group}`
+}
+
+/**
+ * A whole source's look (a site from the site library) as candidates: ids `src:<sourceId>#<group>`, with
+ * `clipId` `src:<sourceId>`. The source joins `library.sources` when it's loaded, so names resolve.
+ */
+export const SOURCE_PREFIX = 'src:'
+
+/** The source a candidate's values came from: its clip's source, or the source itself for `src:` candidates. */
+export function candidateSource(lib: Pick<Library, 'clips' | 'sources'>, candidateId: string): Source | null {
+  const head = candidateId.split('#')[0]
+  if (head.startsWith(SOURCE_PREFIX)) return lib.sources[head.slice(SOURCE_PREFIX.length)] ?? null
+  const clip = lib.clips[head]
+  return clip ? (lib.sources[clip.sourceId] ?? null) : null
+}
+
+/** A readable name for a candidate's origin, even when its source isn't loaded (a site from another session). */
+export function candidateSourceName(lib: Pick<Library, 'clips' | 'sources'>, candidateId: string): string {
+  const src = candidateSource(lib, candidateId)
+  if (src) return src.name
+  const head = candidateId.split('#')[0]
+  if (head.startsWith(`${SOURCE_PREFIX}site:`)) return head.slice(`${SOURCE_PREFIX}site:`.length).replace(/[-_]/g, ' ').replace(/^./, (c) => c.toUpperCase())
+  return head
+}
+
+/** Add (or refresh) candidates for the given groups of a source's own tokens (a site's whole look). */
+export function promoteSource(state: GuideState, source: Pick<Source, 'id' | 'tokens'>, groups: TokenGroup[], now = Date.now()): GuideState {
+  let candidates = [...state.candidates]
+  const clipId = `${SOURCE_PREFIX}${source.id}`
+  groups.forEach((group, i) => {
+    const id = candidateId(clipId, group)
+    const values: Partial<TokenSet> = {}
+    for (const key of keysInGroup(group)) if (source.tokens[key] != null) values[key] = source.tokens[key]
+    candidates = candidates.filter((c) => c.id !== id)
+    candidates.push({ id, clipId, group, values, promotedAt: now + i })
+  })
+  return { ...state, candidates }
 }
 
 /**

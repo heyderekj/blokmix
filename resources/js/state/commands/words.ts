@@ -48,7 +48,9 @@ export const write = {
         ? { op: i.op, listId: list.id }
         : i.op === 'move'
           ? { op: 'move', itemId: item(), to: (i.to ?? 1) - 1 }
-          : { op: i.op, itemId: item() }
+          : i.op === 'swap'
+            ? { op: 'swap', itemId: item(), withId: items[(i.to ?? 0) - 1]?.id ?? '' }
+            : { op: i.op, itemId: item() }
     putSlot(changeList(slot, change))
     const live = findSection(slot.id)
     return { list: list.label, items: itemsOf(live, list.id).map((b, n) => ({ position: n + 1, block: b.id, label: b.label })), content: contentJson(outlineOf(live), wordsFor(live)) }

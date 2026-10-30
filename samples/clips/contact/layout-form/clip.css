@@ -102,6 +102,6 @@
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .lead { font-size: var(--mx-text-base); }
     & .form { padding: var(--mx-space-6) var(--mx-space-5); }
-    & .grid.fields { gap: var(--mx-space-5); }
+    & .grid.fields { gap: var(--mx-space-5) var(--mx-space-4); }
   }
 }

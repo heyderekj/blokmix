@@ -1,0 +1,14 @@
+{
+  "title": "Video testimonials",
+  "layoutPattern": "testimonial-video-cards-3up",
+  "rhythm": "grid",
+  "style": "bold",
+  "density": "balanced",
+  "motionNotes": "Header rises, then the three video cards follow in a short stagger; the play button grows slightly on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

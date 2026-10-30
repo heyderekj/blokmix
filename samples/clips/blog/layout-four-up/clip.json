@@ -2,6 +2,8 @@
   "title": "Four compact cards",
   "layoutPattern": "centred-head-four-cards-button-below",
   "rhythm": "grid",
+  "style": "minimal",
+  "density": "balanced",
   "motionNotes": "No entrance. Cards lift with a soft shadow on hover. On phones each card becomes a row with a small square picture.",
   "capture": {
     "path": "/",

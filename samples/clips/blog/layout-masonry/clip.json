@@ -1,0 +1,14 @@
+{
+  "title": "Masonry posts",
+  "layoutPattern": "blog-masonry-columns",
+  "rhythm": "grid",
+  "style": "warm",
+  "density": "dense",
+  "motionNotes": "Header rises, then the post cards fade up in a short stagger.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

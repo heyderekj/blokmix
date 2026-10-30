@@ -1,0 +1,18 @@
+.mx-pricing-layout-products {
+  & .head > *, & .product { animation: mx-pricing-layout-products-rise calc(var(--mx-motion-duration) * 1.6) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 50ms; }
+  & .head > :nth-child(3) { animation-delay: 100ms; }
+  & .product { animation-delay: 160ms; }
+  & .product:nth-child(2) { animation-delay: 220ms; }
+  & .product:nth-child(n + 3) { animation-delay: 280ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .product { animation-name: mx-pricing-layout-products-fade; }
+  }
+}
+@keyframes mx-pricing-layout-products-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes mx-pricing-layout-products-fade {
+  from { opacity: 0; }
+}

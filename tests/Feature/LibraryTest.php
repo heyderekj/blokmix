@@ -124,6 +124,52 @@ class LibraryTest extends TestCase
         $this->upload($this->siteJson(['effects' => ['glow' => ['params' => ['size' => ['a' => ['b' => 1]]]]]]))->assertUnprocessable()->assertJsonValidationErrors(['site.effects.glow.params.size']);
     }
 
+    /** @param array<string, string> $entries name → bytes */
+    private function zip(array $entries): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'bundle').'.zip';
+        $zip = new \ZipArchive;
+        $zip->open($path, \ZipArchive::CREATE);
+        foreach ($entries as $name => $bytes) {
+            $zip->addFromString($name, $bytes);
+        }
+        $zip->close();
+
+        return new UploadedFile($path, 'bundle.zip', 'application/zip', null, true);
+    }
+
+    private function png(): string
+    {
+        $file = UploadedFile::fake()->image('x.png', 20, 10); // kept alive: its temp file goes with it
+
+        return (string) file_get_contents($file->getRealPath());
+    }
+
+    public function test_a_long_page_uploads_as_one_zip(): void
+    {
+        // More screenshots than PHP takes as separate files in one request.
+        $json = $this->siteJson();
+        $json['pages'][0]['sections'] = array_map(fn ($i) => ['type' => 'features', 'box' => ['y' => $i * 100, 'h' => 100], 'screenshot' => "home-{$i}.png"], range(0, 24));
+        $entries = ['thumb.png' => $this->png(), 'home.png' => $this->png()];
+        foreach (range(0, 24) as $i) {
+            $entries["home-{$i}.png"] = $this->png();
+        }
+        $this->actingAs($this->owner())->post('/api/library/sites', [
+            'site' => UploadedFile::fake()->createWithContent('site.json', json_encode($json)),
+            'bundle' => $this->zip($entries),
+        ], ['Accept' => 'application/json'])->assertCreated()->assertJsonCount(25, 'pages.0.sections');
+        $this->assertSame(27, LibraryAsset::count());
+    }
+
+    public function test_a_zip_holds_only_flat_screenshot_names(): void
+    {
+        $this->actingAs($this->owner())->post('/api/library/sites', [
+            'site' => UploadedFile::fake()->createWithContent('site.json', json_encode($this->siteJson())),
+            'bundle' => $this->zip(['thumb.png' => $this->png(), 'home.png' => $this->png(), '../home-0.png' => $this->png()]),
+        ], ['Accept' => 'application/json'])->assertUnprocessable()->assertJsonValidationErrors('bundle');
+        $this->assertSame(0, LibraryAsset::count());
+    }
+
     public function test_only_owners_upload(): void
     {
         $this->actingAs(User::factory()->create())->upload($this->siteJson())->assertForbidden();

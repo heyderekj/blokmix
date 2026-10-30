@@ -2,6 +2,8 @@
   "title": "Scrolling row of quotes",
   "layoutPattern": "scroll-snap-quote-row",
   "rhythm": "grid",
+  "style": "playful",
+  "density": "balanced",
   "motionNotes": "No entrance motion: the row scrolls and snaps card by card on its own.",
   "capture": {
     "path": "/",

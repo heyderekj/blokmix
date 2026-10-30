@@ -1,0 +1,16 @@
+{
+  "title": "Perks over columns",
+  "layoutPattern": "row-of-four-icon-perks-over-brand-link-columns-and-email-signup-with-socials",
+  "rhythm": "stack",
+  "style": "warm",
+  "density": "balanced",
+  "status": "draft",
+  "inspiredBy": { "site": "Aesop", "url": "https://aesop.com/" },
+  "motionNotes": "The four perks rise in turn; the rest of the footer is still. The email track takes an accent ring while you type; links and social buttons brighten on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

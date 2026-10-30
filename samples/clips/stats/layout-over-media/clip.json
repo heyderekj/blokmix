@@ -1,0 +1,14 @@
+{
+  "title": "Stats over an image",
+  "layoutPattern": "stats-band-over-media",
+  "rhythm": "band",
+  "style": "bold",
+  "density": "balanced",
+  "motionNotes": "The picture settles from a slight zoom while the head and then each stat rise in a stagger.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

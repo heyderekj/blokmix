@@ -1,0 +1,24 @@
+.mx-logos-layout-slider {
+  &:has(#mx-logos-layout-slider-p1:checked) .cell:nth-child(-n + 4),
+  &:has(#mx-logos-layout-slider-p2:checked) .cell:nth-child(n + 5) {
+    animation: mx-logos-layout-slider-in 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  &:has(#mx-logos-layout-slider-p2:checked) .cell:nth-child(n + 5) { animation-name: mx-logos-layout-slider-in-next; }
+  & .cell:nth-child(4n + 2) { animation-delay: 40ms; }
+  & .cell:nth-child(4n + 3) { animation-delay: 80ms; }
+  & .cell:nth-child(4n + 4) { animation-delay: 120ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .cell { animation-name: mx-logos-layout-slider-fade; }
+    &:has(#mx-logos-layout-slider-p2:checked) .cell:nth-child(n + 5) { animation-name: mx-logos-layout-slider-fade; }
+  }
+}
+@keyframes mx-logos-layout-slider-in {
+  from { opacity: 0; transform: translateX(-16px); }
+}
+@keyframes mx-logos-layout-slider-in-next {
+  from { opacity: 0; transform: translateX(16px); }
+}
+@keyframes mx-logos-layout-slider-fade {
+  from { opacity: 0; }
+}

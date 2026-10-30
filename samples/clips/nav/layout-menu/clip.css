@@ -109,8 +109,9 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-5);
-    & .brand { font-size: var(--mx-text-base); }
-    & .bar > .btn { padding-inline: var(--mx-space-4); }
+    /* The brand gives way first (its name wraps), so the button and toggle stay on the bar's row. */
+    & .brand { font-size: var(--mx-text-base); flex: 1 1 0; min-width: 0; }
+    & .bar > .btn { padding-inline: var(--mx-space-4); white-space: nowrap; }
     & .links { padding-top: var(--mx-space-6); }
   }
 }

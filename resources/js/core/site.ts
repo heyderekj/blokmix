@@ -5,13 +5,13 @@
 
 import type { Page, SectionType, Site, Slot } from './types'
 
-/** "/About us/" → "/about-us"; "" and "home" → "/". */
+/** "/About us/" → "/about-us"; "" and "home" → "/". A collection's template page keeps its [slug]. */
 export function normalizePath(p: string): string {
   const parts = p
     .trim()
     .toLowerCase()
     .split('/')
-    .map((x) => x.replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, ''))
+    .map((x) => (/^\[[a-z0-9-]+\]$/.test(x) ? x : x.replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '')))
     .filter(Boolean)
   if (!parts.length || (parts.length === 1 && (parts[0] === 'home' || parts[0] === 'index'))) return '/'
   return `/${parts.join('/')}`

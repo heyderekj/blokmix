@@ -89,16 +89,24 @@ class MixController extends Controller
         return redirect()->route('mixes.show', $mix, 301);
     }
 
-    /** A new, blank mix you own; the board fills it in on first save. */
+    /** A new mix you own; the board fills in whatever it doesn't bring on first save. */
     public function store(Request $request): RedirectResponse
     {
-        // A new mix can start from a style guide (a saved one, or another mix's); it keeps its own copy.
-        $request->validate(['guide' => ['nullable', 'array'], 'guide.base' => ['required_with:guide', 'array']]);
+        // A new mix can start from a style guide (a saved one, or another mix's), or from a starter mix's pages and
+        // guide; it keeps its own copy.
+        $request->validate([
+            'guide' => ['nullable', 'array'],
+            'guide.base' => ['required_with:guide', 'array'],
+            'site' => ['nullable', 'array'],
+            'site.pages' => ['required_with:site', 'array', 'min:1'],
+            'name' => ['nullable', 'string', 'max:120'],
+        ]);
         if ($why = $request->user()->mixRefusal()) {
             return back()->withErrors(['mix' => $why]);
         }
-        $guide = $request->input('guide'); // as sent: validate() keeps only the keys that have rules
-        $mix = Mix::create(['name' => 'Untitled mix', 'data' => $guide ? ['guide' => $guide] : null]);
+        // as sent: validate() keeps only the keys that have rules
+        $data = array_filter(['guide' => $request->input('guide'), 'site' => $request->input('site')]);
+        $mix = Mix::create(['name' => trim((string) $request->input('name')) ?: 'Untitled mix', 'data' => $data ?: null]);
         $mix->admit($request->user(), MixRole::Owner);
 
         return redirect()->route('mixes.show', $mix);

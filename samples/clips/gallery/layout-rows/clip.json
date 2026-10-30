@@ -1,0 +1,17 @@
+{
+  "title": "Editorial rows",
+  "layoutPattern": "head-then-alternating-wide-image-and-caption-column-rows",
+  "rhythm": "split",
+  "style": "editorial",
+  "density": "airy",
+  "motionNotes": "The head rises; each row’s picture fades in and its caption column rises just after. Reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

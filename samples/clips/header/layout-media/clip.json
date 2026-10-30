@@ -2,6 +2,8 @@
   "title": "Centred with wide cover",
   "layoutPattern": "centered-head-cinematic-image-below",
   "rhythm": "stack",
+  "style": "editorial",
+  "density": "airy",
   "motionNotes": "No entrance motion: the cover image carries the page. The button presses in on tap.",
   "capture": {
     "path": "/",

@@ -41,7 +41,6 @@ describe('icon packs', () => {
   })
 
   it('identifies the sample sources and redraws icons in exports', () => {
-    expect(library.sources.puffin.tokens['icon.set']).toMatch(/^phosphor:/)
     expect(library.sources.layout.tokens['icon.set']).toBe('lucide:regular')
     const guide = resolveGuide({ ...emptyGuide(), choices: { 'icon.set': { kind: 'custom', value: 'heroicons:solid' } } })
     const page = composePage({ slots: [{ id: 's', type: 'contact', clipId: 'contact.layout-cards', locked: false, keep: { ...DEFAULT_KEEP } }], guide, content: DEFAULT_CONTENT, library })

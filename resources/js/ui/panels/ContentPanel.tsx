@@ -9,6 +9,7 @@ import { currentWords, wordChoices } from '@/core/words'
 import { slotClip } from '@/data/library'
 import { useStore, currentSlots } from '@/state/store'
 import { PanelSection } from './parts'
+import { CollectionsPanel } from './collections/CollectionsPanel'
 
 const WORD: Record<string, string> = {
   q: 'Question',
@@ -38,6 +39,31 @@ export function wordLabel(key: string): string {
  * export writes to src/content/<section>.json.
  */
 export function ContentPanel() {
+  const view = useStore((s) => s.ui.contentView)
+  return (
+    <div>
+      <div className="flex px-3 pt-3" role="tablist">
+        <div className="flex rounded-full bg-chip p-0.5">
+          {(['words', 'collections'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={view === v}
+              onClick={() => useStore.getState().setUi({ contentView: v })}
+              className={`h-7 cursor-pointer rounded-full px-3 text-[12px] font-semibold transition ${view === v ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+            >
+              {v === 'words' ? 'This page' : 'Collections'}
+            </button>
+          ))}
+        </div>
+      </div>
+      {view === 'words' ? <PageWords /> : <CollectionsPanel />}
+    </div>
+  )
+}
+
+function PageWords() {
   const slots = useStore(currentSlots)
   const brand = useStore((s) => s.content.brand)
   const st = useStore.getState

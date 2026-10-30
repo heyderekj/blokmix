@@ -1,0 +1,52 @@
+{
+  "name": "Software with pricing",
+  "description": "A bold software site: product hero, features, numbers, and a pricing page with a comparison table.",
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#f2f2ee",
+    "color.text": "#000000",
+    "color.muted": "#555555",
+    "color.border": "#000000",
+    "color.primary": "#ffe600",
+    "color.onPrimary": "#000000",
+    "color.accent": "#ff3b00",
+    "font.display": "'Archivo Black', 'Arial Black', sans-serif",
+    "font.body": "'Space Mono', ui-monospace, monospace",
+    "font.mono": "'Space Mono', ui-monospace, monospace",
+    "type.base": "15px",
+    "type.ratio": "1.5",
+    "type.displayWeight": "400",
+    "radius.base": "0px",
+    "stroke.width": "2px",
+    "shadow.card": "6px 6px 0 #000000",
+    "space.base": "4px",
+    "space.section": "80px",
+    "motion.duration": "140ms",
+    "motion.ease": "cubic-bezier(0, 0, 1, 1)"
+  },
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-menu",
+        "hero.layout-logos",
+        "features.layout-grid",
+        "stats.layout-big",
+        "testimonials.layout-big",
+        "cta.layout-big",
+        "footer.layout-inverse"
+      ]
+    },
+    {
+      "path": "/pricing",
+      "title": "Pricing",
+      "sections": [
+        "header.layout-rule",
+        "pricing.layout-packages",
+        "pricing.layout-table",
+        "faq.layout-band"
+      ]
+    }
+  ]
+}

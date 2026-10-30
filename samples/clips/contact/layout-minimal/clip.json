@@ -2,6 +2,8 @@
   "title": "One line with the email",
   "layoutPattern": "heading-and-large-email-link",
   "rhythm": "split",
+  "style": "minimal",
+  "density": "airy",
   "motionNotes": "No entrance motion; the arrow nudges up and right on hover.",
   "capture": {
     "path": "/",

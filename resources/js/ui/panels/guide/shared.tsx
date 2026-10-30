@@ -1,6 +1,6 @@
 import type { Candidate, TokenGroup, TokenKey, TokenSet } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
-import { groupWinner, openGroups } from '@/core/guide'
+import { candidateSourceName, groupWinner, openGroups } from '@/core/guide'
 import { keysInGroup, primaryFamily } from '@/core/tokens'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
@@ -17,7 +17,7 @@ export function useGuideData() {
   return { guide, tokens: guide.tokens, state, open, candidates, winner, decided }
 }
 
-export const sourceName = (c: Candidate) => library.sources[library.clips[c.clipId]?.sourceId]?.name ?? c.clipId
+export const sourceName = (c: Candidate) => candidateSourceName(library, c.id)
 
 /** The guide with one candidate's values for its group laid over it: what choosing it would look like. */
 export const withCandidate = (tokens: TokenSet, c: Candidate | null | undefined): TokenSet => (c ? ({ ...tokens, ...c.values } as TokenSet) : tokens)

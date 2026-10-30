@@ -77,7 +77,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-4);
     & .bar {
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       grid-template-areas: "brand cta" "links links";
       row-gap: var(--mx-space-2);
     }

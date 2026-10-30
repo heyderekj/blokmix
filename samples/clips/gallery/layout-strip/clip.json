@@ -1,0 +1,16 @@
+{
+  "title": "Category strip",
+  "layoutPattern": "centered-head-over-one-row-of-small-labelled-picture-tiles",
+  "rhythm": "stack",
+  "style": "minimal",
+  "density": "balanced",
+  "status": "draft",
+  "inspiredBy": { "site": "Aesop", "url": "https://aesop.com/" },
+  "motionNotes": "The head rises, then the tiles follow left to right; reduced motion keeps only the fades. Tiles lift slightly on hover; on phones the row scrolls sideways.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

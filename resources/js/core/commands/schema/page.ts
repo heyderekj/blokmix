@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DIAL_NAMES } from '../../dials'
 import { SECTION_TYPES, TOKEN_KEYS } from '../../types'
 import { section, block } from './shared'
 import { page } from './site'
@@ -71,13 +72,13 @@ export const PAGE_COMMANDS = {
   },
   edit_list: {
     description:
-      'Change a list’s items (features, questions, plans, logos…): add one (it copies the first item’s structure), duplicate, remove or move an item, or reset to the layout’s own items.',
+      'Change a list’s items (features, questions, plans, logos…): add one (it copies the first item’s structure), duplicate, remove or move an item, swap two items (they trade places, nothing else moves), or reset to the layout’s own items.',
     input: z.object({
       section,
       list: z.string().describe('The list: its block id, label or name ("questions") from get_content'),
-      op: z.enum(['add', 'duplicate', 'remove', 'move', 'reset']),
-      item: z.number().int().min(1).optional().describe('Which item, 1 = first (duplicate, remove, move)'),
-      to: z.number().int().min(1).optional().describe('Move: the new position, 1 = first'),
+      op: z.enum(['add', 'duplicate', 'remove', 'move', 'swap', 'reset']),
+      item: z.number().int().min(1).optional().describe('Which item, 1 = first (duplicate, remove, move, swap)'),
+      to: z.number().int().min(1).optional().describe('Move: the new position; swap: the other item’s position (1 = first)'),
     }),
     write: true,
   },
@@ -105,6 +106,17 @@ export const PAGE_COMMANDS = {
   set_token: {
     description: 'Set a style guide token to your own value (e.g. color.primary "#e2508d", font.display "Satoshi" or a full stack, radius.base "12px"), or null to go back to automatic. Fonts from list_fonts load by themselves, in the canvas and in exports.',
     input: z.object({ key: z.enum(TOKEN_KEYS), value: z.string().nullable() }),
+    write: true,
+  },
+  set_dial: {
+    description:
+      'Tune the style guide by feel, 0–100: spacing (tight → airy: space unit and section padding), type (small → large: base size and scale ratio), roundness (square → round: radius), weight (light → heavy: display weight and line weight). get_page shows where each sits.',
+    input: z.object({ dial: z.enum(DIAL_NAMES), value: z.number().min(0).max(100) }),
+    write: true,
+  },
+  set_tone: {
+    description: 'Make the style guide light or dark: background and text trade places and the surface, border and muted colors follow. Accent stays.',
+    input: z.object({ tone: z.enum(['light', 'dark']) }),
     write: true,
   },
   add_brand_colour: {

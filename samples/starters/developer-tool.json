@@ -1,0 +1,44 @@
+{
+  "name": "Developer tool (dark)",
+  "description": "A dark, technical page for a developer product: terminal-style hero, how it works, usage pricing and docs-like questions.",
+  "tokens": {
+    "color.bg": "#0b0d0e",
+    "color.surface": "#14181a",
+    "color.text": "#e8f0ec",
+    "color.muted": "#8a9a93",
+    "color.border": "#252d30",
+    "color.primary": "#3dff8f",
+    "color.onPrimary": "#04140b",
+    "color.accent": "#7cc7ff",
+    "font.display": "'Inter', system-ui, sans-serif",
+    "font.body": "'Inter', system-ui, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "15px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "600",
+    "radius.base": "10px",
+    "stroke.width": "1px",
+    "shadow.card": "0 0 0 1px #252d30, 0 20px 40px #00000066",
+    "space.base": "4px",
+    "space.section": "96px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.2, 0.8, 0.2, 1)"
+  },
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-cells",
+        "hero.layout-media-below",
+        "logos.layout-inline",
+        "features.layout-tabs",
+        "content.layout-steps",
+        "stats.layout-bars",
+        "pricing.layout-table",
+        "faq.layout-columns",
+        "footer.layout-columns"
+      ]
+    }
+  ]
+}

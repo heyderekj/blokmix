@@ -2,6 +2,8 @@
   "title": "Photo backdrop",
   "layoutPattern": "full-bleed-image-copy-bottom-left",
   "rhythm": "band",
+  "style": "bold",
+  "density": "airy",
   "motionNotes": "The photograph settles in from a slight zoom while the copy rises in a short stagger over the scrim; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

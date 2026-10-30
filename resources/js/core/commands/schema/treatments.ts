@@ -34,7 +34,7 @@ export const TREATMENT_COMMANDS = {
   },
   set_section_backdrop: {
     description:
-      'Put a backdrop behind a section (a gradient, mesh, grain, pattern or glow), from a preset and/or dials, or null for as clipped. inverse: true flips the section to the primary color. Keep text readable over it; review checks contrast.',
+      'Put a backdrop behind a section (a gradient, mesh, grain, pattern or glow), from a preset and/or dials, or null for as clipped. It draws in the section’s surface colors (set_section_surface flips them). Keep text readable over it; review checks contrast.',
     input: z.object({ section, backdrop: z.enum(BACKDROP_IDS).nullable(), preset: preset.optional(), params: params.optional(), seed: seed.optional() }),
     write: true,
   },

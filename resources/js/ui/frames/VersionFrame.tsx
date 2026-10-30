@@ -1,4 +1,5 @@
 import { uploadData } from '@/lib/assets'
+import { bindContextFor, useCollections } from '@/state/collections'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { Bot, Copy, Eye, Link2, Package, Shuffle, Trash2 } from 'lucide-react'
@@ -39,6 +40,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
   const pages = v.snapshot.site.pages
   const [pageId, setPageId] = useState(pages[0]?.id)
   const shown = pages.find((x) => x.id === pageId) ?? pages[0]
+  const collections = useCollections((s) => s.bySlug)
   const srcdoc = useMemo(() => {
     const page = composeSite({
       site: mapSlots(v.snapshot.site, (s) => (library.clips[s.clipId] ? s : null)),
@@ -48,9 +50,10 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
       slotNotes: v.snapshot.slotNotes,
       page: v.snapshot.guide,
       uploads: uploadData,
+      bind: bindContextFor(v.snapshot.site, collections),
     })
     return referenceHtml(page, { vh: VIEWPORT_VH[viewport], tagSlots: true, pageId: shown?.id })
-  }, [v.snapshot, viewport, shown?.id])
+  }, [v.snapshot, viewport, shown?.id, collections])
 
   // An agent's build shows its preview as soon as it reports one, even while it keeps working.
   const live = v.build?.previewUrl

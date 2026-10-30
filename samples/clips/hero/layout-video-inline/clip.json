@@ -1,0 +1,14 @@
+{
+  "title": "Video in a window",
+  "layoutPattern": "centered-copy-video-player-below",
+  "rhythm": "centered",
+  "style": "technical",
+  "density": "balanced",
+  "motionNotes": "Copy rises in a tight stagger, then the framed player lifts into place and its play button settles in last. Reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

@@ -2,6 +2,8 @@
   "title": "Stat row with hairlines",
   "layoutPattern": "stat-row-4up",
   "rhythm": "band",
+  "style": "minimal",
+  "density": "airy",
   "motionNotes": "Header rises, the hairlines fade in, then each figure lifts into place left to right.",
   "capture": {
     "path": "/",

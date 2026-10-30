@@ -1,4 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { entryTitle, sortedEntries } from '@/core/collections'
+import { templateEntry, useCollections } from '@/state/collections'
 import { Eye, Plus } from 'lucide-react'
 import { MixMark } from '../brand/MixMark'
 import { snapshotKey } from '@/core/versions'
@@ -54,6 +57,7 @@ export function MixFrame() {
           title={site.pages.length > 1 ? `Working mix · ${page.title}` : 'Working mix'}
           meta={`${site.pages.length > 1 ? `${page.path} · ` : ''}${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} sections`}
         />
+        {page.template && <EntrySwitcher pageId={page.id} collection={page.template.collection} />}
         <span className="@max-[220px]:hidden">
         <HeaderButton
           icon={Eye}
@@ -190,5 +194,34 @@ function HiddenShared({ kind, pageId }: { kind: 'nav' | 'footer'; pageId: string
         </button>
       </div>
     </div>
+  )
+}
+
+/** A collection's template page previews one entry at a time: step through them here. */
+function EntrySwitcher({ pageId, collection }: { pageId: string; collection: string }) {
+  const c = useCollections((s) => s.bySlug[collection])
+  const picked = useStore((s) => s.ui.previewEntry)
+  const shown = templateEntry({ id: pageId, template: { collection } }, picked, c ? { [collection]: c } : {})
+  if (!c || !shown) return <span className="shrink-0 rounded-full bg-zinc-950/5 px-2 py-1 text-[11.5px] text-zinc-500">No entries in {c?.name ?? collection}</span>
+  const list = sortedEntries(c)
+  const at = list.findIndex((e) => e.id === shown.entry.id)
+  const go = (d: 1 | -1) => {
+    const next = list[(at + d + list.length) % list.length]
+    useStore.getState().setUi({ previewEntry: { ...picked, [pageId]: next.id } })
+  }
+  const btn = 'grid size-7 cursor-pointer place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]'
+  return (
+    <span className="flex min-w-0 shrink items-center rounded-full bg-key-soft/60 pl-0.5 pr-0.5" title={`Previewing /${c.slug}/${shown.entry.slug}`}>
+      <button type="button" aria-label="Previous entry" onClick={() => go(-1)} className={btn}>
+        <ChevronLeft size={14} />
+      </button>
+      <span className="max-w-[180px] truncate px-1 text-[12px] font-semibold text-key-ink">{entryTitle(c, shown.entry)}</span>
+      <span className="pr-1 text-[11px] tabular-nums text-key-ink/60">
+        {at + 1}/{list.length}
+      </span>
+      <button type="button" aria-label="Next entry" onClick={() => go(1)} className={btn}>
+        <ChevronRight size={14} />
+      </button>
+    </span>
   )
 }

@@ -2,6 +2,8 @@
   "title": "Text with media",
   "layoutPattern": "split-text-media",
   "rhythm": "split",
+  "style": "bold",
+  "density": "balanced",
   "motionNotes": "Text rises in a stagger while the media frame scales in; the quote callout lands last.",
   "capture": {
     "path": "/",

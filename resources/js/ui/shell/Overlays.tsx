@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { undoCollections } from '@/state/collections'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore, undo } from '@/state/store'
 
@@ -28,7 +29,8 @@ export function Flash() {
               <button
                 type="button"
                 onClick={() => {
-                  undo()
+                  if (shown.undo === 'collections') undoCollections()
+                  else undo()
                   setShown(null)
                 }}
                 className="rounded-full px-3 py-1 text-sm font-semibold text-key transition hover:bg-white/10 active:scale-[0.97] night:text-[color-mix(in_srgb,var(--key),black_40%)]"

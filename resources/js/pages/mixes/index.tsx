@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { Copy, CloudUpload, Library, MessageSquare, Palette, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react'
+import { ArrowLeft, Copy, CloudUpload, Library, MessageSquare, Palette, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react'
 import { readMixFile } from '@/lib/mixFile'
 import { importClips } from '@/lib/userClips'
 import { pickFile } from '@/lib/pickFile'
@@ -15,6 +15,9 @@ import { StatusRing } from '@/ui/frames/FrameHeader'
 import { MixThumb } from '@/ui/mixes/MixThumb'
 import { resolveGuide } from '@/core/guide'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
+import { library, starters } from '@/data/library'
+import { buildStarter, type Starter } from '@/core/starters'
+import { listSites, loadSite, mixFromSitePage, planClip, type LibraryPage, type LibrarySite, type LibrarySiteSummary } from '@/lib/siteLibrary'
 
 interface SavedMix {
   id: string
@@ -333,7 +336,8 @@ const CARD =
   'group/card relative flex h-full flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_24px_48px_-28px_rgb(23_18_26/0.3)] transition-[translate,box-shadow,scale] duration-200 active:scale-[0.99] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_30px_56px_-26px_rgb(23_18_26/0.4)]'
 
 /** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It starts a mix in the
- * neutral style; "Start from a style guide" starts one from a saved guide or another mix's (the new mix keeps its own copy). */
+ * neutral style; "Start from…" starts one from a starter mix (its pages and sample style guide), a saved guide or another
+ * mix's (the new mix keeps its own copy). */
 function NewMix({ mixes, full, onRefused }: { mixes: SavedMix[]; full: boolean; onRefused: (why: string) => void }) {
   const [picking, setPicking] = useState(false)
   const [saved, setSaved] = useState<SavedGuide[] | null>(null)
@@ -343,6 +347,17 @@ function NewMix({ mixes, full, onRefused }: { mixes: SavedMix[]; full: boolean; 
   const start = (guide?: GuideState) => {
     if (full) return onRefused(MIX_FULL)
     router.post('/mixes', guide ? { guide: guide as unknown as Record<string, string> } : {}, { onError: (e) => e.mix && onRefused(e.mix) })
+  }
+  const startStarter = (starter: Starter) => {
+    if (full) return onRefused(MIX_FULL)
+    const { mixName, site, guide } = buildStarter(library, starter)
+    router.post('/mixes', { name: mixName, site, guide } as unknown as Record<string, string>, { onError: (e) => e.mix && onRefused(e.mix) })
+  }
+  const startSite = (site: LibrarySite, page: LibraryPage) => {
+    if (full) return onRefused(MIX_FULL)
+    const { mixName, site: built, guide } = mixFromSitePage(library, site, page)
+    if (!built.pages[0].slots.length && !built.shared.nav && !built.shared.footer) return onRefused(`${site.name} ${page.path} has no sections with a layout yet`)
+    router.post('/mixes', { name: mixName, site: built, guide } as unknown as Record<string, string>, { onError: (e) => e.mix && onRefused(e.mix) })
   }
   const styled = mixes.filter((m) => m.guide && Object.keys(m.guide.base ?? {}).length)
 
@@ -356,6 +371,12 @@ function NewMix({ mixes, full, onRefused }: { mixes: SavedMix[]; full: boolean; 
           </button>
         </div>
         <ul className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+          <SitePicker onPick={startSite} />
+          {starters.length > 0 && <PickHeading>Starter mixes</PickHeading>}
+          {starters.map((s) => (
+            <StarterRow key={s.id} starter={s} onPick={() => startStarter(s)} />
+          ))}
+          <PickHeading>Style guides</PickHeading>
           <GuideRow name="Neutral" note="Blokmix’s plain starting style" onPick={() => start()} />
           {saved === null ? (
             <li className="px-2 py-2 text-[12px] text-zinc-400">Loading your style guides…</li>
@@ -387,9 +408,111 @@ function NewMix({ mixes, full, onRefused }: { mixes: SavedMix[]; full: boolean; 
         onClick={() => setPicking(true)}
         className="absolute bottom-4 left-1/2 flex h-8 -translate-x-1/2 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[12.5px] font-medium text-[#6B5F68] transition-[background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-[#17121A] active:scale-[0.97]"
       >
-        <Palette size={14} /> Start from a style guide
+        <Palette size={14} /> Start from…
       </button>}
     </div>
+  )
+}
+
+/** "Start from a site": a library site's page, as its matched layouts under the site's look (never its words or pictures). */
+function SitePicker({ onPick }: { onPick: (site: LibrarySite, page: LibraryPage) => void }) {
+  const [sites, setSites] = useState<LibrarySiteSummary[] | null>(null)
+  const [open, setOpen] = useState<LibrarySite | null>(null)
+  const [loading, setLoading] = useState<string | null>(null)
+  useEffect(() => {
+    listSites().then(setSites, () => setSites([]))
+  }, [])
+  if (!sites?.length) return null
+  if (open)
+    return (
+      <>
+        <li className="flex items-center gap-1 px-1 pb-1 pt-0.5">
+          <button type="button" onClick={() => setOpen(null)} aria-label="All sites" className="grid size-6 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.97]">
+            <ArrowLeft size={13} />
+          </button>
+          <span className="truncate text-[11px] font-semibold uppercase tracking-wide text-[#6B5F68]/70">{open.name}: pick a page</span>
+        </li>
+        {[...open.pages]
+          .sort((a, b) => a.order - b.order)
+          .map((p) => {
+            const n = planClip(library, p, 'all').slots.length
+            return (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  disabled={!n}
+                  onClick={() => onPick(open, p)}
+                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-[background-color,scale] duration-150 hover:bg-zinc-950/[0.04] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13.5px] font-semibold text-[#17121A]">
+                      {p.title} <span className="font-normal text-[#6B5F68]">{p.path}</span>
+                    </span>
+                    <span className="block truncate text-[11.5px] text-[#6B5F68]">{n ? `${n} ${n === 1 ? 'layout' : 'layouts'} in its order, in its style` : 'No layouts matched yet'}</span>
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+      </>
+    )
+  return (
+    <>
+      <PickHeading>Start from a site</PickHeading>
+      {sites.map((s) => (
+        <li key={s.slug}>
+          <button
+            type="button"
+            onClick={async () => {
+              setLoading(s.slug)
+              const site = await loadSite(s.slug, library).catch(() => null)
+              setLoading(null)
+              if (site) setOpen(site)
+            }}
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-[background-color,scale] duration-150 hover:bg-zinc-950/[0.04] active:scale-[0.98]"
+          >
+            <span className="flex h-7 w-12 shrink-0 overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]">
+              {['bg', 'text', 'primary', 'accent'].map((k) => (
+                <i key={k} className="flex-1" style={{ background: s.palette?.[k] ?? '#e4e4e7' }} />
+              ))}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13.5px] font-semibold text-[#17121A]">{s.name}</span>
+              <span className="block truncate text-[11.5px] text-[#6B5F68]">{loading === s.slug ? 'Opening…' : [s.industry, `${s.matched} layouts matched`].filter(Boolean).join(' · ')}</span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </>
+  )
+}
+
+function PickHeading({ children }: { children: string }) {
+  return <li className="px-2 pb-1 pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-[#6B5F68]/70 first:pt-0.5">{children}</li>
+}
+
+/** A starter mix to start from: its first page drawn small in its own style guide, its name and what it holds. */
+function StarterRow({ starter, onPick }: { starter: Starter; onPick: () => void }) {
+  const { site, guide } = useMemo(() => buildStarter(library, starter), [starter])
+  const sections = useMemo(
+    () => [site.shared.nav?.type, ...site.pages[0].slots.map((s) => s.type), site.shared.footer?.type].filter(Boolean) as SectionType[],
+    [site],
+  )
+  const font = resolveGuide(guide).tokens['font.display']
+  return (
+    <li>
+      <button type="button" onClick={onPick} className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-[background-color,scale] duration-150 hover:bg-zinc-950/[0.04] active:scale-[0.98]">
+        <span className="h-10 w-12 shrink-0 overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]">
+          <MixThumb sections={sections} guide={guide} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[13.5px] font-semibold text-[#17121A]" style={{ fontFamily: font }}>
+            {starter.name}
+          </span>
+          <span className="line-clamp-2 text-[11.5px] leading-snug text-[#6B5F68]">{starter.description}</span>
+        </span>
+      </button>
+    </li>
   )
 }
 

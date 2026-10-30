@@ -1,0 +1,14 @@
+{
+  "title": "Bento hero",
+  "layoutPattern": "bento-intro-cell-with-media-and-proof",
+  "rhythm": "grid",
+  "style": "minimal",
+  "density": "dense",
+  "motionNotes": "Each cell rises and settles in a quick stagger, the intro first. Reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

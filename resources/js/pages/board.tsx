@@ -5,6 +5,7 @@ import { World } from '@/ui/canvas/World'
 import { TopBar } from '@/ui/shell/TopBar'
 import { Lightbox } from '@/ui/shell/Lightbox'
 import { Dock } from '@/ui/shell/Dock'
+import { SiteLibrary } from '@/ui/library/SiteLibrary'
 import { Flash, HelpOverlay } from '@/ui/shell/Overlays'
 import { useShortcuts } from '@/hooks/useShortcuts'
 
@@ -31,6 +32,7 @@ export default function Board() {
       <TopBar onHelp={toggleHelp} />
       <Dock />
       <Lightbox />
+      <SiteLibrary />
       <Flash />
       <HelpOverlay open={help} onClose={() => setHelp(false)} />
     </div>

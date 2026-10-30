@@ -1,0 +1,14 @@
+{
+  "title": "Sticky story with numbered steps",
+  "layoutPattern": "scrolling-steps-left-sticky-media-right",
+  "rhythm": "split",
+  "style": "editorial",
+  "density": "airy",
+  "motionNotes": "The head rises in a short stagger, the picture settles in and the steps follow one after another; the note in the picture floats gently. The picture is pinned with position: sticky only, no scroll-driven animation; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

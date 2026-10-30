@@ -3,7 +3,7 @@
 // before block looks). Colors are palette roles, so they re-theme live.
 
 import type { TokenSet } from '../types'
-import { clampParams, mixHex, cssColor, hexColor, n2, rng, tint, type ColorValue, type ParamSpecs, type ParamValues, type Preset, type TreatmentValue } from './params'
+import { clampParams, cssColor, hexColor, n2, rng, tint, type ColorValue, type ParamSpecs, type ParamValues, type Preset, type TreatmentValue } from './params'
 import { contourPaths, grainSvg, noise2, svgUrl } from './noise'
 import { gradientCss } from './effects'
 
@@ -25,7 +25,6 @@ const color = (label: string, d: ColorValue) => ({ kind: 'color', label, default
 const COMMON: ParamSpecs = {
   fill: { kind: 'toggle', label: 'Fill behind', default: false },
   base: color('Behind', 'surface'),
-  inverse: { kind: 'toggle', label: 'Inverse', default: false },
 }
 
 export const BACKDROPS: Record<BackdropId, Backdrop> = {
@@ -241,7 +240,7 @@ function veil(p: ParamValues): string {
   return s >= 100 ? 'none' : `linear-gradient(${tint('surface', 100 - s)}, ${tint('surface', 100 - s)})`
 }
 
-/** Every backdrop's dials, its own plus the common ones (fill behind, inverse). */
+/** Every backdrop's dials, its own plus the common ones (fill behind). Flipping a section's colors is its surface (core/surface.ts). */
 export function backdropParams(id: BackdropId): ParamSpecs {
   return { ...BACKDROPS[id].params, ...COMMON }
 }
@@ -250,32 +249,14 @@ export function isBackdropId(id: string): id is BackdropId {
   return (BACKDROP_IDS as readonly string[]).includes(id)
 }
 
-/**
- * A section's backdrop as declarations for its root. Inverse flips the section's
- * palette to the primary color (the way .band.inverse does), with hex values so
- * the swap can't refer to itself.
- */
+/** A section's backdrop as declarations for its root (drawn in the section's surface colors). */
 export function backdropDecls(v: TreatmentValue | undefined, tokens: TokenSet): Record<string, string> {
   if (!v || !isBackdropId(v.id)) return {}
   const b = BACKDROPS[v.id]
   const p = clampParams(backdropParams(v.id), v.params)
   const out = b.render(p, tokens, v.seed ?? 1)
   const decl: Record<string, string> = {}
-  if (p.inverse) {
-    const pr = tokens['color.primary']
-    const on = tokens['color.onPrimary']
-    Object.assign(decl, {
-      '--mx-color-bg': pr,
-      '--mx-color-surface': mixHex(on, pr, 0.08),
-      '--mx-color-text': on,
-      '--mx-color-muted': mixHex(on, pr, 0.72),
-      '--mx-color-border': mixHex(on, pr, 0.22),
-      '--mx-color-primary': on,
-      '--mx-color-on-primary': pr,
-      'background-color': pr,
-      color: on,
-    })
-  } else if (p.fill) decl['background-color'] = cssColor(p.base as string)
+  if (p.fill) decl['background-color'] = cssColor(p.base as string)
   const kept = out.image.map((x, i) => [x, i] as const).filter(([x]) => x !== 'none')
   if (kept.length) {
     const list = (xs: string[] | undefined, d: string) => kept.map(([, i]) => xs?.[i] ?? d).join(', ')
