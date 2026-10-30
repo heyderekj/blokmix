@@ -2,15 +2,19 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { isHosted } from '@/lib/host'
 import { xsrf } from '@/lib/http'
 import { ImagePlus, Search, Shuffle, Trash2, Upload } from 'lucide-react'
-import type { BlockInfo, MediaFill, MediaPlay, PlaceholderStyle, StockPhoto } from '@/core/types'
+import type { BlockInfo, MediaFill, MediaPlay, PlaceholderStyle, StockPhoto, TokenSet } from '@/core/types'
 import { PLACEHOLDER_STYLES } from '@/core/types'
 import { PLACEHOLDER_LABEL, detectLink, embedPoster, parseUnsplash, placeholderSvg, svgDataUri, unsplashSearchUrl } from '@/core/media'
+import { MOCK_BASE_CSS, isFillId, mockRender, mockSources, treatmentInfo, type TreatmentValue } from '@/core/treatments'
 import { useResolvedGuide } from '@/state/derived'
+import { useStore } from '@/state/store'
+import { DialPanel } from '../dials/DialPanel'
+import { effectVarsStyle } from '../dials/EffectsTile'
 import { addFile, addImage, removeAsset, useAssets, type Asset } from '@/lib/assets'
 import { Steps } from './Spacing'
 import { Switch } from '../panels/parts'
 
-type Tab = 'placeholder' | 'upload' | 'link' | 'stock'
+type Tab = 'placeholder' | 'mock' | 'upload' | 'link' | 'stock'
 
 const tabOf = (f?: MediaFill): Tab =>
   !f ? 'placeholder' : f.source === 'embed' || (f.link && !f.asset) ? 'link' : f.source === 'video' || f.source === 'lottie' || f.source === 'upload' ? 'upload' : f.source
@@ -36,27 +40,28 @@ export function ImageMenu({
   const set = (m: Partial<MediaFill>) => onPick({ ...(fill ?? { source: 'placeholder' }), ...m } as MediaFill)
 
   return (
-    <div className="glass-menu w-[352px] animate-pop rounded-2xl p-2">
+    <div className="glass-menu thin-scroll max-h-[min(640px,80vh)] w-[368px] animate-pop overflow-y-auto rounded-2xl p-2">
       <div className="mb-2 flex rounded-full bg-chip p-0.5">
-        {(['placeholder', 'upload', 'link', 'stock'] as const).map((t) => (
+        {(['placeholder', 'mock', 'upload', 'link', 'stock'] as const).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
             className={`h-7 flex-1 rounded-full text-[12px] font-semibold transition ${tab === t ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
           >
-            {t === 'placeholder' ? 'Placeholder' : t === 'upload' ? 'Upload' : t === 'link' ? 'Link' : 'Stock'}
+            {t === 'placeholder' ? 'Art' : t === 'mock' ? 'Mockup' : t === 'upload' ? 'Upload' : t === 'link' ? 'Link' : 'Stock'}
             {fill && tabOf(fill) === t && <span className="ml-1 inline-block size-1.5 rounded-full bg-key align-middle" />}
           </button>
         ))}
       </div>
 
       {tab === 'placeholder' && <Placeholders block={block} fill={fill} onHover={onHover} onPick={onPick} />}
+      {tab === 'mock' && <Mockups block={block} fill={fill} onHover={onHover} onPick={onPick} />}
       {tab === 'upload' && <Uploads fill={fill} onHover={onHover} onPick={onPick} />}
       {tab === 'link' && <LinkTab fill={fill} onPick={onPick} />}
       {tab === 'stock' && <Stock block={block} fill={fill} onHover={onHover} onPick={onPick} />}
       {fill && (fill.source === 'video' || fill.source === 'lottie' || fill.source === 'embed') && <Playback fill={fill} set={set} />}
-      {fill && fill.source !== 'video' && fill.source !== 'lottie' && fill.source !== 'embed' && (
+      {fill && fill.source !== 'video' && fill.source !== 'lottie' && fill.source !== 'embed' && fill.source !== 'mock' && (
         <div className="mt-2 flex items-center justify-between px-1 text-[12px] text-zinc-600">
           Opens larger in a lightbox
           <Switch on={!!fill.lightbox} onChange={() => set({ lightbox: !fill.lightbox || undefined })} label="Lightbox" />
@@ -102,40 +107,122 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
   const tokens = useResolvedGuide().tokens
   const [seed, setSeed] = useState(fill?.source === 'placeholder' ? (fill.seed ?? 1) : 1)
   const styles = useMemo(() => {
+    const simple = PLACEHOLDER_STYLES.filter((s) => !isFillId(s))
     // Portraits first for avatars and people; scenes first elsewhere.
     const people = /avatar|portrait|photo|member/i.test(block.media ?? '') || block.ratio === '1/1'
-    return people ? (['portrait', ...PLACEHOLDER_STYLES.filter((s) => s !== 'portrait')] as PlaceholderStyle[]) : [...PLACEHOLDER_STYLES]
+    return { simple: people ? (['portrait', ...simple.filter((s) => s !== 'portrait')] as PlaceholderStyle[]) : simple, generative: PLACEHOLDER_STYLES.filter(isFillId) as PlaceholderStyle[] }
   }, [block])
-  const make = (style: PlaceholderStyle): MediaFill => ({ source: 'placeholder', style, seed, alt: fill?.source === 'placeholder' ? fill.alt : undefined, fit: fill?.fit })
+  const make = (style: PlaceholderStyle): MediaFill => ({
+    source: 'placeholder',
+    style,
+    seed,
+    params: fill?.source === 'placeholder' && fill.style === style ? fill.params : undefined,
+    alt: fill?.source === 'placeholder' ? fill.alt : undefined,
+    fit: fill?.fit,
+  })
+  const current = fill?.source === 'placeholder' && fill.style && isFillId(fill.style) ? fill : null
+  const info = current ? treatmentInfo('fill', current.style!) : undefined
+  const tile = (style: PlaceholderStyle) => {
+    const on = fill?.source === 'placeholder' && fill.style === style
+    return (
+      <button key={style} type="button" onMouseEnter={() => onHover(make(style))} onClick={() => onPick(make(style))} className="group flex flex-col gap-1 text-left active:scale-[0.97]">
+        <img
+          alt=""
+          src={svgDataUri(placeholderSvg(style, seed, tokens, '4/3', on ? fill?.params : undefined))}
+          className={`aspect-[4/3] w-full rounded-lg object-cover transition ${on ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/10 group-hover:ring-zinc-950/30'}`}
+        />
+        <span className={`truncate px-0.5 text-[11px] ${on ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{PLACEHOLDER_LABEL[style]}</span>
+      </button>
+    )
+  }
   return (
     <div>
       <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>
-        {styles.map((style) => {
-          const on = fill?.source === 'placeholder' && fill.style === style
+        {styles.simple.map(tile)}
+      </div>
+      <div className="mb-1.5 mt-3 px-0.5 text-[11px] font-semibold text-zinc-400">Generative, with dials</div>
+      <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>
+        {styles.generative.map(tile)}
+      </div>
+      {current && info ? (
+        <div className="mt-2.5 rounded-xl bg-white/60 p-2.5 shadow-[0_0_0_1px_rgb(0_0_0/0.05)]">
+          <DialPanel
+            info={info}
+            value={{ id: current.style!, params: current.params, seed: current.seed ?? 1 }}
+            tokens={tokens}
+            onPreview={(v) => onHover(v ? { ...current, params: v.params, seed: v.seed } : null)}
+            onCommit={(v) => {
+              setSeed(v.seed ?? seed)
+              onPick({ ...current, params: v.params, seed: v.seed })
+            }}
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            const next = seed + 1
+            setSeed(next)
+            if (fill?.source === 'placeholder') onPick({ ...fill, seed: next })
+          }}
+          className="mt-1.5 flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold text-zinc-600 hover:bg-zinc-950/5"
+        >
+          <Shuffle size={12} /> Shuffle
+        </button>
+      )}
+      <p className="px-1 pt-1 text-[11px] leading-snug text-zinc-400">Drawn from your palette, so they change with your style guide.</p>
+    </div>
+  )
+}
+
+/** A mockup drawn small, with the page's tokens and effects. */
+function MockThumb({ id, params, seed, tokens }: { id: string; params?: TreatmentValue['params']; seed: number; tokens: TokenSet }) {
+  const effects = useStore((s) => s.guide.effects)
+  const style = useMemo(() => effectVarsStyle(tokens, effects), [tokens, effects])
+  const m = useMemo(() => mockRender(id, params, seed, tokens), [id, params, seed, tokens])
+  if (!m) return null
+  // The markup and CSS are Blokmix's own (samples/mocks), never anyone else's.
+  return (
+    <span className="relative block aspect-[4/3] w-full overflow-hidden rounded-lg" style={{ ...style, background: tokens['color.surface'] }}>
+      <style>{`${MOCK_BASE_CSS}\n${m.css}`}</style>
+      <span className="pointer-events-none absolute inset-0" dangerouslySetInnerHTML={{ __html: m.html }} />
+    </span>
+  )
+}
+
+function Mockups({ fill, onHover, onPick }: { block: BlockInfo; fill?: MediaFill; onHover: (m: MediaFill | null) => void; onPick: (m: MediaFill) => void }) {
+  const tokens = useResolvedGuide().tokens
+  const current = fill?.source === 'mock' ? fill : null
+  const seed = current?.seed ?? 1
+  const make = (id: string): MediaFill => ({ source: 'mock', mock: id, seed, params: current?.mock === id ? current.params : undefined, alt: fill?.alt })
+  const info = current?.mock ? treatmentInfo('mock', current.mock) : undefined
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-1.5" onMouseLeave={() => onHover(null)}>
+        {mockSources().map((m) => {
+          const on = current?.mock === m.id
           return (
-            <button key={style} type="button" onMouseEnter={() => onHover(make(style))} onClick={() => onPick(make(style))} className="group flex flex-col gap-1 text-left active:scale-[0.97]">
-              <img
-                alt=""
-                src={svgDataUri(placeholderSvg(style, seed, tokens, block.ratio))}
-                className={`aspect-[4/3] w-full rounded-lg object-cover transition ${on ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/10 group-hover:ring-zinc-950/30'}`}
-              />
-              <span className={`px-0.5 text-[11px] ${on ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{PLACEHOLDER_LABEL[style]}</span>
+            <button key={m.id} type="button" title={m.hint} onMouseEnter={() => onHover(make(m.id))} onClick={() => onPick(make(m.id))} className="group flex flex-col gap-1 text-left active:scale-[0.97]">
+              <span className={`block rounded-lg transition ${on ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/10 group-hover:ring-zinc-950/30'}`}>
+                <MockThumb id={m.id} params={on ? current?.params : undefined} seed={seed} tokens={tokens} />
+              </span>
+              <span className={`truncate px-0.5 text-[11px] ${on ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{m.label}</span>
             </button>
           )
         })}
       </div>
-      <button
-        type="button"
-        onClick={() => {
-          const next = seed + 1
-          setSeed(next)
-          if (fill?.source === 'placeholder') onPick({ ...fill, seed: next })
-        }}
-        className="mt-1.5 flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold text-zinc-600 hover:bg-zinc-950/5"
-      >
-        <Shuffle size={12} /> Shuffle
-      </button>
-      <p className="px-1 pt-1 text-[11px] leading-snug text-zinc-400">Drawn from your palette, so they change with your style guide.</p>
+      {current && info && (
+        <div className="mt-2.5 rounded-xl bg-white/60 p-2.5 shadow-[0_0_0_1px_rgb(0_0_0/0.05)]">
+          <DialPanel
+            info={info}
+            value={{ id: current.mock!, params: current.params, seed }}
+            tokens={tokens}
+            onPreview={(v) => onHover(v ? { ...current, params: v.params, seed: v.seed } : null)}
+            onCommit={(v) => onPick({ ...current, params: v.params, seed: v.seed })}
+          />
+        </div>
+      )}
+      <p className="px-1 pt-2 text-[11px] leading-snug text-zinc-400">A screen drawn in your fonts and colors, exported as real HTML. Swap in a screenshot before launch, or keep it as an illustration.</p>
     </div>
   )
 }

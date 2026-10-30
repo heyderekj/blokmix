@@ -1,0 +1,9 @@
+{
+  "label": "Soft glass",
+  "hint": "Frosted panels, floating shadows and a quiet brand gradient",
+  "effects": {
+    "shadow": { "id": "shadow", "params": { "elevation": 30, "softness": 90, "layers": 5, "opacity": 20, "tighten": 35 } },
+    "glass": { "id": "glass", "params": { "blur": 20, "fill": 55, "edge": 75 } },
+    "gradient": { "id": "gradient", "params": { "stops": ["primary", "accent"], "angle": 135 } }
+  }
+}

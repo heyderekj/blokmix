@@ -93,7 +93,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
       id: 'gradient',
       label: 'Gradient',
       hint: 'Your primary flowing into your accent; for a launch or hero',
-      css: `${BUTTON_BASE} background: linear-gradient(120deg, ${fill('var(--mx-color-primary)')}, var(--mx-color-accent)); color: ${ink('var(--mx-color-on-primary)')}; border: var(--mx-stroke) solid transparent; border-radius: ${radius('var(--mx-radius)')}; box-shadow: ${shadow('none')}; ${press}
+      css: `${BUTTON_BASE} background: var(--mx-gradient, linear-gradient(120deg, ${fill('var(--mx-color-primary)')}, var(--mx-color-accent))); color: ${ink('var(--mx-color-on-primary)')}; border: var(--mx-stroke) solid transparent; border-radius: ${radius('var(--mx-radius)')}; box-shadow: ${shadow('none')}; ${press}
   &:hover { box-shadow: 0 6px 20px -6px color-mix(in oklab, var(--mx-color-accent) 60%, transparent); }`,
     },
     {
@@ -153,7 +153,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
       id: 'gradient',
       label: 'Gradient',
       hint: 'Primary into accent: a launch strip with some color',
-      css: `background: linear-gradient(90deg, ${fill('var(--mx-color-primary)')}, var(--mx-color-accent)); color: ${ink('var(--mx-color-on-primary)')}; --mx-color-primary: var(--mx-color-on-primary); border-block-end: 0;`,
+      css: `background: var(--mx-gradient, linear-gradient(90deg, ${fill('var(--mx-color-primary)')}, var(--mx-color-accent))); color: ${ink('var(--mx-color-on-primary)')}; --mx-color-primary: var(--mx-color-on-primary); border-block-end: 0;`,
     },
     {
       id: 'mono',
@@ -183,7 +183,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
       id: 'gradient',
       label: 'Gradient',
       hint: 'Your primary flowing into your accent',
-      css: `background: linear-gradient(100deg, ${fill('var(--mx-color-primary)')}, var(--mx-color-accent)); -webkit-background-clip: text; background-clip: text; color: transparent;`,
+      css: `background: var(--mx-gradient, linear-gradient(100deg, ${fill('var(--mx-color-primary)')}, var(--mx-color-accent))); -webkit-background-clip: text; background-clip: text; color: transparent;`,
     },
     {
       id: 'marker',
@@ -219,7 +219,9 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'bordered', label: 'Bordered', hint: 'Calm structure for dense grids', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: ${shadow('none')};` },
     { id: 'raised', label: 'Raised', hint: 'Lifts off the page; one level of depth', css: `${CARD_BASE} background: ${fill('var(--mx-color-surface)')}; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-border) 50%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
     { id: 'tinted', label: 'Tinted', hint: 'A wash of your primary', css: `${CARD_BASE} background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 9%, var(--mx-color-bg)); border: var(--mx-stroke) solid color-mix(in oklab, ${fill('var(--mx-color-primary)')} 18%, transparent); box-shadow: ${shadow('none')};` },
-    { id: 'glass', label: 'Glass', hint: 'Frosted, over color or imagery', css: `${CARD_BASE} background: color-mix(in oklab, var(--mx-color-bg) 62%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-bg) 70%, transparent); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
+    { id: 'glass', label: 'Glass', hint: 'Frosted, over color or imagery', css: `${CARD_BASE} background: var(--mx-glass-fill, color-mix(in oklab, var(--mx-color-bg) 62%, transparent)); -webkit-backdrop-filter: var(--mx-glass-blur, blur(16px) saturate(1.4)); backdrop-filter: var(--mx-glass-blur, blur(16px) saturate(1.4)); border: var(--mx-stroke) solid var(--mx-glass-edge, color-mix(in oklab, var(--mx-color-bg) 70%, transparent)); box-shadow: ${shadow('var(--mx-shadow-card)')};` },
+    { id: 'grain', label: 'Grain', hint: 'A filled card with the style guide’s film grain', css: `${CARD_BASE} background: var(--mx-grain, none) repeat 0 0 / 180px 180px, ${fill('var(--mx-color-surface)')}; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-border) 60%, transparent);` },
+    { id: 'glow', label: 'Glow', hint: 'A colored halo from the style guide’s glow', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-accent) 40%, var(--mx-color-border)); box-shadow: ${shadow('var(--mx-glow, 0 0 28px 3px color-mix(in oklab, var(--mx-color-accent) 45%, transparent))')};` },
     { id: 'offset', label: 'Offset', hint: 'A hard shadow: bold and graphic', css: `${CARD_BASE} background: ${fill('var(--mx-color-bg)')}; border: calc(var(--mx-stroke) * 2) solid var(--mx-color-text); box-shadow: 6px 6px 0 var(--mx-color-text);` },
     // Words inside follow the flip: muted text and borders are re-pointed at the primary's own ink.
     { id: 'inverse', label: 'Inverse', hint: 'Filled with your primary: the one card that leads', css: `${CARD_BASE} background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')}; --mx-color-text: ${ink('var(--mx-color-on-primary)')}; --mx-color-muted: color-mix(in oklab, ${ink('var(--mx-color-on-primary)')} 72%, transparent); --mx-color-border: color-mix(in oklab, ${ink('var(--mx-color-on-primary)')} 22%, transparent); border: var(--mx-stroke) solid transparent; box-shadow: ${shadow('none')};` },

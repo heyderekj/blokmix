@@ -13,6 +13,7 @@ import { BANNER_CSS, BANNER_MOTION, bannerMoves } from './banner'
 import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
+import { BACKDROPS, MOCK_BASE_CSS, backdropCss, describeParams, effectsVars, isBackdropId, backdropParams, type TreatmentValue } from './treatments'
 
 export interface ComposedSection {
   slotId: string
@@ -43,6 +44,8 @@ export interface ComposedSection {
   blocks: { id: string; label: string; kind: string; edit: BlockEdit }[]
   /** The section's motion choice (absent = as clipped). */
   motion?: SectionMotion
+  /** What's behind the section, in words (absent = as clipped). */
+  backdrop?: { value: TreatmentValue; label: string; description: string }
   /** Pictures in its image blocks. */
   media: ComposedMedia[]
   retained: string[]
@@ -68,6 +71,10 @@ export interface ComposedMedia {
   inline: string
   alt: string
   credit: string | null
+  /** Mockups: their markup and CSS (they're HTML, not a file). */
+  html: string | null
+  css: string | null
+  mock: string | null
 }
 
 export interface ComposedPage {
@@ -98,8 +105,8 @@ export interface ComposeInput {
   library: Library
   slotNotes?: Record<string, string[]>
   title?: string
-  /** Extra brand colors and page-wide block looks from the style guide. */
-  page?: Pick<GuideState, 'swatches' | 'components'>
+  /** Extra brand colors, page-wide block looks and effects from the style guide. */
+  page?: Pick<GuideState, 'swatches' | 'components' | 'effects'>
   /** Uploaded images by asset id (data URLs), from the browser's asset store. */
   uploads?: (id: string) => UploadData | undefined
   /** Keep each block's data-mx-b in the markup, so the page can be measured block by block (lib/measure.ts). */
@@ -164,8 +171,9 @@ export function composePage(input: ComposeInput): ComposedPage {
     const staggered = preset?.stagger ? clip.blocks.filter((b) => !b.parent || clip.blocks.find((x) => x.id === b.parent)?.kind === 'list').map((b) => b.id) : []
     const changedIds = new Set([...changed.map((x) => x.b.id), ...staggered])
     let order = 0
-    // Section spacing, on desktop or only on phones (spacing.mobile), needs the root class too.
-    const spaced = !!sectionSpacingCss(slot.spacing, 'x') || !!preset
+    // Section spacing, on desktop or only on phones (spacing.mobile), and a backdrop need the root class too.
+    const backdrop = slot.backdrop && isBackdropId(slot.backdrop.id) ? slot.backdrop : undefined
+    const spaced = !!sectionSpacingCss(slot.spacing, 'x') || !!preset || !!backdrop
     const addClass = (el: HEl, cls: string): HEl => ({
       ...el,
       attrs: el.attrs.some(([k]) => k === 'class') ? el.attrs.map(([k, v]) => (k === 'class' ? [k, `${v} ${cls}`] : [k, v])) : [...el.attrs, ['class', cls]],
@@ -182,7 +190,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       let poster = r.poster
       if (fill.source === 'placeholder') {
         src = `/${base}.svg`
-        mediaFiles[`${base}.svg`] = placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, input.guide.tokens, b.ratio)
+        mediaFiles[`${base}.svg`] = placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, input.guide.tokens, b.ratio, fill.params)
       } else if (fill.source === 'upload') {
         const file = dataUrlBytes(r.src)
         if (file) {
@@ -220,6 +228,9 @@ export function composePage(input: ComposeInput): ComposedPage {
         lightbox: !!r.lightbox,
         alt: r.alt,
         credit: fill.source === 'stock' && fill.stock ? stockCredit(fill.stock) : null,
+        html: r.html ?? null,
+        css: r.css ?? null,
+        mock: fill.source === 'mock' ? (fill.mock ?? null) : null,
       })
     }
     const mediaFor = new Map(media.map((m) => [m.blockId, m]))
@@ -259,6 +270,8 @@ export function composePage(input: ComposeInput): ComposedPage {
       components: input.page?.components,
       select: (b) => `.${clip.rootClass}.${blockClass(b.id)}, .${clip.rootClass} .${blockClass(b.id)}`,
     }) + (spaced ? `\n${sectionSpacingCss(slot.spacing, `.${clip.rootClass}.mx-${key}${position + 1}`)}` : '')
+    const mocks = media.filter((m) => m.kind === 'mock' && m.css)
+    const mockCss = mocks.length ? `@layer blocks {\n${indent([MOCK_BASE_CSS.trim(), ...new Set(mocks.map((m) => m.css!))].join('\n'))}\n}` : ''
     const mediaCss = media
       .map((m) => {
         const sel = `.${clip.rootClass} .${blockClass(m.blockId)}`
@@ -268,6 +281,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       })
       .join('\n')
     const rootSel = `.${clip.rootClass}.mx-${key}${position + 1}`
+    const behind = backdrop ? backdropCss(backdrop, slot.keep.style ? clip.tokens : input.guide.tokens, rootSel) : ''
     const generated = presetMotionCss({
       blocks: clip.blocks,
       edits: (b) => effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]),
@@ -295,7 +309,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const motionCss = [captured, generated && `/* Motion presets */\n${generated}`, bannerMotion].filter(Boolean).join('\n\n') || null
     // Layers keep the cascade simple: a block's look always beats the clip's own CSS.
     // The order is repeated in each file so it holds whichever stylesheet a bundler loads first.
-    css = `${LAYER_ORDER}\n\n@layer clip {\n${indent(css)}\n}${blocksCss ? `\n\n/* Blocks you restyled */\n${blocksCss}` : ''}${mediaCss ? `\n\n/* Pictures */\n${mediaCss}` : ''}`
+    css = `${LAYER_ORDER}\n\n@layer clip {\n${indent(css)}\n}${behind ? `\n\n/* Backdrop */\n${behind}` : ''}${blocksCss ? `\n\n/* Blocks you restyled */\n${blocksCss}` : ''}${mediaCss ? `\n\n/* Pictures */\n${mediaCss}` : ''}${mockCss ? `\n\n/* Mockups */\n${mockCss}` : ''}`
     // An added banner brings its own CSS, in tokens; it scrolls unless the section's motion is off.
     if (clip.extras?.banner) css += `\n\n/* Banner you added */\n${BANNER_CSS}`
 
@@ -327,6 +341,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       localVars,
       blocks: changed.map(({ b, edit }) => ({ id: b.id, label: b.label, kind: b.kind, edit })),
       motion: slot.motion,
+      backdrop: backdrop ? { value: backdrop, label: BACKDROPS[backdrop.id as keyof typeof BACKDROPS].label, description: describeParams(backdropParams(backdrop.id as keyof typeof BACKDROPS), backdrop.params) } : undefined,
       media,
       retained: slot.keep.content ? [] : retained,
       notes: input.slotNotes?.[slot.id] ?? [],
@@ -339,11 +354,13 @@ export function composePage(input: ComposeInput): ComposedPage {
     vars: {
       ...expandTokens(input.guide.tokens),
       ...Object.fromEntries((input.page?.swatches ?? []).map((w) => [`--mx-color-x-${slug(w.name)}`, w.value])),
+      // Effects after the tokens: the shadow effect is the card shadow.
+      ...effectsVars(input.page?.effects, input.guide.tokens),
     },
     fonts: [...fonts.values()],
     sections,
     mediaFiles,
-    moving: sections.some((x) => x.media.some((m) => m.kind !== 'image' || m.lightbox)),
+    moving: sections.some((x) => x.media.some((m) => (m.kind !== 'image' && m.kind !== 'mock') || m.lightbox)),
     pages: [...new Set(sections.flatMap((x) => x.links.filter((l) => l.to === 'page').map((l) => l.href)))].sort(),
   }
 }
@@ -431,5 +448,6 @@ function mediaElements(m: ComposedMedia, w: number, h: number): HEl[] {
     const poster = m.poster ? [el('img', [['class', 'mx-media'], ['src', m.poster], ['alt', m.alt], ...size, ['loading', 'lazy'], ['decoding', 'async']])] : []
     return [...poster, el('button', [['type', 'button'], ['class', 'mx-play'], ['data-embed', m.player ?? ''], ['aria-label', m.alt ? `Play video: ${m.alt}` : 'Play video']])]
   }
+  if (m.kind === 'mock' && m.html) return parseHtml(m.html).filter((n): n is HEl => n.t === 'el')
   return [el('img', [['class', 'mx-media'], ['src', m.src], ['alt', m.alt], ...size, ['loading', 'lazy'], ['decoding', 'async']])]
 }

@@ -107,6 +107,23 @@ class LibraryTest extends TestCase
             ->assertJsonPath('pages.0.sections.1.status', 'matched');
     }
 
+    public function test_detected_effects_upload_and_reach_the_board(): void
+    {
+        $json = $this->siteJson(['effects' => [
+            'shadow' => ['params' => ['elevation' => 24, 'tint' => 'primary']],
+            'gradient' => ['id' => 'gradient', 'params' => ['stops' => ['primary', 'accent'], 'angle' => 135]],
+        ]]);
+        $this->actingAs($this->owner())->upload($json)->assertCreated()
+            ->assertJsonPath('effects.shadow', ['id' => 'shadow', 'params' => ['elevation' => 24, 'tint' => 'primary']])
+            ->assertJsonPath('effects.gradient.params.stops', ['primary', 'accent']);
+        LibrarySite::first()->update(['status' => 'published']);
+        $this->getJson('/api/library')->assertJsonPath('0.effects', ['shadow', 'gradient']);
+
+        // Only known effects, and dials that are plain values.
+        $this->upload($this->siteJson(['effects' => ['sparkle' => ['params' => []]]]))->assertUnprocessable()->assertJsonValidationErrors(['site.effects']);
+        $this->upload($this->siteJson(['effects' => ['glow' => ['params' => ['size' => ['a' => ['b' => 1]]]]]]))->assertUnprocessable()->assertJsonValidationErrors(['site.effects.glow.params.size']);
+    }
+
     public function test_only_owners_upload(): void
     {
         $this->actingAs(User::factory()->create())->upload($this->siteJson())->assertForbidden();

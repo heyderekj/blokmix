@@ -120,7 +120,7 @@ describe('block looks', () => {
       page: { components: { badge: { variant: 'dot' } } },
     })
     const s = page.sections[0]
-    expect(s.css).toMatch(/^@layer base, clip, motion, blocks;/)
+    expect(s.css).toMatch(/^@layer base, clip, effects, motion, blocks;/)
     expect(s.css).toContain(`.mx-s1-${btn.id}`)
     expect(s.css).toContain('@layer blocks')
     expect(s.blocks.map((b) => b.kind).sort()).toEqual(['badge', 'button'])

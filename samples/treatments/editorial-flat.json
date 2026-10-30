@@ -1,0 +1,9 @@
+{
+  "label": "Editorial flat",
+  "hint": "No shadows, fine grain, a paper-like gradient",
+  "effects": {
+    "shadow": { "id": "shadow", "params": { "elevation": 0 } },
+    "grain": { "id": "grain", "params": { "amount": 10, "size": 0.7 } },
+    "gradient": { "id": "gradient", "params": { "stops": ["surface", "bg"], "angle": 180 } }
+  }
+}

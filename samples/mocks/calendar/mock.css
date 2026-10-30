@@ -1,0 +1,20 @@
+.mx-mock-calendar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1em 1.1em;
+  gap: 0.6em;
+  & .head { display: flex; justify-content: space-between; align-items: center; }
+  & .head b { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: 1.3em; }
+  & .nav { display: flex; gap: 0.3em; }
+  & .nav i { width: 1.6em; height: 1.6em; border-radius: 50%; border: var(--mx-stroke) solid var(--mx-color-border); }
+  & .days, & .month { display: grid; grid-template-columns: repeat(7, 1fr); }
+  & .days span { font-size: 0.65em; color: var(--mx-color-muted); padding: 0 0.4em; }
+  & .month { flex: 1; grid-auto-rows: 1fr; border-top: var(--mx-stroke) solid var(--mx-color-border); border-left: var(--mx-stroke) solid var(--mx-color-border); }
+  & .month span { display: flex; flex-direction: column; gap: 0.2em; padding: 0.3em 0.4em; font-size: 0.7em; border-right: var(--mx-stroke) solid var(--mx-color-border); border-bottom: var(--mx-stroke) solid var(--mx-color-border); min-width: 0; }
+  & .month .off { color: var(--mx-color-muted); background: var(--mx-color-surface); }
+  & .month .today { color: var(--mx-color-primary); font-weight: 700; }
+  & .ev { font-style: normal; font-size: 0.85em; font-weight: 600; padding: 0.15em 0.4em; border-radius: var(--mx-radius-sm); background: color-mix(in oklab, var(--mx-color-primary) 14%, transparent); color: var(--mx-color-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  & .ev.b { background: color-mix(in oklab, var(--mx-color-accent) 18%, transparent); color: var(--mx-color-text); }
+  & .ev.c { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+}

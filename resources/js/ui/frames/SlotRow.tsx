@@ -50,10 +50,11 @@ export const SlotRow = memo(function SlotRow({ slot, index, count, guide, focuse
   const pBlock = useBlockPreview((s) => s.blockId)
   const pPatch = useBlockPreview((s) => s.patch)
   const pWords = useBlockPreview((s) => s.words)
+  const pBackdrop = useBlockPreview((s) => s.backdrop)
   const editText = useBlockPreview((s) => s.editText)
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
-  const live = useMemo(() => withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords }), [slot, pSlot, pBlock, pPatch, pWords])
+  const live = useMemo(() => withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop }), [slot, pSlot, pBlock, pPatch, pWords, pBackdrop])
   const ids = pickable(library, slot.type)
   const W = VIEW_W[viewport]
 

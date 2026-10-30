@@ -12,6 +12,8 @@ import { useStore, currentSlots } from '@/state/store'
 import { MORPH } from '../shell/Island'
 import { DeviceSwitch, SectionSpacingRows, useDevice } from '../blocks/Spacing'
 import { SectionMotionRows } from '../blocks/MotionMenu'
+import { BackdropPicker } from '../dials/BackdropPicker'
+import { useResolvedGuide } from '@/state/derived'
 
 export const KEEPS: { key: keyof Keep; label: string; icon: typeof Type; on: string; off: string; n: number }[] = [
   { key: 'layout', label: 'Layout', icon: PanelsTopLeft, on: 'The agent reproduces this structure', off: 'Reference only; the agent may restructure it', n: 1 },
@@ -204,6 +206,7 @@ function LookTab({ slot }: { slot: Slot }) {
   const source = library.sources[clip.sourceId]
   const t = clip.tokens
   const guide = useStore((s) => s.guide)
+  const resolved = useResolvedGuide().tokens
   const [groups, setGroups] = useState<TokenGroup[]>(['color', 'type'])
   const promoted = new Set(guide.candidates.filter((c) => c.clipId === clip.id).map((c) => c.group))
   const st = useStore.getState
@@ -273,6 +276,10 @@ function LookTab({ slot }: { slot: Slot }) {
         </button>
       </div>
       {slot.type === 'nav' && <BannerRow slot={slot} />}
+      <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
+        <div className="mb-2 text-[11px] font-semibold text-zinc-400">Backdrop</div>
+        <BackdropPicker slot={slot} tokens={slot.keep.style ? t : resolved} />
+      </div>
       <SpacingGroup slot={slot} />
       <div className="mt-3 border-t border-zinc-950/6 pt-3">
         <div className="mb-2 text-[11px] font-semibold text-zinc-400">Section motion</div>

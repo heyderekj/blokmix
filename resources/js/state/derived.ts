@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { create } from 'zustand'
 import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
+import { backdropCss, effectsVars, type EffectsState, type TreatmentValue } from '@/core/treatments'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { motionCss } from '@/core/motion'
 import { renderMedia } from '@/core/media'
@@ -21,13 +22,22 @@ export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
 
-/** Page-wide block defaults and extra colors, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
-export type PageStyle = Pick<GuideState, 'swatches' | 'components'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
+/** Page-wide block defaults, extra colors and effects, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
+export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
+
+/** Effects you're dialing, shown on every section before you let go. Not undoable state. */
+export const useEffectPreview = create<{ effects: EffectsState | null; set: (effects: EffectsState | null) => void }>()((set) => ({
+  effects: null,
+  set: (effects) => set({ effects }),
+}))
 
 /** Page-wide things a section's frame needs: block defaults, extra colors, and the sections links can lead to. */
 export function usePageStyle(): PageStyle {
   const swatches = useStore((s) => s.guide.swatches)
   const components = useStore((s) => s.guide.components)
+  const saved = useStore((s) => s.guide.effects)
+  const dialing = useEffectPreview((s) => s.effects)
+  const effects = dialing ?? saved
   // Only the site's shape matters to links (pages, paths, which sections where), not every edit.
   const shape = useStore((s) => {
     const { pages, shared } = s.site
@@ -38,9 +48,9 @@ export function usePageStyle(): PageStyle {
     const { site, ui } = useStore.getState()
     const here = site.pages.find((p) => p.id === ui.pageId) ?? site.pages[0]
     const sharedIds = [site.shared.nav?.id, site.shared.footer?.id].filter((x): x is string => !!x)
-    return { swatches, components, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
+    return { swatches, components, effects, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swatches, components, shape])
+  }, [swatches, components, effects, shape])
 }
 
 /** Where one section's links can lead: from its page, or from everywhere for the shared nav and footer. */
@@ -83,7 +93,7 @@ export function fontHrefsFor(tokens: TokenSet): string[] {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   libraryClip: Clip,
-  slot: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner'> & { id?: string }) | null,
+  slot: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner' | 'backdrop'> & { id?: string }) | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
@@ -100,13 +110,14 @@ export function frameStateFor(
   const tokens = slot.keep.style ? clip.tokens : guide
   const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
   return {
-    css: tokensCssFor(tokens, vh) + swatchCss(page?.swatches),
+    // A section keeping its own captured look keeps its own shadows too.
+    css: tokensCssFor(tokens, vh) + swatchCss(page?.swatches) + (slot.keep.style ? '' : effectsCss(page?.effects, tokens)),
     // A motion preset (or None) replaces the clip's own motion.
     motion: slot.keep.motion && (!slot.motion || slot.motion.mode === 'captured'),
     fields: slot.keep.content && !own ? null : resolveFields(clip.type, clip.fields, content, slot.keep.content, own).fields,
     fonts: fontHrefsFor(tokens),
     outline: !slot.keep.layout,
-    blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion), clip.extras?.banner ? bannerMoves(slot) : null),
+    blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, slot.backdrop, tokens), clip.extras?.banner ? bannerMoves(slot) : null),
     media: mediaFor(clip, slot.edits?.[clip.id], tokens),
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? null : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
@@ -167,7 +178,7 @@ function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, toke
   for (const b of clip.blocks) {
     const fill = edits[b.id]?.media
     if (!fill || b.kind !== 'image') continue
-    const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' ? tokens : null])
+    const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' || fill.source === 'mock' ? tokens : null])
     let m = mediaCache.get(key)
     if (!m) {
       m = renderMedia(fill, tokens, b.ratio, uploadData) ?? undefined
@@ -179,6 +190,21 @@ function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, toke
     if (m) out[b.id] = m
   }
   return Object.keys(out).length ? out : NO_MEDIA
+}
+
+const effectsCache = new Map<string, string>()
+/** The style guide's effects, as variables after the tokens (the shadow effect overrides the card shadow). */
+export function effectsCss(effects: EffectsState | undefined, tokens: TokenSet): string {
+  if (!effects || !Object.keys(effects).length) return ''
+  const key = JSON.stringify([effects, tokens])
+  let css = effectsCache.get(key)
+  if (css === undefined) {
+    const vars = effectsVars(effects, tokens)
+    css = Object.keys(vars).length ? `\n${varsToCss(vars)}` : ''
+    if (effectsCache.size > 100) effectsCache.clear()
+    effectsCache.set(key, css)
+  }
+  return css
 }
 
 /** Extra brand colors, as --mx-color-x-<name>. */
@@ -193,8 +219,10 @@ function blocksFor(
   components: GuideState['components'],
   spacing: SectionSpacing | undefined,
   motion: SectionMotion | undefined,
+  backdrop?: TreatmentValue,
+  tokens?: TokenSet,
 ): FrameState['blocks'] {
-  if (!edits && !components && !spacing && motion?.mode !== 'preset') return NO_BLOCKS
+  if (!edits && !components && !spacing && !backdrop && motion?.mode !== 'preset') return NO_BLOCKS
   const variants: Record<string, string> = {}
   for (const b of clip.blocks) {
     const e = effectiveEdit(edits?.[b.id], components?.[b.kind])
@@ -210,7 +238,8 @@ function blocksFor(
     prefix: 'mx-m',
     canvas: true,
   })
-  const css = [blockCss({ blocks: clip.blocks, edits, components, select }), sectionSpacingCss(spacing, '[data-mx-section]'), moving]
+  const behind = backdrop && tokens ? backdropCss(backdrop, tokens, '[data-mx-section]') : ''
+  const css = [behind, blockCss({ blocks: clip.blocks, edits, components, select }), sectionSpacingCss(spacing, '[data-mx-section]'), moving]
     .filter(Boolean)
     .join('\n')
   return css || Object.keys(variants).length ? { css, variants } : NO_BLOCKS

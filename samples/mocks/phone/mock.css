@@ -1,0 +1,29 @@
+.mx-mock-phone {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  height: 100%;
+  padding: 0.8em 1.1em;
+  & .status { display: flex; justify-content: space-between; font-size: 0.7em; font-weight: 600; }
+  & .icons { display: flex; gap: 0.25em; }
+  & .icons i { width: 0.9em; height: 0.55em; border-radius: 0.15em; background: currentColor; }
+  & .hello { display: grid; gap: 0.15em; }
+  & .hello span { font-size: 0.75em; color: var(--mx-color-muted); }
+  & .hello b { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: 1.6em; }
+  & .hero { display: grid; gap: 0.35em; padding: 1em; border-radius: var(--mx-radius-lg); background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & .hero span { font-size: 0.72em; opacity: 0.8; }
+  & .hero b { font-family: var(--mx-font-display); font-size: 1.9em; }
+  & .hero .bar { height: 0.4em; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-on-primary) 25%, transparent); opacity: 1; }
+  & .hero .bar i { display: block; width: 64%; height: 100%; border-radius: inherit; background: var(--mx-color-accent); }
+  & .list { display: grid; gap: 0.2em; flex: 1; align-content: start; }
+  & .list li { display: flex; align-items: center; gap: 0.7em; padding: 0.55em 0; border-bottom: var(--mx-stroke) solid var(--mx-color-border); }
+  & .dot { width: 2em; height: 2em; border-radius: var(--mx-radius); background: color-mix(in oklab, var(--mx-color-primary) 16%, var(--mx-color-surface)); }
+  & .dot.d2 { background: color-mix(in oklab, var(--mx-color-accent) 22%, var(--mx-color-surface)); }
+  & .dot.d3 { background: var(--mx-color-surface); }
+  & .t { flex: 1; display: grid; font-size: 0.78em; }
+  & .t span { color: var(--mx-color-muted); font-size: 0.85em; }
+  & .list em { font-style: normal; font-weight: 600; font-size: 0.8em; }
+  & .tabs { display: flex; justify-content: space-around; padding: 0.7em 0 0.2em; border-top: var(--mx-stroke) solid var(--mx-color-border); }
+  & .tabs i { width: 1.2em; height: 1.2em; border-radius: 0.35em; background: var(--mx-color-muted); opacity: 0.4; }
+  & .tabs i.on { background: var(--mx-color-primary); opacity: 1; }
+}

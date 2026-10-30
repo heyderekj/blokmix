@@ -84,6 +84,7 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   sections only for owners), `/api/library/assets/{ls_id}`. Owners `PATCH` sites (name, industry, tags, status) and
   `sections/{id}` (layout_id, status, type; a layout id matches a section), and `DELETE` a site with its files.
   `/library/admin[/{slug}]` (owners, 404 otherwise; linked from the mixes page) curates over the screenshot.
+  site.json may carry `effects` (Treatments below), validated to the five effect ids.
 - Mixes have members (`mix_members`): owner (shares, deletes), editor (changes anything), viewer (looks and
   leaves marks). Non-members get 404. Share links (`mix_share_links`, `/share/{token}`) add whoever opens them
   with a role (never lowering one); signed-out people sign up first. The Share panel (top bar, hosted only) makes
@@ -264,6 +265,29 @@ Image blocks can also hold moving media: a video, a Lottie (`.lottie`/`.json`) o
 lightbox and a custom thumbnail. `core/export/media-runtime.ts` is the one player for both the canvas frames
 and exports (`public/mx-media.js`); a frame's lightbox opens over the whole app. Reduced motion never autoplays.
 Authored clips still use CSS/SVG art only (rule 5).
+
+### Treatments
+
+The visual layer (`core/treatments/`): parameterized, palette-driven generators tuned with DialKit-style dials
+(`ui/dials/DialPanel.tsx`: presets, scrub-a-label sliders, palette colors, Shuffle/Randomize/Reset; dragging previews,
+letting go is one undo step). One spec (`params.ts` `ParamSpec`) drives the dials, the agent schema (`zodFor`), the
+packet text (`describeParams`) and the defaults. Colors are palette roles (`primary`, `accent`…) so they re-theme.
+- **Effects** (`effects.ts`, `guide.effects`, Style guide → Effects tile): shadow, gradient, grain, glass, glow become
+  `--mx-shadow-sm/card/lg`, `--mx-gradient`, `--mx-grain`, `--mx-glass-fill/blur/edge`, `--mx-glow` after the tokens
+  (the shadow effect is also the `shadow.card` token). Looks read them with their old values as fallbacks (gradient
+  buttons and headings, glass/grain/glow cards, lifted shadow, glow hover). Curated sets: `samples/treatments/*.json`.
+- **Backdrops** (`backdrops.ts`, `slot.backdrop`, section Look tab): gradient, mesh, grain, dots, grid, lines, topo,
+  halftone, op-art stripes, spotlight, orb, as background layers on the section root in `@layer effects`
+  (`LAYER_ORDER` is `base, clip, effects, motion, blocks`). Inverse flips the section to primary.
+- **Generative fills** (`fills.ts`): more `PLACEHOLDER_STYLES` (dither, halftone, topo, flow, blocks, ascii, op-art,
+  marble, grain-gradient) drawn as small SVGs; `MediaFill.params` holds their dials.
+- **UI mockups** (`mocks.ts`, `samples/mocks/<id>/mock.{html,css,json}`, `lintMock`): small screens in HTML/CSS
+  (tokens only) in a browser/phone frame with tilt, surface and seeded numbers; `MediaFill {source: 'mock'}`. Frames
+  insert the markup; exports write it into the section with its CSS.
+- Agents: `list_treatments`, `set_effect`, `apply_look`, `set_section_backdrop`, `set_mock`, `set_image` params.
+- Capture: `extension/src/capture/effects.ts` `detectEffects` puts a section's effects in clip.json (`effects`); the
+  site library keeps a site's in `library_sites.effects` (summary lists which, full site gives the values).
+- WebGL shaders are a later phase (Paper Shaders); everything today is CSS/SVG and exports cleanly.
 
 ### Built-in layouts
 

@@ -1,5 +1,6 @@
 import { BASE_CSS, LAYER_ORDER } from '@/core/export/base-css'
 import { MEDIA_CSS, MEDIA_JS } from '@/core/export/media-runtime'
+import { MOCK_BASE_CSS } from '@/core/treatments/mocks'
 
 /**
  * Runs inside every sandboxed clip iframe. Live changes (tokens, motion, copy,
@@ -180,7 +181,16 @@ const BRIDGE = `(function () {
   /* ---- pictures and moving media in image blocks (same elements the exports write) ---- */
   var blobUrls = {}, lastMedia = null;
   function mk(tag, attrs) { var e = document.createElement(tag); Object.keys(attrs).forEach(function (k) { if (attrs[k] != null) e.setAttribute(k, attrs[k]); }); return e; }
+  /* Mockups bring their CSS along: one stylesheet for every mockup on the page. */
+  function mockStyles(media) {
+    var seen = {}, out = [];
+    Object.keys(media).forEach(function (k) { var m = media[k]; if (m && m.kind === 'mock' && m.css && !seen[m.css]) { seen[m.css] = 1; out.push(m.css); } });
+    var s = document.getElementById('mx-mocks');
+    var css = out.length ? '@layer blocks {\\n' + out.join('\\n') + '\\n}' : '';
+    if (s.textContent !== css) s.textContent = css;
+  }
   function drawMedia(media) {
+    mockStyles(media);
     document.querySelectorAll('[data-mx-block="image"]').forEach(function (el) {
       var m = media[el.getAttribute('data-mx-b')];
       var key = m ? JSON.stringify(m) + (m.asset && blobUrls[m.asset] ? '+' : '') : '';
@@ -203,6 +213,9 @@ const BRIDGE = `(function () {
       } else if (m.kind === 'lottie') {
         if (!src) return;
         el.appendChild(mk('canvas', { class: 'mx-media', 'data-lottie': src, 'data-play': m.play || 'inview', 'data-loop': String(m.loop !== false), role: 'img', 'aria-label': label, 'data-asset': m.asset || null }));
+      } else if (m.kind === 'mock') {
+        el.insertAdjacentHTML('beforeend', m.html);
+        requestAnimationFrame(report);
       } else if (m.kind === 'embed') {
         if (m.poster) el.appendChild(mk('img', { class: 'mx-media', src: m.poster, alt: m.alt || '' }));
         el.appendChild(mk('button', { type: 'button', class: 'mx-play', 'data-embed': m.player, 'aria-label': label ? 'Play video: ' + label : 'Play video' }));
@@ -415,6 +428,8 @@ ${links}
 <style id="mx-motion"${i.motion === false ? ' media="not all"' : ''}>@layer motion {\n${i.motionCss ?? ''}\n}</style>
 <style id="mx-blocks">${i.blocksCss ?? ''}</style>
 <style id="mx-media-css">${MEDIA_CSS}</style>
+<style id="mx-mocks-base">@layer blocks {\n${MOCK_BASE_CSS}}</style>
+<style id="mx-mocks"></style>
 </head><body>
 ${i.html}
 <script>${BRIDGE}</script>

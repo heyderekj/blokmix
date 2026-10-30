@@ -1,0 +1,9 @@
+{
+  "label": "Riso print",
+  "hint": "Heavy grain, flat hard shadows and two-ink gradients",
+  "effects": {
+    "grain": { "id": "grain", "params": { "amount": 36, "size": 1.8, "color": "primary" } },
+    "shadow": { "id": "shadow", "params": { "elevation": 6, "softness": 0, "layers": 1, "opacity": 60, "tighten": 0, "angle": 135, "tint": "primary" } },
+    "gradient": { "id": "gradient", "params": { "stops": ["accent", "primary"], "angle": 90, "smooth": false } }
+  }
+}

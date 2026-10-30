@@ -9,6 +9,8 @@ import { serialize } from '@/core/html/serialize'
 import type { HEl, HNode } from '@/core/html/parse'
 import { allEls, buildTree, els, hint, isEl, leavesOf, type WEl } from './tree'
 import { describeLook, inferTokens } from './tokens'
+import { detectEffects } from './effects'
+import type { EffectsState } from '@/core/treatments'
 import { shape } from './structure'
 import { annotate } from './semantics'
 import { cleanTree } from './clean'
@@ -34,6 +36,8 @@ export interface ClipMeta {
   motionNotes?: string
   capture: { path: string; selector: string; viewport: { width: number; height: number }; capturedAt: string }
   tokens: Partial<TokenSet>
+  /** The shadow, gradient, grain, glass and glow it uses, as Blokmix effects (capture/effects.ts). */
+  effects?: EffectsState
   notes?: string[]
 }
 
@@ -90,6 +94,7 @@ export function captureClip(snap: Snapshot, opts: CaptureOptions): CaptureResult
   notes.push(...cleanTree(root).notes)
   const inferred = inferTokens(root, snap)
   notes.push(...inferred.notes)
+  const effects = detectEffects(root, inferred.tokens)
   const shaped = shape(root)
   notes.push(...shaped.notes)
   root = rootFor(root, type, snap)
@@ -135,6 +140,7 @@ export function captureClip(snap: Snapshot, opts: CaptureOptions): CaptureResult
     ...(motion.notes ? { motionNotes: motion.notes } : {}),
     capture: { path, selector: snap.selector, viewport: snap.viewport, capturedAt: snap.capturedAt },
     tokens: clipTokens,
+    ...(Object.keys(effects).length ? { effects } : {}),
     ...(notes.length ? { notes } : {}),
   }
   let origin = 'https://example.com/'

@@ -78,6 +78,39 @@ export function lintClip(input: {
   return issues
 }
 
+/**
+ * A UI mockup (samples/mocks/<id>) follows the clip rules that keep re-theming
+ * and the exporters reliable: one root, CSS nested under it, tokens only, no
+ * scripts, inline styles or images. It has no fields or blocks: its words are
+ * static illustration.
+ */
+export function lintMock(input: { id: string; html: string; css: string }): LintIssue[] {
+  const issues: LintIssue[] = []
+  const clipId = `mock.${input.id}`
+  const err = (message: string) => issues.push({ clipId, level: 'error', message })
+  const warn = (message: string) => issues.push({ clipId, level: 'warn', message })
+  const rootClass = `mx-mock-${input.id}`
+  const tree = parseHtml(input.html).filter((n) => !(n.t === 'text' && !n.v.trim()))
+  if (tree.length !== 1 || tree[0].t !== 'el') err('HTML must have exactly one root element')
+  else {
+    const root = tree[0]
+    if (!(attr(root, 'class') ?? '').split(/\s+/).includes(rootClass)) err(`Root needs class="${rootClass}"`)
+    if (attr(root, 'data-mx-mock') !== input.id) err(`Root needs data-mx-mock="${input.id}"`)
+  }
+  walk(tree, (n) => {
+    if (n.t !== 'el') return
+    if (n.tag === 'script' || n.tag === 'img' || n.tag === 'iframe') err(`No <${n.tag}> in a mockup`)
+    for (const [k] of n.attrs) {
+      if (k === 'style') err(`No style="" attributes (on <${n.tag}>)`)
+      if (/^on/i.test(k)) err(`No event handler attributes (${k})`)
+      if (k === 'data-mx-field' || k === 'data-mx-block') err(`Mockups have no ${k}: their words are illustration`)
+    }
+  })
+  if (/[{}]/.test(input.html.replace(/<[^>]*>/g, ''))) err('No { } in text (JSX)')
+  checkCss(input.css, 'mock.css', rootClass, err, warn)
+  return issues
+}
+
 function stripComments(css: string) {
   return css.replace(/\/\*[\s\S]*?\*\//g, '')
 }

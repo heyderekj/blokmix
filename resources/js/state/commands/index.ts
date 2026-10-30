@@ -10,11 +10,12 @@ import * as blocks from './blocks'
 import * as words from './words'
 import * as pageCmds from './page'
 import * as siteCmds from './site'
+import * as treatments from './treatments'
 
 export { CommandError, describeNote } from './refs'
 
-const READ = { ...read.read, ...siteCmds.read, ...notes.read, ...versions.read }
-const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...words.write, ...notes.write, ...versions.write }
+const READ = { ...read.read, ...siteCmds.read, ...treatments.read, ...notes.read, ...versions.read }
+const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write }
 
 /**
  * Runs the commands in core/commands/schema.ts against the live mix. Every

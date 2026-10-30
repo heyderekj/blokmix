@@ -60,12 +60,13 @@ export const BLOCK_COMMANDS = {
   },
   set_image: {
     description:
-      'Fill an image block: a placeholder drawn from the palette (style mesh, shapes, arch, waves, grid or portrait; it re-themes with the style guide), or remove to go back to the clip’s own art. Always set alt text for real pictures.',
+      'Fill an image block: a placeholder drawn from the palette (it re-themes with the style guide): simple ones (mesh, shapes, arch, waves, grid, portrait) or generative ones with dials (grain-gradient, dither, halftone, topo, flow, blocks, ascii, op-art, marble; see list_treatments surface "fill" for their dials). Or remove to go back to the clip’s own art. For a UI mockup use set_mock. Always set alt text for real pictures.',
     input: z.object({
       section,
       block,
       placeholder: z.enum(PLACEHOLDER_STYLES).optional(),
       seed: z.number().int().optional().describe('Another seed draws a different version of the same style'),
+      params: z.record(z.string(), z.any()).optional().describe('Generative placeholders: dials by name (list_treatments); colors are palette roles or hex'),
       alt: z.string().optional(),
       fit: z.enum(['cover', 'contain']).optional(),
       remove: z.boolean().optional(),

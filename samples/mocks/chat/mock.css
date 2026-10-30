@@ -1,0 +1,21 @@
+.mx-mock-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  & .head { display: flex; align-items: center; gap: 0.7em; padding: 0.9em 1em; border-bottom: var(--mx-stroke) solid var(--mx-color-border); }
+  & .who { display: grid; font-size: 0.8em; }
+  & .who span { color: var(--mx-color-muted); font-size: 0.85em; }
+  & .avatar { flex: none; width: 2em; height: 2em; border-radius: 50%; background: linear-gradient(135deg, var(--mx-color-primary), var(--mx-color-accent)); }
+  & .avatar.a2 { background: linear-gradient(135deg, var(--mx-color-accent), var(--mx-color-surface)); }
+  & .avatar.a3 { background: linear-gradient(135deg, var(--mx-color-muted), var(--mx-color-primary)); }
+  & .thread { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 0.6em; padding: 1em; background: var(--mx-color-surface); min-height: 0; overflow: hidden; }
+  & .msg { display: flex; align-items: flex-end; gap: 0.5em; max-width: 85%; }
+  & .msg p { padding: 0.6em 0.85em; border-radius: var(--mx-radius-lg); border-bottom-left-radius: var(--mx-radius-sm); background: var(--mx-color-bg); font-size: 0.8em; line-height: 1.4; box-shadow: var(--mx-shadow-sm, none); }
+  & .msg.me { align-self: flex-end; }
+  & .msg.me p { background: var(--mx-color-primary); color: var(--mx-color-on-primary); border-bottom-left-radius: var(--mx-radius-lg); border-bottom-right-radius: var(--mx-radius-sm); }
+  & .typing { display: flex; gap: 0.25em; padding: 0.6em 0.8em; border-radius: var(--mx-radius-pill); background: var(--mx-color-bg); align-self: flex-start; }
+  & .typing i { width: 0.4em; height: 0.4em; border-radius: 50%; background: var(--mx-color-muted); }
+  & .compose { display: flex; align-items: center; gap: 0.6em; margin: 0.8em; padding: 0.4em 0.4em 0.4em 0.9em; border-radius: var(--mx-radius-pill); border: var(--mx-stroke) solid var(--mx-color-border); font-size: 0.8em; color: var(--mx-color-muted); }
+  & .compose span { flex: 1; }
+  & .compose b { width: 2em; height: 2em; border-radius: 50%; background: var(--mx-color-primary); }
+}

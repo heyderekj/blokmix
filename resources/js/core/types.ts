@@ -1,6 +1,8 @@
 // Core types. Nothing in core/ imports React or Vite APIs, so the same code can
 // later run inside the capture extension and the MCP server.
 
+import type { ParamValues, TreatmentValue } from './treatments/params'
+
 /** In typical page order. Inner pages use `header` (a page header) instead of `hero`. */
 export const SECTION_TYPES = [
   'nav',
@@ -138,6 +140,8 @@ export interface Slot {
   banner?: boolean
   /** Repeating items you added, removed or reordered, by list key ("f", "faq", "t1F"). */
   lists?: Record<string, ListItemRef[]>
+  /** A gradient, pattern or glow behind the whole section (core/treatments/backdrops.ts). */
+  backdrop?: TreatmentValue
 }
 
 /** One way to say a field's words, kept as an option (Koati's "Keep"). */
@@ -177,6 +181,8 @@ export interface GuideState {
   swatches?: Swatch[]
   /** Defaults for kinds of blocks across the whole page ("All buttons: outline"). */
   components?: Partial<Record<BlockKind, ComponentDefault>>
+  /** Effects every section can use: shadow, gradient, grain, glass, glow (core/treatments/effects.ts). */
+  effects?: Partial<Record<'shadow' | 'gradient' | 'grain' | 'glass' | 'glow', TreatmentValue>>
 }
 
 export interface ConflictOption {
@@ -419,7 +425,8 @@ export interface SectionMotion {
   speed?: MotionSpeed
 }
 
-export const PLACEHOLDER_STYLES = ['mesh', 'shapes', 'arch', 'waves', 'grid', 'portrait'] as const
+/** Placeholders: the simple ones, then the generative ones with dials (core/treatments/fills.ts). */
+export const PLACEHOLDER_STYLES = ['mesh', 'shapes', 'arch', 'waves', 'grid', 'portrait', 'grain-gradient', 'dither', 'halftone', 'topo', 'flow', 'blocks', 'ascii', 'op-art', 'marble'] as const
 export type PlaceholderStyle = (typeof PLACEHOLDER_STYLES)[number]
 
 /** A stock photo, hotlinked as the provider asks, with its credit. */
@@ -451,13 +458,17 @@ export interface MediaLink {
 /**
  * What fills an image block: a placeholder drawn from your palette (it
  * re-themes with the style guide), an image you uploaded (kept in this
- * browser), a stock photo, or something that moves: a video, a Lottie
+ * browser), a stock photo, a UI mockup drawn in your style, or something that moves: a video, a Lottie
  * animation, or a YouTube/Vimeo embed.
  */
 export interface MediaFill {
-  source: 'placeholder' | 'upload' | 'stock' | 'video' | 'lottie' | 'embed'
+  source: 'placeholder' | 'upload' | 'stock' | 'video' | 'lottie' | 'embed' | 'mock'
   style?: PlaceholderStyle
   seed?: number
+  /** Generative placeholders and mockups: their dials (only what differs from the defaults). */
+  params?: ParamValues
+  /** A UI mockup (core/treatments/mocks.ts): which screen. */
+  mock?: string
   /** Upload (image, video or Lottie): the asset id in the browser's asset store. */
   asset?: string
   stock?: StockPhoto

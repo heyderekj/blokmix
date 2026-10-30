@@ -6,6 +6,8 @@ import { BrandColours, Candidates, Components, CopyFooter, GroupDecision, GroupT
 import { FontLinks, sourceName, useGuideData, withCandidate } from './shared'
 import { SavedGuides } from './SavedGuides'
 import { isHosted } from '@/lib/host'
+import { useStore } from '@/state/store'
+import { EffectsArt, EffectsPanel } from '../../dials/EffectsTile'
 
 /**
  * C · Board. A tile per group that shows the value rather than naming it; the open
@@ -13,7 +15,8 @@ import { isHosted } from '@/lib/host'
  */
 export function GuideBoard() {
   const { tokens, open, candidates, winner } = useGuideData()
-  const [opened, setOpened] = useState<TokenGroup | null>(null)
+  const [opened, setOpened] = useState<TokenGroup | 'effects' | null>(null)
+  const effects = useStore((s) => s.guide.effects)
   return (
     <div>
       <FontLinks tokens={[tokens, ...TOKEN_GROUPS.flatMap((g) => candidates(g).map((c) => withCandidate(tokens, c)))]} />
@@ -41,6 +44,27 @@ export function GuideBoard() {
               <span className="truncate text-[11px] text-zinc-500">{sourceLine(g)}</span>
             </button>
           ),
+        )}
+        {opened === 'effects' ? (
+          <div className="col-span-2 animate-rise rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_12px_28px_-14px_rgb(0_0_0/0.3)]">
+            <button type="button" onClick={() => setOpened(null)} className="mb-2 flex w-full cursor-pointer items-center justify-between text-left">
+              <span className="text-[13.5px] font-semibold text-zinc-900">Effects</span>
+              <span className="text-[11.5px] font-medium text-zinc-500">Done</span>
+            </button>
+            <EffectsPanel tokens={tokens} />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setOpened('effects')}
+            className="group/tile relative col-span-2 flex cursor-pointer flex-col gap-2 rounded-2xl bg-[var(--lift)] p-3 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)] transition-[translate,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5"
+          >
+            <span className="text-[12.5px] font-semibold text-zinc-900">Effects</span>
+            <EffectsArt tokens={tokens} effects={effects} />
+            <span className="truncate text-[11px] text-zinc-500">
+              {effects && Object.keys(effects).length ? `${Object.keys(effects).map((k) => k[0].toUpperCase() + k.slice(1)).join(', ')}` : 'Shadow, gradient, grain, glass and glow'}
+            </span>
+          </button>
         )}
         <ContrastTile />
         {isHosted() && <SavedGuides />}

@@ -32,7 +32,7 @@ export interface PacketInput {
 }
 
 export const AGENT_RULES = [
-  'Use only the tokens in tokens.css. Never introduce new colors, font families, radii, shadows or easings.',
+  'Use only the tokens in tokens.css. Never introduce new colors, font families, radii, shadows or easings. For depth and texture use the style guide’s effect variables when tokens.css has them (--mx-shadow-sm/card/lg, --mx-gradient, --mx-grain, --mx-glass-*, --mx-glow) rather than inventing new ones.',
   'Keep each section as its own component, in this order.',
   'Start from the astro/ or next/ reference build and refine it; don’t regenerate from scratch.',
   'Where a section says “your copy”, the copy is already swapped in. Replace any fields listed as retained source copy with copy that fits the project.',
@@ -201,6 +201,7 @@ export function buildNotes(i: PacketInput): string {
     if (going.length) lines.push(`- **Links:** ${going.map((l) => `${l.label.split(' · ').slice(1).join(' · ') || l.label} → \`${l.href}\`${l.newTab ? ' (new tab)' : ''}`).join('; ')}`)
     if (nowhere.length) lines.push(`- **Links with no destination yet** (ask, or point them somewhere sensible): ${nowhere.map((l) => l.label.split(' · ').slice(1).join(' · ') || l.label).join('; ')}`)
     for (const [f, os] of Object.entries(s.options)) lines.push(`- **Other ways to say ${f}** (kept as options; use only if asked): ${os.map((o) => `“${o}”`).join(' · ')}`)
+    if (s.backdrop) lines.push(`- **Backdrop:** ${s.backdrop.label} (${s.backdrop.description}); it’s in the section’s CSS under @layer effects. Keep the text readable over it.`)
     lines.push(`- **Motion:** ${describeSectionMotion(s.motion) ?? (s.keep.motion ? s.clip.motionNotes ?? 'keep the captured motion' : 'none')}${s.motionCss?.includes('Motion presets') ? ' (presets are in the section’s motion CSS; keep their timing and easing)' : ''}`)
     for (const b of s.blocks) lines.push(`- **Block, ${b.label}:** ${describeEdit(b.edit)}`)
     for (const n of s.notes) lines.push(`- **Note:** ${n}`)
@@ -238,7 +239,9 @@ export function buildNotes(i: PacketInput): string {
     for (const m of media) {
       const playback = m.kind !== 'image' ? `, plays ${m.play === 'inview' ? 'when in view' : m.play === 'scrub' ? 'with the scroll' : m.play === 'hover' ? 'on hover' : m.play === 'autoplay' ? 'automatically (muted)' : 'on click'}${m.loop ? ', loops' : ''}` : ''
       const what =
-        m.source === 'placeholder'
+        m.source === 'mock'
+          ? `UI mockup “${m.mock}” drawn in HTML and the style guide (markup and CSS are in the section; replace with a real screenshot or keep it as an illustration)`
+          : m.source === 'placeholder'
           ? 'placeholder from the palette (replace with a real image before launch)'
           : m.source === 'upload'
             ? 'uploaded image'
@@ -248,7 +251,7 @@ export function buildNotes(i: PacketInput): string {
                 ? `video embed (${m.player?.includes('vimeo') ? 'Vimeo' : 'YouTube'}; poster first, player loads on click)`
                 : `${m.kind === 'lottie' ? 'Lottie animation' : 'video'}${playback}`
       const lb = m.lightbox ? ', opens in a lightbox' : ''
-      lines.push(`- **${m.label}** (${m.section}): ${what}${lb}, \`${m.src || m.player}\`${m.alt ? `, alt “${m.alt}”` : ', no alt text yet (add one unless it’s decorative)'}`)
+      lines.push(`- **${m.label}** (${m.section}): ${what}${lb}${m.src || m.player ? `, \`${m.src || m.player}\`` : ''}${m.alt ? `, alt “${m.alt}”` : ', no alt text yet (add one unless it’s decorative)'}`)
       if (m.credit) lines.push(`  - Credit: ${m.credit}. Keep the hotlinked URL and show this credit, as Unsplash requires.`)
     }
     lines.push('')
@@ -278,6 +281,15 @@ export function buildNotes(i: PacketInput): string {
     lines.push(`| ${TOKEN_LABEL[k as keyof typeof TOKEN_LABEL]} (\`${k}\`) | \`${value}\` | ${provenanceLabel(library, guide.provenance[k as keyof typeof guide.provenance])} |`)
   }
   lines.push('')
+  const effects = Object.entries(i.page.vars).filter(([k]) => /^--mx-(shadow-(sm|lg)|gradient|grain|glass-|glow)/.test(k))
+  if (effects.length) {
+    lines.push('## Effects')
+    lines.push('')
+    lines.push('Dialed in the style guide; they’re variables in tokens.css. Use them for depth, gradients and texture.')
+    lines.push('')
+    for (const [k, v] of effects) lines.push(`- \`${k}\`: \`${v.length > 120 ? `${v.slice(0, 117)}…` : v}\``)
+    lines.push('')
+  }
   if (guide.conflicts.length) {
     lines.push('## Resolved contradictions')
     lines.push('')
