@@ -21,6 +21,8 @@ interface SiteCard {
   sections: number
   matched: number
   needsLayout: number
+  /** Which effects it has. */
+  effects: string[]
   updated_at: string
 }
 
@@ -45,8 +47,10 @@ interface Page {
   sections: Section[]
 }
 
-interface Site extends Omit<SiteCard, 'palette' | 'pages' | 'sections' | 'matched' | 'needsLayout'> {
+interface Site extends Omit<SiteCard, 'palette' | 'pages' | 'sections' | 'matched' | 'needsLayout' | 'effects'> {
   pages: Page[]
+  /** Effects the capture detected (shadow, gradient, grain, glass, glow), as treatment values. */
+  effects: Record<string, { id: string; params?: Record<string, unknown> }>
 }
 
 const STATUS_LABEL: Record<SectionStatus, string> = { matched: 'Matched', needs_layout: 'Needs a layout', hidden: 'Hidden' }
@@ -245,6 +249,16 @@ function SiteView({ site: initial, types }: { site: Site; types: string[] }) {
           />
         </label>
       </div>
+      {Object.keys(site.effects ?? {}).length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[12px] text-zinc-500">
+          Detected effects
+          {Object.entries(site.effects).map(([k, v]) => (
+            <span key={k} title={JSON.stringify(v.params ?? {})} className="rounded-full bg-white px-2.5 py-0.5 font-medium text-zinc-700 shadow-[0_0_0_1px_rgb(0_0_0/0.08)]">
+              {k}
+            </span>
+          ))}
+        </div>
+      )}
       {problem && <p className="mt-3 text-[13px] text-red-600">{problem}</p>}
 
       {site.pages.length > 1 && (

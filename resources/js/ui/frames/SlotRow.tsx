@@ -65,13 +65,14 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   const pBlock = useBlockPreview((s) => s.blockId)
   const pPatch = useBlockPreview((s) => s.patch)
   const pWords = useBlockPreview((s) => s.words)
+  const pBackdrop = useBlockPreview((s) => s.backdrop)
   const editText = useBlockPreview((s) => s.editText)
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
   // While an item is dragged, the section shows the list as it would be with the item dropped where it is now.
   const [sorting, setSorting] = useState<{ itemId: string; from: number; to: number } | null>(null)
   const live = useMemo(() => {
-    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords })
+    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop })
     if (sorting && sorting.to !== sorting.from)
       try {
         s = applyListEdit(s, slotClip(s), content, { op: 'move', itemId: sorting.itemId, to: sorting.to })
@@ -79,7 +80,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         /* not movable after all: show it as it is */
       }
     return s
-  }, [slot, pSlot, pBlock, pPatch, pWords, sorting, content])
+  }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, sorting, content])
   const ids = pickable(library, slot.type)
   const W = VIEW_W[viewport]
 

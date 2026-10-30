@@ -1,0 +1,26 @@
+.mx-mock-dashboard {
+  display: grid;
+  grid-template-columns: 9em 1fr;
+  height: 100%;
+  & .side { display: flex; flex-direction: column; gap: 0.35em; padding: 1em 0.75em; background: var(--mx-color-surface); border-right: var(--mx-stroke) solid var(--mx-color-border); }
+  & .logo { width: 1.6em; height: 1.6em; margin-bottom: 0.8em; border-radius: var(--mx-radius-sm); background: var(--mx-color-primary); }
+  & .nav { display: flex; align-items: center; gap: 0.5em; padding: 0.4em 0.5em; border-radius: var(--mx-radius-sm); font-size: 0.8em; color: var(--mx-color-muted); }
+  & .nav i { width: 0.8em; height: 0.8em; border-radius: 0.2em; background: currentColor; opacity: 0.5; }
+  & .nav.on { background: var(--mx-color-bg); color: var(--mx-color-text); font-weight: 600; box-shadow: var(--mx-shadow-sm, var(--mx-shadow-card)); }
+  & .main { display: flex; flex-direction: column; gap: 0.9em; padding: 1em 1.2em; min-width: 0; }
+  & .top { display: flex; align-items: center; gap: 0.8em; }
+  & .top strong { font-family: var(--mx-font-display); font-size: 1.1em; flex: 1; }
+  & .search { padding: 0.35em 0.8em; border-radius: var(--mx-radius-pill); border: var(--mx-stroke) solid var(--mx-color-border); font-size: 0.7em; color: var(--mx-color-muted); min-width: 8em; }
+  & .avatar { width: 1.8em; height: 1.8em; border-radius: 50%; background: linear-gradient(135deg, var(--mx-color-accent), var(--mx-color-primary)); }
+  & .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7em; }
+  & .stat { display: grid; gap: 0.2em; padding: 0.8em; border-radius: var(--mx-radius); border: var(--mx-stroke) solid var(--mx-color-border); background: var(--mx-color-bg); }
+  & .stat span { font-size: 0.7em; color: var(--mx-color-muted); }
+  & .stat b { font-family: var(--mx-font-display); font-size: 1.35em; }
+  & .stat em { font-style: normal; font-size: 0.65em; font-weight: 600; color: var(--mx-color-primary); }
+  & .chart { flex: 1; display: flex; flex-direction: column; gap: 0.6em; padding: 0.8em; border-radius: var(--mx-radius); border: var(--mx-stroke) solid var(--mx-color-border); min-height: 0; }
+  & .chart-head { display: flex; justify-content: space-between; align-items: center; font-size: 0.8em; }
+  & .pill { padding: 0.2em 0.7em; border-radius: var(--mx-radius-pill); background: var(--mx-color-surface); color: var(--mx-color-muted); font-size: 0.85em; }
+  & .bars { flex: 1; display: flex; align-items: flex-end; gap: 0.45em; min-height: 3em; }
+  & .bars i { flex: 1; height: var(--v, 50%); border-radius: 0.25em 0.25em 0 0; background: color-mix(in oklab, var(--mx-color-primary) 30%, var(--mx-color-surface)); }
+  & .bars i:nth-child(8) { background: var(--mx-color-primary); }
+}

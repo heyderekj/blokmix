@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { BlockEdit, Slot } from '@/core/types'
+import type { TreatmentValue } from '@/core/treatments'
 
 /**
  * A look you're hovering in a picker, shown on the page before you commit it.
@@ -20,6 +21,9 @@ interface BlockPreview {
   /** "Another way to say it": the next words typed into this field are kept as an option too. */
   keepNext: { slotId: string; field: string } | null
   setKeepNext: (k: { slotId: string; field: string } | null) => void
+  /** A backdrop you're hovering or dialing (null value = none), shown before you keep it. */
+  backdrop: { slotId: string; value: TreatmentValue | null } | null
+  showBackdrop: (b: { slotId: string; value: TreatmentValue | null } | null) => void
   /** Bumped to play entrances again on the focused section. */
   replays: number
   replay: () => void
@@ -37,13 +41,16 @@ export const useBlockPreview = create<BlockPreview>()((set) => ({
   showWords: (words) => set({ words }),
   keepNext: null,
   setKeepNext: (keepNext) => set({ keepNext }),
+  backdrop: null,
+  showBackdrop: (backdrop) => set({ backdrop }),
   replays: 0,
   replay: () => set((s) => ({ replays: s.replays + 1 })),
 }))
 
 /** The slot as it would look with the hovered preview applied. */
-export function withPreview(slot: Slot, p: Pick<BlockPreview, 'slotId' | 'blockId' | 'patch' | 'words'>): Slot {
+export function withPreview(slot: Slot, p: Pick<BlockPreview, 'slotId' | 'blockId' | 'patch' | 'words'> & { backdrop?: BlockPreview['backdrop'] }): Slot {
   if (p.words && p.words.slotId === slot.id) slot = { ...slot, words: { ...slot.words, [p.words.field]: p.words.text } }
+  if (p.backdrop && p.backdrop.slotId === slot.id) slot = { ...slot, backdrop: p.backdrop.value ?? undefined }
   if (p.slotId !== slot.id || !p.blockId || !p.patch) return slot
   const forClip = slot.edits?.[slot.clipId] ?? {}
   const cur = forClip[p.blockId] ?? {}

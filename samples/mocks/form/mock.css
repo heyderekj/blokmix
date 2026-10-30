@@ -1,0 +1,21 @@
+.mx-mock-form {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 1.2em;
+  background: var(--mx-color-surface);
+  & .card { display: grid; gap: 0.55em; width: 100%; max-width: 24em; padding: 1.4em; border-radius: var(--mx-radius-lg); background: var(--mx-color-bg); border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: var(--mx-shadow-card); }
+  & .steps { display: flex; gap: 0.3em; margin-bottom: 0.4em; }
+  & .steps i { flex: 1; height: 0.3em; border-radius: var(--mx-radius-pill); background: var(--mx-color-surface); }
+  & .steps i.on { background: var(--mx-color-primary); }
+  & .title { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: 1.35em; line-height: 1.15; }
+  & p { font-size: 0.78em; color: var(--mx-color-muted); margin-bottom: 0.4em; }
+  & .label { font-size: 0.7em; font-weight: 600; }
+  & .input { padding: 0.6em 0.8em; border-radius: var(--mx-radius); border: var(--mx-stroke) solid var(--mx-color-border); font-size: 0.8em; box-shadow: 0 0 0 calc(var(--mx-stroke) * 3) color-mix(in oklab, var(--mx-color-primary) 18%, transparent); }
+  & .chips { display: flex; gap: 0.35em; flex-wrap: wrap; }
+  & .chips span { padding: 0.35em 0.8em; border-radius: var(--mx-radius-pill); border: var(--mx-stroke) solid var(--mx-color-border); font-size: 0.72em; }
+  & .chips .on { border-color: var(--mx-color-primary); background: color-mix(in oklab, var(--mx-color-primary) 10%, transparent); color: var(--mx-color-primary); font-weight: 600; }
+  & .check { display: flex; align-items: center; gap: 0.5em; font-size: 0.72em; color: var(--mx-color-muted); margin-top: 0.3em; }
+  & .check i { width: 1.1em; height: 1.1em; border-radius: 0.3em; background: var(--mx-color-primary); }
+  & .cta { margin-top: 0.5em; padding: 0.75em; border-radius: var(--mx-radius-pill); background: var(--mx-color-primary); color: var(--mx-color-on-primary); text-align: center; font-weight: 600; font-size: 0.85em; }
+}

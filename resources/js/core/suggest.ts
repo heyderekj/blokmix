@@ -90,18 +90,17 @@ export function suggestTypes(slots: PageSlot[], insertAt: number): TypeSuggestio
       add(-100, text)
     }
 
-    // Hard constraints.
-    if (above === 'footer') block('Nothing goes below the footer')
-    if (below === 'nav' && type !== 'nav') block('Nothing goes above the nav')
+    // Hard constraints. A missing nav or footer can be added from any gap: it takes its own place, top or bottom.
+    const chrome = type === 'nav' || type === 'footer'
+    if (above === 'footer' && !chrome) block('Nothing goes below the footer')
+    if (below === 'nav' && !chrome) block('Nothing goes above the nav')
     if (type === 'nav') {
       if (has('nav')) block('The page already has a nav')
-      else if (insertAt !== 0) block('The nav goes at the very top')
-      else add(3, 'Every page starts with a nav')
+      else add(4, insertAt === 0 ? 'Every page starts with a nav' : 'The page has no nav yet; it goes at the top')
     }
     if (type === 'footer') {
       if (has('footer')) block('The page already has a footer')
-      else if (!atEnd) block('The footer goes at the very bottom')
-      else add(3, 'Every page ends with a footer')
+      else add(atEnd ? 4 : 3, atEnd ? 'Every page ends with a footer' : 'The page has no footer yet; it goes at the bottom')
     }
     if (type === 'hero' || type === 'header') {
       if (opened) block(has('hero') ? 'The page already opens with a hero' : 'The page already opens with a page header')

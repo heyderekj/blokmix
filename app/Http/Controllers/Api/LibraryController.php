@@ -149,6 +149,10 @@ class LibraryController extends Controller
                         $site->{$key} = $data[$key];
                     }
                 }
+                if (array_key_exists('effects', $data)) {
+                    // Keyed by effect, each with its id (as the board keeps them) and its dials.
+                    $site->effects = $data['effects'] ? collect($data['effects'])->map(fn ($v, $id) => ['id' => $id] + array_intersect_key($v, ['params' => 1]))->all() : null;
+                }
                 foreach (['tags', 'tokens', 'fonts'] as $key) {
                     if (array_key_exists($key, $data)) {
                         $site->{$key} = $data[$key] ?? [];
@@ -304,6 +308,11 @@ class LibraryController extends Controller
             'tokens' => ['sometimes', 'nullable', 'array', 'max:200'],
             'tokens.*' => ['nullable', fn ($key, $value, $fail) => is_scalar($value) || $fail('Tokens are words and numbers.')],
             'fonts' => ['sometimes', 'nullable', 'array', 'max:50'],
+            // Detected effects, as treatment values; the board checks each dial against its spec.
+            'effects' => ['sometimes', 'nullable', 'array:'.implode(',', LibrarySite::EFFECTS)],
+            'effects.*' => ['array:id,params'],
+            'effects.*.params' => ['sometimes', 'array', 'max:20'],
+            'effects.*.params.*' => ['nullable', fn ($key, $value, $fail) => is_scalar($value) || (is_array($value) && count($value) <= 5 && array_is_list($value) && collect($value)->every(fn ($v) => is_string($v))) || $fail('Dials are numbers, words, switches or lists of colors.')],
             'personality' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'thumb' => ['sometimes', 'nullable', 'string', 'max:255'],
             'pages' => ['required', 'array', 'min:1', 'max:50'],

@@ -2,6 +2,8 @@ import type { Slot, Source } from '@/core/types'
 import { buildLibrary, rawClipsFromFiles } from '@/core/library'
 import { sectionClip, type SectionClip } from '@/core/lists'
 import { startersFromFiles, type Starter } from '@/core/starters'
+// Mockups and curated looks register with core/treatments whenever the library loads.
+import './treatments'
 
 const sourceFiles = import.meta.glob('/samples/sources/*.json', { eager: true, import: 'default' }) as Record<string, Source>
 const clipFiles = import.meta.glob('/samples/clips/**/*.{html,css,json}', {

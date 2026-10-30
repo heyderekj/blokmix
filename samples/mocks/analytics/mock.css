@@ -1,0 +1,22 @@
+.mx-mock-analytics {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 1.2em;
+  background: var(--mx-color-surface);
+  & .card { display: grid; gap: 0.5em; width: 100%; max-width: 30em; padding: 1.3em; border-radius: var(--mx-radius-lg); background: var(--mx-color-bg); border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: var(--mx-shadow-card); }
+  & .head { display: flex; justify-content: space-between; align-items: center; font-size: 0.8em; color: var(--mx-color-muted); }
+  & .badge { padding: 0.15em 0.6em; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-primary) 14%, transparent); color: var(--mx-color-primary); font-weight: 600; }
+  & .big { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: 2.4em; letter-spacing: -0.02em; line-height: 1; }
+  & .sub { font-size: 0.7em; color: var(--mx-color-muted); }
+  & .spark { width: 100%; height: 4.5em; display: block; }
+  & .spark .area { fill: color-mix(in oklab, var(--mx-color-primary) 14%, transparent); }
+  & .spark .line { fill: none; stroke: var(--mx-color-primary); stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+  & .legend { display: flex; gap: 1em; font-size: 0.68em; color: var(--mx-color-muted); }
+  & .legend span { display: flex; align-items: center; gap: 0.35em; }
+  & .legend i { width: 0.7em; height: 0.7em; border-radius: 0.2em; background: var(--mx-color-primary); }
+  & .legend i.b { background: var(--mx-color-accent); }
+  & .legend i.c { background: var(--mx-color-muted); }
+  & .bars { display: flex; align-items: flex-end; gap: 0.4em; height: 3.2em; }
+  & .bars i { flex: 1; height: var(--v, 50%); border-radius: 0.2em; background: linear-gradient(to top, var(--mx-color-primary) 60%, var(--mx-color-accent)); opacity: 0.85; }
+}

@@ -1,0 +1,9 @@
+{
+  "label": "Aurora",
+  "hint": "Radial halos, soft depth and a gentle glow",
+  "effects": {
+    "gradient": { "id": "gradient", "params": { "shape": "radial", "stops": ["accent", "primary", "surface"] } },
+    "shadow": { "id": "shadow", "params": { "elevation": 18, "softness": 80, "layers": 4, "opacity": 16, "tighten": 25 } },
+    "glow": { "id": "glow", "params": { "color": "accent", "size": 60, "strength": 30 } }
+  }
+}

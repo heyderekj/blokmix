@@ -1,0 +1,19 @@
+.mx-mock-toasts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6em;
+  height: 100%;
+  padding: 1.2em;
+  background: linear-gradient(160deg, var(--mx-color-surface), color-mix(in oklab, var(--mx-color-primary) 18%, var(--mx-color-surface)));
+  & .toast { display: flex; align-items: center; gap: 0.75em; width: 86%; max-width: 26em; padding: 0.8em 1em; border-radius: var(--mx-radius-lg); background: var(--mx-glass-fill, color-mix(in oklab, var(--mx-color-bg) 82%, transparent)); -webkit-backdrop-filter: var(--mx-glass-blur, blur(16px) saturate(1.4)); backdrop-filter: var(--mx-glass-blur, blur(16px) saturate(1.4)); border: var(--mx-stroke) solid var(--mx-glass-edge, color-mix(in oklab, var(--mx-color-bg) 70%, transparent)); box-shadow: var(--mx-shadow-card); }
+  & .t2 { width: 80%; opacity: 0.85; }
+  & .t3 { width: 74%; opacity: 0.65; }
+  & .icon { flex: none; width: 2.1em; height: 2.1em; border-radius: var(--mx-radius); background: var(--mx-color-primary); }
+  & .icon.ok { background: linear-gradient(135deg, var(--mx-color-primary), var(--mx-color-accent)); }
+  & .icon.warn { background: var(--mx-color-accent); }
+  & .t { flex: 1; display: grid; font-size: 0.8em; min-width: 0; }
+  & .t span { color: var(--mx-color-muted); font-size: 0.88em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  & em { font-style: normal; font-size: 0.65em; color: var(--mx-color-muted); }
+}

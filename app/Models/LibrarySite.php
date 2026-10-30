@@ -19,13 +19,16 @@ class LibrarySite extends Model
 
     public const STATUSES = ['draft', 'published'];
 
-    protected $fillable = ['slug', 'name', 'url', 'industry', 'tags', 'tokens', 'fonts', 'personality', 'status'];
+    /** The style guide effects a site can carry (core/treatments/effects.ts EFFECT_IDS). */
+    public const EFFECTS = ['shadow', 'gradient', 'grain', 'glass', 'glow'];
+
+    protected $fillable = ['slug', 'name', 'url', 'industry', 'tags', 'tokens', 'fonts', 'effects', 'personality', 'status'];
 
     protected $attributes = ['status' => 'draft', 'tags' => '[]', 'tokens' => '{}', 'fonts' => '[]'];
 
     protected function casts(): array
     {
-        return ['tags' => 'array', 'tokens' => 'array', 'fonts' => 'array'];
+        return ['tags' => 'array', 'tokens' => 'array', 'fonts' => 'array', 'effects' => 'array'];
     }
 
     public function pages(): HasMany
@@ -69,6 +72,7 @@ class LibrarySite extends Model
             'industry' => $this->industry,
             'tags' => $this->tags,
             'palette' => (object) $this->palette(),
+            'effects' => array_keys($this->effects ?? []),
             'thumb' => $this->thumb?->url(),
             'status' => $this->status,
             'pages' => (int) $this->pages_count,
@@ -92,6 +96,7 @@ class LibrarySite extends Model
             'tags' => $this->tags,
             'tokens' => (object) ($this->tokens ?? []),
             'fonts' => $this->fonts,
+            'effects' => (object) ($this->effects ?? []),
             'personality' => $this->personality,
             'status' => $this->status,
             'thumb' => $this->thumb?->url(),

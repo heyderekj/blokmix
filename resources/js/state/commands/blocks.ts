@@ -8,6 +8,8 @@ import { slotClip } from '@/data/library'
 import { sectionLinks } from '@/core/links'
 import { useStore } from '../store'
 import { CommandError, findSection, findBlock, wordsFor, describeSection, clean, styleFrom, linkScopeFor } from './refs'
+import { isFillId } from '@/core/treatments'
+import { treatmentFrom } from './treatments'
 
 /** Changing one block (or every block of a kind): looks, style, spacing, media, icons, motion, links, banners. */
 export const write = {
@@ -80,10 +82,17 @@ export const write = {
       return { block: b.label, media: null }
     }
     const cur = slot.edits?.[slot.clipId]?.[b.id]?.media
+    const style = i.placeholder ?? (cur?.source === 'placeholder' ? cur.style : undefined)
+    // Generative placeholders take dials, checked against their spec.
+    const params =
+      style && isFillId(style) && (i.params || cur?.params)
+        ? treatmentFrom('fill', style, { params: i.params }, cur?.source === 'placeholder' && cur.style === style ? { id: style, params: cur.params } : undefined).params
+        : undefined
+    if (i.params && !(style && isFillId(style))) throw new CommandError('Only the generative placeholders have dials (grain-gradient, dither, halftone, topo, flow, blocks, ascii, op-art, marble)')
     const next: MediaFill = i.placeholder
-      ? { source: 'placeholder', style: i.placeholder, seed: i.seed ?? 1, alt: i.alt ?? cur?.alt, fit: i.fit ?? cur?.fit }
+      ? { source: 'placeholder', style: i.placeholder, seed: i.seed ?? 1, params, alt: i.alt ?? cur?.alt, fit: i.fit ?? cur?.fit }
       : cur
-        ? { ...cur, ...(i.alt !== undefined ? { alt: i.alt || undefined } : {}), ...(i.fit ? { fit: i.fit } : {}), ...(i.seed !== undefined && cur.source === 'placeholder' ? { seed: i.seed } : {}) }
+        ? { ...cur, ...(i.alt !== undefined ? { alt: i.alt || undefined } : {}), ...(i.fit ? { fit: i.fit } : {}), ...(i.seed !== undefined && (cur.source === 'placeholder' || cur.source === 'mock') ? { seed: i.seed } : {}), ...(i.params ? { params } : {}) }
         : (() => {
             throw new CommandError('Give a placeholder style, or set a picture first')
           })()

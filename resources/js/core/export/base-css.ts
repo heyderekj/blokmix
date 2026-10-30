@@ -30,8 +30,11 @@ input, select, textarea { font: inherit; color: inherit; }
 :where([data-mx-section="nav"], nav.mx-section) { position: relative; z-index: 10; }
 `
 
-/** Later layers win: a block's look always beats the clip, whatever the clip's selectors. */
-export const LAYER_ORDER = '@layer base, clip, motion, blocks;'
+/**
+ * Later layers win: a section's backdrop beats the clip's own background, and a
+ * block's look always beats both, whatever the clip's selectors.
+ */
+export const LAYER_ORDER = '@layer base, clip, effects, motion, blocks;'
 
 /** The reset as exported: layer order first, then the reset in the lowest layer. */
 export const BASE_CSS_LAYERED = `${LAYER_ORDER}\n\n@layer base {\n${BASE_CSS}}\n`

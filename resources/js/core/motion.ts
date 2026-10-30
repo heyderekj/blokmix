@@ -81,11 +81,11 @@ const LOOP_KEYFRAMES: Record<LoopPreset, (p: string) => string> = {
 const HOVER_CSS: Record<HoverPreset, { rest: string; hover: string }> = {
   lift: {
     rest: `transition: translate ${HOVER_MS}ms ${EASE_OUT}, box-shadow ${HOVER_MS}ms ${EASE_OUT};`,
-    hover: 'translate: 0 -4px; box-shadow: 0 2px 4px color-mix(in oklab, var(--mx-color-text) 8%, transparent), 0 16px 32px -12px color-mix(in oklab, var(--mx-color-text) 30%, transparent);',
+    hover: 'translate: 0 -4px; box-shadow: var(--mx-shadow-lg, 0 2px 4px color-mix(in oklab, var(--mx-color-text) 8%, transparent), 0 16px 32px -12px color-mix(in oklab, var(--mx-color-text) 30%, transparent));',
   },
   glow: {
     rest: `transition: box-shadow ${HOVER_MS}ms ${EASE_OUT};`,
-    hover: 'box-shadow: 0 0 0 4px color-mix(in oklab, var(--mx-color-primary) 18%, transparent), 0 8px 28px -8px color-mix(in oklab, var(--mx-color-primary) 55%, transparent);',
+    hover: 'box-shadow: var(--mx-glow, 0 0 0 4px color-mix(in oklab, var(--mx-color-primary) 18%, transparent), 0 8px 28px -8px color-mix(in oklab, var(--mx-color-primary) 55%, transparent));',
   },
   tilt: { rest: `transition: rotate ${HOVER_MS}ms ${EASE_OUT}, scale ${HOVER_MS}ms ${EASE_OUT};`, hover: 'rotate: -1.5deg; scale: 1.01;' },
   zoom: { rest: `transition: scale ${HOVER_MS}ms ${EASE_OUT};`, hover: 'scale: 1.03;' },

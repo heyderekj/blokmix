@@ -1,0 +1,23 @@
+.mx-mock-cards {
+  position: relative;
+  height: 100%;
+  background: var(--mx-color-surface);
+  & .card { position: absolute; left: 50%; top: 50%; display: grid; gap: 0.6em; width: 58%; padding: 1.2em; border-radius: var(--mx-radius-lg); background: var(--mx-color-bg); border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: var(--mx-shadow-card); translate: -50% -50%; }
+  & .c3 { rotate: -9deg; translate: -64% -56%; opacity: 0.7; }
+  & .c2 { rotate: 6deg; translate: -38% -52%; opacity: 0.85; }
+  & .c1 { box-shadow: var(--mx-shadow-lg, var(--mx-shadow-card)); }
+  & .card b { font-family: var(--mx-font-display); font-size: 1.25em; }
+  & .card p { font-size: 0.78em; color: var(--mx-color-muted); line-height: 1.45; }
+  & .tag { justify-self: start; padding: 0.2em 0.65em; border-radius: var(--mx-radius-pill); background: var(--mx-color-surface); font-size: 0.65em; font-weight: 600; color: var(--mx-color-muted); }
+  & .tag.on { background: color-mix(in oklab, var(--mx-color-primary) 15%, transparent); color: var(--mx-color-primary); }
+  & .line { height: 0.5em; border-radius: var(--mx-radius-pill); background: var(--mx-color-surface); }
+  & .line.short { width: 60%; }
+  & .row { display: flex; justify-content: space-between; align-items: center; }
+  & .dots { display: flex; gap: 0.2em; }
+  & .dots i { width: 0.3em; height: 0.3em; border-radius: 50%; background: var(--mx-color-muted); }
+  & .faces { display: flex; }
+  & .faces i { width: 1.5em; height: 1.5em; margin-left: -0.4em; border-radius: 50%; border: calc(var(--mx-stroke) * 2) solid var(--mx-color-bg); background: linear-gradient(135deg, var(--mx-color-primary), var(--mx-color-accent)); }
+  & .faces i:first-child { margin-left: 0; }
+  & .faces i:nth-child(2) { background: var(--mx-color-accent); }
+  & .meta { font-size: 0.7em; color: var(--mx-color-muted); }
+}

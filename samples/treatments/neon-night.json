@@ -1,0 +1,9 @@
+{
+  "label": "Neon night",
+  "hint": "Colored glow, glowing shadows and a conic gradient",
+  "effects": {
+    "glow": { "id": "glow", "params": { "color": "primary", "size": 22, "strength": 80 } },
+    "shadow": { "id": "shadow", "params": { "elevation": 22, "softness": 70, "layers": 4, "opacity": 40, "tighten": 30, "tint": "primary" } },
+    "gradient": { "id": "gradient", "params": { "shape": "conic", "stops": ["primary", "accent", "primary"], "angle": 90 } }
+  }
+}

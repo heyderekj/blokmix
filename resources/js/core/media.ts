@@ -2,7 +2,13 @@
 // Pure, so the canvas, the exports and an agent all make the same picture.
 
 import type { MediaFill, MediaLink, MediaPlay, PlaceholderStyle, StockPhoto, TokenSet } from './types'
-import { hexToRgb } from './tokens'
+import type { ParamValues } from './treatments/params'
+
+import { FILLS, fillSvg, isFillId } from './treatments/fills'
+import { mixHex } from './treatments/params'
+
+export { mixHex }
+import { mockRender } from './treatments/mocks'
 
 export const PLACEHOLDER_LABEL: Record<PlaceholderStyle, string> = {
   mesh: 'Mesh',
@@ -11,6 +17,7 @@ export const PLACEHOLDER_LABEL: Record<PlaceholderStyle, string> = {
   waves: 'Waves',
   grid: 'Grid',
   portrait: 'Portrait',
+  ...(Object.fromEntries(Object.values(FILLS).map((f) => [f.id, f.label])) as Record<(typeof FILLS)[keyof typeof FILLS]['id'], string>),
 }
 
 /** A tiny seeded random, so a placeholder looks the same every time until you shuffle it. */
@@ -25,14 +32,6 @@ function rng(seed: number) {
   }
 }
 
-/** Mix two hex colors (t = share of `a`). */
-export function mixHex(a: string, b: string, t: number): string {
-  const x = hexToRgb(a)
-  const y = hexToRgb(b)
-  if (!x || !y) return a
-  return `#${x.map((c, i) => Math.round(c * t + y[i] * (1 - t)).toString(16).padStart(2, '0')).join('')}`
-}
-
 /** "4/3" → [800, 600]. */
 export function sizeForRatio(ratio: string | undefined, long = 800): [number, number] {
   const [w, h] = (ratio ?? '4/3').split('/').map(Number)
@@ -40,9 +39,10 @@ export function sizeForRatio(ratio: string | undefined, long = 800): [number, nu
   return w >= h ? [long, Math.round((long * h) / w)] : [Math.round((long * w) / h), long]
 }
 
-/** A placeholder picture in your palette, as SVG. */
-export function placeholderSvg(style: PlaceholderStyle, seed: number, tokens: TokenSet, ratio?: string): string {
+/** A placeholder picture in your palette, as SVG. Generative ones take their dials. */
+export function placeholderSvg(style: PlaceholderStyle, seed: number, tokens: TokenSet, ratio?: string, params?: ParamValues): string {
   const [W, H] = sizeForRatio(ratio)
+  if (isFillId(style)) return fillSvg(style, params, seed, tokens, W, H)
   const r = rng(seed)
   const bg = tokens['color.bg']
   const surface = tokens['color.surface']
@@ -115,7 +115,7 @@ export interface UploadData {
 
 /** What a frame (or an export) needs to draw an image block. */
 export interface MediaRender {
-  kind: 'image' | 'video' | 'lottie' | 'embed'
+  kind: 'image' | 'video' | 'lottie' | 'embed' | 'mock'
   /** A URL or data URI. Empty when the bytes travel separately (uploaded video or Lottie: see `asset`). */
   src: string
   alt: string
@@ -129,6 +129,9 @@ export interface MediaRender {
   lightbox?: boolean
   /** Embeds: the player URL, loaded only when someone plays it. */
   player?: string
+  /** Mockups: their markup (in its frame) and CSS. */
+  html?: string
+  css?: string
 }
 
 /** Resolve a fill to what's drawn. */
@@ -137,7 +140,11 @@ export function renderMedia(fill: MediaFill, tokens: TokenSet, ratio: string | u
   const fit = fill.fit ?? 'cover'
   const moving = { play: fill.play ?? defaultPlay(fill), loop: fill.loop ?? true, lightbox: !!fill.lightbox }
   const posterOf = (p: string | undefined) => (p ? (uploads(p)?.dataUrl ?? p) : undefined)
-  if (fill.source === 'placeholder') return { kind: 'image', src: svgDataUri(placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, tokens, ratio)), alt, fit, lightbox: !!fill.lightbox }
+  if (fill.source === 'placeholder') return { kind: 'image', src: svgDataUri(placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, tokens, ratio, fill.params)), alt, fit, lightbox: !!fill.lightbox }
+  if (fill.source === 'mock') {
+    const m = fill.mock ? mockRender(fill.mock, fill.params, fill.seed ?? 1, tokens) : null
+    return m ? { kind: 'mock', src: '', alt, fit, html: m.html, css: m.css } : null
+  }
   if (fill.source === 'stock' && fill.stock) return { kind: 'image', src: stockUrl(fill.stock, 1600), alt: alt || fill.stock.description || '', fit, lightbox: !!fill.lightbox }
   if (fill.source === 'upload' && fill.asset) {
     const src = uploads(fill.asset)?.dataUrl

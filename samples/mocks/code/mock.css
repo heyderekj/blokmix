@@ -1,0 +1,24 @@
+.mx-mock-code {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--mx-color-text);
+  color: var(--mx-color-bg);
+  font-family: var(--mx-font-mono);
+  & .tabs { display: flex; gap: 0.2em; padding: 0.6em 0.8em 0; font-size: 0.7em; }
+  & .tabs span { padding: 0.45em 0.9em; border-radius: var(--mx-radius-sm) var(--mx-radius-sm) 0 0; color: color-mix(in oklab, var(--mx-color-bg) 55%, transparent); }
+  & .tabs .on { background: color-mix(in oklab, var(--mx-color-bg) 8%, transparent); color: var(--mx-color-bg); }
+  & .body { flex: 1; padding: 0.9em 0; background: color-mix(in oklab, var(--mx-color-bg) 8%, transparent); }
+  & .lines { counter-reset: line; font-size: 0.78em; line-height: 1.75; }
+  & .lines li { counter-increment: line; display: flex; gap: 0.4em; padding-right: 1em; white-space: pre; }
+  & .lines li::before { content: counter(line); width: 2.6em; padding-right: 1em; text-align: right; color: color-mix(in oklab, var(--mx-color-bg) 35%, transparent); }
+  & .i1 { padding-left: 1.5em; }
+  & .i2 { padding-left: 3em; }
+  & .i3 { padding-left: 4.5em; }
+  & .hl { background: color-mix(in oklab, var(--mx-color-primary) 22%, transparent); }
+  & .k { color: var(--mx-color-accent); }
+  & .s { color: color-mix(in oklab, var(--mx-color-primary) 60%, var(--mx-color-bg)); }
+  & .f, & .t { color: var(--mx-color-bg); font-weight: 700; }
+  & .a { color: color-mix(in oklab, var(--mx-color-bg) 70%, transparent); }
+  & .v { color: var(--mx-color-bg); }
+}

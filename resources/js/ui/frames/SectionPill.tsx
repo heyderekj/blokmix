@@ -12,6 +12,7 @@ import { useStore, currentSlots } from '@/state/store'
 import { MORPH } from '../shell/Island'
 import { DeviceSwitch, SectionSpacingRows, useDevice } from '../blocks/Spacing'
 import { SectionMotionRows } from '../blocks/MotionMenu'
+import { BackdropPicker } from '../dials/BackdropPicker'
 import { useResolvedGuide } from '@/state/derived'
 import { SURFACES, SURFACE_LABEL, surfaceTokens, SECTION_WIDTHS, SECTION_WIDTH_LABEL } from '@/core/surface'
 import { runCommand } from '@/state/commands'
@@ -213,6 +214,7 @@ function LookTab({ slot }: { slot: Slot }) {
   const source = library.sources[clip.sourceId]
   const t = clip.tokens
   const guide = useStore((s) => s.guide)
+  const resolved = useResolvedGuide().tokens
   const [groups, setGroups] = useState<TokenGroup[]>(['color', 'type'])
   const promoted = new Set(guide.candidates.filter((c) => c.clipId === clip.id).map((c) => c.group))
   const st = useStore.getState
@@ -282,6 +284,10 @@ function LookTab({ slot }: { slot: Slot }) {
         </button>
       </div>
       {slot.type === 'nav' && <BannerRow slot={slot} />}
+      <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
+        <div className="mb-2 text-[11px] font-semibold text-zinc-400">Backdrop</div>
+        <BackdropPicker slot={slot} tokens={slot.keep.style ? t : surfaceTokens(resolved, slot.surface)} />
+      </div>
       <SpacingGroup slot={slot} />
       <div className="mt-3 border-t border-zinc-950/6 pt-3">
         <div className="mb-2 text-[11px] font-semibold text-zinc-400">Section motion</div>

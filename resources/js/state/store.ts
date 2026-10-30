@@ -41,6 +41,7 @@ import { suggestClip } from '@/core/suggest'
 import type { FacetFilter } from '@/core/browse'
 import { listOpOnEntries } from './collections'
 import { BASE_TOKENS } from '@/core/tokens'
+import { cleanTreatment, shadowToken, type EffectId, type EffectsState, type TreatmentValue } from '@/core/treatments'
 import { buildSeed } from './seed'
 import { allSlots, freePath, mapSlots, pageOf, pageOfSlot, pageView, setPageSlots, siteFromSlots, titleFromPath, updatePage as updatePageIn, updateSlotIn } from '@/core/site'
 import { onSection } from '@/core/notes'
@@ -195,6 +196,12 @@ export interface State extends MixData {
   /** Set several tokens to your own values at once (a dial, light/dark): one undo step. */
   chooseTokens: (values: Partial<Record<TokenKey, string>>) => void
   chooseGroup: (candidateId: string) => void
+  /** Set (or clear, with null) one of the style guide's effects; the shadow effect is also the card shadow token. */
+  setEffect: (id: EffectId, value: TreatmentValue | null) => void
+  /** Set several effects at once (a curated look, a library site's look kit), as one undo step. */
+  setEffects: (effects: EffectsState, replace?: boolean) => void
+  /** What's behind a section (null = as clipped). */
+  setBackdrop: (slotId: string, value: TreatmentValue | null) => void
   setField: (type: SectionType, key: string, value: string) => void
   setBrand: (brand: string) => void
 
@@ -672,6 +679,25 @@ export const useStore = create<State>()(
             }),
           removeCandidate: (id) => set((st) => ({ guide: removeCandidate(st.guide, id) })),
           chooseToken: (key, choice) => set((st) => ({ guide: choose(st.guide, key, choice) })),
+          setEffect: (id, value) => get().setEffects({ [id]: value ?? undefined }),
+          setEffects: (patch, replace) =>
+            set((st) => {
+              const effects: EffectsState = replace ? {} : { ...st.guide.effects }
+              for (const [k, v] of Object.entries(patch) as [EffectId, TreatmentValue | undefined][]) {
+                const clean = v && cleanTreatment('effect', v)
+                if (clean) effects[k] = clean
+                else delete effects[k]
+              }
+              let guide: GuideState = { ...st.guide, effects: Object.keys(effects).length ? effects : undefined }
+              // The shadow effect is the card shadow, everywhere the token is read (the token panel, tokens.json).
+              if ('shadow' in patch || replace) guide = choose(guide, 'shadow.card', effects.shadow ? { kind: 'custom', value: shadowToken(effects.shadow) } : null)
+              return { guide }
+            }),
+          setBackdrop: (slotId, value) =>
+            updateSlot(slotId, (s) => {
+              const clean = value && cleanTreatment('backdrop', value)
+              return { ...s, backdrop: clean || undefined }
+            }),
           chooseTokens: (values) =>
             set((st) => ({ guide: (Object.entries(values) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide) })),
           chooseGroup: (candidateId) => set((st) => ({ guide: chooseGroup(st.guide, candidateId) })),

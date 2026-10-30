@@ -246,7 +246,7 @@ export function advise(i: AdviseInput): Advice[] {
       })
     }
     // Containers need room inside them.
-    const filled = !!e.style?.fill || ['bordered', 'raised', 'tinted', 'glass', 'offset'].includes(e.variant ?? '')
+    const filled = !!e.style?.fill || ['bordered', 'raised', 'tinted', 'glass', 'offset', 'grain', 'glow'].includes(e.variant ?? '')
     if ((b.kind === 'card' || b.kind === 'item') && filled && e.style?.padding !== undefined && e.style.padding < 3) {
       out.push({
         blockId: b.id,

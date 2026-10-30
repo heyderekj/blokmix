@@ -29,7 +29,7 @@ const RADIUS: Record<NonNullable<BlockStyle['radius']>, string> = {
 const SHADOW: Record<NonNullable<BlockStyle['shadow']>, string> = {
   none: 'none',
   soft: 'var(--mx-shadow-card)',
-  lifted: '0 2px 4px color-mix(in oklab, var(--mx-color-text) 8%, transparent), 0 18px 40px -12px color-mix(in oklab, var(--mx-color-text) 30%, transparent)',
+  lifted: 'var(--mx-shadow-lg, 0 2px 4px color-mix(in oklab, var(--mx-color-text) 8%, transparent), 0 18px 40px -12px color-mix(in oklab, var(--mx-color-text) 30%, transparent))',
   offset: '5px 5px 0 var(--mx-color-text)',
 }
 

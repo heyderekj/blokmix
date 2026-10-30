@@ -1,0 +1,22 @@
+.mx-mock-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  & .bar { display: flex; align-items: center; gap: 1em; padding: 0.9em 1.1em; border-bottom: var(--mx-stroke) solid var(--mx-color-border); }
+  & .bar strong { font-family: var(--mx-font-display); }
+  & .tabs { flex: 1; display: flex; gap: 0.3em; font-size: 0.72em; color: var(--mx-color-muted); }
+  & .tabs span { padding: 0.25em 0.7em; border-radius: var(--mx-radius-pill); }
+  & .tabs .on { background: var(--mx-color-surface); color: var(--mx-color-text); font-weight: 600; }
+  & .btn { padding: 0.35em 0.9em; border-radius: var(--mx-radius-pill); background: var(--mx-color-primary); color: var(--mx-color-on-primary); font-size: 0.72em; font-weight: 600; }
+  & .grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 0.8fr; align-items: center; font-size: 0.78em; }
+  & .grid > span { padding: 0.75em 1.4em; border-bottom: var(--mx-stroke) solid var(--mx-color-border); white-space: nowrap; overflow: hidden; }
+  & .th { font-size: 0.85em; color: var(--mx-color-muted); background: var(--mx-color-surface); }
+  & .num { text-align: right; font-variant-numeric: tabular-nums; }
+  & .name { display: flex; align-items: center; gap: 0.6em; font-weight: 600; }
+  & .name i { width: 1em; height: 1em; border-radius: 0.3em; background: linear-gradient(135deg, var(--mx-color-primary), var(--mx-color-accent)); }
+  & .mono { font-family: var(--mx-font-mono); font-size: 0.9em; color: var(--mx-color-muted); }
+  & .pill { display: inline-flex; align-items: center; gap: 0.4em; padding: 0.15em 0.6em; border-radius: var(--mx-radius-pill); font-size: 0.85em; font-weight: 600; background: var(--mx-color-surface); color: var(--mx-color-muted); }
+  & .pill::before { content: ""; width: 0.5em; height: 0.5em; border-radius: 50%; background: currentColor; }
+  & .pill.ok { color: var(--mx-color-primary); background: color-mix(in oklab, var(--mx-color-primary) 12%, transparent); }
+  & .pill.run { color: var(--mx-color-accent); background: color-mix(in oklab, var(--mx-color-accent) 14%, transparent); }
+}
