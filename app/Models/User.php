@@ -28,6 +28,11 @@ class User extends Authenticatable
         return $this->hasMany(StyleGuide::class);
     }
 
+    public function collections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Collection::class);
+    }
+
     /** The mixes this person can open, with their role in each. */
     public function mixes(): BelongsToMany
     {
@@ -44,7 +49,7 @@ class User extends Authenticatable
         return array_key_exists($this->plan, config('blokmix.plans')) ? $this->plan : 'free';
     }
 
-    /** What the plan includes: mixes, clips and upload_mb, null for unlimited. */
+    /** What the plan includes: mixes, clips, upload_mb, collections and entries (per collection), null for unlimited. */
     public function limits(): array
     {
         return config('blokmix.plans.'.$this->planName());
@@ -56,13 +61,15 @@ class User extends Authenticatable
         return $this->mixes()->wherePivot('role', 'owner');
     }
 
-    /** What counts toward the plan: mixes owned, clips saved, and bytes uploaded into owned mixes. */
+    /** What counts toward the plan: mixes owned, clips saved, collections owned, and bytes uploaded into owned mixes and collections. */
     public function usage(): array
     {
         return [
             'mixes' => $this->ownedMixes()->count(),
             'clips' => $this->clips()->count(),
-            'uploads' => (int) MixAsset::whereIn('mix_id', $this->ownedMixes()->select('mixes.id'))->sum('size'),
+            'collections' => $this->collections()->count(),
+            'uploads' => (int) MixAsset::whereIn('mix_id', $this->ownedMixes()->select('mixes.id'))->sum('size')
+                + (int) CollectionAsset::whereIn('collection_id', $this->collections()->select('id'))->sum('size'),
         ];
     }
 
@@ -73,6 +80,26 @@ class User extends Authenticatable
 
         return $max !== null && $this->ownedMixes()->count() >= $max
             ? ($max === 1 ? 'Free includes one mix. Plus, coming soon, has as many as you like.' : "Your plan includes {$max} mixes.")
+            : null;
+    }
+
+    /**
+     * Why this person can't start another collection (no $entries), or why one of theirs can't hold $entries entries
+     * (null when they can).
+     */
+    public function collectionRefusal(?int $entries = null): ?string
+    {
+        if ($entries !== null) {
+            $max = $this->limits()['entries'] ?? null;
+
+            return $max !== null && $entries > $max
+                ? "Free includes {$max} entries in a collection. Remove one to make room, or wait for Plus, coming soon."
+                : null;
+        }
+        $max = $this->limits()['collections'] ?? null;
+
+        return $max !== null && $this->collections()->count() >= $max
+            ? ($max === 1 ? 'Free includes one collection. Plus, coming soon, has as many as you like.' : "Your plan includes {$max} collections.")
             : null;
     }
 
