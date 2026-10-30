@@ -2,6 +2,8 @@
   "title": "Head with a checklist",
   "layoutPattern": "split-head-left-checklist-2col-right",
   "rhythm": "split",
+  "style": "minimal",
+  "density": "dense",
   "motionNotes": "No motion of its own; the ticks and rows stay still so the list reads as settled and done.",
   "capture": {
     "path": "/",

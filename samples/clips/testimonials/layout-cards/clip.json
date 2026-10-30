@@ -2,6 +2,8 @@
   "title": "Three testimonial cards",
   "layoutPattern": "testimonial-cards-3up",
   "rhythm": "grid",
+  "style": "warm",
+  "density": "balanced",
   "motionNotes": "Header rises, then the three cards follow in a short stagger; cards lift with a soft shadow on hover.",
   "capture": {
     "path": "/",

@@ -2,6 +2,8 @@
   "title": "Portrait with stats",
   "layoutPattern": "split-media-left-head-stats-2x2-right",
   "rhythm": "split",
+  "style": "warm",
+  "density": "balanced",
   "motionNotes": "The portrait fades in while the head rises, then the four figures follow in a short stagger; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

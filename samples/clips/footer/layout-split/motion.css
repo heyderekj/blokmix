@@ -1,0 +1,13 @@
+.mx-footer-layout-split {
+  & .wordmark { animation: mx-footer-layout-split-rise calc(var(--mx-motion-duration) * 2) var(--mx-motion-ease) 80ms both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .wordmark { animation-name: mx-footer-layout-split-fade; }
+  }
+}
+@keyframes mx-footer-layout-split-rise {
+  from { opacity: 0; transform: translateY(24px); }
+}
+@keyframes mx-footer-layout-split-fade {
+  from { opacity: 0; }
+}

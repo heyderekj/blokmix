@@ -139,7 +139,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
-    & .grid { gap: var(--mx-space-5); }
+    & .grid { gap: var(--mx-space-5) var(--mx-space-4); }
     & .grid > * { grid-column: auto / span 12; }
     & .lead { font-size: var(--mx-text-base); }
     & .card { padding: var(--mx-space-3) var(--mx-space-3) var(--mx-space-6); }

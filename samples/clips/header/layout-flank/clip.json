@@ -2,6 +2,8 @@
   "title": "Flanked by photos",
   "layoutPattern": "centered-head-between-two-tilted-photos",
   "rhythm": "centered",
+  "style": "playful",
+  "density": "balanced",
   "motionNotes": "The head rises in a short stagger while the two tilted prints settle onto the page one after the other; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

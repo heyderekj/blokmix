@@ -2,6 +2,8 @@
   "title": "Newsletter sign-up",
   "layoutPattern": "centered-email-capture",
   "rhythm": "centered",
+  "style": "warm",
+  "density": "balanced",
   "motionNotes": "The envelope mark pops in, then copy and the email form rise in a short stagger; the field rings softly on focus.",
   "capture": {
     "path": "/",

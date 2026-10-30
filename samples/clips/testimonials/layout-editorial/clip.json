@@ -1,0 +1,16 @@
+{
+  "title": "Offset editorial quote",
+  "layoutPattern": "label-rail-beside-large-offset-quote-under-hairline",
+  "rhythm": "stack",
+  "style": "editorial",
+  "density": "airy",
+  "status": "draft",
+  "inspiredBy": { "site": "Pentagram", "url": "https://pentagram.com/" },
+  "motionNotes": "The label, quote and credit rise in turn; reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

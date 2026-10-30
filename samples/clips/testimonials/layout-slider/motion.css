@@ -1,0 +1,19 @@
+.mx-testimonials-layout-slider {
+  & .head > * { animation: mx-testimonials-layout-slider-rise var(--mx-motion-duration) var(--mx-motion-ease) backwards; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .panel { animation: mx-testimonials-layout-slider-in calc(var(--mx-motion-duration) * 1.2) cubic-bezier(0.23, 1, 0.32, 1) 120ms backwards; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > * { animation-name: mx-testimonials-layout-slider-fade; }
+    & .panel { animation-name: mx-testimonials-layout-slider-fade; }
+  }
+}
+@keyframes mx-testimonials-layout-slider-rise {
+  from { opacity: 0; translate: 0 12px; }
+}
+@keyframes mx-testimonials-layout-slider-in {
+  from { opacity: 0; translate: 16px 0; }
+}
+@keyframes mx-testimonials-layout-slider-fade {
+  from { opacity: 0; }
+}

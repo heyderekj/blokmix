@@ -1,6 +1,7 @@
 import type { Slot, Source } from '@/core/types'
 import { buildLibrary, rawClipsFromFiles } from '@/core/library'
 import { sectionClip, type SectionClip } from '@/core/lists'
+import { startersFromFiles, type Starter } from '@/core/starters'
 
 const sourceFiles = import.meta.glob('/samples/sources/*.json', { eager: true, import: 'default' }) as Record<string, Source>
 const clipFiles = import.meta.glob('/samples/clips/**/*.{html,css,json}', {
@@ -10,6 +11,11 @@ const clipFiles = import.meta.glob('/samples/clips/**/*.{html,css,json}', {
 }) as Record<string, string>
 
 export const library = buildLibrary(Object.values(sourceFiles), rawClipsFromFiles(clipFiles))
+
+const starterFiles = import.meta.glob('/samples/starters/*.json', { eager: true, import: 'default' }) as Record<string, Omit<Starter, 'id'>>
+
+/** Starter mixes (`samples/starters/`): ready combinations of sections under a sample style guide. */
+export const starters = startersFromFiles(starterFiles)
 
 if (import.meta.env.DEV && library.warnings.length) {
   console.groupCollapsed(`[blokmix] ${library.warnings.length} clip lint issue(s)`)

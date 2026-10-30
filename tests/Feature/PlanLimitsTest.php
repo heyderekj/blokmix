@@ -53,6 +53,7 @@ class PlanLimitsTest extends TestCase
         $first = $this->owned($me);
 
         $this->actingAs($me)->post('/mixes')->assertSessionHasErrors('mix');
+        $this->actingAs($me)->post('/mixes', ['name' => 'Starter', 'site' => ['pages' => [['path' => '/']]]])->assertSessionHasErrors('mix');
         $this->actingAs($me)->postJson('/api/mixes', ['name' => 'Imported'])->assertForbidden()->assertJsonPath('message', 'Free includes one mix. Plus, coming soon, has as many as you like.');
         $this->actingAs($me)->postJson("/api/mixes/{$first->id}/duplicate")->assertForbidden();
         $this->assertSame(1, $me->ownedMixes()->count());

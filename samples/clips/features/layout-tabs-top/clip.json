@@ -1,0 +1,14 @@
+{
+  "title": "Tabs over a product shot",
+  "layoutPattern": "horizontal-tabs-above-media",
+  "rhythm": "centered",
+  "style": "technical",
+  "density": "balanced",
+  "motionNotes": "The head rises in a short stagger; picking a tab settles its product shot into the stage and lifts the window inside it. CSS-only tabs (radio + :has()); reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

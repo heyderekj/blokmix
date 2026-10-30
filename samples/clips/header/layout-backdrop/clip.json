@@ -2,6 +2,8 @@
   "title": "Photo backdrop header",
   "layoutPattern": "centered-head-over-full-bleed-image",
   "rhythm": "band",
+  "style": "bold",
+  "density": "airy",
   "motionNotes": "No entrance motion: the backdrop does the work. The button presses in on tap.",
   "capture": {
     "path": "/",

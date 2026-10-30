@@ -142,8 +142,8 @@ describe('content as files', () => {
 })
 
 describe('banners', () => {
-  const id = 'nav.monolith-bar'
-  it('is a block whose messages are a list in your copy, with the marquee copy following', () => {
+  const id = 'nav.layout-notice'
+  it('is a block whose messages are a list in your copy, in their new order when moved', () => {
     const c = sectionClip(library.clips[id])
     const banner = c.blocks.find((b) => b.kind === 'banner')!
     const list = c.blocks.find((b) => b.parent === banner.id)!
@@ -151,7 +151,7 @@ describe('banners', () => {
     const json = pageFor([slotFor(id)]).sections[0].content as { notices: string[] }
     expect(json.notices[0]).toBe(DEFAULT_CONTENT.fields.nav!.notice1)
     const moved = sectionClip(library.clips[id], { notice: [{ n: 2 }, { n: 1 }] })
-    expect([...moved.html.matchAll(/data-mx-mirror="(notice\d)"/g)].map((m) => m[1])).toEqual(['notice2', 'notice1'])
+    expect([...moved.html.matchAll(/data-mx-field="(notice\d)"/g)].map((m) => m[1])).toEqual(['notice2', 'notice1'])
   })
   it('leaves the export entirely when hidden', () => {
     const banner = library.clips[id].blocks.find((b) => b.kind === 'banner')!
@@ -171,7 +171,7 @@ describe('added banners', () => {
     for (const b of plain.blocks) expect(c.blocks.find((x) => x.id === b.id)?.label).toBe(b.label)
     expect(c.patches[0]).toMatchObject({ sel: '[data-mx-section]', before: true })
     // A nav clipped with its own ticker keeps just that one.
-    expect(sectionClip(library.clips['nav.monolith-bar'], undefined, { banner: true }).blocks.filter((b) => b.kind === 'banner')).toHaveLength(1)
+    expect(sectionClip(library.clips['nav.layout-notice'], undefined, { banner: true }).blocks.filter((b) => b.kind === 'banner')).toHaveLength(1)
   })
   it('exports with its CSS, its words and a fragment in Next.js', async () => {
     const page = pageFor([slotFor(id, { banner: true })])

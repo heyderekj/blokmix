@@ -1,0 +1,24 @@
+.mx-gallery-layout-filmstrip {
+  & .head > *, & .top .btn { animation: mx-gallery-layout-filmstrip-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .top .btn { animation-delay: 160ms; }
+  & .frame { animation: mx-gallery-layout-filmstrip-slide calc(var(--mx-motion-duration) * 1.8) var(--mx-motion-ease) 200ms both; }
+  & .frame:nth-child(2) { animation-delay: 250ms; }
+  & .frame:nth-child(3) { animation-delay: 300ms; }
+  & .frame:nth-child(4) { animation-delay: 350ms; }
+  & .frame:nth-child(n + 5) { animation-delay: 400ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .top .btn, & .frame { animation-name: mx-gallery-layout-filmstrip-fade; }
+  }
+}
+@keyframes mx-gallery-layout-filmstrip-rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes mx-gallery-layout-filmstrip-slide {
+  from { opacity: 0; transform: translateX(40px); }
+}
+@keyframes mx-gallery-layout-filmstrip-fade {
+  from { opacity: 0; }
+}

@@ -2,6 +2,8 @@
   "title": "Team grid",
   "layoutPattern": "portrait-grid-3up",
   "rhythm": "grid",
+  "style": "minimal",
+  "density": "balanced",
   "motionNotes": "Heading rises, then portraits stagger in row by row; portraits lift on hover.",
   "capture": {
     "path": "/",

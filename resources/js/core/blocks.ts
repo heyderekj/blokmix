@@ -52,6 +52,8 @@ export function indexBlocks(tree: HNode[], type: SectionType): BlockInfo[] {
         if (media) b.media = media
         const ratio = attr(n, 'data-mx-ratio')
         if (ratio) b.ratio = ratio
+        // A picture meant for moving media (a video hero, a reel): its art draws a play button and the media menu opens on Video.
+        if (attr(n, 'data-mx-media-kind') === 'video') b.mediaKind = 'video'
         const list = attr(n, 'data-mx-list')
         if (list) b.list = list
         if (linkElementOf(n)) b.linkable = true

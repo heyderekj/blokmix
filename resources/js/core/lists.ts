@@ -134,7 +134,8 @@ const ownAttrs = (el: HEl) => el.attrs.filter(([k]) => !k.startsWith('data-mx-')
 /**
  * Attributes only the first item has (an accordion's first answer open, a
  * bento's first tile wide) when the rest are built alike: they belong to the
- * first position, not to that item. Null when there's no such pattern.
+ * first position, not to that item. Null when there's no such pattern. Strict, for
+ * exports, which write such a list as one mapped template.
  */
 export function firstOnly(items: HEl[], key: string): { first: [string, string][]; rest: [string, string][] } | null {
   if (items.length < 3) return null
@@ -145,6 +146,18 @@ export function firstOnly(items: HEl[], key: string): { first: [string, string][
   if (JSON.stringify(a) === JSON.stringify(b)) return null
   const swapped = { ...items[0], attrs: [...items[0].attrs.filter(([k]) => k.startsWith('data-mx-')), ...b] }
   return itemShape(swapped, key) === rest[0] ? { first: a, rest: b } : null
+}
+
+/**
+ * The same for moving items: only the items' own attributes count, so the first
+ * position keeps its open answer or wide tile even when each item's art or lines
+ * differ (what's inside an item travels with it).
+ */
+export function firstPosition(items: HEl[]): { first: [string, string][]; rest: [string, string][] } | null {
+  if (items.length < 3) return null
+  const own = items.map((it) => JSON.stringify(ownAttrs(it)))
+  if (own.slice(2).some((x) => x !== own[1]) || own[0] === own[1]) return null
+  return { first: ownAttrs(items[0]), rest: ownAttrs(items[1]) }
 }
 
 /** Give an item the root attributes of a position (see firstOnly). */
@@ -162,7 +175,7 @@ function reorder(el: HEl, isItem: (n: HNode) => n is HEl, num: (e: HEl) => numbe
   const firstN = num(items[0])
   if (firstN == null) return el
   // New items copy the most common item, not a first item that's special.
-  const special = isItem(items[0]) && attr(items[0], 'data-mx-block') === 'item' ? firstOnly(items, key) : null
+  const special = isItem(items[0]) && attr(items[0], 'data-mx-block') === 'item' ? firstPosition(items) : null
   const plainN = special ? num(items[1])! : firstN
   const seen = new Set<number>()
   const next: HEl[] = []
@@ -415,7 +428,7 @@ export function renumberField(field: string, key: string, from: number, to: numb
 }
 
 /** How many items a list handles well: the layout's own count, or more for lists that wrap. */
-const MAX_BY_NAME: Record<string, number> = { notices: 6, features: 9, questions: 12, plans: 4, quotes: 6, logos: 12, stats: 6, members: 12, posts: 9, links: 8, columns: 5 }
+const MAX_BY_NAME: Record<string, number> = { notices: 6, features: 9, questions: 12, plans: 4, quotes: 6, logos: 12, stats: 6, members: 12, posts: 9, links: 8, columns: 5, images: 12 }
 export function listMax(name: string | undefined, key: string, layoutCount: number): number {
   const nested = /[A-Z]$/.test(key)
   return Math.max(layoutCount, nested ? 8 : (MAX_BY_NAME[name ?? ''] ?? 8))
@@ -428,6 +441,8 @@ export type ListOp =
   | { op: 'duplicate'; itemId: string }
   | { op: 'remove'; itemId: string }
   | { op: 'move'; itemId: string; to: number }
+  /** Trade places with another item of the same list (a sliding-tile swap: the two change places, nothing else moves). */
+  | { op: 'swap'; itemId: string; withId: string }
   | { op: 'reset'; listId: string }
 
 export class ListError extends Error {}
@@ -486,6 +501,11 @@ export function editList(slot: Slot, clip: SectionClip, content: ProjectContent,
     if (at < 0) throw new ListError('Pick an item in the list to remove.')
     if (refs.length <= 1) throw new ListError('A list keeps at least one item. Hide the list instead.')
     refs.splice(at, 1)
+  } else if (change.op === 'swap') {
+    const other = clip.blocks.find((b) => b.id === change.withId)
+    const to = other?.n != null && other.parent === list.id ? order.indexOf(other.n) : -1
+    if (at < 0 || to < 0) throw new ListError('Pick two items of the same list to swap.')
+    ;[refs[at], refs[to]] = [refs[to], refs[at]]
   } else {
     if (at < 0) throw new ListError('Pick an item in the list to move.')
     const [r] = refs.splice(at, 1)
@@ -507,4 +527,35 @@ export function listContext(clip: SectionClip, slot: Pick<Slot, 'lists'>, blockI
   const max = listMax(list.list, list.listKey, layoutOrder(clip, slot, list.id, list.listKey).length)
   const item = b.kind === 'item' ? b : undefined
   return { list, item, index: item?.n != null ? order.indexOf(item.n) : -1, count: order.length, max, changed: !!slot.lists?.[list.listKey] }
+}
+
+export type TileDir = 'up' | 'down' | 'left' | 'right'
+interface TileRect {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/**
+ * The item next to another in a direction, by where they sit on the page (a sliding-tile neighbour): left and right
+ * look along the same row (items overlapping it vertically), up and down along the same column. A grid's item below
+ * is three places on in the list, but one tile away on screen.
+ */
+export function tileNeighbor(rects: Record<string, TileRect>, ids: string[], from: string, dir: TileDir): string | null {
+  const a = rects[from]
+  if (!a) return null
+  const horizontal = dir === 'left' || dir === 'right'
+  const overlap = (b: TileRect) =>
+    horizontal ? Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) > Math.min(a.h, b.h) * 0.3 : Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) > Math.min(a.w, b.w) * 0.3
+  let best: string | null = null
+  let gap = Infinity
+  for (const id of ids) {
+    const b = rects[id]
+    if (id === from || !b || !overlap(b)) continue
+    const d =
+      dir === 'left' ? a.x - (b.x + b.w / 2) : dir === 'right' ? b.x + b.w / 2 - (a.x + a.w) : dir === 'up' ? a.y - (b.y + b.h / 2) : b.y + b.h / 2 - (a.y + a.h)
+    if (d > -Math.min(a.w, a.h) * 0.25 && d < gap && (dir === 'left' ? b.x < a.x : dir === 'right' ? b.x > a.x : dir === 'up' ? b.y < a.y : b.y > a.y)) [best, gap] = [id, d]
+  }
+  return best
 }

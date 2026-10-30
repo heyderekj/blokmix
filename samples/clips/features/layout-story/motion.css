@@ -1,0 +1,28 @@
+.mx-features-layout-story {
+  & .head > * { animation: mx-features-layout-story-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .stage .media { animation: mx-features-layout-story-settle calc(var(--mx-motion-duration) * 1.8) var(--mx-motion-ease) 160ms both; }
+  & .step { animation: mx-features-layout-story-rise calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease) 220ms both; }
+  & .step:nth-child(2) { animation-delay: 280ms; }
+  & .step:nth-child(3) { animation-delay: 340ms; }
+  & .step:nth-child(n + 4) { animation-delay: 400ms; }
+  & .tag { animation: mx-features-layout-story-float 5s cubic-bezier(0.45, 0, 0.55, 1) 1s infinite alternate; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .stage .media, & .step { animation-name: mx-features-layout-story-fade; }
+    & .tag { animation: none; }
+  }
+}
+@keyframes mx-features-layout-story-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+@keyframes mx-features-layout-story-settle {
+  from { opacity: 0; transform: scale(0.97); }
+}
+@keyframes mx-features-layout-story-fade {
+  from { opacity: 0; }
+}
+@keyframes mx-features-layout-story-float {
+  to { transform: translateY(-8px); }
+}

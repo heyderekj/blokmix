@@ -2,6 +2,8 @@
   "title": "Question cards",
   "layoutPattern": "three-up-open-qa-cards",
   "rhythm": "grid",
+  "style": "playful",
+  "density": "dense",
   "motionNotes": "No entrance motion; the contact button presses in slightly and fills on hover.",
   "capture": {
     "path": "/",

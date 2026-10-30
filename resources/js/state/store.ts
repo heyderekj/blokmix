@@ -24,19 +24,22 @@ import type {
   Page,
   Site,
   Slot,
+  Source,
   Status,
   TokenGroup,
   TokenKey,
   VersionNode,
 } from '@/core/types'
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
-import { adoptDesign, choose, chooseGroup, emptyGuide, promote, removeCandidate } from '@/core/guide'
+import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, SOURCE_PREFIX } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
 import { pickable } from '@/core/library'
 import { BANNER_ID } from '@/core/banner'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
 import { keepOption, putBackOption, retireOption, showWords } from '@/core/words'
 import { suggestClip } from '@/core/suggest'
+import type { FacetFilter } from '@/core/browse'
+import { listOpOnEntries } from './collections'
 import { BASE_TOKENS } from '@/core/tokens'
 import { buildSeed } from './seed'
 import { allSlots, freePath, mapSlots, pageOf, pageOfSlot, pageView, setPageSlots, siteFromSlots, titleFromPath, updatePage as updatePageIn, updateSlotIn } from '@/core/site'
@@ -49,7 +52,7 @@ import { DEFAULT_CONTENT } from '@/core/content'
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
 /** The one surface that can be open at a time; each grows out of the control that summons it. */
-export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'menu' | 'notes' | 'pages' | 'share'
+export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'looks' | 'menu' | 'notes' | 'pages' | 'share'
 export type Tool = 'select' | 'hand' | 'sticky' | 'note'
 
 export interface Camera {
@@ -70,6 +73,14 @@ export interface UiState {
   sheet: Sheet
   guideTab: 'style' | 'content'
   crateFilter: SectionType | 'all' | 'auto'
+  /** Searching and filtering the Crate (`core/browse.ts`). */
+  crateQuery: string
+  crateFacets: FacetFilter
+  /** The Content panel: the page's words, or your collections (and which one is open). */
+  contentView: 'words' | 'collections'
+  openCollection: string | null
+  /** A collection's template page shows one entry at a time: which, by page id. */
+  previewEntry: Record<string, string>
   tool: Tool
   theme: 'light' | 'dark'
   focusedSlotId: string | null
@@ -113,7 +124,8 @@ export interface State extends MixData {
   camera: Camera | null
   agent: AgentState
   shuffleSeq: number
-  flash: { id: number; text: string; undo?: boolean } | null
+  /** undo: 'collections' takes back a change to your collections (their own history) instead of the mix's. */
+  flash: { id: number; text: string; undo?: boolean | 'collections' } | null
 
   // mix
   cycle: (slotId: string, dir: 1 | -1) => void
@@ -125,12 +137,12 @@ export interface State extends MixData {
   focusNext: (dir: 1 | -1) => void
   moveSlot: (slotId: string, toIndex: number) => void
   /** Add a section to a page (the open one by default) at a position in its view; a nav or footer becomes the site's shared one. */
-  addSlot: (type: SectionType, clipId?: string, atIndex?: number, pageId?: string) => void
+  addSlot: (type: SectionType, clipId?: string, atIndex?: number, pageId?: string, extra?: Pick<Slot, 'inspiredBy'>) => void
   removeSlot: (slotId: string) => void
 
   // pages
   openPage: (pageId: string) => void
-  addPage: (p?: { path?: string; title?: string; slots?: Slot[]; show?: Partial<Page['show']>; open?: boolean }) => string
+  addPage: (p?: { path?: string; title?: string; slots?: Slot[]; show?: Partial<Page['show']>; open?: boolean; template?: Page['template'] }) => string
   updatePage: (pageId: string, patch: { path?: string; title?: string; show?: Partial<Page['show']> }) => void
   removePage: (pageId: string) => void
   movePage: (pageId: string, toIndex: number) => void
@@ -152,6 +164,7 @@ export interface State extends MixData {
   /** Show one of a field's options. */
   chooseWords: (slotId: string, field: string, text: string) => void
   setSectionSpacing: (slotId: string, patch: Partial<SectionSpacing>) => void
+  setSurface: (slotId: string, surface: Slot['surface']) => void
   /** null = as clipped. */
   setSectionMotion: (slotId: string, motion: SectionMotion | null) => void
   /** Make this block's variant and style the default for every block of its kind. */
@@ -166,12 +179,20 @@ export interface State extends MixData {
   removeMixClip: (id: string) => void
   /** Swap in another style guide (a saved one, or another mix's), as one undo step. */
   replaceGuide: (guide: GuideState) => void
+  /** Start over from a starter mix's pages and style guide (one undo step); words, notes and versions stay. */
+  startFrom: (site: Site, guide: GuideState) => void
 
   // guide + copy
   promoteClip: (clipId: string, groups: TokenGroup[]) => void
   adoptClipDesign: (clipId: string, groups?: TokenGroup[]) => void
+  /** A whole site's look (from the site library) as candidates, `src:site:<slug>#<group>`; adopt makes it win them. */
+  promoteSite: (source: Source, groups?: TokenGroup[], adopt?: boolean) => void
+  /** Credit (or stop crediting) the real site a section's layout was matched from. */
+  setInspiredBy: (slotId: string, inspiredBy: Slot['inspiredBy'] | null) => void
   removeCandidate: (id: string) => void
   chooseToken: (key: TokenKey, choice: Choice | null) => void
+  /** Set several tokens to your own values at once (a dial, light/dark): one undo step. */
+  chooseTokens: (values: Partial<Record<TokenKey, string>>) => void
   chooseGroup: (candidateId: string) => void
   setField: (type: SectionType, key: string, value: string) => void
   setBrand: (brand: string) => void
@@ -199,7 +220,7 @@ export interface State extends MixData {
   // ui
   setUi: (patch: Partial<UiState>) => void
   setCamera: (c: Camera) => void
-  showFlash: (text: string, opts?: { undo?: boolean }) => void
+  showFlash: (text: string, opts?: { undo?: boolean | 'collections' }) => void
   resetDemo: () => void
 }
 
@@ -211,6 +232,11 @@ const DEFAULT_UI: UiState = {
   sheet: 'none',
   guideTab: 'style',
   crateFilter: 'auto',
+  crateQuery: '',
+  crateFacets: {},
+  contentView: 'words',
+  openCollection: null,
+  previewEntry: {},
   tool: 'select',
   theme: 'light',
   focusedSlotId: null,
@@ -412,6 +438,12 @@ export const useStore = create<State>()(
           editList: (slotId, change) => {
             const slot = allSlots(get().site).find((s) => s.id === slotId)
             if (!slot) return null
+            // A list that shows a collection: the op changes its entries (their own history).
+            const onEntries = listOpOnEntries(slot, change, get().site)
+            if (onEntries) {
+              if (onEntries.message) get().showFlash(onEntries.message, { undo: 'collections' })
+              return { itemId: null }
+            }
             const clip = slotClip(slot)
             let next: Slot
             try {
@@ -436,6 +468,7 @@ export const useStore = create<State>()(
           retireWords: (slotId, field, text) => updateSlot(slotId, (s) => retireOption(s, field, text)),
           putBackWords: (slotId, field, text) => updateSlot(slotId, (s) => putBackOption(s, field, text)),
           chooseWords: (slotId, field, text) => updateSlot(slotId, (s) => showWords(s, slotClip(s), get().content, field, text)),
+          setSurface: (slotId, surface) => updateSlot(slotId, (s) => ({ ...s, surface: surface === 'page' ? undefined : surface })),
           setSectionSpacing: (slotId, patch) =>
             updateSlot(slotId, (s) => {
               const spacing = { ...s.spacing, ...patch }
@@ -496,7 +529,7 @@ export const useStore = create<State>()(
               slots.splice(Math.max(0, Math.min(slots.length, toIndex - offset)), 0, moving)
               return { site: setPageSlots(st.site, page.id, slots) }
             }),
-          addSlot: (type, clipId, atIndex, pageId) => {
+          addSlot: (type, clipId, atIndex, pageId, extra) => {
             const st = get()
             const page = pageOf(st.site, pageId ?? st.ui.pageId)
             const view = pageView(st.site, page.id)
@@ -512,7 +545,7 @@ export const useStore = create<State>()(
               return st.showFlash(`The site already has a ${chrome}. Swap its clip instead.`)
             }
             // With no clip named, take the one that suits this spot best.
-            const slot: Slot = { id: uid('slot'), type, clipId: clipId ?? suggestClip(type, view, at, library)[0]?.clipId, locked: false, keep: { ...DEFAULT_KEEP } }
+            const slot: Slot = { id: uid('slot'), type, clipId: clipId ?? suggestClip(type, view, at, library)[0]?.clipId, locked: false, keep: { ...DEFAULT_KEEP }, ...(extra?.inspiredBy ? { inspiredBy: extra.inspiredBy } : {}) }
             if (!slot.clipId) return
             set((x) => {
               let site: Site
@@ -548,7 +581,7 @@ export const useStore = create<State>()(
             const id = uid('page')
             set((st) => {
               const path = freePath(st.site, p.path ?? `/page-${st.site.pages.length + 1}`)
-              const page: Page = { id, path, title: p.title?.trim() || titleFromPath(path), slots: p.slots ?? [], show: { nav: true, footer: true, ...p.show } }
+              const page: Page = { id, path, title: p.title?.trim() || titleFromPath(path), slots: p.slots ?? [], show: { nav: true, footer: true, ...p.show }, ...(p.template ? { template: p.template } : {}) }
               return { site: { ...st.site, pages: [...st.site.pages, page] }, ...(p.open === false ? {} : { ui: { ...st.ui, pageId: id, focusedSlotId: null, selectedBlockId: null } }) }
             })
             return id
@@ -595,6 +628,12 @@ export const useStore = create<State>()(
           },
           removeMixClip: (id) => set({ clips: (get().clips ?? []).filter((c) => c !== id) }),
           replaceGuide: (guide) => set({ guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
+          startFrom: (site, guide) =>
+            set((st) => ({
+              site: structuredClone(site),
+              guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } },
+              ui: { ...st.ui, pageId: site.pages[0].id, focusedSlotId: null, selectedBlockId: null, selectedFrameId: 'mix' },
+            })),
 
           promoteClip: (clipId, groups) => {
             const clip = library.clips[clipId]
@@ -604,8 +643,23 @@ export const useStore = create<State>()(
             const clip = library.clips[clipId]
             if (clip) set((st) => ({ guide: adoptDesign(st.guide, clip, groups) }))
           },
+          promoteSite: (source, groups = [...TOKEN_GROUPS], adopt = false) =>
+            set((st) => {
+              const guide = promoteSource(st.guide, source, groups)
+              if (!adopt) return { guide }
+              const choices = { ...guide.choices }
+              for (const g of groups) for (const c of guide.candidates) if (c.clipId === `${SOURCE_PREFIX}${source.id}` && c.group === g) for (const k of Object.keys(c.values) as TokenKey[]) choices[k] = { kind: 'candidate', candidateId: c.id }
+              return { guide: { ...guide, choices } }
+            }),
+          setInspiredBy: (slotId, inspiredBy) =>
+            updateSlot(slotId, (s) => {
+              const { inspiredBy: _old, ...rest } = s
+              return inspiredBy ? { ...rest, inspiredBy } : rest
+            }),
           removeCandidate: (id) => set((st) => ({ guide: removeCandidate(st.guide, id) })),
           chooseToken: (key, choice) => set((st) => ({ guide: choose(st.guide, key, choice) })),
+          chooseTokens: (values) =>
+            set((st) => ({ guide: (Object.entries(values) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide) })),
           chooseGroup: (candidateId) => set((st) => ({ guide: chooseGroup(st.guide, candidateId) })),
           setField: (type, key, value) =>
             set((st) => ({

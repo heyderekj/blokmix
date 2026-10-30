@@ -75,7 +75,11 @@
 
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-3);
-    & .pill { padding-left: var(--mx-space-4); }
+    & .pill { padding-left: var(--mx-space-4); gap: var(--mx-space-3); }
     & .links { display: none; }
+    /* The brand gives way first; the button keeps its words and drops its arrow. */
+    & .brand { min-width: 0; }
+    & .cta { flex-shrink: 0; padding-inline: var(--mx-space-4); white-space: nowrap; }
+    & .cta svg { display: none; }
   }
 }

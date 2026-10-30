@@ -1,0 +1,16 @@
+.mx-hero-layout-bento {
+  & .cell { animation: mx-hero-layout-bento-in calc(var(--mx-motion-duration) * 1.8) var(--mx-motion-ease) both; }
+  & .tall { animation-delay: 60ms; }
+  & .proof { animation-delay: 120ms; }
+  & .wide { animation-delay: 180ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .cell { animation-name: mx-hero-layout-bento-fade; }
+  }
+}
+@keyframes mx-hero-layout-bento-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+}
+@keyframes mx-hero-layout-bento-fade {
+  from { opacity: 0; }
+}

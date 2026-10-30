@@ -226,22 +226,11 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'dashed', label: 'Dashed', hint: 'A sketchy outline: drafts, empty states, “coming soon”', css: `${CARD_BASE} background: ${fill('transparent')}; border: calc(var(--mx-stroke) * 1.5) dashed color-mix(in oklab, var(--mx-color-text) 28%, transparent); box-shadow: ${shadow('none')};` },
     { id: 'rule', label: 'Top rule', hint: 'An accent line across the top; quiet and editorial', css: `padding: var(--mx-space-6) 0 0; border-radius: 0; background: ${fill('transparent')}; border: 0; border-top: calc(var(--mx-stroke) * 2) solid var(--mx-color-accent); box-shadow: ${shadow('none')};` },
   ],
+  // Pictures: a few frames that read as decisions, not effects. Anything more is a job for the image itself.
   image: [
-    { id: 'rounded', label: 'Rounded', hint: 'Matches your radius', css: `border-radius: ${radius('var(--mx-radius-lg)')}; overflow: hidden;` },
-    { id: 'circle', label: 'Circle', hint: 'Portraits and avatars', css: `border-radius: 50%; aspect-ratio: 1; overflow: hidden;` },
-    { id: 'arch', label: 'Arch', hint: 'A soft, architectural frame', css: `border-radius: 999px 999px var(--mx-radius) var(--mx-radius); overflow: hidden;` },
-    { id: 'blob', label: 'Blob', hint: 'Organic and playful', css: `border-radius: 58% 42% 46% 54% / 46% 52% 48% 54%; overflow: hidden;` },
-    { id: 'polaroid', label: 'Polaroid', hint: 'A printed photo, slightly tilted', css: `padding: var(--mx-space-3) var(--mx-space-3) var(--mx-space-8); background: var(--mx-color-bg); box-shadow: var(--mx-shadow-card); rotate: -2deg; border-radius: 2px;` },
-    { id: 'inset', label: 'Inset frame', hint: 'A fine border inside the edge', css: `border-radius: ${radius('var(--mx-radius-lg)')}; overflow: hidden; outline: 1px solid color-mix(in oklab, var(--mx-color-bg) 70%, transparent); outline-offset: -10px;` },
-    {
-      id: 'duotone',
-      label: 'Duotone',
-      hint: 'Tinted with your primary',
-      css: `position: relative; isolation: isolate; overflow: hidden; border-radius: ${radius('var(--mx-radius-lg)')}; filter: grayscale(1) contrast(1.05); &::after { content: ""; position: absolute; inset: 0; background: ${fill('var(--mx-color-primary)')}; mix-blend-mode: color; pointer-events: none; }`,
-    },
-    { id: 'shadow', label: 'Shadow', hint: 'Rounded and lifted off the page', css: `border-radius: ${radius('var(--mx-radius-lg)')}; overflow: hidden; box-shadow: ${shadow('0 2px 4px color-mix(in oklab, var(--mx-color-text) 8%, transparent), 0 24px 48px -16px color-mix(in oklab, var(--mx-color-text) 32%, transparent)')};` },
-    { id: 'mat', label: 'Mat', hint: 'Framed on a surface-colored mat, like a print', css: `padding: var(--mx-space-4); background: ${fill('var(--mx-color-surface)')}; border: var(--mx-stroke) solid var(--mx-color-border); border-radius: ${radius('var(--mx-radius-lg)')};` },
-    { id: 'capsule', label: 'Capsule', hint: 'Fully rounded ends; soft and friendly', css: `border-radius: 999px; overflow: hidden;` },
+    { id: 'rounded', label: 'Your radius', hint: 'Corners from your style guide', css: `border-radius: ${radius('var(--mx-radius-lg)')}; overflow: hidden;` },
+    { id: 'square', label: 'Square', hint: 'Sharp corners, edge to edge', css: `border-radius: 0; overflow: hidden;` },
+    { id: 'circle', label: 'Circle', hint: 'For portraits and avatars', css: `border-radius: 50%; aspect-ratio: 1; overflow: hidden;` },
   ],
   icon: [
     { id: 'tile', label: 'Tile', hint: 'A soft square behind the icon', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: ${radius('var(--mx-radius)')}; background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 14%, transparent); color: ${ink('var(--mx-color-primary)')};` },

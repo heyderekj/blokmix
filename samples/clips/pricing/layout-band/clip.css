@@ -87,6 +87,9 @@
   }
 
   @media (max-width: 760px) {
+    /* A big price never outgrows a phone, whatever the type scale. */
+    & .amt { font-size: min(var(--mx-text-5xl), 17vw); }
+    & .price { flex-wrap: wrap; row-gap: var(--mx-space-1); }
     padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }

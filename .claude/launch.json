@@ -4,8 +4,39 @@
     {
       "name": "blokmix",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "blokmix-app",
+      "url": "http://localhost:8000"
+    },
+    {
+      "name": "blokmix-site",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "/Users/heyderekj/blokmix.com",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "4322"
+      ],
+      "port": 4322
+    },
+    {
+      "name": "blokmix-worktree",
+      "runtimeExecutable": "php",
+      "runtimeArgs": [
+        "artisan",
+        "serve",
+        "--port=8001"
+      ],
+      "port": 8001
     }
   ]
 }

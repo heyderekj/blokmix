@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { surfaceTokens } from '@/core/surface'
 import { create } from 'zustand'
 import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
@@ -83,7 +84,7 @@ export function fontHrefsFor(tokens: TokenSet): string[] {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   libraryClip: Clip,
-  slot: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner'> & { id?: string }) | null,
+  slot: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner' | 'surface'> & { id?: string }) | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
@@ -97,7 +98,7 @@ export function frameStateFor(
   }
   // The clip as this section shows it: items you added, removed or reordered.
   const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
-  const tokens = slot.keep.style ? clip.tokens : guide
+  const tokens = slot.keep.style ? clip.tokens : surfaceTokens(guide, slot.surface)
   const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
   return {
     css: tokensCssFor(tokens, vh) + swatchCss(page?.swatches),

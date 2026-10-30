@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useCollections } from '@/state/collections'
 import { ChevronDown, Copy, FileText, MoreHorizontal, PanelBottom, PanelTop, Pencil, Plus, Trash2 } from 'lucide-react'
 import type { Page, SectionType } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -264,6 +265,44 @@ function AddPage({ onDone }: { onDone: () => void }) {
           )
         })}
       </div>
+      <FromCollection onDone={onDone} />
     </div>
+  )
+}
+
+/** A collection's template page: one page per entry when exported (/blog-posts/[slug]). */
+function FromCollection({ onDone }: { onDone: () => void }) {
+  const all = useCollections((s) => s.bySlug)
+  const pages = useStore((s) => s.site.pages)
+  const free = Object.values(all).filter((c) => !pages.some((p) => p.template?.collection === c.slug))
+  if (!free.length) return null
+  return (
+    <>
+      <div className="px-1 pb-1.5 pt-3 text-[11px] font-semibold text-zinc-400">A page for each entry of</div>
+      <div className="grid gap-1">
+        {free.map((c) => (
+          <button
+            key={c.slug}
+            type="button"
+            onClick={() => {
+              try {
+                runCommand('add_collection_page', { collection: c.slug }, 'you')
+              } catch (e) {
+                useStore.getState().showFlash(e instanceof Error ? e.message : String(e))
+              }
+              useStore.getState().setUi({ sheet: 'none' })
+              onDone()
+            }}
+            className="flex cursor-pointer items-center gap-2.5 rounded-xl bg-white p-2 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.07)] transition-[box-shadow,scale] duration-150 active:scale-[0.98] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_0_0_1px_rgb(0_0_0/0.12)]"
+          >
+            <span className="grid size-9 place-items-center rounded-lg bg-key-soft font-mono text-[11px] font-bold text-key-ink">[ ]</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-semibold text-zinc-800">{c.name}</span>
+              <span className="block truncate font-mono text-[11px] text-zinc-400">/{c.slug}/[slug] · {c.entries.length} pages</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </>
   )
 }

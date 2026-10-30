@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowDown, ArrowUp, Lock, LockOpen, Palette, PanelsTopLeft, Plus, Sparkles, Trash2, Type, Waves } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpRight, Lock, LockOpen, Palette, PanelsTopLeft, Plus, Sparkles, Trash2, Type, Waves } from 'lucide-react'
 import type { Keep, Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -12,6 +12,10 @@ import { useStore, currentSlots } from '@/state/store'
 import { MORPH } from '../shell/Island'
 import { DeviceSwitch, SectionSpacingRows, useDevice } from '../blocks/Spacing'
 import { SectionMotionRows } from '../blocks/MotionMenu'
+import { useResolvedGuide } from '@/state/derived'
+import { SURFACES, SURFACE_LABEL, surfaceTokens } from '@/core/surface'
+import { runCommand } from '@/state/commands'
+import { siteLibraryAvailable } from '@/lib/siteLibrary'
 
 export const KEEPS: { key: keyof Keep; label: string; icon: typeof Type; on: string; off: string; n: number }[] = [
   { key: 'layout', label: 'Layout', icon: PanelsTopLeft, on: 'The agent reproduces this structure', off: 'Reference only; the agent may restructure it', n: 1 },
@@ -49,78 +53,55 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
   const yours = KEEPS.filter((k) => (k.key === 'style' || k.key === 'content') && !slot.keep[k.key]).map((k) => k.label.toLowerCase())
 
   return (
-    <div className="absolute left-0 top-0 z-20 origin-top-left" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }} data-chrome>
+    // Just below the section, like the block bar below a block: the section stays in view while you change it.
+    <div className="absolute left-0 top-full z-30 origin-top-left" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }} data-chrome>
       <motion.div
         layout
         transition={MORPH}
-        style={{ borderRadius: 16 }}
-        className={`glass-panel m-2 overflow-hidden transition-opacity ${focused ? 'w-[420px] opacity-100' : 'w-fit opacity-75 group-hover/row:opacity-100'}`}
+        style={{ borderRadius: 14 }}
+        className={`glass-panel ml-3 mt-2.5 w-max overflow-hidden transition-opacity ${focused ? 'opacity-100' : 'opacity-75 group-hover/row:opacity-100'}`}
         onPointerDown={(e) => {
           e.stopPropagation()
           st().focusSlot(slot.id)
         }}
       >
-        {/* tier 1: identity + one action */}
-        <motion.div layout="position" transition={MORPH} className="flex items-center gap-2 py-2 pl-3 pr-2">
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-semibold leading-tight text-zinc-900">{TYPE_LABEL[slot.type]}</div>
-            <div className="truncate text-[12px] text-zinc-500">
-              {source?.name} · {pos} of {total}
-              {sharedOn > 0 && multi ? (
-                <span className="ml-1 rounded-full bg-key-soft px-1.5 py-px text-[11px] font-semibold text-key-ink" title="Edits here show on every page that shows it">
-                  Shared · on {sharedOn} {sharedOn === 1 ? 'page' : 'pages'}
-                </span>
-              ) : null}
-              {yours.length ? <span className="text-zinc-400"> · your {yours.join(' & ')}</span> : null}
-            </div>
-          </div>
-          <button
-            type="button"
-            aria-pressed={slot.locked}
-            title={slot.locked ? 'Unlock (L): shuffle can change this section' : 'Lock (L): shuffle skips this section'}
-            onClick={(e) => {
-              e.stopPropagation()
-              st().toggleLock(slot.id)
-            }}
-            className={`grid size-8 shrink-0 place-items-center rounded-full transition active:scale-[0.97] ${slot.locked ? 'bg-key text-white' : 'text-zinc-500 hover:bg-zinc-950/5'}`}
+        {/* one slim row: what it is, its tabs, its utilities, the one strong action */}
+        <motion.div layout="position" transition={MORPH} className="flex h-10 items-center gap-1 pl-3 pr-1">
+          <div
+            className="mr-1 flex shrink-0 items-baseline gap-1.5 whitespace-nowrap"
+            title={`${source?.name ?? ''}${yours.length ? ` · your ${yours.join(' & ')}` : ''}`}
           >
-            {slot.locked ? <Lock size={14} strokeWidth={2.4} /> : <LockOpen size={14} />}
-          </button>
+            <span className="text-[13.5px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
+            <span className="text-[11.5px] tabular-nums text-zinc-400">
+              {pos}/{total}
+            </span>
+            {sharedOn > 0 && multi ? (
+              <span className="rounded-full bg-key-soft px-1.5 py-px text-[10.5px] font-semibold text-key-ink" title="Edits here show on every page that shows it">
+                Shared · {sharedOn}
+              </span>
+            ) : null}
+          </div>
           {focused && (
-            <button
-              type="button"
-              title="Use this clip’s look as the style guide (P)"
-              onClick={(e) => {
-                e.stopPropagation()
-                st().adoptClipDesign(slot.clipId)
-                st().showFlash(`Style guide now follows ${source?.name}`, { undo: true })
-              }}
-              className="btn-lit flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold"
-            >
-              <Sparkles size={13} /> Use look
-            </button>
-          )}
-        </motion.div>
-
-        {/* tier 2: tabs on the left, section utilities on the right */}
-        {focused && (
-          <motion.div layout="position" transition={MORPH} className="flex items-end gap-0.5 border-t border-zinc-950/6 px-2 pt-1.5">
-            {(['keep', 'look', 'source'] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                aria-expanded={tab === k}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (tab !== k) st().setUi({ sheet: 'none' })
-                  setTab(tab === k ? null : k)
-                }}
-                className={`h-8 rounded-t-lg px-3 text-[12.5px] font-medium transition ${tab === k ? 'bg-well text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
-              >
-                {k === 'keep' ? 'Keep' : k === 'look' ? 'Look' : 'Source'}
-              </button>
-            ))}
-            <div className="ml-auto flex items-center gap-0.5 pb-1">
+            <>
+              <span className="mx-0.5 h-4 w-px bg-zinc-950/10" />
+              {(['keep', 'look', 'source'] as const).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-expanded={tab === k}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (tab !== k) st().setUi({ sheet: 'none' })
+                    setTab(tab === k ? null : k)
+                  }}
+                  className={`h-7 cursor-pointer rounded-full px-2.5 text-[12px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${tab === k ? 'bg-well text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
+                >
+                  {k === 'keep' ? 'Keep' : k === 'look' ? 'Look' : 'Source'}
+                </button>
+              ))}
+              <span className="mx-0.5 h-4 w-px bg-zinc-950/10" />
+              <SurfaceDots slot={slot} />
+              <span className="mx-0.5 h-4 w-px bg-zinc-950/10" />
               <Util label="Move up (⌥↑)" disabled={index === 0} onClick={() => st().moveSlot(slot.id, index - 1)}>
                 <ArrowUp size={14} />
               </Util>
@@ -138,9 +119,35 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
               >
                 <Trash2 size={14} />
               </Util>
-            </div>
-          </motion.div>
-        )}
+            </>
+          )}
+          <button
+            type="button"
+            aria-pressed={slot.locked}
+            title={slot.locked ? 'Unlock (L): shuffle can change this section' : 'Lock (L): shuffle skips this section'}
+            onClick={(e) => {
+              e.stopPropagation()
+              st().toggleLock(slot.id)
+            }}
+            className={`grid size-7 shrink-0 cursor-pointer place-items-center rounded-full transition active:scale-[0.97] ${slot.locked ? 'bg-key text-white' : 'text-zinc-500 hover:bg-zinc-950/5'}`}
+          >
+            {slot.locked ? <Lock size={13} strokeWidth={2.4} /> : <LockOpen size={13} />}
+          </button>
+          {focused && (
+            <button
+              type="button"
+              title="Use this clip’s look as the style guide (P)"
+              onClick={(e) => {
+                e.stopPropagation()
+                st().adoptClipDesign(slot.clipId)
+                st().showFlash(`Style guide now follows ${source?.name}`, { undo: true })
+              }}
+              className="btn-lit ml-0.5 flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold"
+            >
+              <Sparkles size={12} /> Use look
+            </button>
+          )}
+        </motion.div>
 
         <AnimatePresence initial={false} mode="popLayout">
           {focused && tab && (
@@ -358,6 +365,7 @@ function BannerRow({ slot }: { slot: Slot }) {
 function SourceTab({ slot }: { slot: Slot }) {
   const clip = library.clips[slot.clipId]
   const source = library.sources[clip.sourceId]
+  const inspired = slot.inspiredBy ?? clip.inspiredBy
   return (
     <div className="text-[12.5px] text-zinc-600">
       <div className="font-medium text-zinc-900">{clip.title}</div>
@@ -371,6 +379,78 @@ function SourceTab({ slot }: { slot: Slot }) {
         </span>
       </div>
       {clip.motionNotes && <p className="mt-2 leading-relaxed text-zinc-500">{clip.motionNotes}</p>}
+      {inspired && <InspiredBy inspired={inspired} />}
+    </div>
+  )
+}
+
+/** The real site a section's layout was matched from: credit, a link, and its look for the style guide. */
+function InspiredBy({ inspired }: { inspired: NonNullable<Slot['inspiredBy']> }) {
+  // use_site_style finds a library site by its name too.
+  const slug = siteLibraryAvailable() ? inspired.site : null
+  return (
+    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-zinc-950/6 pt-2.5">
+      <a
+        href={inspired.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="mr-auto inline-flex min-w-0 cursor-pointer items-center gap-1 truncate font-medium text-zinc-800 underline decoration-zinc-950/20 underline-offset-2 hover:decoration-zinc-950/60"
+      >
+        Inspired by {inspired.site} <ArrowUpRight size={12} className="shrink-0" />
+      </a>
+      {slug && (
+        <button
+          type="button"
+          onClick={async (e) => {
+            e.stopPropagation()
+            try {
+              await runCommand('use_site_style', { site: slug }, 'you')
+              useStore.getState().showFlash(`${inspired.site}’s look is a style guide candidate`, { undo: true })
+            } catch (err) {
+              useStore.getState().showFlash(err instanceof Error ? err.message : String(err))
+            }
+          }}
+          className="h-7 cursor-pointer rounded-full px-2.5 text-[12px] font-medium text-zinc-600 transition-[background-color,color,scale] active:scale-[0.97] hover:bg-zinc-950/5 hover:text-zinc-900"
+        >
+          Use its look
+        </button>
+      )}
+    </div>
+  )
+}
+
+/** The band the section sits on: one dot per surface, painted in what it would look like with your style guide. */
+function SurfaceDots({ slot }: { slot: Slot }) {
+  const tokens = useResolvedGuide().tokens
+  const on = slot.surface ?? 'page'
+  if (slot.keep.style) return null // a section keeping its own look keeps its own band
+  return (
+    <div className="flex items-center gap-0.5" role="radiogroup" aria-label="Section surface">
+      {SURFACES.map((sf) => {
+        const t = surfaceTokens(tokens, sf)
+        return (
+          <button
+            key={sf}
+            type="button"
+            role="radio"
+            aria-checked={on === sf}
+            title={`${SURFACE_LABEL[sf]} band`}
+            onClick={(e) => {
+              e.stopPropagation()
+              useStore.getState().setSurface(slot.id, sf)
+            }}
+            className={`grid size-7 cursor-pointer place-items-center rounded-full transition-[background-color,scale] active:scale-[0.97] ${on === sf ? 'bg-zinc-950/[0.07]' : 'hover:bg-zinc-950/5'}`}
+          >
+            <span
+              className={`grid size-4 place-items-center rounded-full ${on === sf ? 'ring-2 ring-zinc-900 ring-offset-1 ring-offset-transparent' : 'ring-1 ring-zinc-950/15'}`}
+              style={{ background: t['color.bg'] }}
+            >
+              <span className="size-1.5 rounded-full" style={{ background: t['color.text'] }} />
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

@@ -99,6 +99,20 @@ class MixesTest extends TestCase
         $this->post('/mixes', ['guide' => ['choices' => []]])->assertSessionHasErrors('guide.base');
     }
 
+    public function test_a_new_mix_can_start_from_a_starter_mix(): void
+    {
+        $guide = ['base' => ['color.primary' => '#7a4fd1'], 'candidates' => [], 'choices' => []];
+        $site = ['pages' => [['id' => 'page_home', 'path' => '/', 'title' => 'Home', 'slots' => [['id' => 'slot_0_0', 'type' => 'hero', 'clipId' => 'hero.layout-product']]]], 'shared' => []];
+        $this->post('/mixes', ['name' => 'Product launch', 'site' => $site, 'guide' => $guide])->assertRedirect();
+        $mix = Mix::sole();
+        $this->assertSame('Product launch', $mix->name);
+        $this->assertSame('hero.layout-product', $mix->data['site']['pages'][0]['slots'][0]['clipId']);
+        $this->assertSame('#7a4fd1', $mix->data['guide']['base']['color.primary']);
+
+        $this->post('/mixes', ['site' => ['shared' => []]])->assertSessionHasErrors('site.pages');
+        $this->post('/mixes', ['name' => str_repeat('x', 121)])->assertSessionHasErrors('name');
+    }
+
     public function test_the_browser_mix_still_opens(): void
     {
         $this->get('/local')->assertInertia(fn (Assert $page) => $page->component('mixes/show')->where('mix.id', 'local'));

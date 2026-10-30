@@ -2,6 +2,8 @@
   "title": "Centered band",
   "layoutPattern": "centered-band",
   "rhythm": "band",
+  "style": "bold",
+  "density": "airy",
   "motionNotes": "Content rises in a short stagger on load; buttons lift on hover.",
   "capture": {
     "path": "/",

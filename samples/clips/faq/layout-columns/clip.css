@@ -115,7 +115,7 @@
     & .head { grid-template-columns: 1fr; gap: var(--mx-space-4); padding-bottom: var(--mx-space-7); }
     & .lead { justify-self: start; font-size: var(--mx-text-base); }
     & .heading { font-size: clamp(var(--mx-text-2xl), 8vw, var(--mx-text-3xl)); }
-    & .grid { grid-template-columns: 1fr; margin-top: var(--mx-space-7); gap: var(--mx-space-7); }
+    & .grid { grid-template-columns: 1fr; margin-top: var(--mx-space-7); gap: var(--mx-space-7) var(--mx-space-4); }
     & .pair { gap: var(--mx-space-4); }
     & .num { width: 32px; height: 32px; }
     & .q { font-size: var(--mx-text-base); }

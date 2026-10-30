@@ -60,6 +60,11 @@ export const write = {
     useStore.getState().setSectionSpacing(slot.id, patch)
     return { spacing: findSection(slot.id).spacing ?? {} }
   },
+  set_section_surface: (i: CommandInput<'set_section_surface'>) => {
+    const slot = findSection(i.section)
+    useStore.getState().setSurface(slot.id, i.surface)
+    return { section: slot.id, surface: findSection(slot.id).surface ?? 'page' }
+  },
   set_image: (i: CommandInput<'set_image'>) => {
     const slot = findSection(i.section)
     const b = findBlock(slot, i.block)

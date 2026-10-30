@@ -39,6 +39,8 @@
   & .label { max-width: 26ch; font-size: var(--mx-text-lg); line-height: 1.45; color: var(--mx-color-muted); }
 
   @media (max-width: 760px) {
+    /* On phones every child spans the row; a narrow column gap keeps the 12 tracks inside it. */
+    & .grid { column-gap: var(--mx-space-4); }
     padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }

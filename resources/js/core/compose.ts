@@ -1,4 +1,6 @@
-import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet } from './types'
+import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet, ListBinding } from './types'
+import { applyBindings, findList, sortedEntries, type BindContext, type Collection } from './collections'
+import { surfaceTokens } from './surface'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
@@ -8,7 +10,7 @@ import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit, t
 import { resolveFields } from './content'
 import { sectionClip } from './lists'
 import { applyLinks, pageScope, sectionAnchors, sectionLinks, siteScope, type LinkScope } from './links'
-import { pageView } from './site'
+import { allSlots, pageView } from './site'
 import { BANNER_CSS, BANNER_MOTION, bannerMoves } from './banner'
 import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
@@ -32,6 +34,10 @@ export interface ComposedSection {
   outline: OutlineNode[]
   /** …and as the content file's JSON (src/content/<contentName>.json). */
   content: Record<string, ContentValue>
+  /** Lists that show a collection, by their key in the content file: the export fills them from its entries. */
+  bound?: ({ key: string } & ListBinding)[]
+  /** On a collection's template page: content keys (fields) that show the page's entry, and from which entry field. */
+  entryBound?: Record<string, string>
   contentName: string
   /** Other ways to say a field that you kept (not retired), by field: what you're still choosing between. */
   options: Record<string, string[]>
@@ -47,6 +53,8 @@ export interface ComposedSection {
   media: ComposedMedia[]
   retained: string[]
   notes: string[]
+  /** The real site this section's layout was matched from (the section's own, else its clip's). */
+  inspiredBy?: { site: string; url: string }
 }
 
 export interface ComposedMedia {
@@ -84,11 +92,13 @@ export interface ComposedPage {
   pages: string[]
   /** A site of pages: the shared nav and footer, composed once, and each page's own sections. `sections` lists them all. */
   site?: ComposedSite
+  /** The collections its sections show (exports write them as content collections). */
+  collections?: Collection[]
 }
 
 export interface ComposedSite {
   shared: { nav?: ComposedSection; footer?: ComposedSection }
-  pages: { id: string; path: string; title: string; show: { nav: boolean; footer: boolean }; sections: ComposedSection[] }[]
+  pages: { id: string; path: string; title: string; show: { nav: boolean; footer: boolean }; sections: ComposedSection[]; template?: { collection: string } }[]
 }
 
 export interface ComposeInput {
@@ -112,6 +122,8 @@ export interface ComposeInput {
   link?: LinkScope
   /** Section anchors, when the page's view includes sections composed elsewhere (the shared nav). */
   anchors?: Record<string, string>
+  /** Your collections, for sections bound to them (`core/collections.ts`). */
+  bind?: BindContext
 }
 
 const pascal = (s: string) =>
@@ -140,9 +152,11 @@ export function composePage(input: ComposeInput): ComposedPage {
   const sections: ComposedSection[] = []
 
   const anchors = input.anchors ?? sectionAnchors(input.slots)
-  input.slots.forEach((slot, position) => {
-    const libraryClip = input.library.clips[slot.clipId]
+  input.slots.forEach((own, position) => {
+    const libraryClip = input.library.clips[own.clipId]
     if (!libraryClip) return
+    // A section bound to a collection shows its entries (derived; the section keeps its own words).
+    const slot = input.bind && own.bind ? applyBindings(own, libraryClip, input.bind) : own
     // The clip as this section shows it: its lists in your order, blocks stamped with stable ids.
     const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
     let component = componentName(clip)
@@ -284,6 +298,11 @@ export function composePage(input: ComposeInput): ComposedPage {
       localVars = rest
       css = `${varsToCss(rest, `.${clip.rootClass}`)}\n\n${css}`
       addFonts(clip.tokens)
+    } else if (slot.surface && slot.surface !== 'page') {
+      // A band in the guide's own colors: the section's tokens, re-mixed, on this section only.
+      const { ['--mx-vh']: _vh, ...rest } = expandTokens(surfaceTokens(input.guide.tokens, slot.surface))
+      localVars = rest
+      css = `${varsToCss(rest, rootSel)}\n\n${css}`
     }
 
     // The clip's own motion, unless a preset (or None) replaces it; then any presets you chose.
@@ -306,6 +325,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       component,
       clip,
       keep: slot.keep,
+      ...(own.inspiredBy ?? libraryClip.inspiredBy ? { inspiredBy: own.inspiredBy ?? libraryClip.inspiredBy } : {}),
       tree,
       source: shown,
       anchor: anchors[slot.id],
@@ -315,6 +335,13 @@ export function composePage(input: ComposeInput): ComposedPage {
       }),
       outline: words,
       content: contentJson(words, fields),
+      bound: own.bind?.lists
+        ? Object.entries(own.bind.lists).flatMap(([listKey, b]) => {
+            const list = findList(words, listKey)
+            return list && input.bind?.collections[b.collection] ? [{ key: list.key, ...b }] : []
+          })
+        : undefined,
+      entryBound: own.bind?.entry?.fields && Object.keys(own.bind.entry.fields).length ? { ...own.bind.entry.fields } : undefined,
       contentName: kebab(component),
       options: Object.fromEntries(
         Object.entries(slot.options ?? {}).flatMap(([f, os]) => {
@@ -359,23 +386,54 @@ export function composeSite(input: Omit<ComposeInput, 'slots' | 'key' | 'used' |
   const one = (slots: Site['pages'][number]['slots'], key: string, here: string | null, viewOf?: string) =>
     composePage({ ...base, slots, key, used, link: siteScope(site, here), anchors: viewOf ? sectionAnchors(pageView(site, viewOf)) : undefined })
   const nav = site.shared.nav ? one([site.shared.nav], 'nav', null) : null
-  const pages = site.pages.map((p, i) => ({ page: p, composed: one(p.slots, i === 0 ? 's' : `p${i + 1}s`, p.id, p.id) }))
+  // A collection's template page is composed with its first entry (exports make one page per entry from it).
+  const withEntry = (p: Site['pages'][number]) => {
+    const c = p.template && base.bind?.collections[p.template.collection]
+    const entry = c ? sortedEntries(c).find((e) => !e.draft) : undefined
+    return c && entry ? { ...base, bind: { ...base.bind!, entry: { collection: c.slug, entry } } } : base
+  }
+  const pages = site.pages.map((p, i) => ({ page: p, composed: composePage({ ...withEntry(p), slots: p.slots, key: i === 0 ? 's' : `p${i + 1}s`, used, link: siteScope(site, p.id), anchors: sectionAnchors(pageView(site, p.id)) }) }))
   const footer = site.shared.footer ? one([site.shared.footer], 'ft', null) : null
   const all = [nav, ...pages.map((x) => x.composed), footer].filter((x): x is ComposedPage => !!x)
   const fonts = new Map(all.flatMap((c) => c.fonts.map((f) => [f.family, f] as const)))
   const paths = new Set(site.pages.map((p) => p.path))
   const first = all[0] ?? composePage({ ...base, slots: [] })
+  const shown = new Set(allSlots(site).flatMap((s) => Object.values(s.bind?.lists ?? {}).map((b) => b.collection)))
+  for (const p of site.pages) if (p.template) shown.add(p.template.collection)
+  // Pictures in entries become files under public/media/collections (stock photos keep their address).
+  const collectionMedia: Record<string, string | Uint8Array> = {}
+  const collections = [...shown]
+    .map((slug) => input.bind?.collections[slug])
+    .filter((c): c is Collection => !!c)
+    .map((c) => ({
+      ...c,
+      entries: c.entries.map((e) => ({
+        ...e,
+        data: Object.fromEntries(
+          Object.entries(e.data).map(([k, v]) => {
+            if (!v || typeof v !== 'object' || Array.isArray(v)) return [k, v]
+            if (v.source === 'stock' && v.stock?.url) return [k, v.stock.url]
+            const up = v.source === 'upload' && v.asset ? input.uploads?.(v.asset) : undefined
+            if (!up?.bytes) return [k, null]
+            const path = `media/collections/${c.slug}/${e.slug}-${k}.${up.mime?.split('/')[1]?.replace('jpeg', 'jpg') ?? 'webp'}`
+            collectionMedia[path] = new Uint8Array(up.bytes)
+            return [k, `/${path}`]
+          }),
+        ),
+      })),
+    }))
   return {
     ...first,
+    collections: collections.length ? collections : undefined,
     title: input.title ?? input.content.brand,
     fonts: [...fonts.values()],
     sections: all.flatMap((c) => c.sections),
-    mediaFiles: Object.assign({}, ...all.map((c) => c.mediaFiles)),
+    mediaFiles: Object.assign({}, ...all.map((c) => c.mediaFiles), collectionMedia),
     moving: all.some((c) => c.moving),
     pages: [...new Set(all.flatMap((c) => c.pages))].filter((p) => !paths.has(p)).sort(),
     site: {
       shared: { nav: nav?.sections[0], footer: footer?.sections[0] },
-      pages: pages.map(({ page, composed }) => ({ id: page.id, path: page.path, title: page.title, show: page.show, sections: composed.sections })),
+      pages: pages.map(({ page, composed }) => ({ id: page.id, path: page.path, title: page.title, show: page.show, sections: composed.sections, ...(page.template ? { template: page.template } : {}) })),
     },
   }
 }

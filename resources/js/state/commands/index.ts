@@ -1,4 +1,5 @@
 import { COMMANDS, toolDefinitions, type CommandName } from '@/core/commands/schema'
+import { useCollections } from '../collections'
 import { useStore } from '../store'
 import { canEdit, useAccount } from '@/lib/account'
 import { CommandError } from './refs'
@@ -10,11 +11,13 @@ import * as blocks from './blocks'
 import * as words from './words'
 import * as pageCmds from './page'
 import * as siteCmds from './site'
+import * as collectionCmds from './collections'
+import * as libraryCmds from './library'
 
 export { CommandError, describeNote } from './refs'
 
-const READ = { ...read.read, ...siteCmds.read, ...notes.read, ...versions.read }
-const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...words.write, ...notes.write, ...versions.write }
+const READ = { ...read.read, ...siteCmds.read, ...notes.read, ...versions.read, ...collectionCmds.read }
+const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...words.write, ...notes.write, ...versions.write, ...collectionCmds.write }
 
 /**
  * Runs the commands in core/commands/schema.ts against the live mix. Every
@@ -34,7 +37,7 @@ export interface AsyncCommand<P = unknown> {
   apply: (input: never, prepared: P) => unknown
 }
 // Modules export `later` maps of async commands; merge them here.
-const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later } as Record<string, AsyncCommand>
+const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later, ...libraryCmds.later } as Record<string, AsyncCommand>
 
 /** What a viewer can still do: leave and answer marks. */
 const MARKS = new Set(['add_note', 'update_note', 'reply_note'])
@@ -63,6 +66,7 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
   // (Notes are part of the undoable state, so an agent's marks are one ⌘Z away too.)
   const t = useStore.temporal.getState()
   const s = useStore.getState()
+  const collectionsBefore = useCollections.getState().bySlug
   const before = { site: s.site, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }
   t.pause()
   let result: unknown
@@ -75,7 +79,7 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
   if (after.site !== before.site || after.guide !== before.guide || after.content !== before.content || after.versions !== before.versions || after.notes !== before.notes) {
     useStore.temporal.setState((x) => ({ pastStates: [...x.pastStates, before].slice(-100), futureStates: [] }))
     if (by === 'agent') after.showFlash(`Agent: ${summary(name, input)}`, { undo: true })
-  }
+  } else if (by === 'agent' && useCollections.getState().bySlug !== collectionsBefore) after.showFlash(`Agent: ${summary(name, input)}`, { undo: 'collections' })
   return result
 }
 
@@ -102,6 +106,10 @@ function summary(name: string, input: Record<string, unknown>): string {
       return input.done ? `finished ${input.build}` : input.preview_url ? `put ${input.build}’s preview up` : `${input.build}: ${input.step ?? 'updated'}`
     case 'import_review_marks':
       return `brought back ${(input.marks as unknown[]).length} review marks`
+    case 'clip_from_site':
+      return `clipped ${input.all ? 'a page' : 'sections'} from ${input.site}`
+    case 'use_site_style':
+      return `added ${input.site}’s look to the style guide`
     case 'reply_note':
       return `replied on N${String(input.note).replace(/^n/i, '')}`
     default:

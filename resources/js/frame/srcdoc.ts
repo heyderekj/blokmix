@@ -28,7 +28,21 @@ const BRIDGE = `(function () {
   document.querySelectorAll('[data-mx-block]').forEach(function (el, i) { if (!el.hasAttribute('data-mx-b')) el.setAttribute('data-mx-b', 'b' + i); });
   var byId = function (id) { return id ? document.querySelector('[data-mx-b="' + id + '"]') : null; };
   var up = function (el) { return el && el.parentElement ? el.parentElement.closest('[data-mx-block]') : null; };
-  var rect = function (el) { if (!el) return null; var r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
+  var rect = function (el) {
+    if (!el) return null;
+    var r = el.getBoundingClientRect();
+    // A box-less element (display: contents, as slider items are) measures 0×0: take what its children draw.
+    if (!r.width && !r.height && getComputedStyle(el).display === 'contents') {
+      var l = Infinity, t = Infinity, rt = -Infinity, b = -Infinity;
+      for (var i = 0; i < el.children.length; i++) {
+        var c = rect(el.children[i]);
+        if (!c || (!c.w && !c.h)) continue;
+        l = Math.min(l, c.x); t = Math.min(t, c.y); rt = Math.max(rt, c.x + c.w); b = Math.max(b, c.y + c.h);
+      }
+      if (l < Infinity) return { x: l, y: t, w: rt - l, h: b - t };
+    }
+    return { x: r.left, y: r.top, w: r.width, h: r.height };
+  };
   var editMode = false, noteMode = false, sel = null, hoverId = null, editing = null, tracked = [], drag = null;
   function reportTracked() {
     if (!tracked.length) return;

@@ -1,0 +1,42 @@
+{
+  "name": "Newsletter or event",
+  "description": "A warm, personal page to gather sign-ups: portrait hero, what you get, kind words, and a sign-up band.",
+  "tokens": {
+    "color.bg": "#fdfcff",
+    "color.surface": "#f3effe",
+    "color.text": "#1e1b3a",
+    "color.muted": "#6e6a8a",
+    "color.border": "#e6e1f7",
+    "color.primary": "#7c5cff",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#ff8a65",
+    "font.display": "'Fraunces', Georgia, serif",
+    "font.body": "'Newsreader', Georgia, serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "380",
+    "radius.base": "20px",
+    "stroke.width": "1px",
+    "shadow.card": "0 2px 4px #1e1b3a0d, 0 12px 32px #7c5cff1f",
+    "space.base": "4px",
+    "space.section": "104px",
+    "motion.duration": "420ms",
+    "motion.ease": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+  },
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-centered",
+        "hero.layout-portrait",
+        "features.layout-two-up",
+        "testimonials.layout-wall",
+        "team.layout-circles",
+        "cta.layout-newsletter",
+        "footer.layout-newsletter"
+      ]
+    }
+  ]
+}

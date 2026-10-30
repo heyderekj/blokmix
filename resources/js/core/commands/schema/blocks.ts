@@ -58,6 +58,12 @@ export const BLOCK_COMMANDS = {
     }),
     write: true,
   },
+  set_section_surface: {
+    description:
+      'The band a section sits on, from the style guide’s own colors: page (as it is), soft (the surface color), inverse (light ↔ dark) or brand (the primary color). Alternating bands gives a page rhythm.',
+    input: z.object({ section, surface: z.enum(['page', 'soft', 'inverse', 'brand']) }),
+    write: true,
+  },
   set_image: {
     description:
       'Fill an image block: a placeholder drawn from the palette (style mesh, shapes, arch, waves, grid or portrait; it re-themes with the style guide), or remove to go back to the clip’s own art. Always set alt text for real pictures.',

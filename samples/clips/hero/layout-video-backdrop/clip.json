@@ -1,0 +1,14 @@
+{
+  "title": "Video backdrop",
+  "layoutPattern": "full-bleed-video-copy-centered",
+  "rhythm": "band",
+  "style": "bold",
+  "density": "airy",
+  "motionNotes": "The film settles in from a slight zoom while its glow drifts slowly; the copy rises in a short stagger over the scrim. Reduced motion keeps only the fades.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

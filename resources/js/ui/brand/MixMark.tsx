@@ -9,6 +9,7 @@ export const WEIGHT: Record<SectionType, number> = {
   features: 3,
   stats: 1.75,
   content: 3,
+  gallery: 3,
   team: 3,
   testimonials: 2.5,
   pricing: 3.5,

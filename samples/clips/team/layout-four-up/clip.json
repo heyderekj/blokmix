@@ -2,6 +2,8 @@
   "title": "Four square portraits",
   "layoutPattern": "split-head-square-portraits-4up",
   "rhythm": "grid",
+  "style": "minimal",
+  "density": "balanced",
   "motionNotes": "No entrance motion: four square portraits in a row with names underneath.",
   "capture": {
     "path": "/",

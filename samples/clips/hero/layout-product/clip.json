@@ -2,6 +2,8 @@
   "title": "Product shot",
   "layoutPattern": "centered-copy-over-product-window",
   "rhythm": "stack",
+  "style": "technical",
+  "density": "dense",
   "motionNotes": "Copy rises in a stagger, then the app window slides up from below the fold and its chart bars grow into place.",
   "capture": {
     "path": "/",

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { bindContextFor } from '@/state/collections'
 import { composeSite } from '@/core/compose'
 import { mapSlots } from '@/core/site'
 import { referenceHtml } from '@/core/export/reference-html'
@@ -25,6 +26,7 @@ function pageHtml(width: MeasureWidth, pageId?: string | null): string {
     page: st.guide,
     uploads: uploadData,
     keepBlockIds: true,
+    bind: bindContextFor(st.site),
   })
   return referenceHtml(page, { vh: VIEWPORT_VH[width === MEASURE_WIDTHS.mobile ? 'mobile' : 'desktop'], tagSlots: true, pageId: pageId ?? st.ui.pageId ?? undefined })
 }
