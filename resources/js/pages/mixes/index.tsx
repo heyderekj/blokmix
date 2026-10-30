@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { Copy, CloudUpload, MessageSquare, Palette, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react'
+import { Copy, CloudUpload, Library, MessageSquare, Palette, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react'
 import { readMixFile } from '@/lib/mixFile'
 import { importClips } from '@/lib/userClips'
 import { pickFile } from '@/lib/pickFile'
@@ -184,6 +184,11 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
             {auth.owner && (
               <Link href="/waitlist" className={QUIET}>
                 <Users size={15} /> Waitlist
+              </Link>
+            )}
+            {auth.owner && (
+              <Link href="/library/admin" className={QUIET}>
+                <Library size={15} /> Library
               </Link>
             )}
             <span className="truncate text-[13px] text-zinc-500 max-sm:hidden">{user.name}</span>
