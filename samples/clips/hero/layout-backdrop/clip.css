@@ -83,7 +83,7 @@
     padding: var(--mx-space-9) var(--mx-space-5);
     min-height: calc(var(--mx-vh) * 80);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; }
     & .sun { right: 10%; top: 8%; width: 96px; }

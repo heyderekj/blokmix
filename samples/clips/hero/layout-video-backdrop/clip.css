@@ -72,14 +72,14 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .lead { font-size: var(--mx-text-base); }
@@ -154,7 +154,7 @@
   @media (max-width: 760px) {
     min-height: calc(var(--mx-vh) * 84);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; justify-self: stretch; }
     & .glow { left: 40%; top: 6%; width: 180px; }
     & .ridge.r1 { left: 10%; right: -40%; bottom: -6%; height: 34%; }

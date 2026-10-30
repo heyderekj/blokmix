@@ -79,7 +79,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5) var(--mx-space-6);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .brand { font-size: var(--mx-text-xl); }
     & .rows { gap: var(--mx-space-6); }
     & .col { flex-direction: column; gap: var(--mx-space-2); }

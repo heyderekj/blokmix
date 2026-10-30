@@ -117,7 +117,7 @@
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .intro-row > * { grid-column: auto / span 12; }
     & .aside .lead { max-width: 52ch; }
@@ -126,7 +126,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > * { grid-column: auto / span 12; }
     & .reel { aspect-ratio: 4 / 3; margin-top: var(--mx-space-8); }

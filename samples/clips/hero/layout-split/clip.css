@@ -145,7 +145,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     /* On phones every child spans the row; a narrow column gap keeps the 12 tracks inside it. */
     & .grid { column-gap: var(--mx-space-4); }
     & .container { grid-template-columns: minmax(0, 1fr); gap: var(--mx-space-8); }

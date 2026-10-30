@@ -103,7 +103,7 @@
     & a.value:hover { color: var(--mx-color-accent); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-12 { grid-column: auto / span 12; }
     & .details.stack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -112,7 +112,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid.fields { gap: var(--mx-space-5) var(--mx-space-4); }
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }

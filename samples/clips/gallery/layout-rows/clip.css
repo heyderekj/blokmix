@@ -132,7 +132,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .col-8 { grid-column-end: span 7; }
     & .col-4 { grid-column-end: span 5; }
@@ -141,7 +141,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .rows { gap: var(--mx-space-9); margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-5) var(--mx-space-4); }

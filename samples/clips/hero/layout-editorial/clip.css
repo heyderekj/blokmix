@@ -65,7 +65,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .col-10 { grid-column: auto / span 12; }
     & .grid > .col-4 { grid-column: auto / span 5; }
@@ -75,7 +75,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > .col-4, & .grid > .col-6.start-7 { grid-column: auto / span 12; }
     & .head .heading.display { font-size: clamp(var(--mx-text-3xl), 10.5vw, var(--mx-text-5xl)); line-height: 1; }

@@ -75,14 +75,14 @@
     & .link:hover { color: var(--mx-color-text); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-7) var(--mx-space-4); }
     & .grid > *, & .grid > .col-6.start-7 { grid-column: auto / span 12; }

@@ -72,14 +72,14 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .lead { font-size: var(--mx-text-base); }
@@ -146,7 +146,7 @@
   & .controls .track::before { content: ""; display: block; width: 28%; height: 100%; background: var(--mx-color-accent); }
   & .controls .time { width: 40px; height: 6px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 22%, transparent); }
 
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .window { padding: var(--mx-space-2); border-radius: calc(var(--mx-radius-lg) + var(--mx-space-2)); }
     & .chrome { padding-bottom: var(--mx-space-2); }
     & .address { max-width: 160px; height: 18px; }

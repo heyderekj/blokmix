@@ -95,14 +95,14 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid { gap: var(--mx-space-9) var(--mx-space-4); }
     & .grid > * { grid-column: auto / span 12; }
     & .lead { font-size: var(--mx-text-base); }

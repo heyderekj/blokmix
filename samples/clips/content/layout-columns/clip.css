@@ -35,7 +35,7 @@
     border-top: calc(var(--mx-stroke) * 2) solid var(--mx-color-text);
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .top > * { grid-column: 1 / -1; }
     & .top { row-gap: var(--mx-space-5); }
@@ -44,7 +44,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }

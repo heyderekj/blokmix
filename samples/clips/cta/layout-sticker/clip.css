@@ -134,7 +134,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 960px) {
+  @container (max-width: 816px) {
     & .foot { grid-template-columns: minmax(0, 1fr); padding-left: 0; }
     & .foot .stack { justify-self: start; }
   }
@@ -142,7 +142,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-10) var(--mx-space-5) var(--mx-space-9);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .title { width: auto; max-width: none; padding-top: var(--mx-space-9); }
     & .heading { font-size: clamp(var(--mx-text-3xl), 12vw, var(--mx-text-5xl)); }
     & .sticker { top: calc(var(--mx-space-7) * -1); right: var(--mx-space-1); width: 112px; }

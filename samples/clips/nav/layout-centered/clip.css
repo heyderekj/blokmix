@@ -90,7 +90,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-4) var(--mx-space-4) 0;
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .bar {
       /* Two equal halves, so long links wrap inside theirs instead of pushing the button off the edge. */
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

@@ -172,7 +172,7 @@
   @media (max-width: 1080px) {
     padding-inline: var(--mx-space-6);
   }
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .bar { gap: var(--mx-space-4); }
     & .trigger, & .link { padding-inline: var(--mx-space-3); }
   }
@@ -185,7 +185,7 @@
       & .close-icon { display: block; }
       & .drawer { display: flex; }
     }}
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .bar { flex-wrap: wrap; column-gap: var(--mx-space-3); row-gap: 0; }
     & .brand { flex: 1 1 0; min-width: 0; font-size: var(--mx-text-base); white-space: normal; }
     & .bar > .btn { padding-inline: var(--mx-space-4); }

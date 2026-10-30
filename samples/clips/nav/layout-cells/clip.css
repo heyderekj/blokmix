@@ -83,14 +83,14 @@
     & .go:hover .arrow { transform: translate(2px, -2px); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .num { display: none; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .cells { grid-template-columns: minmax(0, 1fr) auto; }
     & .brand { min-height: 52px; padding: 0 var(--mx-space-4); font-size: var(--mx-text-base); }
     & .go { grid-column: 2; grid-row: 1; min-height: 52px; padding: 0 var(--mx-space-4); }

@@ -145,7 +145,7 @@
     & .col-links a:hover, & .mail:hover { color: var(--mx-color-accent); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .split > .contact, & .split > .index { grid-column: auto / span 6; }
   }
@@ -153,7 +153,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5) var(--mx-space-6);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"], & .split > .contact, & .split > .index { grid-column: auto / span 12; }
     & .grid > .m-col-6 { grid-column: auto / span 6; }

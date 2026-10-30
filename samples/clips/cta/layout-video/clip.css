@@ -100,7 +100,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .stage { min-height: 600px; padding: var(--mx-space-9) var(--mx-space-5) var(--mx-space-7); }
     & .lead { font-size: var(--mx-text-base); }
     & .sun { right: 12%; top: 14%; }

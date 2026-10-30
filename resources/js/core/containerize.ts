@@ -73,6 +73,14 @@ function targetsRoot(prelude: string): boolean {
   return flat.split(',').some((part) => /^&[^\s>+~]*$/.test(part.trim()))
 }
 
+/**
+ * A section's container is its content box: the viewport less the root's gutters (`--mx-space-8` each side, 64px at the
+ * default spacing) and any classic scrollbar (up to ~16px, which viewport media queries count and the box doesn't).
+ * Breakpoints move in by that much, so a full-width section switches where it did on the viewport.
+ */
+export const GUTTERS = 144
+const toSectionWidth = (cond: string) => cond.replace(/(\d+(?:\.\d+)?)px/g, (_, n: string) => `${Number(n) - GUTTERS}px`)
+
 const isAt = (prelude: string) => /^(?:\s|\/\*[\s\S]*?\*\/)*@/.test(prelude)
 const hasDecls = (raw: string) => raw.replace(/\/\*[\s\S]*?\*\//g, '').trim().length > 0
 
@@ -85,7 +93,8 @@ function transform(nodes: Node[], ctx: 'root' | 'inside' | 'self'): Node[] {
     }
     const media = WIDTH_MEDIA.exec(n.prelude)
     if (media && ctx !== 'self') {
-      const toContainer = (kids: Node[]): Block => ({ ...n, prelude: `${media[1]}@container ${media[2]}${media[3]}`, kids })
+      const cond = toSectionWidth(media[2])
+      const toContainer = (kids: Node[]): Block => ({ ...n, prelude: `${media[1]}@container ${cond}${media[3]}`, kids })
       if (ctx === 'inside') {
         out.push(toContainer(transform(n.kids, 'inside')))
         continue
@@ -106,7 +115,7 @@ function transform(nodes: Node[], ctx: 'root' | 'inside' | 'self'): Node[] {
         const indent = media[1].slice(media[1].lastIndexOf('\n') + 1)
         const last = stay[stay.length - 1]
         if (last.t === 'text' && !/\n\s*$/.test(last.raw)) stay[stay.length - 1] = { t: 'text', raw: last.raw.replace(/\s*$/, '') + '\n' + indent }
-        out.push({ ...n, kids: stay }, { ...toContainer(move), prelude: `\n${indent}@container ${media[2]}${media[3]}` })
+        out.push({ ...n, kids: stay }, { ...toContainer(move), prelude: `\n${indent}@container ${cond}${media[3]}` })
       }
       continue
     }

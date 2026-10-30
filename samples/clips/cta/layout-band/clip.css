@@ -73,7 +73,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .band { padding: var(--mx-space-8) var(--mx-space-5); }
     & .actions { flex-direction: column; align-self: stretch; }
     & .btn { justify-content: center; }

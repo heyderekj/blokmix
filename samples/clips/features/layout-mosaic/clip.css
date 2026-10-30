@@ -95,7 +95,7 @@
   & .b2 { right: 10%; top: 52%; width: 48%; background: color-mix(in oklab, var(--mx-color-accent) 22%, var(--mx-color-bg)); }
   & .pin { position: absolute; left: 14%; bottom: 14%; width: 14px; aspect-ratio: 1; border-radius: 50%; background: var(--mx-color-accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--mx-color-accent) 22%, transparent); }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .mosaic {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-areas:
@@ -109,7 +109,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .mosaic {

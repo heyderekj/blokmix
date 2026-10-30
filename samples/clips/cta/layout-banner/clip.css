@@ -62,7 +62,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-6) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .strip { flex-direction: column; align-items: stretch; }
     & .say { flex-direction: column; align-items: flex-start; }
     /* Buttons share the row and keep their words on one line; when they don't fit, they stack. */

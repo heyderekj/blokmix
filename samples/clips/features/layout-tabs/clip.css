@@ -98,7 +98,7 @@
   & .o4 { left: 50%; top: 22%; width: 26%; translate: -50% 0; }
   & .ground { left: 10%; right: 10%; bottom: 14%; height: 18%; }
 
-  @container (max-width: 960px) {
+  @container (max-width: 816px) {
     & .tabs { min-height: 440px; padding-right: 52%; }
     & .panel .media { width: 48%; }
   }
@@ -106,7 +106,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .tabs { min-height: 0; padding-right: 0; }

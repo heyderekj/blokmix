@@ -43,7 +43,7 @@
   & .who { display: flex; flex-direction: column; gap: var(--mx-space-1); }
   & .name { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-6 { grid-column: auto / span 6; }
     & .intro > * { grid-column: 1 / -1; }
@@ -53,7 +53,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }

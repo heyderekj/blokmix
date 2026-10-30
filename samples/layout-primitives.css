@@ -136,7 +136,7 @@
   }
 
   /* Tablet: .t-col-N re-spans a child from 1080px down. */
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-6 { grid-column: auto / span 6; }
     & .grid > .t-col-12 { grid-column: auto / span 12; }
@@ -146,7 +146,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }

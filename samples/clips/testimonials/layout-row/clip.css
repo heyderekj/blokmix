@@ -73,7 +73,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .top + .row { margin-top: var(--mx-space-8); }
     & .arrows { display: none; }
     & .row { grid-auto-columns: 84%; gap: var(--mx-space-3); }

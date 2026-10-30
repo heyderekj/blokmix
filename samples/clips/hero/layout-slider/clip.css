@@ -72,14 +72,14 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .lead { font-size: var(--mx-text-base); }
@@ -141,12 +141,12 @@
   & .s3 .o2 { left: 14%; bottom: 18%; width: 46%; opacity: 0.85; }
   & .s3 .o3 { right: 16%; top: 16%; width: 22%; opacity: 0.55; }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .copy { grid-column: 1 / span 6; }
     & .slider { grid-column: 7 / span 6; }
   }
 
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .copy, & .slider { grid-column: 1 / -1; }
     & .track { aspect-ratio: 4 / 3; }
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; justify-self: stretch; }

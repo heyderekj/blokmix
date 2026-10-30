@@ -46,14 +46,14 @@
   & .meter:nth-child(3) .fill { width: 38%; background: color-mix(in oklab, var(--mx-color-primary) 52%, var(--mx-color-bg)); }
   & .meter:nth-child(n + 4) .fill { width: 22%; background: color-mix(in oklab, var(--mx-color-primary) 36%, var(--mx-color-bg)); }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .meter { grid-column: 2 / span 10; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-3); }

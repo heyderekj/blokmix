@@ -42,9 +42,9 @@ describe('container queries', () => {
     const out = toContainerQueries(css)
     // The root's own padding stays a media query; descendants move.
     expect(out).toMatch(/@media \(max-width: 760px\) \{\s*\/\* phones; one column \*\/\s*padding-inline: var\(--mx-space-5\);\s*\}/)
-    expect(out).toMatch(/@container \(max-width: 760px\) \{\s*&\.reverse \.grid \{ order: 2; \}\s*& \.grid \{ grid-template-columns: 1fr; \}\s*\}/)
+    expect(out).toMatch(/@container \(max-width: 616px\) \{\s*&\.reverse \.grid \{ order: 2; \}\s*& \.grid \{ grid-template-columns: 1fr; \}\s*\}/)
     // Nested inside a descendant rule: a container query.
-    expect(out).toContain('& .card {\n    @container (max-width: 1080px)')
+    expect(out).toContain('& .card {\n    @container (max-width: 936px)')
     // Inside a rule on the root itself (its ::before): still the viewport.
     expect(out).toContain('&::before {\n    @media (max-width: 760px)')
     // Hover queries and keyframes are left alone.
@@ -58,7 +58,7 @@ describe('container queries', () => {
   it('sees a breakpoint (and a rule on the root) past the comment above it', () => {
     const out = toContainerQueries('.mx-x {\n  /* Phones */\n  @media (max-width: 760px) {\n    /* the root */ &.flip .a { order: 1; }\n    /* itself */ &::after { content: none; }\n  }\n}\n')
     expect(out).toContain('/* Phones */\n  @media (max-width: 760px) {\n    /* itself */ &::after')
-    expect(out).toContain('@container (max-width: 760px) {\n    /* the root */ &.flip .a')
+    expect(out).toContain('@container (max-width: 616px) {\n    /* the root */ &.flip .a')
   })
 
   it('every built-in layout answers to its section and uses the width tokens', () => {

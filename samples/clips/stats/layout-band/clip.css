@@ -43,7 +43,7 @@
   }
   & .label { font-size: var(--mx-text-sm); line-height: 1.45; color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid > .t-col-6 { grid-column: auto / span 6; }
     & .top > * { grid-column: auto / span 12; }
     & .top { gap: var(--mx-space-5); }
@@ -52,7 +52,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid { gap: var(--mx-space-7) var(--mx-space-3); }
     & .grid > * { grid-column: auto / span 12; }
     & .grid > .m-col-6 { grid-column: auto / span 6; }

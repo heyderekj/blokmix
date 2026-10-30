@@ -43,7 +43,7 @@
   & .mark { width: 24px; height: 24px; color: var(--mx-color-muted); }
   & .quote { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.4; }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .main { grid-column: 1 / span 7; }
     & .grid > .note-card { grid-column: 8 / span 5; }
@@ -52,7 +52,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }

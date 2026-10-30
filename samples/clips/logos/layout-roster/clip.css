@@ -66,14 +66,14 @@
   & .l4 { font-size: var(--mx-text-xl); }
   & .l7 { font-size: var(--mx-text-base); }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .container > * { grid-column: auto / span 12; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid { gap: var(--mx-space-8) var(--mx-space-3); }
     & .grid > * { grid-column: auto / span 12; }
     & .grid > .m-col-6 { grid-column: auto / span 6; }

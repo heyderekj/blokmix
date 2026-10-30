@@ -89,7 +89,7 @@
     & .link:hover { background-size: 100% var(--mx-stroke); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .col-4, & .grid > .col-8 { grid-column: auto / span 12; }
     & .side { position: static; }
@@ -99,7 +99,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid { gap: var(--mx-space-8) var(--mx-space-4); }
     & .grid > * { grid-column: auto / span 12; }
     & .side { gap: var(--mx-space-5); }

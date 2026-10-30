@@ -128,7 +128,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .top { align-items: flex-end; gap: var(--mx-space-4); }
     & .count { display: none; }
     & .pager { gap: var(--mx-space-2); }

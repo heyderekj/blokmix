@@ -118,7 +118,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-6 { grid-column: auto / span 6; }
   }
@@ -126,7 +126,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .top { flex-direction: column; align-items: flex-start; }
     & .grid { margin-top: var(--mx-space-8); gap: var(--mx-space-7) var(--mx-space-4); }

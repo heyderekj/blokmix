@@ -72,14 +72,14 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .lead { font-size: var(--mx-text-base); }
@@ -119,12 +119,12 @@
   & .shot .seat { right: 22%; bottom: 20%; width: 40%; height: 18%; background: color-mix(in oklab, var(--mx-color-primary) 34%, var(--mx-color-surface)); }
   & .shot .back { right: 50%; bottom: 20%; width: 12%; height: 34%; background: color-mix(in oklab, var(--mx-color-primary) 46%, var(--mx-color-surface)); }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .panel { grid-column: 1 / span 7; padding: var(--mx-space-7); }
     & .shot { grid-column: 5 / span 8; }
   }
 
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .stage { grid-template-columns: minmax(0, 1fr); }
     & .shot, & .panel { grid-column: 1; grid-row: auto; }
     & .shot { margin: 0; }

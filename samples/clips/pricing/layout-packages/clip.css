@@ -93,7 +93,7 @@
     & .inverse .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 88%, var(--mx-color-primary)); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .package { padding: var(--mx-space-7) var(--mx-space-6); }
   }
@@ -101,7 +101,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .amt { font-size: min(var(--mx-text-4xl), 13vw); }
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }

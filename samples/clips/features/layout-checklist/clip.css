@@ -43,7 +43,7 @@
   & .title { font-size: var(--mx-text-base); }
   & .body { font-size: var(--mx-text-sm); }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid > .col-5, & .grid > .col-7 { grid-column: auto / span 12; }
     & .head { position: static; }
     & .container.grid { row-gap: var(--mx-space-9); }
@@ -52,7 +52,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .grid { gap: var(--mx-space-6) var(--mx-space-3); }
     & .grid > * { grid-column: auto / span 12; }
     & .container.grid { row-gap: var(--mx-space-8); }

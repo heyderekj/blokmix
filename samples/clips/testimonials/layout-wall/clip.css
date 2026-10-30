@@ -59,14 +59,14 @@
   & .brand { align-items: center; justify-content: center; min-height: 128px; }
   & .wordmark { font-family: var(--mx-font-display); font-weight: 700; font-size: var(--mx-text-xl); letter-spacing: -0.02em; color: var(--mx-color-muted); }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .wall { columns: 2; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .wall { columns: 1; }
     & .tile { margin-bottom: var(--mx-space-4); }

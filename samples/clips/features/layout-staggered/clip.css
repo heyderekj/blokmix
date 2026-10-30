@@ -54,7 +54,7 @@
   }
   & .num { font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .cards > :nth-child(odd) { grid-column: 1 / span 6; }
     & .cards > :nth-child(even) { grid-column: 7 / span 6; }
@@ -65,7 +65,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-4) var(--mx-space-4); }

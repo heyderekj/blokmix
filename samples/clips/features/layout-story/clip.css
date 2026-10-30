@@ -100,7 +100,7 @@
   & .tag i { height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 18%, transparent); }
   & .tag i:last-child { width: 60%; }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .stage { padding-left: 0; }
     & .step .title { font-size: var(--mx-text-xl); }
   }
@@ -109,7 +109,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-7) var(--mx-space-4); }

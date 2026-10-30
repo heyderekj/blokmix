@@ -137,14 +137,14 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .wall { columns: 2; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .wall { margin-top: var(--mx-space-8); column-gap: var(--mx-space-3); }
     & .item { padding-bottom: var(--mx-space-5); }

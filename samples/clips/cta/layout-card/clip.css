@@ -80,7 +80,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .band { padding: var(--mx-space-9) var(--mx-space-5) calc(var(--mx-space-10) * 1.5); }
     & .shape { right: -24%; bottom: -18%; width: 80%; }

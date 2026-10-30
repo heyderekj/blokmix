@@ -108,14 +108,14 @@
   & .name { font-size: var(--mx-text-sm); font-weight: 600; }
   & .role { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
-  @container (max-width: 960px) {
+  @container (max-width: 816px) {
     & .cards { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .cards { margin-top: var(--mx-space-8); gap: var(--mx-space-3); }
     & .card { padding: var(--mx-space-6) var(--mx-space-5); }
     & .quote p { font-size: var(--mx-text-base); }

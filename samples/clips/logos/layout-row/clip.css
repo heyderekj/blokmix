@@ -72,7 +72,7 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .container { gap: var(--mx-space-6); }
     & .row {
       display: grid;

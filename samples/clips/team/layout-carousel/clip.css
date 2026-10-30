@@ -87,14 +87,14 @@
     & .member:hover .portrait { translate: 0 -4px; }
   }
 
-  @container (max-width: 1080px) {
+  @container (max-width: 936px) {
     & .row { grid-auto-columns: calc((100% - var(--mx-space-5) * 2) / 2.4); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
-  @container (max-width: 760px) {
+  @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .row { grid-auto-columns: 68%; gap: var(--mx-space-3); scroll-padding-inline: var(--mx-space-5); }
