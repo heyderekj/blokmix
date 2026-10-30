@@ -1,4 +1,5 @@
 import type { MediaRender } from '@/core/media'
+import type { ShaderSpec } from '@/core/treatments/shaders'
 
 export interface LightboxPayload {
   kind: 'image' | 'video' | 'lottie' | 'embed'
@@ -40,7 +41,7 @@ export interface BlockEvent {
 
 /** Routes postMessages from sandboxed frames to the component that owns each frame. */
 type Handler = (
-  data: { ns: 'mx'; ready?: boolean; height?: number; goto?: string; open?: string; wheel?: { dx: number; dy: number; mode: number; x: number; y: number; ctrl: boolean; meta: boolean; shift: boolean }; sections?: { slot: string; top: number; height: number }[] } & BlockEvent,
+  data: { ns: 'mx'; ready?: boolean; needShaders?: boolean; height?: number; goto?: string; open?: string; wheel?: { dx: number; dy: number; mode: number; x: number; y: number; ctrl: boolean; meta: boolean; shift: boolean }; sections?: { slot: string; top: number; height: number }[] } & BlockEvent,
 ) => void
 
 const handlers = new Map<MessageEventSource, Handler>()
@@ -73,6 +74,8 @@ export interface FrameState {
   blocks: { css: string; variants: Record<string, string> }
   /** Pictures and moving media filling image blocks, by block id. */
   media: Record<string, MediaRender>
+  /** A live backdrop: the shader running behind the section (its CSS is in blocks). */
+  backdrop: ShaderSpec | null
   /** Named icons redrawn in the style guide's set (null = the clip's own icons). */
   /** `only`: redraw just the overridden icons (the section keeps its clipped look). */
   icons: { set: string; glyphs: Record<string, string>; overrides: Record<string, string>; only?: boolean } | null
@@ -84,7 +87,7 @@ export interface FrameState {
 
 export function postState(
   win: Window | null | undefined,
-  s: Partial<FrameState> & { replay?: boolean; edit?: boolean; noteMode?: boolean; select?: string | null; editText?: string; track?: string[]; clearSelection?: boolean; blobs?: Record<string, Blob> },
+  s: Partial<FrameState> & { replay?: boolean; edit?: boolean; noteMode?: boolean; select?: string | null; editText?: string; track?: string[]; clearSelection?: boolean; blobs?: Record<string, Blob>; shadersJs?: string },
 ) {
   win?.postMessage({ ns: 'mx', ...s }, '*')
 }

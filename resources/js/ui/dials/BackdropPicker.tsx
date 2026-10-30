@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
 import { Ban } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
-import { BACKDROP_IDS, backdropDecls, treatmentInfo, type BackdropId, type TreatmentValue } from '@/core/treatments'
+import { CSS_BACKDROP_IDS, SHADER_IDS, backdropDecls, backdropShaderId, treatmentInfo, type BackdropId, type TreatmentValue } from '@/core/treatments'
+import { shaderFor } from '@/core/media'
+import { useShaderThumb } from '@/lib/shaderPosters'
 import { useStore } from '@/state/store'
 import { useBlockPreview } from '../blocks/preview'
 import { DialPanel } from './DialPanel'
@@ -12,10 +14,16 @@ function toStyle(decl: Record<string, string>): React.CSSProperties {
   return Object.fromEntries(Object.entries(decl).map(([k, v]) => [k.startsWith('--') ? k : k.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase()), v])) as React.CSSProperties
 }
 
-/** A swatch of a backdrop, drawn with the page's tokens and effects. */
+/** A swatch of a backdrop, drawn with the page's tokens and effects (a live one by its shader, over its stand-in). */
 export function BackdropSwatch({ value, tokens, className = '' }: { value: TreatmentValue | null; tokens: TokenSet; className?: string }) {
   const effects = useStore((s) => s.guide.effects)
-  const style = useMemo(() => ({ ...effectVarsStyle(tokens, effects), background: tokens['color.bg'], ...toStyle(backdropDecls(value ?? undefined, tokens)) }), [value, tokens, effects])
+  const live = backdropShaderId(value ?? undefined)
+  const spec = useMemo(() => (live ? shaderFor(live, value!.params, value!.seed ?? 1, tokens, '1/1') : null), [live, value, tokens])
+  const thumb = useShaderThumb(spec, 96, 96)
+  const style = useMemo(
+    () => ({ ...effectVarsStyle(tokens, effects), background: tokens['color.bg'], ...toStyle(backdropDecls(value ?? undefined, tokens)), ...(thumb ? { backgroundImage: `url(${thumb})`, backgroundSize: 'cover' } : {}) }),
+    [value, tokens, effects, thumb],
+  )
   return <span className={`block rounded-lg ring-1 ring-zinc-950/10 ${className}`} style={style} />
 }
 
@@ -32,6 +40,25 @@ export function BackdropPicker({ slot, tokens }: { slot: Slot; tokens: TokenSet 
     st().setBackdrop(slot.id, v)
   }
   const info = cur ? treatmentInfo('backdrop', cur.id) : undefined
+  const swatch = (id: BackdropId) => {
+    const t = treatmentInfo('backdrop', id)!
+    const v: TreatmentValue = cur?.id === id ? cur : { id, seed: cur?.seed ?? 1, preset: t.presets[0]?.id, params: t.presets[0]?.values }
+    return (
+      <button
+        key={id}
+        type="button"
+        title={`${t.label}: ${t.hint}`}
+        onMouseEnter={() => show({ slotId: slot.id, value: v })}
+        onClick={(e) => {
+          e.stopPropagation()
+          pick(v)
+        }}
+        className={`cursor-pointer rounded-lg transition-[scale] duration-150 active:scale-[0.96] ${cur?.id === id ? 'ring-2 ring-zinc-900 ring-offset-1' : ''}`}
+      >
+        <BackdropSwatch value={v} tokens={tokens} className="aspect-square w-full" />
+      </button>
+    )
+  }
   return (
     <div className="grid gap-2.5">
       <div className="grid grid-cols-6 gap-1" onMouseLeave={() => show(null)}>
@@ -47,25 +74,11 @@ export function BackdropPicker({ slot, tokens }: { slot: Slot; tokens: TokenSet 
         >
           <Ban size={14} />
         </button>
-        {BACKDROP_IDS.map((id: BackdropId) => {
-          const t = treatmentInfo('backdrop', id)!
-          const v: TreatmentValue = cur?.id === id ? cur : { id, seed: cur?.seed ?? 1, preset: t.presets[0]?.id, params: t.presets[0]?.values }
-          return (
-            <button
-              key={id}
-              type="button"
-              title={`${t.label}: ${t.hint}`}
-              onMouseEnter={() => show({ slotId: slot.id, value: v })}
-              onClick={(e) => {
-                e.stopPropagation()
-                pick(v)
-              }}
-              className={`cursor-pointer rounded-lg transition-[scale] duration-150 active:scale-[0.96] ${cur?.id === id ? 'ring-2 ring-zinc-900 ring-offset-1' : ''}`}
-            >
-              <BackdropSwatch value={v} tokens={tokens} className="aspect-square w-full" />
-            </button>
-          )
-        })}
+        {CSS_BACKDROP_IDS.map(swatch)}
+      </div>
+      <div className="px-0.5 text-[11px] font-semibold text-zinc-400">Live, in WebGL</div>
+      <div className="grid grid-cols-6 gap-1" onMouseLeave={() => show(null)}>
+        {SHADER_IDS.map(swatch)}
       </div>
       {cur && info && (
         <div className="rounded-xl bg-white/60 p-2.5 shadow-[0_0_0_1px_rgb(0_0_0/0.05)]">

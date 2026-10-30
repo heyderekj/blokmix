@@ -36,6 +36,7 @@ export const read = {
       surface: t.surface,
       label: t.label,
       hint: t.hint,
+      ...(t.live ? { live: true } : {}),
       dials: z.toJSONSchema(zodFor(t.params)),
       presets: t.presets.map((p) => ({ id: p.id, label: p.label, dials: p.values })),
     })),

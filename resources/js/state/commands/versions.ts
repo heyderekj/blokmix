@@ -8,6 +8,7 @@ import { dfsOrder, nextLetter } from '@/core/versions'
 import { pressVersionAndFly } from '@/lib/actions'
 import { bridgeWriter } from '@/lib/agentLink'
 import { packetInputFor } from '@/lib/packet'
+import { withBakedPosters } from '@/lib/shaderPosters'
 import { useStore } from '../store'
 import { useLayout } from '../layout'
 import { CommandError } from './refs'
@@ -110,7 +111,9 @@ const prepare_build: AsyncCommand<Prepared> = {
     const busy = st.agent.versionId ? st.versions[st.agent.versionId] : null
     if (busy?.build && !busy.build.done) throw new CommandError(`${busy.build.agentName} is still building ${busy.letter}: report_build it done first`)
     const letter = nextLetter(st.versions, v.id)
-    const input = packetInputFor(st, { version: v, targets: [i.target], sections: useLayout.getState().sections })
+    const composed = packetInputFor(st, { version: v, targets: [i.target], sections: useLayout.getState().sections })
+    // Live shaders get posters drawn from the real shader.
+    const input = { ...composed, page: await withBakedPosters(composed.page) }
     const files = packetFiles(input)
     const dir = await writer.open(buildDirName(st.mixName, letter))
     for (const [path, data] of Object.entries(files))

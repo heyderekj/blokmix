@@ -2,10 +2,10 @@ import { useMemo } from 'react'
 import { sectionTokens, widthTokens } from '@/core/surface'
 import { create } from 'zustand'
 import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
-import { backdropCss, effectsVars, type EffectsState, type TreatmentValue } from '@/core/treatments'
+import { backdropCss, backdropShaderId, effectsVars, type EffectsState, type ShaderSpec, type TreatmentValue } from '@/core/treatments'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { motionCss } from '@/core/motion'
-import { renderMedia } from '@/core/media'
+import { renderMedia, shaderFor } from '@/core/media'
 import { iconNamesIn, iconSvg } from '@/core/icons'
 import { uploadData } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
@@ -104,7 +104,7 @@ export function frameStateFor(
   const vh = VIEWPORT_VH[viewport]
   if (mode === 'captured' || !slot) {
     const clip = libraryClip
-    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: fontHrefsFor(clip.tokens), outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, icons: null, lists: NO_LISTS, links: NO_LINKS }
+    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: fontHrefsFor(clip.tokens), outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, backdrop: null, icons: null, lists: NO_LISTS, links: NO_LINKS }
   }
   // The clip as this section shows it: items you added, removed or reordered.
   const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
@@ -120,6 +120,7 @@ export function frameStateFor(
     outline: !slot.keep.layout,
     blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, slot.backdrop, tokens), clip.extras?.banner ? bannerMoves(slot) : null),
     media: mediaFor(clip, slot.edits?.[clip.id], tokens),
+    backdrop: backdropShader(slot.backdrop, tokens),
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? iconsFor(clip, slot.edits?.[clip.id], library.sources[clip.sourceId]?.tokens['icon.set'] ?? guide['icon.set'], true) : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
     lists: clip.patches.length ? clip.patches : NO_LISTS,
@@ -181,7 +182,7 @@ function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, toke
   for (const b of clip.blocks) {
     const fill = edits[b.id]?.media
     if (!fill || b.kind !== 'image') continue
-    const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' || fill.source === 'mock' ? tokens : null])
+    const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' || fill.source === 'mock' || fill.source === 'shader' ? tokens : null])
     let m = mediaCache.get(key)
     if (!m) {
       m = renderMedia(fill, tokens, b.ratio, uploadData) ?? undefined
@@ -193,6 +194,28 @@ function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, toke
     if (m) out[b.id] = m
   }
   return Object.keys(out).length ? out : NO_MEDIA
+}
+
+/** A frame's state without its live shaders (the backdrop's CSS stand-in stays), for frames that aren't on show. */
+export function withoutShaders(s: FrameState): FrameState {
+  const live = Object.entries(s.media).filter(([, m]) => m.kind === 'shader')
+  if (!s.backdrop && !live.length) return s
+  return { ...s, backdrop: null, media: live.length ? Object.fromEntries(Object.entries(s.media).filter(([, m]) => m.kind !== 'shader')) : s.media }
+}
+
+const shaderCache = new Map<string, ShaderSpec>()
+/** A live backdrop's shader (its CSS stand-in and layer come with the block CSS). */
+function backdropShader(v: TreatmentValue | undefined, tokens: TokenSet): ShaderSpec | null {
+  const id = backdropShaderId(v)
+  if (!id) return null
+  const key = JSON.stringify([v, tokens])
+  let spec = shaderCache.get(key)
+  if (!spec) {
+    spec = shaderFor(id, v!.params, v!.seed ?? 1, tokens, '16/9')
+    if (shaderCache.size > 100) shaderCache.clear()
+    shaderCache.set(key, spec)
+  }
+  return spec
 }
 
 const effectsCache = new Map<string, string>()

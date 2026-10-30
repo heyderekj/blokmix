@@ -6,6 +6,7 @@ import { agentPrompt, packetFiles, type PacketInput } from '@/core/export/packet
 import { zipFiles } from '@/core/export/zip'
 import { useAssets } from '@/lib/assets'
 import { packetInputFor } from '@/lib/packet'
+import { withBakedPosters } from '@/lib/shaderPosters'
 import { slug } from '@/core/export/astro'
 import { dfsOrder } from '@/core/versions'
 import { useStore } from '@/state/store'
@@ -48,9 +49,11 @@ export function PacketPanel() {
     setTimeout(() => setCopied(null), 1400)
   }
 
-  const download = () => {
+  const download = async () => {
     const name = `${slug(mixName)}-${version ? version.letter.toLowerCase().replace(/\./g, '-') : 'mix'}`
-    const blob = new Blob([zipFiles(files, name) as BlobPart], { type: 'application/zip' })
+    // Live shaders get posters drawn from the real shader (the preview shows stand-ins).
+    const ready = input.page.shaders.length ? packetFiles({ ...input, page: await withBakedPosters(input.page) }) : files
+    const blob = new Blob([zipFiles(ready, name) as BlobPart], { type: 'application/zip' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = `${name}.zip`

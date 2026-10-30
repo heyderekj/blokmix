@@ -1,17 +1,23 @@
 // Section backdrops: a gradient, mesh, grain, pattern or glow behind a whole
 // section, as background layers on its root in @layer effects (after the clip,
 // before block looks). Colors are palette roles, so they re-theme live.
+// Live (WebGL) backdrops are shaders.ts: a canvas layered behind the content,
+// with these declarations as what shows before it runs.
 
 import type { TokenSet } from '../types'
 import { clampParams, cssColor, hexColor, n2, rng, tint, type ColorValue, type ParamSpecs, type ParamValues, type Preset, type TreatmentValue } from './params'
 import { contourPaths, grainSvg, noise2, svgUrl } from './noise'
 import { gradientCss } from './effects'
+import { SHADERS, SHADER_IDS, isShaderId, shaderColors, shaderSpec, type ShaderId } from './shaders'
 
-export const BACKDROP_IDS = ['gradient', 'mesh', 'grain', 'dots', 'grid', 'lines', 'topo', 'halftone', 'stripes', 'spotlight', 'orb'] as const
+export const CSS_BACKDROP_IDS = ['gradient', 'mesh', 'grain', 'dots', 'grid', 'lines', 'topo', 'halftone', 'stripes', 'spotlight', 'orb'] as const
+export type CssBackdropId = (typeof CSS_BACKDROP_IDS)[number]
+/** Every backdrop: the CSS ones, then the live shaders. */
+export const BACKDROP_IDS = [...CSS_BACKDROP_IDS, ...SHADER_IDS] as const
 export type BackdropId = (typeof BACKDROP_IDS)[number]
 
 export interface Backdrop {
-  id: BackdropId
+  id: CssBackdropId
   label: string
   hint: string
   params: ParamSpecs
@@ -27,7 +33,7 @@ const COMMON: ParamSpecs = {
   base: color('Behind', 'surface'),
 }
 
-export const BACKDROPS: Record<BackdropId, Backdrop> = {
+export const BACKDROPS: Record<CssBackdropId, Backdrop> = {
   gradient: {
     id: 'gradient',
     label: 'Gradient',
@@ -240,9 +246,23 @@ function veil(p: ParamValues): string {
   return s >= 100 ? 'none' : `linear-gradient(${tint('surface', 100 - s)}, ${tint('surface', 100 - s)})`
 }
 
+/** A live backdrop covers the whole section, so instead of a fill behind it has a strength (its opacity over the section). */
+const SHADER_COMMON: ParamSpecs = { strength: strength(100) }
+
 /** Every backdrop's dials, its own plus the common ones (fill behind). Flipping a section's colors is its surface (core/surface.ts). */
 export function backdropParams(id: BackdropId): ParamSpecs {
-  return { ...BACKDROPS[id].params, ...COMMON }
+  return isShaderId(id) ? { ...SHADERS[id].params, ...SHADER_COMMON } : { ...BACKDROPS[id].params, ...COMMON }
+}
+
+/** A backdrop's name, hint and presets, CSS or live. */
+export function backdropInfo(id: BackdropId): { label: string; hint: string; presets: Preset[]; live: boolean } {
+  const b = isShaderId(id) ? SHADERS[id] : BACKDROPS[id]
+  return { label: b.label, hint: b.hint, presets: b.presets, live: isShaderId(id) }
+}
+
+/** The live backdrop a section runs, if it has one. */
+export function backdropShaderId(v: TreatmentValue | undefined): ShaderId | null {
+  return v && isShaderId(v.id) ? v.id : null
 }
 
 export function isBackdropId(id: string): id is BackdropId {
@@ -252,9 +272,8 @@ export function isBackdropId(id: string): id is BackdropId {
 /** A section's backdrop as declarations for its root (drawn in the section's surface colors). */
 export function backdropDecls(v: TreatmentValue | undefined, tokens: TokenSet): Record<string, string> {
   if (!v || !isBackdropId(v.id)) return {}
-  const b = BACKDROPS[v.id]
   const p = clampParams(backdropParams(v.id), v.params)
-  const out = b.render(p, tokens, v.seed ?? 1)
+  const out = isShaderId(v.id) ? shaderStandIn(v.id, p, tokens, v.seed ?? 1) : BACKDROPS[v.id].render(p, tokens, v.seed ?? 1)
   const decl: Record<string, string> = {}
   if (p.fill) decl['background-color'] = cssColor(p.base as string)
   const kept = out.image.map((x, i) => [x, i] as const).filter(([x]) => x !== 'none')
@@ -268,11 +287,29 @@ export function backdropDecls(v: TreatmentValue | undefined, tokens: TokenSet): 
   return decl
 }
 
-/** A section's backdrop as CSS for its root, in @layer effects (after the clip, before block looks). */
+/**
+ * A section's backdrop as CSS for its root, in @layer effects (after the clip, before block looks).
+ * A live one also lifts the root into its own stacking context, so the shader's layer
+ * (`.mx-backdrop`, z-index -1) sits above the section's color and under its content; its
+ * position goes in the clip layer under :where(), so a clip that positions its root keeps it.
+ */
 export function backdropCss(v: TreatmentValue | undefined, tokens: TokenSet, root: string): string {
   const decl = backdropDecls(v, tokens)
+  const live = backdropShaderId(v)
+  if (live) decl.isolation = 'isolate'
   const body = Object.entries(decl)
     .map(([k, x]) => `${k}: ${x};`)
     .join(' ')
-  return body ? `@layer effects {\n${root} { ${body} }\n}` : ''
+  if (!body) return ''
+  if (!live) return `@layer effects {\n${root} { ${body} }\n}`
+  const strength = clampParams(backdropParams(live), v!.params).strength as number
+  return `@layer effects {\n${root} { ${body} }\n${root} > .mx-backdrop { opacity: ${n2(strength / 100)}; }\n}\n@layer clip { :where(${root}) { position: relative; } }`
+}
+
+/** What a live backdrop shows until its shader runs (and if it can't): its colors as soft glows over its first. */
+function shaderStandIn(id: ShaderId, p: ParamValues, tokens: TokenSet, seed: number): ReturnType<Backdrop['render']> {
+  const [back, ...rest] = shaderColors(shaderSpec(id, p, seed, tokens)).map(([r, g, b, a]) => `rgb(${Math.round(r * 255)} ${Math.round(g * 255)} ${Math.round(b * 255)} / ${n2(a)})`)
+  const r = rng(seed)
+  const image = rest.slice(0, 4).map((c) => `radial-gradient(at ${Math.round(r() * 100)}% ${Math.round(r() * 100)}%, ${c} 0, transparent 60%)`)
+  return { image: [...image, `linear-gradient(${back ?? 'transparent'}, ${back ?? 'transparent'})`] }
 }

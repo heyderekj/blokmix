@@ -82,6 +82,17 @@ export const write = {
       return { block: b.label, media: null }
     }
     const cur = slot.edits?.[slot.clipId]?.[b.id]?.media
+    if (i.shader && i.placeholder) throw new CommandError('Give a placeholder or a shader, not both')
+    // A live shader: its dials and preset checked like any treatment's.
+    const shader = i.shader ?? (!i.placeholder && cur?.source === 'shader' ? cur.shader : undefined)
+    if (shader) {
+      const was = cur?.source === 'shader' && cur.shader ? { id: cur.shader, params: cur.params, seed: cur.seed } : undefined
+      const v = treatmentFrom('fill', shader, { preset: i.preset, params: i.params, seed: i.seed }, was)
+      const next: MediaFill = { source: 'shader', shader: v.id, params: v.params, seed: v.seed ?? 1, alt: i.alt ?? cur?.alt, fit: i.fit ?? cur?.fit, lightbox: cur?.lightbox }
+      st.editBlock(slot.id, b.id, { media: next })
+      return { block: b.label, media: next }
+    }
+    if (i.preset) throw new CommandError('Presets are for shaders here; generative placeholders take params')
     const style = i.placeholder ?? (cur?.source === 'placeholder' ? cur.style : undefined)
     // Generative placeholders take dials, checked against their spec.
     const params =

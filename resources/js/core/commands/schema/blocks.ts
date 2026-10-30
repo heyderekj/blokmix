@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { BLOCK_KINDS, MEDIA_PLAY, PLACEHOLDER_STYLES, ENTER_PRESETS } from '../../types'
 import { section, block, style, speed, blockMotion, space } from './shared'
+import { SHADER_IDS } from '../../treatments/shaders'
 
 const sectionSpace = z.enum(['none', 'tight', 'default', 'roomy'])
 
@@ -72,13 +73,15 @@ export const BLOCK_COMMANDS = {
   },
   set_image: {
     description:
-      'Fill an image block: a placeholder drawn from the palette (it re-themes with the style guide): simple ones (mesh, shapes, arch, waves, grid, portrait) or generative ones with dials (grain-gradient, dither, halftone, topo, flow, blocks, ascii, op-art, marble; see list_treatments surface "fill" for their dials). Or remove to go back to the clip’s own art. For a UI mockup use set_mock. Always set alt text for real pictures.',
+      'Fill an image block: a placeholder drawn from the palette (it re-themes with the style guide): simple ones (mesh, shapes, arch, waves, grid, portrait) or generative ones with dials (grain-gradient, dither, halftone, topo, flow, blocks, ascii, op-art, marble; see list_treatments surface "fill" for their dials). Or a live WebGL shader (shader: mesh-gradient, grain-flow, dithering, liquid-metal, fluted-glass, god-rays), also from the palette with dials; it moves, and exports ship /mx-shaders.js with a poster for reduced motion and browsers without WebGL. Or remove to go back to the clip’s own art. For a UI mockup use set_mock. Always set alt text for real pictures.',
     input: z.object({
       section,
       block,
       placeholder: z.enum(PLACEHOLDER_STYLES).optional(),
+      shader: z.enum(SHADER_IDS).optional().describe('A live WebGL shader instead of a placeholder (list_treatments surface "fill" lists its dials and presets)'),
+      preset: z.string().optional().describe('Shaders: a preset id from list_treatments; params given alongside override it'),
       seed: z.number().int().optional().describe('Another seed draws a different version of the same style'),
-      params: z.record(z.string(), z.any()).optional().describe('Generative placeholders: dials by name (list_treatments); colors are palette roles or hex'),
+      params: z.record(z.string(), z.any()).optional().describe('Generative placeholders and shaders: dials by name (list_treatments); colors are palette roles or hex'),
       alt: z.string().optional(),
       fit: z.enum(['cover', 'contain']).optional(),
       remove: z.boolean().optional(),

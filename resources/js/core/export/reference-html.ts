@@ -3,6 +3,7 @@ import { mapTree } from '../html/parse'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
+import { SHADERS_JS, SHADER_CSS, pngDataUri } from './shaders'
 import { fontLinks, sectionCss, tokensCss } from './shared'
 
 /**
@@ -14,17 +15,23 @@ export function referenceHtml(page: ComposedPage, opts: { vh?: string; tagSlots?
   const vars = opts.vh ? tokensCss(page).replace(/--mx-vh: [^;]+;/, `--mx-vh: ${opts.vh};`) : tokensCss(page)
   // A site shows one page at a time: its view, with the shared nav and footer if it shows them.
   const sections = pageSections(page, opts.pageId)
+  const shaders = sections.some((s) => s.backdrop?.live || s.media.some((m) => m.shader))
   const body = sections
     .map((s) => {
       const tree = opts.tagSlots
         ? mapTree(s.tree, (el) => (el === s.tree.find((n) => n.t === 'el') ? { ...el, attrs: [...el.attrs, ['data-mx-slot', s.slotId]] } : el))
         : s.tree
       // The reference build is a single file, so pictures go inline.
-      return s.media.reduce((html, m) => {
+      const html = s.media.reduce((html, m) => {
         let out = html.split(`src="${m.src}"`).join(`src="${m.inline}"`)
         if (m.poster && m.inlinePoster) out = out.split(`"${m.poster}"`).join(`"${m.inlinePoster}"`)
         return out
       }, serialize(tree, 'html', 1))
+      // Shader posters, as they are now (baked, or the stand-in).
+      return page.shaders.reduce((out, x) => {
+        const bytes = page.mediaFiles[x.path]
+        return bytes instanceof Uint8Array ? out.split(`src="/${x.path}"`).join(`src="${pngDataUri(bytes)}"`) : out
+      }, html)
     })
     .join('\n')
   return `<!doctype html>
@@ -38,6 +45,7 @@ ${links.join('\n')}
 ${vars}
 ${BASE_CSS_LAYERED}
 ${page.moving ? MEDIA_CSS : ''}
+${shaders ? SHADER_CSS : ''}
 ${sections.map(sectionCss).join('\n')}
 </style>
 </head>
@@ -46,6 +54,7 @@ ${sections.map(sectionCss).join('\n')}
 ${body}
 </main>
 ${page.moving ? `<script>${MEDIA_JS}</script>` : ''}
+${shaders ? `<script>${SHADERS_JS}</script>` : ''}
 </body>
 </html>
 `

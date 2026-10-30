@@ -3,6 +3,7 @@ import type { Clip } from '@/core/types'
 import { buildSrcdoc } from './srcdoc'
 import { sectionClip } from '@/core/lists'
 import { postState, registerFrame, type BlockEvent, type FrameState } from './bridge'
+import { SHADERS_JS } from '@/core/export/shaders'
 import { uploadData } from '@/lib/assets'
 import { openLightbox } from '@/ui/shell/Lightbox'
 import { openPagePath, revealSection } from '@/lib/actions'
@@ -79,6 +80,8 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
         onHeightRef.current?.(d.height)
       }
       if (d.lightbox) openLightbox(d.lightbox, d.asset ?? undefined)
+      // The shader player loads only in frames that show a shader.
+      if (d.needShaders) postState(win, { shadersJs: SHADERS_JS })
       if (d.wheel) forwardWheel(ref.current, d.wheel)
       // Following a link while previewing: sections on the page come into view, the rest open in a tab.
       if (d.goto) revealSection(d.goto)
@@ -113,7 +116,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     const id = requestAnimationFrame(push)
     return () => cancelAnimationFrame(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks, state.media, state.icons, state.lists, state.links])
+  }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.blocks, state.media, state.backdrop, state.icons, state.lists, state.links])
 
   // Edit mode and the selection travel separately from the look, so they never re-send tokens.
   const editing = !!edit?.active
