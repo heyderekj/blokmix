@@ -3,6 +3,7 @@
   "layoutPattern": "featured-stat-panel-left-3-rows-right",
   "rhythm": "split",
   "style": "editorial",
+  "feel": ["technical", "calm"],
   "density": "balanced",
   "motionNotes": "No motion of its own; the headline panel carries the weight without help.",
   "capture": {

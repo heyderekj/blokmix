@@ -4,6 +4,7 @@
   "rhythm": "stack",
   "style": "minimal",
   "density": "airy",
+  "feel": ["editorial"],
   "motionNotes": "No entrance. On hover a title takes the accent and an underline draws in beneath it; the all-posts arrow nudges forward.",
   "capture": {
     "path": "/",

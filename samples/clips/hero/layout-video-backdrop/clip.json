@@ -3,6 +3,7 @@
   "layoutPattern": "full-bleed-video-copy-centered",
   "rhythm": "band",
   "style": "bold",
+  "feel": ["bold"],
   "density": "airy",
   "motionNotes": "The film settles in from a slight zoom while its glow drifts slowly; the copy rises in a short stagger over the scrim. Reduced motion keeps only the fades.",
   "capture": {

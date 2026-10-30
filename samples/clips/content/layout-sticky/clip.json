@@ -3,6 +3,7 @@
   "layoutPattern": "sticky-head-left-prose-right",
   "rhythm": "split",
   "style": "minimal",
+  "feel": ["editorial"],
   "density": "airy",
   "motionNotes": "No entrance motion: the head stays pinned on the left while the prose scrolls past on the right.",
   "capture": {

@@ -3,6 +3,7 @@
   "layoutPattern": "portrait-scroll-snap-row",
   "rhythm": "grid",
   "style": "playful",
+  "feel": ["friendly"],
   "density": "airy",
   "motionNotes": "Header rises, then the portraits slide in from the right in a stagger; portraits lift slightly on hover.",
   "capture": {

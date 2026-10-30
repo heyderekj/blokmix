@@ -3,6 +3,7 @@
   "layoutPattern": "bento-tall-left-mixed-grid",
   "rhythm": "grid",
   "style": "bold",
+  "feel": ["bold"],
   "density": "dense",
   "motionNotes": "The head rises in a short stagger, then the cells settle in one after another; the pin in the feedback picture pulses softly. Reduced motion keeps only the fades.",
   "capture": {

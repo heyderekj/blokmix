@@ -3,6 +3,7 @@
   "layoutPattern": "centered-head-then-css-columns-masonry-caption-chips",
   "rhythm": "grid",
   "style": "warm",
+  "feel": ["friendly"],
   "density": "dense",
   "motionNotes": "The head rises and the pictures settle in one after another; reduced motion keeps only the fades.",
   "capture": {

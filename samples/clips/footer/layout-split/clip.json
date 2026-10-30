@@ -3,6 +3,7 @@
   "layoutPattern": "studios-with-pictures-and-signup-beside-link-columns-and-about-over-giant-wordmark",
   "rhythm": "split",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "balanced",
   "status": "draft",
   "inspiredBy": { "site": "Pentagram", "url": "https://pentagram.com/" },

@@ -3,6 +3,7 @@
   "layoutPattern": "band-with-centered-head-then-crossfading-radio-slider-and-dots",
   "rhythm": "band",
   "style": "warm",
+  "feel": ["friendly"],
   "density": "balanced",
   "motionNotes": "The head rises and the slider fades in; picking a dot crossfades to its picture, which settles from a slight zoom. Reduced motion keeps only the fades. Dots are radios, so it slides without script.",
   "capture": {

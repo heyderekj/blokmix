@@ -3,6 +3,7 @@
   "layoutPattern": "two-column-before-after-rows",
   "rhythm": "split",
   "style": "warm",
+  "feel": ["friendly"],
   "density": "dense",
   "motionNotes": "The head rises in a short stagger, the comparison settles in, then the checks in the after column pop in down the rows. Reduced motion keeps only the fades.",
   "capture": {

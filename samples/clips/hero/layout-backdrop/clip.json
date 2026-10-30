@@ -4,6 +4,7 @@
   "rhythm": "band",
   "style": "bold",
   "density": "airy",
+  "feel": ["bold"],
   "motionNotes": "The photograph settles in from a slight zoom while the copy rises in a short stagger over the scrim; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

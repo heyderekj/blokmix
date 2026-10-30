@@ -3,6 +3,7 @@
   "layoutPattern": "brand-links-left-search-login-cta-right",
   "rhythm": "band",
   "style": "minimal",
+  "feel": ["technical"],
   "density": "dense",
   "motionNotes": "No entrance. Links brighten on hover, the round search button fills with the surface colour, and the quiet text link takes the accent.",
   "capture": {

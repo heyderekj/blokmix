@@ -3,6 +3,7 @@
   "layoutPattern": "split-title-row-wide-video-below",
   "rhythm": "stack",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "airy",
   "motionNotes": "Title and intro rise in a short stagger; the reel opens out from a slight inset and its play button fades up last. Reduced motion keeps fades only.",
   "capture": {

@@ -3,6 +3,7 @@
   "layoutPattern": "testimonial-slider-dots",
   "rhythm": "centered",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "airy",
   "motionNotes": "Header rises; the chosen quote slides in from the right each time a dot is picked, and the active dot stretches into a pill.",
   "capture": {

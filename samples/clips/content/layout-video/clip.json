@@ -3,6 +3,7 @@
   "layoutPattern": "centered-video-reading-column",
   "rhythm": "centered",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "airy",
   "motionNotes": "Header rises, the video frame scales up from 0.97, then the reading column fades in.",
   "capture": {

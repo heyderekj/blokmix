@@ -4,6 +4,7 @@
   "rhythm": "grid",
   "style": "minimal",
   "density": "balanced",
+  "feel": ["calm"],
   "motionNotes": "No motion of its own: a quiet row that sits well under a section motion preset.",
   "capture": {
     "path": "/",

@@ -3,6 +3,7 @@
   "layoutPattern": "centred-brand-over-ruled-links",
   "rhythm": "stack",
   "style": "editorial",
+  "feel": ["editorial", "calm"],
   "density": "balanced",
   "motionNotes": "The brand row drops in, then the links fade in left to right along their ruled row; a short underline draws under a link on hover.",
   "capture": {

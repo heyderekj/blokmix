@@ -1,6 +1,8 @@
 {
   "name": "Software with pricing",
   "description": "A bold software site: product hero, features, numbers, and a pricing page with a comparison table.",
+  "kind": "product",
+  "vibe": "bold",
   "tokens": {
     "color.bg": "#ffffff",
     "color.surface": "#f2f2ee",

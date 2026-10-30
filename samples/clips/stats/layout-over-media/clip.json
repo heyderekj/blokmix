@@ -3,6 +3,7 @@
   "layoutPattern": "stats-band-over-media",
   "rhythm": "band",
   "style": "bold",
+  "feel": ["bold"],
   "density": "balanced",
   "motionNotes": "The picture settles from a slight zoom while the head and then each stat rise in a stagger.",
   "capture": {

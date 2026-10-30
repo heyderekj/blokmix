@@ -1,6 +1,8 @@
 {
   "name": "Newsletter or event",
   "description": "A warm, personal page to gather sign-ups: portrait hero, what you get, kind words, and a sign-up band.",
+  "kind": "writing",
+  "vibe": "friendly",
   "tokens": {
     "color.bg": "#fdfcff",
     "color.surface": "#f3effe",

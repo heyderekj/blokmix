@@ -4,6 +4,7 @@
   "rhythm": "band",
   "style": "technical",
   "density": "balanced",
+  "feel": ["calm"],
   "motionNotes": "No motion of its own: a quiet strip meant to sit between louder sections.",
   "capture": {
     "path": "/",

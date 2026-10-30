@@ -3,6 +3,7 @@
   "layoutPattern": "centered-head-over-one-row-of-small-labelled-picture-tiles",
   "rhythm": "stack",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "balanced",
   "status": "draft",
   "inspiredBy": { "site": "Aesop", "url": "https://aesop.com/" },

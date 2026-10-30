@@ -3,6 +3,7 @@
   "layoutPattern": "single-plan-split",
   "rhythm": "split",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "airy",
   "motionNotes": "Copy rises in a short stagger, the plan card follows and its features fade in one by one; the button lifts on hover.",
   "capture": {

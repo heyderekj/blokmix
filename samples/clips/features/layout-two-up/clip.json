@@ -3,6 +3,7 @@
   "layoutPattern": "feature-cards-2x2-media-top",
   "rhythm": "grid",
   "style": "warm",
+  "feel": ["friendly", "calm"],
   "density": "balanced",
   "motionNotes": "The head rises in a short stagger, then the four cards follow in reading order; reduced motion keeps only the fades.",
   "capture": {

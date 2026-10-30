@@ -3,6 +3,7 @@
   "layoutPattern": "centered-three-cards",
   "rhythm": "grid",
   "style": "warm",
+  "feel": ["friendly", "calm"],
   "density": "balanced",
   "motionNotes": "Heading rises, then the three cards stagger in; cards lift on hover.",
   "capture": {

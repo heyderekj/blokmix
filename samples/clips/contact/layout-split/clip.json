@@ -3,6 +3,7 @@
   "layoutPattern": "split-details-form",
   "rhythm": "split",
   "style": "editorial",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "Text column rises in a short stagger; the form card follows. Inputs ring on focus, the button lifts on hover.",
   "capture": {

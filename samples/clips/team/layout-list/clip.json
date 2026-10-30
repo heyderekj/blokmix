@@ -4,6 +4,7 @@
   "rhythm": "stack",
   "style": "technical",
   "density": "dense",
+  "feel": ["editorial", "calm"],
   "motionNotes": "Header rises, then rows cascade in; rows tint softly on hover.",
   "capture": {
     "path": "/",

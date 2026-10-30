@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { confirmAction } from './Confirm'
 import { motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
+import { Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
 import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
 import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
 import { pickFile } from '@/lib/pickFile'
@@ -22,7 +22,8 @@ import { useAgentLink } from '@/lib/agentLink'
 import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
 import { canEdit, useAccount } from '@/lib/account'
-import { flushMix } from '@/lib/mixSync'
+import { flushMix, openMixId } from '@/lib/mixSync'
+import { useStartFlow } from '../start/StartFlow'
 import { SharePanel } from '../panels/SharePanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
 import { Wordmark } from '../brand/Wordmark'
@@ -300,6 +301,10 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
             onHelp()
           }}
         />
+        {(!isHosted() || openMixId() === 'local') && <MenuItem icon={Sparkles} label="Start a new mix" onClick={() => {
+          st().setUi({ sheet: 'none' })
+          useStartFlow.setState({ open: true })
+        }} />}
         <MenuItem
           icon={RotateCcw}
           label="Reset the demo mix"

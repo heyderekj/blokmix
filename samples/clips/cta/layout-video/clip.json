@@ -3,6 +3,7 @@
   "layoutPattern": "inset-stage-video-scrim-head-bottom-left",
   "rhythm": "band",
   "style": "bold",
+  "feel": ["bold"],
   "density": "airy",
   "motionNotes": "Copy rises in a 60ms stagger; the placeholder sun drifts slowly. A real video autoplays muted behind an inverse scrim. Reduced motion keeps fades only.",
   "capture": {

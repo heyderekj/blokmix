@@ -4,6 +4,7 @@
   "rhythm": "centered",
   "style": "warm",
   "density": "airy",
+  "feel": ["friendly", "calm"],
   "motionNotes": "The head rises, then each round portrait fades up from 95% in a quick stagger; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

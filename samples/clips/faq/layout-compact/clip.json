@@ -3,6 +3,7 @@
   "layoutPattern": "narrow-accordion-contact-card",
   "rhythm": "stack",
   "style": "warm",
+  "feel": ["friendly", "calm"],
   "density": "balanced",
   "motionNotes": "The head and list rise in a short stagger and the contact card follows; an opened answer fades in. Reduced motion keeps only the fades.",
   "capture": {

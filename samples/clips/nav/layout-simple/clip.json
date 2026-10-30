@@ -3,6 +3,7 @@
   "layoutPattern": "brand-links-cta",
   "rhythm": "band",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "Brand, links and button fade down in a quick stagger on load; links pick up a soft tint and the button lifts on hover.",
   "capture": {

@@ -4,6 +4,7 @@
   "rhythm": "split",
   "style": "technical",
   "density": "dense",
+  "feel": ["friendly"],
   "motionNotes": "No entrance motion; inputs ring on focus and the button presses in.",
   "capture": {
     "path": "/",

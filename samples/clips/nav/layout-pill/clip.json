@@ -3,6 +3,7 @@
   "layoutPattern": "floating-pill-bar",
   "rhythm": "band",
   "style": "playful",
+  "feel": ["friendly"],
   "density": "balanced",
   "motionNotes": "The floating bar drops in and settles, then its contents fade up. Links get a soft pill highlight on hover and the button’s arrow nudges forward.",
   "capture": {

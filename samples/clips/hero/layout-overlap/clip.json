@@ -3,6 +3,7 @@
   "layoutPattern": "asymmetric-split-card-overlapping-media",
   "rhythm": "split",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "balanced",
   "motionNotes": "The picture settles in from a slight zoom while the copy card slides across onto it; the window light breathes slowly. Reduced motion keeps only the fades.",
   "capture": {

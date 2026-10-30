@@ -3,6 +3,7 @@
   "layoutPattern": "heading-left-stats-2x2",
   "rhythm": "split",
   "style": "minimal",
+  "feel": ["technical"],
   "density": "balanced",
   "motionNotes": "Heading block rises, the four figures follow in a stagger and the short marker above each one draws in.",
   "capture": {

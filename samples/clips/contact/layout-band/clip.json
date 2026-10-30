@@ -3,6 +3,7 @@
   "layoutPattern": "inverse-band-big-email-button",
   "rhythm": "band",
   "style": "bold",
+  "feel": ["bold"],
   "density": "airy",
   "motionNotes": "The band fades up, then the heading and the big email rise one after the other. Reduced motion keeps only the fades.",
   "capture": {

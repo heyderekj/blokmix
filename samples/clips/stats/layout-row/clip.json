@@ -4,6 +4,7 @@
   "rhythm": "band",
   "style": "minimal",
   "density": "airy",
+  "feel": ["editorial", "technical"],
   "motionNotes": "Header rises, the hairlines fade in, then each figure lifts into place left to right.",
   "capture": {
     "path": "/",

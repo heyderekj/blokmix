@@ -3,6 +3,7 @@
   "layoutPattern": "brand-tagline-email-signup-beside-columns",
   "rhythm": "split",
   "style": "warm",
+  "feel": ["friendly"],
   "density": "dense",
   "motionNotes": "No entrance. The email field’s track takes an accent ring while you type; links brighten on hover.",
   "capture": {

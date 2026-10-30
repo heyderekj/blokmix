@@ -1,5 +1,6 @@
-import type { Capture, Clip, ClipStyle, Density, Library, Rhythm, SectionType, Source, TokenSet } from './types'
-import { CLIP_STYLES, DENSITIES, SECTION_TYPES } from './types'
+import type { Capture, Clip, ClipStyle, Density, Feel, Library, Rhythm, SectionType, Source, Starter, Tier, TokenSet } from './types'
+import { CLIP_STYLES, DENSITIES, FEELS, SECTION_TYPES } from './types'
+import { hexToRgb } from './tokens'
 import { extractFields, parseHtml } from './html/parse'
 import { lintClip } from './lint'
 import { hash } from './hash'
@@ -17,7 +18,9 @@ export interface RawClip {
     layoutPattern: string
     rhythm?: Rhythm
     style?: ClipStyle
+    feel?: Feel[]
     density?: Density
+    tier?: Tier
     status?: 'draft'
     inspiredBy?: { site: string; url: string }
     motionNotes?: string
@@ -27,12 +30,13 @@ export interface RawClip {
 }
 
 /** Turn raw sample files into a validated Library. Pure, so tests and scripts can use it. */
-export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
+export function buildLibrary(sources: Source[], raws: RawClip[], starters: Starter[] = []): Library {
   const lib: Library = {
     sources: Object.fromEntries(sources.map((s) => [s.id, s])),
     clips: {},
     byType: Object.fromEntries(SECTION_TYPES.map((t) => [t, []])) as unknown as Library['byType'],
     layoutsByType: Object.fromEntries(SECTION_TYPES.map((t) => [t, []])) as unknown as Library['layoutsByType'],
+    starters: [...starters].sort((a, b) => a.id.localeCompare(b.id)),
     warnings: [],
   }
 
@@ -48,6 +52,10 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
     const tokens = { ...source.tokens, ...(raw.meta.tokens ?? {}) } as TokenSet
     const issues = lintClip({ id, type: raw.type, rootClass, html: raw.html, css: raw.css, motionCss: raw.motionCss })
     lib.warnings.push(...issues)
+    const feel = (raw.meta.feel ?? []).filter((f) => (FEELS as readonly string[]).includes(f))
+    if (feel.length !== (raw.meta.feel ?? []).length) lib.warnings.push({ clipId: id, level: 'warn', message: `Unknown feel in clip.json (use ${FEELS.join(', ')})` })
+    const density = raw.meta.density && (DENSITIES as readonly string[]).includes(raw.meta.density) ? raw.meta.density : undefined
+    if (raw.meta.density && !density) lib.warnings.push({ clipId: id, level: 'warn', message: `Unknown density "${raw.meta.density}" (use ${DENSITIES.join(', ')})` })
 
     const clip: Clip = {
       id,
@@ -57,7 +65,9 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
       layoutPattern: raw.meta.layoutPattern,
       rhythm: raw.meta.rhythm,
       style: CLIP_STYLES.includes(raw.meta.style as ClipStyle) ? raw.meta.style : undefined,
-      density: DENSITIES.includes(raw.meta.density as Density) ? raw.meta.density : undefined,
+      ...(feel.length ? { feel } : {}),
+      ...(density ? { density } : {}),
+      ...(raw.meta.tier ? { tier: raw.meta.tier } : {}),
       ...(raw.meta.status === 'draft' ? { status: 'draft' as const } : {}),
       ...(raw.meta.inspiredBy ? { inspiredBy: raw.meta.inspiredBy } : {}),
       origin: source.kind === 'layout' ? 'layout' : 'clip',
@@ -148,7 +158,7 @@ export function allFonts(lib: Library) {
  */
 export function extendLibrary(lib: Library, sources: Source[], raws: RawClip[]): string[] {
   const fresh = sources.filter((s) => !lib.sources[s.id])
-  const extra = buildLibrary([...Object.values(lib.sources), ...fresh], raws)
+  const extra = buildLibrary([...Object.values(lib.sources), ...fresh], raws, [])
   for (const s of fresh) lib.sources[s.id] = s
   const added = Object.keys(extra.clips).filter((id) => !lib.clips[id])
   for (const id of added) {
@@ -175,3 +185,50 @@ export const isSample = (lib: Library, id: string): boolean => {
 
 /** The clips you can pick for a section: your clips, then the layouts. Draft layouts wait for review. */
 export const pickable = (lib: Library, type: SectionType): string[] => lib.byType[type].filter((id) => !isSample(lib, id) && !lib.clips[id]?.status)
+
+/** The library's two shelves: Blokmix's plain layouts, and sections captured from real sites. */
+export type Shelf = 'plain' | 'real'
+export const shelfOf = (clip: Pick<Clip, 'origin'>): Shelf => (clip.origin === 'layout' ? 'plain' : 'real')
+
+/** A clip's own colors, read from its tokens: dark grounds, bright color, or light and quiet. */
+export type Tone = 'light' | 'dark' | 'vivid'
+export function toneOf(clip: Pick<Clip, 'tokens'>): Tone {
+  const lum = (hex: string) => {
+    const rgb = hexToRgb(hex)
+    return rgb ? (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255 : 1
+  }
+  if (lum(clip.tokens['color.bg']) < 0.3) return 'dark'
+  const rgb = hexToRgb(clip.tokens['color.primary'])
+  if (rgb) {
+    const max = Math.max(...rgb) / 255
+    const min = Math.min(...rgb) / 255
+    if (max - min > 0.45 && max > 0.55) return 'vivid'
+  }
+  return 'light'
+}
+
+export interface ClipFilter {
+  type?: SectionType
+  shelf?: Shelf
+  feel?: Feel
+  tone?: Tone
+  density?: Density
+  rhythm?: Rhythm
+}
+
+/** The library's clips that match every filter given, in library order (layouts first). Sample sites never show. */
+export function filterClips(lib: Library, f: ClipFilter = {}): string[] {
+  const types = f.type ? [f.type] : SECTION_TYPES
+  return types.flatMap((t) =>
+    pickable(lib, t).filter((id) => {
+      const c = lib.clips[id]
+      return (
+        (!f.shelf || shelfOf(c) === f.shelf) &&
+        (!f.feel || !!c.feel?.includes(f.feel)) &&
+        (!f.tone || toneOf(c) === f.tone) &&
+        (!f.density || c.density === f.density) &&
+        (!f.rhythm || c.rhythm === f.rhythm)
+      )
+    }),
+  )
+}

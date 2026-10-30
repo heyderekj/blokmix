@@ -13,6 +13,7 @@ import * as pageCmds from './page'
 import * as siteCmds from './site'
 import * as collectionCmds from './collections'
 import * as libraryCmds from './library'
+import * as start from './start'
 
 export { CommandError, describeNote } from './refs'
 
@@ -37,7 +38,7 @@ export interface AsyncCommand<P = unknown> {
   apply: (input: never, prepared: P) => unknown
 }
 // Modules export `later` maps of async commands; merge them here.
-const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later, ...libraryCmds.later } as Record<string, AsyncCommand>
+const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later, ...libraryCmds.later, ...start.later } as Record<string, AsyncCommand>
 
 /** What a viewer can still do: leave and answer marks. */
 const MARKS = new Set(['add_note', 'update_note', 'reply_note'])
@@ -110,6 +111,8 @@ function summary(name: string, input: Record<string, unknown>): string {
       return `clipped ${input.all ? 'a page' : 'sections'} from ${input.site}`
     case 'use_site_style':
       return `added ${input.site}’s look to the style guide`
+    case 'apply_start':
+      return `started over from a ${input.vibe} start`
     case 'reply_note':
       return `replied on N${String(input.note).replace(/^n/i, '')}`
     default:

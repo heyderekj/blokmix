@@ -4,6 +4,7 @@
   "rhythm": "split",
   "style": "minimal",
   "density": "airy",
+  "feel": ["editorial", "technical"],
   "motionNotes": "No motion of its own; on a scrolling page the head and picture stay pinned while the six numbered features pass by.",
   "capture": {
     "path": "/",

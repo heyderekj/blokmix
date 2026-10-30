@@ -3,6 +3,7 @@
   "layoutPattern": "brand-ask-over-display-index-and-small-columns",
   "rhythm": "grid",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "dense",
   "motionNotes": "No entrance. The large index links slide over a step and take the accent on hover; the smaller columns only take the accent.",
   "capture": {

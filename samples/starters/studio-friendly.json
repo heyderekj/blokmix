@@ -1,0 +1,30 @@
+{
+  "name": "Small agency",
+  "blurb": "Warm and approachable: services, packages and a way to get in touch.",
+  "kind": "studio",
+  "vibe": "friendly",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-pill",
+        "hero.layout-split",
+        "features.layout-two-up",
+        "testimonials.layout-cards",
+        "pricing.layout-packages",
+        "contact.layout-form",
+        "footer.layout-centered"
+      ]
+    },
+    {
+      "path": "/about",
+      "title": "About",
+      "sections": [
+        "header.layout-flank",
+        "team.layout-grid",
+        "cta.layout-card"
+      ]
+    }
+  ]
+}

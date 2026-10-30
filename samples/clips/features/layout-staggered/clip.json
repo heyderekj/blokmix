@@ -3,6 +3,7 @@
   "layoutPattern": "zigzag-offset-cards-12col",
   "rhythm": "grid",
   "style": "playful",
+  "feel": ["friendly"],
   "density": "airy",
   "motionNotes": "The head rises in a short stagger, then the cards rise one after another down the zig-zag. Reduced motion keeps only the fades.",
   "capture": {

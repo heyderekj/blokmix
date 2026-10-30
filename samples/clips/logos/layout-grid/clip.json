@@ -3,6 +3,7 @@
   "layoutPattern": "heading-left-logo-grid-4x2",
   "rhythm": "grid",
   "style": "technical",
+  "feel": ["calm"],
   "density": "dense",
   "motionNotes": "Heading rises, then the wordmarks fade and settle into their cells one by one; a cell tints and its mark darkens on hover.",
   "capture": {

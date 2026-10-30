@@ -3,6 +3,7 @@
   "layoutPattern": "large-type-contact-rows",
   "rhythm": "stack",
   "style": "editorial",
+  "feel": ["bold"],
   "density": "airy",
   "motionNotes": "No entrance motion; each address underlines in the accent on hover.",
   "capture": {

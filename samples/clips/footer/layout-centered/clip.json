@@ -3,6 +3,7 @@
   "layoutPattern": "centred-brand-link-rows-legal",
   "rhythm": "centered",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "No entrance. Links take the accent on hover.",
   "capture": {

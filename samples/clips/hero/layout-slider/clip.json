@@ -3,6 +3,7 @@
   "layoutPattern": "split-copy-left-radio-slider-right",
   "rhythm": "split",
   "style": "warm",
+  "feel": ["friendly"],
   "density": "balanced",
   "motionNotes": "Copy rises in a stagger; picking a dot crossfades to its slide while the art inside settles up a few pixels and the active dot stretches. Reduced motion keeps the crossfade and drops the movement.",
   "capture": {

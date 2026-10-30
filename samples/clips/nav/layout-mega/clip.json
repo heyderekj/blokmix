@@ -3,6 +3,7 @@
   "layoutPattern": "brand-links-mega-panel-cta",
   "rhythm": "split",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "No entrance. The first link opens a full-width panel under the bar (a short drop, its links fading in a 30ms stagger); on phones the links fold into a menu and the panel opens in place as a list. Reduced motion keeps the fades only.",
   "capture": {

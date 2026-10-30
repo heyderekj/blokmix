@@ -3,6 +3,7 @@
   "layoutPattern": "oversized-left-headline-offset-copy-under-rule",
   "rhythm": "stack",
   "style": "editorial",
+  "feel": ["editorial", "bold"],
   "density": "airy",
   "motionNotes": "The oversized headline rises first; the hairline row fades in after it and the subhead and actions follow in a short stagger.",
   "capture": {

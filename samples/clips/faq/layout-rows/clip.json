@@ -3,6 +3,7 @@
   "layoutPattern": "hairline-rows-question-left-answer-right",
   "rhythm": "stack",
   "style": "editorial",
+  "feel": ["editorial", "calm"],
   "density": "balanced",
   "motionNotes": "No entrance motion; the contact link's arrow nudges right on hover.",
   "capture": {

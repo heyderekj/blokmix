@@ -4,6 +4,7 @@
   "rhythm": "band",
   "style": "bold",
   "density": "balanced",
+  "feel": ["bold", "calm"],
   "motionNotes": "No motion of its own; the band reads as one solid block.",
   "capture": {
     "path": "/",

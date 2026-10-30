@@ -4,6 +4,7 @@
   "rhythm": "grid",
   "style": "playful",
   "density": "balanced",
+  "feel": ["friendly"],
   "motionNotes": "The head rises, then the portraits follow in a short stagger, the large one first; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

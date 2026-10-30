@@ -4,6 +4,7 @@
   "rhythm": "stack",
   "style": "bold",
   "density": "balanced",
+  "feel": ["bold"],
   "motionNotes": "The CTA heading and button rise in, the link columns fade up, and the oversized wordmark slides up from the bottom edge last. Links pick up the accent on hover.",
   "capture": {
     "path": "/",

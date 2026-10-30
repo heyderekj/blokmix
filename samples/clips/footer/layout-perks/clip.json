@@ -3,6 +3,7 @@
   "layoutPattern": "row-of-four-icon-perks-over-brand-link-columns-and-email-signup-with-socials",
   "rhythm": "stack",
   "style": "warm",
+  "feel": ["friendly"],
   "density": "balanced",
   "status": "draft",
   "inspiredBy": { "site": "Aesop", "url": "https://aesop.com/" },

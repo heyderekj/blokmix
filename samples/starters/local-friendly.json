@@ -1,0 +1,21 @@
+{
+  "name": "Neighbourhood spot",
+  "blurb": "A café, studio or shop: a big photo, what you offer, where to find you.",
+  "kind": "local",
+  "vibe": "friendly",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-simple",
+        "hero.layout-backdrop",
+        "features.layout-alternating",
+        "testimonials.layout-split",
+        "faq.layout-compact",
+        "contact.layout-map",
+        "footer.layout-centered"
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@
   "layoutPattern": "centered-accordion",
   "rhythm": "stack",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "Header and questions rise in a short stagger; opening a question turns its plus into a filled minus and fades the answer in.",
   "capture": {

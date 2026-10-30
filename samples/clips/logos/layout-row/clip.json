@@ -4,6 +4,7 @@
   "rhythm": "band",
   "style": "minimal",
   "density": "airy",
+  "feel": ["calm"],
   "motionNotes": "Eyebrow fades in, then the wordmarks fade up one after another; each mark darkens to full ink on hover.",
   "capture": {
     "path": "/",

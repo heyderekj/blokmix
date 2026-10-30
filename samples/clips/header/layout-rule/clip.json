@@ -4,6 +4,7 @@
   "rhythm": "stack",
   "style": "bold",
   "density": "balanced",
+  "feel": ["editorial", "bold"],
   "motionNotes": "The heading rises first; the hairline row fades in after it and the intro and button follow in a short stagger.",
   "capture": {
     "path": "/",

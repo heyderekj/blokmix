@@ -4,6 +4,7 @@
   "rhythm": "centered",
   "style": "warm",
   "density": "balanced",
+  "feel": ["friendly", "calm"],
   "motionNotes": "The envelope mark pops in, then copy and the email form rise in a short stagger; the field rings softly on focus.",
   "capture": {
     "path": "/",

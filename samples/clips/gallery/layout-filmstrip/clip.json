@@ -3,6 +3,7 @@
   "layoutPattern": "head-then-edge-bleeding-scroll-snap-strip-of-tall-images",
   "rhythm": "band",
   "style": "bold",
+  "feel": ["bold"],
   "density": "airy",
   "motionNotes": "The head rises, then the frames slide in from the right one after another; reduced motion keeps only the fades. The strip scrolls sideways and snaps frame by frame.",
   "capture": {

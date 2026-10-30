@@ -3,6 +3,7 @@
   "layoutPattern": "centered-copy-video-player-below",
   "rhythm": "centered",
   "style": "technical",
+  "feel": ["technical"],
   "density": "balanced",
   "motionNotes": "Copy rises in a tight stagger, then the framed player lifts into place and its play button settles in last. Reduced motion keeps only the fades.",
   "capture": {

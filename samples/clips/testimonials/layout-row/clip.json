@@ -3,6 +3,7 @@
   "layoutPattern": "scroll-snap-quote-row",
   "rhythm": "grid",
   "style": "playful",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "No entrance motion: the row scrolls and snaps card by card on its own.",
   "capture": {

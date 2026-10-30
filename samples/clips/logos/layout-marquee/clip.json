@@ -3,6 +3,7 @@
   "layoutPattern": "logo-marquee",
   "rhythm": "band",
   "style": "playful",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "Wordmarks scroll in an endless loop between soft faded edges and pause on hover; the eyebrow and row fade in on load.",
   "capture": {

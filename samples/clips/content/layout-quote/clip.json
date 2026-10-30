@@ -3,6 +3,7 @@
   "layoutPattern": "reading-column-wide-pull-quote",
   "rhythm": "stack",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "airy",
   "motionNotes": "The breakout quote and its caption rise into place; reduced motion keeps only the fades.",
   "capture": {

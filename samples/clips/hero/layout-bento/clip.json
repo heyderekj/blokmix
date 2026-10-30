@@ -3,6 +3,7 @@
   "layoutPattern": "bento-intro-cell-with-media-and-proof",
   "rhythm": "grid",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "dense",
   "motionNotes": "Each cell rises and settles in a quick stagger, the intro first. Reduced motion keeps only the fades.",
   "capture": {

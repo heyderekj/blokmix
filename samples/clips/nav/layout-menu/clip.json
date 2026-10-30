@@ -4,6 +4,7 @@
   "rhythm": "split",
   "style": "bold",
   "density": "airy",
+  "feel": ["technical"],
   "motionNotes": "No entrance. The round menu button opens a panel under the bar with the links at display size; a link shifts over and takes the accent on hover.",
   "capture": {
     "path": "/",

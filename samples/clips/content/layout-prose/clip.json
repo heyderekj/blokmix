@@ -4,6 +4,7 @@
   "rhythm": "stack",
   "style": "minimal",
   "density": "balanced",
+  "feel": ["editorial", "calm"],
   "motionNotes": "Header and paragraphs rise in a gentle stagger; the pull quote slides in from its accent rule.",
   "capture": {
     "path": "/",

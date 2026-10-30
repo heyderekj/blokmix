@@ -3,6 +3,7 @@
   "layoutPattern": "head-then-alternating-wide-image-and-caption-column-rows",
   "rhythm": "split",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "airy",
   "motionNotes": "The head rises; each row’s picture fades in and its caption column rises just after. Reduced motion keeps only the fades.",
   "capture": {

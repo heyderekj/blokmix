@@ -3,6 +3,7 @@
   "layoutPattern": "centered-head-over-three-product-tiles-with-picture-price-and-button",
   "rhythm": "grid",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "balanced",
   "status": "draft",
   "inspiredBy": { "site": "Aesop", "url": "https://aesop.com/" },

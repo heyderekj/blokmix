@@ -3,6 +3,7 @@
   "layoutPattern": "split-text-media",
   "rhythm": "split",
   "style": "bold",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "Text rises in a stagger while the media frame scales in; the quote callout lands last.",
   "capture": {

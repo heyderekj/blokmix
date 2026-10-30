@@ -3,6 +3,7 @@
   "layoutPattern": "testimonial-video-cards-3up",
   "rhythm": "grid",
   "style": "bold",
+  "feel": ["bold"],
   "density": "balanced",
   "motionNotes": "Header rises, then the three video cards follow in a short stagger; the play button grows slightly on hover.",
   "capture": {

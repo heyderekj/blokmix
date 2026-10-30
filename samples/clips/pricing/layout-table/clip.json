@@ -3,6 +3,7 @@
   "layoutPattern": "comparison-table",
   "rhythm": "grid",
   "style": "technical",
+  "feel": ["technical"],
   "density": "dense",
   "motionNotes": "Header rises, the table follows and its checks pop in together; rows tint on hover.",
   "capture": {

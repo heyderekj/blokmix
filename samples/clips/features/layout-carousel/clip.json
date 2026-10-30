@@ -3,6 +3,7 @@
   "layoutPattern": "scroll-snap-row-cards",
   "rhythm": "grid",
   "style": "minimal",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "The head rises in a short stagger and the cards slide in from the right one after another; the scroll hint’s arrow nudges now and then. The row itself is plain CSS scroll-snap; reduced motion keeps only the fades.",
   "capture": {

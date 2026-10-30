@@ -4,6 +4,7 @@
   "rhythm": "grid",
   "style": "warm",
   "density": "balanced",
+  "feel": ["friendly", "calm"],
   "motionNotes": "The head rises, then the tiles fade up in a quick stagger; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

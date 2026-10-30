@@ -1,6 +1,8 @@
 {
   "name": "Studio portfolio",
   "description": "An editorial site for a small studio: a quiet hero, selected work, the people, and a way to get in touch.",
+  "kind": "studio",
+  "vibe": "editorial",
   "tokens": {
     "color.bg": "#f6f1e7",
     "color.surface": "#ece4d3",

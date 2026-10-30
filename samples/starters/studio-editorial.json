@@ -1,0 +1,30 @@
+{
+  "name": "Studio portfolio",
+  "blurb": "A studio or freelancer's site with the feel of a well-set magazine.",
+  "kind": "studio",
+  "vibe": "editorial",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-stacked",
+        "hero.layout-editorial",
+        "logos.layout-roster",
+        "features.layout-list",
+        "testimonials.layout-quote",
+        "contact.layout-minimal",
+        "footer.layout-index"
+      ]
+    },
+    {
+      "path": "/about",
+      "title": "About",
+      "sections": [
+        "header.layout-rule",
+        "team.layout-list",
+        "cta.layout-big"
+      ]
+    }
+  ]
+}

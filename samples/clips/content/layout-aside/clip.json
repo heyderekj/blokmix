@@ -4,6 +4,7 @@
   "rhythm": "split",
   "style": "warm",
   "density": "balanced",
+  "feel": ["editorial", "friendly"],
   "motionNotes": "No entrance motion: the prose reads down the left while the lead and a quote sit in a soft card beside it.",
   "capture": {
     "path": "/",

@@ -4,6 +4,7 @@
   "rhythm": "band",
   "style": "bold",
   "density": "airy",
+  "feel": ["bold"],
   "motionNotes": "No entrance motion: the backdrop does the work. The button presses in on tap.",
   "capture": {
     "path": "/",

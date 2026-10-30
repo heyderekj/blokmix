@@ -3,6 +3,7 @@
   "layoutPattern": "vertical-tabs-left-media-right",
   "rhythm": "split",
   "style": "technical",
+  "feel": ["technical"],
   "density": "balanced",
   "motionNotes": "The head rises in a short stagger; picking a tab fades its words up and settles its picture in place. CSS-only tabs (radio + :has()); reduced motion keeps only the fades.",
   "capture": {

@@ -4,6 +4,7 @@
   "rhythm": "split",
   "style": "minimal",
   "density": "dense",
+  "feel": ["editorial", "friendly"],
   "motionNotes": "No entrance motion: the head holds its place on the left while the member cards run down the right.",
   "capture": {
     "path": "/",

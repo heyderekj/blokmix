@@ -3,6 +3,7 @@
   "layoutPattern": "portrait-grid-3up",
   "rhythm": "grid",
   "style": "minimal",
+  "feel": ["friendly"],
   "density": "balanced",
   "motionNotes": "Heading rises, then portraits stagger in row by row; portraits lift on hover.",
   "capture": {

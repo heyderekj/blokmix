@@ -4,6 +4,7 @@
   "rhythm": "band",
   "style": "bold",
   "density": "airy",
+  "feel": ["bold"],
   "motionNotes": "The band fades up, the price rises after the heading and the features follow in a short stagger; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

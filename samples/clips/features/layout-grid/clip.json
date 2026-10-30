@@ -4,6 +4,7 @@
   "rhythm": "grid",
   "style": "bold",
   "density": "balanced",
+  "feel": ["calm"],
   "motionNotes": "Header rises in a short stagger, then the six features follow in reading order; icon tiles fill with the primary colour on hover.",
   "capture": {
     "path": "/",

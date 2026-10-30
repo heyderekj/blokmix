@@ -13,8 +13,9 @@ import { VERSION_COMMANDS } from './versions'
 import { SITE_COMMANDS } from './site'
 import { COLLECTION_COMMANDS } from './collections'
 import { LIBRARY_COMMANDS } from './library'
+import { START_COMMANDS } from './start'
 
-export const COMMANDS = { ...PAGE_COMMANDS, ...SITE_COMMANDS, ...BLOCK_COMMANDS, ...NOTE_COMMANDS, ...VERSION_COMMANDS, ...COLLECTION_COMMANDS, ...LIBRARY_COMMANDS } as const
+export const COMMANDS = { ...PAGE_COMMANDS, ...SITE_COMMANDS, ...BLOCK_COMMANDS, ...NOTE_COMMANDS, ...VERSION_COMMANDS, ...COLLECTION_COMMANDS, ...LIBRARY_COMMANDS, ...START_COMMANDS } as const
 
 export type CommandName = keyof typeof COMMANDS
 export type CommandInput<N extends CommandName> = z.infer<(typeof COMMANDS)[N]['input']>

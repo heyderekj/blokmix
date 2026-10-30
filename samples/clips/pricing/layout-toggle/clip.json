@@ -3,6 +3,7 @@
   "layoutPattern": "centered-head-switch-three-tiers-inverse-center",
   "rhythm": "grid",
   "style": "bold",
+  "feel": ["bold"],
   "density": "balanced",
   "motionNotes": "Plans rise in a 60ms stagger. The switch knob slides and the track fills with the primary colour for yearly; prices lift in as they change. Reduced motion keeps fades only.",
   "capture": {

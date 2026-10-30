@@ -3,6 +3,7 @@
   "layoutPattern": "label-rail-beside-large-offset-quote-under-hairline",
   "rhythm": "stack",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "airy",
   "status": "draft",
   "inspiredBy": { "site": "Pentagram", "url": "https://pentagram.com/" },

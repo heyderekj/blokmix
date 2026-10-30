@@ -3,6 +3,7 @@
   "layoutPattern": "inverse-band-narrow-accordion",
   "rhythm": "band",
   "style": "bold",
+  "feel": ["bold", "calm"],
   "density": "balanced",
   "motionNotes": "No entrance motion; opening a question turns its plus into a cross.",
   "capture": {

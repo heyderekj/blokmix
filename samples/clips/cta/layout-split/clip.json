@@ -3,6 +3,7 @@
   "layoutPattern": "split-copy-media",
   "rhythm": "split",
   "style": "technical",
+  "feel": ["calm"],
   "density": "balanced",
   "motionNotes": "Copy rises in a short stagger while the media window settles in and its tiles fade up; buttons lift on hover.",
   "capture": {

@@ -3,6 +3,7 @@
   "layoutPattern": "head-and-lead-over-3-columns",
   "rhythm": "grid",
   "style": "editorial",
+  "feel": ["calm"],
   "density": "dense",
   "motionNotes": "No entrance motion: a heading and lead across the top, the body in three ruled columns below.",
   "capture": {

@@ -3,6 +3,7 @@
   "layoutPattern": "scrolling-steps-left-sticky-media-right",
   "rhythm": "split",
   "style": "editorial",
+  "feel": ["editorial"],
   "density": "airy",
   "motionNotes": "The head rises in a short stagger, the picture settles in and the steps follow one after another; the note in the picture floats gently. The picture is pinned with position: sticky only, no scroll-driven animation; reduced motion keeps only the fades.",
   "capture": {

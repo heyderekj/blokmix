@@ -2,6 +2,7 @@ import type { GuideState, Library, Page, SectionType, Site, Slot, TokenKey, Toke
 import { DEFAULT_KEEP, TOKEN_KEYS } from './types'
 import { siteFromSlots } from './site'
 import { choose, emptyGuide } from './guide'
+import { vibeById } from './vibes'
 
 /**
  * Starter mixes: short, ready combinations of sections under a sample style guide, the replacement for
@@ -21,6 +22,9 @@ export interface Starter {
   id: string
   name: string
   description: string
+  /** For the guided start (`core/start.ts`): what kind of site it is and its vibe. */
+  kind?: string
+  vibe?: string
   /** Its sample style guide: the tokens it sets (the rest stay neutral). They land as your own values, so dials and
    * knobs move them like any other. */
   tokens?: Partial<TokenSet>
@@ -38,7 +42,8 @@ export class StarterError extends Error {}
 /** Load `samples/starters/*.json` (keyed by path), each one named by its file. */
 export function startersFromFiles(files: Record<string, Omit<Starter, 'id'>>): Starter[] {
   return Object.entries(files)
-    .map(([path, s]) => ({ ...s, id: path.split('/').pop()!.replace(/\.json$/, '') }))
+    // The guided start's starters say `blurb`; it's the same line.
+    .map(([path, s]) => ({ ...s, description: s.description ?? (s as { blurb?: string }).blurb ?? '', id: path.split('/').pop()!.replace(/\.json$/, '') }))
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -67,7 +72,9 @@ export function buildStarter(lib: Library, starter: Starter): StarterMix {
   const pages: Page[] = rest.map((p, i) => ({ id: p.id ?? `page_${i + 1}`, path: p.path, title: p.title, slots: slots(p, i + 1), show: { nav: true, footer: true } }))
   const site: Site = { ...home, pages: [...home.pages, ...pages] }
 
-  const guide = (Object.entries(starter.tokens ?? {}) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), emptyGuide())
+  // Its own sample guide, or its vibe's (the guided start's starters name a vibe instead).
+  const tokens = starter.tokens ?? (starter.vibe ? vibeById(starter.vibe).tokens : {})
+  const guide = (Object.entries(tokens) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), emptyGuide())
   return { mixName: starter.name, site, guide }
 }
 

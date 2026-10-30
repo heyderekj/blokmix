@@ -4,6 +4,7 @@
   "rhythm": "split",
   "style": "minimal",
   "density": "dense",
+  "feel": ["technical", "calm"],
   "motionNotes": "No motion of its own; the ticks and rows stay still so the list reads as settled and done.",
   "capture": {
     "path": "/",

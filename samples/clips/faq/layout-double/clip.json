@@ -4,6 +4,7 @@
   "rhythm": "grid",
   "style": "minimal",
   "density": "dense",
+  "feel": ["friendly", "calm"],
   "motionNotes": "The head rises, then the question cards follow in a short stagger; an opened answer fades in and its chevron turns. Reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

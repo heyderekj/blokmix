@@ -4,6 +4,7 @@
   "rhythm": "grid",
   "style": "minimal",
   "density": "balanced",
+  "feel": ["friendly", "calm"],
   "motionNotes": "No entrance motion: four square portraits in a row with names underneath.",
   "capture": {
     "path": "/",

@@ -3,6 +3,7 @@
   "layoutPattern": "quote-cards-3up-logo-strip",
   "rhythm": "grid",
   "style": "minimal",
+  "feel": ["friendly"],
   "density": "balanced",
   "motionNotes": "No entrance motion: three soft quote cards sit over a quiet strip of client wordmarks.",
   "capture": {

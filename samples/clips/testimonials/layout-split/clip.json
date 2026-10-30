@@ -3,6 +3,7 @@
   "layoutPattern": "quote-left-portrait-right",
   "rhythm": "split",
   "style": "editorial",
+  "feel": ["friendly"],
   "density": "balanced",
   "motionNotes": "The quote, person and stats rise in a stagger while the portrait panel settles into place and its small badge floats up last.",
   "capture": {

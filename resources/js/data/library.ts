@@ -10,12 +10,13 @@ const clipFiles = import.meta.glob('/samples/clips/**/*.{html,css,json}', {
   import: 'default',
 }) as Record<string, string>
 
-export const library = buildLibrary(Object.values(sourceFiles), rawClipsFromFiles(clipFiles))
-
 const starterFiles = import.meta.glob('/samples/starters/*.json', { eager: true, import: 'default' }) as Record<string, Omit<Starter, 'id'>>
 
 /** Starter mixes (`samples/starters/`): ready combinations of sections under a sample style guide. */
 export const starters = startersFromFiles(starterFiles)
+
+// The guided start reads them from the library (those with a kind and a vibe).
+export const library = buildLibrary(Object.values(sourceFiles), rawClipsFromFiles(clipFiles), starters as unknown as Parameters<typeof buildLibrary>[2])
 
 if (import.meta.env.DEV && library.warnings.length) {
   console.groupCollapsed(`[blokmix] ${library.warnings.length} clip lint issue(s)`)

@@ -3,6 +3,7 @@
   "layoutPattern": "head-left-numbered-timeline-right",
   "rhythm": "split",
   "style": "technical",
+  "feel": ["editorial", "technical"],
   "density": "balanced",
   "motionNotes": "The head rises, then the steps follow down the line in a short stagger; reduced motion keeps only the fades.",
   "capture": {
