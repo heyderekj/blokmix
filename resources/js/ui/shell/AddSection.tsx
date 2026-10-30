@@ -12,8 +12,11 @@ import { keepInView } from '../canvas/inView'
 /** Insert a section at `at`, picking the clip or layout that suits that spot best. */
 export function insertSection(type: SectionType, at: number) {
   const st = useStore.getState()
-  const best = suggestClip(type, currentSlots(st), at, library)[0]
-  if (best) st.addSlot(type, best.clipId, at)
+  const slots = currentSlots(st)
+  // A nav always sits at the top and a footer at the bottom, whichever gap it was added from.
+  const spot = type === 'nav' ? 0 : type === 'footer' ? slots.length : at
+  const best = suggestClip(type, slots, spot, library)[0]
+  if (best) st.addSlot(type, best.clipId, spot)
 }
 
 /**
@@ -32,7 +35,7 @@ export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => voi
 
   const [active, setActive] = useState<SectionType | undefined>(pickable[0]?.type)
   const info = ranked.find((r) => r.type === active)
-  const best = useMemo(() => (active ? suggestClip(active, slots, at, library)[0] : undefined), [active, slots, at])
+  const best = useMemo(() => (active ? suggestClip(active, slots, active === 'nav' ? 0 : active === 'footer' ? slots.length : at, library)[0] : undefined), [active, slots, at])
   const ref = useRef<HTMLDivElement>(null)
 
   const add = (type: SectionType) => {

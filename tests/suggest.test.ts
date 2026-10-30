@@ -20,6 +20,17 @@ describe('suggestTypes', () => {
     expect(find(page('nav', 'features'), 2, 'footer').allowed).toBe(true)
   })
 
+  it('offers a missing nav or footer from any gap, and suggests it first', () => {
+    const bare = page('hero', 'features', 'pricing')
+    expect(find(bare, 2, 'nav').allowed).toBe(true)
+    expect(find(bare, 1, 'footer').allowed).toBe(true)
+    expect(top(bare, 3).slice(0, 3).map((s) => s.type)).toEqual(expect.arrayContaining(['footer', 'nav']))
+    // Below an existing footer, only the missing nav still fits.
+    const ended = page('hero', 'footer')
+    expect(find(ended, 2, 'nav').allowed).toBe(true)
+    expect(find(ended, 2, 'cta').allowed).toBe(false)
+  })
+
   it('suggests logos or features after the hero', () => {
     const picks = top(landing, 2).slice(0, 2).map((s) => s.type)
     expect(picks).toContain('logos')

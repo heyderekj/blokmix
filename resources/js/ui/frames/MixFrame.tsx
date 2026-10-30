@@ -12,7 +12,7 @@ import { useResolvedGuide } from '@/state/derived'
 import { MIX_ID, VIEW_W } from '../canvas/geometry'
 import { FrameHeader, HeaderButton, HeaderTitle } from './FrameHeader'
 import { SlotRow } from './SlotRow'
-import { AddSectionMenu } from '../shell/AddSection'
+import { AddSectionMenu, insertSection } from '../shell/AddSection'
 
 export function MixFrame() {
   const slots = useStore(currentSlots)
@@ -73,6 +73,7 @@ export function MixFrame() {
         style={{ background: guide.tokens['color.bg'] }}
       >
         {!previewing && site.shared.nav && !page.show.nav && <HiddenShared kind="nav" pageId={page.id} />}
+        {!previewing && !site.shared.nav && slots.length > 0 && <MissingShared kind="nav" />}
         {slots.map((slot, i) => (
           <SlotRow
             key={slot.id}
@@ -84,6 +85,7 @@ export function MixFrame() {
           />
         ))}
         {!previewing && site.shared.footer && !page.show.footer && <HiddenShared kind="footer" pageId={page.id} />}
+        {!previewing && !site.shared.footer && slots.length > 0 && <MissingShared kind="footer" />}
         {!slots.length && (
           <div className="grid place-items-center py-40 text-center" style={{ fontSize: 'calc(16px / var(--z))' }}>
             <p className="text-zinc-400">Nothing here yet. Add a section to start mixing.</p>
@@ -171,6 +173,28 @@ function AddSection({ width, onAdd }: { width: number; onAdd: () => void }) {
           className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-95 @max-[150px]:px-2.5"
         >
           <Plus size={15} /> <span className="@max-[150px]:hidden">Add a section</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/** Where the nav or footer would be when the site has none yet: every page needs both, so offer the one that fits. */
+function MissingShared({ kind }: { kind: 'nav' | 'footer' }) {
+  return (
+    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))' }} data-chrome>
+      <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+        <span className="text-[12.5px]">No {kind} yet</span>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation()
+            insertSection(kind, kind === 'nav' ? 0 : currentSlots(useStore.getState()).length)
+          }}
+          className="flex h-7 cursor-pointer items-center gap-1 rounded-full bg-white px-2.5 text-[12px] font-semibold text-zinc-700 shadow-[0_0_0_1px_rgb(0_0_0/0.1)] transition-[scale,color] duration-150 hover:text-zinc-950 active:scale-[0.97]"
+        >
+          <Plus size={12} strokeWidth={2.6} /> Add a {kind}
         </button>
       </div>
     </div>
