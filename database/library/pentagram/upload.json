@@ -1,0 +1,350 @@
+{
+  "slug": "pentagram",
+  "name": "Pentagram",
+  "url": "https://pentagram.com/",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#ededed",
+    "color.text": "#1a1a1a",
+    "color.muted": "#767676",
+    "color.border": "#e0e0e0",
+    "color.primary": "#1a1a1a",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#1a1a1a",
+    "font.display": "Plain, Arial, sans-serif",
+    "font.body": "Plain, Arial, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "19px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "400",
+    "radius.base": "4px",
+    "stroke.width": "1px",
+    "icon.set": "lucide:regular",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "72px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "fonts": [
+    {
+      "family": "Plain",
+      "css2": "Plain:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, Plain throughout, tight corners, a black primary, with contrasting bands.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Pentagram — The world’s largest independent design consultancy",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 25698,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 60
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.902,
+          "status": "matched",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 60,
+            "h": 617
+          },
+          "layoutId": "hero.layout-media-below",
+          "score": 0.94,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "blog",
+          "box": {
+            "y": 773,
+            "h": 951
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.987,
+          "status": "matched",
+          "screenshot": "home-s2.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 3,
+          "type": "blog",
+          "box": {
+            "y": 1788,
+            "h": 1770
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "features",
+          "box": {
+            "y": 3653,
+            "h": 889
+          },
+          "layoutId": "features.layout-bento",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s4.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 5,
+          "type": "testimonials",
+          "box": {
+            "y": 4542,
+            "h": 298
+          },
+          "layoutId": "testimonials.layout-logos",
+          "score": 0.726,
+          "status": "needs_layout",
+          "screenshot": "home-s5.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 6,
+          "type": "blog",
+          "box": {
+            "y": 4904,
+            "h": 1813
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "features",
+          "box": {
+            "y": 6813,
+            "h": 891
+          },
+          "layoutId": "features.layout-two-up",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s7.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 8,
+          "type": "blog",
+          "box": {
+            "y": 7767,
+            "h": 2085
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.92,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        },
+        {
+          "order": 9,
+          "type": "features",
+          "box": {
+            "y": 9948,
+            "h": 949
+          },
+          "layoutId": "features.layout-bento",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s9.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 10,
+          "type": "blog",
+          "box": {
+            "y": 10961,
+            "h": 2082
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.92,
+          "status": "matched",
+          "screenshot": "home-s10.webp"
+        },
+        {
+          "order": 11,
+          "type": "features",
+          "box": {
+            "y": 13139,
+            "h": 919
+          },
+          "layoutId": "features.layout-alternating",
+          "score": 0.908,
+          "status": "matched",
+          "screenshot": "home-s11.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 12,
+          "type": "testimonials",
+          "box": {
+            "y": 14058,
+            "h": 259
+          },
+          "layoutId": "testimonials.layout-logos",
+          "score": 0.726,
+          "status": "needs_layout",
+          "screenshot": "home-s12.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 13,
+          "type": "blog",
+          "box": {
+            "y": 14381,
+            "h": 1773
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s13.webp"
+        },
+        {
+          "order": 14,
+          "type": "features",
+          "box": {
+            "y": 16249,
+            "h": 899
+          },
+          "layoutId": "features.layout-alternating",
+          "score": 0.908,
+          "status": "matched",
+          "screenshot": "home-s14.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 15,
+          "type": "testimonials",
+          "box": {
+            "y": 17148,
+            "h": 259
+          },
+          "layoutId": "testimonials.layout-logos",
+          "score": 0.726,
+          "status": "needs_layout",
+          "screenshot": "home-s15.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 16,
+          "type": "blog",
+          "box": {
+            "y": 17472,
+            "h": 1773
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s16.webp"
+        },
+        {
+          "order": 17,
+          "type": "features",
+          "box": {
+            "y": 19340,
+            "h": 889
+          },
+          "layoutId": "features.layout-bento",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s17.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 18,
+          "type": "testimonials",
+          "box": {
+            "y": 20229,
+            "h": 298
+          },
+          "layoutId": "testimonials.layout-logos",
+          "score": 0.726,
+          "status": "needs_layout",
+          "screenshot": "home-s18.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 19,
+          "type": "blog",
+          "box": {
+            "y": 20591,
+            "h": 1430
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.94,
+          "status": "matched",
+          "screenshot": "home-s19.webp"
+        },
+        {
+          "order": 20,
+          "type": "blog",
+          "box": {
+            "y": 22084,
+            "h": 1753
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s20.webp"
+        },
+        {
+          "order": 21,
+          "type": "footer",
+          "box": {
+            "y": 23933,
+            "h": 1765
+          },
+          "layoutId": "footer.layout-newsletter",
+          "score": 0.778,
+          "status": "needs_layout",
+          "screenshot": "home-s21.webp",
+          "hint": {
+            "dark": true
+          }
+        }
+      ]
+    }
+  ]
+}

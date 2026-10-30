@@ -1,0 +1,201 @@
+{
+  "slug": "aesop",
+  "name": "Aesop",
+  "url": "https://aesop.com/",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#fffef2",
+    "color.surface": "#f6f5ea",
+    "color.text": "#333333",
+    "color.muted": "#666666",
+    "color.border": "#d6d5cc",
+    "color.primary": "#333333",
+    "color.onPrimary": "#fffef2",
+    "color.accent": "#945c26",
+    "font.display": "Zapf-Humanist, sans-serif",
+    "font.body": "SuisseIntl, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "14px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "400",
+    "radius.base": "8px",
+    "stroke.width": "1px",
+    "icon.set": "",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "8px",
+    "space.section": "96px",
+    "motion.duration": "250ms",
+    "motion.ease": "ease-out"
+  },
+  "fonts": [
+    {
+      "family": "Zapf-Humanist",
+      "css2": "Zapf-Humanist:wght@400;500;600;700"
+    },
+    {
+      "family": "SuisseIntl",
+      "css2": "SuisseIntl:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, Zapf-Humanist headings over SuisseIntl, 8px corners, a gray primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Aesop USA | Formulations for Skin, Hair & Body",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 7635,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 147
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 30,
+            "h": 720
+          },
+          "layoutId": "hero.layout-backdrop",
+          "score": 0.829,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "pricing",
+          "box": {
+            "y": 750,
+            "h": 859
+          },
+          "layoutId": "pricing.layout-table",
+          "score": 0.719,
+          "status": "needs_layout",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "gallery",
+          "box": {
+            "y": 1709,
+            "h": 312
+          },
+          "layoutId": "gallery.layout-mosaic",
+          "score": 0.733,
+          "status": "needs_layout",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "content",
+          "box": {
+            "y": 2120,
+            "h": 477
+          },
+          "layoutId": "content.layout-image",
+          "score": 0.826,
+          "status": "matched",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "pricing",
+          "box": {
+            "y": 2697,
+            "h": 877
+          },
+          "layoutId": "pricing.layout-table",
+          "score": 0.719,
+          "status": "needs_layout",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "content",
+          "box": {
+            "y": 3674,
+            "h": 477
+          },
+          "layoutId": "content.layout-overlap",
+          "score": 0.846,
+          "status": "matched",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "content",
+          "box": {
+            "y": 4251,
+            "h": 218
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.812,
+          "status": "matched",
+          "screenshot": "home-s7.webp"
+        },
+        {
+          "order": 8,
+          "type": "content",
+          "box": {
+            "y": 4569,
+            "h": 1085
+          },
+          "layoutId": "content.layout-video",
+          "score": 0.86,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        },
+        {
+          "order": 9,
+          "type": "features",
+          "box": {
+            "y": 5677,
+            "h": 566
+          },
+          "layoutId": "features.layout-mosaic",
+          "score": 0.932,
+          "status": "matched",
+          "screenshot": "home-s9.webp"
+        },
+        {
+          "order": 10,
+          "type": "content",
+          "box": {
+            "y": 6343,
+            "h": 164
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.812,
+          "status": "matched",
+          "screenshot": "home-s10.webp"
+        },
+        {
+          "order": 11,
+          "type": "footer",
+          "box": {
+            "y": 6608,
+            "h": 1027
+          },
+          "layoutId": "footer.layout-newsletter",
+          "score": 0.753,
+          "status": "needs_layout",
+          "screenshot": "home-s11.webp",
+          "hint": {
+            "dark": true
+          }
+        }
+      ]
+    }
+  ]
+}

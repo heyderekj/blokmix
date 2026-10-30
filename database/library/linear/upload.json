@@ -1,0 +1,245 @@
+{
+  "slug": "linear",
+  "name": "Linear",
+  "url": "https://linear.app/",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#08090a",
+    "color.surface": "#101112",
+    "color.text": "#f7f8f8",
+    "color.muted": "#d0d6e0",
+    "color.border": "#1c1d1e",
+    "color.primary": "#e5e5e6",
+    "color.onPrimary": "#08090a",
+    "color.accent": "#f34e52",
+    "font.display": "'Inter Variable', 'SF Pro Display', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif",
+    "font.body": "'Inter Variable', 'SF Pro Display', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "13px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "510",
+    "radius.base": "8px",
+    "stroke.width": "1px",
+    "icon.set": "lucide:regular",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "motion.duration": "160ms",
+    "motion.ease": "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+  },
+  "fonts": [
+    {
+      "family": "Inter Variable",
+      "css2": "Inter+Variable:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Dark ground, Inter Variable throughout, 8px corners, a white primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Linear – The system for product development",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 9960,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 73
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s0.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 271,
+            "h": 1024
+          },
+          "layoutId": "hero.layout-media-below",
+          "score": 0.832,
+          "status": "matched",
+          "screenshot": "home-s1.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 2,
+          "type": "logos",
+          "box": {
+            "y": 1407,
+            "h": 40
+          },
+          "layoutId": "logos.layout-band",
+          "score": 0.829,
+          "status": "matched",
+          "screenshot": "home-s2.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 3,
+          "type": "content",
+          "box": {
+            "y": 1596,
+            "h": 144
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.846,
+          "status": "matched",
+          "screenshot": "home-s3.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 4,
+          "type": "features",
+          "box": {
+            "y": 1876,
+            "h": 468
+          },
+          "layoutId": "features.layout-staggered",
+          "score": 0.932,
+          "status": "matched",
+          "screenshot": "home-s4.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 5,
+          "type": "features",
+          "box": {
+            "y": 2546,
+            "h": 1226
+          },
+          "layoutId": "features.layout-mosaic",
+          "score": 0.911,
+          "status": "matched",
+          "screenshot": "home-s5.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 6,
+          "type": "features",
+          "box": {
+            "y": 3782,
+            "h": 1229
+          },
+          "layoutId": "features.layout-mosaic",
+          "score": 0.86,
+          "status": "matched",
+          "screenshot": "home-s6.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 7,
+          "type": "features",
+          "box": {
+            "y": 5021,
+            "h": 1232
+          },
+          "layoutId": "features.layout-mosaic",
+          "score": 0.897,
+          "status": "matched",
+          "screenshot": "home-s7.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 8,
+          "type": "features",
+          "box": {
+            "y": 6263,
+            "h": 1220
+          },
+          "layoutId": "features.layout-alternating",
+          "score": 0.825,
+          "status": "matched",
+          "screenshot": "home-s8.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 9,
+          "type": "blog",
+          "box": {
+            "y": 7644,
+            "h": 422
+          },
+          "layoutId": "blog.layout-minimal",
+          "score": 0.897,
+          "status": "matched",
+          "screenshot": "home-s9.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 10,
+          "type": "content",
+          "box": {
+            "y": 8226,
+            "h": 564
+          },
+          "layoutId": "content.layout-sticky",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s10.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 11,
+          "type": "cta",
+          "box": {
+            "y": 9014,
+            "h": 228
+          },
+          "layoutId": "cta.layout-centered",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s11.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 12,
+          "type": "footer",
+          "box": {
+            "y": 9466,
+            "h": 494
+          },
+          "layoutId": "footer.layout-columns",
+          "score": 0.85,
+          "status": "matched",
+          "screenshot": "home-s12.webp",
+          "hint": {
+            "dark": true
+          }
+        }
+      ]
+    }
+  ]
+}

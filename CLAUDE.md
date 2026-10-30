@@ -177,7 +177,10 @@ Curated real sites become library entries offline (`docs/site-library.md`): capt
   agent authors the layout with `"status": "draft"` and `"inspiredBy"` in clip.json (drafts stay out of suggestions and
   matching until review removes the status), then `match.ts --rematch --save` points the section at it.
 - `npx vite-node scripts/library/upload.ts <slug|--all> [--base http://localhost:8000]` posts bundles as an owner (refuses
-  production hosts without `--production`). `docs/layout-coverage.md` maps archetypes to layouts.
+  production hosts without `--production`).
+- Bundles kept in the repo (`database/library/<slug>/`: upload.json and its screenshots) import on any server with
+  `php artisan library:import [dir] --publish`, as an owner, through the same checks (on production: `cloud cmd:run
+  production --cmd="php artisan library:import --publish"`). `docs/layout-coverage.md` maps archetypes to layouts.
 
 ## Layout
 

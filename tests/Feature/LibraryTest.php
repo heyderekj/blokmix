@@ -170,6 +170,15 @@ class LibraryTest extends TestCase
         $this->assertSame(0, LibraryAsset::count());
     }
 
+    public function test_the_repo_bundles_import_from_the_command_line(): void
+    {
+        $this->owner();
+        $this->artisan('library:import', ['--publish' => true])->assertSuccessful();
+        $this->assertEqualsCanonicalizing(['aesop', 'linear', 'pentagram'], LibrarySite::pluck('slug')->all());
+        $this->assertSame(['published'], LibrarySite::distinct()->pluck('status')->all());
+        $this->assertGreaterThan(40, LibraryAsset::count());
+    }
+
     public function test_only_owners_upload(): void
     {
         $this->actingAs(User::factory()->create())->upload($this->siteJson())->assertForbidden();
