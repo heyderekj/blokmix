@@ -30,11 +30,10 @@
     },
     {
       "name": "blokmix-worktree",
-      "runtimeExecutable": "php",
+      "runtimeExecutable": "sh",
       "runtimeArgs": [
-        "artisan",
-        "serve",
-        "--port=8001"
+        "-c",
+        "cd public && exec php -d upload_max_filesize=256M -d post_max_size=256M -S 127.0.0.1:8001 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"
       ],
       "port": 8001
     }

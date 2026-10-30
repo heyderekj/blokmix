@@ -69,7 +69,7 @@ export function SiteLibrary() {
             role="dialog"
             aria-modal="true"
             aria-label="Site library"
-            className="glass-panel flex h-full w-full flex-col overflow-hidden rounded-3xl"
+            className="flex h-full w-full flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-zinc-950/10"
           >
             {!siteLibraryAvailable() ? <Unavailable /> : slug ? <SiteView slug={slug} /> : <Gallery />}
           </motion.div>

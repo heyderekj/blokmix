@@ -151,6 +151,7 @@ export function describeSection(slot: Slot, position: number) {
     type: slot.type,
     label: TYPE_LABEL[slot.type],
     clip: { id: clip.id, title: clip.title, origin: clip.origin, source: library.sources[clip.sourceId]?.name, rhythm: clip.rhythm ?? null },
+    ...((slot.inspiredBy ?? clip.inspiredBy) ? { inspiredBy: slot.inspiredBy ?? clip.inspiredBy } : {}),
     keep: { layout: slot.keep.layout, style: slot.keep.style, copy: slot.keep.content, motion: slot.keep.motion, locked: slot.locked },
     spacing: slot.spacing ?? {},
     surface: slot.surface ?? 'page',

@@ -1,11 +1,12 @@
-// Send site-library bundles to a Blokmix server: POST /api/library/sites with `site` (upload.json) and `files[]`
-// (the images it names), signed in through Fortify's session.
+// Send site-library bundles to a Blokmix server: POST /api/library/sites with `site` (upload.json) and `bundle`, one
+// zip of the images it names (PHP takes only 20 files per request), signed in through Fortify's session.
 //   npx vite-node scripts/library/upload.ts <slug…|--all> [--base http://localhost:8000] [--out .out/library]
 // Credentials: LIBRARY_EMAIL / LIBRARY_PASSWORD, else LOCAL_TEST_EMAIL / LOCAL_TEST_PASSWORD from the main
 // checkout's .env. The password is never printed.
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { zipSync } from 'fflate'
 
 const args = process.argv.slice(2)
 const opt = (name: string) => {
@@ -22,7 +23,6 @@ if (/laravel\.cloud|blokmix\.com/.test(base) && !args.includes('--production')) 
 
 const MAX_FILE = 15 * 1024 * 1024
 const MAX_TOTAL = 200 * 1024 * 1024
-const TYPES: Record<string, string> = { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg' }
 
 function credentials(): { email: string; password: string } {
   let email = process.env.LIBRARY_EMAIL
@@ -89,14 +89,17 @@ async function upload(jar: Jar, slug: string) {
   const form = new FormData()
   form.append('site', new Blob([text], { type: 'application/json' }), 'upload.json')
   let total = 0
+  const images: Record<string, Uint8Array> = {}
   for (const name of names) {
     const file = join(dir, name)
     if (!existsSync(file)) throw new Error(`${slug}: upload.json names ${name}, which isn't in the bundle`)
     const data = readFileSync(file)
     if (data.length > MAX_FILE) throw new Error(`${slug}: ${name} is over 15 MB`)
     total += data.length
-    form.append('files[]', new Blob([data], { type: TYPES[name.split('.').pop()!.toLowerCase()] ?? 'application/octet-stream' }), name)
+    images[name] = data
   }
+  // Screenshots are already compressed: store them.
+  form.append('bundle', new Blob([zipSync(images, { level: 0 })], { type: 'application/zip' }), 'bundle.zip')
   if (total > MAX_TOTAL) throw new Error(`${slug}: ${Math.round(total / 1e6)} MB of images is over the 200 MB limit`)
   const res = await fetch(`${base}/api/library/sites`, {
     method: 'POST',

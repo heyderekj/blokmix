@@ -21,6 +21,7 @@ export interface LibrarySiteSummary {
   url: string
   industry: string | null
   tags: string[]
+  /** By role: bg, text, primary, accent… */
   palette: Record<string, string>
   thumb: string | null
   status: string
@@ -198,7 +199,11 @@ const serverBackend: SiteLibraryBackend = {
     if (res.status === 401 || res.status === 419) throw new SiteLibraryError('Sign in to browse the site library')
     if (res.status !== 200) throw new SiteLibraryError(`The site library didn’t load (${res.status})`)
     const body = res.body
-    return Array.isArray(body) ? body : (body?.data ?? [])
+    // The server's palette is token-keyed ("color.bg"); cards read it by role ("bg").
+    return (Array.isArray(body) ? body : (body?.data ?? [])).map((s) => ({
+      ...s,
+      palette: Object.fromEntries(Object.entries(s.palette ?? {}).map(([k, v]) => [k.replace(/^color\./, ''), v])),
+    }))
   },
   site: async (slug) => {
     const res = await api<LibrarySite>('GET', `/api/library/sites/${encodeURIComponent(slug)}`)
