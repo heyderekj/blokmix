@@ -113,8 +113,8 @@ class PlanLimitsTest extends TestCase
 
         $this->actingAs($me)->get('/')->assertInertia(fn (Assert $page) => $page
             ->where('auth.plan.name', 'free')
-            ->where('auth.plan.limits', ['mixes' => 1, 'clips' => 40, 'upload_mb' => 100])
-            ->where('auth.plan.usage', ['mixes' => 1, 'clips' => 1, 'uploads' => 0]));
+            ->where('auth.plan.limits', ['mixes' => 1, 'clips' => 40, 'upload_mb' => 100, 'collections' => 1, 'entries' => 25])
+            ->where('auth.plan.usage', ['mixes' => 1, 'clips' => 1, 'collections' => 0, 'uploads' => 0]));
     }
 
     public function test_plan_cant_be_set_by_signing_up(): void

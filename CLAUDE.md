@@ -80,6 +80,16 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   with a role (never lowering one); signed-out people sign up first. The Share panel (top bar, hosted only) makes
   and revokes links and changes roles. Viewers: the server keeps only `notes` from their saves, `lib/mixSync.ts`
   puts any other change back on the board, and commands other than add_note/update_note/reply_note refuse.
+- Collections (`collections`: ulid, owner `user_id`, `slug` unique per owner, `name`, `schema` + `entries` json, `lock`;
+  `collection_assets` like `mix_assets`, files at `collections/<id>/` on the uploads disk) belong to an account.
+  `Api\CollectionController` at `/api/collections` (index, show, store, update, destroy) saves like a mix: `PUT` with
+  `If-Match: "<lock>"`, a stale lock gets 412 and `{collection}` as it is now; a slug clash is 409 with `errors.slug`; 2 MB
+  of JSON at most. `Api\CollectionAssetController` at `/api/collections/{id}/assets` mirrors `AssetController`. Access
+  (`Collection::roleOf`): the owner does anything; anyone else comes through `?mix=<id or short>`, a mix they're in
+  whose data binds the slug (`"collection": "<slug>"` anywhere) and that the collection's owner can edit. Its editors
+  (and its owner) change entries only, viewers read; everyone else gets 404. Index lists yours plus those reached
+  through your mixes (each with `role` and `mix`). Plans add `collections` and `entries` (per collection; Free 1 and 25,
+  provisional): `User::collectionRefusal`, counted against the collection's owner, and its uploads use the owner's room.
 
 ## Agents
 

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\ClipController;
+use App\Http\Controllers\Api\CollectionAssetController;
+use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\Api\StyleGuideController;
 use App\Http\Controllers\Api\UnsplashController;
@@ -53,6 +55,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/style-guides', [StyleGuideController::class, 'index'])->name('style-guides.index');
         Route::post('/style-guides', [StyleGuideController::class, 'store'])->middleware('throttle:30,1')->name('style-guides.store');
         Route::delete('/style-guides/{guide}', [StyleGuideController::class, 'destroy'])->whereNumber('guide')->name('style-guides.destroy');
+
+        // Collections: yours, or another account's through a mix that binds it (?mix=<id>).
+        Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
+        Route::post('/collections', [CollectionController::class, 'store'])->middleware('throttle:30,1')->name('collections.store');
+        Route::get('/collections/{collection}', [CollectionController::class, 'show'])->whereUlid('collection')->name('collections.show');
+        Route::put('/collections/{collection}', [CollectionController::class, 'update'])->whereUlid('collection')->name('collections.update');
+        Route::delete('/collections/{collection}', [CollectionController::class, 'destroy'])->whereUlid('collection')->name('collections.destroy');
+        Route::get('/collections/{collection}/assets', [CollectionAssetController::class, 'index'])->whereUlid('collection')->name('collections.assets.index');
+        Route::post('/collections/{collection}/assets', [CollectionAssetController::class, 'store'])->whereUlid('collection')->name('collections.assets.store');
+        Route::get('/collections/{collection}/assets/{key}', [CollectionAssetController::class, 'show'])->whereUlid('collection')->name('collections.assets.show');
+        Route::get('/collections/{collection}/assets/{key}/poster', [CollectionAssetController::class, 'poster'])->whereUlid('collection')->name('collections.assets.poster');
 
         Route::get('/unsplash/search', [UnsplashController::class, 'search'])->middleware('throttle:60,1')->name('unsplash.search');
         Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');
