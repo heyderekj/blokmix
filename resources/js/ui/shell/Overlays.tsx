@@ -62,6 +62,8 @@ const HELP: [string, [string, string][]][] = [
   [
     'Blocks and words',
     [
+      ['Click', 'Select a block, one level deeper each click'],
+      ['⌘ click', 'Select the smallest block under the pointer'],
       ['↵ / double-click', 'Edit the selected words'],
       ['[ ]', 'Other ways to say them'],
       ['⌘D', 'Duplicate a list item'],

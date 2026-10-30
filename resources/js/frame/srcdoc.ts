@@ -26,6 +26,8 @@ const BRIDGE = `(function () {
 
   // ---- blocks: ids in document order, matching core/blocks.ts indexBlocks ----
   document.querySelectorAll('[data-mx-block]').forEach(function (el, i) { if (!el.hasAttribute('data-mx-b')) el.setAttribute('data-mx-b', 'b' + i); });
+  /* Named icons say which icon they show in a plain attribute, as exports do, so a clip can style by it. */
+  document.querySelectorAll('svg[data-mx-icon]').forEach(function (svg) { svg.setAttribute('data-icon', svg.getAttribute('data-mx-icon')); });
   var byId = function (id) { return id ? document.querySelector('[data-mx-b="' + id + '"]') : null; };
   var up = function (el) { return el && el.parentElement ? el.parentElement.closest('[data-mx-block]') : null; };
   var rect = function (el) {
@@ -51,11 +53,12 @@ const BRIDGE = `(function () {
     post({ rects: out });
   }
 
-  /* Figma-style depth: click selects the outermost block, then one level deeper each click. */
-  function target(node) {
+  /* Figma-style depth: click selects the outermost block, then one level deeper each click. ⌘-click goes straight to
+     the smallest block under the pointer. */
+  function target(node, deep) {
     var start = node && node.closest ? node.closest('[data-mx-block]') : null;
     if (!start) return null;
-    if (noteMode) return start; /* feedback snaps to the smallest block under the pointer */
+    if (noteMode || deep) return start; /* feedback snaps to the smallest block under the pointer */
     var chain = [];
     for (var n = start; n; n = up(n)) chain.unshift(n);
     var s = byId(sel);
@@ -76,7 +79,7 @@ const BRIDGE = `(function () {
 
   document.addEventListener('pointermove', function (e) {
     if (!editMode || editing || drag) return;
-    var t = target(e.target);
+    var t = target(e.target, e.metaKey || e.ctrlKey);
     var id = t ? t.getAttribute('data-mx-b') : null;
     if (id !== hoverId) { hoverId = id; post({ hover: id ? { id: id, rect: rect(t) } : null }); }
   });
@@ -129,10 +132,8 @@ const BRIDGE = `(function () {
     if (noteMode) { e.preventDefault(); e.stopPropagation(); return; }
     if (editing && editing.contains(e.target)) return;
     e.preventDefault(); e.stopPropagation();
-    /* Pressing the words of the block already selected puts the caret right there. */
-    var s = byId(sel), w = s && e.target.closest ? e.target.closest('[data-mx-field]') : null;
-    if (w && s && (w === s || s.contains(w)) && fieldEl(w.closest('[data-mx-block]')) === w) { startEdit(w, caretAt(e.clientX, e.clientY)); return; }
-    var t = target(e.target);
+    /* A click only ever selects: words are edited with a double-click, ↵ or the bar's Edit text. */
+    var t = target(e.target, e.metaKey || e.ctrlKey);
     post({ pick: t ? t.getAttribute('data-mx-b') : null });
   }, true);
   document.addEventListener('dblclick', function (e) {
@@ -238,6 +239,7 @@ const BRIDGE = `(function () {
       var b = svg.closest('[data-mx-block]');
       var iconBlock = b && b.getAttribute('data-mx-block') === 'icon' && b.querySelector('svg') === svg ? b.getAttribute('data-mx-b') : null;
       if (!svg.hasAttribute('data-mx-icon') && !iconBlock) return;
+      if (svg.hasAttribute('data-mx-icon')) svg.setAttribute('data-icon', svg.getAttribute('data-mx-icon'));
       svg.setAttribute('data-mx-i', String(iconOrig.length));
       iconOrig.push({ html: svg.outerHTML, block: iconBlock, name: svg.getAttribute('data-mx-icon'), animated: !!svg.querySelector('[class]') });
     });
@@ -247,12 +249,13 @@ const BRIDGE = `(function () {
       var ov = ic && o.block ? ic.overrides[o.block] : null;
       var name = ov || o.name;
       var html = o.html;
-      if (ic && name && ic.glyphs[name] && !(o.animated && !ov)) {
+      if (ic && name && ic.glyphs[name] && !(o.animated && !ov) && (!ic.only || ov)) {
         var t = document.createElement('template'); t.innerHTML = ic.glyphs[name];
         var next = t.content.firstElementChild;
         var orig = document.createElement('template'); orig.innerHTML = o.html;
         Array.prototype.forEach.call(orig.content.firstElementChild.attributes, function (a) { if (!KEEP_OUT.test(a.name)) next.setAttribute(a.name, a.value); });
         next.setAttribute('data-mx-icon', name);
+        next.setAttribute('data-icon', name);
         html = next.outerHTML;
       }
       if (cur.outerHTML !== html) cur.outerHTML = html;
@@ -385,8 +388,7 @@ const BRIDGE = `(function () {
 
 const FRAME_CSS = `html, body { overflow: hidden; }
 html[data-mx-outline] body > * { outline: 2px dashed color-mix(in srgb, currentColor 35%, transparent); outline-offset: -6px; }
-html[data-mx-edit], html[data-mx-edit] * { cursor: crosshair; }
-html[data-mx-edit] [data-mx-sel] [data-mx-field], html[data-mx-edit] [data-mx-sel][data-mx-field] { cursor: text; }
+html[data-mx-edit], html[data-mx-edit] * { cursor: default; }
 html[data-mx-note], html[data-mx-note] * { cursor: crosshair !important; user-select: none; }
 html[data-mx-note] [data-mx-field], html[data-mx-note] [data-mx-field] * { cursor: text !important; user-select: text; }
 html[data-mx-note] ::selection { background: color-mix(in srgb, #ff6aa8 35%, transparent); }

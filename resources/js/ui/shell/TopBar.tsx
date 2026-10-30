@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { confirmAction } from './Confirm'
 import { motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Bot, CircleHelp, Download, Eye, FileText, LayoutGrid, LogOut, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2, X } from 'lucide-react'
+import { Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
 import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
 import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
 import { pickFile } from '@/lib/pickFile'
@@ -34,8 +34,32 @@ export const toggleSheet = (s: Sheet) => {
   st.setUi({ sheet: st.ui.sheet === s ? 'none' : s })
 }
 
-/** Three islands across the top: where you are, your tools, what you do with the mix. Each grows into its panel. */
+/** Below this width the three islands don't fit side by side: the bar folds into one (CompactBar). */
+const WIDE_BAR = '(min-width: 1120px)'
+
+function useWideBar() {
+  const [wide, setWide] = useState(() => typeof window === 'undefined' || window.matchMedia(WIDE_BAR).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(WIDE_BAR)
+    const on = () => setWide(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return wide
+}
+
+/**
+ * Three islands across the top: where you are, your tools, what you do with the mix. Each grows into its panel.
+ * On narrower windows and phones they fold into one compact bar.
+ */
 export function TopBar({ onHelp }: { onHelp: () => void }) {
+  const wide = useWideBar()
+  if (!wide)
+    return (
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start p-3">
+        <CompactBar onHelp={onHelp} />
+      </header>
+    )
   return (
     <header className="pointer-events-none absolute inset-x-0 top-0 z-40 grid grid-cols-[1fr_auto_1fr] items-start gap-2 p-3">
       <div className="flex min-w-0 justify-start">
@@ -54,7 +78,6 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
   const sheet = useStore((s) => s.ui.sheet)
   const open = sheet === 'menu' || sheet === 'pages'
   const mixName = useStore((s) => s.mixName)
-  const theme = useStore((s) => s.ui.theme)
   const st = useStore.getState
   return (
     <Island
@@ -86,9 +109,145 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         </>
       }
     >
-      {sheet === 'pages' ? (
+      {sheet === 'pages' ? <PagesPanel /> : <AppMenu onHelp={onHelp} />}
+    </Island>
+  )
+}
+
+/** Save version (or, for viewers, a note that they can only look). `short` for the compact bar. */
+function SaveButton({ short }: { short?: boolean }) {
+  const role = useAccount((s) => s.role)
+  if (!canEdit(role))
+    return (
+      <span className="ml-0.5 flex h-8 items-center gap-1.5 rounded-full bg-zinc-950/5 px-3 text-[12.5px] font-semibold text-zinc-600" title="You can look and leave marks">
+        <Eye size={14} /> {short ? 'View' : 'View only'}
+      </span>
+    )
+  return (
+    <button
+      type="button"
+      onClick={() => pressVersionAndFly()}
+      title="Save the working mix as a new version (⌘S)"
+      className="btn-lit ml-0.5 flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
+    >
+      {short ? 'Save' : 'Save version'}
+    </button>
+  )
+}
+
+const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'more', 'guide', 'notes', 'packet', 'share']
+
+/**
+ * The top bar on narrower windows and phones: one pill with the logo menu, the page, ⋯ and Save. ⋯ lists Style guide,
+ * Content, Notes, Share and Export; each opens in the same pill, with a way back to the list.
+ */
+function CompactBar({ onHelp }: { onHelp: () => void }) {
+  const sheet = useStore((s) => s.ui.sheet)
+  const tab = useStore((s) => s.ui.guideTab)
+  const mode = useStore((s) => s.ui.mode)
+  const todo = useStore((s) => s.notes.filter(outstanding).length)
+  const decisions = openGroups(useResolvedGuide()).length
+  const st = useStore.getState
+  const open = COMPACT_SHEETS.includes(sheet)
+  const inTool = sheet === 'guide' || sheet === 'notes' || sheet === 'packet' || sheet === 'share'
+  const attention = decisions > 0 || todo > 0 || mode === 'captured'
+  const row = (Icon: typeof Sun, label: string, onClick: () => void, extra?: ReactNode) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-left text-[14px] font-medium text-zinc-800 transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.99]"
+    >
+      <Icon size={17} className="shrink-0 text-zinc-500" />
+      <span className="flex-1">{label}</span>
+      {extra}
+      <ChevronRight size={15} className="shrink-0 text-zinc-300" />
+    </button>
+  )
+  const back = (label: string) => (
+    <button
+      type="button"
+      onClick={() => st().setUi({ sheet: 'more' })}
+      className="flex h-9 cursor-pointer items-center gap-1 px-3 text-[12.5px] font-semibold text-zinc-500 transition-colors hover:text-zinc-900"
+    >
+      <ChevronLeft size={14} /> {label}
+    </button>
+  )
+  return (
+    <Island
+      open={open}
+      width={sheet === 'menu' ? 320 : 440}
+      maxBody="min(76vh, 720px)"
+      className="max-w-[calc(100vw-24px)]"
+      onClose={() => st().setUi({ sheet: 'none' })}
+      bar={
+        <>
+          <button
+            type="button"
+            onClick={() => toggleSheet('menu')}
+            className="flex h-8 cursor-pointer items-center rounded-lg px-1 transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.97]"
+            title="Menu"
+            aria-label="Blokmix menu"
+            aria-expanded={sheet === 'menu'}
+          >
+            <BrandIcon size={28} />
+          </button>
+          <PageSwitch />
+          <SaveState />
+          <button
+            type="button"
+            onClick={() => toggleSheet('more')}
+            title="Style guide, content, notes, share and export"
+            aria-label="Tools"
+            aria-expanded={sheet === 'more' || inTool}
+            className={`relative ml-1 grid size-8 cursor-pointer place-items-center rounded-full transition-[background-color,color,scale] duration-150 active:scale-[0.97] ${
+              sheet === 'more' || inTool ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
+            }`}
+          >
+            <MoreHorizontal size={17} />
+            {attention && <span className="absolute right-1 top-1 size-2 rounded-full bg-attention ring-2 ring-white" aria-hidden />}
+          </button>
+          <SaveButton short />
+        </>
+      }
+    >
+      {sheet === 'menu' ? (
+        <AppMenu onHelp={onHelp} showName />
+      ) : sheet === 'pages' ? (
         <PagesPanel />
+      ) : sheet === 'more' ? (
+        <div className="p-1.5">
+          {mode === 'captured' && (
+            <button
+              type="button"
+              onClick={() => st().setUi({ mode: 'unified', sheet: 'none' })}
+              className="mb-1 flex h-11 w-full cursor-pointer items-center gap-3 rounded-xl bg-attention-soft px-3 text-left text-[13.5px] font-semibold text-attention-ink active:scale-[0.99]"
+            >
+              <X size={16} /> Showing as clipped: back to your style
+            </button>
+          )}
+          {row(SwatchBook, 'Style guide', () => st().setUi({ sheet: 'guide', guideTab: 'style' }), decisions > 0 ? <span className="text-[12px] font-semibold text-attention-ink">{decisions} to decide</span> : undefined)}
+          {row(FileText, 'Content', () => st().setUi({ sheet: 'guide', guideTab: 'content' }))}
+          {row(MessageSquare, 'Notes', () => st().setUi({ sheet: 'notes' }), todo > 0 ? <span className="min-w-5 rounded-full bg-problem px-1.5 text-center text-[11px] font-bold tabular-nums text-white">{todo}</span> : undefined)}
+          <div className="mx-3 my-1 h-px bg-zinc-950/6" />
+          {isHosted() && row(Users, 'Share', () => st().setUi({ sheet: 'share' }), <Presence size={22} inline />)}
+          {row(Package, 'Export for your agent', () => st().setUi({ sheet: 'packet' }))}
+        </div>
       ) : (
+        <>
+          {back(sheet === 'guide' ? (tab === 'style' ? 'Style guide' : 'Content') : sheet === 'notes' ? 'Notes' : sheet === 'share' ? 'Share' : 'Export')}
+          {sheet === 'notes' ? <NotesPanel /> : sheet === 'share' ? <SharePanel /> : sheet === 'packet' ? <PacketPanel /> : tab === 'style' ? <GuidePanel /> : <ContentPanel />}
+        </>
+      )}
+    </Island>
+  )
+}
+
+/** The logo's menu: your account, the mix as a file, undo, agents, theme, shortcuts. */
+function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean }) {
+  const mixName = useStore((s) => s.mixName)
+  const theme = useStore((s) => s.ui.theme)
+  const st = useStore.getState
+  return (
         <div className="p-1.5">
         <AccountRow />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
@@ -126,7 +285,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
         <MenuItem icon={Undo2} label="Undo" kbd="⌘Z" onClick={undo} />
         <MenuItem icon={Redo2} label="Redo" kbd="⇧⌘Z" onClick={redo} />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
-        <div className="px-2.5 pb-1 pt-1.5 md:hidden">
+        <div className={`px-2.5 pb-1 pt-1.5 ${showName ? '' : 'md:hidden'}`}>
           <MixName value={mixName} onChange={(v) => st().renameMix(v)} />
         </div>
         <AgentAccess />
@@ -150,8 +309,6 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
           }}
         />
         </div>
-      )}
-    </Island>
   )
 }
 
@@ -252,7 +409,6 @@ function ToolsIsland() {
 function ShipIsland() {
   const sheet = useStore((s) => s.ui.sheet)
   const open = sheet === 'packet' || sheet === 'share'
-  const role = useAccount((s) => s.role)
   return (
     <Island
       open={open}
@@ -291,20 +447,7 @@ function ShipIsland() {
             <Package size={15} />
             Export
           </button>
-          {canEdit(role) ? (
-            <button
-              type="button"
-              onClick={() => pressVersionAndFly()}
-              title="Save the working mix as a new version (⌘S)"
-              className="btn-lit ml-0.5 flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
-            >
-              Save version
-            </button>
-          ) : (
-            <span className="ml-0.5 flex h-8 items-center gap-1.5 rounded-full bg-zinc-950/5 px-3 text-[12.5px] font-semibold text-zinc-600" title="You can look and leave marks">
-              <Eye size={14} /> View only
-            </span>
-          )}
+          <SaveButton />
         </>
       }
     >

@@ -110,7 +110,7 @@ export function frameStateFor(
     blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion), clip.extras?.banner ? bannerMoves(slot) : null),
     media: mediaFor(clip, slot.edits?.[clip.id], tokens),
     // A section keeping its own captured look keeps its own icons too.
-    icons: slot.keep.style ? null : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
+    icons: slot.keep.style ? iconsFor(clip, slot.edits?.[clip.id], library.sources[clip.sourceId]?.tokens['icon.set'] ?? guide['icon.set'], true) : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
     lists: clip.patches.length ? clip.patches : NO_LISTS,
     links: linksFor(clip, slot, content, slot.id && page?.link ? (page.link.sharedIds.includes(slot.id) ? page.link.shared : page.link.page) : undefined),
   }
@@ -145,15 +145,17 @@ const NO_BLOCKS: FrameState['blocks'] = { css: '', variants: {} }
 const NO_MEDIA: FrameState['media'] = {}
 
 const iconCache = new Map<string, FrameState['icons']>()
-function iconsFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, set: string): FrameState['icons'] {
+function iconsFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, set: string, only = false): FrameState['icons'] {
   const overrides: Record<string, string> = {}
   for (const b of clip.blocks) if (b.kind === 'icon' && edits?.[b.id]?.icon) overrides[b.id] = edits[b.id].icon!
-  const names = [...new Set([...iconNamesIn(clip.html), ...Object.values(overrides)])]
+  // Keeping the clipped look, only the icons you chose are drawn.
+  if (only && !Object.keys(overrides).length) return null
+  const names = only ? [...new Set(Object.values(overrides))] : [...new Set([...iconNamesIn(clip.html), ...Object.values(overrides)])]
   if (!names.length) return null
-  const key = JSON.stringify([set, names, overrides])
+  const key = JSON.stringify([set, names, overrides, only])
   let v = iconCache.get(key)
   if (!v) {
-    v = { set, overrides, glyphs: Object.fromEntries(names.flatMap((n) => { const g = iconSvg(n, set); return g ? [[n, g]] : [] })) }
+    v = { set, overrides, ...(only ? { only } : {}), glyphs: Object.fromEntries(names.flatMap((n) => { const g = iconSvg(n, set); return g ? [[n, g]] : [] })) }
     if (iconCache.size > 300) iconCache.clear()
     iconCache.set(key, v)
   }

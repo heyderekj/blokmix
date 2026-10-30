@@ -239,7 +239,12 @@ export function composePage(input: ComposeInput): ComposedPage {
     const mediaFor = new Map(media.map((m) => [m.blockId, m]))
     // Named icons redrawn in the style guide's set (unless the section keeps its own look).
     const iconOverrides = Object.fromEntries(changed.flatMap(({ b, edit }) => (b.kind === 'icon' && edit.icon ? [[b.id, edit.icon]] : [])))
-    const source = slot.keep.style ? parseHtml(clip.html) : swapIcons(parseHtml(clip.html), input.guide.tokens['icon.set'], iconOverrides)
+    const swapped = slot.keep.style
+      ? swapIcons(parseHtml(clip.html), input.library.sources[clip.sourceId]?.tokens['icon.set'] ?? input.guide.tokens['icon.set'], iconOverrides, true)
+      : swapIcons(parseHtml(clip.html), input.guide.tokens['icon.set'], iconOverrides)
+    // Which icon each named icon shows, in a plain attribute that outlives the data-mx-* strip, so a clip can style
+    // by it (a comparison cell's check in a filled circle, its dash quiet).
+    const source = mapTree(swapped, (el) => (el.tag === 'svg' && attr(el, 'data-mx-icon') ? { ...el, attrs: [...el.attrs.filter(([k]) => k !== 'data-icon'), ['data-icon', attr(el, 'data-mx-icon')!]] } : el))
     const marked = mapTree(source, (el) => {
       if (attr(el, 'data-mx-section') !== undefined) {
         // Every section has an anchor, so links can lead to it (#pricing).

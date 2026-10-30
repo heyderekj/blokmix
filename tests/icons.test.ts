@@ -49,4 +49,25 @@ describe('icon packs', () => {
     const keepOwn = composePage({ slots: [{ id: 's', type: 'contact', clipId: 'contact.layout-cards', locked: false, keep: { ...DEFAULT_KEEP, style: true } }], guide, content: DEFAULT_CONTENT, library })
     expect(serialize(keepOwn.sections[0].tree, 'html')).not.toMatch(/<svg[^>]*fill="currentColor"[^>]*data-mx-icon/)
   })
+
+  it('says which icon each shows in exports, and keeps the icon you chose when the section keeps its look', () => {
+    const clip = library.clips['pricing.layout-table']
+    const cell = clip.blocks.find((b) => b.kind === 'icon' && blockIconName(clip.html, b.id) === 'minus')!
+    const slot = { id: 's', type: 'pricing' as const, clipId: clip.id, locked: false, keep: { ...DEFAULT_KEEP }, edits: { [clip.id]: { [cell.id]: { icon: 'check' } } } }
+    const html = (keep: boolean) => serialize(composePage({ slots: [{ ...slot, keep: { ...DEFAULT_KEEP, style: keep } }], guide: resolveGuide(emptyGuide()), content: DEFAULT_CONTENT, library }).sections[0].tree, 'html')
+    for (const keep of [false, true]) {
+      const out = html(keep)
+      // data-mx-* is gone from exports; data-icon stays for the clip's CSS.
+      expect(out).not.toContain('data-mx-icon')
+      expect(out.match(/data-icon="minus"/g)?.length).toBe(11)
+      expect(out.match(/data-icon="check"/g)?.length).toBe(25)
+    }
+  })
+
+  it('swaps only the chosen icons when asked', () => {
+    const tree = parseHtml('<p><span data-mx-block="icon"><svg data-mx-icon="minus"></svg></span><svg data-mx-icon="star"></svg></p>')
+    const out = serialize(swapIcons(tree, 'heroicons:solid', { b0: 'check' }, true), 'html')
+    expect(out).toContain('data-mx-icon="check"')
+    expect(out).toContain('<svg data-mx-icon="star" />')
+  })
 })

@@ -150,9 +150,10 @@ export function iconNamesIn(html: string): string[] {
 /**
  * Redraw a clip's named icons in a set. `overrides` swaps the icon in an icon
  * block (by block id, b0…) for another name; it replaces the block's first <svg>.
- * Blocks are counted in document order, as everywhere else.
+ * Blocks are counted in document order, as everywhere else. `only` redraws just the overridden icons (a section that
+ * keeps its clipped look still shows the icon you chose for a block).
  */
-export function swapIcons(tree: HNode[], setId: string, overrides: Record<string, string> = {}): HNode[] {
+export function swapIcons(tree: HNode[], setId: string, overrides: Record<string, string> = {}, only = false): HNode[] {
   let order = 0
   const walk = (nodes: HNode[], iconBlock: string | null): HNode[] => {
     let swappedInBlock = false
@@ -167,6 +168,10 @@ export function swapIcons(tree: HNode[], setId: string, overrides: Record<string
       if (n.tag === 'svg') {
         const override = block && !swappedInBlock ? overrides[block] : undefined
         const name = override ?? attr(n, 'data-mx-icon')
+        if (only && !override) {
+          if (block) swappedInBlock = true
+          return n
+        }
         if (block) swappedInBlock = true
         // An icon whose parts carry classes is a mechanism the clip animates (a plus that turns into a minus):
         // it keeps its own drawing, unless you chose a different icon for its block.

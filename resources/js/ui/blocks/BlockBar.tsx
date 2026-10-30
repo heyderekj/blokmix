@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Link2, ArrowLeft, ArrowRight, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile, Database } from 'lucide-react'
+import { Link2, ArrowLeft, ArrowRight, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile, Database } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -26,6 +26,9 @@ import { WordsCycler, WordsMenu } from './WordsMenu'
 import { LinkLabel, LinkMenu } from './LinkMenu'
 import { CollectionMenu } from './CollectionMenu'
 
+/** Icons that read as included or not. */
+const MARK_ON = ['check', 'check-circle']
+const MARK_OFF = ['minus', 'x']
 type Menu = 'variant' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'advice' | 'collection' | null
 
 const PLURAL: Record<BlockKind, string> = {
@@ -82,6 +85,16 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   for (let b: BlockInfo | undefined = block; b; b = b.parent ? blocks.find((x) => x.id === b!.parent) : undefined) crumbs.unshift(b)
   const name = (b: BlockInfo) => b.label.split(' · ').at(-1) ?? BLOCK_LABEL[b.kind]
 
+  const mark = (() => {
+    if (block.kind !== 'icon') return null
+    const original = blockIconName(slotClip(slot).html, block.id)
+    const now = own?.icon ?? original
+    if (!now || ![...MARK_ON, ...MARK_OFF].includes(now)) return null
+    const on = MARK_ON.includes(now)
+    // Back to the clip's own drawing when it was the other kind of mark (a cross stays a cross).
+    const next = on ? (original && MARK_OFF.includes(original) ? original : 'minus') : original && MARK_ON.includes(original) ? original : 'check'
+    return { on, next, original }
+  })()
   const apply = (patch: Partial<BlockEdit>) => {
     preview.clear()
     st().editBlock(slot.id, block.id, patch)
@@ -144,6 +157,12 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         {block.kind === 'icon' && (
           <BarButton active={menu === 'icon'} onClick={() => setMenu(menu === 'icon' ? null : 'icon')} icon={Smile} title="Choose the icon">
             Icon
+          </BarButton>
+        )}
+        {mark && (
+          // A check or a dash (a comparison cell, a plan's feature): one click switches it.
+          <BarButton onClick={() => apply({ icon: mark.next === mark.original ? undefined : mark.next })} icon={mark.on ? Check : Minus} title="Included or not: click to switch">
+            {mark.on ? 'Included' : 'Not included'}
           </BarButton>
         )}
         {block.kind === 'image' && (

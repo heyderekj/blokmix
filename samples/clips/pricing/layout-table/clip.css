@@ -59,7 +59,7 @@
     font-weight: 400;
     border-bottom: var(--mx-stroke) solid var(--mx-color-border);
   }
-  & tbody tr:last-child > * { border-bottom: 0; }
+  & tbody:last-of-type tr:last-child > * { border-bottom: 0; }
   & td { text-align: center; }
   & thead th { vertical-align: top; padding-block: var(--mx-space-7); }
   & .corner { width: 31%; }
@@ -131,7 +131,8 @@
   & .feat { font-size: var(--mx-text-sm); }
   & tbody tr:not(.group):hover > * { background: color-mix(in oklab, var(--mx-color-text) 3%, transparent); }
   & tbody tr:not(.group):hover > :nth-child(3) { background: color-mix(in oklab, var(--mx-color-text) 3%, var(--mx-color-surface)); }
-  & .yes {
+  /* A mark is whichever icon its cell holds: a check draws in a filled circle, a dash or cross stays quiet. */
+  & .mark {
     display: inline-grid;
     place-items: center;
     width: 22px;
@@ -141,13 +142,9 @@
     color: var(--mx-color-on-primary);
     vertical-align: middle;
   }
-  & .no {
-    display: inline-block;
-    width: 12px;
-    height: 2px;
-    border-radius: var(--mx-radius-pill);
-    background: color-mix(in oklab, var(--mx-color-muted) 45%, transparent);
-    vertical-align: middle;
+  & .mark:has([data-icon="minus"]), & .mark:has([data-icon="x"]) {
+    background: transparent;
+    color: color-mix(in oklab, var(--mx-color-muted) 60%, transparent);
   }
 
   & .footnote {
@@ -175,7 +172,7 @@
     & .cta { margin-top: var(--mx-space-2); padding: var(--mx-space-2) var(--mx-space-1); font-size: var(--mx-text-xs); line-height: 1.25; }
     & .group-label { flex-direction: column; gap: 0; font-size: var(--mx-text-xs); letter-spacing: 0.03em; }
     & .feat { font-size: var(--mx-text-xs); line-height: 1.35; }
-    & .yes { width: 18px; height: 18px; }
-    & .yes svg { width: 10px; height: 10px; }
+    & .mark { width: 18px; height: 18px; }
+    & .mark svg { width: 10px; height: 10px; }
   }
 }
