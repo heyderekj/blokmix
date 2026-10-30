@@ -1,0 +1,475 @@
+{
+  "$comment": "Seed corpus for the site library: top 5 sites per industry (Land-book first, then Godly and Awwwards). Draft: confirm each against Land-book and swap any that are not featured or not online. Fields: featuredIn and style are filled as sites are confirmed.",
+  "industries": [
+    {
+      "id": "saas",
+      "label": "SaaS",
+      "sites": [
+        {
+          "url": "https://linear.app",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://notion.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://framer.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://attio.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://raycast.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "ai",
+      "label": "AI",
+      "sites": [
+        {
+          "url": "https://perplexity.ai",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://runwayml.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://elevenlabs.io",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://cursor.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://lovable.dev",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "devtools",
+      "label": "Developer tools",
+      "sites": [
+        {
+          "url": "https://vercel.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://supabase.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://resend.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://planetscale.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://railway.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "fintech",
+      "label": "Fintech",
+      "sites": [
+        {
+          "url": "https://stripe.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://mercury.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://ramp.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://wise.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://revolut.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "ecommerce",
+      "label": "E-commerce",
+      "sites": [
+        {
+          "url": "https://allbirds.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://glossier.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://aesop.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://warbyparker.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://ouraring.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "agency",
+      "label": "Agency and studio",
+      "sites": [
+        {
+          "url": "https://pentagram.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://instrument.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://basicagency.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://locomotive.ca",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://work.co",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "portfolio",
+      "label": "Portfolio",
+      "sites": [
+        {
+          "url": "https://rauno.me",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://emilkowal.ski",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://paco.me",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://brittanychiang.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://leerob.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "health",
+      "label": "Health and wellness",
+      "sites": [
+        {
+          "url": "https://headspace.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://calm.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://whoop.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://functionhealth.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://hims.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "label": "Education",
+      "sites": [
+        {
+          "url": "https://duolingo.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://masterclass.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://brilliant.org",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://maven.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://khanacademy.org",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "food",
+      "label": "Food and drink",
+      "sites": [
+        {
+          "url": "https://sweetgreen.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://liquiddeath.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://oatly.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://graza.co",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://omsom.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "architecture",
+      "label": "Architecture and real estate",
+      "sites": [
+        {
+          "url": "https://big.dk",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://snohetta.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://zaha-hadid.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://compass.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://sonder.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "travel",
+      "label": "Travel and hospitality",
+      "sites": [
+        {
+          "url": "https://airbnb.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://aman.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://hipcamp.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://acehotel.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://mrandmrssmith.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "nonprofit",
+      "label": "Nonprofit and climate",
+      "sites": [
+        {
+          "url": "https://charitywater.org",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://kiva.org",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://givedirectly.org",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://climeworks.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://watershed.com",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "label": "Events",
+      "sites": [
+        {
+          "url": "https://config.figma.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://stripe.com/sessions",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://githubuniverse.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://websummit.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://offf.barcelona",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    },
+    {
+      "id": "media",
+      "label": "Media and publishing",
+      "sites": [
+        {
+          "url": "https://every.to",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://theverge.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://itsnicethat.com",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://pudding.cool",
+          "featuredIn": [],
+          "style": ""
+        },
+        {
+          "url": "https://readwise.io",
+          "featuredIn": [],
+          "style": ""
+        }
+      ]
+    }
+  ],
+  "firstRun": [
+    "https://linear.app",
+    "https://aesop.com",
+    "https://pentagram.com"
+  ]
+}

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { confirmAction } from './Confirm'
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Bot, CircleHelp, Download, Eye, LayoutGrid, LogOut, Upload, Users, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2 } from 'lucide-react'
+import { Bot, CircleHelp, Download, Eye, FileText, LayoutGrid, LogOut, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sun, SwatchBook, Undo2, X } from 'lucide-react'
 import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
 import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
 import { pickFile } from '@/lib/pickFile'
@@ -14,7 +14,7 @@ import { ContentPanel } from '../panels/ContentPanel'
 import { PacketPanel } from '../panels/PacketPanel'
 import { NotesPanel } from '../panels/NotesPanel'
 import { outstanding } from '@/core/notes'
-import { Divider, Island, MORPH } from './Island'
+import { Island, MORPH } from './Island'
 import { Avatar } from './Avatar'
 import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
@@ -34,14 +34,14 @@ export const toggleSheet = (s: Sheet) => {
   st.setUi({ sheet: st.ui.sheet === s ? 'none' : s })
 }
 
-/** Three islands across the top. Each one grows into the panel it controls. */
+/** Three islands across the top: where you are, your tools, what you do with the mix. Each grows into its panel. */
 export function TopBar({ onHelp }: { onHelp: () => void }) {
   return (
     <header className="pointer-events-none absolute inset-x-0 top-0 z-40 grid grid-cols-[1fr_auto_1fr] items-start gap-2 p-3">
       <div className="flex min-w-0 justify-start">
         <BrandIsland onHelp={onHelp} />
       </div>
-      <ModeIsland />
+      <ToolsIsland />
       <div className="flex min-w-0 justify-end">
         <ShipIsland />
       </div>
@@ -178,13 +178,40 @@ function AgentAccess() {
   )
 }
 
-/** Captured / Unified. Unified means "your style and your copy", so this is where both are edited. */
-function ModeIsland() {
-  const open = useStore((s) => s.ui.sheet === 'guide')
-  const mode = useStore((s) => s.ui.mode)
+/**
+ * Your tools: the style guide, the page's words and collections, and notes. Each grows into its panel. Whether the
+ * canvas shows sections as clipped or in your style lives in the View menu (U); while it shows originals, a chip here
+ * says so and takes you back.
+ */
+function ToolsIsland() {
+  const sheet = useStore((s) => s.ui.sheet)
   const tab = useStore((s) => s.ui.guideTab)
+  const mode = useStore((s) => s.ui.mode)
+  const notes = useStore((s) => s.notes)
+  const todo = notes.filter(outstanding).length
   const decisions = openGroups(useResolvedGuide()).length
+  const open = sheet === 'guide' || sheet === 'notes'
   const st = useStore.getState
+  const at = (which: 'style' | 'content' | 'notes') => (which === 'notes' ? sheet === 'notes' : sheet === 'guide' && tab === which)
+  const go = (which: 'style' | 'content' | 'notes') => {
+    if (at(which)) return st().setUi({ sheet: 'none' })
+    st().setUi(which === 'notes' ? { sheet: 'notes' } : { sheet: 'guide', guideTab: which })
+  }
+  const tool = (which: 'style' | 'content' | 'notes', Icon: typeof Sun, label: string, title: string, badge?: ReactNode) => (
+    <button
+      type="button"
+      onClick={() => go(which)}
+      title={title}
+      aria-expanded={at(which)}
+      className={`relative flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-[background-color,color,scale] duration-150 active:scale-[0.97] ${
+        at(which) ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
+      }`}
+    >
+      <Icon size={15} className="shrink-0" />
+      {label}
+      {badge}
+    </button>
+  )
   return (
     <Island
       open={open}
@@ -193,67 +220,39 @@ function ModeIsland() {
       onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       bar={
         <>
-          <Segmented
-            value={mode}
-            options={[
-              { value: 'captured', label: 'Original', title: 'Every section exactly as it was clipped (U)' },
-              { value: 'unified', label: 'Your style', title: 'Your style guide and copy applied to every section (U)' },
-            ]}
-            onChange={(v) => st().setUi({ mode: v })}
-          />
-          <Divider />
-          <button
-            type="button"
-            onClick={() => toggleSheet('guide')}
-            title={decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide and content (G)'}
-            aria-label={decisions ? `Style guide, ${decisions} to decide` : 'Style guide'}
-            aria-expanded={open}
-            className={`relative flex h-8 items-center rounded-full px-2 transition-colors active:scale-[0.97] ${
-              open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'
-            }`}
-          >
-            <SwatchBook size={16} className="shrink-0" />
-            {/* Opened, the icon grows into a labelled button so the panel is named. */}
-            <AnimatePresence initial={false}>
-              {open && (
-                <motion.span
-                  key="label"
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 'auto', opacity: 1, transition: { width: MORPH, opacity: { delay: 0.06, duration: 0.14 } } }}
-                  exit={{ width: 0, opacity: 0, transition: { width: { type: 'spring', stiffness: 700, damping: 56 }, opacity: { duration: 0.06 } } }}
-                  className="overflow-hidden whitespace-nowrap text-[13px] font-medium"
-                >
-                  <span className="block pl-1.5 pr-0.5">Style guide</span>
-                </motion.span>
-              )}
-            </AnimatePresence>
-            {decisions > 0 && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-attention ring-2 ring-[var(--lift)]" style={open ? { right: 'auto', left: 18 } : undefined} />}
-          </button>
+          {mode === 'captured' && (
+            <button
+              type="button"
+              onClick={() => st().setUi({ mode: 'unified' })}
+              title="The canvas shows every section as it was clipped. Back to your style (U)"
+              aria-label="Showing sections as clipped. Back to your style"
+              className="mr-0.5 flex h-8 cursor-pointer items-center gap-1 rounded-full bg-attention-soft pl-3 pr-2 text-[12.5px] font-semibold text-attention-ink transition-[scale] active:scale-[0.97]"
+            >
+              As clipped <X size={13} strokeWidth={2.4} />
+            </button>
+          )}
+          {tool('style', SwatchBook, 'Style', decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide (G)', decisions > 0 ? <span className="size-2 rounded-full bg-attention" aria-label={`${decisions} to decide`} /> : undefined)}
+          {tool('content', FileText, 'Content', 'The page’s words and your collections')}
+          {tool(
+            'notes',
+            MessageSquare,
+            'Notes',
+            todo ? `${todo} note${todo > 1 ? 's' : ''} to do` : 'Notes',
+            todo > 0 ? <span className={`min-w-4 rounded-full px-1 text-[11px] font-bold tabular-nums ${at('notes') ? 'bg-white/20' : 'bg-problem text-white'}`}>{todo}</span> : undefined,
+          )}
         </>
       }
     >
-      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-zinc-950/5 bg-[color-mix(in_srgb,var(--lift)_80%,transparent)] px-4 py-2.5 backdrop-blur">
-        <Segmented
-          value={tab}
-          options={[
-            { value: 'style', label: 'Style', badge: decisions || undefined },
-            { value: 'content', label: 'Content' },
-          ]}
-          onChange={(v) => st().setUi({ guideTab: v })}
-        />
-      </div>
-      {tab === 'style' ? <GuidePanel /> : <ContentPanel />}
+      {sheet === 'notes' ? <NotesPanel /> : tab === 'style' ? <GuidePanel /> : <ContentPanel />}
     </Island>
   )
 }
 
-/** Export and Save version. Export grows into the packet for your agent. */
+/** Share, Export and Save version: what you do with the mix. Export grows into the packet for your agent. */
 function ShipIsland() {
   const sheet = useStore((s) => s.ui.sheet)
-  const open = sheet === 'packet' || sheet === 'notes' || sheet === 'share'
+  const open = sheet === 'packet' || sheet === 'share'
   const role = useAccount((s) => s.role)
-  const notes = useStore((s) => s.notes)
-  const todo = notes.filter(outstanding).length
   return (
     <Island
       open={open}
@@ -263,45 +262,35 @@ function ShipIsland() {
       maxBody="min(76vh, 720px)"
       bar={
         <>
-          <Presence />
-          <button
-            type="button"
-            onClick={() => toggleSheet('notes')}
-            title={todo ? `${todo} note${todo > 1 ? 's' : ''} to do` : 'Notes'}
-            aria-expanded={sheet === 'notes'}
-            className={`relative flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
-              sheet === 'notes' ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
-            }`}
-          >
-            <MessageSquare size={15} />
-            {todo > 0 && <span className={`min-w-4 rounded-full px-1 text-[11px] font-bold tabular-nums ${sheet === 'notes' ? 'bg-white/20' : 'bg-problem text-white'}`}>{todo}</span>}
-          </button>
+          {/* Who's here sits inside Share (signed-out, browser-only mixes have no one to share with: just you). */}
+          {isHosted() ? (
+            <button
+              type="button"
+              onClick={() => toggleSheet('share')}
+              title="Who's here, and share this mix"
+              aria-expanded={sheet === 'share'}
+              className={`flex h-8 cursor-pointer items-center gap-2 rounded-full pl-1 pr-3 text-[13px] font-medium transition-[background-color,color,box-shadow,scale] duration-150 active:scale-[0.97] ${
+                sheet === 'share' ? 'bg-zinc-900 text-white' : 'text-zinc-800 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] hover:bg-zinc-950/5'
+              }`}
+            >
+              <Presence size={24} inline />
+              Share
+            </button>
+          ) : (
+            <Presence size={24} />
+          )}
           <button
             type="button"
             onClick={() => toggleSheet('packet')}
             title="Export code for your agent: Astro or Next.js"
             aria-expanded={sheet === 'packet'}
-            className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
-              sheet === 'packet' ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
+            className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-[background-color,color,scale] duration-150 active:scale-[0.97] ${
+              sheet === 'packet' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900'
             }`}
           >
             <Package size={15} />
             Export
           </button>
-          {isHosted() && (
-            <button
-              type="button"
-              onClick={() => toggleSheet('share')}
-              title="Share this mix"
-              aria-expanded={sheet === 'share'}
-              className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition active:scale-[0.97] ${
-                sheet === 'share' ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
-              }`}
-            >
-              <Users size={15} />
-              Share
-            </button>
-          )}
           {canEdit(role) ? (
             <button
               type="button"
@@ -319,7 +308,7 @@ function ShipIsland() {
         </>
       }
     >
-      {sheet === 'notes' ? <NotesPanel /> : sheet === 'share' ? <SharePanel /> : <PacketPanel />}
+      {sheet === 'share' ? <SharePanel /> : <PacketPanel />}
     </Island>
   )
 }

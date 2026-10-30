@@ -2,6 +2,8 @@
   "title": "Centered statement",
   "layoutPattern": "centered-headline-two-ctas",
   "rhythm": "centered",
+  "style": "minimal",
+  "density": "airy",
   "motionNotes": "Eyebrow, headline, subhead, buttons and note rise in a gentle stagger; a faint accent glow behind the headline breathes on a slow loop.",
   "capture": {
     "path": "/",

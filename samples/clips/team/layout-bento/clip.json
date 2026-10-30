@@ -2,6 +2,8 @@
   "title": "Team bento",
   "layoutPattern": "bento-lead-portrait-plus-four",
   "rhythm": "grid",
+  "style": "playful",
+  "density": "balanced",
   "motionNotes": "The head rises, then the portraits follow in a short stagger, the large one first; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

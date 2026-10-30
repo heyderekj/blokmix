@@ -2,6 +2,8 @@
   "title": "Call to action panel",
   "layoutPattern": "cta-panel-over-brand-and-columns",
   "rhythm": "band",
+  "style": "warm",
+  "density": "balanced",
   "motionNotes": "The panel rises with its heading, line and button following in a short stagger, then the columns and legal line fade in; reduced motion keeps only the fades. The button’s arrow nudges on hover.",
   "capture": {
     "path": "/",

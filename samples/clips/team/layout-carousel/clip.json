@@ -1,0 +1,14 @@
+{
+  "title": "Team carousel",
+  "layoutPattern": "portrait-scroll-snap-row",
+  "rhythm": "grid",
+  "style": "playful",
+  "density": "airy",
+  "motionNotes": "Header rises, then the portraits slide in from the right in a stagger; portraits lift slightly on hover.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
+import { useTiles } from '@/ui/frames/tiles'
 import type { Keep } from '@/core/types'
 import { useStore, undo, redo, currentSlots } from '@/state/store'
 import { canvasApi } from '@/ui/canvas/Canvas'
 import { pressVersionAndFly } from '@/lib/actions'
 import { library, slotClip } from '@/data/library'
-import { listContext } from '@/core/lists'
+import { tileNeighbor, listContext } from '@/core/lists'
 import { wordChoices, currentWords } from '@/core/words'
 
 const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
@@ -40,19 +41,29 @@ export function useShortcuts(onHelp: () => void) {
         pressVersionAndFly()
         return
       }
-      // A selected list item: duplicate, move and remove it in place.
-      const item = focused && st.ui.selectedBlockId ? listContext(slotClip(focused), focused, st.ui.selectedBlockId) : null
+      const clip = focused ? slotClip(focused) : null
+      // ⌥ + arrows move the item the selection is in (an item itself, or a heading or button inside one).
+      let inItem = st.ui.selectedBlockId
+      for (let b = clip?.blocks.find((x) => x.id === inItem); b && b.kind !== 'item'; b = clip!.blocks.find((x) => x.id === b!.parent)) inItem = b.parent
+      const tile = focused && clip && inItem ? listContext(clip, focused, inItem) : null
+      if (focused && tile?.item && e.altKey && !mod && k.startsWith('Arrow')) {
+        e.preventDefault()
+        // Like a sliding tile: trade places with the item on screen in that direction (the one below in a grid);
+        // with no tile there, step through the list order.
+        const dir = ({ ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' } as const)[k as 'ArrowUp']
+        const tiles = useTiles.getState()
+        const next = tiles.slotId === focused.id ? tileNeighbor(tiles.rects, tiles.ids, tile.item.id, dir) : null
+        if (next) st.editList(focused.id, { op: 'swap', itemId: tile.item.id, withId: next })
+        else st.editList(focused.id, { op: 'move', itemId: tile.item.id, to: tile.index + (k === 'ArrowUp' || k === 'ArrowLeft' ? -1 : 1) })
+        return
+      }
+      // A selected list item: duplicate and remove it in place.
+      const item = focused && clip && st.ui.selectedBlockId ? listContext(clip, focused, st.ui.selectedBlockId) : null
       if (focused && item?.item) {
         if (mod && k.toLowerCase() === 'd') {
           e.preventDefault()
           const r = st.editList(focused.id, { op: 'duplicate', itemId: item.item.id })
           if (r?.itemId) st.selectBlock(r.itemId)
-          return
-        }
-        if (e.altKey && !mod && k.startsWith('Arrow')) {
-          e.preventDefault()
-          const d = k === 'ArrowUp' || k === 'ArrowLeft' ? -1 : 1
-          st.editList(focused.id, { op: 'move', itemId: item.item.id, to: item.index + d })
           return
         }
         if (!mod && !e.altKey && (k === 'Backspace' || k === 'Delete')) {

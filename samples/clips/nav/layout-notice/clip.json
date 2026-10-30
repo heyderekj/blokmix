@@ -2,6 +2,8 @@
   "title": "Bar with notice",
   "layoutPattern": "announcement-strip-over-bar",
   "rhythm": "band",
+  "style": "warm",
+  "density": "dense",
   "motionNotes": "The announcement strip slides down from the top edge and its messages fade in one after another, then the bar fades in; reduced motion keeps only the fades. The strip itself stays still.",
   "capture": {
     "path": "/",

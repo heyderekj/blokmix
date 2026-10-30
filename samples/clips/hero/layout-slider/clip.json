@@ -1,0 +1,14 @@
+{
+  "title": "Picture slider",
+  "layoutPattern": "split-copy-left-radio-slider-right",
+  "rhythm": "split",
+  "style": "warm",
+  "density": "balanced",
+  "motionNotes": "Copy rises in a stagger; picking a dot crossfades to its slide while the art inside settles up a few pixels and the active dot stretches. Reduced motion keeps the crossfade and drops the movement.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

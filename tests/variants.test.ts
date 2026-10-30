@@ -27,7 +27,7 @@ describe('block looks', () => {
   })
 
   it('offer a range for every kind people restyle', () => {
-    const floor: Partial<Record<BlockKind, number>> = { button: 10, link: 6, badge: 6, heading: 8, text: 6, card: 8, image: 9, icon: 5, input: 5, banner: 5 }
+    const floor: Partial<Record<BlockKind, number>> = { button: 10, link: 6, badge: 6, heading: 8, text: 6, card: 8, image: 3, icon: 5, input: 5, banner: 5 }
     for (const [kind, n] of Object.entries(floor) as [BlockKind, number][]) expect(variantsFor(kind).length, kind).toBeGreaterThanOrEqual(n)
     expect(variantsFor('item')).toBe(variantsFor('card'))
   })

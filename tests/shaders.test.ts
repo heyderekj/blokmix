@@ -4,6 +4,7 @@ import { unzlibSync } from 'fflate'
 import * as paper from '@paper-design/shaders'
 import { library } from '@/data/library'
 import { BASE_TOKENS } from '@/core/tokens'
+import { surfaceTokens } from '@/core/surface'
 import { emptyGuide, resolveGuide } from '@/core/guide'
 import { DEFAULT_CONTENT } from '@/core/content'
 import { DEFAULT_KEEP, type Slot, type TokenSet } from '@/core/types'
@@ -19,7 +20,8 @@ import { frameStateFor, withoutShaders } from '@/state/derived'
 import { currentSlots, useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
 
-const dark: TokenSet = { ...BASE_TOKENS, ...library.sources.nightowl?.tokens }
+// The guide turned dark (the way a section's inverse surface does).
+const dark: TokenSet = surfaceTokens(BASE_TOKENS, 'inverse')
 
 /** The uniforms a fragment shader declares. */
 const FRAGMENT: Record<string, string> = {
@@ -80,7 +82,8 @@ describe('shader specs', () => {
       expect(live.map((t) => t.id)).toEqual([...SHADER_IDS])
       for (const t of live) for (const p of t.presets) expect(zodFor(t.params).safeParse(p.values).success, `${surface} ${t.id} ${p.id}`).toBe(true)
     }
-    expect(Object.keys(backdropParams('god-rays'))).toEqual(expect.arrayContaining(['strength', 'inverse']))
+    expect(Object.keys(backdropParams('god-rays'))).toContain('strength')
+    expect(backdropParams('god-rays').inverse).toBeUndefined()
     expect(treatmentInfo('fill', 'liquid-metal')?.params.strength).toBeUndefined()
   })
 })
@@ -94,7 +97,6 @@ describe('shader backdrops', () => {
     expect(css).toContain('@layer clip { :where(.root) { position: relative; } }')
     expect(css).toContain('radial-gradient(')
     expect(css).not.toMatch(/NaN|undefined/)
-    expect(backdropCss({ id: 'god-rays', params: { inverse: true } }, BASE_TOKENS, '.root')).toContain(`--mx-color-text: ${BASE_TOKENS['color.onPrimary']}`)
   })
 })
 

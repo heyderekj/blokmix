@@ -12,6 +12,7 @@ export const SECTION_TYPES = [
   'features',
   'stats',
   'content',
+  'gallery',
   'team',
   'testimonials',
   'pricing',
@@ -88,16 +89,24 @@ export interface Capture {
 }
 
 export interface Clip {
-  id: string // 'hero.marginalia-split'
+  id: string // 'hero.layout-split'
   type: SectionType
   sourceId: string
   title: string
   layoutPattern: string
   /** Visual rhythm, used to suggest layouts that contrast with their neighbours. */
   rhythm?: Rhythm
+  /** How it feels, for browsing the library (`core/browse.ts`). Captured clips may leave it out. */
+  style?: ClipStyle
+  /** How much it holds and how tightly, for browsing the library. */
+  density?: Density
+  /** A layout drafted from a real site and not yet approved (the review queue). */
+  status?: 'draft'
+  /** The real site a layout was drafted from. */
+  inspiredBy?: { site: string; url: string }
   /** 'clip' came from a site you clipped; 'layout' is one of Blokmix's built-ins. */
   origin: 'clip' | 'layout'
-  rootClass: string // 'mx-hero-marginalia-split'
+  rootClass: string // 'mx-hero-layout-split'
   html: string
   css: string
   motionCss: string | null
@@ -133,6 +142,10 @@ export interface Slot {
   /** This section's own words, over the shared copy for its type. */
   words?: Record<string, string>
   spacing?: SectionSpacing
+  /** Content from your collections (`core/collections.ts`): lists fed by entries, fields from the page's entry. */
+  bind?: SlotBinding
+  /** The band it sits on, from the style guide's colors (`core/surface.ts`); unset is the page. */
+  surface?: 'page' | 'soft' | 'inverse' | 'brand'
   motion?: SectionMotion
   /** Other ways to say a field's words, kept to switch between (by field). */
   options?: Record<string, WordOption[]>
@@ -142,6 +155,8 @@ export interface Slot {
   lists?: Record<string, ListItemRef[]>
   /** A gradient, pattern or glow behind the whole section (core/treatments/backdrops.ts). */
   backdrop?: TreatmentValue
+  /** The real site this section's layout was matched from (clipped from the site library); never its words or pictures. */
+  inspiredBy?: { site: string; url: string }
 }
 
 /** One way to say a field's words, kept as an option (Koati's "Keep"). */
@@ -158,6 +173,25 @@ export interface WordOption {
  * An item in a list, by its number in the list's fields (f4Title is item 4 of
  * list "f"). `from` is the item whose structure a new item copies.
  */
+/** A list fed by a collection: one item per entry (sorted, filtered, capped), fields mapped by item key. */
+export interface ListBinding {
+  collection: string
+  /** Item key (as in the content file: title, excerpt) → entry field key. */
+  map: Record<string, string>
+  /** The entry field that fills each item's picture. */
+  image?: string
+  sort?: { field: string; dir: 'asc' | 'desc' }
+  filter?: { field: string; equals: string }
+  limit?: number
+}
+
+export interface SlotBinding {
+  /** By the key a list's fields are numbered by (p, f, t). */
+  lists?: Record<string, ListBinding>
+  /** On a collection's template page: field (heading) → entry field (title), and picture (by media name) → entry field. */
+  entry?: { fields?: Record<string, string>; media?: Record<string, string> }
+}
+
 export interface ListItemRef {
   n: number
   from?: number
@@ -273,6 +307,8 @@ export type NoteAnchor =
 /** One page of the site: its own sections, between the site's shared nav and footer (unless it hides them). */
 export interface Page {
   id: string
+  /** A collection's template page: its path has one [param] (/blog/[slug]) and the export makes a page per entry. */
+  template?: { collection: string }
   /** Its route: "/" for home, "/about", "/blog/launch". */
   path: string
   title: string
@@ -351,6 +387,8 @@ export interface BlockInfo {
   /** Image slot name, for image blocks. */
   media?: string
   ratio?: string
+  /** An image block meant for a video (`data-mx-media-kind="video"`). */
+  mediaKind?: 'video'
   /** List name, for list blocks. */
   list?: string
   /** List blocks whose items you can add, remove and reorder: the key their fields are numbered by. */
@@ -530,6 +568,12 @@ export interface Swatch {
 
 export const RHYTHMS = ['centered', 'split', 'grid', 'stack', 'band'] as const
 export type Rhythm = (typeof RHYTHMS)[number]
+
+export const CLIP_STYLES = ['minimal', 'editorial', 'bold', 'playful', 'technical', 'warm'] as const
+export type ClipStyle = (typeof CLIP_STYLES)[number]
+
+export const DENSITIES = ['airy', 'balanced', 'dense'] as const
+export type Density = (typeof DENSITIES)[number]
 
 export interface Library {
   sources: Record<string, Source>

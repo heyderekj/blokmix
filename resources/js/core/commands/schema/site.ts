@@ -22,6 +22,17 @@ export const SITE_COMMANDS = {
     input: z.object({ clip: z.string() }),
     write: true,
   },
+  list_starters: {
+    description: 'The starter mixes: ready combinations of real sections under a sample style guide, with each page’s section types. start_from_starter opens one.',
+    input: z.object({}),
+    write: false,
+  },
+  start_from_starter: {
+    description:
+      'Replace this mix’s pages and style guide with a starter mix’s (list_starters names them). Your words, notes and versions stay; it is one undo step.',
+    input: z.object({ starter: z.string().describe('A starter id, e.g. "product-launch"') }),
+    write: true,
+  },
   list_pages: {
     description: 'List the site’s pages in order: path, title, how many sections, and whether each shows the shared nav and footer. Which page is open on the canvas.',
     input: z.object({}),

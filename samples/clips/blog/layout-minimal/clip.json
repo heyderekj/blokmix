@@ -2,6 +2,8 @@
   "title": "Titles only",
   "layoutPattern": "small-head-display-titles-between-hairlines",
   "rhythm": "stack",
+  "style": "minimal",
+  "density": "airy",
   "motionNotes": "No entrance. On hover a title takes the accent and an underline draws in beneath it; the all-posts arrow nudges forward.",
   "capture": {
     "path": "/",

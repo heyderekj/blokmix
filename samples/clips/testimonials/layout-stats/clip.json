@@ -2,6 +2,8 @@
   "title": "Stats beside a featured quote",
   "layoutPattern": "stacked-stats-left-featured-quote-right",
   "rhythm": "split",
+  "style": "technical",
+  "density": "balanced",
   "motionNotes": "No entrance motion: hairline stats on one side, one quote on an inverse panel on the other.",
   "capture": {
     "path": "/",

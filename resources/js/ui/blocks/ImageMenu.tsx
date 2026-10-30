@@ -37,7 +37,8 @@ export function ImageMenu({
   onHover: (m: MediaFill | null) => void
   onPick: (m: MediaFill | null) => void
 }) {
-  const [tab, setTab] = useState<Tab>(tabOf(fill))
+  // A block meant for a video opens where you drop or paste one.
+  const [tab, setTab] = useState<Tab>(!fill && block.mediaKind === 'video' ? 'upload' : tabOf(fill))
   const set = (m: Partial<MediaFill>) => onPick({ ...(fill ?? { source: 'placeholder' }), ...m } as MediaFill)
 
   return (

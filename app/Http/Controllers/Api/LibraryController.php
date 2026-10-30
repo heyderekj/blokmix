@@ -62,7 +62,8 @@ class LibraryController extends Controller
     }
 
     /**
-     * A bundle from the library CLI: `site` (site.json) and `files[]`, the screenshots it names. Upserts by slug: a
+     * A bundle from the library CLI: `site` (site.json) and the screenshots it names, as `files[]` or as one zip,
+     * `bundle` (PHP takes 20 files per request, fewer than a long page has sections). Upserts by slug: a
      * site already here keeps its status and gets the bundle's pages, sections and screenshots in place of its own.
      */
     public function store(Request $request): JsonResponse
@@ -70,8 +71,9 @@ class LibraryController extends Controller
         $this->owner();
         $request->validate([
             'site' => ['required', 'file', 'max:2048'],
-            'files' => ['required', 'array', 'max:2000'],
+            'files' => ['required_without:bundle', 'array', 'max:2000'],
             'files.*' => ['required', 'file', 'mimetypes:'.implode(',', array_keys(self::MIMES)), 'max:'.self::IMAGE_MAX_KB],
+            'bundle' => ['required_without:files', 'file', 'mimes:zip', 'max:'.(self::BUNDLE_MAX_BYTES / 1024)],
         ]);
 
         $json = json_decode((string) file_get_contents($request->file('site')->getRealPath()), true);
@@ -82,7 +84,7 @@ class LibraryController extends Controller
 
         /** @var array<string, UploadedFile> $files by name */
         $files = [];
-        foreach ($request->file('files') as $file) {
+        foreach ($request->hasFile('bundle') ? $this->unzip($request->file('bundle')) : $request->file('files') as $file) {
             $files[$file->getClientOriginalName()] = $file;
         }
         $total = array_sum(array_map(fn (UploadedFile $f) => $f->getSize(), $files));
@@ -248,6 +250,52 @@ class LibraryController extends Controller
     }
 
     /** site.json, checked: only the shapes below get in. */
+    /**
+     * The images in a bundle zip, as uploads named by their file names. Only flat image names are taken; sizes are
+     * checked before anything is unpacked, so a small zip can't unpack into something huge.
+     *
+     * @return list<UploadedFile>
+     */
+    private function unzip(UploadedFile $zip): array
+    {
+        $archive = new \ZipArchive;
+        if ($archive->open($zip->getRealPath()) !== true) {
+            throw ValidationException::withMessages(['bundle' => 'The bundle isn’t a zip.']);
+        }
+        if ($archive->numFiles > 2000) {
+            throw ValidationException::withMessages(['bundle' => 'The bundle has more than 2,000 files.']);
+        }
+        $dir = sys_get_temp_dir().'/blokmix-library-'.Str::random(12);
+        mkdir($dir);
+        register_shutdown_function(function () use ($dir) {
+            array_map('unlink', glob("{$dir}/*") ?: []);
+            @rmdir($dir);
+        });
+        $total = 0;
+        $out = [];
+        for ($i = 0; $i < $archive->numFiles; $i++) {
+            $stat = $archive->statIndex($i);
+            $name = $stat['name'];
+            if (str_ends_with($name, '/') || str_starts_with(basename($name), '.')) {
+                continue;
+            }
+            if ($name !== basename($name) || ! preg_match('/^[A-Za-z0-9._-]+\.(webp|png|jpe?g)$/i', $name)) {
+                throw ValidationException::withMessages(['bundle' => "{$name} isn’t a screenshot name the bundle can hold."]);
+            }
+            if ($stat['size'] > self::IMAGE_MAX_KB * 1024) {
+                throw ValidationException::withMessages(['bundle' => "{$name} is over 15 MB."]);
+            }
+            if (($total += $stat['size']) > self::BUNDLE_MAX_BYTES) {
+                throw ValidationException::withMessages(['files' => 'The bundle is over 200 MB.']);
+            }
+            file_put_contents("{$dir}/{$name}", $archive->getFromIndex($i));
+            $out[] = new UploadedFile("{$dir}/{$name}", $name, null, null, true);
+        }
+        $archive->close();
+
+        return $out;
+    }
+
     private function validateSite(array $json): array
     {
         $validator = Validator::make($json, [

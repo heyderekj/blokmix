@@ -101,7 +101,7 @@
     & .grid {
       margin-top: var(--mx-space-8);
       grid-template-columns: 1fr;
-      gap: var(--mx-space-7);
+      gap: var(--mx-space-7) var(--mx-space-4);
     }
     & .item { padding-top: var(--mx-space-5); }
   }

@@ -1,0 +1,98 @@
+.mx-content-layout-timeline {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .container.narrow { max-width: 760px; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow {
+    font-family: var(--mx-font-mono);
+    font-size: var(--mx-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mx-color-accent);
+  }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+
+  /* The rail: one line down the left; each stop hangs a node on it. */
+  & .rail { display: grid; gap: var(--mx-space-7); padding-left: var(--mx-space-8); }
+  & .stop:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--mx-space-8) * -1 + 7px);
+    top: var(--mx-space-5);
+    bottom: calc(var(--mx-space-7) * -1);
+    width: var(--mx-stroke);
+    background: var(--mx-color-border);
+  }
+  & .done::before { background: var(--mx-color-text); }
+  & .stop { position: relative; display: grid; gap: var(--mx-space-2); }
+  & .node {
+    position: absolute;
+    left: calc(var(--mx-space-8) * -1);
+    top: 2px;
+    width: 15px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--mx-color-bg);
+    box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 2) var(--mx-color-text);
+  }
+  & .done .node { background: var(--mx-color-text); }
+  & .now .node {
+    background: var(--mx-color-accent);
+    box-shadow: 0 0 0 5px color-mix(in oklab, var(--mx-color-accent) 22%, transparent);
+  }
+  & .next .node { box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 2) var(--mx-color-border); }
+  & .step {
+    font-family: var(--mx-font-mono);
+    font-size: var(--mx-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--mx-color-muted);
+  }
+  & .now .step { color: var(--mx-color-accent); }
+  & .body { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; text-wrap: pretty; }
+  & .done .body { color: var(--mx-color-muted); }
+
+  & .card {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--mx-space-3);
+    padding: var(--mx-space-6);
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) dashed var(--mx-color-border);
+    border-radius: var(--mx-radius);
+  }
+  & .quote { margin: 0; }
+  & .quote p {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: var(--mx-text-xl);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  & .caption { font-family: var(--mx-font-mono); font-size: var(--mx-text-xs); letter-spacing: 0.04em; color: var(--mx-color-muted); }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .lead, & .body { font-size: var(--mx-text-base); }
+    & .rail { gap: var(--mx-space-6); padding-left: var(--mx-space-7); }
+    & .node { left: calc(var(--mx-space-7) * -1); }
+    & .stop:not(:last-child)::before { left: calc(var(--mx-space-7) * -1 + 7px); bottom: calc(var(--mx-space-6) * -1); }
+    & .card { padding: var(--mx-space-5); }
+    & .quote p { font-size: var(--mx-text-lg); }
+  }
+}

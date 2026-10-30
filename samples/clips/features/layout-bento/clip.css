@@ -238,7 +238,7 @@
     & .lead { font-size: var(--mx-text-base); }
     & .grid {
       margin-top: var(--mx-space-8);
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       grid-template-areas: "c1" "c2" "c3" "c4" "c5" "c6";
     }
     & .card { padding: var(--mx-space-5); gap: var(--mx-space-5); }

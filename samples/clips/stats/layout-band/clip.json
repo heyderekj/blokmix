@@ -2,6 +2,8 @@
   "title": "Stats on an inverse band",
   "layoutPattern": "inverse-band-head-lead-4-stats-row",
   "rhythm": "band",
+  "style": "bold",
+  "density": "balanced",
   "motionNotes": "No motion of its own; the band reads as one solid block and suits a section motion preset.",
   "capture": {
     "path": "/",

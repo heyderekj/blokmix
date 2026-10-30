@@ -1,0 +1,23 @@
+.mx-team-layout-carousel {
+  & .head > * { animation: mx-team-layout-carousel-rise var(--mx-motion-duration) var(--mx-motion-ease) backwards; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .member { animation: mx-team-layout-carousel-slide calc(var(--mx-motion-duration) * 1.4) cubic-bezier(0.23, 1, 0.32, 1) 180ms backwards; }
+  & .member:nth-child(2) { animation-delay: 240ms; }
+  & .member:nth-child(3) { animation-delay: 300ms; }
+  & .member:nth-child(4) { animation-delay: 360ms; }
+  & .member:nth-child(n + 5) { animation-delay: 420ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .head > *, & .member { animation-name: mx-team-layout-carousel-fade; }
+  }
+}
+@keyframes mx-team-layout-carousel-rise {
+  from { opacity: 0; translate: 0 12px; }
+}
+@keyframes mx-team-layout-carousel-slide {
+  from { opacity: 0; translate: 32px 0; }
+}
+@keyframes mx-team-layout-carousel-fade {
+  from { opacity: 0; }
+}

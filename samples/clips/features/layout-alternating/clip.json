@@ -2,6 +2,8 @@
   "title": "Alternating feature rows",
   "layoutPattern": "alternating-media-rows",
   "rhythm": "split",
+  "style": "technical",
+  "density": "airy",
   "motionNotes": "Header rises, then each row’s media and text follow in turn; the dashed selection softly pulses and the lifted tile nudges back and forth.",
   "capture": {
     "path": "/",

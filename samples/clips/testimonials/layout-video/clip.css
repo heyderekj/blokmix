@@ -1,0 +1,124 @@
+.mx-testimonials-layout-video {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head + * { margin-top: var(--mx-space-9); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.8vw, var(--mx-text-5xl));
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+  }
+
+  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
+  & .col-4 { grid-column-end: span 4; }
+
+  & .card { display: flex; flex-direction: column; gap: var(--mx-space-5); }
+
+  /* The poster: a tall frame with a figure, a glow and a play button over it. */
+  & .media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background: linear-gradient(170deg, color-mix(in oklab, var(--mx-color-primary) 22%, var(--mx-color-surface)), var(--mx-color-surface) 70%);
+    border-radius: var(--mx-radius-lg);
+    cursor: pointer;
+    transition: scale 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .media:active { scale: 0.97; }
+  & .art { position: absolute; inset: 0; }
+  & .glow { background: radial-gradient(60% 45% at 70% 25%, color-mix(in oklab, var(--mx-color-accent) 40%, transparent), transparent 70%); }
+  & .card:nth-child(3n + 2) .glow { background: radial-gradient(60% 45% at 25% 30%, color-mix(in oklab, var(--mx-color-accent) 34%, transparent), transparent 70%); }
+  & .card:nth-child(3n) .glow { background: radial-gradient(70% 50% at 55% 15%, color-mix(in oklab, var(--mx-color-accent) 24%, transparent), transparent 70%); }
+  & .figure-art {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 58%;
+    height: 66%;
+    translate: -50% 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  & .head-art { width: 44%; aspect-ratio: 1; border-radius: 50%; background: color-mix(in oklab, var(--mx-color-text) 20%, var(--mx-color-surface)); }
+  & .shoulders {
+    flex: 1;
+    width: 100%;
+    margin-top: 6%;
+    border-radius: 50% 50% 0 0 / 34% 34% 0 0;
+    background: color-mix(in oklab, var(--mx-color-text) 32%, var(--mx-color-surface));
+  }
+  & .card:nth-child(3n + 2) .shoulders { background: color-mix(in oklab, var(--mx-color-primary) 70%, var(--mx-color-surface)); }
+  & .play {
+    position: absolute;
+    left: var(--mx-space-5);
+    bottom: var(--mx-space-5);
+    width: 56px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--mx-color-bg);
+    box-shadow: var(--mx-shadow-card);
+    transition: scale 200ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .play::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    translate: 2px 0;
+    width: 16px;
+    height: 18px;
+    background: var(--mx-color-text);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+  & .time {
+    position: absolute;
+    right: var(--mx-space-5);
+    bottom: var(--mx-space-5);
+    padding: var(--mx-space-1) var(--mx-space-3);
+    border-radius: var(--mx-radius-pill);
+    background: color-mix(in oklab, var(--mx-color-bg) 85%, transparent);
+    color: var(--mx-color-text);
+    font-family: var(--mx-font-mono);
+    font-size: var(--mx-text-xs);
+    font-weight: 600;
+  }
+
+  & .quote { margin: 0; }
+  & .quote p {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: var(--mx-text-xl);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+  & .person { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--mx-space-1) var(--mx-space-2); font-size: var(--mx-text-sm); }
+  & .name { font-weight: 600; }
+  & .role { color: var(--mx-color-muted); }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .media:hover .play { scale: 1.08; }
+  }
+
+  @media (max-width: 1080px) {
+    & .grid { column-gap: var(--mx-space-5); }
+    & .quote p { font-size: var(--mx-text-lg); }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .head + * { margin-top: var(--mx-space-8); }
+    & .grid { gap: var(--mx-space-8) var(--mx-space-4); }
+    & .grid > * { grid-column: auto / span 12; }
+    & .media { aspect-ratio: 5 / 4; }
+    & .figure-art { width: 40%; height: 76%; }
+    & .card { gap: var(--mx-space-4); }
+  }
+}

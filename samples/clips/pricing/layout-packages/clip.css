@@ -99,6 +99,7 @@
   }
 
   @media (max-width: 760px) {
+    & .amt { font-size: min(var(--mx-text-4xl), 13vw); }
     padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }

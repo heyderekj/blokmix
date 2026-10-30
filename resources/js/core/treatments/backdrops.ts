@@ -5,7 +5,7 @@
 // with these declarations as what shows before it runs.
 
 import type { TokenSet } from '../types'
-import { clampParams, mixHex, cssColor, hexColor, n2, rng, tint, type ColorValue, type ParamSpecs, type ParamValues, type Preset, type TreatmentValue } from './params'
+import { clampParams, cssColor, hexColor, n2, rng, tint, type ColorValue, type ParamSpecs, type ParamValues, type Preset, type TreatmentValue } from './params'
 import { contourPaths, grainSvg, noise2, svgUrl } from './noise'
 import { gradientCss } from './effects'
 import { SHADERS, SHADER_IDS, isShaderId, shaderColors, shaderSpec, type ShaderId } from './shaders'
@@ -31,7 +31,6 @@ const color = (label: string, d: ColorValue) => ({ kind: 'color', label, default
 const COMMON: ParamSpecs = {
   fill: { kind: 'toggle', label: 'Fill behind', default: false },
   base: color('Behind', 'surface'),
-  inverse: { kind: 'toggle', label: 'Inverse', default: false },
 }
 
 export const BACKDROPS: Record<CssBackdropId, Backdrop> = {
@@ -248,9 +247,9 @@ function veil(p: ParamValues): string {
 }
 
 /** A live backdrop covers the whole section, so instead of a fill behind it has a strength (its opacity over the section). */
-const SHADER_COMMON: ParamSpecs = { strength: strength(100), inverse: COMMON.inverse }
+const SHADER_COMMON: ParamSpecs = { strength: strength(100) }
 
-/** Every backdrop's dials, its own plus the common ones (fill behind, inverse). */
+/** Every backdrop's dials, its own plus the common ones (fill behind). Flipping a section's colors is its surface (core/surface.ts). */
 export function backdropParams(id: BackdropId): ParamSpecs {
   return isShaderId(id) ? { ...SHADERS[id].params, ...SHADER_COMMON } : { ...BACKDROPS[id].params, ...COMMON }
 }
@@ -270,31 +269,13 @@ export function isBackdropId(id: string): id is BackdropId {
   return (BACKDROP_IDS as readonly string[]).includes(id)
 }
 
-/**
- * A section's backdrop as declarations for its root. Inverse flips the section's
- * palette to the primary color (the way .band.inverse does), with hex values so
- * the swap can't refer to itself.
- */
+/** A section's backdrop as declarations for its root (drawn in the section's surface colors). */
 export function backdropDecls(v: TreatmentValue | undefined, tokens: TokenSet): Record<string, string> {
   if (!v || !isBackdropId(v.id)) return {}
   const p = clampParams(backdropParams(v.id), v.params)
   const out = isShaderId(v.id) ? shaderStandIn(v.id, p, tokens, v.seed ?? 1) : BACKDROPS[v.id].render(p, tokens, v.seed ?? 1)
   const decl: Record<string, string> = {}
-  if (p.inverse) {
-    const pr = tokens['color.primary']
-    const on = tokens['color.onPrimary']
-    Object.assign(decl, {
-      '--mx-color-bg': pr,
-      '--mx-color-surface': mixHex(on, pr, 0.08),
-      '--mx-color-text': on,
-      '--mx-color-muted': mixHex(on, pr, 0.72),
-      '--mx-color-border': mixHex(on, pr, 0.22),
-      '--mx-color-primary': on,
-      '--mx-color-on-primary': pr,
-      'background-color': pr,
-      color: on,
-    })
-  } else if (p.fill) decl['background-color'] = cssColor(p.base as string)
+  if (p.fill) decl['background-color'] = cssColor(p.base as string)
   const kept = out.image.map((x, i) => [x, i] as const).filter(([x]) => x !== 'none')
   if (kept.length) {
     const list = (xs: string[] | undefined, d: string) => kept.map(([, i]) => xs?.[i] ?? d).join(', ')

@@ -1,0 +1,22 @@
+.mx-cta-layout-video {
+  & .sun { animation: mx-cta-layout-video-drift 14s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate; }
+  & .head > * { animation: mx-cta-layout-video-rise 420ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+  & .head > :nth-child(2) { animation-delay: 60ms; }
+  & .head > :nth-child(3) { animation-delay: 120ms; }
+  & .head > :nth-child(4) { animation-delay: 180ms; }
+  & .head > :nth-child(5) { animation-delay: 240ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .sun { animation: none; }
+    & .head > * { animation-name: mx-cta-layout-video-fade; }
+  }
+}
+@keyframes mx-cta-layout-video-rise {
+  from { opacity: 0; transform: translateY(10px); }
+}
+@keyframes mx-cta-layout-video-fade {
+  from { opacity: 0; }
+}
+@keyframes mx-cta-layout-video-drift {
+  to { transform: translate(-8%, 6%); }
+}

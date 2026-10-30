@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Link2, ArrowLeft, ArrowRight, Copy, ListRestart, Minus, ChevronDown, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Sparkles, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile } from 'lucide-react'
+import { Link2, ArrowLeft, ArrowRight, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile, Database } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
-import { advise, suggestedVariants, type Advice } from '@/core/advise'
+import { advise, type Advice } from '@/core/advise'
 import { resolveFields } from '@/core/content'
 import { slotClip } from '@/data/library'
 import { useStore, currentSlots } from '@/state/store'
@@ -17,7 +17,6 @@ import { DeviceSwitch, MobileHint, RowLabel, SPACE_STEPS, Steps, useDevice } fro
 import { useLayout } from '@/state/layout'
 import { MEASURE_WIDTHS, useMeasuredPage } from '@/lib/measure'
 import { MotionMenu } from './MotionMenu'
-import { LookStyles, LookThumb } from './LookSamples'
 import { ImageMenu } from './ImageMenu'
 import { IconMenu } from './IconMenu'
 import { blockIconName } from '@/core/icons'
@@ -25,8 +24,9 @@ import { listContext } from '@/core/lists'
 import { sectionLinks } from '@/core/links'
 import { WordsCycler, WordsMenu } from './WordsMenu'
 import { LinkLabel, LinkMenu } from './LinkMenu'
+import { CollectionMenu } from './CollectionMenu'
 
-type Menu = 'variant' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'advice' | null
+type Menu = 'variant' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'advice' | 'collection' | null
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -88,17 +88,13 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   }
   const hover = (patch: Partial<BlockEdit> | null) => (patch ? preview.show(slot.id, block.id, patch) : preview.clear())
   const current = variants.find((v) => v.id === edit?.variant)
+  const looksOpen = useStore((s) => s.ui.sheet === 'looks')
+  const stepLook = (d: 1 | -1) => {
+    const order = [undefined, ...variants.map((v) => v.id)]
+    const i = order.indexOf(current?.id)
+    apply({ variant: order[(i + d + order.length) % order.length] })
+  }
   const advice = useAdvice(slot, block, rect)
-  const sampleText = useMemo(() => {
-    const clip = slotClip(slot)
-    const fields = resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields
-    const inner = block.field ?? blocks.find((b) => b.parent === block.id && b.field && (b.kind === 'heading' || b.kind === 'text'))?.field
-    return (inner && fields[inner]) || BLOCK_LABEL[block.kind]
-  }, [block, blocks, slot])
-  const suggested = useMemo(() => {
-    const clip = slotClip(slot)
-    return suggestedVariants(block, { blocks, fields: resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields })
-  }, [block, blocks, slot])
   const list = listContext(slotClip(slot), slot, block.id)
   const fix = (a: Advice) => {
     if (a.fix?.promote) {
@@ -128,10 +124,19 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         </div>
         <Sep />
         {variants.length > 0 && (
-          <BarButton active={menu === 'variant'} onClick={() => setMenu(menu === 'variant' ? null : 'variant')} icon={Shapes} title="Look">
-            {current?.label ?? 'Original'}
-            <ChevronDown size={12} className="text-zinc-400" />
-          </BarButton>
+          // Step through the looks right here (Original, then each look), or open them all.
+          <div className="flex items-center">
+            <button type="button" title="Previous look" aria-label="Previous look" onClick={() => stepLook(-1)} className="grid h-8 w-5 cursor-pointer place-items-center rounded-l-[10px] text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-800 active:scale-[0.94]">
+              <ChevronLeft size={13} />
+            </button>
+            <BarButton active={looksOpen} onClick={() => st().setUi({ sheet: looksOpen ? 'none' : 'looks' })} icon={Shapes} title="Looks: browse them in the dock below (← → to step through)">
+              {current?.label ?? 'Original'}
+              <ChevronDown size={12} className="text-zinc-400" />
+            </BarButton>
+            <button type="button" title="Next look" aria-label="Next look" onClick={() => stepLook(1)} className="grid h-8 w-5 cursor-pointer place-items-center rounded-r-[10px] text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-800 active:scale-[0.94]">
+              <ChevronRight size={13} />
+            </button>
+          </div>
         )}
         <BarButton active={menu === 'style'} onClick={() => setMenu(menu === 'style' ? null : 'style')} icon={Palette} title="Color and shape">
           <StyleDots style={edit?.style} />
@@ -161,6 +166,11 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         )}
         {block.field && <WordsCycler slot={slot} field={block.field} open={menu === 'words'} onOpen={() => setMenu(menu === 'words' ? null : 'words')} />}
         {list && <ListControls slotId={slot.id} ctx={list} />}
+        {list && (
+          <BarButton active={menu === 'collection'} onClick={() => setMenu(menu === 'collection' ? null : 'collection')} icon={Database} title="Collection: show your content here">
+            {slot.bind?.lists?.[list.list.listKey ?? ''] ? <span className="size-1.5 rounded-full bg-key" /> : null}
+          </BarButton>
+        )}
         <BarButton
           onClick={() => {
             const clip = slotClip(slot)
@@ -187,31 +197,6 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         <BarButton active={menu === 'more'} onClick={() => setMenu(menu === 'more' ? null : 'more')} icon={MoreHorizontal} title="More" />
       </div>
 
-      {menu === 'variant' && (
-        <Popover width={340}>
-          <LookStyles />
-          <div onMouseLeave={() => hover(null)}>
-            {suggested.length > 0 && (
-              <div className="flex items-center gap-1 px-2 pb-1 pt-1 text-[11px] font-semibold text-zinc-400">
-                <Sparkles size={11} /> Suggested here
-              </div>
-            )}
-            <LookRow kind={block.kind} text={sampleText} label="Original" hint="As clipped" on={!edit?.variant} onHover={() => hover({ variant: undefined })} onPick={() => apply({ variant: undefined })} />
-            {variants
-              .filter((v) => suggested.includes(v.id))
-              .sort((a, b) => rank(suggested, a.id) - rank(suggested, b.id))
-              .map((v) => (
-                <LookRow key={v.id} kind={block.kind} look={v.id} text={sampleText} label={v.label} hint={v.hint} on={edit?.variant === v.id} onHover={() => hover({ variant: v.id })} onPick={() => apply({ variant: v.id })} />
-              ))}
-            {variants.some((v) => !suggested.includes(v.id)) && <div className="px-2 pb-1 pt-2 text-[11px] font-semibold text-zinc-400">{suggested.length ? 'More' : 'Looks'}</div>}
-            {variants
-              .filter((v) => !suggested.includes(v.id))
-              .map((v) => (
-                <LookRow key={v.id} kind={block.kind} look={v.id} text={sampleText} label={v.label} hint={v.hint} on={edit?.variant === v.id} onHover={() => hover({ variant: v.id })} onPick={() => apply({ variant: v.id })} />
-              ))}
-          </div>
-        </Popover>
-      )}
       {menu === 'advice' && (
         <Popover width={300}>
           {advice.map((a, n) => (
@@ -264,6 +249,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         <ImageMenu block={block} fill={own?.media} onHover={(m) => hover(m ? { media: m } : null)} onPick={(m) => apply({ media: m ?? undefined })} />
       )}
       {menu === 'link' && <LinkMenu slot={slot} block={block} />}
+      {menu === 'collection' && list && <CollectionMenu slot={slot} list={list.list} onClose={() => setMenu(null)} />}
       {menu === 'words' && block.field && <WordsMenu slot={slot} field={block.field} blockId={block.id} onClose={() => setMenu(null)} />}
       {menu === 'motion' && <MotionMenu kind={block.kind} motion={edit?.motion} onHover={(m) => hover(m ? { motion: m } : null)} onPick={(m) => apply({ motion: m })} />}
       {menu === 'more' && (
@@ -448,28 +434,6 @@ function MenuItem({ icon: Icon, children, onClick, disabled, kbd }: { icon: type
       <Icon size={14} className="shrink-0 text-zinc-400" />
       <span className="flex-1">{children}</span>
       {kbd && <span className="kbd">{kbd}</span>}
-    </button>
-  )
-}
-
-const rank = (list: string[], id: string) => (list.includes(id) ? list.indexOf(id) : 99)
-
-/** One look: the block drawn in it, with its name and when to reach for it. */
-function LookRow({ kind, look, text, label, hint, on, onHover, onPick }: { kind: BlockKind; look?: string; text: string; label: string; hint: string; on: boolean; onHover: () => void; onPick: () => void }) {
-  return (
-    <button
-      type="button"
-      onMouseEnter={onHover}
-      onFocus={onHover}
-      onClick={onPick}
-      className={`flex w-full items-center gap-3 rounded-xl px-2 py-1.5 text-left transition active:scale-[0.99] ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
-    >
-      <LookThumb kind={kind} look={look} text={text} />
-      <span className="min-w-0 flex-1">
-        <span className="block text-[13px] font-semibold text-zinc-900">{label}</span>
-        <span className="block truncate text-[11.5px] text-zinc-500">{hint}</span>
-      </span>
-      {on && <span className="size-1.5 shrink-0 rounded-full bg-key" />}
     </button>
   )
 }

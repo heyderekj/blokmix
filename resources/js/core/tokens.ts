@@ -213,12 +213,20 @@ export function hexToRgb(hex: string): [number, number, number] | null {
   return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number]
 }
 
-function luminance([r, g, b]: [number, number, number]): number {
+export function luminance([r, g, b]: [number, number, number]): number {
   const f = (c: number) => {
     const s = c / 255
     return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
   }
   return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+}
+
+/** `a` moved `t` of the way (0–1) toward `b`, as hex. */
+export function mixHex(a: string, b: string, t: number): string {
+  const ra = hexToRgb(a)
+  const rb = hexToRgb(b)
+  if (!ra || !rb) return a
+  return '#' + ra.map((c, i) => Math.round(c + (rb[i] - c) * t).toString(16).padStart(2, '0')).join('')
 }
 
 export function contrastRatio(a: string, b: string): number | null {

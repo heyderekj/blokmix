@@ -1,0 +1,14 @@
+{
+  "title": "Paged logo slider",
+  "layoutPattern": "title-pager-four-up-logo-pages",
+  "rhythm": "grid",
+  "style": "technical",
+  "density": "dense",
+  "motionNotes": "No entrance beyond the first page sliding in. The arrows and dots switch between two pages of four logos (two by two on phones); the new page slides in from the side it came from in a 40ms stagger. Reduced motion keeps fades only.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

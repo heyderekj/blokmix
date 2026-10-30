@@ -2,6 +2,8 @@
   "title": "Group photo with a key",
   "layoutPattern": "wide-group-photo-numbered-key",
   "rhythm": "stack",
+  "style": "editorial",
+  "density": "balanced",
   "motionNotes": "The head rises, then the silhouettes in the group photo step up one by one; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

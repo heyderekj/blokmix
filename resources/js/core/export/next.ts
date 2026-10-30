@@ -7,6 +7,7 @@ import { SHADERS_JS, SHADER_CSS } from './shaders'
 import { slug } from './astro'
 import { contentVar, sitePages, fontLinks, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
+import { nextCollectionFiles, sectionContent } from './collections'
 
 export const NEXT_VERSION = '^16.4.3'
 export const REACT_VERSION = '^19.3.1'
@@ -107,18 +108,29 @@ ${jsxBody(bindContent(s.source, s.outline, file, true))}
 
   // Each route renders the shared nav and footer (unless it turns them off) around its own <main>.
   const site = sitePages(page)
-  const use = (s: ComposedSection) => (s.outline.length ? `<${s.component} content={${contentVar(s)}} />` : `<${s.component} />`)
-  const importsFor = (secs: ComposedSection[]) =>
-    secs.flatMap((s) => [`import ${s.component} from '@/components/sections/${s.component}'`, ...(s.outline.length ? [`import ${contentVar(s)} from '@/content/${s.contentName}.json'`] : [])])
+  // A list that shows a collection gets its entries, read at build time.
+  const use = (s: ComposedSection) => (s.outline.length ? `<${s.component} content={${sectionContent(s, 'next', page)?.expr ?? contentVar(s)}} />` : `<${s.component} />`)
+  const importsFor = (secs: ComposedSection[], template = false) => [
+    ...secs.flatMap((s) => [`import ${s.component} from '@/components/sections/${s.component}'`, ...(s.outline.length ? [`import ${contentVar(s)} from '@/content/${s.contentName}.json'`] : [])]),
+    ...(template || secs.some((s) => s.bound?.length || s.entryBound) ? [`import { entries, getEntry, paragraph, text } from '@/lib/collections'`] : []),
+  ]
+  Object.assign(files, nextCollectionFiles(page, root))
   for (const p of site.pages) {
     const nav = p.show.nav ? site.shared.nav : undefined
     const footer = p.show.footer ? site.shared.footer : undefined
     const route = p.path === '/' ? 'app/page.tsx' : `app${p.path}/page.tsx`
-    const meta = p.path === '/' ? '' : `\nexport const metadata = { title: ${JSON.stringify(`${p.title} · ${page.title}`)} }\n`
-    files[`${root}${route}`] = `${[...new Set(importsFor([...(nav ? [nav] : []), ...p.sections, ...(footer ? [footer] : [])]))].join('\n')}
+    // A collection's template page: one page per entry, from the route's slug.
+    const c = p.template ? page.collections?.find((x) => x.slug === p.template!.collection) : undefined
+    const meta = c
+      ? `\nexport function generateStaticParams() {\n  return entries('${c.slug}').map((e) => ({ slug: e.slug }))\n}\n\nexport async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {\n  const entry = getEntry('${c.slug}', (await params).slug)\n  return { title: \`\${text(entry?.${c.schema.titleField})} · ${page.title.replace(/[`$\\]/g, '')}\` }\n}\n`
+      : p.path === '/'
+        ? ''
+        : `\nexport const metadata = { title: ${JSON.stringify(`${p.title} · ${page.title}`)} }\n`
+    const secs = [...(nav ? [nav] : []), ...p.sections, ...(footer ? [footer] : [])]
+    files[`${root}${route}`] = `${c ? "import { notFound } from 'next/navigation'\n" : ''}${[...new Set(importsFor(secs, !!c))].join('\n')}
 ${meta}
-export default function Page() {
-  return (
+export default ${c ? 'async ' : ''}function Page(${c ? '{ params }: { params: Promise<{ slug: string }> }' : ''}) {
+${c ? `  const entry = getEntry('${c.slug}', (await params).slug)\n  if (!entry) notFound()\n` : ''}${secs.flatMap((s) => sectionContent(s, 'next', page)?.setup ?? []).map((l) => `  ${l}\n`).join('')}  return (
     <>
 ${nav ? `      ${use(nav)}\n` : ''}      <main>
 ${p.sections.map((s) => `        ${use(s)}`).join('\n')}

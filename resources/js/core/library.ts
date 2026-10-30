@@ -1,5 +1,5 @@
-import type { Capture, Clip, Library, Rhythm, SectionType, Source, TokenSet } from './types'
-import { SECTION_TYPES } from './types'
+import type { Capture, Clip, ClipStyle, Density, Library, Rhythm, SectionType, Source, TokenSet } from './types'
+import { CLIP_STYLES, DENSITIES, SECTION_TYPES } from './types'
 import { extractFields, parseHtml } from './html/parse'
 import { lintClip } from './lint'
 import { hash } from './hash'
@@ -16,6 +16,10 @@ export interface RawClip {
     title: string
     layoutPattern: string
     rhythm?: Rhythm
+    style?: ClipStyle
+    density?: Density
+    status?: 'draft'
+    inspiredBy?: { site: string; url: string }
     motionNotes?: string
     capture: Omit<Capture, 'url'> & { path?: string }
     tokens?: Partial<TokenSet>
@@ -52,6 +56,10 @@ export function buildLibrary(sources: Source[], raws: RawClip[]): Library {
       title: raw.meta.title,
       layoutPattern: raw.meta.layoutPattern,
       rhythm: raw.meta.rhythm,
+      style: CLIP_STYLES.includes(raw.meta.style as ClipStyle) ? raw.meta.style : undefined,
+      density: DENSITIES.includes(raw.meta.density as Density) ? raw.meta.density : undefined,
+      ...(raw.meta.status === 'draft' ? { status: 'draft' as const } : {}),
+      ...(raw.meta.inspiredBy ? { inspiredBy: raw.meta.inspiredBy } : {}),
       origin: source.kind === 'layout' ? 'layout' : 'clip',
       rootClass,
       html: raw.html.trim(),
@@ -165,5 +173,5 @@ export const isSample = (lib: Library, id: string): boolean => {
   return !!clip && clip.origin === 'clip' && /\.example(\/|$)/.test(new URL(lib.sources[clip.sourceId]?.url ?? 'https://x/').host + '/')
 }
 
-/** The clips you can pick for a section: your clips, then the layouts. */
-export const pickable = (lib: Library, type: SectionType): string[] => lib.byType[type].filter((id) => !isSample(lib, id))
+/** The clips you can pick for a section: your clips, then the layouts. Draft layouts wait for review. */
+export const pickable = (lib: Library, type: SectionType): string[] => lib.byType[type].filter((id) => !isSample(lib, id) && !lib.clips[id]?.status)

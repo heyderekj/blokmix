@@ -34,7 +34,7 @@ export const TREATMENT_COMMANDS = {
   },
   set_section_backdrop: {
     description:
-      'Put a backdrop behind a section (a gradient, mesh, grain, pattern or glow, or a live WebGL shader: mesh-gradient, grain-flow, dithering, liquid-metal, fluted-glass, god-rays), from a preset and/or dials, or null for as clipped. inverse: true flips the section to the primary color; a shader’s strength fades it into the section’s color. Shaders move (posters cover reduced motion and browsers without WebGL). Keep text readable over it; review checks contrast.',
+      'Put a backdrop behind a section (a gradient, mesh, grain, pattern or glow, or a live WebGL shader: mesh-gradient, grain-flow, dithering, liquid-metal, fluted-glass, god-rays), from a preset and/or dials, or null for as clipped. It draws in the section’s surface colors (set_section_surface flips them); a shader’s strength fades it into the section’s color. Shaders move (posters cover reduced motion and browsers without WebGL). Keep text readable over it; review checks contrast.',
     input: z.object({ section, backdrop: z.enum(BACKDROP_IDS).nullable(), preset: preset.optional(), params: params.optional(), seed: seed.optional() }),
     write: true,
   },

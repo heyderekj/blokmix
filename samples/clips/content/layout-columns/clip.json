@@ -2,6 +2,8 @@
   "title": "Lead over three columns",
   "layoutPattern": "head-and-lead-over-3-columns",
   "rhythm": "grid",
+  "style": "editorial",
+  "density": "dense",
   "motionNotes": "No entrance motion: a heading and lead across the top, the body in three ruled columns below.",
   "capture": {
     "path": "/",

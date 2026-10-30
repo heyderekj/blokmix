@@ -96,7 +96,7 @@
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .lead { font-size: var(--mx-text-base); }
     & .grid > .who, & .grid > .feats, & .grid > .buy { grid-column: auto / span 12; }
-    & .row { gap: var(--mx-space-5); padding-block: var(--mx-space-7); }
+    & .row { gap: var(--mx-space-5) var(--mx-space-4); padding-block: var(--mx-space-7); }
     & .buy { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
   }
 }

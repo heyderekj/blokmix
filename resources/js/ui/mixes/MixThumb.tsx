@@ -124,6 +124,15 @@ function Band({ type, y, h, p, heading }: { type: SectionType; y: number; h: num
           <rect x={86} y={y + 4} width={62} height={h - 8} rx={r} fill={p.surface} stroke={p.border} strokeWidth={0.5} />
         </g>
       )
+    case 'gallery':
+      return (
+        <g>
+          {bar(W / 2 - 22, y + 5, 44, 3.5, p.text)}
+          {[0, 1, 2, 3].map((i) => (
+            <rect key={i} x={12 + i * 35} y={y + 13} width={31} height={h - 18 - (i % 2) * 6} rx={r} fill={i === 1 ? p.primary : p.surface} stroke={p.border} strokeWidth={0.5} />
+          ))}
+        </g>
+      )
     case 'testimonials':
       return (
         <g>

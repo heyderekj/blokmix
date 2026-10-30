@@ -1,0 +1,14 @@
+{
+  "title": "Timeline",
+  "layoutPattern": "vertical-timeline-milestones",
+  "rhythm": "stack",
+  "style": "technical",
+  "density": "dense",
+  "motionNotes": "Milestones rise in order down the rail while the rail draws downward behind them.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

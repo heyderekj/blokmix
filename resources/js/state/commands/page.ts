@@ -1,6 +1,7 @@
 import type { Choice, Keep, TokenKey } from '@/core/types'
 import { type CommandInput } from '@/core/commands/schema'
 import { resolveGuide } from '@/core/guide'
+import { DIALS, readDials, setTone } from '@/core/dials'
 import { library } from '@/data/library'
 import { findLibraryFont, fontStack } from '@/core/fonts'
 import { useStore } from '../store'
@@ -50,6 +51,15 @@ export const write = {
     const want: Partial<Keep> = clean({ layout: i.layout, style: i.style, content: i.copy, motion: i.motion })
     for (const [k, v] of Object.entries(want) as [keyof Keep, boolean][]) if (slot.keep[k] !== v) useStore.getState().toggleKeep(slot.id, k)
     return { keep: findSection(slot.id).keep }
+  },
+  set_dial: (i: CommandInput<'set_dial'>) => {
+    useStore.getState().chooseTokens(DIALS[i.dial].write(i.value))
+    return { dials: readDials(resolveGuide(useStore.getState().guide).tokens) }
+  },
+  set_tone: (i: CommandInput<'set_tone'>) => {
+    useStore.getState().chooseTokens(setTone(resolveGuide(useStore.getState().guide).tokens, i.tone))
+    const tokens = resolveGuide(useStore.getState().guide).tokens
+    return { tone: i.tone, colors: Object.fromEntries(Object.entries(tokens).filter(([k]) => k.startsWith('color.'))) }
   },
   set_token: (i: CommandInput<'set_token'>) => {
     // A bare family from the library ("Satoshi") becomes a full stack with a fitting fallback.

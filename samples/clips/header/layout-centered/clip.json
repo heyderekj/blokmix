@@ -2,6 +2,8 @@
   "title": "Centered page header",
   "layoutPattern": "centered-page-header",
   "rhythm": "centered",
+  "style": "minimal",
+  "density": "airy",
   "motionNotes": "Eyebrow, heading, intro and button rise in a short stagger on load; the button lifts on hover.",
   "capture": {
     "path": "/",

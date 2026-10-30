@@ -5,6 +5,7 @@
 import { SECTION_TYPES, type SectionType } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { blockedSheetHrefs, snapshotSection } from './snapshot'
+import { guessSectionType } from './sections'
 import type { Snapshot } from './capture/types'
 
 const KEY = '#ff6aa8'
@@ -227,26 +228,7 @@ function describe(el: Element): string {
   return `${tag}${id}${cls}`
 }
 
-/** A first guess at the section type, from what's inside. */
+/** A first guess at the section type, from what's inside (shared with the site library's typer). */
 export function guessType(el: Element): SectionType {
-  const tag = el.tagName.toLowerCase()
-  const r = el.getBoundingClientRect()
-  const text = (el.textContent ?? '').replace(/\s+/g, ' ')
-  const q = (s: string) => el.querySelectorAll(s).length
-  const top = r.top + window.scrollY
-  if (tag === 'nav' || ((tag === 'header' || q('nav')) && r.height < 160 && top < 160 && q('a') >= 3)) return 'nav'
-  if (tag === 'footer' || top + r.height >= document.documentElement.scrollHeight - 40) return 'footer'
-  if (q('form') && (q('textarea') || q('input[type="email"]')) && q('input, textarea') >= 2) return 'contact'
-  if (q('details') >= 2 || /\b(faq|frequently asked)\b/i.test(text.slice(0, 200))) return 'faq'
-  if ((text.match(/[$€£]\s?\d+/g) ?? []).length >= 2) return 'pricing'
-  if (q('blockquote') >= 1 || (text.match(/[“"][^”"]{30,}[”"]/g) ?? []).length >= 2) return 'testimonials'
-  if (q('h1') && top < window.innerHeight * 1.2) return 'hero'
-  const shortNumbers = Array.from(el.querySelectorAll('*')).filter((n) => !n.children.length && /^[\d.,]+\s?[%+kKmMx×s]*$|^[$€£]?\d[\d.,]*[%+kKmMBx×]+$/.test((n.textContent ?? '').trim()))
-  if (shortNumbers.length >= 3) return 'stats'
-  if (q('img, svg') >= 5 && text.length < 400) return 'logos'
-  // Posts carry dates; cards that are merely <article>s don't.
-  if (q('time') >= 2 || (q('article') >= 2 && /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.? \d{1,2}\b|\bmin read\b/i.test(text))) return 'blog'
-  if (q('h3, h4') >= 3) return 'features'
-  if (q('a, button') <= 3 && r.height < 500 && q('h2')) return 'cta'
-  return 'content'
+  return guessSectionType(el).type
 }

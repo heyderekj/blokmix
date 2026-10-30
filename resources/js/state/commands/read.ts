@@ -4,6 +4,7 @@ import { variantsFor } from '@/core/blocks/variants'
 import { suggestedVariants } from '@/core/advise'
 import { suggestClip, suggestTypes } from '@/core/suggest'
 import { resolveGuide, openGroups } from '@/core/guide'
+import { readDials, toneOfGuide } from '@/core/dials'
 import { library, slotClip } from '@/data/library'
 import { PROVIDER_LABEL, PROVIDER_LICENSE, searchFonts } from '@/core/fonts'
 import { listContext } from '@/core/lists'
@@ -12,7 +13,7 @@ import { wordChoices } from '@/core/words'
 import { pageView } from '@/core/site'
 import { revealSection } from '@/lib/actions'
 import { useStore } from '../store'
-import { findPage, findSection, findBlock, wordsFor, describeSection, outlineOf, adviceFor, positionOf } from './refs'
+import { findPage, findSection, findBlock, wordsFor, describeSection, outlineOf, adviceFor, positionOf, shownSlot } from './refs'
 
 /** Reads about the page: its sections, words, fonts and options, and focusing one. */
 export const read = {
@@ -29,6 +30,8 @@ export const read = {
       sections: sections.map((s) => describeSection(s, positionOf(s, page.id))),
       styleGuide: {
         tokens: guide.tokens,
+        dials: readDials(guide.tokens),
+        tone: toneOfGuide(guide.tokens),
         openDecisions: openGroups(guide),
         brandColours: st.guide.swatches ?? [],
         lookForAll: st.guide.components ?? {},
@@ -41,7 +44,9 @@ export const read = {
     const st = useStore.getState()
     const page = findPage(i.page)
     const sections = i.section !== undefined ? [findSection(i.section, page.id)] : pageView(st.site, page.id)
-    return sections.map((s) => {
+    return sections.map((own) => {
+      // Lists that show a collection read as their entries.
+      const s = shownSlot(own)
       const clip = slotClip(s)
       const nodes = outlineOf(s)
       const lists: unknown[] = []
@@ -57,6 +62,7 @@ export const read = {
             items: n.items.length,
             editable: !!ctx,
             ...(ctx ? { max: ctx.max } : { why: 'Its items are set by the layout.' }),
+            ...(ctx?.list.listKey && own.bind?.lists?.[ctx.list.listKey] ? { collection: own.bind.lists[ctx.list.listKey].collection } : {}),
           })
           n.items.forEach((it, ix) => collect(it.nodes, `${at}${n.key}/${ix}/`))
         }

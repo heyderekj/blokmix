@@ -1,0 +1,14 @@
+{
+  "title": "Title over a film",
+  "layoutPattern": "split-title-row-wide-video-below",
+  "rhythm": "stack",
+  "style": "editorial",
+  "density": "airy",
+  "motionNotes": "Title and intro rise in a short stagger; the reel opens out from a slight inset and its play button fades up last. Reduced motion keeps fades only.",
+  "capture": {
+    "path": "/",
+    "selector": "layout",
+    "viewport": { "width": 1440, "height": 900 },
+    "capturedAt": "2026-10-30T00:00:00Z"
+  }
+}

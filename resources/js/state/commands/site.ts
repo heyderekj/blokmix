@@ -2,7 +2,8 @@ import type { Page } from '@/core/types'
 import { type CommandInput } from '@/core/commands/schema'
 import { PAGE_TEMPLATES, pageView } from '@/core/site'
 import { mixClipIds, useStore } from '../store'
-import { library } from '@/data/library'
+import { library, starters } from '@/data/library'
+import { buildStarter, describeStarter } from '@/core/starters'
 import { CommandError, findPage, clean } from './refs'
 
 function describePage(p: Page) {
@@ -30,6 +31,7 @@ export const read = {
       inLibrary: all.filter((c) => !mine.includes(c.id)).map((c) => ({ id: c.id, title: c.title, type: c.type })),
     }
   },
+  list_starters: () => ({ starters: starters.map((s) => describeStarter(library, s)) }),
   list_pages: () => {
     const st = useStore.getState()
     return { pages: st.site.pages.map(describePage), shared: { nav: st.site.shared.nav?.id ?? null, footer: st.site.shared.footer?.id ?? null } }
@@ -47,6 +49,13 @@ export const write = {
     if (!(useStore.getState().clips ?? []).includes(i.clip)) throw new CommandError(`${i.clip} isn’t in this mix’s set`)
     useStore.getState().removeMixClip(i.clip)
     return { clips: useStore.getState().clips }
+  },
+  start_from_starter: (i: CommandInput<'start_from_starter'>) => {
+    const starter = starters.find((s) => s.id === i.starter || s.name.toLowerCase() === i.starter.toLowerCase())
+    if (!starter) throw new CommandError(`No starter “${i.starter}” (list_starters names them: ${starters.map((s) => s.id).join(', ')})`)
+    const { site, guide } = buildStarter(library, starter)
+    useStore.getState().startFrom(site, guide)
+    return { starter: starter.id, pages: useStore.getState().site.pages.map(describePage) }
   },
   rename_mix: (i: CommandInput<'rename_mix'>) => {
     useStore.getState().renameMix(i.name)

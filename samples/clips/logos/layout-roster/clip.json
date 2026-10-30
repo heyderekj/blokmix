@@ -2,6 +2,8 @@
   "title": "Client roster",
   "layoutPattern": "split-head-left-numbered-logo-rows-2col",
   "rhythm": "split",
+  "style": "editorial",
+  "density": "dense",
   "motionNotes": "The head rises, then the roster rows fade up in reading order; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

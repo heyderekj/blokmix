@@ -90,11 +90,6 @@ describe('backdrops', () => {
     }
   })
 
-  it('inverse flips the section to the primary color', () => {
-    const css = backdropCss({ id: 'dots', params: { inverse: true } }, BASE_TOKENS, '.root')
-    expect(css).toContain(`--mx-color-bg: ${BASE_TOKENS['color.primary']}`)
-    expect(css).toContain(`--mx-color-text: ${BASE_TOKENS['color.onPrimary']}`)
-  })
 })
 
 describe('generative fills', () => {

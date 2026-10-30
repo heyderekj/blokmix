@@ -5,6 +5,7 @@ import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
 import { SHADERS_JS, SHADER_CSS } from './shaders'
 import { contentVar, fontLinks, routeFile, sectionCss, sectionHeader, sitePages, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
+import { astroCollectionFiles, sectionContent } from './collections'
 
 export const ASTRO_VERSION = '~7.3.0' // 7.4 needs Node >= 22.23.4; 7.3 runs on any Node 22.12+
 
@@ -35,12 +36,21 @@ export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
   const { nav, footer } = site.shared
   // The shared nav and footer live in the layout; each page can turn either off.
   const chrome = (s: ComposedSection | undefined, flag: string) => (s ? `{${flag} && ${use(s, '  ')}}` : '')
-  const use = (s: ComposedSection, pad = '') => (s.outline.length ? `<${s.component} content={${contentVar(s)}} />` : `<${s.component} />`).replace(/^/, pad).trim()
-  const importsFor = (secs: ComposedSection[], up: string) =>
-    secs.flatMap((s) => [
-      `import ${s.component} from '${up}components/sections/${s.component}.astro'`,
-      ...(s.outline.length ? [`import ${contentVar(s)} from '${up}content/${s.contentName}.json'`] : []),
-    ])
+  // A list that shows a collection gets its entries, read at build time.
+  const use = (s: ComposedSection, pad = '') =>
+    (s.outline.length ? `<${s.component} content={${sectionContent(s, 'astro', page)?.expr ?? contentVar(s)}} />` : `<${s.component} />`).replace(/^/, pad).trim()
+  const importsFor = (secs: ComposedSection[], up: string, after: string[] = []) => {
+    const filled = secs.map((s) => sectionContent(s, 'astro', page)).filter((b) => !!b)
+    return [
+      ...secs.flatMap((s) => [
+        `import ${s.component} from '${up}components/sections/${s.component}.astro'`,
+        ...(s.outline.length ? [`import ${contentVar(s)} from '${up}content/${s.contentName}.json'`] : []),
+      ]),
+      ...(filled.length || after.length ? [`import { entries, paragraph, text } from '${up}lib/collections'`] : []),
+      ...after,
+      ...(filled.length ? ['', ...filled.flatMap((b) => b.setup)] : []),
+    ]
+  }
   files[`${root}src/layouts/Base.astro`] = `---
 import '../styles/tokens.css'
 import '../styles/base.css'
@@ -90,15 +100,31 @@ ${serialize(bindContent(s.source, s.outline, file, false), 'html')}
 `
   }
 
+  Object.assign(files, astroCollectionFiles(page, root))
+
   for (const p of site.pages) {
     const { file, depth } = routeFile(p.path)
     const up = '../'.repeat(depth + 1)
     const off = [!p.show.nav && nav ? ' nav={false}' : '', !p.show.footer && footer ? ' footer={false}' : ''].join('')
+    // A collection's template page: one page per entry (its slug from the entry file's name).
+    const c = p.template ? page.collections?.find((x) => x.slug === p.template!.collection) : undefined
+    const perEntry = c
+      ? [
+          `import { getCollection } from 'astro:content'`,
+          '',
+          'export async function getStaticPaths() {',
+          `  const list = (await getCollection('${c.slug}')).filter((e) => !e.data.draft)`,
+          '  return list.map((entry) => ({ params: { slug: entry.id }, props: { entry } }))',
+          '}',
+          'const { entry } = Astro.props',
+        ]
+      : []
+    const title = c ? `{\`\${text(entry.data.${c.schema.titleField})} · ${page.title.replace(/[`$\\]/g, '')}\`}` : JSON.stringify(p.path === '/' ? page.title : `${p.title} · ${page.title}`)
     files[`${root}src/pages/${file}.astro`] = `---
 import Base from '${up}layouts/Base.astro'
-${importsFor(p.sections, up).join('\n')}
+${importsFor(p.sections, up, perEntry).join('\n')}
 ---
-<Base title=${JSON.stringify(p.path === '/' ? page.title : `${p.title} · ${page.title}`)}${off}>
+<Base title=${title}${off}>
 ${p.sections.map((s) => `  ${use(s)}`).join('\n')}
 </Base>
 `

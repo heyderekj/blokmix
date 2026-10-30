@@ -1,0 +1,105 @@
+.mx-content-layout-overlap {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+
+  /* Off-grid: the picture takes eight columns, the panel six, and they cross over two.
+     The panel sits on the picture's lower edge and hangs past it. */
+  & .stage {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--mx-space-6);
+    row-gap: var(--mx-space-3);
+    padding-bottom: var(--mx-space-9);
+  }
+  & .media {
+    grid-column: 1 / span 8;
+    grid-row: 1;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--mx-color-surface);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .caption {
+    grid-column: 1 / span 5;
+    grid-row: 2;
+    font-size: var(--mx-text-sm);
+    color: var(--mx-color-muted);
+  }
+  & .panel {
+    grid-column: 7 / span 6;
+    grid-row: 1;
+    align-self: end;
+    z-index: 1;
+    margin-bottom: calc(var(--mx-space-10) * -1);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mx-space-4);
+    padding: var(--mx-space-9) var(--mx-space-8);
+    background: var(--mx-color-primary);
+    color: var(--mx-color-on-primary);
+    border-radius: var(--mx-radius-lg);
+    box-shadow: var(--mx-shadow-card);
+  }
+
+  & .art { position: absolute; inset: 0; }
+  & .sky { background: linear-gradient(180deg, color-mix(in oklab, var(--mx-color-accent) 22%, var(--mx-color-surface)), var(--mx-color-surface) 65%); }
+  & .sun {
+    position: absolute;
+    left: 18%;
+    top: 16%;
+    width: 16%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--mx-color-accent) 60%, var(--mx-color-surface));
+  }
+  & .hill { position: absolute; border-radius: 50% 50% 0 0; }
+  & .h1 { left: -12%; right: 34%; bottom: -22%; height: 62%; background: color-mix(in oklab, var(--mx-color-text) 12%, var(--mx-color-surface)); }
+  & .h2 { left: 30%; right: -20%; bottom: -30%; height: 58%; background: color-mix(in oklab, var(--mx-color-text) 20%, var(--mx-color-surface)); }
+  & .slab {
+    position: absolute;
+    left: 46%;
+    top: 20%;
+    width: 14%;
+    height: 30%;
+    border-radius: var(--mx-radius);
+    background: color-mix(in oklab, var(--mx-color-primary) 30%, var(--mx-color-surface));
+  }
+
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+  & .lead { font-size: var(--mx-text-lg); line-height: 1.5; text-wrap: pretty; }
+  & .body { line-height: 1.65; color: color-mix(in oklab, var(--mx-color-on-primary) 78%, transparent); text-wrap: pretty; }
+  & .lead + .body { margin-top: var(--mx-space-2); }
+
+  @media (max-width: 1080px) {
+    & .stage { column-gap: var(--mx-space-5); }
+    & .media { grid-column: 1 / span 9; }
+    & .panel { grid-column: 5 / span 8; padding: var(--mx-space-8) var(--mx-space-7); }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .stage { grid-template-columns: minmax(0, 1fr); padding-bottom: 0; row-gap: 0; }
+    & .media { grid-column: 1; grid-row: 1; aspect-ratio: 4 / 3; border-radius: var(--mx-radius); }
+    & .panel {
+      grid-column: 1;
+      grid-row: 2;
+      align-self: auto;
+      margin: calc(var(--mx-space-7) * -1) 0 0 var(--mx-space-4);
+      padding: var(--mx-space-6) var(--mx-space-5);
+      gap: var(--mx-space-3);
+    }
+    & .caption { grid-column: 1; grid-row: 3; margin-top: var(--mx-space-4); }
+    & .lead { font-size: var(--mx-text-base); }
+  }
+}

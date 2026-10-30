@@ -2,6 +2,8 @@
   "title": "Link columns",
   "layoutPattern": "brand-plus-three-columns",
   "rhythm": "grid",
+  "style": "technical",
+  "density": "dense",
   "motionNotes": "Brand block and link columns rise in a left-to-right stagger, then the legal row fades in. Links brighten on hover.",
   "capture": {
     "path": "/",

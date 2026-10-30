@@ -1,0 +1,161 @@
+.mx-gallery-layout-masonry {
+  background: var(--mx-color-bg);
+  color: var(--mx-color-text);
+  padding: var(--mx-space-section) var(--mx-space-8);
+
+  & .container { max-width: 1200px; margin-inline: auto; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .heading {
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+
+  & .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mx-space-2);
+    min-height: 44px;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius-pill);
+    font-weight: 600;
+    line-height: 1.1;
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .btn:active { scale: 0.97; }
+  & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  & .btn svg { flex: none; }
+  & a:focus-visible, & label:has([type="radio"]:focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+
+  /* Media: a picture's frame. Placeholder art is soft token shapes, arranged differently per picture. */
+  & .media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(170deg, color-mix(in oklab, var(--mx-color-primary) 9%, var(--mx-color-surface)), var(--mx-color-surface) 70%);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .art { position: absolute; inset: 0; }
+  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
+  & .orb {
+    position: absolute;
+    width: 22%;
+    aspect-ratio: 1;
+    right: 16%;
+    top: 14%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent));
+  }
+  & .orb.big { width: 58%; left: -10%; right: auto; top: auto; bottom: -18%; }
+  & .orb.small { width: 14%; right: auto; left: 43%; top: 12%; }
+  & .orb.low { width: 26%; right: auto; left: 37%; top: auto; bottom: 20%; }
+  & .orb.corner { width: 30%; right: -8%; top: auto; bottom: -10%; }
+  & .hill {
+    position: absolute;
+    width: 120%;
+    height: 64%;
+    left: -34%;
+    bottom: -34%;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--mx-color-text) 9%, var(--mx-color-surface));
+  }
+  & .hill.near { left: 24%; bottom: -42%; background: color-mix(in oklab, var(--mx-color-text) 16%, var(--mx-color-surface)); }
+  & .hill.wide { width: 160%; left: -30%; bottom: -40%; height: 70%; }
+  & .slab { position: absolute; border-radius: var(--mx-radius); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
+  & .slab.tint { right: 12%; top: 14%; width: 38%; height: 26%; background: color-mix(in oklab, var(--mx-color-primary) 18%, var(--mx-color-surface)); }
+  & .slab.tint.low { right: auto; left: 12%; top: auto; bottom: 12%; width: 30%; height: 18%; }
+  & .slab.back { left: 16%; top: 18%; width: 46%; height: 52%; }
+  & .slab.front { left: 38%; top: 34%; width: 46%; height: 50%; background: var(--mx-color-bg); box-shadow: var(--mx-shadow-card); }
+  & .arch {
+    position: absolute;
+    left: 30%;
+    bottom: 0;
+    width: 40%;
+    height: 62%;
+    border-radius: var(--mx-radius-pill) var(--mx-radius-pill) 0 0;
+    background: color-mix(in oklab, var(--mx-color-accent) 22%, var(--mx-color-surface));
+  }
+  & .arch.wide { left: 18%; width: 64%; height: 74%; }
+  & .page {
+    position: absolute;
+    left: 14%;
+    right: 14%;
+    top: 16%;
+    bottom: -8%;
+    border-radius: var(--mx-radius) var(--mx-radius) 0 0;
+    background:
+      linear-gradient(color-mix(in oklab, var(--mx-color-text) 22%, transparent), color-mix(in oklab, var(--mx-color-text) 22%, transparent)) 12% 12% / 44% 6% no-repeat,
+      linear-gradient(color-mix(in oklab, var(--mx-color-text) 10%, transparent), color-mix(in oklab, var(--mx-color-text) 10%, transparent)) 12% 26% / 64% 3.5% no-repeat,
+      linear-gradient(color-mix(in oklab, var(--mx-color-text) 10%, transparent), color-mix(in oklab, var(--mx-color-text) 10%, transparent)) 12% 33% / 50% 3.5% no-repeat,
+      linear-gradient(color-mix(in oklab, var(--mx-color-primary) 20%, transparent), color-mix(in oklab, var(--mx-color-primary) 20%, transparent)) 50% 84% / 76% 34% no-repeat,
+      var(--mx-color-bg);
+    box-shadow: var(--mx-shadow-card);
+  }
+
+  /* Masonry: three CSS columns, pictures keep their own shapes; captions sit on a chip over each one. */
+  & .wall {
+    columns: 3;
+    column-gap: var(--mx-space-5);
+    margin-top: var(--mx-space-9);
+  }
+  & .item { break-inside: avoid; padding-bottom: var(--mx-space-5); }
+  & .figure { position: relative; }
+  & .media { border-radius: var(--mx-radius-lg); }
+  & .r1 { aspect-ratio: 3 / 2; }
+  & .r2 { aspect-ratio: 4 / 5; }
+  & .r3 { aspect-ratio: 4 / 3; }
+  & .r4 { aspect-ratio: 1 / 1; }
+  & .r5 { aspect-ratio: 4 / 3; }
+  & .r6 { aspect-ratio: 1 / 1; }
+  & .r7 { aspect-ratio: 2 / 3; }
+  & .r8 { aspect-ratio: 3 / 4; }
+  & .caption {
+    position: absolute;
+    left: var(--mx-space-3);
+    bottom: var(--mx-space-3);
+    max-width: calc(100% - var(--mx-space-3) * 2);
+    padding: var(--mx-space-2) var(--mx-space-3);
+    border-radius: var(--mx-radius);
+    background: color-mix(in oklab, var(--mx-color-bg) 92%, transparent);
+    box-shadow: var(--mx-shadow-card);
+    font-size: var(--mx-text-sm);
+    line-height: 1.4;
+    color: var(--mx-color-text);
+    text-wrap: pretty;
+  }
+  & .more { display: flex; justify-content: center; margin-top: var(--mx-space-7); }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .btn.secondary:hover { background: var(--mx-color-surface); }
+  }
+
+  @media (max-width: 1080px) {
+    & .wall { columns: 2; }
+  }
+
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+    & .lead { font-size: var(--mx-text-base); }
+    & .wall { margin-top: var(--mx-space-8); column-gap: var(--mx-space-3); }
+    & .item { padding-bottom: var(--mx-space-5); }
+    & .figure { display: flex; flex-direction: column; gap: var(--mx-space-2); }
+    & .caption {
+      position: static;
+      max-width: none;
+      padding: 0;
+      background: none;
+      box-shadow: none;
+      font-size: var(--mx-text-xs);
+      color: var(--mx-color-muted);
+    }
+    & .more { margin-top: var(--mx-space-5); }
+  }
+}

@@ -2,6 +2,8 @@
   "title": "Masonry wall of praise",
   "layoutPattern": "masonry-wall-quotes-stats-logos",
   "rhythm": "grid",
+  "style": "warm",
+  "density": "dense",
   "motionNotes": "The head rises, then the cards settle into the wall in a short stagger, quotes first, then stats and logos; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

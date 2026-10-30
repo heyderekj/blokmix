@@ -2,6 +2,8 @@
   "title": "Ruled cells",
   "layoutPattern": "brand-link-cells-filled-cta",
   "rhythm": "grid",
+  "style": "technical",
+  "density": "dense",
   "motionNotes": "No entrance. Each link is its own ruled cell with a running number, filling with the surface colour on hover; the filled button cell’s arrow nudges up and out.",
   "capture": {
     "path": "/",

@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { TYPE_RATIOS } from '@/core/dials'
 import { Check, ClipboardCopy, Plus, RotateCcw, X } from 'lucide-react'
 import type { BlockKind, ComponentDefault, Conflict, TokenGroup, TokenKey } from '@/core/types'
 import { BLOCK_LABEL } from '@/core/blocks'
 import { findVariant } from '@/core/blocks/variants'
 import { IconGlyph, IconSetPicker } from '../blocks/IconMenu'
-import { groupWinner } from '@/core/guide'
+import { candidateSource, candidateSourceName, groupWinner } from '@/core/guide'
 import { CONTRAST_PAIRS, contrastRatio, expandTokens, GROUP_LABEL, keysInGroup, primaryFamily, TOKEN_LABEL, varsToCss } from '@/core/tokens'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
@@ -19,8 +20,8 @@ export function GuidePanel() {
 }
 
 export function sourceOf(candidateId: string) {
-  const clip = library.clips[candidateId.split('#')[0]]
-  return clip ? library.sources[clip.sourceId] : null
+  const src = candidateSource(library, candidateId)
+  return src ?? { name: candidateSourceName(library, candidateId) }
 }
 
 /** Copy the guide's CSS variables plus an instruction, for an agent. */
@@ -327,7 +328,7 @@ export function OptionPreview({ k, value }: { k: TokenKey; value: string }) {
   return <span className="ml-1.5 font-mono text-[10.5px]">{value.length > 12 ? value.slice(0, 12) + '…' : value}</span>
 }
 
-const RATIOS = ['1.125', '1.2', '1.25', '1.333', '1.414', '1.5', '1.618']
+const RATIOS = TYPE_RATIOS
 const EASES: [string, string][] = [
   ['cubic-bezier(0.16, 1, 0.3, 1)', 'Expo out'],
   ['cubic-bezier(0.34, 1.56, 0.64, 1)', 'Springy'],

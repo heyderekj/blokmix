@@ -6,7 +6,7 @@ import { PACK_CREDIT, iconSet } from '../icons'
 import type { BuildTarget, GuideState, Library, ResolvedGuide, Status } from '../types'
 import type { ComposedPage } from '../compose'
 import { GROUP_LABEL, TOKEN_LABEL, toDtcg } from '../tokens'
-import { openGroups } from '../guide'
+import { candidateSource, openGroups } from '../guide'
 import { TYPE_LABEL } from '../content'
 import { astroFiles } from './astro'
 import { nextFiles } from './next'
@@ -66,6 +66,11 @@ export const REVISEMY = {
 
 function sourceLabel(lib: Library, candidateId: string): string {
   const clipId = candidateId.split('#')[0]
+  // A whole site's look from the site library (src:site:<slug>).
+  if (clipId.startsWith('src:')) {
+    const src = candidateSource(lib, candidateId)
+    return src ? `${src.name} (${src.url})` : clipId.slice(4)
+  }
   const clip = lib.clips[clipId]
   if (!clip) return candidateId
   return `${lib.sources[clip.sourceId]?.name ?? clip.sourceId} (${clip.id})`
@@ -105,6 +110,7 @@ export function packetJson(i: PacketInput) {
       component: s.component,
       keep: s.keep,
       summary: keepSummary(s),
+      inspiredBy: s.inspiredBy ?? null,
       clip: {
         id: s.clip.id,
         hash: s.clip.hash,
@@ -191,6 +197,7 @@ export function buildNotes(i: PacketInput): string {
     lines.push('')
     if (s.clip.origin === 'layout') lines.push('- **From:** a Blokmix layout. It’s structural, not a captured site: restyle it freely with the style guide.')
     else lines.push(`- **Clipped from:** ${src?.name ?? s.clip.sourceId}, ${s.clip.capture.url} (\`${s.clip.capture.selector}\`, ${s.clip.capture.viewport.width}px)`)
+    if (s.inspiredBy) lines.push(`- **Layout inspired by:** ${s.inspiredBy.site} (${s.inspiredBy.url}). Only the structure: its words, pictures and brand stay theirs.`)
     lines.push(`- **Pattern:** ${s.clip.layoutPattern}: ${s.clip.title}`)
     lines.push(`- **Layout:** ${s.keep.layout ? 'reproduce the structure faithfully' : 'reference only; choose a structure that fits neighboring sections'}`)
     lines.push(`- **Style:** ${s.keep.style ? 'keeps its own captured tokens (scoped to the section)' : 'use the style guide tokens'}`)
@@ -340,6 +347,22 @@ export function buildNotes(i: PacketInput): string {
   lines.push('')
   lines.push('Want a visual editor for these files? [Keystatic](https://keystatic.com) reads and writes local JSON: point a singleton at each file. Optional; nothing in the build depends on it.')
   lines.push('')
+  const cols = page.collections ?? []
+  if (cols.length) {
+    lines.push('## Collections')
+    lines.push('')
+    lines.push(
+      'Content that lives apart from any one section: one file per entry. In Astro they are content collections (`src/content.config.ts` holds each schema; entries are `src/content/<collection>/<slug>.md` with the rich-text body below the frontmatter, or `.json`), read with `getCollection`. In Next.js they are JSON files under `content/collections/<collection>/`, read with `lib/collections.ts`. Lists that show a collection get its entries at build time, so adding an entry file adds an item; drafts (`draft: true`) stay out.',
+    )
+    lines.push('')
+    for (const c of cols) {
+      const tpl = page.site?.pages.find((p) => p.template?.collection === c.slug)
+      lines.push(`- **${c.name}** (\`${c.slug}\`, ${c.entries.length} ${c.entries.length === 1 ? 'entry' : 'entries'}): ${c.schema.fields.map((f) => `\`${f.key}\` ${f.type}${f.key === c.schema.titleField ? ' (title)' : ''}`).join(', ')}${tpl ? `. Each entry has a page at \`${tpl.path}\`` : ''}`)
+    }
+    lines.push('')
+    lines.push('A template page shows the first paragraphs of an entry’s rich-text body in its prose section; render the whole body there (`render(entry)` in Astro, a Markdown renderer in Next.js) when you build it out.')
+    lines.push('')
+  }
   return lines.join('\n')
 }
 

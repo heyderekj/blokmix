@@ -110,6 +110,7 @@
   }
 
   @media (max-width: 760px) {
+    & .grid.fields { gap: var(--mx-space-5) var(--mx-space-4); }
     padding: var(--mx-space-9) var(--mx-space-5);
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }

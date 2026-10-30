@@ -1,4 +1,6 @@
 import type { BlockInfo, BlockStyle, Note, Page, Slot } from '@/core/types'
+import { applyBindings } from '@/core/collections'
+import { bindContextFor, templateEntry } from '../collections'
 import { allSlots, isShared, normalizePath, pageOf, pageOfSlot, pageView, updateSlotIn } from '@/core/site'
 import { isMark, SOURCE_LABEL } from '@/core/notes'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
@@ -125,6 +127,14 @@ export function describeNote(n: Note) {
   }
 }
 
+/** The section as it shows: lists bound to your collections filled from their entries. */
+export function shownSlot(slot: Slot): Slot {
+  if (!slot.bind || !library.clips[slot.clipId]) return slot
+  const st = useStore.getState()
+  const entry = templateEntry(st.site.pages.find((p) => p.slots.some((s) => s.id === slot.id)), st.ui.previewEntry)
+  return applyBindings(slot, library.clips[slot.clipId], { ...bindContextFor(st.site), entry })
+}
+
 export function wordsFor(slot: Slot) {
   const clip = slotClip(slot)
   return resolveFields(clip.type, clip.fields, useStore.getState().content, slot.keep.content, slot.words).fields
@@ -141,8 +151,10 @@ export function describeSection(slot: Slot, position: number) {
     type: slot.type,
     label: TYPE_LABEL[slot.type],
     clip: { id: clip.id, title: clip.title, origin: clip.origin, source: library.sources[clip.sourceId]?.name, rhythm: clip.rhythm ?? null },
+    ...((slot.inspiredBy ?? clip.inspiredBy) ? { inspiredBy: slot.inspiredBy ?? clip.inspiredBy } : {}),
     keep: { layout: slot.keep.layout, style: slot.keep.style, copy: slot.keep.content, motion: slot.keep.motion, locked: slot.locked },
     spacing: slot.spacing ?? {},
+    surface: slot.surface ?? 'page',
     motion: slot.motion ?? { mode: slot.keep.motion ? 'captured' : 'none' },
     words,
     blocks: clip.blocks.map((b) => {
