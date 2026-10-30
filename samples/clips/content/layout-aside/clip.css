@@ -43,7 +43,7 @@
   & .mark { width: 24px; height: 24px; color: var(--mx-color-muted); }
   & .quote { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.4; }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .main { grid-column: 1 / span 7; }
     & .grid > .note-card { grid-column: 8 / span 5; }

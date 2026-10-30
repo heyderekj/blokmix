@@ -69,7 +69,7 @@
     & .question:hover .icon { background: color-mix(in oklab, var(--mx-color-text) 8%, var(--mx-color-bg)); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 

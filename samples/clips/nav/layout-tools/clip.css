@@ -89,7 +89,7 @@
     & .quiet:hover { color: var(--mx-color-accent); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .rule, & .quiet { display: none; }
   }
 

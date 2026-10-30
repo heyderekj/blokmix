@@ -194,7 +194,7 @@
     color: var(--mx-color-muted);
   }
 
-  @container (max-width: 816px) {
+  @container (max-width: 832px) {
     & .tiers { grid-template-columns: 1fr; max-width: 440px; margin-inline: auto; }
   }
 

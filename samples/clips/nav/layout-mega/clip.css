@@ -172,7 +172,7 @@
   @media (max-width: 1080px) {
     padding-inline: var(--mx-space-6);
   }
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .bar { gap: var(--mx-space-4); }
     & .trigger, & .link { padding-inline: var(--mx-space-3); }
   }

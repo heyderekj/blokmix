@@ -137,7 +137,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .wall { columns: 2; }
   }
 

@@ -118,7 +118,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-6 { grid-column: auto / span 6; }
   }

@@ -53,7 +53,7 @@
   & .who { display: flex; flex-direction: column; gap: var(--mx-space-1); min-width: 0; }
   & .name { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .side, & .grid > .members { grid-column: 1 / -1; }
     & .sticky { position: static; }

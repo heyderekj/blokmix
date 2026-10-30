@@ -59,7 +59,7 @@
   & .brand { align-items: center; justify-content: center; min-height: 128px; }
   & .wordmark { font-family: var(--mx-font-display); font-weight: 700; font-size: var(--mx-text-xl); letter-spacing: -0.02em; color: var(--mx-color-muted); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .wall { columns: 2; }
   }
 

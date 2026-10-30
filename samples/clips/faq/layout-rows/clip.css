@@ -49,7 +49,7 @@
     & .link:hover svg { transform: translateX(4px); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 

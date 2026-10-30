@@ -105,7 +105,7 @@
     & .post:hover .media { border-color: color-mix(in oklab, var(--mx-color-text) 30%, var(--mx-color-border)); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 

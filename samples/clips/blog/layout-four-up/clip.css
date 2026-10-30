@@ -98,7 +98,7 @@
     & .post:hover { translate: 0 -3px; box-shadow: var(--mx-shadow-card); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-6 { grid-column: auto / span 6; }
   }

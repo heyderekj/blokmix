@@ -107,7 +107,7 @@
     & .media:hover .play { scale: 1.08; }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .quote p { font-size: var(--mx-text-lg); }
   }

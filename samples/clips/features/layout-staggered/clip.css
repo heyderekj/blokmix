@@ -54,7 +54,7 @@
   }
   & .num { font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .cards > :nth-child(odd) { grid-column: 1 / span 6; }
     & .cards > :nth-child(even) { grid-column: 7 / span 6; }

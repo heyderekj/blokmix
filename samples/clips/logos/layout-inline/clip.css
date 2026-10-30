@@ -55,7 +55,7 @@
   & .l3, & .l7 { font-size: var(--mx-text-xs); }
   & .l4 { font-size: var(--mx-text-base); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .strip { flex-direction: column; align-items: flex-start; gap: var(--mx-space-5); }
     & .eyebrow { max-width: none; }
     & .logos { width: 100%; justify-content: flex-start; padding: var(--mx-space-5) 0 0; border-left: 0; border-top: var(--mx-stroke) solid var(--mx-color-border); }

@@ -64,7 +64,7 @@
     & .link:hover .caption { text-decoration: underline; text-underline-offset: 3px; }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .strip { gap: var(--mx-space-3); }
   }
 

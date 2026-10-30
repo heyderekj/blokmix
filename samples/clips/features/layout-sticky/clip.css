@@ -68,7 +68,7 @@
   & .text { display: grid; gap: var(--mx-space-2); padding-top: var(--mx-space-2); max-width: 52ch; }
   & .title { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: var(--mx-text-xl); }
 
-  @container (max-width: 816px) {
+  @container (max-width: 832px) {
     & .aside { gap: var(--mx-space-6); }
   }
 

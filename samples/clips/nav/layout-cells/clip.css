@@ -83,7 +83,7 @@
     & .go:hover .arrow { transform: translate(2px, -2px); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .num { display: none; }
   }
 

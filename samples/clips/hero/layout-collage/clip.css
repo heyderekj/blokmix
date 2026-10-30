@@ -72,7 +72,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
@@ -153,7 +153,7 @@
     background: color-mix(in oklab, var(--mx-color-accent) 30%, transparent);
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .headline { grid-column: 1 / span 10; }
     & .copy { grid-column: 1 / span 6; }
     & .collage { grid-column: 6 / span 7; }

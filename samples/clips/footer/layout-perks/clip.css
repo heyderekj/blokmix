@@ -157,7 +157,7 @@
     & .social:hover { color: var(--mx-color-text); background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .main > .about { grid-column: auto / span 12; }
     & .main > .cols { grid-column: auto / span 6; }

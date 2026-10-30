@@ -136,7 +136,7 @@
   }
 
   /* Tablet: .t-col-N re-spans a child from 1080px down. */
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-6 { grid-column: auto / span 6; }
     & .grid > .t-col-12 { grid-column: auto / span 12; }

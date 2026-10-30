@@ -44,7 +44,7 @@ describe('container queries', () => {
     expect(out).toMatch(/@media \(max-width: 760px\) \{\s*\/\* phones; one column \*\/\s*padding-inline: var\(--mx-space-5\);\s*\}/)
     expect(out).toMatch(/@container \(max-width: 616px\) \{\s*&\.reverse \.grid \{ order: 2; \}\s*& \.grid \{ grid-template-columns: 1fr; \}\s*\}/)
     // Nested inside a descendant rule: a container query.
-    expect(out).toContain('& .card {\n    @container (max-width: 936px)')
+    expect(out).toContain('& .card {\n    @container (max-width: 952px)')
     // Inside a rule on the root itself (its ::before): still the viewport.
     expect(out).toContain('&::before {\n    @media (max-width: 760px)')
     // Hover queries and keyframes are left alone.

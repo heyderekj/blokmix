@@ -87,7 +87,7 @@
     & .member:hover .portrait { translate: 0 -4px; }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .row { grid-auto-columns: calc((100% - var(--mx-space-5) * 2) / 2.4); }
   }
 

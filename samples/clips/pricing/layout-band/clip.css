@@ -80,7 +80,7 @@
     & .inverse .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 88%, var(--mx-color-primary)); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .side, & .grid > .detail { grid-column: auto / span 12; }
     & .detail { padding-left: 0; padding-top: var(--mx-space-8); border-left: 0; border-top: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-on-primary) 20%, transparent); }

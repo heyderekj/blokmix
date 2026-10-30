@@ -46,7 +46,7 @@
   & .meter:nth-child(3) .fill { width: 38%; background: color-mix(in oklab, var(--mx-color-primary) 52%, var(--mx-color-bg)); }
   & .meter:nth-child(n + 4) .fill { width: 22%; background: color-mix(in oklab, var(--mx-color-primary) 36%, var(--mx-color-bg)); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .meter { grid-column: 2 / span 10; }
   }
 

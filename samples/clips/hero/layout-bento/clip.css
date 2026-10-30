@@ -72,7 +72,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 
@@ -130,7 +130,7 @@
   & .wide .w2 { left: 44%; top: 18%; width: 48%; height: 28%; background: color-mix(in oklab, var(--mx-color-text) 7%, var(--mx-color-surface)); }
   & .wide .w3 { left: 44%; top: 54%; width: 30%; height: 28%; background: color-mix(in oklab, var(--mx-color-primary) 60%, var(--mx-color-surface)); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .intro { grid-column: 1 / span 12; min-height: 0; }
     & .tall { grid-column: 7 / span 6; grid-row: 2; min-height: 320px; }
     & .proof { grid-column: 1 / span 6; grid-row: 2; }

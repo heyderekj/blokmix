@@ -84,7 +84,7 @@
     & .row:hover .go { background: var(--mx-color-primary); color: var(--mx-color-on-primary); rotate: 45deg; }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 

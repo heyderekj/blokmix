@@ -81,7 +81,7 @@
   & .body { line-height: 1.65; color: color-mix(in oklab, var(--mx-color-on-primary) 78%, transparent); text-wrap: pretty; }
   & .lead + .body { margin-top: var(--mx-space-2); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .stage { column-gap: var(--mx-space-5); }
     & .media { grid-column: 1 / span 9; }
     & .panel { grid-column: 5 / span 8; padding: var(--mx-space-8) var(--mx-space-7); }

@@ -27,7 +27,7 @@
   & .prose { font-size: var(--mx-text-lg); line-height: 1.7; }
   & .signoff { padding-top: var(--mx-space-5); border-top: var(--mx-stroke) solid var(--mx-color-border); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .side { grid-column: 1 / span 5; }
     & .grid > .text { grid-column: 7 / span 6; }

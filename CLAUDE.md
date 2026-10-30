@@ -224,7 +224,7 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
    between inline elements (JSX drops it).
 10. Use typographic quotes (’ “ ”). Avoid `{` `}` in text unless inside `<pre>`/`<code>`.
 11. Each clip must look right at 1440px and 390px, and at 1080 and 768 in between. Breakpoints answer to the section, not
-    the viewport: nest `@container (max-width: 616px)` (phones) and `@container (max-width: 936px)` (tablets) inside the
+    the viewport: nest `@container (max-width: 616px)` (phones) and `@container (max-width: 952px)` (tablets) inside the
     root for what's inside it. The container is the root's content box, the viewport less its two 64px gutters and any
     scrollbar, so those are the 760px and 1080px viewport breakpoints for a full-width section (`GUTTERS` in `core/containerize.ts`). Every section root
     is a size container (`.mx-section`, `[data-mx-section]` in the base CSS), so a layout fits wherever it sits: a page, a

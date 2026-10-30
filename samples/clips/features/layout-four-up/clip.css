@@ -45,7 +45,7 @@
   & .title { font-size: var(--mx-text-base); }
   & .body { font-size: var(--mx-text-sm); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid > .t-col-6 { grid-column: auto / span 6; }
   }
 

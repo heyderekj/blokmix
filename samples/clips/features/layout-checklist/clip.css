@@ -43,7 +43,7 @@
   & .title { font-size: var(--mx-text-base); }
   & .body { font-size: var(--mx-text-sm); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid > .col-5, & .grid > .col-7 { grid-column: auto / span 12; }
     & .head { position: static; }
     & .container.grid { row-gap: var(--mx-space-9); }

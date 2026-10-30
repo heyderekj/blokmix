@@ -66,7 +66,7 @@
   & .l4 { font-size: var(--mx-text-xl); }
   & .l7 { font-size: var(--mx-text-base); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .container > * { grid-column: auto / span 12; }
   }
 

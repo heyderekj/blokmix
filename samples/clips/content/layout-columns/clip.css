@@ -35,7 +35,7 @@
     border-top: calc(var(--mx-stroke) * 2) solid var(--mx-color-text);
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .top > * { grid-column: 1 / -1; }
     & .top { row-gap: var(--mx-space-5); }

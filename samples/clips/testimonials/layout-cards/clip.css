@@ -108,7 +108,7 @@
   & .name { font-size: var(--mx-text-sm); font-weight: 600; }
   & .role { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
-  @container (max-width: 816px) {
+  @container (max-width: 832px) {
     & .cards { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; }
   }
 

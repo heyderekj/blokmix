@@ -134,7 +134,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 816px) {
+  @container (max-width: 832px) {
     & .foot { grid-template-columns: minmax(0, 1fr); padding-left: 0; }
     & .foot .stack { justify-self: start; }
   }

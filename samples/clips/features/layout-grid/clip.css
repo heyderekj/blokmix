@@ -91,7 +91,7 @@
     text-wrap: pretty;
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { grid-template-columns: repeat(2, 1fr); }
   }
 

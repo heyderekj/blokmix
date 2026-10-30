@@ -79,7 +79,8 @@ function targetsRoot(prelude: string): boolean {
  * Breakpoints move in by that much, so a full-width section switches where it did on the viewport.
  */
 export const GUTTERS = 144
-const toSectionWidth = (cond: string) => cond.replace(/(\d+(?:\.\d+)?)px/g, (_, n: string) => `${Number(n) - GUTTERS}px`)
+// Wide breakpoints only lose the gutters, so a full-width section at exactly the old width still matches with a scrollbar.
+const toSectionWidth = (cond: string) => cond.replace(/(\d+(?:\.\d+)?)px/g, (_, n: string) => `${Number(n) - (Number(n) > 900 ? 128 : GUTTERS)}px`)
 
 const isAt = (prelude: string) => /^(?:\s|\/\*[\s\S]*?\*\/)*@/.test(prelude)
 const hasDecls = (raw: string) => raw.replace(/\/\*[\s\S]*?\*\//g, '').trim().length > 0

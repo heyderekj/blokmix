@@ -65,7 +65,7 @@
     & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .col-10 { grid-column: auto / span 12; }
     & .grid > .col-4 { grid-column: auto / span 5; }

@@ -88,7 +88,7 @@
     & .col-links a:hover { color: var(--mx-color-on-primary); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
   }
 

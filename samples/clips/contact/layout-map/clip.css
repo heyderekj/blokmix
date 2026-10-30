@@ -106,7 +106,7 @@
     & .detail a:hover { color: var(--mx-color-accent); }
   }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .map { grid-column: auto / span 12; aspect-ratio: 16 / 9; }
     & .grid > .side { grid-column: auto / span 12; }

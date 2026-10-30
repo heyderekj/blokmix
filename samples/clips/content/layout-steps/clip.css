@@ -52,7 +52,7 @@
   & .step .body { padding-top: var(--mx-space-2); font-size: var(--mx-text-lg); color: var(--mx-color-text); }
   & .flow .note { padding-left: calc(48px + var(--mx-space-5)); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .head, & .grid > .flow { grid-column: 1 / -1; }
   }

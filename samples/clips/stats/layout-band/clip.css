@@ -43,7 +43,7 @@
   }
   & .label { font-size: var(--mx-text-sm); line-height: 1.45; color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
 
-  @container (max-width: 936px) {
+  @container (max-width: 952px) {
     & .grid > .t-col-6 { grid-column: auto / span 6; }
     & .top > * { grid-column: auto / span 12; }
     & .top { gap: var(--mx-space-5); }
