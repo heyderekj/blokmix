@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class LibrarySection extends Model
 {
     /** core/types.ts SECTION_TYPES. */
-    public const TYPES = ['nav', 'hero', 'header', 'logos', 'features', 'stats', 'content', 'team', 'testimonials', 'pricing', 'blog', 'faq', 'contact', 'cta', 'footer'];
+    public const TYPES = ['nav', 'hero', 'header', 'logos', 'features', 'stats', 'content', 'gallery', 'team', 'testimonials', 'pricing', 'blog', 'faq', 'contact', 'cta', 'footer'];
 
     public const STATUSES = ['matched', 'needs_layout', 'hidden'];
 

@@ -98,6 +98,15 @@ class LibraryTest extends TestCase
         $this->assertSame(0, $this->owner()->usage()['uploads']);
     }
 
+    public function test_a_gallery_section_uploads(): void
+    {
+        $json = $this->siteJson();
+        $json['pages'][0]['sections'][1] = ['order' => 1, 'type' => 'gallery', 'box' => ['y' => 800, 'h' => 900], 'layoutId' => 'gallery.layout-grid'];
+        $this->actingAs($this->owner())->upload($json)->assertCreated()
+            ->assertJsonPath('pages.0.sections.1.type', 'gallery')
+            ->assertJsonPath('pages.0.sections.1.status', 'matched');
+    }
+
     public function test_only_owners_upload(): void
     {
         $this->actingAs(User::factory()->create())->upload($this->siteJson())->assertForbidden();
