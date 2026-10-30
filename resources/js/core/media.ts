@@ -9,6 +9,7 @@ import { mixHex } from './treatments/params'
 
 export { mixHex }
 import { mockRender } from './treatments/mocks'
+import { isShaderId, shaderSpec, type ShaderId, type ShaderSpec } from './treatments/shaders'
 
 export const PLACEHOLDER_LABEL: Record<PlaceholderStyle, string> = {
   mesh: 'Mesh',
@@ -115,7 +116,7 @@ export interface UploadData {
 
 /** What a frame (or an export) needs to draw an image block. */
 export interface MediaRender {
-  kind: 'image' | 'video' | 'lottie' | 'embed' | 'mock'
+  kind: 'image' | 'video' | 'lottie' | 'embed' | 'mock' | 'shader'
   /** A URL or data URI. Empty when the bytes travel separately (uploaded video or Lottie: see `asset`). */
   src: string
   alt: string
@@ -132,6 +133,16 @@ export interface MediaRender {
   /** Mockups: their markup (in its frame) and CSS. */
   html?: string
   css?: string
+  /** Shaders: what the runtime (/mx-shaders.js) runs. */
+  shader?: ShaderSpec
+}
+
+/**
+ * A shader's spec, with the palette picture it looks through (fluted glass)
+ * drawn as a placeholder in the same palette and shape.
+ */
+export function shaderFor(id: ShaderId, params: ParamValues | undefined, seed: number, tokens: TokenSet, ratio?: string): ShaderSpec {
+  return shaderSpec(id, params, seed, tokens, (style) => svgDataUri(placeholderSvg(style, seed, tokens, ratio)))
 }
 
 /** Resolve a fill to what's drawn. */
@@ -145,6 +156,7 @@ export function renderMedia(fill: MediaFill, tokens: TokenSet, ratio: string | u
     const m = fill.mock ? mockRender(fill.mock, fill.params, fill.seed ?? 1, tokens) : null
     return m ? { kind: 'mock', src: '', alt, fit, html: m.html, css: m.css } : null
   }
+  if (fill.source === 'shader') return fill.shader && isShaderId(fill.shader) ? { kind: 'shader', src: '', alt, fit, shader: shaderFor(fill.shader, fill.params, fill.seed ?? 1, tokens, ratio) } : null
   if (fill.source === 'stock' && fill.stock) return { kind: 'image', src: stockUrl(fill.stock, 1600), alt: alt || fill.stock.description || '', fit, lightbox: !!fill.lightbox }
   if (fill.source === 'upload' && fill.asset) {
     const src = uploads(fill.asset)?.dataUrl

@@ -2,6 +2,7 @@ import type { ComposedPage, ComposedSection } from '../compose'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
+import { SHADERS_JS, SHADER_CSS } from './shaders'
 import { contentVar, fontLinks, routeFile, sectionCss, sectionHeader, sitePages, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
 
@@ -26,8 +27,9 @@ export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
   files[`${root}astro.config.mjs`] = `import { defineConfig } from 'astro/config'\n\nexport default defineConfig({})\n`
   files[`${root}tsconfig.json`] = JSON.stringify({ extends: 'astro/tsconfigs/strict', include: ['.astro/types.d.ts', '**/*'], exclude: ['dist'] }, null, 2) + '\n'
   files[`${root}src/styles/tokens.css`] = tokensCss(page)
-  files[`${root}src/styles/base.css`] = BASE_CSS_LAYERED + (page.moving ? `\n${MEDIA_CSS}` : '')
+  files[`${root}src/styles/base.css`] = BASE_CSS_LAYERED + (page.moving ? `\n${MEDIA_CSS}` : '') + (page.shaders.length ? `\n${SHADER_CSS}` : '')
   if (page.moving) files[`${root}public/mx-media.js`] = MEDIA_JS
+  if (page.shaders.length) files[`${root}public/mx-shaders.js`] = SHADERS_JS
 
   const site = sitePages(page)
   const { nav, footer } = site.shared
@@ -56,7 +58,7 @@ const { title, nav = true, footer = true } = Astro.props
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-${links.map((l) => `    ${l}\n`).join('')}${page.moving ? '    <script is:inline src="/mx-media.js" defer></script>\n' : ''}  </head>
+${links.map((l) => `    ${l}\n`).join('')}${page.moving ? '    <script is:inline src="/mx-media.js" defer></script>\n' : ''}${page.shaders.length ? '    <script is:inline src="/mx-shaders.js" defer></script>\n' : ''}  </head>
   <body>
 ${nav ? `    ${chrome(nav, 'nav')}\n` : ''}    <main>
       <slot />

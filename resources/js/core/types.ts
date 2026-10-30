@@ -459,16 +459,18 @@ export interface MediaLink {
  * What fills an image block: a placeholder drawn from your palette (it
  * re-themes with the style guide), an image you uploaded (kept in this
  * browser), a stock photo, a UI mockup drawn in your style, or something that moves: a video, a Lottie
- * animation, or a YouTube/Vimeo embed.
+ * animation, a YouTube/Vimeo embed, or a live WebGL shader drawn from your palette.
  */
 export interface MediaFill {
-  source: 'placeholder' | 'upload' | 'stock' | 'video' | 'lottie' | 'embed' | 'mock'
+  source: 'placeholder' | 'upload' | 'stock' | 'video' | 'lottie' | 'embed' | 'mock' | 'shader'
   style?: PlaceholderStyle
   seed?: number
-  /** Generative placeholders and mockups: their dials (only what differs from the defaults). */
+  /** Generative placeholders, mockups and shaders: their dials (only what differs from the defaults). */
   params?: ParamValues
   /** A UI mockup (core/treatments/mocks.ts): which screen. */
   mock?: string
+  /** A live shader (core/treatments/shaders.ts): which one. */
+  shader?: string
   /** Upload (image, video or Lottie): the asset id in the browser's asset store. */
   asset?: string
   stock?: StockPhoto

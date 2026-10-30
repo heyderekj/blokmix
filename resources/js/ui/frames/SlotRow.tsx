@@ -7,7 +7,7 @@ import { sectionClip } from '@/core/lists'
 import { onSection } from '@/core/notes'
 import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
-import { frameStateFor, usePageStyle } from '@/state/derived'
+import { frameStateFor, usePageStyle, withoutShaders } from '@/state/derived'
 import { postState, type BlockEvent, type FrameRect } from '@/frame/bridge'
 import { useBlockPreview, withPreview } from '../blocks/preview'
 import { BlockBar } from '../blocks/BlockBar'
@@ -401,12 +401,16 @@ const Tile = memo(function Tile(p: {
   const clip = library.clips[p.clipId]
   // Uploads load from the browser's store after start-up; redraw when they arrive.
   const assets = useAssets((s) => s.assets)
-  const state = useMemo(
-    () => frameStateFor(clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page, assets],
-  )
   const isCurrent = p.rel === 0
+  const state = useMemo(
+    () => {
+      const s = frameStateFor(clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page)
+      // Live shaders run only in the clip on show: each one holds a WebGL context, and browsers allow a handful.
+      return isCurrent ? s : withoutShaders(s)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [clip, p.slot, p.mode, p.guide, p.content, p.viewport, p.page, assets, isCurrent],
+  )
   // Alternatives waiting under the current clip are invisible anyway: once measured and faded out,
   // hide them for real so the browser stops painting them (and their animations) on every frame.
   const [measured, setMeasured] = useState(false)

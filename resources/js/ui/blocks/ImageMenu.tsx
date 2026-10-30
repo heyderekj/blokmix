@@ -4,8 +4,9 @@ import { xsrf } from '@/lib/http'
 import { ImagePlus, Search, Shuffle, Trash2, Upload } from 'lucide-react'
 import type { BlockInfo, MediaFill, MediaPlay, PlaceholderStyle, StockPhoto, TokenSet } from '@/core/types'
 import { PLACEHOLDER_STYLES } from '@/core/types'
-import { PLACEHOLDER_LABEL, detectLink, embedPoster, parseUnsplash, placeholderSvg, svgDataUri, unsplashSearchUrl } from '@/core/media'
-import { MOCK_BASE_CSS, isFillId, mockRender, mockSources, treatmentInfo, type TreatmentValue } from '@/core/treatments'
+import { PLACEHOLDER_LABEL, detectLink, embedPoster, parseUnsplash, placeholderSvg, shaderFor, svgDataUri, unsplashSearchUrl } from '@/core/media'
+import { MOCK_BASE_CSS, SHADERS, SHADER_IDS, isFillId, mockRender, mockSources, treatmentInfo, type ShaderId, type TreatmentValue } from '@/core/treatments'
+import { useShaderThumb } from '@/lib/shaderPosters'
 import { useResolvedGuide } from '@/state/derived'
 import { useStore } from '@/state/store'
 import { DialPanel } from '../dials/DialPanel'
@@ -17,7 +18,7 @@ import { Switch } from '../panels/parts'
 type Tab = 'placeholder' | 'mock' | 'upload' | 'link' | 'stock'
 
 const tabOf = (f?: MediaFill): Tab =>
-  !f ? 'placeholder' : f.source === 'embed' || (f.link && !f.asset) ? 'link' : f.source === 'video' || f.source === 'lottie' || f.source === 'upload' ? 'upload' : f.source
+  !f || f.source === 'shader' ? 'placeholder' : f.source === 'embed' || (f.link && !f.asset) ? 'link' : f.source === 'video' || f.source === 'lottie' || f.source === 'upload' ? 'upload' : f.source
 
 const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY as string | undefined
 
@@ -105,7 +106,7 @@ export function ImageMenu({
 
 function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: MediaFill; onHover: (m: MediaFill | null) => void; onPick: (m: MediaFill) => void }) {
   const tokens = useResolvedGuide().tokens
-  const [seed, setSeed] = useState(fill?.source === 'placeholder' ? (fill.seed ?? 1) : 1)
+  const [seed, setSeed] = useState(fill?.source === 'placeholder' || fill?.source === 'shader' ? (fill.seed ?? 1) : 1)
   const styles = useMemo(() => {
     const simple = PLACEHOLDER_STYLES.filter((s) => !isFillId(s))
     // Portraits first for avatars and people; scenes first elsewhere.
@@ -120,8 +121,18 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
     alt: fill?.source === 'placeholder' ? fill.alt : undefined,
     fit: fill?.fit,
   })
-  const current = fill?.source === 'placeholder' && fill.style && isFillId(fill.style) ? fill : null
-  const info = current ? treatmentInfo('fill', current.style!) : undefined
+  const live = (id: ShaderId): MediaFill => ({
+    source: 'shader',
+    shader: id,
+    seed,
+    params: fill?.source === 'shader' && fill.shader === id ? fill.params : undefined,
+    alt: fill?.alt,
+    fit: fill?.fit,
+  })
+  // Generative placeholders and live shaders have dials.
+  const current = (fill?.source === 'placeholder' && fill.style && isFillId(fill.style)) || (fill?.source === 'shader' && fill.shader) ? fill! : null
+  const currentId = current ? (current.source === 'shader' ? current.shader! : current.style!) : undefined
+  const info = currentId ? treatmentInfo('fill', currentId) : undefined
   const tile = (style: PlaceholderStyle) => {
     const on = fill?.source === 'placeholder' && fill.style === style
     return (
@@ -144,11 +155,17 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
       <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>
         {styles.generative.map(tile)}
       </div>
+      <div className="mb-1.5 mt-3 px-0.5 text-[11px] font-semibold text-zinc-400">Live, in WebGL</div>
+      <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>
+        {SHADER_IDS.map((id) => (
+          <ShaderTile key={id} id={id} fill={live(id)} on={fill?.source === 'shader' && fill.shader === id} tokens={tokens} onHover={onHover} onPick={onPick} />
+        ))}
+      </div>
       {current && info ? (
         <div className="mt-2.5 rounded-xl bg-white/60 p-2.5 shadow-[0_0_0_1px_rgb(0_0_0/0.05)]">
           <DialPanel
             info={info}
-            value={{ id: current.style!, params: current.params, seed: current.seed ?? 1 }}
+            value={{ id: currentId!, params: current.params, seed: current.seed ?? 1 }}
             tokens={tokens}
             onPreview={(v) => onHover(v ? { ...current, params: v.params, seed: v.seed } : null)}
             onCommit={(v) => {
@@ -172,6 +189,21 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
       )}
       <p className="px-1 pt-1 text-[11px] leading-snug text-zinc-400">Drawn from your palette, so they change with your style guide.</p>
     </div>
+  )
+}
+
+/** A live shader as a still, drawn by the shader itself (its palette stand-in until then). */
+function ShaderTile({ id, fill, on, tokens, onHover, onPick }: { id: ShaderId; fill: MediaFill; on: boolean; tokens: TokenSet; onHover: (m: MediaFill | null) => void; onPick: (m: MediaFill) => void }) {
+  const spec = useMemo(() => shaderFor(id, fill.params, fill.seed ?? 1, tokens, '4/3'), [id, fill.params, fill.seed, tokens])
+  const thumb = useShaderThumb(spec, 160, 120)
+  return (
+    <button type="button" title={SHADERS[id].hint} onMouseEnter={() => onHover(fill)} onClick={() => onPick(fill)} className="group flex flex-col gap-1 text-left active:scale-[0.97]">
+      <span
+        className={`block aspect-[4/3] w-full rounded-lg bg-cover bg-center transition ${on ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/10 group-hover:ring-zinc-950/30'}`}
+        style={{ backgroundColor: tokens['color.surface'], backgroundImage: thumb ? `url(${thumb})` : undefined }}
+      />
+      <span className={`truncate px-0.5 text-[11px] ${on ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{SHADERS[id].label}</span>
+    </button>
   )
 }
 

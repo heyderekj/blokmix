@@ -12,7 +12,7 @@ const seed = z.number().int().min(1).describe('Another seed draws another variat
 export const TREATMENT_COMMANDS = {
   list_treatments: {
     description:
-      'The visual treatments and their dials: style guide effects (shadow, gradient, grain, glass, glow, which become --mx-* variables every section can use), section backdrops (gradient, mesh, grain, dots, grid, lines, topo, halftone, op-art stripes, spotlight, glow orb), generative pictures for image blocks (dither, halftone, topo, flow lines, blocks, ASCII, op art, marble, grain gradient) and UI mockups (dashboard, chat, table…). Each lists its dials as a JSON schema and its presets, plus the curated looks (sets of effects that work together).',
+      'The visual treatments and their dials: style guide effects (shadow, gradient, grain, glass, glow, which become --mx-* variables every section can use), section backdrops (gradient, mesh, grain, dots, grid, lines, topo, halftone, op-art stripes, spotlight, glow orb), generative pictures for image blocks (dither, halftone, topo, flow lines, blocks, ASCII, op art, marble, grain gradient), live WebGL shaders as backdrops or in image blocks (mesh-gradient, grain-flow, dithering, liquid-metal, fluted-glass, god-rays; live: true) and UI mockups (dashboard, chat, table…). Each lists its dials as a JSON schema and its presets, plus the curated looks (sets of effects that work together).',
     input: z.object({ surface: z.enum(['effect', 'backdrop', 'fill', 'mock']).optional() }),
     write: false,
   },
@@ -34,7 +34,7 @@ export const TREATMENT_COMMANDS = {
   },
   set_section_backdrop: {
     description:
-      'Put a backdrop behind a section (a gradient, mesh, grain, pattern or glow), from a preset and/or dials, or null for as clipped. inverse: true flips the section to the primary color. Keep text readable over it; review checks contrast.',
+      'Put a backdrop behind a section (a gradient, mesh, grain, pattern or glow, or a live WebGL shader: mesh-gradient, grain-flow, dithering, liquid-metal, fluted-glass, god-rays), from a preset and/or dials, or null for as clipped. inverse: true flips the section to the primary color; a shader’s strength fades it into the section’s color. Shaders move (posters cover reduced motion and browsers without WebGL). Keep text readable over it; review checks contrast.',
     input: z.object({ section, backdrop: z.enum(BACKDROP_IDS).nullable(), preset: preset.optional(), params: params.optional(), seed: seed.optional() }),
     write: true,
   },

@@ -284,10 +284,26 @@ packet text (`describeParams`) and the defaults. Colors are palette roles (`prim
 - **UI mockups** (`mocks.ts`, `samples/mocks/<id>/mock.{html,css,json}`, `lintMock`): small screens in HTML/CSS
   (tokens only) in a browser/phone frame with tilt, surface and seeded numbers; `MediaFill {source: 'mock'}`. Frames
   insert the markup; exports write it into the section with its CSS.
-- Agents: `list_treatments`, `set_effect`, `apply_look`, `set_section_backdrop`, `set_mock`, `set_image` params.
+- **Live shaders** (`shaders.ts`, Paper Shaders `@paper-design/shaders`, Apache-2.0): mesh gradient, grain flow,
+  dithering, liquid metal, fluted glass (looking through a palette placeholder) and god rays, as backdrops (after the
+  CSS ones in `BACKDROP_IDS`, plus strength and inverse) and as fills (`MediaFill {source: 'shader', shader}`); all
+  `live: true` in `treatmentList`. `shaderSpec`/`media.ts` `shaderFor` turn dials into uniforms (palette colors as
+  0–1 RGBA; seed is the start frame). One element everywhere: `<div class="mx-shader mx-media|mx-backdrop"
+  data-shader='{id,u,speed,frame,image?}'>` (a live backdrop is the section root's last child at z-index -1; its CSS
+  stand-in, isolation and strength come from `backdropCss`).
+  - The player is `frame/shader-runtime.ts` (`installShaders`, `mountShader`), bundled by
+    `npx vite-node scripts/build-shaders.ts` into `core/export/shaders-runtime.generated.ts` (`SHADERS_JS`; rerun after
+    updating the package, a test checks the version). Frames ask for it once they show a shader (`needShaders` →
+    `shadersJs`), get the backdrop as `FrameState.backdrop`, and update uniforms in place while you drag a dial. Only
+    the clip on show runs shaders (`withoutShaders` for hidden alternatives): each holds a WebGL context.
+  - Exports write `public/mx-shaders.js`, `SHADER_CSS` in base.css and a poster PNG per shader (`ComposedPage.shaders`).
+    Compose writes a stand-in poster (`standInPoster`, pure TS); the export panel and `prepare_build` bake the real
+    one in the browser (`lib/shaderPosters.ts` `withBakedPosters`, which also draws picker thumbnails). Reduced motion
+    and browsers without WebGL keep the poster; frames have none, so they draw one still frame.
+- Agents: `list_treatments`, `set_effect`, `apply_look`, `set_section_backdrop` (shader ids too), `set_mock`,
+  `set_image` params (and `shader` + `preset` for live fills).
 - Capture: `extension/src/capture/effects.ts` `detectEffects` puts a section's effects in clip.json (`effects`); the
   site library keeps a site's in `library_sites.effects` (summary lists which, full site gives the values).
-- WebGL shaders are a later phase (Paper Shaders); everything today is CSS/SVG and exports cleanly.
 
 ### Built-in layouts
 

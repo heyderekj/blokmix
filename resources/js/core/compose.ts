@@ -4,7 +4,8 @@ import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style
 import { LAYER_ORDER } from './export/base-css'
 import { motionCss as presetMotionCss } from './motion'
 import { swapIcons } from './icons'
-import { dataUrlBytes, placeholderSvg, renderMedia, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
+import { dataUrlBytes, placeholderSvg, renderMedia, shaderFor, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
+import { BACKDROP_POSTER, shaderElement, standInPoster } from './export/shaders'
 import { resolveFields } from './content'
 import { sectionClip } from './lists'
 import { applyLinks, pageScope, sectionAnchors, sectionLinks, siteScope, type LinkScope } from './links'
@@ -13,7 +14,7 @@ import { BANNER_CSS, BANNER_MOTION, bannerMoves } from './banner'
 import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
-import { BACKDROPS, MOCK_BASE_CSS, backdropCss, describeParams, effectsVars, isBackdropId, backdropParams, type TreatmentValue } from './treatments'
+import { MOCK_BASE_CSS, backdropCss, backdropInfo, backdropShaderId, describeParams, effectsVars, isBackdropId, backdropParams, type ShaderSpec, type TreatmentValue } from './treatments'
 
 export interface ComposedSection {
   slotId: string
@@ -45,7 +46,7 @@ export interface ComposedSection {
   /** The section's motion choice (absent = as clipped). */
   motion?: SectionMotion
   /** What's behind the section, in words (absent = as clipped). */
-  backdrop?: { value: TreatmentValue; label: string; description: string }
+  backdrop?: { value: TreatmentValue; label: string; description: string; live?: boolean; poster?: string }
   /** Pictures in its image blocks. */
   media: ComposedMedia[]
   retained: string[]
@@ -75,6 +76,16 @@ export interface ComposedMedia {
   html: string | null
   css: string | null
   mock: string | null
+  /** Live shaders: what /mx-shaders.js runs (src is its poster). */
+  shader: ShaderSpec | null
+}
+
+/** A live shader on the page: its poster's path in public/ (a stand-in until the browser bakes it) and what to bake. */
+export interface ComposedShader {
+  path: string
+  spec: ShaderSpec
+  w: number
+  h: number
 }
 
 export interface ComposedPage {
@@ -87,6 +98,8 @@ export interface ComposedPage {
   mediaFiles: Record<string, string | Uint8Array>
   /** Some section has video, a Lottie, an embed or a lightbox: ship the media player. */
   moving: boolean
+  /** Live shaders (backdrops and image blocks): ship /mx-shaders.js, and bake their posters. */
+  shaders: ComposedShader[]
   /** Other pages that links lead to but the site doesn't have yet (/careers): for the agent to build. */
   pages: string[]
   /** A site of pages: the shared nav and footer, composed once, and each page's own sections. `sections` lists them all. */
@@ -145,6 +158,13 @@ export function composePage(input: ComposeInput): ComposedPage {
   const scope = input.link ?? pageScope(input.slots)
   const mediaFiles: Record<string, string | Uint8Array> = {}
   const sections: ComposedSection[] = []
+  const shaders: ComposedShader[] = []
+  /** A shader's poster: a stand-in now, the real frame once the browser bakes it. */
+  const posterFor = (path: string, spec: ShaderSpec, w: number, h: number) => {
+    mediaFiles[path] = standInPoster(spec, w, h)
+    shaders.push({ path, spec, w, h })
+    return `/${path}`
+  }
 
   const anchors = input.anchors ?? sectionAnchors(input.slots)
   input.slots.forEach((slot, position) => {
@@ -188,7 +208,10 @@ export function composePage(input: ComposeInput): ComposedPage {
       const base = `media/${key}${position + 1}-${b.id.replace(/\./g, '-')}`
       let src = r.src
       let poster = r.poster
-      if (fill.source === 'placeholder') {
+      if (r.shader) {
+        const [w, h] = sizeForRatio(b.ratio, 1200)
+        src = posterFor(`${base}.png`, r.shader, w, h)
+      } else if (fill.source === 'placeholder') {
         src = `/${base}.svg`
         mediaFiles[`${base}.svg`] = placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, input.guide.tokens, b.ratio, fill.params)
       } else if (fill.source === 'upload') {
@@ -219,7 +242,8 @@ export function composePage(input: ComposeInput): ComposedPage {
         source: fill.source,
         kind: r.kind,
         src,
-        inline: r.src,
+        // A shader's poster goes inline from mediaFiles when the reference is written (it may be baked by then).
+        inline: r.shader ? src : r.src,
         poster: poster ?? null,
         inlinePoster: r.poster ?? null,
         player: r.player ?? null,
@@ -231,9 +255,21 @@ export function composePage(input: ComposeInput): ComposedPage {
         html: r.html ?? null,
         css: r.css ?? null,
         mock: fill.source === 'mock' ? (fill.mock ?? null) : null,
+        shader: r.shader ?? null,
       })
     }
     const mediaFor = new Map(media.map((m) => [m.blockId, m]))
+    // A live backdrop runs in its own layer, the root's last child, over a poster.
+    const liveId = backdropShaderId(backdrop)
+    const backdropTokens = slot.keep.style ? clip.tokens : input.guide.tokens
+    const live = liveId
+      ? (() => {
+          const spec = shaderFor(liveId, backdrop!.params, backdrop!.seed ?? 1, backdropTokens, '16/9')
+          const [w, h] = BACKDROP_POSTER
+          const path = `media/${key}${position + 1}-backdrop.png`
+          return { spec, path, el: shaderElement(spec, { as: 'backdrop', poster: posterFor(path, spec, w, h), w, h }) }
+        })()
+      : null
     // Named icons redrawn in the style guide's set (unless the section keeps its own look).
     const iconOverrides = Object.fromEntries(changed.flatMap(({ b, edit }) => (b.kind === 'icon' && edit.icon ? [[b.id, edit.icon]] : [])))
     const source = slot.keep.style ? parseHtml(clip.html) : swapIcons(parseHtml(clip.html), input.guide.tokens['icon.set'], iconOverrides)
@@ -241,7 +277,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       if (attr(el, 'data-mx-section') !== undefined) {
         // Every section has an anchor, so links can lead to it (#pricing).
         const root = spaced ? addClass(el, `mx-${key}${position + 1}`) : el
-        return { ...root, attrs: [...root.attrs.filter(([k]) => k !== 'id'), ['id', anchors[slot.id]]] }
+        return { ...root, attrs: [...root.attrs.filter(([k]) => k !== 'id'), ['id', anchors[slot.id]]], kids: live ? [...root.kids, live.el] : root.kids }
       }
       if (attr(el, 'data-mx-block') === undefined) return el
       const id = attr(el, 'data-mx-b') ?? `b${order}`
@@ -281,7 +317,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       })
       .join('\n')
     const rootSel = `.${clip.rootClass}.mx-${key}${position + 1}`
-    const behind = backdrop ? backdropCss(backdrop, slot.keep.style ? clip.tokens : input.guide.tokens, rootSel) : ''
+    const behind = backdrop ? backdropCss(backdrop, backdropTokens, rootSel) : ''
     const generated = presetMotionCss({
       blocks: clip.blocks,
       edits: (b) => effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]),
@@ -341,7 +377,14 @@ export function composePage(input: ComposeInput): ComposedPage {
       localVars,
       blocks: changed.map(({ b, edit }) => ({ id: b.id, label: b.label, kind: b.kind, edit })),
       motion: slot.motion,
-      backdrop: backdrop ? { value: backdrop, label: BACKDROPS[backdrop.id as keyof typeof BACKDROPS].label, description: describeParams(backdropParams(backdrop.id as keyof typeof BACKDROPS), backdrop.params) } : undefined,
+      backdrop: backdrop
+        ? {
+            value: backdrop,
+            label: backdropInfo(backdrop.id as Parameters<typeof backdropInfo>[0]).label,
+            description: describeParams(backdropParams(backdrop.id as Parameters<typeof backdropParams>[0]), backdrop.params),
+            ...(live ? { live: true, poster: `/${live.path}` } : {}),
+          }
+        : undefined,
       media,
       retained: slot.keep.content ? [] : retained,
       notes: input.slotNotes?.[slot.id] ?? [],
@@ -360,7 +403,8 @@ export function composePage(input: ComposeInput): ComposedPage {
     fonts: [...fonts.values()],
     sections,
     mediaFiles,
-    moving: sections.some((x) => x.media.some((m) => (m.kind !== 'image' && m.kind !== 'mock') || m.lightbox)),
+    moving: sections.some((x) => x.media.some((m) => (m.kind !== 'image' && m.kind !== 'mock' && m.kind !== 'shader') || m.lightbox)),
+    shaders,
     pages: [...new Set(sections.flatMap((x) => x.links.filter((l) => l.to === 'page').map((l) => l.href)))].sort(),
   }
 }
@@ -389,6 +433,7 @@ export function composeSite(input: Omit<ComposeInput, 'slots' | 'key' | 'used' |
     sections: all.flatMap((c) => c.sections),
     mediaFiles: Object.assign({}, ...all.map((c) => c.mediaFiles)),
     moving: all.some((c) => c.moving),
+    shaders: all.flatMap((c) => c.shaders),
     pages: [...new Set(all.flatMap((c) => c.pages))].filter((p) => !paths.has(p)).sort(),
     site: {
       shared: { nav: nav?.sections[0], footer: footer?.sections[0] },
@@ -449,5 +494,6 @@ function mediaElements(m: ComposedMedia, w: number, h: number): HEl[] {
     return [...poster, el('button', [['type', 'button'], ['class', 'mx-play'], ['data-embed', m.player ?? ''], ['aria-label', m.alt ? `Play video: ${m.alt}` : 'Play video']])]
   }
   if (m.kind === 'mock' && m.html) return parseHtml(m.html).filter((n): n is HEl => n.t === 'el')
+  if (m.kind === 'shader' && m.shader) return [shaderElement(m.shader, { as: 'media', poster: m.src, w, h, alt: m.alt })]
   return [el('img', [['class', 'mx-media'], ['src', m.src], ['alt', m.alt], ...size, ['loading', 'lazy'], ['decoding', 'async']])]
 }

@@ -3,6 +3,7 @@ import { serialize } from '../html/serialize'
 import type { HNode } from '../html/parse'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
+import { SHADERS_JS, SHADER_CSS } from './shaders'
 import { slug } from './astro'
 import { contentVar, sitePages, fontLinks, sectionCss, sectionHeader, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
@@ -60,10 +61,11 @@ export function nextFiles(page: ComposedPage, root = 'next/'): FileMap {
   ) + '\n'
 
   files[`${root}app/tokens.css`] = tokensCss(page)
-  files[`${root}app/base.css`] = BASE_CSS_LAYERED + (page.moving ? `\n${MEDIA_CSS}` : '')
+  files[`${root}app/base.css`] = BASE_CSS_LAYERED + (page.moving ? `\n${MEDIA_CSS}` : '') + (page.shaders.length ? `\n${SHADER_CSS}` : '')
   if (page.moving) files[`${root}public/mx-media.js`] = MEDIA_JS
+  if (page.shaders.length) files[`${root}public/mx-shaders.js`] = SHADERS_JS
   files[`${root}app/layout.tsx`] = `import type { Metadata } from 'next'
-${page.moving ? "import Script from 'next/script'\n" : ''}import './tokens.css'
+${page.moving || page.shaders.length ? "import Script from 'next/script'\n" : ''}import './tokens.css'
 import './base.css'
 ${page.sections.map((s) => `import '../components/sections/${s.component}.css'`).join('\n')}
 
@@ -78,7 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ${links.map((l) => `        ${l}\n`).join('')}      </head>
       <body>
         {children}
-${page.moving ? '        <Script src="/mx-media.js" strategy="afterInteractive" />\n' : ''}      </body>
+${page.moving ? '        <Script src="/mx-media.js" strategy="afterInteractive" />\n' : ''}${page.shaders.length ? '        <Script src="/mx-shaders.js" strategy="afterInteractive" />\n' : ''}      </body>
     </html>
   )
 }

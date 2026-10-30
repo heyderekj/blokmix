@@ -31,6 +31,9 @@ export interface PacketInput {
   generatedAt?: string
 }
 
+const SHADER_NOTE =
+  'Live backdrops and pictures are WebGL shaders from Paper Shaders (Apache-2.0, shaders.paper.design), run by `/mx-shaders.js`: it finds each `.mx-shader[data-shader]` element and runs the shader its JSON names (uniforms with colors already resolved from the style guide, speed, starting frame). Each holds a poster PNG baked from the same shader; reduced motion and browsers without WebGL keep the poster, and shaders pause off screen. Keep the element and its poster where they are. To change a shader, change it in Blokmix and export again, or edit the JSON (colors are 0–1 RGBA). To bundle it instead, the player is plain code over `@paper-design/shaders` (`ShaderMount` and the fragment shaders).'
+
 export const AGENT_RULES = [
   'Use only the tokens in tokens.css. Never introduce new colors, font families, radii, shadows or easings. For depth and texture use the style guide’s effect variables when tokens.css has them (--mx-shadow-sm/card/lg, --mx-gradient, --mx-grain, --mx-glass-*, --mx-glow) rather than inventing new ones.',
   'Keep each section as its own component, in this order.',
@@ -201,7 +204,11 @@ export function buildNotes(i: PacketInput): string {
     if (going.length) lines.push(`- **Links:** ${going.map((l) => `${l.label.split(' · ').slice(1).join(' · ') || l.label} → \`${l.href}\`${l.newTab ? ' (new tab)' : ''}`).join('; ')}`)
     if (nowhere.length) lines.push(`- **Links with no destination yet** (ask, or point them somewhere sensible): ${nowhere.map((l) => l.label.split(' · ').slice(1).join(' · ') || l.label).join('; ')}`)
     for (const [f, os] of Object.entries(s.options)) lines.push(`- **Other ways to say ${f}** (kept as options; use only if asked): ${os.map((o) => `“${o}”`).join(' · ')}`)
-    if (s.backdrop) lines.push(`- **Backdrop:** ${s.backdrop.label} (${s.backdrop.description}); it’s in the section’s CSS under @layer effects. Keep the text readable over it.`)
+    if (s.backdrop?.live)
+      lines.push(
+        `- **Backdrop:** ${s.backdrop.label}, a live WebGL shader (${s.backdrop.description}). It runs in the section’s last child, \`<div class="mx-shader mx-backdrop" data-shader="…">\`, over its poster \`${s.backdrop.poster}\`; its strength and the section’s stacking are in the section’s CSS under @layer effects. Keep the text readable over it.`,
+      )
+    else if (s.backdrop) lines.push(`- **Backdrop:** ${s.backdrop.label} (${s.backdrop.description}); it’s in the section’s CSS under @layer effects. Keep the text readable over it.`)
     lines.push(`- **Motion:** ${describeSectionMotion(s.motion) ?? (s.keep.motion ? s.clip.motionNotes ?? 'keep the captured motion' : 'none')}${s.motionCss?.includes('Motion presets') ? ' (presets are in the section’s motion CSS; keep their timing and easing)' : ''}`)
     for (const b of s.blocks) lines.push(`- **Block, ${b.label}:** ${describeEdit(b.edit)}`)
     for (const n of s.notes) lines.push(`- **Note:** ${n}`)
@@ -239,7 +246,9 @@ export function buildNotes(i: PacketInput): string {
     for (const m of media) {
       const playback = m.kind !== 'image' ? `, plays ${m.play === 'inview' ? 'when in view' : m.play === 'scrub' ? 'with the scroll' : m.play === 'hover' ? 'on hover' : m.play === 'autoplay' ? 'automatically (muted)' : 'on click'}${m.loop ? ', loops' : ''}` : ''
       const what =
-        m.source === 'mock'
+        m.source === 'shader'
+          ? `live WebGL shader “${m.shader?.id}” drawn from the palette (it runs on \`/mx-shaders.js\`; the PNG is its poster)`
+          : m.source === 'mock'
           ? `UI mockup “${m.mock}” drawn in HTML and the style guide (markup and CSS are in the section; replace with a real screenshot or keep it as an illustration)`
           : m.source === 'placeholder'
           ? 'placeholder from the palette (replace with a real image before launch)'
@@ -258,6 +267,12 @@ export function buildNotes(i: PacketInput): string {
     if (page.moving) lines.push('Moving media and lightboxes run on `/mx-media.js` (triggers, reduced motion, lazy embeds, a `<dialog>` lightbox). It loads the dotLottie player from a CDN; swap in the `@lottiefiles/dotlottie-web` package if you prefer bundling it.')
     lines.push('')
     lines.push('Optimise the files in `public/media/` before shipping (videos too: `dinky compress-video`). With Dinky’s CLI (dinkyfiles.com): `dinky compress-image public/media/*.webp -f webp -w 1600 --strip-metadata --json -o public/media`, keeping file names so references still match.')
+    lines.push('')
+  }
+  if (page.shaders.length) {
+    lines.push('## Live shaders')
+    lines.push('')
+    lines.push(SHADER_NOTE)
     lines.push('')
   }
   if (page.sections.some((s) => /data-mx-icon|<svg/.test(s.clip.html))) {

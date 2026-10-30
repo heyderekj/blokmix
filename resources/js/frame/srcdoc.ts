@@ -1,6 +1,7 @@
 import { BASE_CSS, LAYER_ORDER } from '@/core/export/base-css'
 import { MEDIA_CSS, MEDIA_JS } from '@/core/export/media-runtime'
 import { MOCK_BASE_CSS } from '@/core/treatments/mocks'
+import { SHADER_CSS } from '@/core/export/shaders'
 
 /**
  * Runs inside every sandboxed clip iframe. Live changes (tokens, motion, copy,
@@ -189,6 +190,39 @@ const BRIDGE = `(function () {
     var css = out.length ? '@layer blocks {\\n' + out.join('\\n') + '\\n}' : '';
     if (s.textContent !== css) s.textContent = css;
   }
+  /* ---- live shaders: the player (/mx-shaders.js) is fetched from the app the first time one is needed ---- */
+  var shaderWait = null;
+  function withShaders(cb) {
+    if (window.mxShaders) return cb(window.mxShaders);
+    if (!shaderWait) { shaderWait = []; post({ needShaders: true }); }
+    shaderWait.push(cb);
+  }
+  function shaderEl(cls, spec, label) {
+    var s = mk('div', { class: 'mx-shader ' + cls, 'aria-hidden': label ? null : 'true', role: label ? 'img' : null, 'aria-label': label || null });
+    s.setAttribute('data-shader', JSON.stringify(spec));
+    return s;
+  }
+  /* Same shader as before: new dials go in place (dragging one doesn't rebuild the canvas). */
+  function showShader(s, spec) {
+    var json = JSON.stringify(spec);
+    s.setAttribute('data-shader', json);
+    withShaders(function (x) {
+      if (!s.isConnected) return;
+      if (!s.hasAttribute('data-wired')) x.wire(s.parentElement);
+      else if (!s.__mxSpec || JSON.stringify(s.__mxSpec) !== json) x.update(s, spec);
+    });
+  }
+  function dropShaders(scope) { scope.querySelectorAll(':scope > .mx-shader').forEach(function (s) { if (window.mxShaders) window.mxShaders.dispose(s); }); }
+  function drawBackdrop(spec) {
+    var root = document.querySelector('[data-mx-section]');
+    if (!root) return;
+    var cur = root.querySelector(':scope > .mx-backdrop');
+    if (!spec) { if (cur) { if (window.mxShaders) window.mxShaders.dispose(cur); cur.remove(); } return; }
+    if (cur && JSON.parse(cur.getAttribute('data-shader')).id !== spec.id) { if (window.mxShaders) window.mxShaders.dispose(cur); cur.remove(); cur = null; }
+    if (!cur) { cur = shaderEl('mx-backdrop', spec); root.appendChild(cur); }
+    showShader(cur, spec);
+  }
+
   function drawMedia(media) {
     mockStyles(media);
     document.querySelectorAll('[data-mx-block="image"]').forEach(function (el) {
@@ -196,6 +230,13 @@ const BRIDGE = `(function () {
       var key = m ? JSON.stringify(m) + (m.asset && blobUrls[m.asset] ? '+' : '') : '';
       if (el.__mxKey === key) return;
       el.__mxKey = key;
+      var live = m && m.kind === 'shader' ? el.querySelector(':scope > .mx-shader') : null;
+      if (live && JSON.parse(live.getAttribute('data-shader')).id === m.shader.id) {
+        if (m.alt) live.setAttribute('aria-label', m.alt);
+        showShader(live, m.shader);
+        return;
+      }
+      dropShaders(el);
       el.querySelectorAll(':scope > .mx-media, :scope > .mx-play').forEach(function (x) { x.remove(); });
       if (!m) { el.removeAttribute('data-mx-has-media'); el.removeAttribute('data-lightbox'); el.removeAttribute('data-wired'); return; }
       if (getComputedStyle(el).position === 'static') el.setAttribute('data-mx-rel', '');
@@ -213,6 +254,10 @@ const BRIDGE = `(function () {
       } else if (m.kind === 'lottie') {
         if (!src) return;
         el.appendChild(mk('canvas', { class: 'mx-media', 'data-lottie': src, 'data-play': m.play || 'inview', 'data-loop': String(m.loop !== false), role: 'img', 'aria-label': label, 'data-asset': m.asset || null }));
+      } else if (m.kind === 'shader') {
+        var sh = shaderEl('mx-media', m.shader, m.alt);
+        el.appendChild(sh);
+        showShader(sh, m.shader);
       } else if (m.kind === 'mock') {
         el.insertAdjacentHTML('beforeend', m.html);
         requestAnimationFrame(report);
@@ -359,6 +404,12 @@ const BRIDGE = `(function () {
     if (d.blobs) Object.keys(d.blobs).forEach(function (id) { if (!blobUrls[id]) blobUrls[id] = URL.createObjectURL(d.blobs[id]); });
     if (d.media) lastMedia = d.media;
     if (d.media || d.blobs) drawMedia(lastMedia || {});
+    if (d.backdrop !== undefined) drawBackdrop(d.backdrop);
+    if (typeof d.shadersJs === 'string' && !window.mxShaders) {
+      var sc = document.createElement('script'); sc.textContent = d.shadersJs; document.head.appendChild(sc);
+      var waiting = shaderWait || []; shaderWait = null;
+      if (window.mxShaders) waiting.forEach(function (cb) { cb(window.mxShaders); });
+    }
     if (d.icons !== undefined) drawIcons(d.icons);
     if (typeof d.edit === 'boolean') {
       editMode = d.edit;
@@ -430,6 +481,7 @@ ${links}
 <style id="mx-media-css">${MEDIA_CSS}</style>
 <style id="mx-mocks-base">@layer blocks {\n${MOCK_BASE_CSS}}</style>
 <style id="mx-mocks"></style>
+<style id="mx-shaders">${SHADER_CSS}</style>
 </head><body>
 ${i.html}
 <script>${BRIDGE}</script>
