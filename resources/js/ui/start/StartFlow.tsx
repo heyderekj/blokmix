@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, Check, Moon, Shuffle, Sun, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Coffee, Feather, Moon, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
 import { create } from 'zustand'
 import type { Kind } from '@/core/types'
 import { KINDS } from '@/core/types'
 import { guideFor, KIND_LABEL, RECIPES, type StartInput } from '@/core/start'
+import { KIND_WORDS } from '@/core/startWords'
+import { TYPE_LABEL } from '@/core/content'
 import { VIBES, vibeById } from '@/core/vibes'
 import { resolveGuide } from '@/core/guide'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
@@ -105,28 +107,37 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
 
         <main ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-7">
           {step === 'what' && (
-            <section>
+          <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div>
               <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">What are you making?</h1>
-              <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Pick the closest. It decides which sections your page starts with; you can change any of them later.</p>
-              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {KINDS.map((k) => (
-                  <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k} className={`${CARD} p-4 ${kind === k ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
-                    <span className="flex items-center justify-between gap-2 text-[15px] font-semibold">
-                      {KIND_LABEL[k].name}
+              <p className="mt-2 max-w-md text-[15px] text-[#6B5F68] [text-wrap:pretty]">Pick the closest. It decides which sections your page starts with; you can change any of them later.</p>
+              <div className="mt-5 grid gap-2">
+                {KINDS.map((k) => {
+                  const Icon = KIND_ICON[k]
+                  return (
+                    <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k} className={`${CARD} flex items-center gap-3 px-3.5 py-2.5 ${kind === k ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
+                      <Icon size={18} className="shrink-0" style={{ color: kind === k ? PINK : '#6B5F68' }} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[14.5px] font-semibold">{KIND_LABEL[k].name}</span>
+                        <span className="block truncate text-[12.5px] text-[#6B5F68]">{KIND_LABEL[k].words}</span>
+                      </span>
                       {kind === k && <Check size={16} style={{ color: PINK }} />}
-                    </span>
-                    <span className="mt-1 block text-[13px] leading-snug text-[#6B5F68]">{KIND_LABEL[k].words}</span>
-                  </button>
-                ))}
+                    </button>
+                  )
+                })}
               </div>
-              <div className="mt-8 grid max-w-2xl gap-4">
+              <div className="mt-6 grid gap-4">
                 <Field label="What’s it called?" value={name} onChange={setName} placeholder="Fern & Co" />
                 <Field label="In one line, what is it?" hint="Becomes your headline. Leave it empty for a placeholder." value={oneLiner} onChange={setOneLiner} placeholder="Slow coffee and good bread on Elm Street" />
               </div>
-            </section>
-          )}
+            </div>
+            <div className="lg:sticky lg:top-0">
+              <FirstScreen kind={kind} name={name.trim()} line={oneLiner.trim()} />
+            </div>
+          </section>
+        )}
 
-          {step === 'feel' && kind && (
+        {step === 'feel' && kind && (
             <section>
               <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Pick a feel</h1>
               <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Fonts, colors, corners and spacing that go together. Pick by eye; every one can be tuned later.</p>
@@ -347,3 +358,50 @@ function useVibeFonts() {
     }
   }, [])
 }
+
+const KIND_ICON: Record<Kind, LucideIcon> = { product: Smartphone, studio: Palette, local: Coffee, event: CalendarDays, personal: User, writing: Feather }
+
+/**
+ * The page's first screen as you answer: its nav and hero with your name and line in them, and the sections that follow
+ * as soft blocks, so the kind you pick changes its shape. Plain and neutral; the feel comes next.
+ */
+function FirstScreen({ kind, name, line }: { kind: Kind | null; name: string; line: string }) {
+  const words = KIND_WORDS[kind ?? 'product']
+  const brand = name || 'Your site'
+  const fill = (t: string) => t.replaceAll('{name}', brand)
+  const nav = words.nav ?? {}
+  const hero = words.hero ?? {}
+  const next = (kind ? RECIPES[kind].home : RECIPES.product.home).filter((t) => !['nav', 'hero', 'footer'].includes(t)).slice(0, 3)
+  return (
+    <div className={`overflow-hidden rounded-[18px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_24px_48px_-28px_rgb(23_18_26/0.35)] transition-opacity duration-200 ${kind ? '' : 'opacity-60'}`} aria-label="Preview of your page">
+      <div className="flex items-center justify-between gap-3 border-b border-zinc-950/[0.06] px-4 py-3 text-[12px]">
+        <span className="truncate font-semibold">{brand}</span>
+        <span className="flex shrink-0 items-center gap-3 text-[#6B5F68]">
+          {[nav.link1, nav.link2, nav.link3].filter(Boolean).map((l) => (
+            <span key={l} className="max-sm:hidden">
+              {l}
+            </span>
+          ))}
+          {nav.cta && <span className="rounded-full bg-[#17121A] px-2.5 py-1 text-[11px] font-semibold text-white">{nav.cta}</span>}
+        </span>
+      </div>
+      <div className="px-6 pb-8 pt-10 text-center">
+        {hero.eyebrow && <div className="text-[11.5px] font-semibold" style={{ color: PINK }}>{fill(hero.eyebrow)}</div>}
+        <div className="mx-auto mt-2 max-w-md text-[26px] font-bold leading-[1.1] tracking-tight [text-wrap:balance]">{line || fill(hero.headline ?? 'Your headline')}</div>
+        {hero.subhead && <div className="mx-auto mt-3 max-w-sm text-[13px] leading-snug text-[#6B5F68] [text-wrap:pretty]">{fill(hero.subhead)}</div>}
+        <div className="mt-5 flex justify-center gap-2">
+          {hero.ctaPrimary && <span className="rounded-full px-3.5 py-1.5 text-[12px] font-semibold text-white" style={{ background: PINK }}>{fill(hero.ctaPrimary)}</span>}
+          {hero.ctaSecondary && <span className="rounded-full px-3.5 py-1.5 text-[12px] font-semibold shadow-[inset_0_0_0_1px_rgb(23_18_26/0.15)]">{fill(hero.ctaSecondary)}</span>}
+        </div>
+      </div>
+      <div className="grid gap-2 px-4 pb-4">
+        {next.map((t) => (
+          <div key={t} className="flex h-12 items-center rounded-xl bg-[#F6F1F4] px-3.5 text-[12px] font-medium text-[#6B5F68]">
+            {TYPE_LABEL[t]}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
