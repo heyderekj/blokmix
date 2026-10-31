@@ -207,11 +207,26 @@ function GuideOption({ name, note, guide, picked, onPick }: { name: string; note
   )
 }
 
-/** Real sites: a strip of each screenshot; a site with several pages lists them under it once picked. */
+/** The kinds of site the library groups real sites by (a site's industry), in this order; anything else comes last. */
+const KIND_HEADING: Record<string, string> = {
+  product: 'Products and apps',
+  studio: 'Studios and agencies',
+  local: 'Local spots',
+  shop: 'Shops',
+  event: 'Events',
+  personal: 'Personal sites',
+  writing: 'Writing and newsletters',
+}
+
+/** Real sites, grouped by kind: a strip of each screenshot; a site with several pages lists them under it once picked. */
 function SiteOptions({ sites, choice, onPick }: { sites: LibrarySiteSummary[]; choice: StartChoice | null; onPick: (c: StartChoice) => void }) {
   const [open, setOpen] = useState<LibrarySite | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
   const usable = (site: LibrarySite) => site.pages.filter((p) => planClip(library, p, 'all').slots.length)
+  const order = Object.keys(KIND_HEADING)
+  const groups = Object.entries(sites.reduce<Record<string, LibrarySiteSummary[]>>((g, s) => ((g[s.industry ?? 'other'] ??= []).push(s), g), {})).sort(
+    ([a], [b]) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99),
+  )
   const pick = async (s: LibrarySiteSummary) => {
     setLoading(s.slug)
     const site = await loadSite(s.slug, library).catch(() => null)
@@ -224,34 +239,39 @@ function SiteOptions({ sites, choice, onPick }: { sites: LibrarySiteSummary[]; c
   return (
     <div className="grid gap-2">
       <p className="px-1 pb-1 text-[12.5px] text-[#6B5F68]">Its sections come in as Blokmix layouts with its look as your style guide. Never its words or pictures.</p>
-      {sites.map((s) => {
-        const on = choice?.kind === 'site' && choice.site.slug === s.slug
-        const pages = on && open?.slug === s.slug ? usable(open) : []
-        return (
-          <div key={s.slug} className="grid gap-1.5">
-            <button type="button" onClick={() => pick(s)} className={`${OPTION} ${on ? PICKED : ''}`}>
-              <span className="h-10 w-[72px] shrink-0 overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]" style={{ background: s.palette?.bg ?? '#f4f4f5' }}>
-                {s.thumb && <img src={s.thumb} alt="" loading="lazy" className="size-full object-cover object-top" />}
-              </span>
-              <Label title={s.name} note={loading === s.slug ? 'Opening…' : [s.industry, `${s.matched} sections matched`].filter(Boolean).join(' · ')} />
-            </button>
-            {pages.length > 1 && (
-              <div className="flex flex-wrap gap-1.5 pl-3">
-                {pages.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => onPick({ kind: 'site', site: open!, page: p })}
-                    className={`h-7 rounded-full px-3 text-[12.5px] font-medium ${PRESS} ${choice?.kind === 'site' && choice.page.id === p.id ? 'bg-[#17121A] text-white' : 'text-[#6B5F68] shadow-[inset_0_0_0_1px_rgb(23_18_26/0.12)]'}`}
-                  >
-                    {p.title || p.path}
-                  </button>
-                ))}
+      {groups.map(([kind, list]) => (
+        <div key={kind} className="grid gap-2">
+          <h3 className="px-1 pt-2 text-[11.5px] font-semibold uppercase tracking-wide text-[#6B5F68]/80">{KIND_HEADING[kind] ?? 'More sites'}</h3>
+          {list.map((s) => {
+            const on = choice?.kind === 'site' && choice.site.slug === s.slug
+            const pages = on && open?.slug === s.slug ? usable(open) : []
+            return (
+              <div key={s.slug} className="grid gap-1.5">
+                <button type="button" onClick={() => pick(s)} className={`${OPTION} ${on ? PICKED : ''}`}>
+                  <span className="h-10 w-[72px] shrink-0 overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]" style={{ background: s.palette?.bg ?? '#f4f4f5' }}>
+                    {s.thumb && <img src={s.thumb} alt="" loading="lazy" className="size-full object-cover object-top" />}
+                  </span>
+                  <Label title={s.name} note={loading === s.slug ? 'Opening…' : `${s.matched} sections matched`} />
+                </button>
+                {pages.length > 1 && (
+                  <div className="flex flex-wrap gap-1.5 pl-3">
+                    {pages.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => onPick({ kind: 'site', site: open!, page: p })}
+                        className={`h-7 rounded-full px-3 text-[12.5px] font-medium ${PRESS} ${choice?.kind === 'site' && choice.page.id === p.id ? 'bg-[#17121A] text-white' : 'text-[#6B5F68] shadow-[inset_0_0_0_1px_rgb(23_18_26/0.12)]'}`}
+                      >
+                        {p.title || p.path}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )
-      })}
+            )
+          })}
+        </div>
+      ))}
     </div>
   )
 }
