@@ -12,6 +12,7 @@ import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { scoredStarts, type ScoredStart } from '@/lib/start'
 import { previewHtml } from '@/lib/measure'
 import { MixThumb } from '@/ui/mixes/MixThumb'
+import { LiftedBlock } from '@/ui/auth/AuthCard'
 
 /** Whether the guided start is showing over the board (the browser-only mix opens on it the first time). */
 export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
@@ -105,18 +106,22 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
           )}
         </header>
 
-        <main ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-7">
+        <main
+        ref={scroller}
+        className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-7"
+        style={{ backgroundImage: 'radial-gradient(#E4D9DF 1.1px, transparent 1.2px)', backgroundSize: '22px 22px' }}
+      >
           {step === 'what' && (
-          <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+          <section className="grid items-start gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
             <div>
               <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">What are you making?</h1>
               <p className="mt-2 max-w-md text-[15px] text-[#6B5F68] [text-wrap:pretty]">Pick the closest. It decides which sections your page starts with; you can change any of them later.</p>
-              <div className="mt-5 grid gap-2">
+              <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-2">
                 {KINDS.map((k) => {
                   const Icon = KIND_ICON[k]
                   return (
                     <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k} className={`${CARD} flex items-center gap-3 px-3.5 py-2.5 ${kind === k ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
-                      <Icon size={18} className="shrink-0" style={{ color: kind === k ? PINK : '#6B5F68' }} />
+                      <KindTile icon={Icon} on={kind === k} />
                       <span className="min-w-0 flex-1">
                         <span className="block text-[14.5px] font-semibold">{KIND_LABEL[k].name}</span>
                         <span className="block truncate text-[12.5px] text-[#6B5F68]">{KIND_LABEL[k].words}</span>
@@ -131,8 +136,10 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
                 <Field label="In one line, what is it?" hint="Becomes your headline. Leave it empty for a placeholder." value={oneLiner} onChange={setOneLiner} placeholder="Slow coffee and good bread on Elm Street" />
               </div>
             </div>
-            <div className="lg:sticky lg:top-0">
+            <div className="relative md:sticky md:top-0">
               <FirstScreen kind={kind} name={name.trim()} line={oneLiner.trim()} />
+              {/* The block, perched on the page it's about to become. */}
+              <LiftedBlock size={52} className={`-bottom-5 -right-4 z-10 transition-transform duration-300 ${kind ? '-translate-y-1 rotate-[-4deg]' : ''}`} />
             </div>
           </section>
         )}
@@ -357,6 +364,21 @@ function useVibeFonts() {
       document.head.appendChild(link)
     }
   }, [])
+}
+
+/** A kind's icon in a slot carved into the paper; picked, it lifts out as the pink block, tilted, the icon in white. */
+function KindTile({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
+  return (
+    <span className="relative grid size-9 shrink-0 place-items-center">
+      <span className="absolute inset-0 rounded-[30%] bg-[#EFE7EB] shadow-[inset_0_2px_5px_rgb(23_18_26/0.16),inset_0_0_0_1px_rgb(23_18_26/0.05)]" />
+      <span
+        className={`absolute inset-0 grid place-items-center rounded-[30%] bg-[#FF5CB0] text-white shadow-[0_3px_0_#C2185B,0_8px_14px_-6px_rgb(194_24_91/0.6),inset_0_2px_0_rgb(255_255_255/0.35)] transition-[opacity,transform] duration-200 ease-out ${on ? '-translate-y-1 rotate-[-8deg] opacity-100' : 'translate-y-0 rotate-0 opacity-0'}`}
+      >
+        <Icon size={17} strokeWidth={2.2} />
+      </span>
+      {!on && <Icon size={17} className="relative text-[#6B5F68]" />}
+    </span>
+  )
 }
 
 const KIND_ICON: Record<Kind, LucideIcon> = { product: Smartphone, studio: Palette, local: Coffee, event: CalendarDays, personal: User, writing: Feather }
