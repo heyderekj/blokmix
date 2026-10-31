@@ -120,6 +120,12 @@ class SharingTest extends TestCase
         $this->get('/register')->assertInertia(fn (Assert $page) => $page->where('invite.mix', 'Launch')->where('invite.role', 'viewer'));
     }
 
+    public function test_the_reset_page_says_when_email_isnt_set_up(): void
+    {
+        config(['mail.default' => 'log']);
+        $this->get('/forgot-password')->assertInertia(fn (Assert $page) => $page->component('auth/forgot-password')->where('canReset', false));
+    }
+
     public function test_forgotten_passwords_reset_by_email(): void
     {
         Notification::fake();

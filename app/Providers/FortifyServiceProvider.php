@@ -28,7 +28,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(fn () => Inertia::render('auth/login', ['canReset' => self::mailWorks()]));
         // Arriving from a share link: say which mix it opens.
         Fortify::registerView(fn () => Inertia::render('auth/register', ['invite' => session('invite')]));
-        Fortify::requestPasswordResetLinkView(fn () => Inertia::render('auth/forgot-password', ['status' => session('status')]));
+        Fortify::requestPasswordResetLinkView(fn () => Inertia::render('auth/forgot-password', ['status' => session('status'), 'canReset' => self::mailWorks()]));
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
             'token' => $request->route('token'),
             'email' => $request->string('email')->toString(),
