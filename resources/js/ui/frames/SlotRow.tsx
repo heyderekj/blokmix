@@ -289,7 +289,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   return (
     <div
       ref={rowRef}
-      className="group/row relative"
+      // A section you aren't in yet takes the click to focus it (its frame ignores the pointer until then): say so.
+      className={`group/row relative ${!canEdit && tool === 'select' ? 'cursor-pointer' : ''}`}
       style={{
         height,
         transition: `height ${SWAP}`,
