@@ -817,6 +817,8 @@ export function lintSafe(css: string, w: TokenWriter): string {
     .replace(/(-?\d*\.?\d+)(?:s|d|l)?vh\b/g, (_, n) => `calc(var(--mx-vh) * ${r2(parseFloat(n))})`)
     .replace(/font-family:\s*(?!\s|var\(--mx-font-|inherit)[^;}]+/g, 'font-family: var(--mx-font-body)')
     .replace(/((?<![\w-])border(?:-(?:top|bottom|left|right|block|inline)(?:-(?:start|end))?)?(?:-width)?\s*:\s*)([^;{}]*)/g, (_, k: string, v: string) => k + v.replace(/(-?\d*\.?\d+)px/g, (_m: string, n: string) => (parseFloat(n) ? w.strokeOf(parseFloat(n)) : '0')))
+    // A column at the content or reading width is that token, so it follows the style guide (media queries stay px).
+    .replace(/(?<=[;{\s])max-width(\s*:\s*)(1200|760)px(?=\s*[;}])/g, (_, sep: string, n: string) => `max-width${sep}var(--mx-width-${n === '1200' ? 'content' : 'text'})`)
 }
 
 // ---------- 390px ----------
