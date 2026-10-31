@@ -371,13 +371,13 @@ function useVibeFonts() {
 function KindTile({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
   return (
     <span className="relative grid size-9 shrink-0 place-items-center">
-      <span className="absolute inset-0 rounded-[30%] bg-[#EFE7EB] shadow-[inset_0_2px_5px_rgb(23_18_26/0.16),inset_0_0_0_1px_rgb(23_18_26/0.05)]" />
+      <span className="absolute inset-0 rounded-[30%] bg-zinc-100 shadow-[inset_0_2px_4px_rgb(0_0_0/0.1),inset_0_0_0_1px_rgb(0_0_0/0.05)]" />
       <span
         className={`absolute inset-0 grid place-items-center rounded-[30%] bg-[#FF5CB0] text-white shadow-[0_3px_0_#C2185B,0_8px_14px_-6px_rgb(194_24_91/0.6),inset_0_2px_0_rgb(255_255_255/0.35)] transition-[opacity,transform] duration-200 ease-out ${on ? '-translate-y-1 rotate-[-8deg] opacity-100' : 'translate-y-0 rotate-0 opacity-0'}`}
       >
         <Icon size={17} strokeWidth={2.2} />
       </span>
-      {!on && <Icon size={17} className="relative text-[#6B5F68]" />}
+      {!on && <Icon size={17} className="relative text-zinc-500" />}
     </span>
   )
 }

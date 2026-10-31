@@ -453,6 +453,8 @@ const BRIDGE = `(function () {
 const FRAME_CSS = `html, body { overflow: hidden; }
 html[data-mx-outline] body > * { outline: 2px dashed color-mix(in srgb, currentColor 35%, transparent); outline-offset: -6px; }
 html[data-mx-edit], html[data-mx-edit] * { cursor: default; }
+html[data-mx-edit] :is(a, button, summary, label, select, [data-mx-block="button"], [data-mx-block="link"]),
+html[data-mx-edit] :is(a, button, summary, label, [data-mx-block="button"], [data-mx-block="link"]) * { cursor: pointer; }
 html[data-mx-note], html[data-mx-note] * { cursor: crosshair !important; user-select: none; }
 html[data-mx-note] [data-mx-field], html[data-mx-note] [data-mx-field] * { cursor: text !important; user-select: text; }
 html[data-mx-note] ::selection { background: color-mix(in srgb, #ff6aa8 35%, transparent); }

@@ -260,7 +260,11 @@
 
 @layer base {
   /* Tailwind 4 leaves buttons with the default arrow; everything you can press gets a pointer. */
-  button:not(:disabled), [role='button']:not([aria-disabled='true']), summary, label[for], select { cursor: pointer; }
+  /* Everything pressable says so (the craft rules): buttons and links, controls the browser leaves on the arrow, and
+     anything acting as a tab, radio, switch, option or menu item. */
+  button:not(:disabled), a[href], [role='button']:not([aria-disabled='true']), [role='tab'], [role='radio'], [role='switch'],
+  [role='option'], [role='menuitem'], [role='checkbox'], summary, label[for], select,
+  input:is([type='checkbox'], [type='radio'], [type='color'], [type='file'], [type='range']):not(:disabled) { cursor: pointer; }
 
   *, ::after, ::before, ::backdrop { border-color: var(--border); }
   h1, .text-2xl, .text-3xl { letter-spacing: -0.02em; }
