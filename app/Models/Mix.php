@@ -53,7 +53,7 @@ class Mix extends Model
 
     protected function casts(): array
     {
-        return ['data' => 'array', 'schema' => 'integer', 'lock_version' => 'integer'];
+        return ['data' => 'array', 'schema' => 'integer', 'lock_version' => 'integer', 'archived_at' => 'datetime'];
     }
 
     public function versions(): HasMany
@@ -87,7 +87,19 @@ class Mix extends Model
         return $member ? MixRole::from($member->pivot->role) : null;
     }
 
-    /** Whoever owns the mix: its uploads count toward their plan. */
+    /** Archived: kept and readable, but nobody changes it (marks aside) until its owner brings it back. */
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
+    /** Whether someone with this role can change the mix now: editors and owners, unless it's archived. */
+    public function changeableBy(?MixRole $role): bool
+    {
+        return $role !== null && $role->canEdit() && ! $this->isArchived();
+    }
+
+    /** Whoever owns the mix: its uploads count toward their plan, and its features follow their plan. */
     public function owner(): ?User
     {
         return $this->members()->wherePivot('role', MixRole::Owner->value)->first();
@@ -117,6 +129,9 @@ class Mix extends Model
             'versions' => $this->versions->mapWithKeys(fn (MixVersion $v) => [$v->key => $v->node])->all(),
             'lock' => $this->lock_version,
             'schema' => $this->schema,
+            'archived' => $this->isArchived(),
+            // What the board opens follows the owner's plan, so editors and viewers never need a pack.
+            'paid' => ($this->owner()?->planName() ?? 'free') === 'paid',
         ];
     }
 }

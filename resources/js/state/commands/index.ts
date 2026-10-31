@@ -3,6 +3,7 @@ import { useCollections } from '../collections'
 import { useStore } from '../store'
 import { canEdit, useAccount } from '@/lib/account'
 import { CommandError } from './refs'
+import { PackRefusal, strictly } from '../plan'
 import * as read from './read'
 import * as review from './review'
 import * as notes from './notes'
@@ -45,17 +46,33 @@ const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later
 const MARKS = new Set(['add_note', 'update_note', 'reply_note'])
 
 export function runCommand(name: string, raw: unknown, by: Caller = 'agent'): unknown {
+  // An agent hears what needs a mix pack; you get the buy sheet.
+  if (by !== 'agent') return run(name, raw, by)
+  const refused = (e: unknown) => {
+    throw e instanceof PackRefusal ? new CommandError(e.message) : e
+  }
+  try {
+    const out = strictly(() => run(name, raw, by))
+    return out instanceof Promise ? out.catch(refused) : out
+  } catch (e) {
+    return refused(e)
+  }
+}
+
+function run(name: string, raw: unknown, by: Caller): unknown {
   if (!(name in COMMANDS)) throw new CommandError(`Unknown command "${name}". Known: ${Object.keys(COMMANDS).join(', ')}`)
   const cmd = COMMANDS[name as CommandName]
   const parsed = cmd.input.safeParse(raw ?? {})
   if (!parsed.success) throw new CommandError(`Invalid input for ${name}: ${parsed.error.issues.map((i) => `${i.path.join('.') || 'input'}: ${i.message}`).join('; ')}`)
   const input = parsed.data as Record<string, unknown>
+  if (cmd.write && useAccount.getState().archived && !MARKS.has(name))
+    throw new CommandError(`This mix is archived: you can leave marks (${[...MARKS].join(', ')}), not ${name}. Its owner can bring it back from the mixes page or the top bar.`)
   if (cmd.write && !canEdit(useAccount.getState().role) && !MARKS.has(name))
     throw new CommandError(`You can view this mix and leave marks (${[...MARKS].join(', ')}), not ${name}. Ask its owner to make you an editor.`)
   const later = ASYNC[name]
   if (later) {
     return later.prepare(input as never).then((prepared) => {
-      const apply = () => later.apply(input as never, prepared)
+      const apply = () => (by === 'agent' ? strictly(() => later.apply(input as never, prepared)) : later.apply(input as never, prepared))
       return cmd.write ? asOneStep(name, input, by, apply) : apply()
     })
   }

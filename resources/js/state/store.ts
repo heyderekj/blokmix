@@ -33,7 +33,9 @@ import type {
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, SOURCE_PREFIX } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
-import { pickable } from '@/core/library'
+import { layoutOpen, pickable } from '@/core/library'
+import { blockEditNeedsPack, FREE_TOKENS } from '@/core/plan'
+import { needsPack } from './plan'
 import { BANNER_ID } from '@/core/banner'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
 import { keepOption, putBackOption, retireOption, showWords } from '@/core/words'
@@ -385,7 +387,10 @@ export const useStore = create<State>()(
               const i = ids.indexOf(s.clipId)
               return { ...s, clipId: ids[(i + dir + ids.length) % ids.length] }
             }),
-          setClip: (slotId, clipId) => updateSlot(slotId, (s) => (library.clips[clipId]?.type === s.type ? { ...s, clipId } : s)),
+          setClip: (slotId, clipId) => {
+            if (!layoutOpen(library, clipId) && needsPack('That layout')) return
+            updateSlot(slotId, (s) => (library.clips[clipId]?.type === s.type ? { ...s, clipId } : s))
+          },
           shuffle: () => {
             const st = get()
             const view = currentSlots(st)
@@ -420,7 +425,9 @@ export const useStore = create<State>()(
             if (own) get().editBlock(slotId, own.id, { hidden: on ? undefined : true })
             else updateSlot(slotId, (s) => ({ ...s, banner: on || undefined }))
           },
-          editBlock: (slotId, blockId, patch) =>
+          editBlock: (slotId, blockId, patch) => {
+            const locked = blockEditNeedsPack(patch)
+            if (locked && needsPack(locked)) return
             updateSlot(slotId, (s) => {
               // Hiding an added banner removes it.
               if (blockId === BANNER_ID && patch?.hidden) return { ...s, banner: undefined }
@@ -450,7 +457,8 @@ export const useStore = create<State>()(
                 else delete forClip[blockId]
               }
               return { ...s, edits: { ...s.edits, [s.clipId]: forClip } }
-            }),
+            })
+          },
           setWord: (slotId, field, value) =>
             updateSlot(slotId, (s) => {
               const words = { ...s.words }
@@ -511,6 +519,7 @@ export const useStore = create<State>()(
               return { ...s, motion, keep: { ...s.keep, motion: motion.mode !== 'none' } }
             }),
           promoteBlock: (slotId, blockId) => {
+            if (needsPack('Making a block look the default')) return
             const st = get()
             const slot = allSlots(st.site).find((x) => x.id === slotId)
             const block = slot && slotClip(slot).blocks.find((b) => b.id === blockId)
@@ -568,6 +577,7 @@ export const useStore = create<State>()(
               }
               return st.showFlash(`The site already has a ${chrome}. Swap its clip instead.`)
             }
+            if (clipId && !layoutOpen(library, clipId) && needsPack('That layout')) return
             // With no clip named, take the one that suits this spot best.
             const slot: Slot = { id: uid('slot'), type, clipId: clipId ?? suggestClip(type, view, at, library)[0]?.clipId, locked: false, keep: { ...DEFAULT_KEEP }, ...(extra?.inspiredBy ? { inspiredBy: extra.inspiredBy } : {}) }
             if (!slot.clipId) return
@@ -651,8 +661,9 @@ export const useStore = create<State>()(
             if (fresh.length) set({ clips: [...have, ...fresh] })
           },
           removeMixClip: (id) => set({ clips: (get().clips ?? []).filter((c) => c !== id) }),
-          replaceGuide: (guide) => set({ guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
+          replaceGuide: (guide) => needsPack('A saved style guide') || set({ guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
           startFrom: (site, guide) =>
+            (allSlots(site).every((s) => layoutOpen(library, s.clipId)) || !needsPack('That starter’s layouts')) &&
             set((st) => ({
               site: structuredClone(site),
               guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } },
@@ -660,14 +671,17 @@ export const useStore = create<State>()(
             })),
 
           promoteClip: (clipId, groups) => {
+            if (needsPack('Taking a section’s look')) return
             const clip = library.clips[clipId]
             if (clip) set((st) => ({ guide: promote(st.guide, clip, groups) }))
           },
           adoptClipDesign: (clipId, groups = [...TOKEN_GROUPS]) => {
+            if (needsPack('Taking a section’s look')) return
             const clip = library.clips[clipId]
             if (clip) set((st) => ({ guide: adoptDesign(st.guide, clip, groups) }))
           },
           promoteSite: (source, groups = [...TOKEN_GROUPS], adopt = false) =>
+            needsPack('Taking a site’s look') ||
             set((st) => {
               const guide = promoteSource(st.guide, source, groups)
               if (!adopt) return { guide }
@@ -681,7 +695,7 @@ export const useStore = create<State>()(
               return inspiredBy ? { ...rest, inspiredBy } : rest
             }),
           removeCandidate: (id) => set((st) => ({ guide: removeCandidate(st.guide, id) })),
-          chooseToken: (key, choice) => set((st) => ({ guide: choose(st.guide, key, choice) })),
+          chooseToken: (key, choice) => (choice && !FREE_TOKENS.has(key) && needsPack('That style guide control')) || set((st) => ({ guide: choose(st.guide, key, choice) })),
           setEffect: (id, value) => get().setEffects({ [id]: value ?? undefined }),
           setTextStyle: (id, patch) =>
             set((st) => {
@@ -693,6 +707,7 @@ export const useStore = create<State>()(
               return { guide: { ...st.guide, textStyles: Object.keys(all).length ? all : undefined } }
             }),
           setEffects: (patch, replace) =>
+            (Object.values(patch).some(Boolean) && needsPack('An effect')) ||
             set((st) => {
               const effects: EffectsState = replace ? {} : { ...st.guide.effects }
               for (const [k, v] of Object.entries(patch) as [EffectId, TreatmentValue | undefined][]) {
@@ -706,13 +721,14 @@ export const useStore = create<State>()(
               return { guide }
             }),
           setBackdrop: (slotId, value) =>
+            (!!value && needsPack('A section backdrop')) ||
             updateSlot(slotId, (s) => {
               const clean = value && cleanTreatment('backdrop', value)
               return { ...s, backdrop: clean || undefined }
             }),
           chooseTokens: (values) =>
             set((st) => ({ guide: (Object.entries(values) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide) })),
-          chooseGroup: (candidateId) => set((st) => ({ guide: chooseGroup(st.guide, candidateId) })),
+          chooseGroup: (candidateId) => needsPack('Picking a source’s values') || set((st) => ({ guide: chooseGroup(st.guide, candidateId) })),
           setField: (type, key, value) =>
             set((st) => ({
               content: { ...st.content, fields: { ...st.content.fields, [type]: { ...(st.content.fields[type] ?? {}), [key]: value } } },

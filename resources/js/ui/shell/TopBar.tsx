@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { confirmAction } from './Confirm'
 import { motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
+import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
 import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
 import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
 import { pickFile } from '@/lib/pickFile'
@@ -22,7 +22,7 @@ import { useAgentLink } from '@/lib/agentLink'
 import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
 import { canEdit, useAccount } from '@/lib/account'
-import { flushMix, openMixId } from '@/lib/mixSync'
+import { api, flushMix, openMixId } from '@/lib/mixSync'
 import { useStartFlow } from '../start/StartFlow'
 import { SharePanel } from '../panels/SharePanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
@@ -115,9 +115,30 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
   )
 }
 
-/** Save version (or, for viewers, a note that they can only look). `short` for the compact bar. */
+/** Un-archive the open mix (when one of its owner's mixes is free) and reopen it to edit. */
+async function bringBack() {
+  const res = await api<{ message?: string }>('POST', `/api/mixes/${openMixId()}/unarchive`)
+  if (res.status === 200) window.location.reload()
+  else useStore.getState().showFlash(res.body?.message ?? 'Couldn’t bring this mix back.')
+}
+
+/** Save version (or, for viewers or an archived mix, a note that they can only look). `short` for the compact bar. */
 function SaveButton({ short }: { short?: boolean }) {
   const role = useAccount((s) => s.role)
+  const { archived, owns } = useAccount()
+  if (archived)
+    return (
+      <span className="ml-0.5 flex h-8 items-center gap-1 rounded-full bg-zinc-950/5 pl-3 pr-1 text-[12.5px] font-semibold text-zinc-600" title="Archived mixes are kept as they are and don’t take one of your mixes">
+        <Archive size={14} /> Archived
+        {owns ? (
+          <button type="button" onClick={() => void bringBack()} className="ml-1 h-6 cursor-pointer rounded-full bg-white px-2.5 text-[12px] font-semibold text-zinc-800 shadow-sm ring-1 ring-zinc-950/10 transition-[scale] duration-150 active:scale-[0.97]">
+            Bring back
+          </button>
+        ) : (
+          <span className="pr-2" />
+        )}
+      </span>
+    )
   if (!canEdit(role))
     return (
       <span className="ml-0.5 flex h-8 items-center gap-1.5 rounded-full bg-zinc-950/5 px-3 text-[12.5px] font-semibold text-zinc-600" title="You can look and leave marks">

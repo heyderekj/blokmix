@@ -5,6 +5,7 @@
   "style": "technical",
   "feel": ["calm"],
   "density": "dense",
+  "tier": "free",
   "motionNotes": "Heading rises, then the wordmarks fade and settle into their cells one by one; a cell tints and its mark darkens on hover.",
   "capture": {
     "path": "/",

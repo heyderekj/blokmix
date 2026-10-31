@@ -5,6 +5,7 @@
   "style": "bold",
   "feel": ["bold", "friendly"],
   "density": "balanced",
+  "tier": "free",
   "motionNotes": "The head rises, then the three packages lift in a short stagger with the middle one last; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

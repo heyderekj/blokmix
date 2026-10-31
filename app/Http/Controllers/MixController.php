@@ -24,7 +24,7 @@ class MixController extends Controller
     public function index(Request $request): Response
     {
         $mixes = $request->user()->mixes()->withCount('versions')->latest('updated_at')
-            ->get(['mixes.id', 'mixes.short', 'mixes.name', 'mixes.created_at', 'mixes.updated_at', 'mixes.data']);
+            ->get(['mixes.id', 'mixes.short', 'mixes.name', 'mixes.created_at', 'mixes.updated_at', 'mixes.archived_at', 'mixes.data']);
         $ids = $mixes->pluck('id');
         $heads = DB::table('mix_versions')->whereIn('mix_id', $ids)->orderBy('letter')
             ->get(['mix_id', 'letter', 'node->status as status'])->groupBy('mix_id');
@@ -57,6 +57,7 @@ class MixController extends Controller
                     'versions' => $m->versions_count,
                     'heading' => is_string($heading) ? Str::limit(trim($heading), 80) : null,
                     'role' => $m->pivot->role,
+                    'archived' => $m->isArchived(),
                     'owner' => $owners[$m->id] ?? null,
                     'pages' => count($site['pages'] ?? []),
                     'sections' => $sections->filter()->values(),
@@ -68,9 +69,9 @@ class MixController extends Controller
         ]);
     }
 
-    public function local(): Response
+    public function local(Request $request): Response
     {
-        return Inertia::render('mixes/show', ['mix' => ['id' => 'local'], 'role' => MixRole::Owner->value]);
+        return Inertia::render('mixes/show', ['mix' => ['id' => 'local', 'paid' => $request->user()->planName() === 'paid'], 'role' => MixRole::Owner->value]);
     }
 
     public function show(Request $request, Mix $mix): Response

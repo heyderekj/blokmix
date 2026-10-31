@@ -1,6 +1,7 @@
 import type { FontSource, GuideState, Library, Page, SectionType, Site, Slot, Source, TokenKey, TokenSet } from '@/core/types'
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS, TOKEN_KEYS } from '@/core/types'
 import { BASE_TOKENS } from '@/core/tokens'
+import { layoutOpen, pickable } from '@/core/library'
 import { emptyGuide, promoteSource, SOURCE_PREFIX } from '@/core/guide'
 import { normalizePath, siteFromSlots } from '@/core/site'
 import { isHosted } from './host'
@@ -114,7 +115,18 @@ export function sectionClipState(lib: Pick<Library, 'clips'>, s: LibrarySection)
   const clip = lib.clips[s.layoutId]
   if (!clip || !(SECTION_TYPES as readonly string[]).includes(clip.type))
     return { clippable: false, reason: 'missing', note: `Its layout (${s.layoutId}) isn’t in this version of Blokmix` }
-  return { clippable: true, clipId: clip.id, type: clip.type }
+  return { clippable: true, clipId: openStandIn(lib, clip.id), type: clip.type }
+}
+
+/**
+ * On Free (`paid === false`), a section matched to a layout in a mix pack lands as an open layout of the same shape
+ * (rhythm), else the type's first open one.
+ */
+function openStandIn(lib: Pick<Library, 'clips'> & Partial<Library>, id: string): string {
+  if (!lib.byType || layoutOpen(lib as Library, id)) return id
+  const clip = lib.clips[id]
+  const open = pickable(lib as Library, clip.type).filter((x) => lib.clips[x].origin === 'layout')
+  return open.find((x) => lib.clips[x].rhythm === clip.rhythm) ?? open[0] ?? id
 }
 
 /** "features.layout-grid" → "Grid": a layout's short name for labels. */

@@ -5,6 +5,7 @@
   "style": "minimal",
   "feel": ["editorial"],
   "density": "airy",
+  "tier": "free",
   "motionNotes": "No entrance motion: the head stays pinned on the left while the prose scrolls past on the right.",
   "capture": {
     "path": "/",

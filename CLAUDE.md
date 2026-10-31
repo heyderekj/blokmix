@@ -69,13 +69,24 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   starter mixes and style guides (neutral, a saved guide, or another mix's): it posts `guide` (and a starter's `site`
   and `name`) to `/mixes`, which stores `data = {guide, site}`; the board fills the rest from a blank mix. Every mix
   keeps its own copy, so edits never spread.
-- Plans (`users.plan`, `config/blokmix.php` `plans`): Free is 1 mix you own, 40 clips and 100 MB of uploads; Plus is
-  unlimited mixes and clips and 10 GB. Mixes and uploads count toward the mix's owner (an editor's upload uses the
-  owner's room); clips toward whoever saved them; shared mixes, layouts and placeholder art never count. `User`
-  `mixRefusal`/`clipRefusal`/`uploadRefusal` say why, and the controllers refuse with 403 and that message (the web
-  New mix gets it as `errors.mix`). Existing work over a limit is kept; only adding more is refused. The people who run
-  Blokmix are always Plus. `plan` isn't fillable: checkout will set it. Inertia shares `auth.plan` (name, limits,
-  usage); the mixes page shows it, and the board flashes an upload refusal once and keeps the file in the browser.
+- Plans (`config/blokmix.php` `plans` and `pack`, `docs/pricing.md`): Free is 1 mix, 40 clips, 100 MB, the core layouts
+  and the Feel dials; a mix pack ($20 once, `users.mix_packs`) is 3 mixes open at a time (packs stack), every layout,
+  control and treatment, unlimited clips and 10 GB. Mixes are slots: archived ones (`mixes.archived_at`, `POST
+  /api/mixes/{id}/archive|unarchive`, owners only) don't count and are read-only like a viewer's. Mixes and uploads
+  count toward the mix's owner (an editor's upload uses the owner's room); clips toward whoever saved them; shared
+  mixes, layouts and placeholder art never count. `User` `mixSlots`/`mixRefusal`/`clipRefusal`/`uploadRefusal` say
+  why, and the controllers refuse with 403 and that message (the web New mix gets it as `errors.mix`). Existing work
+  over a limit is kept; only adding more is refused. The people who run Blokmix (and `plan = plus` set by hand) have
+  no mix limit. Inertia shares `auth.plan` (name, limits, usage, packs, pack, buy, receipts).
+- Feature gates follow the mix's owner (`toBoard` `paid`): `library.paid = false` limits `pickable`, matching, starters
+  and the site library to `"tier": "free"` layouts (`core/library.ts` `layoutOpen`), and store actions ask
+  `state/plan.ts` `needsPack` before locked layouts, knobs outside `FREE_TOKENS`, source picks, block looks, saved
+  guides, effects, backdrops and generative/mock/shader fills (`core/plan.ts`). On the board that opens
+  `ui/shell/BuySheet.tsx`; agent commands run `strictly` and refuse with why.
+- Mix packs are sold at Polar (`config/billing.php`, `Services/PolarClient` ported from ReviseMy, `Services/MixPacks`):
+  `POST /api/billing/checkout`, `GET /api/billing/receipts`, and the signed webhook `POST /api/polar/webhook`
+  (`order.paid` grants one pack per order once, a full `order.refunded` takes it back). Off until
+  `BLOKMIX_PRICING_ENABLED`; then the buy buttons go to Polar's checkout and back to `/?bought=1`.
 - Agents on the live site: the local MCP bridge also accepts Blokmix's hosted HTTPS origins (`HOSTED_ORIGINS` in
   `core/commands/bridge.ts`, plus BLOKMIX_ORIGINS). Chrome may ask once to let the site reach this device.
 - Waitlist (`waitlist`, `Api\WaitlistController`): blokmix.com's form posts to `POST /api/waitlist` (public, no CSRF

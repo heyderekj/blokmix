@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\MixPacks;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -43,7 +44,16 @@ class HandleInertiaRequests extends Middleware
                 // Whether this account runs Blokmix (the waitlist link shows for them).
                 'owner' => fn () => (bool) $request->user()?->can('run-blokmix'),
                 // The plan, what it includes and what's used, for the mixes page and the board.
-                'plan' => fn () => $request->user() ? ['name' => $request->user()->planName(), 'limits' => $request->user()->limits(), 'usage' => $request->user()->usage()] : null,
+                // Packs bought, and whether one can be bought here now (buy) or receipts shown.
+                'plan' => fn () => $request->user() ? [
+                    'name' => $request->user()->planName(),
+                    'limits' => $request->user()->limits(),
+                    'usage' => $request->user()->usage(),
+                    'packs' => $request->user()->mix_packs,
+                    'pack' => config('blokmix.pack'),
+                    'buy' => app(MixPacks::class)->available(),
+                    'receipts' => app(MixPacks::class)->available() && $request->user()->polar_customer_id !== null,
+                ] : null,
             ],
             'flash' => fn () => $request->session()->get('flash'),
         ];

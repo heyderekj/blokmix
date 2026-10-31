@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { PackNote } from '../shell/BuySheet'
 import { ChevronDown } from 'lucide-react'
 import type { CssVars, TokenSet } from '@/core/types'
 import { EFFECT_IDS, effectsVars, lookList, treatmentInfo, type EffectId, type EffectsState, type TreatmentValue } from '@/core/treatments'
@@ -47,6 +48,7 @@ export function EffectsPanel({ tokens }: { tokens: TokenSet }) {
 
   return (
     <div className="grid gap-3">
+      <PackNote what="Effects" />
       {looks.length > 0 && (
         <div>
           <div className="mb-1.5 text-[11px] font-semibold text-zinc-400">Looks</div>

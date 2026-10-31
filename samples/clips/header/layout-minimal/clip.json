@@ -4,6 +4,7 @@
   "rhythm": "stack",
   "style": "minimal",
   "density": "balanced",
+  "tier": "free",
   "feel": ["editorial", "calm"],
   "motionNotes": "No entrance motion: a quiet inner-page header that should feel instant. The button presses in on tap.",
   "capture": {

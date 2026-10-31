@@ -26,6 +26,10 @@ export interface ServerMix {
   versions: Record<string, VersionNode>
   lock: number
   schema?: number
+  /** Archived: read-only until its owner brings it back. */
+  archived?: boolean
+  /** Whether its owner has a mix pack (what the board opens follows the owner). */
+  paid?: boolean
 }
 
 type MixFields = Omit<MixData, 'mixName' | 'versions'>

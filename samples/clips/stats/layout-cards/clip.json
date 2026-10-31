@@ -5,6 +5,7 @@
   "style": "technical",
   "feel": ["friendly", "technical"],
   "density": "dense",
+  "tier": "free",
   "motionNotes": "Header rises, cards follow in a stagger and the little bar charts grow from the baseline; cards lift with a soft shadow on hover.",
   "capture": {
     "path": "/",

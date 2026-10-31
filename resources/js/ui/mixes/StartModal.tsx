@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowLeft, FileText, Globe, LayoutGrid, Palette, Sparkles, X, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, FileText, Globe, LayoutGrid, Lock, Palette, Sparkles, X, type LucideIcon } from 'lucide-react'
 import type { GuideState, SectionType, TokenSet } from '@/core/types'
 import { resolveGuide } from '@/core/guide'
 import { TYPE_LABEL } from '@/core/content'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { library, starters } from '@/data/library'
 import { buildStarter, type Starter } from '@/core/starters'
+import { starterOpen } from '@/core/library'
 import { listSites, loadSite, planClip, type LibraryPage, type LibrarySite, type LibrarySiteSummary } from '@/lib/siteLibrary'
 
 export interface GuideChoice {
@@ -189,10 +190,13 @@ function StarterOption({ starter, picked, onPick }: { starter: Starter; picked: 
   const { site, guide } = useMemo(() => buildStarter(library, starter), [starter])
   const t = useMemo(() => resolveGuide(guide).tokens, [guide])
   const sections = site.pages[0].slots.map((s) => TYPE_LABEL[s.type as SectionType]).join(' · ')
+  // On Free, a starter that uses layouts in a mix pack shows a lock (creating it says why).
+  const locked = !starterOpen(library, starter)
   return (
-    <button type="button" onClick={onPick} className={`${OPTION} ${picked ? PICKED : ''}`}>
+    <button type="button" onClick={onPick} className={`${OPTION} ${picked ? PICKED : ''} relative`} title={locked ? 'Uses layouts in a mix pack' : undefined}>
       <Swatch tokens={t} />
-      <Label title={starter.name} note={sections} />
+      <Label title={starter.name} note={locked ? `In a mix pack · ${sections}` : sections} />
+      {locked && <Lock size={13} className="absolute right-2.5 top-2.5 text-zinc-500" aria-label="In a mix pack" />}
     </button>
   )
 }

@@ -5,6 +5,7 @@
   "style": "playful",
   "feel": ["friendly"],
   "density": "balanced",
+  "tier": "free",
   "motionNotes": "The floating bar drops in and settles, then its contents fade up. Links get a soft pill highlight on hover and the button’s arrow nudges forward.",
   "capture": {
     "path": "/",

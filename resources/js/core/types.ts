@@ -623,6 +623,8 @@ export interface Library {
   /** Starter mixes, for the guided start and the Crate's library. */
   starters: Starter[]
   warnings: LintIssue[]
+  /** False when the open mix's owner is on Free: only layouts marked `tier: free` (and your own clips) are offered. */
+  paid?: boolean
 }
 
 export interface LintIssue {
