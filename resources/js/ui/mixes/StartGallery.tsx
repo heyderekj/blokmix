@@ -20,7 +20,7 @@ export interface GuideChoice {
 const SHELF_LABEL: Record<Shelf, string> = { starters: 'Starters', sites: 'Real sites', guides: 'Style guides' }
 const PRESS = 'cursor-pointer transition-[scale] duration-150 active:scale-[0.98]'
 const CARD = `group/card flex flex-col gap-2.5 rounded-2xl p-2 text-left ${PRESS} [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/[0.035]`
-const FRAME = 'block aspect-[4/3] w-full overflow-hidden rounded-xl shadow-[0_0_0_1px_rgb(23_18_26/0.08)] transition-[box-shadow] duration-150 group-hover/card:shadow-[0_0_0_1px_rgb(23_18_26/0.14),0_10px_24px_-14px_rgb(23_18_26/0.35)]'
+const FRAME = 'block aspect-[16/9] w-full overflow-hidden rounded-xl shadow-[0_0_0_1px_rgb(23_18_26/0.08)] transition-[box-shadow] duration-150 group-hover/card:shadow-[0_0_0_1px_rgb(23_18_26/0.14),0_10px_24px_-14px_rgb(23_18_26/0.35)]'
 
 /**
  * New mix, from something: a wide sheet with three shelves (starter mixes, real sites from the library, style guides),
@@ -137,33 +137,29 @@ function StarterCard({ starter, onPick }: { starter: Starter; onPick: () => void
   return (
     <li>
       <button type="button" onClick={onPick} className={`${CARD} w-full`}>
-        <Specimen tokens={t} words={sections.join(' · ')} sample={starter.headline} />
+        <Specimen tokens={t} words={sections.join(' · ')} />
         <Caption name={starter.name} note={starter.description} />
       </button>
     </li>
   )
 }
 
-/** Type and palette, big, on the guide's own background; a line of small words underneath. */
-function Specimen({ tokens: t, words, sample }: { tokens: TokenSet; words: string; sample?: string }) {
+/** Type and palette on the guide's own background: "Aa" and the colors on one line, a line of small words under it. */
+function Specimen({ tokens: t, words }: { tokens: TokenSet; words: string }) {
   return (
-    <span className={`${FRAME} flex flex-col justify-between p-4`} style={{ background: t['color.bg'], color: t['color.text'] }}>
-      {/* A starter's own headline shows its type with character; a bare guide shows the letters. */}
-      <span
-        className={sample ? 'line-clamp-3 text-[22px] leading-[1.1] [text-wrap:balance]' : 'text-[40px] leading-none'}
-        style={{ fontFamily: t['font.display'], fontWeight: Number(t['type.displayWeight']) || 700, letterSpacing: sample ? '-0.01em' : undefined }}
-      >
-        {sample ?? 'Aa'}
-      </span>
-      <span className="grid gap-2">
-        <span className="flex gap-1.5">
+    <span className={`${FRAME} flex flex-col justify-between p-3.5`} style={{ background: t['color.bg'], color: t['color.text'] }}>
+      <span className="flex items-center justify-between gap-3">
+        <span className="text-[34px] leading-none" style={{ fontFamily: t['font.display'], fontWeight: Number(t['type.displayWeight']) || 700 }}>
+          Aa
+        </span>
+        <span className="flex gap-1">
           {[t['color.primary'], t['color.accent'], t['color.surface']].map((c, i) => (
-            <i key={i} className="size-5 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)]" style={{ background: c }} />
+            <i key={i} className="size-4 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)]" style={{ background: c }} />
           ))}
         </span>
-        <span className="line-clamp-2 text-[11.5px] leading-snug" style={{ color: t['color.muted'] }}>
-          {words}
-        </span>
+      </span>
+      <span className="line-clamp-2 text-[11.5px] leading-snug" style={{ color: t['color.muted'] }}>
+        {words}
       </span>
     </span>
   )
