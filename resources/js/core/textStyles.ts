@@ -89,6 +89,11 @@ export function autoTextStyle(b: BlockInfo, blocks: BlockInfo[]): TextStyleId | 
 }
 
 const stepOf = (s: TypeStep) => TYPE_STEPS.indexOf(s)
+
+/** The line height that suits a size: roomy for reading sizes, tight for display sizes. */
+export function leadingFor(s: TypeStep): number {
+  return ({ xs: 1.5, sm: 1.55, base: 1.6, lg: 1.5, xl: 1.35, '2xl': 1.25, '3xl': 1.18, '4xl': 1.12, '5xl': 1.08, '6xl': 1.05 } as const)[s]
+}
 /** Big sizes come down two steps on phones when nothing says otherwise. */
 export const phoneStep = (s: TypeStep): TypeStep => (stepOf(s) >= stepOf('3xl') ? TYPE_STEPS[stepOf(s) - 2] : s)
 export const nudgeStep = (s: TypeStep, by: number): TypeStep => TYPE_STEPS[Math.min(TYPE_STEPS.length - 1, Math.max(0, stepOf(s) + by))]
@@ -109,7 +114,8 @@ export function textDecl(def: TextStyleDef | undefined, size: TypeStep | undefin
     if (def.phone && def.phone !== def.size && !size) phone.push(`font-size: var(--mx-text-${def.phone});`)
   }
   if (size) {
-    desktop.push(`font-size: var(--mx-text-${size});`)
+    // A block's own size brings the line height that suits it, so a heading made small doesn't keep display leading.
+    desktop.push(`font-size: var(--mx-text-${size});`, `line-height: ${leadingFor(size)};`)
     if (phoneStep(size) !== size) phone.push(`font-size: var(--mx-text-${phoneStep(size)});`)
   }
   return { desktop, phone }

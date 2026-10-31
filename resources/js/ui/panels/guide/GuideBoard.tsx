@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import type { TokenGroup, TokenKey } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { GROUP_LABEL, primaryFamily } from '@/core/tokens'
@@ -24,8 +24,10 @@ export function GuideBoard() {
       <FontLinks tokens={[tokens, ...TOKEN_GROUPS.flatMap((g) => candidates(g).map((c) => withCandidate(tokens, c)))]} />
       <div className="grid grid-cols-2 gap-2 p-3">
         <Dials />
-        {TOKEN_GROUPS.map((g) =>
-          opened === g ? (
+        {TOKEN_GROUPS.flatMap((g) => (g === 'type' ? [g, 'text' as const] : [g])).map((g) =>
+          g === 'text' ? (
+            <Fragment key="text">{textTile()}</Fragment>
+          ) : opened === g ? (
             <div key={g} className="col-span-2 animate-rise rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_12px_28px_-14px_rgb(0_0_0/0.3)]">
               <button type="button" onClick={() => setOpened(null)} className="mb-2 flex w-full cursor-pointer items-center justify-between text-left">
                 <span className="text-[13.5px] font-semibold text-zinc-900">{GROUP_LABEL[g]}</span>
@@ -33,6 +35,12 @@ export function GuideBoard() {
               </button>
               <GroupDecision group={g} open={open.includes(g)} />
               <GroupTokens group={g} />
+              {g === 'type' && (
+                <div className="mt-3 border-t border-zinc-950/6 pt-3">
+                  <div className="mb-1 px-1 text-[12px] font-semibold text-zinc-900">Text styles</div>
+                  <TextStylesPanel tokens={tokens} />
+                </div>
+              )}
             </div>
           ) : (
             <button
@@ -47,25 +55,6 @@ export function GuideBoard() {
               <span className="truncate text-[11px] text-zinc-500">{sourceLine(g)}</span>
             </button>
           ),
-        )}
-        {opened === 'text' ? (
-          <div className="col-span-2 animate-rise rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_12px_28px_-14px_rgb(0_0_0/0.3)]">
-            <button type="button" onClick={() => setOpened(null)} className="mb-2 flex w-full cursor-pointer items-center justify-between text-left">
-              <span className="text-[13.5px] font-semibold text-zinc-900">Text styles</span>
-              <span className="text-[11.5px] font-medium text-zinc-500">Done</span>
-            </button>
-            <TextStylesPanel tokens={tokens} />
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setOpened('text')}
-            className="group/tile relative col-span-2 flex cursor-pointer flex-col gap-2 rounded-2xl bg-[var(--lift)] p-3 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)] transition-[translate,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5"
-          >
-            <span className="text-[12.5px] font-semibold text-zinc-900">Text styles</span>
-            <TextStylesArt tokens={tokens} />
-            <span className="truncate text-[11px] text-zinc-500">Display, headings, body, small, caption and label</span>
-          </button>
         )}
         {opened === 'effects' ? (
           <div className="col-span-2 animate-rise rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_12px_28px_-14px_rgb(0_0_0/0.3)]">
@@ -99,6 +88,29 @@ export function GuideBoard() {
       <CopyFooter />
     </div>
   )
+
+  // Text styles sit right after Type: fonts, the scale and the styles built on them, together.
+  function textTile() {
+    return opened === 'text' ? (
+          <div className="col-span-2 animate-rise rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_12px_28px_-14px_rgb(0_0_0/0.3)]">
+            <button type="button" onClick={() => setOpened(null)} className="mb-2 flex w-full cursor-pointer items-center justify-between text-left">
+              <span className="text-[13.5px] font-semibold text-zinc-900">Text styles</span>
+              <span className="text-[11.5px] font-medium text-zinc-500">Done</span>
+            </button>
+            <TextStylesPanel tokens={tokens} />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setOpened('text')}
+            className="group/tile relative col-span-2 flex cursor-pointer flex-col gap-2 rounded-2xl bg-[var(--lift)] p-3 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)] transition-[translate,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5"
+          >
+            <span className="text-[12.5px] font-semibold text-zinc-900">Text styles</span>
+            <TextStylesArt tokens={tokens} />
+            <span className="truncate text-[11px] text-zinc-500">Display, headings, body, small, caption and label</span>
+          </button>
+        )
+  }
 
   function sourceLine(g: TokenGroup) {
     const cands = candidates(g)

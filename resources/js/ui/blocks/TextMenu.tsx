@@ -12,6 +12,7 @@ import { useStore } from '@/state/store'
 export function TextMenu({
   style,
   auto,
+  shownPx,
   onHover,
   onPick,
 }: {
@@ -19,6 +20,8 @@ export function TextMenu({
   style: BlockStyle | undefined
   /** The style the block reads as. */
   auto: TextStyleId | undefined
+  /** The block's size on screen now, in px: the size steps start from it. */
+  shownPx?: number
   onHover: (s: Partial<BlockStyle> | null) => void
   onPick: (s: Partial<BlockStyle>) => void
 }) {
@@ -30,7 +33,9 @@ export function TextMenu({
   const picked = style?.text
   const current = picked && picked !== 'none' ? picked : auto
   const size = style?.size
-  const baseSize = current ? styles[current].size : 'base'
+  // Steps start from the size you see: the block's own, else the nearest step to what it shows, else its style's.
+  const nearest = (target: number) => TYPE_STEPS.reduce((best, s) => (Math.abs(sizePx(s) - target) < Math.abs(sizePx(best) - target) ? s : best), TYPE_STEPS[0])
+  const baseSize: TypeStep = shownPx ? nearest(shownPx) : current ? styles[current].size : 'base'
 
   const row = ({ id, def, note, on, value }: { id: string; def?: TextStyleDef; note: string; on: boolean; value: BlockStyle['text'] }) => (
     <button
@@ -85,7 +90,7 @@ export function TextMenu({
         >
           <Minus size={13} />
         </button>
-        <span className="w-14 text-center text-[12px] font-medium tabular-nums text-zinc-800">{size ? `${Math.round(sizePx(size))}px` : 'Style'}</span>
+        <span className="w-14 text-center text-[12px] font-medium tabular-nums text-zinc-800">{Math.round(size ? sizePx(size) : (shownPx ?? sizePx(baseSize)))}px</span>
         <button
           type="button"
           aria-label="Bigger"

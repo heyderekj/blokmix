@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { TokenKey } from '@/core/types'
 import { expandTokens } from '@/core/tokens'
-import { editedTextStyles, resolveTextStyles, TEXT_STYLE_LABEL, TEXT_STYLES, TYPE_STEPS, type TextStyleDef, type TextStyleId, type TypeStep } from '@/core/textStyles'
+import { editedTextStyles, leadingFor, resolveTextStyles, TEXT_STYLE_LABEL, TEXT_STYLES, TYPE_STEPS, type TextStyleDef, type TextStyleId, type TypeStep } from '@/core/textStyles'
 import { useStore } from '@/state/store'
 
 type Tokens = Record<TokenKey, string>
@@ -120,7 +120,11 @@ function StyleEditor({ id, def, edited, px }: { id: TextStyleId; def: TextStyleD
           ))}
         </select>,
       )}
-      {field('Size', steps(def.size, (s) => set({ size: s })))}
+      {field(
+        'Size',
+        // The line height follows the size until you set it yourself.
+        steps(def.size, (s) => set({ size: s, ...(useStore.getState().guide.textStyles?.[id]?.leading === undefined ? { leading: leadingFor(s) } : {}) })),
+      )}
       {field('On phones', steps(def.phone ?? def.size, (s) => set({ phone: s })))}
       {field(
         `Line height · ${def.leading.toFixed(2)}`,

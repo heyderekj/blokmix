@@ -272,6 +272,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         <TextMenu
           style={own?.style}
           auto={autoStyle}
+          shownPx={rect?.font}
           onHover={(t) => hover(t ? { style: { ...own?.style, ...t } } : null)}
           onPick={(t) => apply({ style: t })}
         />

@@ -14,6 +14,8 @@ export interface FrameRect {
   y: number
   w: number
   h: number
+  /** The selected block's type size in px, when it's the selection's box. */
+  font?: number
 }
 
 /** What a frame in edit mode reports about its blocks. */

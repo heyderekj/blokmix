@@ -77,7 +77,8 @@ const BRIDGE = `(function () {
     for (var i = 0; i < all.length; i++) if (all[i].closest('[data-mx-block]') === el) return all[i];
     return null;
   }
-  function reportSel() { post({ selRect: rect(byId(sel)) }); }
+  /* The selection's box, and its type size (the block bar's size steps start from what's on screen). */
+  function reportSel() { var el = byId(sel), r = rect(el); if (r && el) r.font = parseFloat(getComputedStyle(el).fontSize); post({ selRect: r }); }
 
   document.addEventListener('pointermove', function (e) {
     if (!editMode || editing || drag) return;

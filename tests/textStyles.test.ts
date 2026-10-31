@@ -47,7 +47,7 @@ describe('text styles', () => {
     expect(t.desktop).toContain('font-size: var(--mx-text-4xl);')
     expect(t.phone).toEqual(['font-size: var(--mx-text-2xl);'])
     const sized = textDecl(undefined, '5xl')
-    expect(sized.desktop).toEqual(['font-size: var(--mx-text-5xl);'])
+    expect(sized.desktop).toEqual(['font-size: var(--mx-text-5xl);', 'line-height: 1.08;'])
     expect(sized.phone).toEqual([`font-size: var(--mx-text-${phoneStep('5xl')});`])
     expect(textDecl(undefined, 'sm').phone).toEqual([])
     const css = blockCss({ blocks: hero.blocks, edits: { [headline.id]: { style: { text: 'label' } } }, select })
