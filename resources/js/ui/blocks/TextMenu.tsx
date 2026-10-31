@@ -39,7 +39,7 @@ export function TextMenu({
       onMouseEnter={() => onHover({ text: value })}
       onMouseLeave={() => onHover(null)}
       onClick={() => onPick({ text: value })}
-      className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-1.5 text-left transition-colors ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
+      className={`flex min-h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-1 text-left transition-colors ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
     >
       <span
         className="min-w-0 flex-1 truncate text-zinc-900"
@@ -48,7 +48,8 @@ export function TextMenu({
             ? {
                 fontFamily: tokens[`font.${def.font}` as 'font.display'],
                 fontWeight: def.weight === 'display' ? Number(tokens['type.displayWeight']) || 700 : def.weight,
-                fontSize: Math.min(26, Math.max(11, sizePx(def.size) * 0.55)),
+                // Big styles shrink so all ten fit without scrolling; their order still reads largest to smallest.
+                fontSize: Math.min(21, Math.max(11, sizePx(def.size) * 0.45)),
                 letterSpacing: `${def.tracking}em`,
                 textTransform: def.upper ? 'uppercase' : undefined,
                 lineHeight: 1.2,
@@ -66,7 +67,7 @@ export function TextMenu({
     <div className="glass-menu animate-pop rounded-2xl p-1.5" style={{ width: 300 }}>
       {row({ id: 'Automatic', note: auto ? `as ${TEXT_STYLE_LABEL[auto]}` : 'clip’s own', on: !picked, value: undefined })}
       <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
-      <div className="max-h-[300px] overflow-y-auto">
+      <div>
         {TEXT_STYLES.map((id) =>
           row({ id: TEXT_STYLE_LABEL[id], def: styles[id], note: `${Math.round(sizePx(styles[id].size))}px`, on: picked === id, value: id }),
         )}
