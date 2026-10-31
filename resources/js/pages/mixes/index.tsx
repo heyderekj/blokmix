@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { Copy, CloudUpload, Library, MessageSquare, Palette, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react'
+import { Copy, CloudUpload, Library, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react'
 import { readMixFile } from '@/lib/mixFile'
 import { importClips } from '@/lib/userClips'
 import { pickFile } from '@/lib/pickFile'
@@ -13,12 +13,12 @@ import { Wordmark } from '@/ui/brand/Wordmark'
 import { LiftedBlock, Slot as BlockSlot } from '@/ui/auth/AuthCard'
 import { StatusRing } from '@/ui/frames/FrameHeader'
 import { MixThumb } from '@/ui/mixes/MixThumb'
-import { StartGallery, type GuideChoice } from '@/ui/mixes/StartGallery'
+import { StartModal, type GuideChoice, type StartChoice } from '@/ui/mixes/StartModal'
 import { resolveGuide } from '@/core/guide'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { library } from '@/data/library'
-import { buildStarter, type Starter } from '@/core/starters'
-import { mixFromSitePage, type LibraryPage, type LibrarySite } from '@/lib/siteLibrary'
+import { buildStarter } from '@/core/starters'
+import { mixFromSitePage } from '@/lib/siteLibrary'
 import { StartFlow } from '@/ui/start/StartFlow'
 import { mixFromStart } from '@/lib/start'
 
@@ -359,30 +359,30 @@ const CARD_BUTTON =
 const CARD =
   'group/card relative flex h-full flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_24px_48px_-28px_rgb(23_18_26/0.3)] transition-[translate,box-shadow,scale] duration-200 active:scale-[0.99] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_30px_56px_-26px_rgb(23_18_26/0.4)]'
 
-/** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It starts a mix in the
- * neutral style; "Start from…" starts one from a starter mix (its pages and sample style guide), a saved guide or another
- * mix's (the new mix keeps its own copy). */
+/** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It opens the New mix
+ * modal: blank, a starter mix (its pages and sample style guide), a real site, or a style guide (the new mix keeps its own
+ * copy), then a name; "Help me choose" opens the guided start. */
 function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full: boolean; onRefused: (why: string) => void; onGuided: () => void }) {
   const [picking, setPicking] = useState(false)
   const [saved, setSaved] = useState<SavedGuide[] | null>(null)
   useEffect(() => {
     if (picking && saved === null) void listGuides().then(setSaved)
   }, [picking, saved])
-  const start = (guide?: GuideState) => {
-    if (full) return onRefused(MIX_FULL)
-    router.post('/mixes', guide ? { guide: guide as unknown as Record<string, string> } : {}, { onError: (e) => e.mix && onRefused(e.mix) })
+  const post = (body: { name: string; site?: Site; guide?: GuideState }) =>
+    router.post('/mixes', body as unknown as Record<string, string>, { onError: (e) => e.mix && onRefused(e.mix) })
+  // What the New mix modal picked, under the name it was given.
+  const create = (c: StartChoice, name: string) => {
+    if (c.kind === 'blank') return post({ name })
+    if (c.kind === 'guide') return post({ name, guide: c.guide })
+    if (c.kind === 'starter') {
+      const { site, guide } = buildStarter(library, c.starter)
+      return post({ name, site, guide })
+    }
+    const { site, guide } = mixFromSitePage(library, c.site, c.page)
+    if (!site.pages[0].slots.length && !site.shared.nav && !site.shared.footer) return onRefused(`${c.site.name} ${c.page.path} has no sections with a layout yet`)
+    post({ name, site, guide })
   }
-  const startStarter = (starter: Starter) => {
-    if (full) return onRefused(MIX_FULL)
-    const { mixName, site, guide } = buildStarter(library, starter)
-    router.post('/mixes', { name: mixName, site, guide } as unknown as Record<string, string>, { onError: (e) => e.mix && onRefused(e.mix) })
-  }
-  const startSite = (site: LibrarySite, page: LibraryPage) => {
-    if (full) return onRefused(MIX_FULL)
-    const { mixName, site: built, guide } = mixFromSitePage(library, site, page)
-    if (!built.pages[0].slots.length && !built.shared.nav && !built.shared.footer) return onRefused(`${site.name} ${page.path} has no sections with a layout yet`)
-    router.post('/mixes', { name: mixName, site: built, guide } as unknown as Record<string, string>, { onError: (e) => e.mix && onRefused(e.mix) })
-  }
+  const open = () => (full ? onRefused(MIX_FULL) : setPicking(true))
   const styled = mixes.filter((m) => m.guide && Object.keys(m.guide.base ?? {}).length)
 
   const guides: GuideChoice[] | null =
@@ -395,7 +395,7 @@ function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full:
 
   return (
     <div className="group/new relative grid h-full min-h-[260px] w-full place-items-center rounded-[22px] border-2 border-dashed border-[#E4D9DF] transition-[border-color,background-color] duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-[#FF69B4]/60 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/60">
-      <button type="button" onClick={onGuided} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
+      <button type="button" onClick={open} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
       <span className="pointer-events-none grid justify-items-center gap-4">
         <span className="relative block size-[64px]">
           <BlockSlot size={64} className="left-0 top-0" />
@@ -406,22 +406,8 @@ function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full:
         </span>
         {full && <span className="-mt-2 text-[12.5px] text-[#6B5F68]">Free includes one mix</span>}
       </span>
-      {!full && <button
-        type="button"
-        onClick={() => setPicking(true)}
-        className="absolute bottom-4 left-1/2 flex h-8 -translate-x-1/2 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[12.5px] font-medium text-[#6B5F68] transition-[background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-[#17121A] active:scale-[0.97]"
-      >
-        <Palette size={14} /> Start from…
-      </button>}
       {picking && (
-        <StartGallery
-          guides={guides}
-          onBlank={() => start()}
-          onStarter={startStarter}
-          onSite={startSite}
-          onGuide={start}
-          onClose={() => setPicking(false)}
-        />
+        <StartModal guides={guides} onCreate={create} onGuided={() => (setPicking(false), onGuided())} onClose={() => setPicking(false)} />
       )}
     </div>
   )
