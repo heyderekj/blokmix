@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Coffee, Feather, Moon, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Coffee, Feather, FileText, Moon, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
 import { create } from 'zustand'
 import type { Kind } from '@/core/types'
 import { KINDS } from '@/core/types'
@@ -23,7 +23,8 @@ const HOVER = '[@media(hover:hover)_and_(pointer:fine)]:hover:'
 const PRESS = 'cursor-pointer transition-[background-color,box-shadow,scale,color] duration-150 active:scale-[0.97]'
 const CARD = `rounded-[18px] bg-white text-left shadow-[0_0_0_1px_rgb(23_18_26/0.08)] ${PRESS}`
 const ON = 'shadow-[0_0_0_2px_#FF69B4,0_16px_32px_-20px_rgb(255_105_180/0.6)]'
-const PRIMARY = `flex h-11 items-center gap-2 rounded-full bg-[#17121A] px-5 text-[14px] font-semibold text-white disabled:cursor-default disabled:opacity-40 ${PRESS}`
+// The app's lit pink button, the step's one main action.
+const PRIMARY = `btn-lit flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold disabled:pointer-events-none disabled:opacity-45 ${PRESS}`
 const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-medium text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`
 
 type Step = 'what' | 'feel' | 'starts'
@@ -96,8 +97,8 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
         <header className="flex items-center gap-3 border-b border-zinc-950/[0.06] bg-white px-4 py-2.5 sm:px-5">
           <Steps step={step} />
           <span className="flex-1" />
-          <button type="button" onClick={onBlank} disabled={busy} className={QUIET}>
-            Start blank
+          <button type="button" onClick={onBlank} disabled={busy} className={`btn-quiet flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold ${PRESS}`}>
+            <FileText size={14} /> Start blank
           </button>
           {onClose && (
             <button type="button" onClick={onClose} aria-label="Close" className={`grid size-11 place-items-center rounded-full text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`}>
@@ -330,7 +331,7 @@ function StartCard({ start, letter, best, busy, onPick }: { start: ScoredStart; 
             ))}
           {start.score.phoneScreens !== null && <li className="pl-5 text-[#6B5F68]">About {Math.max(1, Math.round(start.score.phoneScreens))} screens long on a phone</li>}
         </ul>
-        <button type="button" onClick={onPick} disabled={busy} className={`${PRIMARY} mt-auto w-full justify-center`}>
+        <button type="button" onClick={onPick} disabled={busy} className={`${PRIMARY} btn-ink mt-auto w-full justify-center`}>
           Start with {letter}
         </button>
       </div>
