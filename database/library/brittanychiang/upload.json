@@ -1,0 +1,128 @@
+{
+  "slug": "brittanychiang",
+  "name": "Brittany Chiang",
+  "url": "https://brittanychiang.com/",
+  "industry": "personal",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#0f172a",
+    "color.surface": "#122a39",
+    "color.text": "#94a3b8",
+    "color.muted": "#e2e8f0",
+    "color.border": "#1c2639",
+    "color.primary": "#eab308",
+    "color.onPrimary": "#0f172a",
+    "color.accent": "#5eead4",
+    "font.display": "__inter_20b187, __inter_Fallback_20b187, ui-sans-serif, system-ui, -apple-system, 'system-ui', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
+    "font.body": "__inter_20b187, __inter_Fallback_20b187, ui-sans-serif, system-ui, -apple-system, 'system-ui', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.067",
+    "type.displayWeight": "700",
+    "radius.base": "0px",
+    "stroke.width": "1px",
+    "icon.set": "lucide:regular",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "8px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "150ms",
+    "motion.ease": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  "fonts": [
+    {
+      "family": "__inter_20b187",
+      "css2": "__inter_20b187:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Dark ground, __inter_20b187 throughout, square corners, a orange primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Brittany Chiang",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 3860,
+      "sections": [
+        {
+          "order": 0,
+          "type": "hero",
+          "box": {
+            "y": 0,
+            "h": 900
+          },
+          "layoutId": "hero.layout-editorial",
+          "score": 0.94,
+          "status": "matched",
+          "screenshot": "home-s0.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 1,
+          "type": "features",
+          "box": {
+            "y": 95,
+            "h": 370
+          },
+          "layoutId": "features.layout-list",
+          "score": 0.863,
+          "status": "matched",
+          "screenshot": "home-s1.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 2,
+          "type": "features",
+          "box": {
+            "y": 608,
+            "h": 1444
+          },
+          "layoutId": "features.layout-list",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s2.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 3,
+          "type": "features",
+          "box": {
+            "y": 2195,
+            "h": 763
+          },
+          "layoutId": "features.layout-two-up",
+          "score": 0.846,
+          "status": "matched",
+          "screenshot": "home-s3.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 4,
+          "type": "logos",
+          "box": {
+            "y": 3101,
+            "h": 459
+          },
+          "layoutId": "logos.layout-cards",
+          "score": 0.516,
+          "status": "needs_layout",
+          "screenshot": "home-s4.webp",
+          "hint": {
+            "dark": true
+          }
+        }
+      ]
+    }
+  ]
+}

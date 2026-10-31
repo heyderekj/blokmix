@@ -1,0 +1,215 @@
+{
+  "slug": "cal",
+  "name": "Cal",
+  "url": "https://cal.com/",
+  "industry": "product",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#f4f4f4",
+    "color.surface": "#ffffff",
+    "color.text": "#000000",
+    "color.muted": "#898989",
+    "color.border": "#cecece",
+    "color.primary": "#000000",
+    "color.onPrimary": "#f4f4f4",
+    "color.accent": "#0099ff",
+    "font.display": "'Cal Sans', system-ui, sans-serif",
+    "font.body": "'Cal Sans UI Variable Light', 'Cal Sans UI Variable Light Placeholder', sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.2",
+    "type.displayWeight": "600",
+    "radius.base": "12px",
+    "stroke.width": "1px",
+    "icon.set": "",
+    "shadow.card": "rgba(34, 42, 53, 0.05) 0px 4px 8px 0px",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "fonts": [
+    {
+      "family": "Cal Sans",
+      "css2": "",
+      "provider": "fontsource",
+      "fontsource": "cal-sans@400"
+    },
+    {
+      "family": "Cal Sans UI Variable Light",
+      "css2": "Cal+Sans+UI+Variable+Light:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, Cal Sans headings over Cal Sans UI Variable Light, 12px corners, a black primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Cal.com | Scheduling Software for Online Bookings",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 8737,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 8,
+            "h": 58
+          },
+          "layoutId": "nav.layout-tools",
+          "score": 0.936,
+          "status": "matched",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 96,
+            "h": 700
+          },
+          "layoutId": "hero.layout-collage",
+          "score": 0.91,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "logos",
+          "box": {
+            "y": 828,
+            "h": 74
+          },
+          "layoutId": "logos.layout-band",
+          "score": 0.953,
+          "status": "matched",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "features",
+          "box": {
+            "y": 934,
+            "h": 868
+          },
+          "layoutId": "features.layout-alternating",
+          "score": 0.826,
+          "status": "matched",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "features",
+          "box": {
+            "y": 1834,
+            "h": 1238
+          },
+          "layoutId": "features.layout-alternating",
+          "score": 0.797,
+          "status": "matched",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "features",
+          "box": {
+            "y": 3072,
+            "h": 569
+          },
+          "layoutId": "features.layout-bento",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "testimonials",
+          "box": {
+            "y": 3673,
+            "h": 691
+          },
+          "layoutId": "testimonials.layout-cards",
+          "score": 0.833,
+          "status": "matched",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "logos",
+          "box": {
+            "y": 4396,
+            "h": 450
+          },
+          "layoutId": "logos.layout-grid",
+          "score": 0.719,
+          "status": "needs_layout",
+          "screenshot": "home-s7.webp"
+        },
+        {
+          "order": 8,
+          "type": "content",
+          "box": {
+            "y": 4878,
+            "h": 1531
+          },
+          "layoutId": "content.layout-video",
+          "score": 0.86,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        },
+        {
+          "order": 9,
+          "type": "faq",
+          "box": {
+            "y": 6440,
+            "h": 913
+          },
+          "layoutId": "faq.layout-compact",
+          "score": 0.787,
+          "status": "matched",
+          "screenshot": "home-s9.webp"
+        },
+        {
+          "order": 10,
+          "type": "logos",
+          "box": {
+            "y": 7385,
+            "h": 74
+          },
+          "layoutId": "logos.layout-band",
+          "score": 0.953,
+          "status": "matched",
+          "screenshot": "home-s10.webp"
+        },
+        {
+          "order": 11,
+          "type": "cta",
+          "box": {
+            "y": 7491,
+            "h": 390
+          },
+          "layoutId": "cta.layout-media",
+          "score": 0.872,
+          "status": "matched",
+          "screenshot": "home-s11.webp"
+        },
+        {
+          "order": 12,
+          "type": "footer",
+          "box": {
+            "y": 7913,
+            "h": 824
+          },
+          "layoutId": "footer.layout-index",
+          "score": 0.868,
+          "status": "matched",
+          "screenshot": "home-s12.webp"
+        }
+      ]
+    }
+  ]
+}

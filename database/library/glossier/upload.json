@@ -1,0 +1,161 @@
+{
+  "slug": "glossier",
+  "name": "Glossier",
+  "url": "https://www.glossier.com/",
+  "industry": "shop",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#f2f2f2",
+    "color.text": "#000000",
+    "color.muted": "#484848",
+    "color.border": "#d7d7d7",
+    "color.primary": "#000000",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#a85566",
+    "font.display": "Apercu, 'Gill Sans', sans-serif",
+    "font.body": "Apercu, 'Gill Sans', sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "400",
+    "radius.base": "0px",
+    "stroke.width": "1px",
+    "icon.set": "",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "400ms",
+    "motion.ease": "ease-in-out"
+  },
+  "fonts": [
+    {
+      "family": "Apercu",
+      "css2": "Apercu:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, Apercu throughout, square corners, a black primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Glossier",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 5011,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 32,
+            "h": 44
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.889,
+          "status": "matched",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 72,
+            "h": 800
+          },
+          "layoutId": "hero.layout-media-below",
+          "score": 0.838,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "pricing",
+          "box": {
+            "y": 902,
+            "h": 665
+          },
+          "layoutId": "pricing.layout-tiers",
+          "score": 0.65,
+          "status": "needs_layout",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "cta",
+          "box": {
+            "y": 1623,
+            "h": 128
+          },
+          "layoutId": "cta.layout-video",
+          "score": 0.821,
+          "status": "matched",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "gallery",
+          "box": {
+            "y": 1797,
+            "h": 570
+          },
+          "layoutId": "gallery.layout-rows",
+          "score": 0.833,
+          "status": "matched",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "content",
+          "box": {
+            "y": 2407,
+            "h": 612
+          },
+          "layoutId": "content.layout-image",
+          "score": 0.928,
+          "status": "matched",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "gallery",
+          "box": {
+            "y": 3075,
+            "h": 383
+          },
+          "layoutId": "gallery.layout-mosaic",
+          "score": 0.714,
+          "status": "needs_layout",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "features",
+          "box": {
+            "y": 3540,
+            "h": 609
+          },
+          "layoutId": "features.layout-mosaic",
+          "score": 0.897,
+          "status": "matched",
+          "screenshot": "home-s7.webp"
+        },
+        {
+          "order": 8,
+          "type": "footer",
+          "box": {
+            "y": 4245,
+            "h": 765
+          },
+          "layoutId": "footer.layout-newsletter",
+          "score": 0.783,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        }
+      ]
+    }
+  ]
+}

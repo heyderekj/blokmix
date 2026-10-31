@@ -1,0 +1,177 @@
+{
+  "slug": "craigmod",
+  "name": "Craig Mod",
+  "url": "https://craigmod.com/",
+  "industry": "writing",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#f6f6f6",
+    "color.text": "#333333",
+    "color.muted": "#7e7e7e",
+    "color.border": "#dddddd",
+    "color.primary": "#409bfd",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#000b52",
+    "font.display": "ff-meta-web-pro-1, ff-meta-web-pro-2, -apple-system, 'system-ui', Helvetica, Arial, sans-serif",
+    "font.body": "ff-meta-serif-web-pro-1, ff-meta-serif-web-pro-2, Georgia, Times, serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "700",
+    "radius.base": "0px",
+    "stroke.width": "1px",
+    "icon.set": "",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "5px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "200ms",
+    "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "fonts": [
+    {
+      "family": "ff-meta-web-pro-1",
+      "css2": "ff-meta-web-pro-1:wght@400;500;600;700"
+    },
+    {
+      "family": "ff-meta-serif-web-pro-1",
+      "css2": "ff-meta-serif-web-pro-1:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, ff-meta-web-pro-1 headings over ff-meta-serif-web-pro-1, square corners, a blue primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Craig Mod \u2014 Writer + Photographer",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 5802,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 168
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.885,
+          "status": "matched",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "contact",
+          "box": {
+            "y": 168,
+            "h": 358
+          },
+          "layoutId": "contact.layout-form",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "content",
+          "box": {
+            "y": 587,
+            "h": 110
+          },
+          "layoutId": "content.layout-image",
+          "score": 0.706,
+          "status": "needs_layout",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "testimonials",
+          "box": {
+            "y": 717,
+            "h": 583
+          },
+          "layoutId": "testimonials.layout-stats",
+          "score": 0.77,
+          "status": "needs_layout",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "content",
+          "box": {
+            "y": 1340,
+            "h": 573
+          },
+          "layoutId": "content.layout-video",
+          "score": 0.826,
+          "status": "matched",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "contact",
+          "box": {
+            "y": 1963,
+            "h": 1110
+          },
+          "layoutId": "contact.layout-map",
+          "score": 0.655,
+          "status": "needs_layout",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "blog",
+          "box": {
+            "y": 3123,
+            "h": 1574
+          },
+          "layoutId": "blog.layout-overlay",
+          "score": 0.638,
+          "status": "needs_layout",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "features",
+          "box": {
+            "y": 4697,
+            "h": 336
+          },
+          "layoutId": "features.layout-bento",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s7.webp"
+        },
+        {
+          "order": 8,
+          "type": "features",
+          "box": {
+            "y": 5053,
+            "h": 585
+          },
+          "layoutId": "features.layout-list",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        },
+        {
+          "order": 9,
+          "type": "footer",
+          "box": {
+            "y": 5637,
+            "h": 139
+          },
+          "layoutId": "footer.layout-minimal",
+          "score": 0.799,
+          "status": "matched",
+          "screenshot": "home-s9.webp"
+        }
+      ]
+    }
+  ]
+}

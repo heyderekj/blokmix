@@ -2,6 +2,7 @@
   "slug": "linear",
   "name": "Linear",
   "url": "https://linear.app/",
+  "industry": "product",
   "tags": [],
   "tokens": {
     "color.bg": "#08090a",
@@ -24,6 +25,8 @@
     "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
     "space.base": "4px",
     "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
     "motion.duration": "160ms",
     "motion.ease": "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
   },
@@ -38,7 +41,7 @@
   "pages": [
     {
       "path": "/",
-      "title": "Linear – The system for product development",
+      "title": "Linear \u2013 The system for product development",
       "order": 0,
       "screenshot": "home-1440.webp",
       "width": 1440,

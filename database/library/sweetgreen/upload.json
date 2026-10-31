@@ -1,0 +1,153 @@
+{
+  "slug": "sweetgreen",
+  "name": "sweetgreen",
+  "url": "https://www.sweetgreen.com/",
+  "industry": "local",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#f4f3e7",
+    "color.surface": "#e9e9dd",
+    "color.text": "#0e150e",
+    "color.muted": "#00473c",
+    "color.border": "#d4d5c9",
+    "color.primary": "#e6ff55",
+    "color.onPrimary": "#00473c",
+    "color.accent": "#00473c",
+    "font.display": "SweetSans, SweetSansText, system-ui, -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    "font.body": "SweetSansText, system-ui, -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.618",
+    "type.displayWeight": "400",
+    "radius.base": "8px",
+    "stroke.width": "1px",
+    "icon.set": "",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "300ms",
+    "motion.ease": "ease-in-out"
+  },
+  "fonts": [
+    {
+      "family": "SweetSans",
+      "css2": "SweetSans:wght@400;500;600;700"
+    },
+    {
+      "family": "SweetSansText",
+      "css2": "SweetSansText:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, SweetSans headings over SweetSansText, 8px corners, a amber primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "sweetgreen | Inspiring healthier communities",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 4108,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 41,
+            "h": 72
+          },
+          "layoutId": "nav.layout-tools",
+          "score": 0.843,
+          "status": "matched",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "content",
+          "box": {
+            "y": 0,
+            "h": 41
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.846,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "hero",
+          "box": {
+            "y": 113,
+            "h": 828
+          },
+          "layoutId": "hero.layout-media-below",
+          "score": 0.928,
+          "status": "matched",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "cta",
+          "box": {
+            "y": 1011,
+            "h": 93
+          },
+          "layoutId": "cta.layout-band",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "features",
+          "box": {
+            "y": 1136,
+            "h": 706
+          },
+          "layoutId": "features.layout-bento",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "content",
+          "box": {
+            "y": 2034,
+            "h": 659
+          },
+          "layoutId": "content.layout-image",
+          "score": 0.74,
+          "status": "needs_layout",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "content",
+          "box": {
+            "y": 2735,
+            "h": 828
+          },
+          "layoutId": "content.layout-overlap",
+          "score": 0.723,
+          "status": "needs_layout",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "footer",
+          "box": {
+            "y": 3563,
+            "h": 545
+          },
+          "layoutId": "footer.layout-index",
+          "score": 0.74,
+          "status": "needs_layout",
+          "screenshot": "home-s7.webp"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "slug": "warbyparker",
+  "name": "Warby Parker",
+  "url": "https://www.warbyparker.com/",
+  "industry": "shop",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#f4f4f4",
+    "color.text": "#121212",
+    "color.muted": "#666666",
+    "color.border": "#dedede",
+    "color.primary": "#1050d0",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#072369",
+    "font.display": "fontIvoryLl, 'fontIvoryLl Fallback'",
+    "font.body": "fontAbcSocial, 'fontAbcSocial Fallback'",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "400",
+    "radius.base": "8px",
+    "stroke.width": "1px",
+    "icon.set": "tabler:regular",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "200ms",
+    "motion.ease": "cubic-bezier(0.25, 0, 0.35, 0.95)"
+  },
+  "fonts": [
+    {
+      "family": "fontIvoryLl",
+      "css2": "fontIvoryLl:wght@400;500;600;700"
+    },
+    {
+      "family": "fontAbcSocial",
+      "css2": "fontAbcSocial:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, fontIvoryLl headings over fontAbcSocial, 8px corners, a blue primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Eyewear Online | We've Got Your Eyes Covered | Warby Parker",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 7588,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 119
+          },
+          "layoutId": "nav.layout-tools",
+          "score": 0.636,
+          "status": "needs_layout",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 0,
+            "h": 744
+          },
+          "layoutId": "hero.layout-editorial",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "gallery",
+          "box": {
+            "y": 744,
+            "h": 720
+          },
+          "layoutId": "gallery.layout-rows",
+          "score": 0.753,
+          "status": "needs_layout",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "pricing",
+          "box": {
+            "y": 1544,
+            "h": 526
+          },
+          "layoutId": "pricing.layout-two",
+          "score": 0.632,
+          "status": "needs_layout",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "content",
+          "box": {
+            "y": 2150,
+            "h": 720
+          },
+          "layoutId": "content.layout-overlap",
+          "score": 0.795,
+          "status": "matched",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "gallery",
+          "box": {
+            "y": 2870,
+            "h": 476
+          },
+          "layoutId": "gallery.layout-mosaic",
+          "score": 0.722,
+          "status": "needs_layout",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "gallery",
+          "box": {
+            "y": 3346,
+            "h": 838
+          },
+          "layoutId": "gallery.layout-mosaic",
+          "score": 0.703,
+          "status": "needs_layout",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "features",
+          "box": {
+            "y": 4184,
+            "h": 738
+          },
+          "layoutId": "features.layout-mosaic",
+          "score": 0.757,
+          "status": "needs_layout",
+          "screenshot": "home-s7.webp"
+        },
+        {
+          "order": 8,
+          "type": "content",
+          "box": {
+            "y": 4922,
+            "h": 660
+          },
+          "layoutId": "content.layout-prose",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        },
+        {
+          "order": 9,
+          "type": "features",
+          "box": {
+            "y": 5582,
+            "h": 581
+          },
+          "layoutId": "features.layout-mosaic",
+          "score": 0.757,
+          "status": "needs_layout",
+          "screenshot": "home-s9.webp"
+        },
+        {
+          "order": 10,
+          "type": "footer",
+          "box": {
+            "y": 6164,
+            "h": 1424
+          },
+          "layoutId": "footer.layout-newsletter",
+          "score": 0.75,
+          "status": "needs_layout",
+          "screenshot": "home-s10.webp"
+        }
+      ]
+    }
+  ]
+}

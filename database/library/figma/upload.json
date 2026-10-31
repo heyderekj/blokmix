@@ -1,0 +1,171 @@
+{
+  "slug": "figma",
+  "name": "Figma Config",
+  "url": "https://config.figma.com/",
+  "industry": "event",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#131313",
+    "color.surface": "#1a1a1a",
+    "color.text": "#ffffff",
+    "color.muted": "#969696",
+    "color.border": "#2a2a2a",
+    "color.primary": "#ffffff",
+    "color.onPrimary": "#131313",
+    "color.accent": "#ffffff",
+    "font.display": "figmaSans, 'figmaSans Fallback', 'SF Pro Display', system-ui, helvetica, sans-serif, figmaSans, 'figmaSans Fallback', 'SF Pro Display', system-ui, helvetica, sans-serif",
+    "font.body": "figmaSans, 'figmaSans Fallback', 'SF Pro Display', system-ui, helvetica, sans-serif, figmaSans, 'figmaSans Fallback', 'SF Pro Display', system-ui, helvetica, sans-serif",
+    "font.mono": "figmaMono, 'figmaMono Fallback', 'SF Mono', menlo, monospace, figmaMono, 'figmaMono Fallback', 'SF Mono', menlo, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.414",
+    "type.displayWeight": "400",
+    "radius.base": "0px",
+    "stroke.width": "1px",
+    "icon.set": "",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "fonts": [
+    {
+      "family": "figmaSans",
+      "css2": "figmaSans:wght@400;500;600;700"
+    },
+    {
+      "family": "figmaMono",
+      "css2": "figmaMono:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Dark ground, figmaSans throughout, square corners, a white primary, with contrasting bands.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Figma Config 2027 | May 25\u201327 in San Francisco",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 6455,
+      "sections": [
+        {
+          "order": 0,
+          "type": "hero",
+          "box": {
+            "y": 0,
+            "h": 1303
+          },
+          "layoutId": "hero.layout-product",
+          "score": 0.897,
+          "status": "matched",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "content",
+          "box": {
+            "y": 1303,
+            "h": 696
+          },
+          "layoutId": "content.layout-overlap",
+          "score": 0.723,
+          "status": "needs_layout",
+          "screenshot": "home-s1.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 2,
+          "type": "gallery",
+          "box": {
+            "y": 2079,
+            "h": 560
+          },
+          "layoutId": "gallery.layout-rows",
+          "score": 0.773,
+          "status": "needs_layout",
+          "screenshot": "home-s2.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 3,
+          "type": "features",
+          "box": {
+            "y": 2703,
+            "h": 384
+          },
+          "layoutId": "features.layout-list",
+          "score": 0.932,
+          "status": "matched",
+          "screenshot": "home-s3.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 4,
+          "type": "features",
+          "box": {
+            "y": 3087,
+            "h": 707
+          },
+          "layoutId": "features.layout-grid",
+          "score": 0.932,
+          "status": "matched",
+          "screenshot": "home-s4.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 5,
+          "type": "gallery",
+          "box": {
+            "y": 3938,
+            "h": 1291
+          },
+          "layoutId": "gallery.layout-mosaic",
+          "score": 0.791,
+          "status": "matched",
+          "screenshot": "home-s5.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 6,
+          "type": "features",
+          "box": {
+            "y": 5372,
+            "h": 657
+          },
+          "layoutId": "features.layout-list",
+          "score": 0.88,
+          "status": "matched",
+          "screenshot": "home-s6.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 7,
+          "type": "footer",
+          "box": {
+            "y": 6029,
+            "h": 426
+          },
+          "layoutId": "footer.layout-index",
+          "score": 0.795,
+          "status": "matched",
+          "screenshot": "home-s7.webp"
+        }
+      ]
+    }
+  ]
+}

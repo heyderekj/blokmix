@@ -1,0 +1,227 @@
+{
+  "slug": "instrument",
+  "name": "Instrument",
+  "url": "https://www.instrument.com/",
+  "industry": "studio",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#070708",
+    "color.surface": "#0d0d0f",
+    "color.text": "#e8e8e9",
+    "color.muted": "#838384",
+    "color.border": "#1c1c1d",
+    "color.primary": "#e8e8e9",
+    "color.onPrimary": "#070708",
+    "color.accent": "#e8e8e9",
+    "font.display": "'Instrument-Sans', system-ui, sans-serif",
+    "font.body": "Instrument-Sans, Helvetica, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "700",
+    "radius.base": "24px",
+    "stroke.width": "2px",
+    "icon.set": "tabler:bold",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "250ms",
+    "motion.ease": "ease-in-out"
+  },
+  "fonts": [
+    {
+      "family": "Instrument-Sans",
+      "css2": "Instrument-Sans:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Dark ground, Instrument-Sans throughout, soft, round corners, a white primary, with contrasting bands.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Instrument | A technology-led brand, product, & marketing agency | Instrument",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 6710,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 50
+          },
+          "layoutId": "nav.layout-tools",
+          "score": 0.647,
+          "status": "needs_layout",
+          "screenshot": "home-s0.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 1,
+          "type": "content",
+          "box": {
+            "y": 50,
+            "h": 140
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.846,
+          "status": "matched",
+          "screenshot": "home-s1.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 2,
+          "type": "hero",
+          "box": {
+            "y": 214,
+            "h": 811
+          },
+          "layoutId": "hero.layout-media-below",
+          "score": 0.94,
+          "status": "matched",
+          "screenshot": "home-s2.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 3,
+          "type": "cta",
+          "box": {
+            "y": 1121,
+            "h": 230
+          },
+          "layoutId": "cta.layout-centered",
+          "score": 0.987,
+          "status": "matched",
+          "screenshot": "home-s3.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 4,
+          "type": "features",
+          "box": {
+            "y": 1479,
+            "h": 510
+          },
+          "layoutId": "features.layout-bento",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s4.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 5,
+          "type": "content",
+          "box": {
+            "y": 2085,
+            "h": 379
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.761,
+          "status": "needs_layout",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "gallery",
+          "box": {
+            "y": 2568,
+            "h": 668
+          },
+          "layoutId": "gallery.layout-rows",
+          "score": 0.642,
+          "status": "needs_layout",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "content",
+          "box": {
+            "y": 3332,
+            "h": 379
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.761,
+          "status": "needs_layout",
+          "screenshot": "home-s7.webp"
+        },
+        {
+          "order": 8,
+          "type": "content",
+          "box": {
+            "y": 3816,
+            "h": 1025
+          },
+          "layoutId": "content.layout-prose",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        },
+        {
+          "order": 9,
+          "type": "cta",
+          "box": {
+            "y": 4945,
+            "h": 158
+          },
+          "layoutId": "cta.layout-band",
+          "score": 0.936,
+          "status": "matched",
+          "screenshot": "home-s9.webp"
+        },
+        {
+          "order": 10,
+          "type": "gallery",
+          "box": {
+            "y": 5295,
+            "h": 522
+          },
+          "layoutId": "gallery.layout-spotlight",
+          "score": 0.733,
+          "status": "needs_layout",
+          "screenshot": "home-s10.webp"
+        },
+        {
+          "order": 11,
+          "type": "features",
+          "box": {
+            "y": 5945,
+            "h": 272
+          },
+          "layoutId": "features.layout-list",
+          "score": 0.863,
+          "status": "matched",
+          "screenshot": "home-s11.webp"
+        },
+        {
+          "order": 12,
+          "type": "footer",
+          "box": {
+            "y": 6313,
+            "h": 397
+          },
+          "layoutId": "footer.layout-columns",
+          "score": 0.949,
+          "status": "matched",
+          "screenshot": "home-s12.webp",
+          "hint": {
+            "dark": true
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -91,8 +91,10 @@ export function dismissConsent(): string | null {
     }
     return false
   }
+  // Never a link that leads somewhere else: clicking it would leave the page.
+  const leaves = (e: Element) => e.tagName === 'A' && !/^(#|javascript:|$)/i.test((e.getAttribute('href') ?? '').trim())
   const controls = Array.from(document.querySelectorAll('button, a[role="button"], [role="button"], input[type="button"], input[type="submit"]')).filter(
-    (e) => shown(e) && bannerish(e),
+    (e) => shown(e) && bannerish(e) && !leaves(e) && !e.closest('a[href]:not([href^="#"]):not([href^="javascript:"])'),
   )
   const label = (e: Element) => ((e as HTMLInputElement).value || e.textContent || e.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim()
   const pick = controls.find((e) => REJECT.test(label(e))) ?? controls.find((e) => ACCEPT.test(label(e)))
@@ -101,6 +103,115 @@ export function dismissConsent(): string | null {
     return label(pick)
   }
   return null
+}
+
+/**
+ * Close what floats over the page once consent is handled: modal dialogs (role=dialog, aria-modal, <dialog open>),
+ * fixed overlays covering a large part of the viewport (a newsletter pop-up, a region picker) and bars fixed to the
+ * bottom edge (a cookie or app-download bar). With `hide` false it clicks each one's close control (aria-label, title
+ * or text: close, dismiss, no thanks, ×…); with `hide` true whatever is still there is set to display: none. The top
+ * nav, small floating buttons and fixed backgrounds holding the page's own content are left alone. Returns what it did.
+ */
+export function dismissPopups(hide = false): string[] {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const done: string[] = []
+  const shown = (e: Element) => {
+    const s = getComputedStyle(e)
+    if (s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) < 0.05) return false
+    const r = e.getBoundingClientRect()
+    return r.width > 0 && r.height > 0
+  }
+  const fixedish = (e: Element) => getComputedStyle(e).position === 'fixed'
+  const pageText = Math.max(1, (document.body.innerText ?? '').length)
+  const textOf = (e: Element) => ((e as HTMLElement).innerText ?? e.textContent ?? '').replace(/\s+/g, ' ').trim()
+  const nameOf = (e: Element) => {
+    const id = e.id ? `#${e.id}` : ''
+    const cls = typeof e.className === 'string' && e.className.trim() ? `.${e.className.trim().split(/\s+/)[0]}` : ''
+    return `${e.tagName.toLowerCase()}${id}${cls}`
+  }
+  // The page's own content (a smooth-scroll container fixed in place, a fixed background) is never an overlay.
+  const holdsPage = (e: Element) => textOf(e).length > pageText * 0.35 || (!!e.querySelector('main, h1') && !e.closest('[role="dialog"], [aria-modal="true"], dialog'))
+  const isTopBar = (r: DOMRect) => r.top <= 12 && r.height <= 240 && r.width >= vw * 0.6
+  const area = (r: DOMRect) => Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0))
+  const COOKIE = /cookie|consent|privacy|tracking|gdpr|personal data|your data|preferences/i
+
+  const found = new Set<Element>()
+  // Dialogs the page marks as such.
+  for (const e of Array.from(document.querySelectorAll('[role="dialog"], [role="alertdialog"], [aria-modal="true"], dialog[open]'))) {
+    if (!shown(e)) continue
+    const r = e.getBoundingClientRect()
+    if (r.width < 160 || r.height < 60 || area(r) < vw * vh * 0.02) continue
+    // A menu panel that happens to be a dialog but sits offscreen or is the nav itself.
+    if (isTopBar(r) && !COOKIE.test(textOf(e))) continue
+    found.add(e)
+  }
+  // Fixed layers: large ones over the middle of the screen, and bars along the bottom edge.
+  for (const e of Array.from(document.body.querySelectorAll('*'))) {
+    if (!fixedish(e) || !shown(e)) continue
+    const r = e.getBoundingClientRect()
+    if (isTopBar(r)) continue
+    const big = area(r) >= vw * vh * 0.25
+    const bottomBar = r.bottom >= vh - 8 && r.top > vh * 0.45 && r.width >= vw * 0.4 && r.height >= 40
+    // A card pinned to a bottom corner: a cookie notice, or a promo panel with things to press.
+    const anchored = r.bottom >= vh - 48 && r.top > vh * 0.35
+    const cornerCard = r.width >= 260 && r.height >= 120 && area(r) >= vw * vh * 0.05 && (COOKIE.test(textOf(e)) || (anchored && e.querySelectorAll('a, button').length >= 1))
+    if (!big && !bottomBar && !cornerCard) continue
+    if (holdsPage(e)) continue
+    const t = textOf(e)
+    const controls = e.querySelectorAll('button, a, input, [role="button"]').length
+    // A big fixed layer with nothing to read or press is a backdrop or a background, not a pop-up.
+    if (!t && !controls) {
+      // A scrim: only when something marked as a dialog (or a fixed card) sits on it.
+      if (!big || parseFloat(getComputedStyle(e).zIndex || '0') <= 0) continue
+    }
+    if (bottomBar && !big && !COOKIE.test(t) && !/app|download|sign up|subscribe|newsletter|offer|discount|%/i.test(t)) continue
+    found.add(e)
+  }
+  // What sits on top at the center of the screen, when it's a fixed layer that isn't the page.
+  for (const [x, y] of [[vw / 2, vh / 2], [vw / 2, vh * 0.35]]) {
+    let layer: Element | null = null
+    for (let p = document.elementFromPoint(x, y); p && p !== document.body; p = p.parentElement) if (fixedish(p)) layer = p
+    if (layer && !isTopBar(layer.getBoundingClientRect()) && !holdsPage(layer) && (textOf(layer) || layer.querySelector('button, input, a'))) found.add(layer)
+  }
+  // Outermost only.
+  const layers = Array.from(found).filter((e) => !Array.from(found).some((o) => o !== e && o.contains(e)))
+
+  const CLOSE = /^(close|close (dialog|modal|popup|pop-up|banner|this|window|overlay|message|form|newsletter( signup)?)|dismiss|no,? thanks?|no thank you|not now|maybe later|skip|later|×|✕|✖|x|continue to (site|website|shop)|stay on .*|reject( all)?|decline( all)?)$/i
+  const CLOSE_HINT = /close|dismiss|modal__x|popup-x|btn-x/i
+  const labelOf = (e: Element) => (e.getAttribute('aria-label') || e.getAttribute('title') || textOf(e) || (e as HTMLInputElement).value || '').replace(/\s+/g, ' ').trim()
+  for (const layer of layers) {
+    if (!hide) {
+      // The close control may sit beside the dialog in the same overlay (or the overlay is the dialog's parent).
+      const scope = layer.closest('[role="dialog"], [aria-modal="true"], dialog') ?? layer
+      // Never a link that leads somewhere else: clicking it would leave the page.
+      const leaves = (c: Element) => !!c.closest('a[href]') && !/^(#|javascript:|$)/i.test((c.closest('a[href]')!.getAttribute('href') ?? '').trim())
+      const controls = Array.from(scope.querySelectorAll('button, a, [role="button"], input[type="button"], [aria-label], [title]')).filter((c) => shown(c) && !leaves(c))
+      const pick =
+        controls.find((c) => CLOSE.test(labelOf(c))) ??
+        controls.find((c) => /^(button|a)$/i.test(c.tagName) && CLOSE_HINT.test(`${c.getAttribute('aria-label') ?? ''} ${c.getAttribute('title') ?? ''} ${typeof c.className === 'string' ? c.className : ''} ${c.id}`)) ??
+        controls.find((c) => /^(button|a)$/i.test(c.tagName) && !textOf(c) && c.querySelector('svg') && c.getBoundingClientRect().width <= 64 && c.getBoundingClientRect().height <= 64)
+      if (pick) {
+        ;(pick as HTMLElement).click()
+        done.push(`closed ${nameOf(layer)} (“${labelOf(pick).slice(0, 30) || 'icon'}”)`)
+      }
+    } else {
+      ;(layer as HTMLElement).style.setProperty('display', 'none', 'important')
+      done.push(`hid ${nameOf(layer)}`)
+    }
+  }
+  // A modal usually locks scrolling; give it back once something was taken away.
+  if (hide && done.length) {
+    for (const e of [document.documentElement, document.body]) {
+      const s = getComputedStyle(e)
+      if (s.overflowY === 'hidden') (e as HTMLElement).style.setProperty('overflow', 'visible', 'important')
+      if (s.position === 'fixed') {
+        ;(e as HTMLElement).style.setProperty('position', 'static', 'important')
+        ;(e as HTMLElement).style.setProperty('top', 'auto', 'important')
+      }
+    }
+  }
+  return done
 }
 
 /**
@@ -127,24 +238,68 @@ export function findSections(): FoundSection[] {
     return r.width > 0 && r.height > 0
   }
   const pos = (e: Element) => getComputedStyle(e).position
-  const sizable = (e: Element) => !SKIP.test(e.tagName) && visible(e) && box(e).w >= vw * 0.5 && box(e).h >= 24
+  const sizable = (e: Element, minW = vw * 0.5) => !SKIP.test(e.tagName) && visible(e) && box(e).w >= minW && box(e).h >= 24
   const floating = (e: Element) => pos(e) === 'fixed' || pos(e) === 'sticky'
-  const kidsOf = (e: Element) => Array.from(e.children).filter(sizable)
+  // Boxes that draw nothing themselves (display: contents, or a zero-size wrapper whose children overflow it) are
+  // looked through: their children count as the parent's.
+  const hollow = (e: Element) => {
+    if (SKIP.test(e.tagName)) return false
+    const s = getComputedStyle(e)
+    if (s.display === 'none') return false
+    if (s.display === 'contents') return true
+    const r = e.getBoundingClientRect()
+    return (r.width < 2 || r.height < 2) && e.children.length > 0 && s.overflow !== 'hidden' && s.visibility !== 'hidden'
+  }
+  const childrenOf = (e: Element, depth = 0): Element[] =>
+    Array.from(e.children).flatMap((c) => (depth < 6 && hollow(c) ? childrenOf(c, depth + 1) : [c]))
+  const kidsOf = (e: Element, minW = vw * 0.5) => childrenOf(e).filter((k) => sizable(k, minW))
+  const REPLACED = /^(img|video|canvas|picture|iframe|object|embed)$/i
   const hasContent = (e: Element) => (e.textContent ?? '').trim().length > 0 || !!e.querySelector('img, svg, video, canvas, picture, input, iframe') || getComputedStyle(e).backgroundImage !== 'none'
+  // A section is rarely taller than this; anything taller with stacked blocks inside is split further.
+  const HUGE = Math.max(vh, 800) * 2.5
 
-  const descend = (el: Element, depth: number): Element[] => {
+  const descend = (el: Element, depth: number, minW = vw * 0.5): Element[] => {
     if (depth > 30) return [el]
-    const kids = kidsOf(el).filter((k) => !(floating(k) && box(k).h < 220))
-    if (!kids.length) return [el]
+    // In-flow children only: absolutely placed layers (a hero's background, a decoration) belong to their parent.
+    const all = kidsOf(el, minW).filter((k) => !(floating(k) && box(k).h < 220))
+    const inflow = all.filter((k) => pos(k) !== 'absolute')
+    const kids = inflow.length ? inflow : all
     // Page chrome is one section, whatever it's built from.
     if (/^(footer|nav)$/i.test(el.tagName) || el.getAttribute('role') === 'contentinfo') return [el]
     const b = box(el)
+    // A huge box whose content is a narrow column (a reading-width page): measure widths against that column.
+    if (b.h > HUGE && !kids.length) {
+      const widest = Math.max(0, ...childrenOf(el).filter((c) => !SKIP.test(c.tagName) && visible(c) && pos(c) !== 'absolute' && pos(c) !== 'fixed').map((c) => box(c).w))
+      if (widest >= 280 && widest * 0.8 < minW) return descend(el, depth + 1, widest * 0.8)
+    }
+    // A huge box made of side-by-side columns (a sticky intro beside a long scrolling column): each column splits on
+    // its own, with widths measured against the column.
+    if (b.h > HUGE) {
+      const cols = childrenOf(el)
+        .filter((c) => !SKIP.test(c.tagName) && visible(c) && pos(c) !== 'absolute' && pos(c) !== 'fixed' && box(c).w >= vw * 0.2 && box(c).h >= 200 && hasContent(c))
+        .sort((a, c) => box(a).x - box(c).x)
+      const besideEachOther = cols.length >= 2 && cols.length <= 3 && cols.every((c, i) => i === 0 || box(c).x >= box(cols[i - 1]).x + box(cols[i - 1]).w - 8)
+      if (besideEachOther && cols.some((c) => box(c).h > HUGE)) return cols.flatMap((c) => (box(c).h > HUGE ? descend(c, depth + 1, box(c).w * 0.8) : [c]))
+    }
+    if (!kids.length) return [el]
     if (kids.length === 1) {
+      // Copy laid over a picture (an absolutely placed layer with words) makes the box the section, not the picture.
+      const k0 = box(kids[0])
+      const over = (c: Element) => {
+        const r = box(c)
+        const ix = Math.min(r.x + r.w, k0.x + k0.w) - Math.max(r.x, k0.x)
+        const iy = Math.min(r.y + r.h, k0.y + k0.h) - Math.max(r.y, k0.y)
+        return r.w >= 100 && r.h >= 40 && ix > 0 && iy > 0 && ix * iy >= k0.w * k0.h * 0.05
+      }
+      const overlay = b.h <= HUGE && childrenOf(el).some((c) => c !== kids[0] && pos(c) === 'absolute' && visible(c) && (c.textContent ?? '').trim().length > 0 && over(c))
+      if (el !== body && (overlay || REPLACED.test(kids[0].tagName))) return [el]
       // A wrapper only when the one child is the whole thing: not when a narrow column beside it (copy next to a
       // picture) was too narrow to count.
       const k = box(kids[0])
-      const beside = Array.from(el.children).some((c) => c !== kids[0] && !SKIP.test(c.tagName) && visible(c) && box(c).w >= 120 && box(c).h >= 60 && hasContent(c) && !floating(c))
-      return el === body || (k.h >= b.h * 0.7 && k.w >= b.w * 0.85 && !beside) ? descend(kids[0], depth + 1) : [el]
+      const beside = childrenOf(el).some((c) => c !== kids[0] && !SKIP.test(c.tagName) && visible(c) && pos(c) !== 'absolute' && box(c).w >= 120 && box(c).h >= 60 && hasContent(c) && !floating(c))
+      const whole = k.h >= b.h * 0.7 && k.w >= b.w * 0.85 && !beside
+      // A huge box around one big child is a wrapper too, as long as that child is most of it.
+      return el === body || whole || (b.h > HUGE && k.h >= b.h * 0.6 && !beside) ? descend(kids[0], depth + 1, minW) : [el]
     }
     const sorted = kids.sort((a, c) => box(a).y - box(c).y)
     const stacked = sorted.every((k, i) => {
@@ -155,8 +310,14 @@ export function findSections(): FoundSection[] {
     if (!stacked) return [el]
     const wrapper = el === body || el.tagName === 'MAIN' || WRAPPER_ID.test(el.id) || el.getAttribute('role') === 'main'
     const sectiony = sorted.filter((k) => SECTIONY.test(k.tagName)).length >= 2
-    const tall = b.h > vh * 1.8 && el.tagName !== 'SECTION' && sorted.filter((k) => box(k).w >= b.w * 0.9 && box(k).h >= 120).length >= 2
-    if (wrapper || sectiony || tall) return sorted.flatMap((k) => descend(k, depth + 1))
+    // Full-width blocks: as wide as the box, or as wide as a page's content column (a 1200px column in 1440).
+    const blocksIn = sorted.filter((k) => (box(k).w >= b.w * 0.9 || box(k).w >= Math.min(vw * 0.75, 1000)) && box(k).h >= 120).length
+    const tall = b.h > vh * 1.8 && el.tagName !== 'SECTION' && blocksIn >= 2
+    // One child covering most of a box taller than a section, among several stacked blocks: the page's main wrapper
+    // (a hero's picture over its copy is one section, however much of it the picture takes).
+    const holdsMost = b.h > vh * 1.5 && sorted.some((k) => box(k).h >= b.h * 0.6) && blocksIn >= 2
+    const huge = b.h > HUGE && blocksIn >= 2
+    if (wrapper || sectiony || tall || holdsMost || huge) return sorted.flatMap((k) => descend(k, depth + 1, minW))
     return [el]
   }
 
@@ -165,6 +326,8 @@ export function findSections(): FoundSection[] {
   // Short ones: a row of marks or links (a logo strip) stays; a lone line of text (a caption, a kicker) joins the
   // nearest section's box below.
   const orphans: Element[] = []
+  // Orphans that belong to the block below (a section's heading split off) or above (its trailing button row).
+  const leans = new Map<Element, 'next' | 'prev'>()
   blocks = blocks.filter((e) => {
     const b = box(e)
     if (floating(e) && b.y > 10) return false
@@ -207,11 +370,39 @@ export function findSections(): FoundSection[] {
   }
   blocks = merged
 
+  // Strips splitting left beside their section: a heading with nothing else (joins the block below), a row of one
+  // or two buttons with little text (joins the block above). They widen that block's box.
+  blocks = blocks.filter((e, i) => {
+    const b = box(e)
+    if (SECTIONY.test(e.tagName) && e.tagName !== 'SECTION') return true
+    if (b.y < 200 || e.querySelector('img, video, picture, canvas, form, input')) return true
+    const text = (e.textContent ?? '').replace(/\s+/g, ' ').trim()
+    const acts = e.querySelectorAll('a, button').length
+    const next = blocks[i + 1]
+    const prev = blocks[i - 1]
+    const near = (o: Element | undefined, below: boolean) => {
+      if (!o) return false
+      const ob = box(o)
+      return below ? ob.y - (b.y + b.h) < 60 && ob.y >= b.y + b.h - 4 : b.y - (ob.y + ob.h) < 60 && b.y >= ob.y + ob.h - 4
+    }
+    if (b.h < 200 && e.querySelector('h1, h2, h3') && acts <= 1 && text.length < 160 && near(next, true) && box(next!).h > b.h) {
+      orphans.push(e)
+      leans.set(e, 'next')
+      return false
+    }
+    if (b.h < 120 && acts >= 1 && acts <= 2 && text.length < 60 && !e.querySelector('h1, h2, h3') && near(prev, false)) {
+      orphans.push(e)
+      leans.set(e, 'prev')
+      return false
+    }
+    return true
+  })
+
   // The nav: a fixed or sticky bar at the top, or a header/nav at the top that splitting didn't reach.
   const topBars = Array.from(body.querySelectorAll('*')).filter((e) => {
     if (SKIP.test(e.tagName) || !visible(e)) return false
     const b = box(e)
-    return b.y <= 140 && b.h >= 30 && b.h <= 240 && b.w >= vw * 0.9 && (floating(e) || /^(header|nav)$/i.test(e.tagName) || e.getAttribute('role') === 'banner')
+    return b.y <= 140 && b.h >= 30 && b.h <= 240 && (b.w >= vw * 0.9 || (floating(e) && b.w >= vw * 0.6)) && (floating(e) || /^(header|nav)$/i.test(e.tagName) || e.getAttribute('role') === 'banner' || !!e.closest('header, nav, [role="banner"]'))
   })
   const outermost = topBars.filter((e) => !topBars.some((o) => o !== e && o.contains(e)))
   // The bar with the most links wins (an announcement strip above the real nav has one or two).
@@ -225,8 +416,11 @@ export function findSections(): FoundSection[] {
   }
 
   // The footer: a trailing <footer> / contentinfo that splitting left inside something else.
+  // It sits in the bottom part of the page and doesn't start at the top (a <footer> wrapping the whole page isn't one).
+  const docH = document.documentElement.scrollHeight
+  const footish = (e: Element) => box(e).y > 0 && box(e).y >= docH * 0.4 && box(e).h <= Math.max(docH * 0.5, vh)
   const foot = Array.from(body.querySelectorAll('footer, [role="contentinfo"]'))
-    .filter((e) => visible(e) && box(e).w >= vw * 0.8 && box(e).h >= 60)
+    .filter((e) => visible(e) && box(e).w >= vw * 0.8 && box(e).h >= 60 && footish(e))
     .filter((e, _i, all) => !all.some((o) => o !== e && o.contains(e)))
     .pop()
   if (foot && !blocks.some((b) => b === foot || foot.contains(b))) {
@@ -269,6 +463,9 @@ export function findSections(): FoundSection[] {
     for (const e of blocks) {
       if (e === nav) continue
       const b = boxes.get(e)!
+      const lean = leans.get(o)
+      if (lean === 'next' && b.y < ob.y + ob.h - 4) continue
+      if (lean === 'prev' && b.y + b.h > ob.y + 4) continue
       const d = ob.y >= b.y + b.h ? ob.y - (b.y + b.h) : b.y >= ob.y + ob.h ? b.y - (ob.y + ob.h) : 0
       if (d < gap) (gap = d), (best = e)
     }
@@ -330,13 +527,20 @@ export function guessSectionType(el: Element, ctx: Partial<TypeContext> = {}): T
   if ((tag === 'header' || el.getAttribute('role') === 'banner' || q('nav')) && r.height < 220 && top < 220 && links >= 3) return g('nav', 0.9, 'header bar with links at the top')
   if (index === 0 && r.height < 200 && links >= 3) return g('nav', 0.7, 'first short block of links')
 
-  if (tag === 'footer' || el.getAttribute('role') === 'contentinfo') return g('footer', 0.95, 'footer element')
-  if (index >= 0 && index === count - 1 && links >= 6) return g('footer', 0.8, 'last block, many links')
-  if (top + r.height >= docH - 40 && links >= 3) return g('footer', 0.7, 'reaches the bottom of the page')
+  // A footer sits in the bottom part of the page: never a box starting at the top or spanning most of it.
+  const lowDown = top > 0 && top >= docH * 0.4 && r.height <= Math.max(docH * 0.5, vh)
+  if ((tag === 'footer' || el.getAttribute('role') === 'contentinfo') && lowDown) return g('footer', 0.95, 'footer element')
+  if (index >= 0 && index === count - 1 && links >= 6 && lowDown) return g('footer', 0.8, 'last block, many links')
+  // A link index near the end (a footer without the element, a slim legal strip after it).
+  if (index >= 0 && index >= count - 2 && links >= 15 && lowDown && text.length / links < 40) return g('footer', 0.7, 'link index at the end')
+  if (top + r.height >= docH - 40 && links >= 3 && lowDown && r.height < vh * 1.5) return g('footer', 0.7, 'reaches the bottom of the page')
 
   if (q('form') && (q('textarea') || q('input[type="email"]')) && q('input, textarea') >= 3) return g('contact', 0.85, 'form with several fields')
   if (q('input[type="email"]') === 1 && q('input:not([type="hidden"]), textarea') <= 2) return g('cta', 0.7, 'single email signup')
   if (q('details') >= 2) return g('faq', 0.9, 'accordion of details')
+  // Questions as headings or toggles: several short lines ending in a question mark under a questions heading.
+  const asked = Array.from(el.querySelectorAll('h2, h3, h4, h5, button, summary, dt, [aria-expanded], p, span')).filter((n) => /\?\s*$/.test((n.textContent ?? '').trim()) && (n.textContent ?? '').trim().length < 160).length
+  if (asked >= 3 && /\b(faq|frequently asked|questions)\b/i.test(text.slice(0, 300))) return g('faq', 0.8, 'questions under a questions heading')
   if (/\b(faq|frequently asked|questions)\b/i.test(text.slice(0, 200)) && q('[aria-expanded], details, dt, h3, h4') >= 3) return g('faq', 0.8, 'questions heading with a list')
   const prices = (text.match(/[$€£]\s?\d+/g) ?? []).length
   if (prices >= 2) return /\/\s?(mo|month|yr|year|user|seat)|per (month|year|user|seat)|monthly|annually/i.test(text) ? g('pricing', 0.9, 'plan prices') : g('pricing', 0.5, 'prices (products rather than plans?)')

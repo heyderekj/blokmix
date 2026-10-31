@@ -1,0 +1,245 @@
+{
+  "slug": "every",
+  "name": "Every",
+  "url": "https://every.to/",
+  "industry": "writing",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#000000",
+    "color.surface": "#1a1a1a",
+    "color.text": "#ffffff",
+    "color.muted": "#d0d0d0",
+    "color.border": "#3c3c3c",
+    "color.primary": "#1c82ff",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#80d0e2",
+    "font.display": "Signifier, 'Signifier Fallback', 'Hoefler Text', 'Baskerville Old Face', Garamond, Georgia, 'Times New Roman', serif",
+    "font.body": "Signifier, 'Signifier Fallback', 'Hoefler Text', 'Baskerville Old Face', Garamond, Georgia, 'Times New Roman', serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "20px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "400",
+    "radius.base": "8px",
+    "stroke.width": "1px",
+    "icon.set": "",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "150ms",
+    "motion.ease": "cubic-bezier(0.16, 1, 0.3, 1)"
+  },
+  "fonts": [
+    {
+      "family": "Signifier",
+      "css2": "Signifier:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Dark ground, Signifier throughout, 8px corners, a blue primary, with contrasting bands.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Every",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 8672,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 96
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.672,
+          "status": "needs_layout",
+          "screenshot": "home-s0.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 96,
+            "h": 717
+          },
+          "layoutId": "hero.layout-collage",
+          "score": 0.95,
+          "status": "matched",
+          "screenshot": "home-s1.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 2,
+          "type": "features",
+          "box": {
+            "y": 837,
+            "h": 727
+          },
+          "layoutId": "features.layout-bento",
+          "score": 0.951,
+          "status": "matched",
+          "screenshot": "home-s2.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 3,
+          "type": "features",
+          "box": {
+            "y": 1588,
+            "h": 562
+          },
+          "layoutId": "features.layout-mosaic",
+          "score": 0.778,
+          "status": "needs_layout",
+          "screenshot": "home-s3.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 4,
+          "type": "blog",
+          "box": {
+            "y": 2191,
+            "h": 801
+          },
+          "layoutId": "blog.layout-masonry",
+          "score": 0.959,
+          "status": "matched",
+          "screenshot": "home-s4.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 5,
+          "type": "gallery",
+          "box": {
+            "y": 3014,
+            "h": 585
+          },
+          "layoutId": "gallery.layout-spotlight",
+          "score": 0.713,
+          "status": "needs_layout",
+          "screenshot": "home-s5.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 6,
+          "type": "features",
+          "box": {
+            "y": 3621,
+            "h": 687
+          },
+          "layoutId": "features.layout-two-up",
+          "score": 0.92,
+          "status": "matched",
+          "screenshot": "home-s6.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 7,
+          "type": "features",
+          "box": {
+            "y": 4353,
+            "h": 801
+          },
+          "layoutId": "features.layout-two-up",
+          "score": 0.92,
+          "status": "matched",
+          "screenshot": "home-s7.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 8,
+          "type": "features",
+          "box": {
+            "y": 5199,
+            "h": 717
+          },
+          "layoutId": "features.layout-two-up",
+          "score": 0.92,
+          "status": "matched",
+          "screenshot": "home-s8.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 9,
+          "type": "features",
+          "box": {
+            "y": 5940,
+            "h": 703
+          },
+          "layoutId": "features.layout-two-up",
+          "score": 0.92,
+          "status": "matched",
+          "screenshot": "home-s9.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 10,
+          "type": "blog",
+          "box": {
+            "y": 6667,
+            "h": 747
+          },
+          "layoutId": "blog.layout-masonry",
+          "score": 0.962,
+          "status": "matched",
+          "screenshot": "home-s10.webp",
+          "hint": {
+            "dark": true
+          }
+        },
+        {
+          "order": 11,
+          "type": "cta",
+          "box": {
+            "y": 7559,
+            "h": 296
+          },
+          "layoutId": "cta.layout-media",
+          "score": 0.847,
+          "status": "matched",
+          "screenshot": "home-s11.webp"
+        },
+        {
+          "order": 12,
+          "type": "footer",
+          "box": {
+            "y": 7947,
+            "h": 725
+          },
+          "layoutId": "footer.layout-centered",
+          "score": 0.532,
+          "status": "needs_layout",
+          "screenshot": "home-s12.webp",
+          "hint": {
+            "dark": true
+          }
+        }
+      ]
+    }
+  ]
+}
