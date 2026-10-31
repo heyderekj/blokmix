@@ -144,7 +144,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             </button>
             <BarButton active={looksOpen} onClick={() => st().setUi({ sheet: looksOpen ? 'none' : 'looks' })} icon={Shapes} title="Looks: browse them in the dock below (← → to step through)">
               {current?.label ?? 'Original'}
-              <ChevronDown size={12} className="text-zinc-400" />
+              <ChevronDown size={12} className="opacity-60" />
             </BarButton>
             <button type="button" title="Next look" aria-label="Next look" onClick={() => stepLook(1)} className="grid h-8 w-5 cursor-pointer place-items-center rounded-r-[10px] text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-800 active:scale-[0.94]">
               <ChevronRight size={13} />
@@ -483,7 +483,8 @@ function usePaint() {
 
 function StyleDots({ style }: { style?: BlockStyle }) {
   const paint = usePaint()
-  if (!style?.fill && !style?.ink) return <span className="text-zinc-500">Style</span>
+  // Inherits the button's color, so it turns white with the button when its menu is open.
+  if (!style?.fill && !style?.ink) return <span>Style</span>
   return (
     <span className="flex items-center -space-x-1">
       {style.fill && <span className="size-3.5 rounded-full ring-2 ring-white" style={{ background: paint(style.fill) }} />}
