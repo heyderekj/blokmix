@@ -22,6 +22,8 @@ export interface Starter {
   id: string
   name: string
   description: string
+  /** A sample headline in its style: what its specimen shows in the New mix gallery. */
+  headline?: string
   /** For the guided start (`core/start.ts`): what kind of site it is and its vibe. */
   kind?: string
   vibe?: string

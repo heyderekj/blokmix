@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowLeft, Plus, X } from 'lucide-react'
-import type { GuideState, SectionType } from '@/core/types'
+import type { GuideState, SectionType, TokenSet } from '@/core/types'
 import { resolveGuide } from '@/core/guide'
+import { TYPE_LABEL } from '@/core/content'
+import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { library, starters } from '@/data/library'
 import { buildStarter, type Starter } from '@/core/starters'
 import { listSites, loadSite, planClip, type LibraryPage, type LibrarySite, type LibrarySiteSummary } from '@/lib/siteLibrary'
-import { MixThumb } from './MixThumb'
 
 export type Shelf = 'starters' | 'sites' | 'guides'
 export interface GuideChoice {
@@ -50,6 +51,7 @@ export function StartGallery({
     window.addEventListener('keydown', key)
     return () => window.removeEventListener('keydown', key)
   }, [onClose])
+  useDisplayFonts(guides)
   // Real sites only once the library has some.
   const shelves = (['starters', 'sites', 'guides'] as Shelf[]).filter((s) => s !== 'sites' || sites?.length)
 
@@ -127,41 +129,55 @@ function Caption({ name, note }: { name: string; note: string }) {
   )
 }
 
-/** A starter mix: its first page in its own style guide. */
+/** A starter mix as a specimen: its display type and colors big, what's on its page as words. */
 function StarterCard({ starter, onPick }: { starter: Starter; onPick: () => void }) {
   const { site, guide } = useMemo(() => buildStarter(library, starter), [starter])
-  const sections = useMemo(
-    () => [site.shared.nav?.type, ...site.pages[0].slots.map((s) => s.type), site.shared.footer?.type].filter(Boolean) as SectionType[],
-    [site],
-  )
+  const t = useMemo(() => resolveGuide(guide).tokens, [guide])
+  const sections = useMemo(() => site.pages[0].slots.map((s) => TYPE_LABEL[s.type as SectionType]), [site])
   return (
     <li>
       <button type="button" onClick={onPick} className={`${CARD} w-full`}>
-        <span className={FRAME}>
-          <MixThumb sections={sections} guide={guide} />
-        </span>
+        <Specimen tokens={t} words={sections.join(' · ')} sample={starter.headline} />
         <Caption name={starter.name} note={starter.description} />
       </button>
     </li>
   )
 }
 
-/** A style guide: its colors as a page, a line of type in its display font. */
+/** Type and palette, big, on the guide's own background; a line of small words underneath. */
+function Specimen({ tokens: t, words, sample }: { tokens: TokenSet; words: string; sample?: string }) {
+  return (
+    <span className={`${FRAME} flex flex-col justify-between p-4`} style={{ background: t['color.bg'], color: t['color.text'] }}>
+      {/* A starter's own headline shows its type with character; a bare guide shows the letters. */}
+      <span
+        className={sample ? 'line-clamp-3 text-[22px] leading-[1.1] [text-wrap:balance]' : 'text-[40px] leading-none'}
+        style={{ fontFamily: t['font.display'], fontWeight: Number(t['type.displayWeight']) || 700, letterSpacing: sample ? '-0.01em' : undefined }}
+      >
+        {sample ?? 'Aa'}
+      </span>
+      <span className="grid gap-2">
+        <span className="flex gap-1.5">
+          {[t['color.primary'], t['color.accent'], t['color.surface']].map((c, i) => (
+            <i key={i} className="size-5 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)]" style={{ background: c }} />
+          ))}
+        </span>
+        <span className="line-clamp-2 text-[11.5px] leading-snug" style={{ color: t['color.muted'] }}>
+          {words}
+        </span>
+      </span>
+    </span>
+  )
+}
+
+/** A style guide: the same specimen, its fonts named underneath. */
 function GuideCard({ name, note, guide, onPick }: { name: string; note: string; guide?: GuideState; onPick: () => void }) {
   const t = resolveGuide(guide ?? { base: library.sources.layout.tokens, candidates: [], choices: {} }).tokens
+  const family = (stack: string) => stack.split(',')[0].replace(/['"]/g, '').trim()
+  const fonts = [...new Set([family(t['font.display']), family(t['font.body'])])].join(' and ')
   return (
     <li>
       <button type="button" onClick={onPick} className={`${CARD} w-full`}>
-        <span className={`${FRAME} flex flex-col justify-between p-4`} style={{ background: t['color.bg'], color: t['color.text'] }}>
-          <span className="text-[34px] leading-none" style={{ fontFamily: t['font.display'], fontWeight: Number(t['type.displayWeight']) || 700 }}>
-            Aa
-          </span>
-          <span className="flex gap-1.5">
-            {[t['color.text'], t['color.primary'], t['color.accent'], t['color.surface']].map((c, i) => (
-              <i key={i} className="size-5 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]" style={{ background: c }} />
-            ))}
-          </span>
-        </span>
+        <Specimen tokens={t} words={fonts} />
         <Caption name={name} note={note} />
       </button>
     </li>
@@ -221,4 +237,27 @@ function Sites({ sites, onPick }: { sites: LibrarySiteSummary[]; onPick: (site: 
       </Grid>
     </>
   )
+}
+
+/** Load the display fonts of every starter and guide on show, so each specimen is set in its own type. */
+function useDisplayFonts(guides: GuideChoice[] | null) {
+  const hrefs = useMemo(() => {
+    const out = new Set<string>()
+    const add = (t: TokenSet) => {
+      const tokens = { 'font.display': t['font.display'], 'font.body': t['font.display'], 'font.mono': t['font.display'] } as Parameters<typeof fontsForTokens>[0]
+      for (const h of fontHrefs(fontsForTokens(tokens, []))) out.add(h)
+    }
+    for (const s of starters) add(resolveGuide(buildStarter(library, s).guide).tokens)
+    for (const g of guides ?? []) if (g.guide) add(resolveGuide(g.guide).tokens)
+    return [...out]
+  }, [guides])
+  useEffect(() => {
+    for (const href of hrefs) {
+      if (document.head.querySelector(`link[href="${CSS.escape(href)}"]`)) continue
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = href
+      document.head.appendChild(link)
+    }
+  }, [hrefs])
 }
