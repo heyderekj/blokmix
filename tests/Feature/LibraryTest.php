@@ -174,7 +174,10 @@ class LibraryTest extends TestCase
     {
         $this->owner();
         $this->artisan('library:import', ['--publish' => true])->assertSuccessful();
-        $this->assertEqualsCanonicalizing(['aesop', 'linear', 'pentagram'], LibrarySite::pluck('slug')->all());
+        // Every bundle kept in database/library/<slug>/ arrives, published.
+        $bundles = array_map('basename', glob(database_path('library/*'), GLOB_ONLYDIR));
+        $this->assertNotEmpty($bundles);
+        $this->assertEqualsCanonicalizing($bundles, LibrarySite::pluck('slug')->all());
         $this->assertSame(['published'], LibrarySite::distinct()->pluck('status')->all());
         $this->assertGreaterThan(40, LibraryAsset::count());
     }

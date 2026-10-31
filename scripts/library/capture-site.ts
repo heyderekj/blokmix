@@ -20,7 +20,7 @@ import { captureClip, sourceIdFor } from '../../extension/src/capture'
 import { lightness, parseColor } from '../../extension/src/capture/color'
 import { siteTokens, type SectionStyle, type SiteFacts } from '../../extension/src/capture/siteTokens'
 import { blockedSheetHrefs, snapshotSection } from '../../extension/src/snapshot'
-import { dismissConsent, findSections, guessSectionType, pageFacts, type FoundSection, type TypeGuess } from '../../extension/src/sections'
+import { dismissConsent, dismissPopups, findSections, guessSectionType, pageFacts, type FoundSection, type TypeGuess } from '../../extension/src/sections'
 import { launchBrowser } from '../../extension/scripts/fixtures'
 import { fetchRobots } from './robots'
 import { uploadShape } from './upload-shape'
@@ -288,14 +288,19 @@ async function capturePage(ctx: BrowserContext, href: string, path: string, dir:
     }
     try {
       await page.evaluate(
-        ([n, hideNav]) => {
-          const el = document.querySelector(`[data-mx-lib="${n}"]`)
+        ([n, hideNav, sel]) => {
+          // Frameworks that re-render on scroll can swap the node out; find it again by its path.
+          let el = document.querySelector(`[data-mx-lib="${n}"]`)
+          if (!el) {
+            el = document.querySelector(sel)
+            el?.setAttribute('data-mx-lib', String(n))
+          }
           el?.scrollIntoView({ block: 'start' })
           // A fixed nav drawn over this section isn't part of it.
           const navEl = hideNav === null ? null : (document.querySelector(`[data-mx-lib="${hideNav}"]`) as HTMLElement | null)
           if (navEl) navEl.style.visibility = Number(n) === hideNav ? '' : 'hidden'
         },
-        [f.n, nav ? nav.n : null] as const,
+        [f.n, nav ? nav.n : null, f.selector] as const,
       )
       await page.waitForTimeout(450)
       const snap = await page.evaluate(
@@ -354,6 +359,12 @@ async function load(page: Page, href: string): Promise<string | null> {
   await page.waitForTimeout(800)
   const consentSrc = `(${dismissConsent.toString()})()`
   let consent = (await page.evaluate(consentSrc).catch(() => null)) as string | null
+  if (consent) {
+    // Some banners reload the page once a choice is made: let that land before reading anything.
+    await page.waitForTimeout(1500)
+    await page.waitForLoadState('domcontentloaded').catch(() => {})
+    await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {})
+  }
   await page.evaluate(async () => {
     const step = window.innerHeight * 0.8
     for (let y = 0; y < document.documentElement.scrollHeight && y < 40_000; y += step) {
@@ -366,10 +377,17 @@ async function load(page: Page, href: string): Promise<string | null> {
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {})
   await page.evaluate(() => document.fonts.ready.then(() => true)).catch(() => {})
   consent ??= (await page.evaluate(consentSrc).catch(() => null)) as string | null
-  await page.keyboard.press('Escape').catch(() => {})
   await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(1200)
+  // Pop-ups (a newsletter modal, a bar along the bottom): Escape, click their close controls, hide what's left.
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.waitForTimeout(300)
+  const popups = (await page.evaluate(`(${dismissPopups.toString()})(false)`).catch(() => [])) as string[]
+  if (popups.length) await page.waitForTimeout(700)
+  popups.push(...((await page.evaluate(`(${dismissPopups.toString()})(true)`).catch(() => [])) as string[]))
+  if (popups.length) await page.evaluate(() => window.scrollTo(0, 0))
   if (consent) console.log(`  consent: clicked “${consent}”`)
+  if (popups.length) console.log(`  pop-ups: ${popups.join('; ')}`)
   return consent
 }
 

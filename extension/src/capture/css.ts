@@ -24,6 +24,9 @@ const STEPS: [string, number][] = [
 ]
 const r2 = (n: number) => Math.round(n * 100) / 100
 
+/** A column as wide as the guide's content or reading column becomes that width token, so the Width dial moves it. */
+const columnWidth = (w: number) => (w === 1200 ? 'var(--mx-width-content)' : w === 760 ? 'var(--mx-width-text)' : `${w}px`)
+
 /** Turns computed values into token expressions for one capture. */
 export class TokenWriter {
   readonly colors: ColorMapper
@@ -296,8 +299,8 @@ export function elementCss(el: WEl, w: TokenWriter, ctx: { root: WEl; type: stri
     if (W > 0 && W < pw - 1 && !(inGrid || inFlexRow && grow !== '0')) put('width', `${Math.round(W)}px`)
     if (H > 0 && !(inFlexRow && (s['align-self'] === 'stretch' || s['align-items'] === 'stretch') && false)) put('height', `${Math.round(H * 10) / 10}px`)
   } else if (!el.svgNode && el.synthetic !== 'wordmark') {
-    if ((s['max-width'] ?? 'none') !== 'none') put('max-width', /px$/.test(s['max-width']) ? `${Math.round(px(s['max-width']) + padX)}px` : s['max-width'])
-    else if (!inFlexRow && !inGrid && BLOCKISH.test(display) && parent && W < pw - 2 && W > 0 && !abs && el !== ctx.root) put('max-width', `${Math.round(W)}px`)
+    if ((s['max-width'] ?? 'none') !== 'none') put('max-width', /px$/.test(s['max-width']) ? columnWidth(Math.round(px(s['max-width']) + padX)) : s['max-width'])
+    else if (!inFlexRow && !inGrid && BLOCKISH.test(display) && parent && W < pw - 2 && W > 0 && !abs && el !== ctx.root) put('max-width', columnWidth(Math.round(W)))
     if (inFlexRow && grow === '0' && basis === 'auto' && parent) {
       const sibs = els(parent).filter((k) => (k.s.position ?? 'static') === 'static')
       const total = sibs.reduce((n, k) => n + k.rect[2], 0)

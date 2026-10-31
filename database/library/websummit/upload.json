@@ -1,0 +1,257 @@
+{
+  "slug": "websummit",
+  "name": "Web Summit",
+  "url": "https://www.websummit.com/",
+  "industry": "event",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#f5f5f5",
+    "color.text": "#000000",
+    "color.muted": "#484848",
+    "color.border": "#d7d7d7",
+    "color.primary": "#0c1439",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#cb1977",
+    "font.display": "'Inter', system-ui, sans-serif",
+    "font.body": "'Inter', system-ui, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.2",
+    "type.displayWeight": "700",
+    "radius.base": "14px",
+    "stroke.width": "1px",
+    "icon.set": "",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "40px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "fonts": [
+    {
+      "family": "Inter",
+      "css2": "Inter:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, Inter throughout, soft, round corners, a blue primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Web Summit - The best tech conference on the planet | November 9-12, 2026",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 8768,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 81
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.701,
+          "status": "needs_layout",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 145,
+            "h": 478
+          },
+          "layoutId": "hero.layout-overlap",
+          "score": 0.932,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "features",
+          "box": {
+            "y": 687,
+            "h": 881
+          },
+          "layoutId": "features.layout-carousel",
+          "score": 0.889,
+          "status": "matched",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "cta",
+          "box": {
+            "y": 1568,
+            "h": 448
+          },
+          "layoutId": "cta.layout-newsletter",
+          "score": 0.812,
+          "status": "matched",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "content",
+          "box": {
+            "y": 2016,
+            "h": 582
+          },
+          "layoutId": "content.layout-image",
+          "score": 0.826,
+          "status": "matched",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "logos",
+          "box": {
+            "y": 2598,
+            "h": 494
+          },
+          "layoutId": "logos.layout-cards",
+          "score": 0.906,
+          "status": "matched",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "content",
+          "box": {
+            "y": 3092,
+            "h": 128
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.846,
+          "status": "matched",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "logos",
+          "box": {
+            "y": 3220,
+            "h": 622
+          },
+          "layoutId": "logos.layout-cards",
+          "score": 0.906,
+          "status": "matched",
+          "screenshot": "home-s7.webp"
+        },
+        {
+          "order": 8,
+          "type": "content",
+          "box": {
+            "y": 3842,
+            "h": 576
+          },
+          "layoutId": "content.layout-image",
+          "score": 0.966,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        },
+        {
+          "order": 9,
+          "type": "logos",
+          "box": {
+            "y": 4418,
+            "h": 622
+          },
+          "layoutId": "logos.layout-cards",
+          "score": 0.906,
+          "status": "matched",
+          "screenshot": "home-s9.webp"
+        },
+        {
+          "order": 10,
+          "type": "logos",
+          "box": {
+            "y": 5041,
+            "h": 622
+          },
+          "layoutId": "logos.layout-cards",
+          "score": 0.906,
+          "status": "matched",
+          "screenshot": "home-s10.webp"
+        },
+        {
+          "order": 11,
+          "type": "cta",
+          "box": {
+            "y": 5663,
+            "h": 490
+          },
+          "layoutId": "cta.layout-centered",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s11.webp"
+        },
+        {
+          "order": 12,
+          "type": "testimonials",
+          "box": {
+            "y": 6153,
+            "h": 606
+          },
+          "layoutId": "testimonials.layout-cards",
+          "score": 0.915,
+          "status": "matched",
+          "screenshot": "home-s12.webp"
+        },
+        {
+          "order": 13,
+          "type": "content",
+          "box": {
+            "y": 6759,
+            "h": 128
+          },
+          "layoutId": "content.layout-columns",
+          "score": 0.846,
+          "status": "matched",
+          "screenshot": "home-s13.webp"
+        },
+        {
+          "order": 14,
+          "type": "testimonials",
+          "box": {
+            "y": 6887,
+            "h": 713
+          },
+          "layoutId": "testimonials.layout-cards",
+          "score": 0.923,
+          "status": "matched",
+          "screenshot": "home-s14.webp"
+        },
+        {
+          "order": 15,
+          "type": "cta",
+          "box": {
+            "y": 7601,
+            "h": 448
+          },
+          "layoutId": "cta.layout-newsletter",
+          "score": 0.812,
+          "status": "matched",
+          "screenshot": "home-s15.webp"
+        },
+        {
+          "order": 16,
+          "type": "footer",
+          "box": {
+            "y": 8049,
+            "h": 719
+          },
+          "layoutId": "footer.layout-index",
+          "score": 0.987,
+          "status": "matched",
+          "screenshot": "home-s16.webp"
+        }
+      ]
+    }
+  ]
+}

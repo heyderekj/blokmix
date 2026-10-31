@@ -37,7 +37,7 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `npm run build:laravel`; deploy runs `php artisan migrate --force` and `php artisan optimize`. The `cloud`
   CLI (`composer global` laravel/cloud-cli) is signed in: `cloud deploy blokmix production`, `cloud cmd:run`.
 - Accounts (Fortify: sign up, sign in, sign out; Inertia pages in `pages/auth/`). Sign-up is open. Password reset
-  is off until there's a mail service. The board takes your account's name for marks and versions.
+  emails go through Resend (Cloud's Email resource, sender hello@notifications.blokmix.com; DNS on Cloudflare). The board takes your account's name for marks and versions.
 - `/` is your mixes when signed in (`/mixes` redirects there): a gallery of cards, each drawing its first page in its own
   style guide (`ui/mixes/MixThumb.tsx`, its main heading in the mix's display font) with its versions' status rings.
   Cards rename in place (`PATCH /api/mixes/{id}/name`, owners and editors, no lock bump) and duplicate

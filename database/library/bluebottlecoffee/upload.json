@@ -1,0 +1,192 @@
+{
+  "slug": "bluebottlecoffee",
+  "name": "Blue Bottle Coffee",
+  "url": "https://bluebottlecoffee.com/",
+  "industry": "local",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#f6f6f3",
+    "color.text": "#000000",
+    "color.muted": "#484848",
+    "color.border": "#333333",
+    "color.primary": "#333333",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#4a6a8b",
+    "font.display": "'ABC Marfa Regular', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif",
+    "font.body": "'ABC Diatype Regular', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.5",
+    "type.displayWeight": "400",
+    "radius.base": "0px",
+    "stroke.width": "1px",
+    "icon.set": "lucide:regular",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "500ms",
+    "motion.ease": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  "fonts": [
+    {
+      "family": "ABC Marfa Regular",
+      "css2": "ABC+Marfa+Regular:wght@400;500;600;700"
+    },
+    {
+      "family": "ABC Diatype Regular",
+      "css2": "ABC+Diatype+Regular:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, ABC Marfa Regular headings over ABC Diatype Regular, square corners, a gray primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Blue Bottle Coffee | Specialty Coffee",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 7535,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 116
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.472,
+          "status": "needs_layout",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 116,
+            "h": 642
+          },
+          "layoutId": "hero.layout-media-below",
+          "score": 0.928,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "pricing",
+          "box": {
+            "y": 758,
+            "h": 764
+          },
+          "layoutId": "pricing.layout-two",
+          "score": 0.632,
+          "status": "needs_layout",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "content",
+          "box": {
+            "y": 1522,
+            "h": 756
+          },
+          "layoutId": "content.layout-image",
+          "score": 1,
+          "status": "matched",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "gallery",
+          "box": {
+            "y": 2278,
+            "h": 644
+          },
+          "layoutId": "gallery.layout-spotlight",
+          "score": 0.733,
+          "status": "needs_layout",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "content",
+          "box": {
+            "y": 2922,
+            "h": 832
+          },
+          "layoutId": "content.layout-image",
+          "score": 0.928,
+          "status": "matched",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "features",
+          "box": {
+            "y": 3754,
+            "h": 894
+          },
+          "layoutId": "features.layout-alternating",
+          "score": 0.829,
+          "status": "matched",
+          "screenshot": "home-s6.webp"
+        },
+        {
+          "order": 7,
+          "type": "gallery",
+          "box": {
+            "y": 4648,
+            "h": 1082
+          },
+          "layoutId": "gallery.layout-rows",
+          "score": 0.642,
+          "status": "needs_layout",
+          "screenshot": "home-s7.webp"
+        },
+        {
+          "order": 8,
+          "type": "content",
+          "box": {
+            "y": 5730,
+            "h": 571
+          },
+          "layoutId": "content.layout-overlap",
+          "score": 0.8,
+          "status": "matched",
+          "screenshot": "home-s8.webp"
+        },
+        {
+          "order": 9,
+          "type": "features",
+          "box": {
+            "y": 6301,
+            "h": 609
+          },
+          "layoutId": "features.layout-two-up",
+          "score": 0.943,
+          "status": "matched",
+          "screenshot": "home-s9.webp"
+        },
+        {
+          "order": 10,
+          "type": "footer",
+          "box": {
+            "y": 6910,
+            "h": 625
+          },
+          "layoutId": "footer.layout-newsletter",
+          "score": 0.83,
+          "status": "matched",
+          "screenshot": "home-s10.webp",
+          "hint": {
+            "dark": true
+          }
+        }
+      ]
+    }
+  ]
+}

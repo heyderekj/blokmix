@@ -1,0 +1,141 @@
+{
+  "slug": "locomotive",
+  "name": "Locomotive",
+  "url": "https://www.locomotive.ca/",
+  "industry": "studio",
+  "tags": [],
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#f2f2f2",
+    "color.text": "#000000",
+    "color.muted": "#484848",
+    "color.border": "#000000",
+    "color.primary": "#000000",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#000000",
+    "font.display": "LocomotiveNew, -apple-system, 'system-ui', 'avenir next', avenir, 'segoe ui', 'helvetica neue', helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif",
+    "font.body": "HelveticaNowDisplay, -apple-system, 'system-ui', 'avenir next', avenir, 'segoe ui', 'helvetica neue', helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "15px",
+    "type.ratio": "1.618",
+    "type.displayWeight": "400",
+    "radius.base": "0px",
+    "stroke.width": "2px",
+    "icon.set": "",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06)",
+    "space.base": "5px",
+    "space.section": "96px",
+    "space.content": "1200px",
+    "space.text": "760px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "fonts": [
+    {
+      "family": "LocomotiveNew",
+      "css2": "LocomotiveNew:wght@400;500;600;700"
+    },
+    {
+      "family": "HelveticaNowDisplay",
+      "css2": "HelveticaNowDisplay:wght@400;500;600;700"
+    }
+  ],
+  "personality": "Light ground, LocomotiveNew headings over HelveticaNowDisplay, square corners, a black primary.",
+  "thumb": "thumb.webp",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Locomotive | Montreal web agency",
+      "order": 0,
+      "screenshot": "home-1440.webp",
+      "width": 1440,
+      "height": 6598,
+      "sections": [
+        {
+          "order": 0,
+          "type": "nav",
+          "box": {
+            "y": 0,
+            "h": 60
+          },
+          "layoutId": "nav.layout-pill",
+          "score": 0.665,
+          "status": "needs_layout",
+          "screenshot": "home-s0.webp"
+        },
+        {
+          "order": 1,
+          "type": "hero",
+          "box": {
+            "y": 0,
+            "h": 900
+          },
+          "layoutId": "hero.layout-media-below",
+          "score": 0.94,
+          "status": "matched",
+          "screenshot": "home-s1.webp"
+        },
+        {
+          "order": 2,
+          "type": "content",
+          "box": {
+            "y": 900,
+            "h": 988
+          },
+          "layoutId": "content.layout-image",
+          "score": 0.966,
+          "status": "matched",
+          "screenshot": "home-s2.webp"
+        },
+        {
+          "order": 3,
+          "type": "features",
+          "box": {
+            "y": 1895,
+            "h": 914
+          },
+          "layoutId": "features.layout-sticky",
+          "score": 0.874,
+          "status": "matched",
+          "screenshot": "home-s3.webp"
+        },
+        {
+          "order": 4,
+          "type": "content",
+          "box": {
+            "y": 2839,
+            "h": 1054
+          },
+          "layoutId": "content.layout-overlap",
+          "score": 0.723,
+          "status": "needs_layout",
+          "screenshot": "home-s4.webp"
+        },
+        {
+          "order": 5,
+          "type": "blog",
+          "box": {
+            "y": 4043,
+            "h": 1731
+          },
+          "layoutId": "blog.layout-featured",
+          "score": 0.932,
+          "status": "matched",
+          "screenshot": "home-s5.webp"
+        },
+        {
+          "order": 6,
+          "type": "footer",
+          "box": {
+            "y": 5935,
+            "h": 663
+          },
+          "layoutId": "footer.layout-columns",
+          "score": 0.936,
+          "status": "matched",
+          "screenshot": "home-s6.webp"
+        }
+      ]
+    }
+  ]
+}
