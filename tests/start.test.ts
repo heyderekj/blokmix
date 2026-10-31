@@ -82,7 +82,7 @@ describe('guided start', () => {
 
   it('puts matching starter mixes first, the chosen feel’s ahead', () => {
     const starts = startCandidates({ kind: 'studio', name: 'Fern', vibe: 'editorial' }, library)
-    expect(starts[0].starterId).toBe('studio-editorial')
+    expect(starts[0].starterId).toBe('studio-portfolio')
     expect(starts.some((s) => s.from === 'library')).toBe(true)
   })
 

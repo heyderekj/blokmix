@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { BLOCK_KINDS, MEDIA_PLAY, PLACEHOLDER_STYLES, ENTER_PRESETS } from '../../types'
 import { section, block, style, speed, blockMotion, space } from './shared'
 import { SHADER_IDS } from '../../treatments/shaders'
+import { TEXT_STYLES, TYPE_STEPS } from '../../textStyles'
 
 const sectionSpace = z.enum(['none', 'tight', 'default', 'roomy'])
 
@@ -24,6 +25,12 @@ const mobile = z
 
 /** Commands that change one block, or every block of a kind. */
 export const BLOCK_COMMANDS = {
+  set_text_style: {
+    description:
+      'A block’s type: a text style from the guide (list_text_styles), "none" to keep the clip’s own type even when its style is edited, or null for automatic; and/or its own size, a type scale step (xs…6xl; big sizes come down on phones), null to drop it.',
+    input: z.object({ section, block, style: z.enum([...TEXT_STYLES, 'none']).nullable().optional(), size: z.enum(TYPE_STEPS).nullable().optional() }),
+    write: true,
+  },
   set_block: {
     description:
       'Change one block: its look (a variant id from get_options, or null for the original), its style and spacing, its motion, or hide it (hidden: everywhere; mobile.hidden: on phones only). mobile sets spacing just for phones. reset clears all changes.',

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, Check, Moon, Shuffle, Sun, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Coffee, Feather, FileText, Moon, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
 import { create } from 'zustand'
 import type { Kind } from '@/core/types'
 import { KINDS } from '@/core/types'
@@ -20,7 +20,8 @@ const HOVER = '[@media(hover:hover)_and_(pointer:fine)]:hover:'
 const PRESS = 'cursor-pointer transition-[background-color,box-shadow,scale,color] duration-150 active:scale-[0.97]'
 const CARD = `rounded-[18px] bg-white text-left shadow-[0_0_0_1px_rgb(23_18_26/0.08)] ${PRESS}`
 const ON = 'shadow-[0_0_0_2px_#FF69B4,0_16px_32px_-20px_rgb(255_105_180/0.6)]'
-const PRIMARY = `flex h-11 items-center gap-2 rounded-full bg-[#17121A] px-5 text-[14px] font-semibold text-white disabled:cursor-default disabled:opacity-40 ${PRESS}`
+// The app's lit pink button, the step's one main action.
+const PRIMARY = `btn-lit flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold disabled:pointer-events-none disabled:opacity-45 ${PRESS}`
 const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-medium text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`
 
 type Step = 'what' | 'feel' | 'starts'
@@ -69,7 +70,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
   }, [step, key])
 
   // Each step starts at the top.
-  const scroller = useRef<HTMLDivElement>(null)
+  const scroller = useRef<HTMLElement>(null)
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 })
   }, [step])
@@ -80,124 +81,134 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
   }
 
   return (
-    <div
-      ref={scroller}
-      className="fixed inset-0 z-50 overflow-y-auto"
-      style={{ background: '#FBF8F9', backgroundImage: 'radial-gradient(#DDD2D9 1.2px, transparent 1.3px)', backgroundSize: '24px 24px', color: INK }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Start a new mix"
-    >
-      <header className="sticky top-0 z-10 flex items-center gap-3 bg-[#FBF8F9]/85 px-4 py-3 backdrop-blur sm:px-6">
-        <Steps step={step} />
-        <span className="flex-1" />
-        <button type="button" onClick={onBlank} disabled={busy} className={QUIET}>
-          Start blank
-        </button>
-        {onClose && (
-          <button type="button" onClick={onClose} aria-label="Close" className={`grid size-11 place-items-center rounded-full text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`}>
-            <X size={18} />
+    // An expanded modal over the mixes page, like New mix but roomier: the three steps scroll inside it.
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#17121A]/30 p-3 backdrop-blur-[2px] sm:p-6" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex h-[min(860px,100%)] w-full max-w-[1040px] flex-col overflow-hidden rounded-[22px] bg-[#FBF8F9] shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_40px_80px_-32px_rgb(23_18_26/0.45)]"
+        style={{ color: INK }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Start a new mix"
+      >
+        <header className="flex items-center gap-3 border-b border-zinc-950/[0.06] bg-white px-4 py-2.5 sm:px-5">
+          <Steps step={step} />
+          <span className="flex-1" />
+          <button type="button" onClick={onBlank} disabled={busy} className={`btn-quiet flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold ${PRESS}`}>
+            <FileText size={14} /> Start blank
           </button>
-        )}
-      </header>
+          {onClose && (
+            <button type="button" onClick={onClose} aria-label="Close" className={`grid size-11 place-items-center rounded-full text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`}>
+              <X size={18} />
+            </button>
+          )}
+        </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6">
-        {step === 'what' && (
+        <main
+        ref={scroller}
+        className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-7"
+        style={{ backgroundImage: 'radial-gradient(#E4D9DF 1.1px, transparent 1.2px)', backgroundSize: '22px 22px' }}
+      >
+          {step === 'what' && (
           <section>
-            <h1 className="text-[28px] font-bold tracking-tight [text-wrap:balance] sm:text-[34px]">What are you making?</h1>
-            <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Pick the closest. It decides which sections your page starts with; you can change any of them later.</p>
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {KINDS.map((k) => (
-                <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k} className={`${CARD} p-4 ${kind === k ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
-                  <span className="flex items-center justify-between gap-2 text-[15px] font-semibold">
-                    {KIND_LABEL[k].name}
-                    {kind === k && <Check size={16} style={{ color: PINK }} />}
-                  </span>
-                  <span className="mt-1 block text-[13px] leading-snug text-[#6B5F68]">{KIND_LABEL[k].words}</span>
-                </button>
-              ))}
-            </div>
-            <div className="mt-8 grid max-w-2xl gap-4">
+            <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">What are you making?</h1>
+            <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Name it, then pick the closest kind. It decides which sections your page starts with; you can change any of them later.</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <Field label="What’s it called?" value={name} onChange={setName} placeholder="Fern & Co" />
               <Field label="In one line, what is it?" hint="Becomes your headline. Leave it empty for a placeholder." value={oneLiner} onChange={setOneLiner} placeholder="Slow coffee and good bread on Elm Street" />
+            </div>
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {KINDS.map((k) => (
+                <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k} className={`${CARD} flex flex-col gap-3 p-4 ${kind === k ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
+                  <span className="flex items-center justify-between">
+                    <KindTile icon={KIND_ICON[k]} on={kind === k} />
+                    {kind === k && <Check size={16} style={{ color: PINK }} />}
+                  </span>
+                  <span>
+                    <span className="block text-[15px] font-semibold">{KIND_LABEL[k].name}</span>
+                    <span className="mt-0.5 block text-[13px] leading-snug text-[#6B5F68]">{KIND_LABEL[k].words}</span>
+                  </span>
+                </button>
+              ))}
             </div>
           </section>
         )}
 
         {step === 'feel' && kind && (
-          <section>
-            <h1 className="text-[28px] font-bold tracking-tight [text-wrap:balance] sm:text-[34px]">Pick a feel</h1>
-            <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Fonts, colors, corners and spacing that go together. Pick by eye; every one can be tuned later.</p>
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {VIBES.map((v) => (
-                <VibeCard key={v.id} id={v.id} on={vibe === v.id} onPick={() => pickVibe(v.id)} kind={kind} name={name.trim() || 'Your site'} brand={brand} mode={vibe === v.id ? mode : v.mode} />
-              ))}
-            </div>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
-                <input type="color" value={brand ?? vibeById(vibe).brand ?? '#404040'} onChange={(e) => setBrand(e.target.value)} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" />
-                {brand ? 'Your brand color' : 'Have a brand color? Pick it'}
-              </label>
-              {brand && (
-                <button type="button" onClick={() => setBrand(null)} className={QUIET}>
-                  Use the feel’s own
-                </button>
-              )}
-              <div className="flex rounded-full bg-white p-1 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]" role="radiogroup" aria-label="Light or dark">
-                {(['light', 'dark'] as const).map((m) => (
-                  <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={`flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium capitalize ${PRESS} ${mode === m ? 'bg-[#17121A] text-white' : 'text-[#6B5F68]'}`}>
-                    {m === 'light' ? <Sun size={14} /> : <Moon size={14} />} {m}
-                  </button>
+            <section>
+              <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Pick a feel</h1>
+              <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Fonts, colors, corners and spacing that go together. Pick by eye; every one can be tuned later.</p>
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {VIBES.map((v) => (
+                  <VibeCard key={v.id} id={v.id} on={vibe === v.id} onPick={() => pickVibe(v.id)} kind={kind} name={name.trim() || 'Your site'} brand={brand} mode={vibe === v.id ? mode : v.mode} />
                 ))}
               </div>
-            </div>
-          </section>
-        )}
-
-        {step === 'starts' && input && (
-          <section>
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h1 className="text-[28px] font-bold tracking-tight [text-wrap:balance] sm:text-[34px]">Three starts</h1>
-                <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Each one is laid out on a laptop and a phone before you see it. Pick one; the other two are kept as versions to come back to.</p>
-              </div>
-              <button type="button" onClick={() => setSeed((n) => n + 1)} disabled={!starts} className={QUIET}>
-                <Shuffle size={15} /> Shuffle
-              </button>
-            </div>
-            {problem && <p className="mt-6 rounded-xl bg-white p-4 text-[14px] text-red-700 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">{problem}</p>}
-            <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-              {starts
-                ? starts.map((s, i) => <StartCard key={s.id} start={s} letter={String.fromCharCode(65 + i)} best={i === 0} busy={busy} onPick={() => onDone(input, starts, s.id)} />)
-                : [0, 1, 2].map((i) => (
-                    <div key={i} className="grid h-[420px] place-items-center rounded-[18px] bg-white/70 text-[13.5px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">
-                      {i === 1 ? 'Laying out three starts…' : ''}
-                    </div>
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+                <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
+                  <input type="color" value={brand ?? vibeById(vibe).brand ?? '#404040'} onChange={(e) => setBrand(e.target.value)} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" />
+                  {brand ? 'Your brand color' : 'Have a brand color? Pick it'}
+                </label>
+                {brand && (
+                  <button type="button" onClick={() => setBrand(null)} className={QUIET}>
+                    Use the feel’s own
+                  </button>
+                )}
+                <div className="flex rounded-full bg-white p-1 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]" role="radiogroup" aria-label="Light or dark">
+                  {(['light', 'dark'] as const).map((m) => (
+                    <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={`flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium capitalize ${PRESS} ${mode === m ? 'bg-[#17121A] text-white' : 'text-[#6B5F68]'}`}>
+                      {m === 'light' ? <Sun size={14} /> : <Moon size={14} />} {m}
+                    </button>
                   ))}
-            </div>
-          </section>
-        )}
-      </main>
+                </div>
+              </div>
+            </section>
+          )}
 
-      <footer className="fixed inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-gradient-to-t from-[#FBF8F9] via-[#FBF8F9]/95 to-transparent px-4 pb-5 pt-8 sm:px-6">
-        {step === 'what' ? (
-          <span />
-        ) : (
-          <button type="button" onClick={() => setStep(step === 'starts' ? 'feel' : 'what')} className={QUIET}>
-            <ArrowLeft size={16} /> Back
-          </button>
-        )}
-        {step === 'what' && (
-          <button type="button" disabled={!kind || !name.trim()} onClick={() => setStep('feel')} className={PRIMARY}>
-            Next: pick a feel <ArrowRight size={16} />
-          </button>
-        )}
-        {step === 'feel' && (
-          <button type="button" onClick={() => setStep('starts')} className={PRIMARY}>
-            Show me three starts <ArrowRight size={16} />
-          </button>
-        )}
-      </footer>
+          {step === 'starts' && input && (
+            <section>
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Three starts</h1>
+                  <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Each one is laid out on a laptop and a phone before you see it. Pick one; the other two are kept as versions to come back to.</p>
+                </div>
+                <button type="button" onClick={() => setSeed((n) => n + 1)} disabled={!starts} className={QUIET}>
+                  <Shuffle size={15} /> Shuffle
+                </button>
+              </div>
+              {problem && <p className="mt-6 rounded-xl bg-white p-4 text-[14px] text-red-700 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">{problem}</p>}
+              <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                {starts
+                  ? starts.map((s, i) => <StartCard key={s.id} start={s} letter={String.fromCharCode(65 + i)} best={i === 0} busy={busy} onPick={() => onDone(input, starts, s.id)} />)
+                  : [0, 1, 2].map((i) => (
+                      <div key={i} className="grid h-[420px] place-items-center rounded-[18px] bg-white/70 text-[13.5px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">
+                        {i === 1 ? 'Laying out three starts…' : ''}
+                      </div>
+                    ))}
+              </div>
+            </section>
+          )}
+        </main>
+
+        <footer className="flex items-center justify-between gap-3 border-t border-zinc-950/[0.06] bg-white px-4 py-3 sm:px-5">
+          {step === 'what' ? (
+            <span />
+          ) : (
+            <button type="button" onClick={() => setStep(step === 'starts' ? 'feel' : 'what')} className={QUIET}>
+              <ArrowLeft size={16} /> Back
+            </button>
+          )}
+          {step === 'what' && (
+            <button type="button" disabled={!kind || !name.trim()} onClick={() => setStep('feel')} className={PRIMARY}>
+              Next: pick a feel <ArrowRight size={16} />
+            </button>
+          )}
+          {step === 'feel' && (
+            <button type="button" onClick={() => setStep('starts')} className={PRIMARY}>
+              Show me three starts <ArrowRight size={16} />
+            </button>
+          )}
+        </footer>
+      </div>
     </div>
   )
 }
@@ -224,7 +235,7 @@ function Steps({ step }: { step: Step }) {
 
 function Field({ label, hint, value, onChange, placeholder }: { label: string; hint?: string; value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
-    <label className="grid gap-1.5">
+    <label className="grid content-start gap-1.5">
       <span className="text-[14px] font-semibold">{label}</span>
       <input
         value={value}
@@ -309,7 +320,7 @@ function StartCard({ start, letter, best, busy, onPick }: { start: ScoredStart; 
             ))}
           {start.score.phoneScreens !== null && <li className="pl-5 text-[#6B5F68]">About {Math.max(1, Math.round(start.score.phoneScreens))} screens long on a phone</li>}
         </ul>
-        <button type="button" onClick={onPick} disabled={busy} className={`${PRIMARY} mt-auto w-full justify-center`}>
+        <button type="button" onClick={onPick} disabled={busy} className={`${PRIMARY} btn-ink mt-auto w-full justify-center`}>
           Start with {letter}
         </button>
       </div>
@@ -344,3 +355,22 @@ function useVibeFonts() {
     }
   }, [])
 }
+
+/** A kind's icon in a slot carved into the paper; picked, it lifts out as the pink block, tilted, the icon in white. */
+function KindTile({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
+  return (
+    <span className="relative grid size-9 shrink-0 place-items-center">
+      <span className="absolute inset-0 rounded-[30%] bg-zinc-100 shadow-[inset_0_2px_4px_rgb(0_0_0/0.1),inset_0_0_0_1px_rgb(0_0_0/0.05)]" />
+      <span
+        className={`absolute inset-0 grid place-items-center rounded-[30%] bg-[#FF5CB0] text-white shadow-[0_3px_0_#C2185B,0_8px_14px_-6px_rgb(194_24_91/0.6),inset_0_2px_0_rgb(255_255_255/0.35)] transition-[opacity,transform] duration-200 ease-out ${on ? '-translate-y-1 rotate-[-8deg] opacity-100' : 'translate-y-0 rotate-0 opacity-0'}`}
+      >
+        <Icon size={17} strokeWidth={2.2} />
+      </span>
+      {!on && <Icon size={17} className="relative text-zinc-500" />}
+    </span>
+  )
+}
+
+const KIND_ICON: Record<Kind, LucideIcon> = { product: Smartphone, studio: Palette, local: Coffee, event: CalendarDays, personal: User, writing: Feather }
+
+

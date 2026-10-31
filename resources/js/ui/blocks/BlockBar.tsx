@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Link2, ArrowLeft, ArrowRight, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile, Database } from 'lucide-react'
+import { Link2, ArrowLeft, ArrowRight, CaseSensitive, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile, Database } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { effectiveEdit } from '@/core/blocks/style'
@@ -25,11 +25,13 @@ import { sectionLinks } from '@/core/links'
 import { WordsCycler, WordsMenu } from './WordsMenu'
 import { LinkLabel, LinkMenu } from './LinkMenu'
 import { CollectionMenu } from './CollectionMenu'
+import { TextMenu } from './TextMenu'
+import { autoTextStyle, TEXT_STYLE_LABEL } from '@/core/textStyles'
 
 /** Icons that read as included or not. */
 const MARK_ON = ['check', 'check-circle']
 const MARK_OFF = ['minus', 'x']
-type Menu = 'variant' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'advice' | 'collection' | null
+type Menu = 'variant' | 'text' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'advice' | 'collection' | null
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -100,6 +102,11 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
     st().editBlock(slot.id, block.id, patch)
   }
   const hover = (patch: Partial<BlockEdit> | null) => (patch ? preview.show(slot.id, block.id, patch) : preview.clear())
+  // Type: blocks that are words get a text style and a size.
+  const typed = ['heading', 'text', 'button', 'link', 'badge'].includes(block.kind)
+  const autoStyle = typed ? autoTextStyle(block, blocks) : undefined
+  const picked = own?.style?.text
+  const textLabel = picked && picked !== 'none' ? TEXT_STYLE_LABEL[picked] : 'Text'
   const current = variants.find((v) => v.id === edit?.variant)
   const looksOpen = useStore((s) => s.ui.sheet === 'looks')
   const stepLook = (d: 1 | -1) => {
@@ -144,12 +151,17 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             </button>
             <BarButton active={looksOpen} onClick={() => st().setUi({ sheet: looksOpen ? 'none' : 'looks' })} icon={Shapes} title="Looks: browse them in the dock below (← → to step through)">
               {current?.label ?? 'Original'}
-              <ChevronDown size={12} className="text-zinc-400" />
+              <ChevronDown size={12} className="opacity-60" />
             </BarButton>
             <button type="button" title="Next look" aria-label="Next look" onClick={() => stepLook(1)} className="grid h-8 w-5 cursor-pointer place-items-center rounded-r-[10px] text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-800 active:scale-[0.94]">
               <ChevronRight size={13} />
             </button>
           </div>
+        )}
+        {typed && (
+          <BarButton active={menu === 'text'} onClick={() => setMenu(menu === 'text' ? null : 'text')} icon={CaseSensitive} title="Text style and size">
+            {textLabel}
+          </BarButton>
         )}
         <BarButton active={menu === 'style'} onClick={() => setMenu(menu === 'style' ? null : 'style')} icon={Palette} title="Color and shape">
           <StyleDots style={edit?.style} />
@@ -254,6 +266,15 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
           // Phone previews carry the whole phone edit, since a preview replaces it.
           onHoverPhone={(s) => hover(s ? { mobile: { ...own?.mobile, style: { ...own?.mobile?.style, ...s } } } : null)}
           onPickPhone={(s) => apply({ mobile: { style: s } })}
+        />
+      )}
+      {menu === 'text' && (
+        <TextMenu
+          style={own?.style}
+          auto={autoStyle}
+          shownPx={rect?.font}
+          onHover={(t) => hover(t ? { style: { ...own?.style, ...t } } : null)}
+          onPick={(t) => apply({ style: t })}
         />
       )}
       {menu === 'icon' && (
@@ -483,7 +504,8 @@ function usePaint() {
 
 function StyleDots({ style }: { style?: BlockStyle }) {
   const paint = usePaint()
-  if (!style?.fill && !style?.ink) return <span className="text-zinc-500">Style</span>
+  // Inherits the button's color, so it turns white with the button when its menu is open.
+  if (!style?.fill && !style?.ink) return <span>Style</span>
   return (
     <span className="flex items-center -space-x-1">
       {style.fill && <span className="size-3.5 rounded-full ring-2 ring-white" style={{ background: paint(style.fill) }} />}

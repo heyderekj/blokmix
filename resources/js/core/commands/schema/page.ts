@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { DIAL_NAMES } from '../../dials'
 import { SECTION_TYPES, TOKEN_KEYS } from '../../types'
+import { TEXT_STYLES, TYPE_STEPS } from '../../textStyles'
 import { section, block } from './shared'
 import { page } from './site'
 
@@ -102,6 +103,28 @@ export const PAGE_COMMANDS = {
       source: z.enum(['google', 'fontshare', 'fontsource']).optional(),
     }),
     write: false,
+  },
+  list_text_styles: {
+    description:
+      'The style guide’s text styles (Display, Heading 1–4, Body large, Body, Small, Caption, Label): font, size on the type scale and on phones, weight, line height, letter spacing, case, and whether you’ve edited each. An edited style restyles every block that reads as it (headlines are Display, section headings Heading 2, item titles Heading 4, intros Body large, eyebrows Label…).',
+    input: z.object({}),
+    write: false,
+  },
+  update_text_style: {
+    description:
+      'Edit a text style; every block using it changes, and once edited it also restyles the blocks that read as it. size and phone are type scale steps (xs…6xl); weight a number or "display" (the display weight token); tracking in em. reset puts the style back to its default.',
+    input: z.object({
+      style: z.enum(TEXT_STYLES),
+      font: z.enum(['display', 'body', 'mono']).optional(),
+      size: z.enum(TYPE_STEPS).optional(),
+      phone: z.enum(TYPE_STEPS).optional(),
+      weight: z.union([z.number().int().min(100).max(900), z.literal('display')]).optional(),
+      leading: z.number().min(0.8).max(2.4).optional(),
+      tracking: z.number().min(-0.1).max(0.3).optional(),
+      upper: z.boolean().optional(),
+      reset: z.boolean().optional(),
+    }),
+    write: true,
   },
   set_token: {
     description: 'Set a style guide token to your own value (e.g. color.primary "#e2508d", font.display "Satoshi" or a full stack, radius.base "12px"), or null to go back to automatic. Fonts from list_fonts load by themselves, in the canvas and in exports.',

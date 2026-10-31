@@ -1,6 +1,7 @@
 import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet, ListBinding } from './types'
 import { applyBindings, findList, sortedEntries, type BindContext, type Collection } from './collections'
 import { sectionTokens, widthTokens } from './surface'
+import { blockTextStyle } from './textStyles'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
 import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { LAYER_ORDER } from './export/base-css'
@@ -129,7 +130,7 @@ export interface ComposeInput {
   slotNotes?: Record<string, string[]>
   title?: string
   /** Extra brand colors, page-wide block looks and effects from the style guide. */
-  page?: Pick<GuideState, 'swatches' | 'components' | 'effects'>
+  page?: Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles'>
   /** Uploaded images by asset id (data URLs), from the browser's asset store. */
   uploads?: (id: string) => UploadData | undefined
   /** Keep each block's data-mx-b in the markup, so the page can be measured block by block (lib/measure.ts). */
@@ -196,8 +197,12 @@ export function composePage(input: ComposeInput): ComposedPage {
     // Blocks with a changed look get a class (unique to this section) that the block CSS targets,
     // including blocks changed only on phones (their rules sit in the block CSS's @media).
     const edits = slot.edits?.[clip.id]
+    // A block whose text style you edited in the guide is changed too, with no edit of its own.
     const changed = clip.blocks
-      .map((b) => ({ b, edit: effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]) }))
+      .map((b) => {
+        const edit = effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind])
+        return { b, edit: edit ?? (blockTextStyle(b, clip.blocks, undefined, input.page) ? {} : undefined) }
+      })
       .filter((x): x is { b: (typeof x)['b']; edit: BlockEdit } => !!x.edit)
     const blockClass = (id: string) => `mx-${key}${position + 1}-${id.replace(/\./g, '-')}`
     const preset = slot.motion?.mode === 'preset' ? slot.motion : undefined
@@ -324,6 +329,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       blocks: clip.blocks,
       edits,
       components: input.page?.components,
+      textStyles: input.page?.textStyles,
       select: (b) => `.${clip.rootClass}.${blockClass(b.id)}, .${clip.rootClass} .${blockClass(b.id)}`,
     }) + (spaced ? `\n${sectionSpacingCss(slot.spacing, `.${clip.rootClass}.mx-${key}${position + 1}`)}` : '')
     const mocks = media.filter((m) => m.kind === 'mock' && m.css)

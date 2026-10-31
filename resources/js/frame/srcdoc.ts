@@ -77,7 +77,8 @@ const BRIDGE = `(function () {
     for (var i = 0; i < all.length; i++) if (all[i].closest('[data-mx-block]') === el) return all[i];
     return null;
   }
-  function reportSel() { post({ selRect: rect(byId(sel)) }); }
+  /* The selection's box, and its type size (the block bar's size steps start from what's on screen). */
+  function reportSel() { var el = byId(sel), r = rect(el); if (r && el) r.font = parseFloat(getComputedStyle(el).fontSize); post({ selRect: r }); }
 
   document.addEventListener('pointermove', function (e) {
     if (!editMode || editing || drag) return;
@@ -451,8 +452,10 @@ const BRIDGE = `(function () {
 })();`
 
 const FRAME_CSS = `html, body { overflow: hidden; }
+html { cursor: default; }
 html[data-mx-outline] body > * { outline: 2px dashed color-mix(in srgb, currentColor 35%, transparent); outline-offset: -6px; }
 html[data-mx-edit], html[data-mx-edit] * { cursor: default; }
+html[data-mx-edit] :is([data-mx-block], a, button, summary, label, select), html[data-mx-edit] :is([data-mx-block], a, button, summary, label) * { cursor: pointer; }
 html[data-mx-note], html[data-mx-note] * { cursor: crosshair !important; user-select: none; }
 html[data-mx-note] [data-mx-field], html[data-mx-note] [data-mx-field] * { cursor: text !important; user-select: text; }
 html[data-mx-note] ::selection { background: color-mix(in srgb, #ff6aa8 35%, transparent); }

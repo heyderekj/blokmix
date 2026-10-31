@@ -348,7 +348,7 @@ function Screenshot({ page, focus, onFocus }: { page: Page; focus: number | null
           type="button"
           onMouseEnter={() => onFocus(s.id)}
           onMouseLeave={() => onFocus(null)}
-          className={`absolute inset-x-0 cursor-default border-2 text-left transition-[background-color,border-color] duration-150 ${BOX_TONE[s.status]} ${focus === s.id ? 'border-[#FF69B4]' : ''}`}
+          className={`absolute inset-x-0 cursor-pointer border-2 text-left transition-[background-color,border-color] duration-150 ${BOX_TONE[s.status]} ${focus === s.id ? 'border-[#FF69B4]' : ''}`}
           style={{ top: `${(s.box.y / height) * 100}%`, height: `${(s.box.h / height) * 100}%` }}
         >
           <span className="absolute left-2 top-2 rounded-md bg-zinc-900/85 px-1.5 py-0.5 font-mono text-[11px] text-white">

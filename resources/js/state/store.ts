@@ -43,6 +43,7 @@ import { suggestClip } from '@/core/suggest'
 import type { FacetFilter } from '@/core/browse'
 import { listOpOnEntries } from './collections'
 import { BASE_TOKENS } from '@/core/tokens'
+import type { TextStyleDef, TextStyleEdits, TextStyleId } from '@/core/textStyles'
 import { cleanTreatment, shadowToken, type EffectId, type EffectsState, type TreatmentValue } from '@/core/treatments'
 import { buildSeed } from './seed'
 import { allSlots, freePath, mapSlots, pageOf, pageOfSlot, pageView, setPageSlots, siteFromSlots, titleFromPath, updatePage as updatePageIn, updateSlotIn } from '@/core/site'
@@ -200,6 +201,8 @@ export interface State extends MixData {
   chooseGroup: (candidateId: string) => void
   /** Set (or clear, with null) one of the style guide's effects; the shadow effect is also the card shadow token. */
   setEffect: (id: EffectId, value: TreatmentValue | null) => void
+  /** Edit a text style (merged; undefined values drop), or null to put it back to its default. */
+  setTextStyle: (id: TextStyleId, patch: Partial<TextStyleDef> | null) => void
   /** Set several effects at once (a curated look, a library site's look kit), as one undo step. */
   setEffects: (effects: EffectsState, replace?: boolean) => void
   /** What's behind a section (null = as clipped). */
@@ -694,6 +697,15 @@ export const useStore = create<State>()(
           removeCandidate: (id) => set((st) => ({ guide: removeCandidate(st.guide, id) })),
           chooseToken: (key, choice) => (choice && !FREE_TOKENS.has(key) && needsPack('That style guide control')) || set((st) => ({ guide: choose(st.guide, key, choice) })),
           setEffect: (id, value) => get().setEffects({ [id]: value ?? undefined }),
+          setTextStyle: (id, patch) =>
+            set((st) => {
+              const all: TextStyleEdits = { ...st.guide.textStyles }
+              const next = patch === null ? {} : { ...all[id], ...patch }
+              for (const k of Object.keys(next) as (keyof TextStyleDef)[]) if (next[k] === undefined) delete next[k]
+              if (Object.keys(next).length) all[id] = next
+              else delete all[id]
+              return { guide: { ...st.guide, textStyles: Object.keys(all).length ? all : undefined } }
+            }),
           setEffects: (patch, replace) =>
             (Object.values(patch).some(Boolean) && needsPack('An effect')) ||
             set((st) => {
