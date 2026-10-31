@@ -62,6 +62,17 @@ export const write = {
     useStore.getState().setSectionSpacing(slot.id, patch)
     return { spacing: findSection(slot.id).spacing ?? {} }
   },
+  set_text_style: (i: CommandInput<'set_text_style'>) => {
+    const slot = findSection(i.section)
+    const b = findBlock(slot, i.block)
+    if (i.style === undefined && i.size === undefined) throw new CommandError('Give a style, a size, or both.')
+    const style: Partial<BlockStyle> = {}
+    if (i.style !== undefined) style.text = i.style ?? undefined
+    if (i.size !== undefined) style.size = i.size ?? undefined
+    useStore.getState().editBlock(slot.id, b.id, { style: style as BlockStyle })
+    const now = findSection(slot.id).edits?.[slotClip(findSection(slot.id)).id]?.[b.id]?.style
+    return { block: b.label, style: now?.text ?? 'automatic', size: now?.size ?? null }
+  },
   set_section_width: (i: CommandInput<'set_section_width'>) => {
     const slot = findSection(i.section)
     useStore.getState().setSectionWidth(slot.id, i.width)

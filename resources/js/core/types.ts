@@ -223,6 +223,8 @@ export interface GuideState {
   swatches?: Swatch[]
   /** Defaults for kinds of blocks across the whole page ("All buttons: outline"). */
   components?: Partial<Record<BlockKind, ComponentDefault>>
+  /** Your changes to the text styles (Display, Heading 1…), on top of their defaults (core/textStyles.ts). */
+  textStyles?: import('./textStyles').TextStyleEdits
   /** Effects every section can use: shadow, gradient, grain, glass, glow (core/treatments/effects.ts). */
   effects?: Partial<Record<'shadow' | 'gradient' | 'grain' | 'glass' | 'glow', TreatmentValue>>
 }
@@ -429,6 +431,10 @@ export interface BlockStyle {
   below?: SpaceStep
   /** Space between the block's children (lists, cards, items). */
   gap?: SpaceStep
+  /** A text style from the guide (core/textStyles.ts); 'none' keeps the clip's own type even when its style is edited. */
+  text?: import('./textStyles').TextStyleId | 'none'
+  /** This block's own size, a step on the type scale (smaller on phones for big sizes). */
+  size?: import('./textStyles').TypeStep
 }
 
 /** A section's top or bottom padding, relative to the style guide's section spacing. */

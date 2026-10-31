@@ -24,7 +24,7 @@ export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
 
 /** Page-wide block defaults, extra colors and effects, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
-export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
+export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
 
 /** Effects you're dialing, shown on every section before you let go. Not undoable state. */
 export const useEffectPreview = create<{ effects: EffectsState | null; set: (effects: EffectsState | null) => void }>()((set) => ({
@@ -36,6 +36,7 @@ export const useEffectPreview = create<{ effects: EffectsState | null; set: (eff
 export function usePageStyle(): PageStyle {
   const swatches = useStore((s) => s.guide.swatches)
   const components = useStore((s) => s.guide.components)
+  const textStyles = useStore((s) => s.guide.textStyles)
   const saved = useStore((s) => s.guide.effects)
   const dialing = useEffectPreview((s) => s.effects)
   const effects = dialing ?? saved
@@ -49,9 +50,9 @@ export function usePageStyle(): PageStyle {
     const { site, ui } = useStore.getState()
     const here = site.pages.find((p) => p.id === ui.pageId) ?? site.pages[0]
     const sharedIds = [site.shared.nav?.id, site.shared.footer?.id].filter((x): x is string => !!x)
-    return { swatches, components, effects, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
+    return { swatches, components, textStyles, effects, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swatches, components, effects, shape])
+  }, [swatches, components, textStyles, effects, shape])
 }
 
 /** Where one section's links can lead: from its page, or from everywhere for the shared nav and footer. */
@@ -118,7 +119,7 @@ export function frameStateFor(
     fields: slot.keep.content && !own ? null : resolveFields(clip.type, clip.fields, content, slot.keep.content, own).fields,
     fonts: fontHrefsFor(tokens),
     outline: !slot.keep.layout,
-    blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, slot.backdrop, tokens), clip.extras?.banner ? bannerMoves(slot) : null),
+    blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, slot.backdrop, tokens, page?.textStyles), clip.extras?.banner ? bannerMoves(slot) : null),
     media: mediaFor(clip, slot.edits?.[clip.id], tokens),
     backdrop: backdropShader(slot.backdrop, tokens),
     // A section keeping its own captured look keeps its own icons too.
@@ -247,8 +248,9 @@ function blocksFor(
   motion: SectionMotion | undefined,
   backdrop?: TreatmentValue,
   tokens?: TokenSet,
+  textStyles?: GuideState['textStyles'],
 ): FrameState['blocks'] {
-  if (!edits && !components && !spacing && !backdrop && motion?.mode !== 'preset') return NO_BLOCKS
+  if (!edits && !components && !spacing && !backdrop && !textStyles && motion?.mode !== 'preset') return NO_BLOCKS
   const variants: Record<string, string> = {}
   for (const b of clip.blocks) {
     const e = effectiveEdit(edits?.[b.id], components?.[b.kind])
@@ -265,7 +267,7 @@ function blocksFor(
     canvas: true,
   })
   const behind = backdrop && tokens ? backdropCss(backdrop, tokens, '[data-mx-section]') : ''
-  const css = [behind, blockCss({ blocks: clip.blocks, edits, components, select }), sectionSpacingCss(spacing, '[data-mx-section]'), moving]
+  const css = [behind, blockCss({ blocks: clip.blocks, edits, components, textStyles, select }), sectionSpacingCss(spacing, '[data-mx-section]'), moving]
     .filter(Boolean)
     .join('\n')
   return css || Object.keys(variants).length ? { css, variants } : NO_BLOCKS

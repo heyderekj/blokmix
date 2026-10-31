@@ -304,6 +304,13 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
   reports `dials` and `tone`. The Type dial stops at a 1.333 ratio (bigger ones outgrow phones; the knob has them).
 - Section surfaces (`slot.surface`, `core/surface.ts`): page, soft, inverse or brand, a band in the guide's own colors,
   set from the dots in the section bar or `set_section_surface`. Frames and exports re-mix that section's tokens only.
+- Text styles (`core/textStyles.ts`, Figma's way): Display, Heading 1–4, Body large, Body, Small, Caption and Label, each a
+  font, a type scale step (and one for phones), weight, line height, letter spacing and case; defaults come from the type
+  scale and your edits live in `guide.textStyles`. A block uses one when picked (`BlockStyle.text`, 'none' keeps the clip's
+  type) or, once that style is edited, when it reads as it (`autoTextStyle`: headlines Display, section headings Heading 2,
+  item titles Heading 4, intros Body large, eyebrows Label); `BlockStyle.size` sizes one block. Layouts look as authored
+  until then. Block CSS writes them (`textDecl`, phone sizes in its @media), so frames and exports match. UI: the block bar's
+  Text menu, the Style panel's Text styles tile. Agents: `list_text_styles`, `update_text_style`, `set_text_style`.
 - Section widths (`slot.width`, `widthTokens`): narrow, standard, wide or full, against the guide's content width, from
   the width picks in the section bar or `set_section_width`. `sectionTokens` applies surface then width.
 - The block bar steps through a block's looks with ‹ › around Look.

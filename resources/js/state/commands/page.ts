@@ -4,6 +4,7 @@ import { resolveGuide } from '@/core/guide'
 import { DIALS, readDials, setTone } from '@/core/dials'
 import { library } from '@/data/library'
 import { findLibraryFont, fontStack } from '@/core/fonts'
+import { editedTextStyles, resolveTextStyles, TEXT_STYLE_LABEL, TEXT_STYLES } from '@/core/textStyles'
 import { useStore } from '../store'
 import { allSlots } from '@/core/site'
 import { CommandError, findPage, findSection, describeSection, clean, positionOf } from './refs'
@@ -61,6 +62,13 @@ export const write = {
     const tokens = resolveGuide(useStore.getState().guide).tokens
     return { tone: i.tone, colors: Object.fromEntries(Object.entries(tokens).filter(([k]) => k.startsWith('color.'))) }
   },
+  update_text_style: (i: CommandInput<'update_text_style'>) => {
+    const { style, reset, ...patch } = i
+    const st = useStore.getState()
+    if (reset) st.setTextStyle(style, null)
+    if (Object.keys(patch).length) st.setTextStyle(style, patch)
+    return { style, label: TEXT_STYLE_LABEL[style], ...resolveTextStyles(useStore.getState().guide.textStyles)[style] }
+  },
   set_token: (i: CommandInput<'set_token'>) => {
     // A bare family from the library ("Satoshi") becomes a full stack with a fitting fallback.
     let value = i.value
@@ -75,5 +83,14 @@ export const write = {
   add_brand_colour: (i: CommandInput<'add_brand_colour'>) => {
     useStore.getState().addSwatch(i.name, i.value)
     return { use: `x:${i.name}` }
+  },
+}
+
+export const textStyleRead = {
+  list_text_styles: () => {
+    const edits = useStore.getState().guide.textStyles
+    const all = resolveTextStyles(edits)
+    const edited = editedTextStyles(edits)
+    return { styles: TEXT_STYLES.map((id) => ({ id, label: TEXT_STYLE_LABEL[id], edited: edited.has(id), ...all[id] })) }
   },
 }

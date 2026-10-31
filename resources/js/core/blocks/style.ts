@@ -1,3 +1,4 @@
+import { blockTextStyle, resolveTextStyles, textDecl, type TextStyleEdits } from '../textStyles'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, ComponentDefault, SectionSpace, SectionSpacing, SlotEdits } from '../types'
 import { TOKEN_KEYS } from '../types'
 import { findVariant } from './variants'
@@ -88,6 +89,8 @@ export interface BlockCssInput {
   blocks: BlockInfo[]
   edits: Record<string, BlockEdit> | undefined
   components?: Partial<Record<BlockKind, ComponentDefault>>
+  /** The guide's text style edits: picked styles use them, and edited styles restyle the blocks that read as them. */
+  textStyles?: TextStyleEdits
   /** Selector for one block: canvas uses [data-mx-b="b3"], exports use a class. */
   select: (b: BlockInfo) => string
 }
@@ -100,12 +103,14 @@ export interface BlockCssInput {
 export function blockCss(i: BlockCssInput): string {
   const rules: string[] = []
   const phone: string[] = []
+  const styles = resolveTextStyles(i.textStyles)
   for (const b of i.blocks) {
     const e = effectiveEdit(i.edits?.[b.id], i.components?.[b.kind])
-    if (!e) continue
+    const ts = blockTextStyle(b, i.blocks, e?.style?.text, i)
+    if (!e && !ts) continue
     const decl: string[] = []
-    if (e.hidden) decl.push('display: none;')
-    const s = e.style
+    if (e?.hidden) decl.push('display: none;')
+    const s = e?.style
     const f = s?.fill ? colorCss(s.fill) : null
     const k = s?.ink ? colorCss(s.ink) : null
     if (f) {
@@ -120,13 +125,16 @@ export function blockCss(i: BlockCssInput): string {
     if (s?.radius) decl.push(`--b-radius: ${RADIUS[s.radius]}; border-radius: ${RADIUS[s.radius]};`)
     if (s?.shadow) decl.push(`--b-shadow: ${SHADOW[s.shadow]}; box-shadow: ${SHADOW[s.shadow]};`)
     decl.push(...spacingDecl(s))
-    const v = findVariant(b.kind, e.variant)
+    // Type after the variant's own, so a picked text style or size wins on the same element.
+    const type = textDecl(ts ? styles[ts] : undefined, s?.size)
+    decl.push(...type.desktop)
+    const v = findVariant(b.kind, e?.variant)
     // Variant first so the explicit picks above (declared after) win on the same element.
     const body = [v ? v.css : '', decl.join(' ')].filter(Boolean).join('\n  ')
     if (body) rules.push(`${i.select(b)} {\n  ${body}\n}`)
     // Hidden everywhere already covers phones.
-    const m = e.hidden ? undefined : e.mobile
-    const mdecl = [...(m?.hidden ? ['display: none;'] : []), ...spacingDecl(m?.style)]
+    const m = e?.hidden ? undefined : e?.mobile
+    const mdecl = [...(m?.hidden ? ['display: none;'] : []), ...spacingDecl(m?.style), ...type.phone]
     if (mdecl.length) phone.push(`${i.select(b)} { ${mdecl.join(' ')} }`)
   }
   return rules.length || phone.length ? `@layer blocks {\n${rules.join('\n')}${phoneRules(phone)}\n}` : ''
