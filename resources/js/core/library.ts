@@ -183,8 +183,22 @@ export const isSample = (lib: Library, id: string): boolean => {
   return !!clip && clip.origin === 'clip' && /\.example(\/|$)/.test(new URL(lib.sources[clip.sourceId]?.url ?? 'https://x/').host + '/')
 }
 
-/** The clips you can pick for a section: your clips, then the layouts. Draft layouts wait for review. */
-export const pickable = (lib: Library, type: SectionType): string[] => lib.byType[type].filter((id) => !isSample(lib, id) && !lib.clips[id]?.status)
+/** Whether this mix can use a clip: your own clips always; on Free (`lib.paid === false`), layouts marked free. */
+export const layoutOpen = (lib: Library, id: string): boolean => {
+  const clip = lib.clips[id]
+  return !!clip && (lib.paid !== false || clip.origin !== 'layout' || clip.tier === 'free')
+}
+
+/** Whether a starter uses only layouts this mix can use. */
+export const starterOpen = (lib: Library, starter: { pages: { sections: string[] }[] }): boolean =>
+  starter.pages.every((p) => p.sections.every((id) => !lib.clips[id] || layoutOpen(lib, id)))
+
+/**
+ * The clips you can pick for a section: your clips, then the layouts. Draft layouts wait for review. On Free, layouts
+ * in a mix pack are left out unless `locked` asks for them too (the Crate shows them with a lock).
+ */
+export const pickable = (lib: Library, type: SectionType, opts: { locked?: boolean } = {}): string[] =>
+  lib.byType[type].filter((id) => !isSample(lib, id) && !lib.clips[id]?.status && (opts.locked || layoutOpen(lib, id)))
 
 /** The library's two shelves: Blokmix's plain layouts, and sections captured from real sites. */
 export type Shelf = 'plain' | 'real'

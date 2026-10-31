@@ -1,45 +1,51 @@
 # Blokmix Pricing
 
-No subscription. One-time license for a version, with discounted upgrades for new releases (CleanShot-style).
+No subscription. Free to start; mix packs are bought once and kept (ReviseMy-style packs, sold through Polar in
+Blokmix's own organization).
 
 ## Free
 
-- Limited library (smaller set of sections or starter mixes)
-- Full core loop on what you can access: dial the style guide, mark notes, export, and publish that mix
-- Enough to complete a real starting point and feel the value
-- Account-linked publishing on blok.page for the free mix(es)
+- 1 mix open at a time, 40 clips, 100 MB of images and video, 1 collection of 25 entries
+- The core layouts: three per section type (`"tier": "free"` in clip.json), plus every clip you capture yourself
+- The guided start, the Crate, the site library (sections land as the closest open layout), marks, versions, export
+  and handing off to your agent
+- The Feel dials, Light/Dark, your brand colors and fonts, section surfaces and widths
+- Starter mixes made only of open layouts (the others show a lock)
 
-## Paid — $29 one-time
+## Mix pack — $20 once
 
-License for the current version:
+- Three mixes open at a time, for good. Packs stack: two packs, six mixes.
+- Every layout, every style guide knob and source pick, block looks and saved style guides
+- Effects, section backdrops, generative pictures, UI mockups and live shaders
+- Unlimited clips and collections, 10 GB of images and video
 
-- Full library
-- Unlimited mixes
-- Saved style guides
-- Account-specific blok.page space for published mixes (noindex snapshots)
-- Export and handoff features
+## How it works
 
-Editors and viewers remain free.
-
-## Upgrades
-
-When a new version ships with meaningful new capability (deeper library, improved dials, better export, etc.):
-
-- Existing license holders pay a lower one-time upgrade fee (targeting roughly half, or a fixed smaller amount)
-- New customers pay the full license price for that version
-- Published mixes and account access continue; no monthly fee required to keep links alive
+- **Slots, not credits.** A pack's mixes are places, not uses: archive a mix and its place is free again. An archived
+  mix stays in your gallery, read-only (marks aside) and exportable, and comes back when you have room.
+- **It follows the owner.** What a mix opens depends on its owner's packs, and only the owner's mixes count. Editors and
+  viewers never need a pack.
+- **Nothing is taken away.** Work over a limit (after a refund, or a mix that already uses a locked layout) is kept and
+  still exports; only adding more is refused. Free users can preview effects and backdrops; using them opens the
+  buy sheet.
+- Agents hear the same rules: a command that needs a pack refuses with why.
 
 ## Principles
 
 - Pricing matches the product: niche, useful, and simple.
-- No seat-based math, no recurring billing, no “am I using it enough?”
-- blok.page is an account-specific view of your mixes, not a rented host.
-- Free tier is complete enough for a single starting point; the license is an unlock.
-- Version upgrades are for real new capability, not re-gating the same features.
+- No seat math, no recurring billing, no “am I using it enough?”
+- Free is complete enough for one real starting point; a pack opens breadth and finer control.
+
+## Setup (Polar)
+
+`config/billing.php`. In Blokmix's Polar organization (sandbox and production): a one-time product "Mix pack" at $20,
+a webhook to `/api/polar/webhook` with `order.paid` and `order.refunded`, and an organization access token. Then set
+`POLAR_SERVER`, `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_MIX_PACK` and, when ready,
+`BLOKMIX_PRICING_ENABLED=true`. Until then the buy buttons say packs are coming soon.
 
 ## Domain split
 
 - blokmix.com — the product and marketing
 - blok.page — published, noindex, account-linked snapshots of mixes + style guide
 
-Last updated: 2026-10-27
+Last updated: 2026-10-30

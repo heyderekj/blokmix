@@ -5,6 +5,7 @@
   "style": "technical",
   "feel": ["calm"],
   "density": "dense",
+  "tier": "free",
   "motionNotes": "Brand block and link columns rise in a left-to-right stagger, then the legal row fades in. Links brighten on hover.",
   "capture": {
     "path": "/",

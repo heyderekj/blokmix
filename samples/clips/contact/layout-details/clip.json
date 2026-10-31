@@ -5,6 +5,7 @@
   "style": "editorial",
   "feel": ["bold"],
   "density": "airy",
+  "tier": "free",
   "motionNotes": "No entrance motion; each address underlines in the accent on hover.",
   "capture": {
     "path": "/",

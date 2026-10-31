@@ -1,9 +1,10 @@
 import { memo, useEffect, useMemo, useState } from 'react'
-import { Library } from 'lucide-react'
+import { Library, Lock } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { library } from '@/data/library'
-import { pickable } from '@/core/library'
+import { layoutOpen, pickable } from '@/core/library'
+import { useAccount } from '@/lib/account'
 import { useStore, currentSlots, mixClipIds } from '@/state/store'
 import { Preview } from './Preview'
 import { suggestClip } from '@/core/suggest'
@@ -35,6 +36,9 @@ export function Alternatives({ slot }: { slot: Slot }) {
   const mix = useMemo(() => new Set(mixClipIds({ site, clips: own })), [site, own])
   const by: Record<Shelf, typeof ranked> = { mix: [], yours: [], layouts: [] }
   for (const r of ranked) for (const k of ['mix', 'yours', 'layouts'] as const) if (isOn(r.clipId, k, mix)) by[k].push(r)
+  // On Free, the layouts in a mix pack follow the ones you can use, with a lock.
+  useAccount((s) => s.paid)
+  for (const id of pickable(library, slot.type, { locked: true })) if (!layoutOpen(library, id)) by.layouts.push({ clipId: id, score: 0, reason: 'In a mix pack' })
   // This mix's shelf shows once it has clips; the whole library is always there.
   const shelves = (['mix', 'yours', 'layouts'] as const).filter((k) => k !== 'mix' || by.mix.length)
   const st = useStore.getState
@@ -103,11 +107,12 @@ const Thumb = memo(function Thumb({ clipId, slot, current, reason }: { clipId: s
   const clip = library.clips[clipId]
   const source = library.sources[clip.sourceId]
   const layout = clip.origin === 'layout'
+  const locked = !layoutOpen(library, clipId)
   return (
     <button
       type="button"
       onClick={() => useStore.getState().setClip(slot.id, clipId)}
-      className="group shrink-0 text-left focus-visible:outline-none"
+      className="group relative shrink-0 text-left focus-visible:outline-none"
       style={{ width: THUMB_W }}
       title={`${layout ? clip.title : `${source.name}: ${clip.title}`}\n${reason}`}
       aria-pressed={current}
@@ -118,6 +123,7 @@ const Thumb = memo(function Thumb({ clipId, slot, current, reason }: { clipId: s
       <div className="mt-1.5 flex items-center gap-1.5 px-0.5">
         <span className={`truncate text-[12px] ${current ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{layout ? clip.title : source.name}</span>
         {current && <span className="size-1.5 shrink-0 rounded-full bg-key" />}
+        {locked && <Lock size={11} strokeWidth={2.25} className="shrink-0 text-zinc-400" aria-label="In a mix pack" />}
       </div>
     </button>
   )

@@ -5,6 +5,7 @@
   "style": "warm",
   "feel": ["friendly"],
   "density": "dense",
+  "tier": "free",
   "motionNotes": "The head rises and the pictures settle in one after another; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { ArrowLeft, Copy, CloudUpload, Library, MessageSquare, Palette, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react'
+import { Archive, ArchiveRestore, ArrowLeft, Copy, CloudUpload, Library, Lock, MessageSquare, Palette, Pencil, Plus, Search, Trash2, Upload, Users, X } from 'lucide-react'
 import { readMixFile } from '@/lib/mixFile'
 import { importClips } from '@/lib/userClips'
 import { pickFile } from '@/lib/pickFile'
@@ -17,6 +17,7 @@ import { resolveGuide } from '@/core/guide'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { library, starters } from '@/data/library'
 import { buildStarter, type Starter } from '@/core/starters'
+import { starterOpen } from '@/core/library'
 import { listSites, loadSite, mixFromSitePage, planClip, type LibraryPage, type LibrarySite, type LibrarySiteSummary } from '@/lib/siteLibrary'
 import { StartFlow } from '@/ui/start/StartFlow'
 import { mixFromStart } from '@/lib/start'
@@ -41,6 +42,8 @@ interface SavedMix {
   heads: { letter: string; status: Status }[]
   /** Open marks (notes not yet resolved). */
   marks: number
+  /** Archived: kept, read-only, and not one of your open mixes. */
+  archived: boolean
 }
 
 const ROLE_NOTE = { owner: null, editor: 'you can edit', viewer: 'you can view' } as const
@@ -94,20 +97,36 @@ const ago = (iso: string) => {
  * its own style guide, with its versions' status rings. The first tile starts a new mix; the ones shared with you and
  * the one kept only in this browser follow.
  */
-/** Your plan (config/blokmix.php `plans`): what it includes (null is unlimited) and what you've used. */
+/**
+ * Your plan (config/blokmix.php `plans`): what it includes (null is unlimited; mixes are how many can be open at once)
+ * and what you've used, the mix packs you've bought, and whether one can be bought here now.
+ */
 interface Plan {
-  name: 'free' | 'plus'
+  name: 'free' | 'paid'
   limits: { mixes: number | null; clips: number | null; upload_mb: number | null }
   usage: { mixes: number; clips: number; uploads: number }
+  packs: number
+  pack: { mixes: number; price_usd: number }
+  buy: boolean
+  receipts: boolean
 }
-const MIX_FULL = 'Free includes one mix. Plus, coming soon, has as many as you like.'
+/** Why there's no room for another open mix (the server says the same). */
+const mixFull = (p: Plan) =>
+  p.name === 'free'
+    ? `Free has one mix. Archive it, or get a mix pack: ${p.pack.mixes} mixes for $${p.pack.price_usd}, once.`
+    : `Your mix packs hold ${p.limits.mixes} mixes. Archive one, or add a pack: ${p.pack.mixes} more for $${p.pack.price_usd}.`
+const buyPack = () => router.post('/api/billing/checkout')
 
 export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
   const auth = usePage<{ auth: { user: { name: string } | null; owner?: boolean; plan?: Plan | null } }>().props.auth
   const user = auth?.user
   const plan = auth?.plan ?? null
-  // Starting, copying, importing or saving a mix makes one you own; Free has room for one.
+  // Starting, copying, importing or saving a mix makes one you own; Free has room for one, each pack three more.
   const full = !!plan && plan.limits.mixes !== null && plan.usage.mixes >= plan.limits.mixes
+  const MIX_FULL = plan ? mixFull(plan) : ''
+  // What a new mix can start from follows your plan (the guided start, starters, sites).
+  library.paid = plan?.name !== 'free'
+  const bought = useBought(plan)
   const local = useMemo(readLocal, [])
   const [moving, setMoving] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
@@ -117,7 +136,8 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     const q = query.trim().toLowerCase()
     return [...mixes].filter((m) => !q || m.name.toLowerCase().includes(q)).sort(SORTS[sort].by)
   }, [mixes, query, sort])
-  const mine = shown.filter((m) => m.role === 'owner')
+  const mine = shown.filter((m) => m.role === 'owner' && !m.archived)
+  const archived = shown.filter((m) => m.role === 'owner' && m.archived)
   const shared = shown.filter((m) => m.role !== 'owner')
   useDisplayFonts(mixes)
 
@@ -128,6 +148,15 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     const res = await api<{ message?: string }>('POST', `/api/mixes/${m.id}/duplicate`)
     if (res.status === 201) router.reload({ only: ['mixes', 'auth'] })
     else setProblem(res.body?.message ?? 'Couldn’t copy that mix. Try again.')
+  }
+
+  /** Archive a mix you own (it frees one of your mixes), or bring one back when there's room. */
+  const archive = async (m: SavedMix, on: boolean) => {
+    setProblem(null)
+    if (!on && full) return setProblem(MIX_FULL)
+    const res = await api<{ message?: string }>('POST', `/api/mixes/${m.id}/${on ? 'archive' : 'unarchive'}`)
+    if (res.status === 200) router.reload({ only: ['mixes', 'auth'] })
+    else setProblem(res.body?.message ?? 'Couldn’t do that. Try again.')
   }
 
   /** Delete a mix you own, after asking. */
@@ -229,7 +258,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-[30px] font-bold tracking-tight text-[#17121A]">Your mixes</h1>
-            {plan?.name === 'free' && <PlanLine plan={plan} />}
+            {plan && <PlanLine plan={plan} />}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <label className="flex h-10 w-56 items-center gap-2 rounded-full bg-white px-3.5 shadow-[0_0_0_1px_rgb(23_18_26/0.08)] focus-within:ring-2 focus-within:ring-[#FF69B4]/45 max-sm:w-full">
@@ -266,22 +295,50 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
           </div>
         </div>
 
-        {problem && <p className="mt-4 rounded-xl bg-red-50 px-4 py-2.5 text-[13px] text-red-700">{problem}</p>}
+        {bought && (
+          <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-2.5 text-[13px] text-emerald-800">
+            {bought === 'arrived' ? `Thank you! Your mix pack is here: ${plan?.limits.mixes ?? 'more'} mixes, and every layout and control.` : 'Thank you! Your mix pack shows up here as soon as Polar confirms it.'}
+          </p>
+        )}
+        {problem && (
+          <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-red-50 px-4 py-2.5 text-[13px] text-red-700">
+            {problem}
+            {problem === MIX_FULL && plan?.buy && (
+              <button type="button" onClick={buyPack} className="cursor-pointer font-semibold underline underline-offset-2">
+                Get a mix pack
+              </button>
+            )}
+          </p>
+        )}
 
         {query && !shown.length && <p className="mt-8 text-[14px] text-[#6B5F68]">No mixes match “{query}”.</p>}
 
         <ul className={GRID}>
           {!query && (
             <li className="animate-rise">
-              <NewMix mixes={mine} full={full} onRefused={setProblem} onGuided={startGuided} />
+              <NewMix mixes={mine} full={full ? MIX_FULL : null} onRefused={setProblem} onGuided={startGuided} />
             </li>
           )}
           {mine.map((m, i) => (
             <li key={m.id} className="animate-rise" style={{ animationDelay: `${(i + 1) * 40}ms` }}>
-              <MixCard mix={m} onDelete={() => remove(m)} onDuplicate={() => duplicate(m)} />
+              <MixCard mix={m} onDelete={() => remove(m)} onDuplicate={() => duplicate(m)} onArchive={() => archive(m, true)} />
             </li>
           ))}
         </ul>
+
+        {archived.length > 0 && (
+          <section className="mt-14">
+            <h2 className="text-[13px] font-semibold text-[#6B5F68]">Archived</h2>
+            <p className="mt-1 text-[12.5px] text-[#6B5F68]">Kept as they are, read-only, and not counted. Bring one back when you have room.</p>
+            <ul className={GRID + ' !mt-4'}>
+              {archived.map((m) => (
+                <li key={m.id}>
+                  <MixCard mix={m} onDelete={() => remove(m)} onDuplicate={() => duplicate(m)} onArchive={() => archive(m, false)} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {shared.length > 0 && (
           <section className="mt-14">
@@ -361,23 +418,24 @@ const CARD =
 /** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It starts a mix in the
  * neutral style; "Start from…" starts one from a starter mix (its pages and sample style guide), a saved guide or another
  * mix's (the new mix keeps its own copy). */
-function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full: boolean; onRefused: (why: string) => void; onGuided: () => void }) {
+function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full: string | null; onRefused: (why: string) => void; onGuided: () => void }) {
   const [picking, setPicking] = useState(false)
   const [saved, setSaved] = useState<SavedGuide[] | null>(null)
   useEffect(() => {
     if (picking && saved === null) void listGuides().then(setSaved)
   }, [picking, saved])
   const start = (guide?: GuideState) => {
-    if (full) return onRefused(MIX_FULL)
+    if (full) return onRefused(full)
     router.post('/mixes', guide ? { guide: guide as unknown as Record<string, string> } : {}, { onError: (e) => e.mix && onRefused(e.mix) })
   }
   const startStarter = (starter: Starter) => {
-    if (full) return onRefused(MIX_FULL)
+    if (full) return onRefused(full)
+    if (!starterOpen(library, starter)) return onRefused(`“${starter.name}” uses layouts in a mix pack. Free starts from the starters without a lock, or the guided start.`)
     const { mixName, site, guide } = buildStarter(library, starter)
     router.post('/mixes', { name: mixName, site, guide } as unknown as Record<string, string>, { onError: (e) => e.mix && onRefused(e.mix) })
   }
   const startSite = (site: LibrarySite, page: LibraryPage) => {
-    if (full) return onRefused(MIX_FULL)
+    if (full) return onRefused(full)
     const { mixName, site: built, guide } = mixFromSitePage(library, site, page)
     if (!built.pages[0].slots.length && !built.shared.nav && !built.shared.footer) return onRefused(`${site.name} ${page.path} has no sections with a layout yet`)
     router.post('/mixes', { name: mixName, site: built, guide } as unknown as Record<string, string>, { onError: (e) => e.mix && onRefused(e.mix) })
@@ -424,7 +482,7 @@ function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full:
         <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#17121A]">
           <Plus size={16} strokeWidth={2.4} /> New mix
         </span>
-        {full && <span className="-mt-2 text-[12.5px] text-[#6B5F68]">Free includes one mix</span>}
+        {full && <span className="-mt-2 text-[12.5px] text-[#6B5F68]">No room for another: archive one, or add a pack</span>}
       </span>
       {!full && <button
         type="button"
@@ -525,8 +583,13 @@ function StarterRow({ starter, onPick }: { starter: Starter; onPick: () => void 
   return (
     <li>
       <button type="button" onClick={onPick} className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-[background-color,scale] duration-150 hover:bg-zinc-950/[0.04] active:scale-[0.98]">
-        <span className="h-10 w-12 shrink-0 overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]">
+        <span className="relative h-10 w-12 shrink-0 overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]">
           <MixThumb sections={sections} guide={guide} />
+          {!starterOpen(library, starter) && (
+            <span className="absolute inset-0 grid place-items-center bg-white/55 text-zinc-700" title="Uses layouts in a mix pack">
+              <Lock size={13} />
+            </span>
+          )}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[13.5px] font-semibold text-[#17121A]" style={{ fontFamily: font }}>
@@ -562,12 +625,12 @@ function GuideRow({ name, note, guide, onPick }: { name: string; note: string; g
   )
 }
 
-function MixCard({ mix: m, onDelete, onDuplicate }: { mix: SavedMix; onDelete?: () => void; onDuplicate?: () => void }) {
-  const meta = [plural(m.versions, 'version'), ...(m.pages > 1 ? [plural(m.pages, 'page')] : []), `edited ${ago(m.updated_at)}`]
+function MixCard({ mix: m, onDelete, onDuplicate, onArchive }: { mix: SavedMix; onDelete?: () => void; onDuplicate?: () => void; onArchive?: () => void }) {
+  const meta = [...(m.archived ? ['Archived'] : []), plural(m.versions, 'version'), ...(m.pages > 1 ? [plural(m.pages, 'page')] : []), `edited ${ago(m.updated_at)}`]
   if (m.role !== 'owner') meta.splice(0, 0, `Shared by ${m.owner ?? 'someone'}`, ROLE_NOTE[m.role]!)
   return (
-    <Card href={`/${m.short}`} name={m.name} id={m.role === 'viewer' ? undefined : m.id} heading={m.heading} sections={m.sections} guide={m.guide} versions={m.heads.length} meta={m.role === 'owner' ? meta : meta.slice(0, 2)}>
-      {m.heads.length > 0 && (
+    <Card href={`/${m.short}`} name={m.name} id={m.role === 'viewer' ? undefined : m.id} heading={m.heading} sections={m.sections} guide={m.guide} versions={m.heads.length} meta={m.role === 'owner' ? meta : meta.slice(0, 2)} quiet={m.archived}>
+      {m.heads.length > 0 && !m.archived && (
         <span className="flex -space-x-1.5">
           {m.heads.slice(0, 6).map((h) => (
             <span key={h.letter} className="rounded-full ring-2 ring-white">
@@ -586,6 +649,17 @@ function MixCard({ mix: m, onDelete, onDuplicate }: { mix: SavedMix; onDelete?: 
         {onDuplicate && (
           <button type="button" title="Duplicate" aria-label={`Duplicate ${m.name}`} onClick={onDuplicate} className={CARD_BUTTON + ' hover:text-zinc-900'}>
             <Copy size={15} />
+          </button>
+        )}
+        {onArchive && (
+          <button
+            type="button"
+            title={m.archived ? 'Bring back (it counts as one of your mixes again)' : 'Archive (kept read-only, and frees one of your mixes)'}
+            aria-label={`${m.archived ? 'Bring back' : 'Archive'} ${m.name}`}
+            onClick={onArchive}
+            className={CARD_BUTTON + ' hover:text-zinc-900'}
+          >
+            {m.archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
           </button>
         )}
         {onDelete && (
@@ -728,18 +802,51 @@ function Name({ id, name }: { id: string; name: string }) {
   )
 }
 
-/** On Free, what's used of what the plan includes: mixes, clips and uploads. */
+/**
+ * What's used of what your plan includes (mixes open, clips and uploads; unlimited ones left out), the packs you've
+ * bought, and getting one (or, once you have, their receipts at Polar).
+ */
 function PlanLine({ plan }: { plan: Plan }) {
-  const { limits: l, usage: u } = plan
+  const { limits: l, usage: u, pack } = plan
   const mb = u.uploads / (1024 * 1024)
   const parts = [
     l.mixes !== null && `${u.mixes} of ${l.mixes} ${l.mixes === 1 ? 'mix' : 'mixes'}`,
     l.clips !== null && `${u.clips} of ${l.clips} clips`,
-    l.upload_mb !== null && `${mb < 10 ? mb.toFixed(1).replace(/\.0$/, '') : Math.round(mb)} of ${l.upload_mb} MB`,
+    l.upload_mb !== null && `${mb < 10 ? mb.toFixed(1).replace(/\.0$/, '') : Math.round(mb)} of ${l.upload_mb >= 1024 ? `${l.upload_mb / 1024} GB` : `${l.upload_mb} MB`}`,
   ].filter(Boolean)
+  const label = plan.name === 'free' ? 'Free' : plan.packs ? `${plan.packs} mix ${plan.packs === 1 ? 'pack' : 'packs'}` : 'Unlimited'
+  const link = 'cursor-pointer font-semibold text-[#C2185B] underline-offset-2 hover:underline'
   return (
-    <p className="mt-1 text-[13px] text-[#6B5F68]">
-      <span className="font-semibold text-[#17121A]">Free</span> · {parts.join(' · ')}
+    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-[13px] text-[#6B5F68]">
+      <span className="font-semibold text-[#17121A]">{label}</span>
+      {parts.length > 0 && <span>· {parts.join(' · ')}</span>}
+      {l.mixes !== null && (plan.buy ? (
+        <button type="button" onClick={buyPack} className={link}>
+          · {plan.name === 'free' ? `Get a mix pack, $${pack.price_usd}` : 'Add a pack'}
+        </button>
+      ) : (
+        <span>· Mix packs ({pack.mixes} mixes, ${pack.price_usd} once) are coming soon</span>
+      ))}
+      {plan.receipts && (
+        <a href="/api/billing/receipts" className={link}>
+          · Receipts
+        </a>
+      )}
     </p>
   )
+}
+
+/** Back from Polar's checkout (?bought=1): say thanks, and look again until the webhook has added the pack. */
+function useBought(plan: Plan | null): 'waiting' | 'arrived' | null {
+  const [packs] = useState(plan?.packs ?? 0)
+  const [bought] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('bought'))
+  const arrived = (plan?.packs ?? 0) > packs
+  useEffect(() => {
+    if (!bought) return
+    if (arrived) return void window.history.replaceState(null, '', window.location.pathname)
+    let tries = 0
+    const t = window.setInterval(() => (++tries > 10 ? window.clearInterval(t) : router.reload({ only: ['auth'] })), 3000)
+    return () => window.clearInterval(t)
+  }, [bought, arrived])
+  return bought ? (arrived ? 'arrived' : 'waiting') : null
 }

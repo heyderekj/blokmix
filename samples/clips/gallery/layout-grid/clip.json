@@ -5,6 +5,7 @@
   "style": "minimal",
   "feel": ["calm"],
   "density": "balanced",
+  "tier": "free",
   "motionNotes": "The head rises, then the pictures rise one after another; reduced motion keeps only the fades.",
   "capture": {
     "path": "/",

@@ -24,7 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Laravel Cloud terminates HTTPS in front of the app.
         $middleware->trustProxies(at: '*');
         // The website's waitlist form is static HTML on blokmix.com, so it has no CSRF token to send.
-        $middleware->validateCsrfTokens(except: ['api/waitlist']);
+        // Polar's webhooks are signed instead.
+        $middleware->validateCsrfTokens(except: ['api/waitlist', 'api/polar/webhook']);
         // A mix is saved exactly as the board sends it: words keep their spaces, and empty words stay empty.
         $saves = fn (Request $request) => $request->is('api/*');
         $middleware->trimStrings(except: [$saves]);

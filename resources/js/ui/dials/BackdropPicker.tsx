@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { PackNote } from '../shell/BuySheet'
 import { Ban } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { CSS_BACKDROP_IDS, SHADER_IDS, backdropDecls, backdropShaderId, treatmentInfo, type BackdropId, type TreatmentValue } from '@/core/treatments'
@@ -61,6 +62,7 @@ export function BackdropPicker({ slot, tokens }: { slot: Slot; tokens: TokenSet 
   }
   return (
     <div className="grid gap-2.5">
+      <PackNote what="Backdrops" />
       <div className="grid grid-cols-6 gap-1" onMouseLeave={() => show(null)}>
         <button
           type="button"

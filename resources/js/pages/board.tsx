@@ -9,6 +9,7 @@ import { SiteLibrary } from '@/ui/library/SiteLibrary'
 import { Flash, HelpOverlay } from '@/ui/shell/Overlays'
 import { useShortcuts } from '@/hooks/useShortcuts'
 import { StartOverlay } from '@/ui/start/StartOverlay'
+import { BuySheet } from '@/ui/shell/BuySheet'
 
 /**
  * The one screen: a canvas with three islands on top and a dock below. Nothing
@@ -37,6 +38,7 @@ export default function Board() {
       <Flash />
       <HelpOverlay open={help} onClose={() => setHelp(false)} />
       <StartOverlay />
+      <BuySheet />
     </div>
   )
 }

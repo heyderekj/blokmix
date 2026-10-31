@@ -27,8 +27,8 @@ The library is an entry point, not the product. The value remains the transforma
 
 ## Free vs paid
 
-- **Free**: Limited selection from the library (a smaller set of sections and/or a few starter mixes). Full dials, marks, export, and publishing on what you can access.
-- **$29 one-time license** (current version): Full library + unlimited mixes, saved style guides, and account-linked publishing.
+- **Free**: three layouts per section type (`"tier": "free"`), your own clips, the starters made of those, the Feel dials, marks and export.
+- **Mix pack, $20 once**: three mixes open at a time (packs stack), every layout, every control, effects and shaders. See `docs/pricing.md`.
 
 This keeps the free tier useful for completing one starting point while the license unlocks breadth.
 
@@ -55,7 +55,8 @@ This keeps the free tier useful for completing one starting point while the lice
   dark, vivid) is read from the clip's own colors. The Crate's Library tab filters by all of these in plain words.
 - **Starter mixes** live in `samples/starters/*.json`: a name, what it's for, a feel, and its pages' sections.
   The guided start offers the ones that match first.
-- A `tier` (`free` or `full`) can be set on clips and starters for the license later; nothing enforces it yet.
+- A layout's `tier` is `free` (on Free) or left out (in a mix pack). `core/library.ts` `layoutOpen`/`pickable` enforce it
+  when `library.paid === false`; every type keeps at least three free layouts (`tests/plan.test.ts`).
 
 ## Open questions
 

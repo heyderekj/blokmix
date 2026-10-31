@@ -5,6 +5,7 @@
   "style": "minimal",
   "feel": ["calm"],
   "density": "airy",
+  "tier": "free",
   "motionNotes": "The CTA line and button rise in, then the brand, links and legal row fade up beneath the hairline. The button’s arrow nudges on hover.",
   "capture": {
     "path": "/",

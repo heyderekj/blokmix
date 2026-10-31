@@ -5,6 +5,7 @@
   "style": "minimal",
   "feel": ["calm"],
   "density": "airy",
+  "tier": "free",
   "motionNotes": "Copy rises in a short stagger, the plan card follows and its features fade in one by one; the button lifts on hover.",
   "capture": {
     "path": "/",

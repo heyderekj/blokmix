@@ -54,7 +54,7 @@ class PlanLimitsTest extends TestCase
 
         $this->actingAs($me)->post('/mixes')->assertSessionHasErrors('mix');
         $this->actingAs($me)->post('/mixes', ['name' => 'Starter', 'site' => ['pages' => [['path' => '/']]]])->assertSessionHasErrors('mix');
-        $this->actingAs($me)->postJson('/api/mixes', ['name' => 'Imported'])->assertForbidden()->assertJsonPath('message', 'Free includes one mix. Plus, coming soon, has as many as you like.');
+        $this->actingAs($me)->postJson('/api/mixes', ['name' => 'Imported'])->assertForbidden()->assertJsonPath('message', 'Free has one mix. Archive it, or get a mix pack: 3 mixes for $20, once.');
         $this->actingAs($me)->postJson("/api/mixes/{$first->id}/duplicate")->assertForbidden();
         $this->assertSame(1, $me->ownedMixes()->count());
 
@@ -63,6 +63,58 @@ class PlanLimitsTest extends TestCase
         $theirs->admit($me, MixRole::Editor);
         $first->delete();
         $this->actingAs($me)->postJson('/api/mixes', ['name' => 'Fresh'])->assertCreated();
+    }
+
+    public function test_each_mix_pack_holds_three_mixes(): void
+    {
+        $me = User::factory()->create();
+        $me->forceFill(['mix_packs' => 1])->save();
+        foreach (['One', 'Two', 'Three'] as $name) {
+            $this->actingAs($me)->postJson('/api/mixes', ['name' => $name])->assertCreated();
+        }
+        $this->actingAs($me)->postJson('/api/mixes', ['name' => 'Four'])->assertForbidden()
+            ->assertJsonPath('message', 'Your mix packs hold 3 mixes. Archive one, or add a pack: 3 more for $20.');
+
+        // Packs stack.
+        $me->forceFill(['mix_packs' => 2])->save();
+        $this->actingAs($me)->postJson('/api/mixes', ['name' => 'Four'])->assertCreated();
+        $this->assertSame(['mixes' => 6, 'clips' => null, 'upload_mb' => 10 * 1024, 'collections' => null, 'entries' => null], $me->fresh()->limits());
+    }
+
+    public function test_archiving_a_mix_frees_its_place(): void
+    {
+        $me = User::factory()->create();
+        $first = $this->owned($me);
+        $this->actingAs($me)->postJson("/api/mixes/{$first->id}/archive")->assertOk();
+        $this->actingAs($me)->postJson('/api/mixes', ['name' => 'Second'])->assertCreated();
+
+        // It can't come back while the other one is open.
+        $this->actingAs($me)->postJson("/api/mixes/{$first->id}/unarchive")->assertForbidden();
+        $this->assertTrue($first->fresh()->isArchived());
+
+        // An archived mix keeps only marks from saves, and takes no uploads.
+        $first->update(['data' => ['site' => ['pages' => []], 'notes' => []]]);
+        $this->actingAs($me)->putJson("/api/mixes/{$first->id}", ['data' => ['site' => ['changed' => true], 'notes' => [['id' => 'n1']]]], ['If-Match' => '"1"'])->assertOk();
+        $this->assertSame(['site' => ['pages' => []], 'notes' => [['id' => 'n1']]], $first->fresh()->data);
+        $this->actingAs($me)->upload($first, 'img_aaaa1111', 10)->assertForbidden();
+
+        // Only the owner archives, and the board hears it's archived.
+        $editor = User::factory()->create();
+        $first->admit($editor, MixRole::Editor);
+        $this->actingAs($editor)->postJson("/api/mixes/{$first->id}/unarchive")->assertForbidden();
+        $this->actingAs($me)->getJson("/api/mixes/{$first->id}")->assertJsonPath('archived', true)->assertJsonPath('paid', false);
+    }
+
+    public function test_what_a_mix_opens_follows_its_owner(): void
+    {
+        $owner = User::factory()->create();
+        $owner->forceFill(['mix_packs' => 1])->save();
+        $mix = $this->owned($owner);
+        $editor = User::factory()->create();
+        $mix->admit($editor, MixRole::Editor);
+
+        $this->assertSame('free', $editor->planName());
+        $this->actingAs($editor)->getJson("/api/mixes/{$mix->id}")->assertJsonPath('paid', true);
     }
 
     public function test_plus_and_the_people_who_run_blokmix_have_no_mix_limit(): void
@@ -75,7 +127,8 @@ class PlanLimitsTest extends TestCase
         $runs = User::factory()->create(['email' => 'runs@blokmix.test']);
         $this->owned($runs);
         $this->actingAs($runs)->postJson('/api/mixes', ['name' => 'Second'])->assertCreated();
-        $this->assertSame('plus', $runs->planName());
+        $this->assertSame('paid', $runs->planName());
+        $this->assertNull($runs->mixSlots());
     }
 
     public function test_free_has_forty_clips_and_saving_one_again_is_fine(): void
@@ -84,7 +137,7 @@ class PlanLimitsTest extends TestCase
         $me = User::factory()->create();
         $this->actingAs($me)->postJson('/api/clips', ['files' => $this->clip('acme-one')])->assertCreated();
         $this->actingAs($me)->postJson('/api/clips', ['files' => $this->clip('acme-two')])->assertCreated();
-        $this->actingAs($me)->postJson('/api/clips', ['files' => $this->clip('acme-three')])->assertForbidden()->assertJsonPath('message', 'Free includes 2 clips. Remove one to make room, or wait for Plus, coming soon.');
+        $this->actingAs($me)->postJson('/api/clips', ['files' => $this->clip('acme-three')])->assertForbidden()->assertJsonPath('message', 'Free includes 2 clips. Remove one to make room, or get a mix pack for as many as you like.');
         $this->actingAs($me)->postJson('/api/clips', ['files' => $this->clip('acme-two')])->assertCreated();
         $this->assertSame(2, $me->clips()->count());
     }
@@ -115,7 +168,10 @@ class PlanLimitsTest extends TestCase
         $this->actingAs($me)->get('/')->assertInertia(fn (Assert $page) => $page
             ->where('auth.plan.name', 'free')
             ->where('auth.plan.limits', ['mixes' => 1, 'clips' => 40, 'upload_mb' => 100, 'collections' => 1, 'entries' => 25])
-            ->where('auth.plan.usage', ['mixes' => 1, 'clips' => 1, 'collections' => 0, 'uploads' => 0]));
+            ->where('auth.plan.usage', ['mixes' => 1, 'clips' => 1, 'collections' => 0, 'uploads' => 0])
+            ->where('auth.plan.packs', 0)
+            ->where('auth.plan.pack', ['mixes' => 3, 'price_usd' => 20])
+            ->where('auth.plan.buy', false));
     }
 
     public function test_plan_cant_be_set_by_signing_up(): void

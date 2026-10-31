@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\Api\StyleGuideController;
 use App\Http\Controllers\Api\UnsplashController;
 use App\Http\Controllers\Api\WaitlistController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\LibraryAdminController;
 use App\Http\Controllers\MixController;
 use App\Models\Mix;
@@ -21,6 +22,10 @@ Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join
 
 // blokmix.com's waitlist form (signed out, no CSRF token: see WaitlistController).
 Route::post('/api/waitlist', [WaitlistController::class, 'store'])->middleware('throttle:6,1')->name('waitlist.store');
+
+// Polar tells us when a mix pack is paid for or refunded (signed, no CSRF token: see bootstrap/app.php). Under /api
+// like the rest, so the edge in front of blokmix.com already sends it here.
+Route::post('/api/polar/webhook', [BillingController::class, 'webhook'])->name('polar.webhook');
 
 Route::middleware('auth')->group(function () {
     // Your mixes are the home page when you're signed in (signed out, blokmix.com's edge serves the website).
@@ -47,12 +52,18 @@ Route::middleware('auth')->group(function () {
         Route::put('/mixes/{mix}', [MixApiController::class, 'update'])->name('mixes.update');
         Route::delete('/mixes/{mix}', [MixApiController::class, 'destroy'])->name('mixes.destroy');
         Route::patch('/mixes/{mix}/name', [MixApiController::class, 'rename'])->name('mixes.rename');
+        Route::post('/mixes/{mix}/archive', [MixApiController::class, 'archive'])->name('mixes.archive');
+        Route::post('/mixes/{mix}/unarchive', [MixApiController::class, 'unarchive'])->name('mixes.unarchive');
         Route::post('/mixes/{mix}/duplicate', [MixApiController::class, 'duplicate'])->middleware('throttle:20,1')->name('mixes.duplicate');
 
         Route::get('/mixes/{mix}/assets', [AssetController::class, 'index'])->name('assets.index');
         Route::post('/mixes/{mix}/assets', [AssetController::class, 'store'])->name('assets.store');
         Route::get('/mixes/{mix}/assets/{key}', [AssetController::class, 'show'])->name('assets.show');
         Route::get('/mixes/{mix}/assets/{key}/poster', [AssetController::class, 'poster'])->name('assets.poster');
+
+        // Buying a mix pack, and its receipts, at Polar.
+        Route::post('/billing/checkout', [BillingController::class, 'checkout'])->middleware('throttle:10,1')->name('billing.checkout');
+        Route::get('/billing/receipts', [BillingController::class, 'receipts'])->name('billing.receipts');
 
         Route::get('/clips', [ClipController::class, 'index'])->name('clips.index');
         Route::post('/clips', [ClipController::class, 'store'])->middleware('throttle:30,1')->name('clips.store');

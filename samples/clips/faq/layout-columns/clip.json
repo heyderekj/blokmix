@@ -4,6 +4,7 @@
   "rhythm": "grid",
   "style": "technical",
   "density": "dense",
+  "tier": "free",
   "feel": ["calm"],
   "motionNotes": "Header rises, then question pairs follow row by row and the contact band settles in last.",
   "capture": {

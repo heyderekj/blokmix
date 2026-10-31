@@ -5,6 +5,7 @@
   "style": "minimal",
   "feel": ["friendly"],
   "density": "balanced",
+  "tier": "free",
   "motionNotes": "Heading rises, then portraits stagger in row by row; portraits lift on hover.",
   "capture": {
     "path": "/",

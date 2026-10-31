@@ -76,8 +76,8 @@ class MixApiController extends Controller
             'versions.remove.*' => ['string'],
         ]);
         $input = $request->only(['name', 'data', 'versions']);
-        if (! $role->canEdit()) {
-            // Viewers leave marks and change nothing else: keep only their notes, on top of the mix as saved.
+        if (! $mix->changeableBy($role)) {
+            // Viewers (and everyone, on an archived mix) leave marks and change nothing else: keep only their notes, on top of the mix as saved.
             $input = array_key_exists('data', $input) && is_array($input['data'])
                 ? ['data' => [...($mix->data ?? []), 'notes' => $input['data']['notes'] ?? ($mix->data['notes'] ?? [])]]
                 : [];
@@ -166,6 +166,32 @@ class MixApiController extends Controller
         });
 
         return $this->withLock(response()->json($copy->load('versions')->toBoard(), 201), $copy->lock_version);
+    }
+
+    /** Archive a mix: it stays, read-only, and stops taking one of its owner's mixes. */
+    public function archive(Request $request, Mix $mix): JsonResponse
+    {
+        abort_unless($mix->roleOf($request->user()), 404);
+        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can archive a mix.');
+        if (! $mix->isArchived()) {
+            Mix::whereKey($mix->id)->update(['archived_at' => now()]);
+        }
+
+        return response()->json(['archived' => true]);
+    }
+
+    /** Bring an archived mix back, when one of its owner's mixes is free. */
+    public function unarchive(Request $request, Mix $mix): JsonResponse
+    {
+        abort_unless($mix->roleOf($request->user()), 404);
+        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can bring a mix back.');
+        if ($mix->isArchived()) {
+            $why = $request->user()->mixRefusal();
+            abort_if($why !== null, 403, (string) $why);
+            Mix::whereKey($mix->id)->update(['archived_at' => null]);
+        }
+
+        return response()->json(['archived' => false]);
     }
 
     public function destroy(Request $request, Mix $mix): JsonResponse

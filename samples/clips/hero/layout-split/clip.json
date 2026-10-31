@@ -5,6 +5,7 @@
   "style": "playful",
   "feel": ["calm"],
   "density": "balanced",
+  "tier": "free",
   "motionNotes": "Copy rises in a stagger while the media panel scales in; the orb and ring drift slowly on a loop and the floating card slides up last.",
   "capture": {
     "path": "/",

@@ -181,7 +181,7 @@ class CollectionsTest extends TestCase
         [$me, $editor] = User::factory()->count(2)->create();
         $made = $this->create($me);
         $this->actingAs($me)->postJson('/api/collections', ['slug' => 'team', 'name' => 'Team', 'schema' => $this->schema()])
-            ->assertForbidden()->assertJsonPath('message', 'Free includes one collection. Plus, coming soon, has as many as you like.');
+            ->assertForbidden()->assertJsonPath('message', 'Free includes one collection. A mix pack has as many as you like.');
 
         $this->save($made['id'], 1, ['entries' => $this->entries(25)])->assertOk();
         $this->save($made['id'], 2, ['entries' => $this->entries(26)])->assertForbidden();

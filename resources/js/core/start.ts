@@ -11,7 +11,7 @@ import { DEFAULT_CONTENT, FIELD_SCHEMA } from './content'
 import { KIND_WORDS, SHARED_WORDS } from './startWords'
 import { siteFromSlots } from './site'
 import { suggestClip, suggestTypes } from './suggest'
-import { pickable, shelfOf, toneOf } from './library'
+import { pickable, shelfOf, starterOpen, toneOf } from './library'
 import { vibeById, vibeTokens, type Vibe } from './vibes'
 import type { Mode } from './palette'
 
@@ -159,9 +159,9 @@ const countShelves = (lib: Library, site: Site) => {
 
 const signature = (site: Site) => [site.shared.nav, ...site.pages.flatMap((p) => p.slots), site.shared.footer].map((s) => s?.clipId ?? '').join(',')
 
-/** Starter mixes for a kind of site, the ones in the chosen feel first. */
+/** Starter mixes for a kind of site this mix can use, the ones in the chosen feel first. */
 export function startersFor(lib: Library, kind: Kind, vibe: string): Starter[] {
-  return lib.starters.filter((s) => s.kind === kind).sort((a, b) => Number(b.vibe === vibe) - Number(a.vibe === vibe))
+  return lib.starters.filter((s) => s.kind === kind && starterOpen(lib, s)).sort((a, b) => Number(b.vibe === vibe) - Number(a.vibe === vibe))
 }
 
 /**
