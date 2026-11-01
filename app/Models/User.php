@@ -39,9 +39,13 @@ class User extends Authenticatable
         return $this->belongsToMany(Mix::class, 'mix_members')->withPivot('role')->withTimestamps();
     }
 
-    /** Free or Plus. The people who run Blokmix are always on Plus. */
+    /** Free or Plus. The people who run Blokmix are always on Plus, and so is everyone while on the waitlist. */
     public function planName(): string
     {
+        if (config('blokmix.waitlist_mode')) {
+            return 'plus';
+        }
+
         if ($this->plan === 'plus' || in_array(strtolower($this->email), config('blokmix.owners'), true)) {
             return 'plus';
         }

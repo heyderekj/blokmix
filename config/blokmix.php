@@ -21,6 +21,12 @@ return [
         'plus' => ['mixes' => null, 'clips' => null, 'upload_mb' => 10 * 1024, 'collections' => null, 'entries' => null],
     ],
 
+    /**
+     * While Blokmix is on a waitlist, nobody hits a plan limit: every account gets Plus's numbers (the room is still
+     * the same server's, so uploads stay as big as Plus allows). Set BLOKMIX_WAITLIST_MODE=false when plans open.
+     */
+    'waitlist_mode' => (bool) env('BLOKMIX_WAITLIST_MODE', true),
+
     /** Unsplash's access key, kept on the server: the board searches through /api/unsplash. */
     'unsplash_key' => env('UNSPLASH_ACCESS_KEY'),
 
