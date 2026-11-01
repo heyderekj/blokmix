@@ -357,7 +357,7 @@ function useVibeFonts() {
 }
 
 /** A kind's icon in a slot carved into the paper; picked, it lifts out as the pink block, tilted, the icon in white. */
-function KindTile({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
+export function KindTile({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
   return (
     <span className="relative grid size-9 shrink-0 place-items-center">
       <span className="absolute inset-0 rounded-[30%] bg-zinc-100 shadow-[inset_0_2px_4px_rgb(0_0_0/0.1),inset_0_0_0_1px_rgb(0_0_0/0.05)]" />

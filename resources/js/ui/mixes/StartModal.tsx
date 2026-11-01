@@ -8,6 +8,7 @@ import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { library, starters } from '@/data/library'
 import { buildStarter, type Starter } from '@/core/starters'
 import { starterOpen } from '@/core/library'
+import { KindTile } from '@/ui/start/StartFlow'
 import { listSites, loadSite, planClip, type LibraryPage, type LibrarySite, type LibrarySiteSummary } from '@/lib/siteLibrary'
 
 export interface GuideChoice {
@@ -28,7 +29,8 @@ type How = 'blank' | 'starter' | 'site' | 'guide'
 
 const PRESS = 'cursor-pointer transition-[scale,box-shadow] duration-150 active:scale-[0.99]'
 const OPTION = `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left shadow-[inset_0_0_0_1px_rgb(23_18_26/0.1)] ${PRESS} [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[inset_0_0_0_1px_rgb(23_18_26/0.25)]`
-const PICKED = 'shadow-[inset_0_0_0_1.5px_#17121A] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[inset_0_0_0_1.5px_#17121A]'
+// Picked: the guided start's pink ring.
+const PICKED = 'shadow-[inset_0_0_0_2px_#FF69B4] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[inset_0_0_0_2px_#FF69B4]'
 const BUTTON = `h-9 rounded-full px-4 text-[13.5px] font-semibold ${PRESS}`
 
 /**
@@ -107,7 +109,7 @@ export function StartModal({
             <div className="grid gap-2">
               {ways.map((w) => (
                 <button key={w.id} type="button" onClick={() => (setHow(w.id), setChoice(null))} className={`${OPTION} ${how === w.id ? PICKED : ''}`}>
-                  <w.icon size={19} className="shrink-0 text-zinc-500" />
+                  <KindTile icon={w.icon} on={how === w.id} />
                   <Label title={w.title} note={w.note} />
                 </button>
               ))}
