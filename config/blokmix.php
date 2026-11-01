@@ -25,6 +25,11 @@ return [
     /** A mix pack: one-time, three mixes. */
     'pack' => ['mixes' => 3, 'price_usd' => 20],
 
+    /**
+     * While Blokmix is on a waitlist, nobody hits a plan limit: every account is paid. Set BLOKMIX_WAITLIST_MODE=false when plans open.
+     */
+    'waitlist_mode' => (bool) env('BLOKMIX_WAITLIST_MODE', true),
+
     /** Unsplash's access key, kept on the server: the board searches through /api/unsplash. */
     'unsplash_key' => env('UNSPLASH_ACCESS_KEY'),
 

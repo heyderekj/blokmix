@@ -53,10 +53,10 @@ class User extends Authenticatable
         return $this->mix_packs > 0 || $this->unlimited() ? 'paid' : 'free';
     }
 
-    /** No mix limit: the people who run Blokmix, and accounts given `plan = plus` by hand. */
+    /** No limits: the people who run Blokmix, accounts given `plan = plus` by hand, and everyone while on the waitlist. */
     public function unlimited(): bool
     {
-        return $this->plan === 'plus' || in_array(strtolower($this->email), config('blokmix.owners'), true);
+        return config('blokmix.waitlist_mode') || $this->plan === 'plus' || in_array(strtolower($this->email), config('blokmix.owners'), true);
     }
 
     /** How many mixes can be open at once: one on Free, three per pack, null for no limit. */

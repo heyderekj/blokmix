@@ -179,4 +179,15 @@ class PlanLimitsTest extends TestCase
         $this->post('/register', ['name' => 'Pat', 'email' => 'pat@example.com', 'password' => 'a-long-password-1', 'password_confirmation' => 'a-long-password-1', 'plan' => 'plus']);
         $this->assertSame('free', User::where('email', 'pat@example.com')->value('plan'));
     }
+
+    public function test_waitlist_mode_lifts_every_limit(): void
+    {
+        config(['blokmix.waitlist_mode' => true]);
+        $user = User::factory()->create();
+        $this->owned($user);
+
+        $this->assertSame('paid', $user->planName());
+        $this->assertNull($user->mixRefusal());
+        $this->assertNull($user->clipRefusal());
+    }
 }
