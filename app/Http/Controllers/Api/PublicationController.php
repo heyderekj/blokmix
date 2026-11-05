@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\PublishedController;
 use App\Models\Mix;
 use App\Models\Publication;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use GuzzleHttp\Promise\Each;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -88,9 +92,7 @@ class PublicationController extends Controller
             'published_at' => now(),
             'unpublished_at' => null,
         ]);
-        foreach ($files as $path => $data) {
-            $disk->put($publication->dir().'/'.$path, $data);
-        }
+        self::putAll($disk, $publication->dir(), $files);
         $publication->save();
 
         return response()->json(['publication' => $publication->toBoard()]);
@@ -106,6 +108,40 @@ class PublicationController extends Controller
         }
 
         return response()->json(['publication' => $publication?->toBoard()]);
+    }
+
+    /** How many files go up to the bucket at once. */
+    private const PARALLEL_PUTS = 24;
+
+    /**
+     * Write a publication's files under $dir. On a bucket (S3, R2) they go up many at a time, since one at a time a
+     * mix with dozens of pictures waits on dozens of round trips; any other disk writes them in turn.
+     *
+     * @param  array<string, string>  $files
+     */
+    public static function putAll(Filesystem $disk, string $dir, array $files): void
+    {
+        if (! $disk instanceof AwsS3V3Adapter) {
+            foreach ($files as $path => $data) {
+                $disk->put("{$dir}/{$path}", $data);
+            }
+
+            return;
+        }
+        $client = $disk->getClient();
+        $bucket = $disk->getConfig()['bucket'];
+        $puts = (function () use ($client, $bucket, $disk, $dir, $files) {
+            foreach ($files as $path => $data) {
+                yield $client->putObjectAsync([
+                    'Bucket' => $bucket,
+                    'Key' => $disk->path("{$dir}/{$path}"),
+                    'Body' => $data,
+                    'ContentType' => PublishedController::typeOf($path),
+                ]);
+            }
+        })();
+        // Any failed put rejects the whole write, so a half-published mix never reports success.
+        Each::ofLimitAll($puts, self::PARALLEL_PUTS)->wait();
     }
 
     /** "Made with Blokmix", on Free: a small link in the corner, before </body>. */
