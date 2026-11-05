@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -15,7 +15,7 @@
     letter-spacing: -0.02em;
   }
   & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
-  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-5 { grid-column-end: span 5; }
   & .col-7 { grid-column-end: span 7; }
@@ -32,22 +32,14 @@
   & .link {
     display: inline-flex;
     align-items: center;
-    gap: var(--mx-space-2);
     min-height: 44px;
     font-size: var(--mx-text-lg);
     font-weight: 600;
     cursor: pointer;
     text-decoration: underline;
-    text-decoration-color: var(--mx-color-accent);
-    text-decoration-thickness: calc(var(--mx-stroke) * 2);
-    text-underline-offset: 6px;
+    text-underline-offset: 4px;
   }
-  & .link svg { transition: transform var(--mx-motion-duration) var(--mx-motion-ease); }
   & .link:active { scale: 0.97; }
-
-  @media (hover: hover) and (pointer: fine) {
-    & .link:hover svg { transform: translateX(4px); }
-  }
 
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }

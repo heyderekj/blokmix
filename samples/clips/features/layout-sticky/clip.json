@@ -2,14 +2,15 @@
   "title": "Sticky picture with numbered list",
   "layoutPattern": "sticky-head-media-left-numbered-list-right",
   "rhythm": "split",
-  "style": "minimal",
   "density": "airy",
-  "feel": ["editorial", "technical"],
-  "motionNotes": "No motion of its own; on a scrolling page the head and picture stay pinned while the six numbered features pass by.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

@@ -1,3 +1,4 @@
+import { AREA_LABEL, areasSetTo, contractMarkdown, emptyContract, type Contract, type ContractSetting } from '../contract'
 import type { Note } from '../types'
 import { MARK_GUIDANCE, workPackets, type WorkItem } from '../notes'
 import { describeSectionMotion } from '../motion'
@@ -28,14 +29,18 @@ export interface PacketInput {
   notes?: string[]
   /** Feedback marks on this mix (or version). */
   marks?: Note[]
+  /** What the person always wants kept and where they'd like to be surprised. */
+  contract?: Contract
   generatedAt?: string
 }
 
 const SHADER_NOTE =
   'Live backdrops and pictures are WebGL shaders from Paper Shaders (Apache-2.0, shaders.paper.design), run by `/mx-shaders.js`: it finds each `.mx-shader[data-shader]` element and runs the shader its JSON names (uniforms with colors already resolved from the style guide, speed, starting frame). Each holds a poster PNG baked from the same shader; reduced motion and browsers without WebGL keep the poster, and shaders pause off screen. Keep the element and its poster where they are. To change a shader, change it in Blokmix and export again, or edit the JSON (colors are 0–1 RGBA). To bundle it instead, the player is plain code over `@paper-design/shaders` (`ShaderMount` and the fragment shaders).'
 
+const TOKENS_RULE = 'Use only the tokens in tokens.css. Never introduce new colors, font families, radii, shadows or easings. For depth and texture use the style guide’s effect variables when tokens.css has them (--mx-shadow-sm/card/lg, --mx-gradient, --mx-grain, --mx-glass-*, --mx-glow) rather than inventing new ones.'
+
 export const AGENT_RULES = [
-  'Use only the tokens in tokens.css. Never introduce new colors, font families, radii, shadows or easings. For depth and texture use the style guide’s effect variables when tokens.css has them (--mx-shadow-sm/card/lg, --mx-gradient, --mx-grain, --mx-glass-*, --mx-glow) rather than inventing new ones.',
+  TOKENS_RULE,
   'Keep each section as its own component, in this order.',
   'Start from the astro/ or next/ reference build and refine it; don’t regenerate from scratch.',
   'Where a section says “your copy”, the copy is already swapped in. Replace any fields listed as retained source copy with copy that fits the project.',
@@ -45,6 +50,21 @@ export const AGENT_RULES = [
   'Keep source URLs as references in comments; don’t remove them.',
   'Words live in content files (src/content/<section>.json in Astro, content/<section>.json in Next.js), and components read them. Change words in those files, not in markup, and keep each element’s data-mx-src so words trace back to their file.',
 ]
+
+/** The rules for this mix: its contract opens what it marks Surprise and closes what it marks Keep (CONTRACT.md). */
+export function agentRules(contract: Contract | undefined): string[] {
+  const names = (setting: ContractSetting) => areasSetTo(contract, setting).map((a) => AREA_LABEL[a].name.toLowerCase())
+  const surprise = names('surprise')
+  const keep = names('keep')
+  const said = keep.length || surprise.length || contract?.keep.length || contract?.surprise.length
+  if (!said) return AGENT_RULES
+  const [first, ...rest] = AGENT_RULES
+  return [
+    surprise.length ? `${first} The exception is what CONTRACT.md marks Surprise (${surprise.join(', ')}): there you may propose new values, and should say what you changed and why.` : first,
+    ...rest,
+    `CONTRACT.md says what this person always wants kept and where they’d like to be surprised, and it outranks these rules.${keep.length ? ` Never change: ${keep.join(', ')}.` : ''}`,
+  ]
+}
 
 /** The review loop with ReviseMy (revisemy.com), once a build has a preview. */
 export const REVIEW_WIDTHS = [1440, 390] as const
@@ -145,7 +165,9 @@ export function packetJson(i: PacketInput) {
           shared: { nav: page.site.shared.nav?.component ?? null, footer: page.site.shared.footer?.component ?? null },
         }
       : null,
-    rules: AGENT_RULES,
+    rules: agentRules(i.contract),
+    skin: i.guideState?.skin ?? null,
+    contract: i.contract ?? emptyContract(),
     integrations: { revisemy: REVISEMY, koati: null },
   }
 }
@@ -163,6 +185,8 @@ export function buildNotes(i: PacketInput): string {
     lines.push(`- **Status:** ${v.status}`)
   }
   lines.push(`- **Sections:** ${page.sections.length}`)
+  if (i.guideState?.skin) lines.push(`- **Skin:** ${i.guideState.skin.name}`)
+  lines.push('- **Contract:** read CONTRACT.md first: what to always keep and where you’re invited to surprise')
   const open = openGroups(guide)
   lines.push(`- **Open style decisions:** ${open.length ? open.map((g) => GROUP_LABEL[g]).join(', ') : 'none'}`)
   lines.push('')
@@ -199,6 +223,7 @@ export function buildNotes(i: PacketInput): string {
     else lines.push(`- **Clipped from:** ${src?.name ?? s.clip.sourceId}, ${s.clip.capture.url} (\`${s.clip.capture.selector}\`, ${s.clip.capture.viewport.width}px)`)
     if (s.inspiredBy) lines.push(`- **Layout inspired by:** ${s.inspiredBy.site} (${s.inspiredBy.url}). Only the structure: its words, pictures and brand stay theirs.`)
     lines.push(`- **Pattern:** ${s.clip.layoutPattern}: ${s.clip.title}`)
+    if (s.locked) lines.push('- **Locked:** the person who made this wants it left as it is. Build it faithfully, and ask before changing anything here.')
     lines.push(`- **Layout:** ${s.keep.layout ? 'reproduce the structure faithfully' : 'reference only; choose a structure that fits neighboring sections'}`)
     lines.push(`- **Style:** ${s.keep.style ? 'keeps its own captured tokens (scoped to the section)' : 'use the style guide tokens'}`)
     lines.push(`- **Copy:** ${s.keep.content ? 'source copy kept (replace before launch)' : 'your copy'}${s.retained.length ? `; still source copy: ${s.retained.join(', ')}` : ''}`)
@@ -271,6 +296,7 @@ export function buildNotes(i: PacketInput): string {
       if (m.credit) lines.push(`  - Credit: ${m.credit}. Keep the hotlinked URL and show this credit, as Unsplash requires.`)
     }
     lines.push('')
+    if (page.sliding) lines.push('Sliders are a native scrolling track, with arrows, dots and a count run by `/mx-slider.js`. Swiping works without it. Keep each slide as a child of `[data-slider-track]`.')
     if (page.moving) lines.push('Moving media and lightboxes run on `/mx-media.js` (triggers, reduced motion, lazy embeds, a `<dialog>` lightbox). It loads the dotLottie player from a CDN; swap in the `@lottiefiles/dotlottie-web` package if you prefer bundling it.')
     lines.push('')
     lines.push('Optimise the files in `public/media/` before shipping (videos too: `dinky compress-video`). With Dinky’s CLI (dinkyfiles.com): `dinky compress-image public/media/*.webp -f webp -w 1600 --strip-metadata --json -o public/media`, keeping file names so references still match.')
@@ -323,7 +349,7 @@ export function buildNotes(i: PacketInput): string {
   }
   lines.push('## Rules for the agent')
   lines.push('')
-  AGENT_RULES.forEach((r, n) => lines.push(`${n + 1}. ${r}`))
+  agentRules(i.contract).forEach((r, n) => lines.push(`${n + 1}. ${r}`))
   lines.push('')
   lines.push('## Files')
   lines.push('')
@@ -373,7 +399,7 @@ export function agentPrompt(i: PacketInput, target: BuildTarget, run?: { build: 
   const build = run ? `"${run.build}"` : 'the build letter prepare_build returned'
   return `Build the "${i.mixName}" landing page in ${t} from this Blokmix packet${i.version ? ` (version ${i.version.letter})` : ''}.
 
-1. Read BLOKMIX.md (build notes) and blokmix.json.
+1. Read CONTRACT.md first (what must be kept, where you're invited to surprise), then BLOKMIX.md (build notes) and blokmix.json.
 2. Start from the reference build in ${dir}; it already composes ${i.page.sections.length} section components with the resolved style guide in tokens.css.
 3. Follow the per-section instructions (layout, style, copy, motion) and the rules at the end of BLOKMIX.md, especially: use only the tokens in tokens.css.
 4. Replace any copy listed as retained source copy, and any logos or imagery, with project-appropriate content. Words live in the content folder's JSON files; edit them there.
@@ -402,6 +428,7 @@ export function packetFiles(i: PacketInput): FileMap {
   const files: FileMap = {
     'blokmix.json': JSON.stringify(packetJson(i), null, 2) + '\n',
     'BLOKMIX.md': buildNotes(i),
+    'CONTRACT.md': contractMarkdown(i.contract, i.guideState?.skin),
     'tokens.css': tokensCss(i.page),
     'tokens.json': JSON.stringify(toDtcg(i.guide.tokens), null, 2) + '\n',
     'reference.html': referenceHtml(i.page),

@@ -4,36 +4,25 @@
   padding: var(--mx-space-4) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: -4px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: -4px; }
 
-  /* A ruled strip of cells: brand, one cell per link, the button filling the last. */
+  /* A ruled strip of cells: brand, one cell per link, the button in the last. */
   & .cells {
     display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 4fr) auto;
+    grid-template-columns: minmax(max-content, 1.3fr) minmax(0, 4fr) auto;
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
-    overflow: hidden;
   }
   & .brand {
     display: flex;
     align-items: center;
-    gap: var(--mx-space-3);
     padding: 0 var(--mx-space-6);
     min-height: 64px;
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
     font-size: var(--mx-text-lg);
     letter-spacing: -0.01em;
-    white-space: nowrap;
   }
-  & .mark {
-    display: grid;
-    grid-template-columns: repeat(2, 8px);
-    gap: 2px;
-    flex: none;
-  }
-  & .mark i { aspect-ratio: 1; border-radius: 2px; background: var(--mx-color-text); }
-  & .mark i:nth-child(4) { background: var(--mx-color-accent); }
 
   & .links {
     display: grid;
@@ -50,9 +39,10 @@
     min-height: 64px;
     font-size: var(--mx-text-sm);
     font-weight: 500;
+    color: var(--mx-color-muted);
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), color var(--mx-motion-duration) var(--mx-motion-ease);
+    transition: color var(--mx-motion-duration) var(--mx-motion-ease);
   }
   & .num {
     font-family: var(--mx-font-mono);
@@ -60,12 +50,18 @@
     color: var(--mx-color-muted);
   }
 
-  & .go {
+  & .end {
     display: flex;
     align-items: center;
-    gap: var(--mx-space-3);
-    padding: 0 var(--mx-space-6);
-    min-height: 64px;
+    padding: 0 var(--mx-space-4);
+    border-left: var(--mx-stroke) solid var(--mx-color-border);
+  }
+  & .go {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--mx-space-2) var(--mx-space-4);
+    border-radius: var(--mx-radius-pill);
     background: var(--mx-color-primary);
     color: var(--mx-color-on-primary);
     font-size: var(--mx-text-sm);
@@ -75,16 +71,17 @@
     transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   & .go:active { scale: 0.97; }
-  & .arrow { transition: transform var(--mx-motion-duration) var(--mx-motion-ease); }
 
   @media (hover: hover) and (pointer: fine) {
-    & .link:hover { background: var(--mx-color-surface); }
-    & .go:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
-    & .go:hover .arrow { transform: translate(2px, -2px); }
+    & .link:hover { color: var(--mx-color-text); }
+    & .go:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-bg)); }
   }
 
   @container (max-width: 952px) {
     & .num { display: none; }
+    & .brand { padding: 0 var(--mx-space-4); }
+    & .link { justify-content: center; padding: 0 var(--mx-space-2); }
+    & .end { padding: 0 var(--mx-space-3); }
   }
 
   @media (max-width: 760px) {
@@ -92,10 +89,11 @@
   }
   @container (max-width: 616px) {
     & .cells { grid-template-columns: minmax(0, 1fr) auto; }
-    & .brand { min-height: 52px; padding: 0 var(--mx-space-4); font-size: var(--mx-text-base); }
-    & .go { grid-column: 2; grid-row: 1; min-height: 52px; padding: 0 var(--mx-space-4); }
+    & .brand { min-height: 60px; font-size: var(--mx-text-base); }
+    & .end { grid-column: 2; grid-row: 1; }
+    & .go { min-height: 44px; }
     & .links { grid-column: 1 / -1; border-top: var(--mx-stroke) solid var(--mx-color-border); }
     & .links li:first-child { border-left: 0; }
-    & .link { justify-content: center; min-height: 48px; padding: 0 var(--mx-space-2); }
+    & .link { min-height: 48px; }
   }
 }

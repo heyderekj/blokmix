@@ -2,14 +2,15 @@
   "title": "Split with media",
   "layoutPattern": "split-copy-media",
   "rhythm": "split",
-  "style": "technical",
-  "feel": ["calm"],
   "density": "balanced",
-  "motionNotes": "Copy rises in a short stagger while the media window settles in and its tiles fade up; buttons lift on hover.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-23T00:00:00Z"
   }
 }

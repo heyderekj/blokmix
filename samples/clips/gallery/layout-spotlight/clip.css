@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -31,76 +31,30 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & .btn svg { flex: none; }
-  & a:focus-visible, & label:has([type="radio"]:focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible, & label:has([type="radio"]:focus-visible) { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
-  /* Media: a picture's frame. Placeholder art is soft token shapes, arranged differently per picture. */
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
   & .media {
     position: relative;
     overflow: hidden;
     aspect-ratio: 4 / 3;
-    background: linear-gradient(170deg, color-mix(in oklab, var(--mx-color-primary) 9%, var(--mx-color-surface)), var(--mx-color-surface) 70%);
+    background: var(--mx-color-surface);
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb {
+  & .x {
     position: absolute;
-    width: 22%;
-    aspect-ratio: 1;
-    right: 16%;
-    top: 14%;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent));
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
   }
-  & .orb.big { width: 58%; left: -10%; right: auto; top: auto; bottom: -18%; }
-  & .orb.small { width: 14%; right: auto; left: 43%; top: 12%; }
-  & .orb.low { width: 26%; right: auto; left: 37%; top: auto; bottom: 20%; }
-  & .orb.corner { width: 30%; right: -8%; top: auto; bottom: -10%; }
-  & .hill {
-    position: absolute;
-    width: 120%;
-    height: 64%;
-    left: -34%;
-    bottom: -34%;
-    border-radius: 50%;
-    background: color-mix(in oklab, var(--mx-color-text) 9%, var(--mx-color-surface));
-  }
-  & .hill.near { left: 24%; bottom: -42%; background: color-mix(in oklab, var(--mx-color-text) 16%, var(--mx-color-surface)); }
-  & .hill.wide { width: 160%; left: -30%; bottom: -40%; height: 70%; }
-  & .slab { position: absolute; border-radius: var(--mx-radius); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
-  & .slab.tint { right: 12%; top: 14%; width: 38%; height: 26%; background: color-mix(in oklab, var(--mx-color-primary) 18%, var(--mx-color-surface)); }
-  & .slab.tint.low { right: auto; left: 12%; top: auto; bottom: 12%; width: 30%; height: 18%; }
-  & .slab.back { left: 16%; top: 18%; width: 46%; height: 52%; }
-  & .slab.front { left: 38%; top: 34%; width: 46%; height: 50%; background: var(--mx-color-bg); box-shadow: var(--mx-shadow-card); }
-  & .arch {
-    position: absolute;
-    left: 30%;
-    bottom: 0;
-    width: 40%;
-    height: 62%;
-    border-radius: var(--mx-radius-pill) var(--mx-radius-pill) 0 0;
-    background: color-mix(in oklab, var(--mx-color-accent) 22%, var(--mx-color-surface));
-  }
-  & .arch.wide { left: 18%; width: 64%; height: 74%; }
-  & .page {
-    position: absolute;
-    left: 14%;
-    right: 14%;
-    top: 16%;
-    bottom: -8%;
-    border-radius: var(--mx-radius) var(--mx-radius) 0 0;
-    background:
-      linear-gradient(color-mix(in oklab, var(--mx-color-text) 22%, transparent), color-mix(in oklab, var(--mx-color-text) 22%, transparent)) 12% 12% / 44% 6% no-repeat,
-      linear-gradient(color-mix(in oklab, var(--mx-color-text) 10%, transparent), color-mix(in oklab, var(--mx-color-text) 10%, transparent)) 12% 26% / 64% 3.5% no-repeat,
-      linear-gradient(color-mix(in oklab, var(--mx-color-text) 10%, transparent), color-mix(in oklab, var(--mx-color-text) 10%, transparent)) 12% 33% / 50% 3.5% no-repeat,
-      linear-gradient(color-mix(in oklab, var(--mx-color-primary) 20%, transparent), color-mix(in oklab, var(--mx-color-primary) 20%, transparent)) 50% 84% / 76% 34% no-repeat,
-      var(--mx-color-bg);
-    box-shadow: var(--mx-shadow-card);
-  }
-
-  & .container { max-width: 1120px; }
+  & .x path { vector-effect: non-scaling-stroke; }
+  /* Which slide is showing, until a real picture takes its place. */
+  & .num { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; translate: -50% -50%; border-radius: 50%; background: var(--mx-color-bg); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  & .num text { font-family: var(--mx-font-mono); font-size: 16px; fill: var(--mx-color-muted); }
 
   /* The reel reserves a 16:9 stage on top; the checked picture leaves its thumbnail slot and fills it.
      Each thumbnail is a label around a radio, so the picker works without script and reads as a set of choices. */
@@ -123,15 +77,14 @@
   & .pick:active { scale: 0.97; }
   & .pick input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); opacity: 0; }
   & .media { height: 100%; aspect-ratio: auto; border-radius: var(--mx-radius); }
-  & .item:not(:has(:checked)) .media { opacity: 0.72; transition: opacity var(--mx-motion-duration) var(--mx-motion-ease); }
+  & .item:not(:has(:checked)) .media { transition: border-color var(--mx-motion-duration) var(--mx-motion-ease); }
   & .caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   /* The checked one: its picture moves up to the stage, its caption sits on the stage's lower corner,
      and its empty slot keeps an outline so you can see which one is showing. */
   & .item:has(:checked) {
     border-radius: var(--mx-radius);
-    background: color-mix(in oklab, var(--mx-color-accent) 10%, var(--mx-color-surface));
-    box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 2) var(--mx-color-accent);
+    box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 2) var(--mx-color-text);
   }
   & .item:has(:checked) .media {
     position: absolute;
@@ -153,7 +106,7 @@
     padding: var(--mx-space-3) var(--mx-space-4);
     border-radius: var(--mx-radius);
     background: var(--mx-color-bg);
-    box-shadow: var(--mx-shadow-card);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
     font-size: var(--mx-text-base);
     font-weight: 600;
     line-height: 1.4;
@@ -161,7 +114,7 @@
   }
 
   @media (hover: hover) and (pointer: fine) {
-    & .item:not(:has(:checked)) .pick:hover .media { opacity: 1; }
+    & .item:not(:has(:checked)) .pick:hover .media { border-color: var(--mx-color-text); }
   }
 
   @media (max-width: 760px) {

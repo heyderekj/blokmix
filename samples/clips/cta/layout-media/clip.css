@@ -6,7 +6,7 @@
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -35,7 +35,7 @@
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .media {
     position: relative;
@@ -45,12 +45,8 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
 
-  /* Three pieces of work fanned out like prints, sitting just above the question. */
+  /* Three pieces of work overlapping, sitting just above the question. */
   & .fan {
     display: flex;
     justify-content: center;
@@ -58,18 +54,23 @@
     margin-bottom: var(--mx-space-9);
     padding-top: var(--mx-space-5);
   }
-  & .shot { width: clamp(140px, 17vw, 220px); aspect-ratio: 4 / 5; box-shadow: var(--mx-shadow-card); }
-  & .shot .dots { opacity: 0.5; }
-  & .s1 { rotate: -8deg; translate: 18% 6%; }
+  & .shot { width: clamp(140px, 17vw, 220px); aspect-ratio: 4 / 5;}
+  & .s1 { translate: 18% 6%; }
   & .s2 { z-index: 1; translate: 0 -6%; }
-  & .s3 { rotate: 8deg; translate: -18% 6%; }
-  & .s1 .block { inset: 18% 18% 30%; background: color-mix(in oklab, var(--mx-color-text) 14%, var(--mx-color-surface)); }
-  & .s2 { background: color-mix(in oklab, var(--mx-color-accent) 12%, var(--mx-color-surface)); }
-  & .s2 .orb { left: 28%; top: 20%; width: 44%; }
-  & .s2 .base { left: 14%; right: 14%; bottom: 12%; height: 18%; background: color-mix(in oklab, var(--mx-color-text) 16%, var(--mx-color-surface)); }
-  & .s3 .tall { left: 16%; bottom: 14%; width: 30%; height: 62%; }
-  & .s3 .short { right: 16%; bottom: 14%; width: 30%; height: 38%; background: color-mix(in oklab, var(--mx-color-text) 18%, var(--mx-color-surface)); }
+  & .s3 { translate: -18% 6%; }
   & .head .actions { justify-content: center; }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }

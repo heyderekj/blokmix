@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -28,7 +28,6 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .card.soft { background: var(--mx-color-surface); border-color: transparent; }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
   & .start-9 { grid-column-start: 9; }
@@ -36,7 +35,7 @@
   & .main .head + * { margin-top: var(--mx-space-8); }
   & .prose { font-size: var(--mx-text-lg); line-height: 1.7; }
 
-  /* The aside: the lead and a quote in a soft card. */
+  /* The aside: the lead and a quote in a card. */
   & .note-card { gap: var(--mx-space-7); padding: var(--mx-space-7); }
   & .note-card .lead { font-size: var(--mx-text-xl); line-height: 1.4; color: var(--mx-color-text); }
   & .said { display: flex; flex-direction: column; gap: var(--mx-space-3); padding-top: var(--mx-space-6); border-top: var(--mx-stroke) solid var(--mx-color-border); }

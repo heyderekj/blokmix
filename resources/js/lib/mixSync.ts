@@ -33,7 +33,7 @@ export interface ServerMix {
 }
 
 type MixFields = Omit<MixData, 'mixName' | 'versions'>
-const FIELDS = ['site', 'guide', 'content', 'notes', 'branchFrom', 'head', 'framePos', 'clips'] as const
+const FIELDS = ['site', 'guide', 'content', 'contract', 'notes', 'branchFrom', 'head', 'framePos', 'clips'] as const
 
 export type SaveStatus = 'local' | 'saved' | 'saving' | 'offline' | 'error'
 /** How saving is going, for the top bar. */
@@ -250,7 +250,7 @@ export function openMix(mix: ServerMix | 'local', opts: { force?: boolean; role?
 }
 
 /** What a viewer can't change: everything but the marks (notes) and their own view. */
-const HELD = ['mixName', 'site', 'guide', 'content', 'versions', 'branchFrom', 'head', 'clips'] as const
+const HELD = ['mixName', 'site', 'guide', 'content', 'contract', 'versions', 'branchFrom', 'head', 'clips'] as const
 let viewOnly: (() => void) | null = null
 
 /**

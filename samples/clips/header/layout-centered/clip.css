@@ -13,19 +13,9 @@
     text-align: center;
   }
   & .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--mx-space-2);
     font-size: var(--mx-text-sm);
     font-weight: 600;
     color: var(--mx-color-muted);
-  }
-  & .eyebrow::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--mx-color-accent);
   }
   & .heading {
     margin-top: var(--mx-space-4);
@@ -55,12 +45,18 @@
     color: var(--mx-color-on-primary);
     font-size: var(--mx-text-base);
     font-weight: 600;
-    transition: transform var(--mx-motion-duration) var(--mx-motion-ease);
-  }
-  & .btn:hover { transform: translateY(-1px); }
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    cursor: pointer;
+}
   & .btn:focus-visible {
-    outline: 2px solid var(--mx-color-accent);
+    outline: 2px solid var(--mx-color-text);
     outline-offset: 3px;
+  }
+
+  & .btn:active { scale: 0.97; }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .btn:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
   }
 
   @media (max-width: 760px) {

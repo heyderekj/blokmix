@@ -4,11 +4,11 @@
   font-family: var(--mx-font-body);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1120px; margin: 0 auto; }
+  & .container { max-width: var(--mx-width-content); margin: 0 auto; }
 
   /* Header */
   & .head {
-    max-width: 680px;
+    max-width: var(--mx-width-text);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -45,7 +45,6 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
     overflow: hidden;
-    background: var(--mx-color-bg);
   }
   & .table {
     width: 100%;
@@ -64,9 +63,10 @@
   & thead th { vertical-align: top; padding-block: var(--mx-space-7); }
   & .corner { width: 31%; }
 
-  /* Emphasised middle column */
-  & tr > :nth-child(3) { background: var(--mx-color-surface); }
-  & thead .plan:nth-child(3) { box-shadow: inset 0 3px 0 var(--mx-color-accent); }
+  /* The leading plan's column stands out by a heavier rule around it. */
+  & tr > :nth-child(3) { border-inline: calc(var(--mx-stroke) * 2) solid var(--mx-color-text); }
+  & thead .plan:nth-child(3) { padding-top: calc(var(--mx-space-7) - var(--mx-stroke)); border-top: calc(var(--mx-stroke) * 2) solid var(--mx-color-text); }
+  & tbody:last-of-type tr:last-child > :nth-child(3) { border-bottom: calc(var(--mx-stroke) * 2) solid var(--mx-color-text); }
 
   & .corner-label {
     font-size: var(--mx-text-sm);
@@ -75,6 +75,13 @@
     color: var(--mx-color-muted);
   }
   & .plan-inner { display: flex; flex-direction: column; align-items: flex-start; gap: var(--mx-space-2); }
+  & .name-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--mx-space-1) var(--mx-space-3); align-self: stretch; }
+  & .flag {
+    font-size: var(--mx-text-xs);
+    font-weight: 600;
+    color: var(--mx-color-muted);
+    white-space: nowrap;
+  }
   & .name {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -99,19 +106,24 @@
     margin-top: var(--mx-space-4);
     display: flex;
     justify-content: center;
+    align-items: center;
+    min-height: 44px;
     padding: var(--mx-space-3) var(--mx-space-4);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius);
-    background: var(--mx-color-bg);
+    border-radius: var(--mx-radius-pill);
     font-size: var(--mx-text-sm);
     font-weight: 600;
     text-align: center;
-    transition: background var(--mx-motion-duration) var(--mx-motion-ease), border-color var(--mx-motion-duration) var(--mx-motion-ease), transform var(--mx-motion-duration) var(--mx-motion-ease);
+    cursor: pointer;
+    transition: background var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  & .cta:hover { border-color: color-mix(in oklab, var(--mx-color-text) 28%, var(--mx-color-border)); }
-  & .cta:focus-visible { outline: 2px solid var(--mx-color-primary); outline-offset: 2px; }
-  & .cta.primary { border-color: var(--mx-color-primary); background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & .cta.primary:hover { transform: translateY(-1px); background: color-mix(in oklab, var(--mx-color-primary) 88%, var(--mx-color-text)); }
+  & .cta:active { scale: 0.97; }
+  & .cta:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 2px; }
+  & .cta.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & .cta.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  @media (hover: hover) and (pointer: fine) {
+    & .cta.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
+    & .cta.secondary:hover { background: var(--mx-color-surface); }
+  }
 
   /* Rows */
   & .group > * {
@@ -130,21 +142,17 @@
   & .group-note { color: var(--mx-color-muted); font-weight: 500; }
   & .feat { font-size: var(--mx-text-sm); }
   & tbody tr:not(.group):hover > * { background: color-mix(in oklab, var(--mx-color-text) 3%, transparent); }
-  & tbody tr:not(.group):hover > :nth-child(3) { background: color-mix(in oklab, var(--mx-color-text) 3%, var(--mx-color-surface)); }
-  /* A mark is whichever icon its cell holds: a check draws in a filled circle, a dash or cross stays quiet. */
+  /* A mark is whichever icon its cell holds: a check in text color, a dash or cross quieter. */
   & .mark {
     display: inline-grid;
     place-items: center;
     width: 22px;
     height: 22px;
-    border-radius: var(--mx-radius-pill);
-    background: var(--mx-color-primary);
-    color: var(--mx-color-on-primary);
+    color: var(--mx-color-text);
     vertical-align: middle;
   }
   & .mark:has([data-icon="minus"]), & .mark:has([data-icon="x"]) {
-    background: transparent;
-    color: color-mix(in oklab, var(--mx-color-muted) 60%, transparent);
+    color: var(--mx-color-muted);
   }
 
   & .footnote {
@@ -152,6 +160,12 @@
     text-align: center;
     font-size: var(--mx-text-sm);
     color: var(--mx-color-muted);
+  }
+
+  @container (max-width: 952px) {
+    & th, & td { padding-inline: var(--mx-space-4); }
+    & .price { flex-direction: column; gap: var(--mx-space-1); }
+    & .amt { font-size: var(--mx-text-3xl); }
   }
 
   @media (max-width: 760px) {
@@ -164,11 +178,13 @@
     & th, & td { padding: var(--mx-space-3) var(--mx-space-2); }
     & th:first-child { padding-left: var(--mx-space-3); }
     & thead th { padding-block: var(--mx-space-5); }
+    & thead .plan:nth-child(3) { padding-top: calc(var(--mx-space-5) - var(--mx-stroke)); }
     & .corner { width: 31%; }
     & .corner-label { font-size: var(--mx-text-xs); }
     & .plan-inner { align-items: center; text-align: center; gap: var(--mx-space-1); }
     & .name { font-size: var(--mx-text-sm); }
-    & .desc, & .yearly { display: none; }
+    & .desc, & .yearly, & .flag { display: none; }
+    & .name-row { justify-content: center; }
     & .amt { font-size: var(--mx-text-xl); }
     & .per { display: none; }
     & .cta { margin-top: var(--mx-space-2); padding: var(--mx-space-2) var(--mx-space-1); font-size: var(--mx-text-xs); line-height: 1.25; }

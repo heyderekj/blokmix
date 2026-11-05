@@ -4,10 +4,10 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -27,7 +27,6 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .card.soft { background: var(--mx-color-surface); border-color: transparent; }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
   & .body-wrap { gap: var(--mx-space-9); }
@@ -49,13 +48,12 @@
   & .logos > li { display: flex; justify-content: center; }
   & .wordmark {
     font-family: var(--mx-font-display);
-    font-weight: 700;
+    font-weight: var(--mx-type-display-weight);
     font-size: var(--mx-text-lg);
     letter-spacing: -0.02em;
     white-space: nowrap;
-    color: color-mix(in oklab, var(--mx-color-text) 55%, transparent);
+    color: var(--mx-color-muted);
   }
-  & .logos > li:nth-child(even) .wordmark { font-family: var(--mx-font-body); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; font-size: var(--mx-text-sm); }
 
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
@@ -68,6 +66,8 @@
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
+    & .wordmark { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: center; }
+    & .logos > li { min-width: 0; }
     & .head + * { margin-top: var(--mx-space-8); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }

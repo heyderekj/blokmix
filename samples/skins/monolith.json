@@ -1,0 +1,96 @@
+{
+  "name": "Monolith",
+  "words": "A brutalist hardware store: black rules, hi-vis yellow, no corners.",
+  "tier": "pack",
+  "mode": "light",
+  "tokens": {
+    "color.bg": "#ffffff",
+    "color.surface": "#f2f2ee",
+    "color.text": "#000000",
+    "color.muted": "#555555",
+    "color.border": "#000000",
+    "color.primary": "#ffe600",
+    "color.onPrimary": "#000000",
+    "color.accent": "#ff3b00",
+    "font.display": "'Archivo Black', 'Arial Black', sans-serif",
+    "font.body": "'Space Mono', ui-monospace, monospace",
+    "font.mono": "'Space Mono', ui-monospace, monospace",
+    "type.base": "15px",
+    "type.ratio": "1.5",
+    "type.displayWeight": "400",
+    "radius.base": "0px",
+    "stroke.width": "2px",
+    "shadow.card": "6px 6px 0 #000000",
+    "space.base": "4px",
+    "space.section": "80px",
+    "motion.duration": "140ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+  },
+  "effects": {
+    "grain": {
+      "id": "grain",
+      "params": {
+        "amount": 36,
+        "size": 1.8,
+        "color": "primary"
+      }
+    },
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 6,
+        "softness": 0,
+        "layers": 1,
+        "opacity": 60,
+        "tighten": 0,
+        "angle": 135,
+        "tint": "primary"
+      }
+    },
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "stops": [
+          "accent",
+          "primary"
+        ],
+        "angle": 90,
+        "smooth": false
+      }
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "square"
+    },
+    "card": {
+      "variant": "offset"
+    },
+    "button": {
+      "variant": "caps",
+      "secondary": {
+        "variant": "outline"
+      }
+    },
+    "heading": {
+      "variant": "caps"
+    },
+    "icon": {
+      "variant": "bare"
+    }
+  },
+  "sections": {
+    "hero": {
+      "surface": "brand"
+    },
+    "testimonials": {
+      "surface": "inverse"
+    },
+    "nav": {
+      "surface": "brand"
+    }
+  },
+  "picture": {
+    "style": "halftone"
+  }
+}

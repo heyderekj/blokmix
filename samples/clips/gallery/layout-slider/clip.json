@@ -1,12 +1,10 @@
 {
-  "title": "Slider with dots",
-  "layoutPattern": "band-with-centered-head-then-crossfading-radio-slider-and-dots",
+  "title": "Slider of pictures with words",
+  "layoutPattern": "gallery-slider",
   "rhythm": "band",
-  "style": "warm",
-  "feel": ["friendly"],
   "density": "balanced",
   "tier": "free",
-  "motionNotes": "The head rises and the slider fades in; picking a dot crossfades to its picture, which settles from a slight zoom. Reduced motion keeps only the fades. Dots are radios, so it slides without script.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
@@ -15,5 +13,30 @@
       "height": 900
     },
     "capturedAt": "2026-10-30T00:00:00Z"
+  },
+  "slider": {
+    "slide": [
+      {
+        "id": "caption",
+        "label": "Below"
+      },
+      {
+        "id": "picture",
+        "label": "No words"
+      },
+      {
+        "id": "over",
+        "label": "On top"
+      },
+      {
+        "id": "beside",
+        "label": "Beside"
+      }
+    ],
+    "show": [
+      1,
+      2,
+      3
+    ]
   }
 }

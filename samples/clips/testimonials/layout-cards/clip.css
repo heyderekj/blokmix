@@ -3,10 +3,10 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1120px; margin: 0 auto; }
+  & .container { max-width: var(--mx-width-content); margin: 0 auto; }
 
   & .head {
-    max-width: 720px;
+    max-width: var(--mx-width-text);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -14,20 +14,10 @@
     text-align: center;
   }
   & .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--mx-space-2);
     font-size: var(--mx-text-sm);
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--mx-color-muted);
-  }
-  & .eyebrow::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--mx-color-accent);
   }
   & .heading {
     margin-top: var(--mx-space-4);
@@ -53,20 +43,7 @@
     padding: var(--mx-space-7);
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
-    background: var(--mx-color-surface);
-    transition: transform var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
-  }
-  & .card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--mx-shadow-card);
-  }
-
-  & .stars { display: flex; gap: 3px; }
-  & .stars i {
-    width: 14px;
-    height: 14px;
-    background: var(--mx-color-text);
-    clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    background: var(--mx-color-bg);
   }
 
   & .quote { margin: 0; flex: 1; }
@@ -85,28 +62,30 @@
     border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .avatar {
+    position: relative;
+    overflow: hidden;
     flex: none;
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background:
-      radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--mx-color-accent) 55%, transparent), transparent 62%),
-      linear-gradient(135deg, color-mix(in oklab, var(--mx-color-primary) 40%, var(--mx-color-surface)), var(--mx-color-bg));
-    box-shadow: 0 0 0 1px var(--mx-color-border);
-  }
-  & .card:nth-child(2) .avatar {
-    background:
-      radial-gradient(circle at 70% 35%, color-mix(in oklab, var(--mx-color-primary) 55%, transparent), transparent 60%),
-      linear-gradient(200deg, color-mix(in oklab, var(--mx-color-text) 22%, var(--mx-color-surface)), var(--mx-color-bg));
-  }
-  & .card:nth-child(3) .avatar {
-    background:
-      radial-gradient(circle at 50% 75%, color-mix(in oklab, var(--mx-color-accent) 40%, transparent), transparent 65%),
-      linear-gradient(45deg, color-mix(in oklab, var(--mx-color-primary) 25%, var(--mx-color-surface)), color-mix(in oklab, var(--mx-color-text) 12%, var(--mx-color-bg)));
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   & .name { font-size: var(--mx-text-sm); font-weight: 600; }
   & .role { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @container (max-width: 832px) {
     & .cards { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; }

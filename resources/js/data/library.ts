@@ -4,6 +4,7 @@ import { sectionClip, type SectionClip } from '@/core/lists'
 import { startersFromFiles, type Starter } from '@/core/starters'
 // Mockups and curated looks register with core/treatments whenever the library loads.
 import './treatments'
+import './skins'
 
 const sourceFiles = import.meta.glob('/samples/sources/*.json', { eager: true, import: 'default' }) as Record<string, Source>
 const clipFiles = import.meta.glob('/samples/clips/**/*.{html,css,json}', {
@@ -17,7 +18,7 @@ const starterFiles = import.meta.glob('/samples/starters/*.json', { eager: true,
 /** Starter mixes (`samples/starters/`): ready combinations of sections under a sample style guide. */
 export const starters = startersFromFiles(starterFiles)
 
-// The guided start reads them from the library (those with a kind and a vibe).
+// The guided start reads them from the library (those with a kind and a skin).
 export const library = buildLibrary(Object.values(sourceFiles), rawClipsFromFiles(clipFiles), starters as unknown as Parameters<typeof buildLibrary>[2])
 
 if (import.meta.env.DEV && library.warnings.length) {

@@ -3,6 +3,7 @@ import { mapTree } from '../html/parse'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
+import { SLIDER_JS } from './slider-runtime'
 import { SHADERS_JS, SHADER_CSS, pngDataUri } from './shaders'
 import { fontLinks, sectionCss, tokensCss } from './shared'
 
@@ -54,6 +55,7 @@ ${sections.map(sectionCss).join('\n')}
 ${body}
 </main>
 ${page.moving ? `<script>${MEDIA_JS}</script>` : ''}
+${page.sliding ? `<script>${SLIDER_JS}</script>` : ''}
 ${shaders ? `<script>${SHADERS_JS}</script>` : ''}
 </body>
 </html>

@@ -2,14 +2,15 @@
   "title": "Plan comparison table",
   "layoutPattern": "comparison-table",
   "rhythm": "grid",
-  "style": "technical",
-  "feel": ["technical"],
   "density": "dense",
-  "motionNotes": "Header rises, the table follows and its checks pop in together; rows tint on hover.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-23T00:00:00Z"
   }
 }

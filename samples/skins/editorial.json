@@ -1,0 +1,178 @@
+{
+  "name": "Editorial",
+  "words": "Like a good magazine. Big serif headlines, fine lines.",
+  "tier": "pack",
+  "mode": "light",
+  "tokens": {
+    "font.display": "'Fraunces', Georgia, serif",
+    "font.body": "'Newsreader', Georgia, serif",
+    "type.base": "18px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "400",
+    "radius.base": "2px",
+    "space.section": "112px",
+    "shadow.card": "none",
+    "motion.duration": "500ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "color.bg": "#fffbfb",
+    "color.surface": "#fcefee",
+    "color.text": "#221716",
+    "color.muted": "#736564",
+    "color.border": "#e9dcdb",
+    "color.primary": "#7a1f1f",
+    "color.onPrimary": "#fffbfa",
+    "color.accent": "#509a55",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "stroke.width": "1px",
+    "icon.set": "lucide:regular",
+    "space.base": "4px",
+    "space.content": "1200px",
+    "space.text": "760px"
+  },
+  "effects": {
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 0
+      }
+    },
+    "grain": {
+      "id": "grain",
+      "params": {
+        "amount": 10,
+        "size": 0.7
+      }
+    },
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "stops": [
+          "surface",
+          "bg"
+        ],
+        "angle": 180
+      }
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "mono"
+    },
+    "card": {
+      "variant": "rule"
+    },
+    "icon": {
+      "variant": "bare"
+    }
+  },
+  "sections": {
+    "hero": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "testimonials": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "cta": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    }
+  },
+  "picture": {
+    "style": "arch"
+  }
+}

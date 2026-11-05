@@ -2,14 +2,15 @@
   "title": "Large heading over a rule",
   "layoutPattern": "oversized-heading-hairline-intro-and-cta-row",
   "rhythm": "stack",
-  "style": "bold",
   "density": "balanced",
-  "feel": ["editorial", "bold"],
-  "motionNotes": "The heading rises first; the hairline row fades in after it and the intro and button follow in a short stagger.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

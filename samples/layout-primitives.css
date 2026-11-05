@@ -6,7 +6,7 @@
  * Clips stay self-contained (rule 2), so this file is never loaded: a clip
  * copies the rules it uses, nested under its own root. Replace `.mx-section`
  * with `.mx-<type>-<folder>`, keep the values, then add the clip's own rules
- * (its art, its distinctive shape) after them. See "Layout primitives" in CLAUDE.md.
+ * (its distinctive shape) after them. See "Layout primitives" in CLAUDE.md.
  */
 .mx-section {
   /* Section: the root sets the surface and the page gutter. */
@@ -22,7 +22,7 @@
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -54,7 +54,7 @@
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   /* Stack: a vertical run of siblings that share one spacing step. */
   & .stack { display: flex; flex-direction: column; gap: var(--mx-space-6); }
@@ -103,7 +103,7 @@
   & .body { color: var(--mx-color-muted); line-height: 1.6; }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
-  /* Media: a picture's frame with placeholder art inside (soft surface, subtle shapes from tokens). */
+  /* Media: a picture's frame, unfilled: a box with a cross (svg.x inside). A skin or a real image takes its place. */
   & .media {
     position: relative;
     overflow: hidden;
@@ -112,10 +112,8 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
+  & .x { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: var(--mx-color-border); stroke-width: var(--mx-stroke); }
+  & .x path { vector-effect: non-scaling-stroke; }
   /* Avatar: a gradient circle with initials, standing in for a portrait. */
   & .avatar {
     display: grid;

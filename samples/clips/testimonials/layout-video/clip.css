@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -19,76 +19,17 @@
   & .col-4 { grid-column-end: span 4; }
 
   & .card { display: flex; flex-direction: column; gap: var(--mx-space-5); }
-
-  /* The poster: a tall frame with a figure, a glow and a play button over it. */
   & .media {
     position: relative;
     overflow: hidden;
     aspect-ratio: 4 / 5;
-    background: linear-gradient(170deg, color-mix(in oklab, var(--mx-color-primary) 22%, var(--mx-color-surface)), var(--mx-color-surface) 70%);
+    background: var(--mx-color-surface);
     border-radius: var(--mx-radius-lg);
     cursor: pointer;
     transition: scale 160ms cubic-bezier(0.23, 1, 0.32, 1);
+    border: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .media:active { scale: 0.97; }
-  & .art { position: absolute; inset: 0; }
-  & .glow { background: radial-gradient(60% 45% at 70% 25%, color-mix(in oklab, var(--mx-color-accent) 40%, transparent), transparent 70%); }
-  & .card:nth-child(3n + 2) .glow { background: radial-gradient(60% 45% at 25% 30%, color-mix(in oklab, var(--mx-color-accent) 34%, transparent), transparent 70%); }
-  & .card:nth-child(3n) .glow { background: radial-gradient(70% 50% at 55% 15%, color-mix(in oklab, var(--mx-color-accent) 24%, transparent), transparent 70%); }
-  & .figure-art {
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    width: 58%;
-    height: 66%;
-    translate: -50% 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  & .head-art { width: 44%; aspect-ratio: 1; border-radius: 50%; background: color-mix(in oklab, var(--mx-color-text) 20%, var(--mx-color-surface)); }
-  & .shoulders {
-    flex: 1;
-    width: 100%;
-    margin-top: 6%;
-    border-radius: 50% 50% 0 0 / 34% 34% 0 0;
-    background: color-mix(in oklab, var(--mx-color-text) 32%, var(--mx-color-surface));
-  }
-  & .card:nth-child(3n + 2) .shoulders { background: color-mix(in oklab, var(--mx-color-primary) 70%, var(--mx-color-surface)); }
-  & .play {
-    position: absolute;
-    left: var(--mx-space-5);
-    bottom: var(--mx-space-5);
-    width: 56px;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: var(--mx-color-bg);
-    box-shadow: var(--mx-shadow-card);
-    transition: scale 200ms cubic-bezier(0.23, 1, 0.32, 1);
-  }
-  & .play::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    translate: 2px 0;
-    width: 16px;
-    height: 18px;
-    background: var(--mx-color-text);
-    clip-path: polygon(0 0, 100% 50%, 0 100%);
-  }
-  & .time {
-    position: absolute;
-    right: var(--mx-space-5);
-    bottom: var(--mx-space-5);
-    padding: var(--mx-space-1) var(--mx-space-3);
-    border-radius: var(--mx-radius-pill);
-    background: color-mix(in oklab, var(--mx-color-bg) 85%, transparent);
-    color: var(--mx-color-text);
-    font-family: var(--mx-font-mono);
-    font-size: var(--mx-text-xs);
-    font-weight: 600;
-  }
 
   & .quote { margin: 0; }
   & .quote p {
@@ -103,9 +44,27 @@
   & .name { font-weight: 600; }
   & .role { color: var(--mx-color-muted); }
 
-  @media (hover: hover) and (pointer: fine) {
-    & .media:hover .play { scale: 1.08; }
+  & .play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    translate: -50% -50%;
+    fill: currentColor;
   }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
@@ -120,7 +79,6 @@
     & .grid { gap: var(--mx-space-8) var(--mx-space-4); }
     & .grid > * { grid-column: auto / span 12; }
     & .media { aspect-ratio: 5 / 4; }
-    & .figure-art { width: 40%; height: 76%; }
     & .card { gap: var(--mx-space-4); }
   }
 }

@@ -2,15 +2,16 @@
   "title": "Centred with media below",
   "layoutPattern": "centered-copy-wide-media-below",
   "rhythm": "stack",
-  "style": "technical",
-  "feel": ["calm"],
   "density": "balanced",
   "tier": "free",
-  "motionNotes": "The head rises in a short stagger, then a browser window lifts into the frame from below; reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { BLOCK_LABEL } from '@/core/blocks'
-import { effectiveEdit } from '@/core/blocks/style'
+import { defaultFor, effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
 import { suggestedVariants } from '@/core/advise'
 import { resolveFields } from '@/core/content'
@@ -25,7 +25,7 @@ export function LooksTray() {
   const clip = slot ? slotClip(slot) : null
   const block = clip?.blocks.find((b) => b.id === blockId)
   const variants = block ? variantsFor(block.kind) : []
-  const edit = block && slot ? effectiveEdit(slot.edits?.[slot.clipId]?.[block.id], components?.[block.kind]) : undefined
+  const edit = block && slot ? effectiveEdit(slot.edits?.[slot.clipId]?.[block.id], defaultFor(components, block)) : undefined
   const current = edit?.variant
   const fields = useMemo(() => (clip && slot ? resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields : {}), [clip, slot, content])
   const suggested = useMemo(() => (block && clip ? suggestedVariants(block, { blocks: clip.blocks, fields }) : []), [block, clip, fields])

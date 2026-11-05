@@ -17,7 +17,7 @@ Secondary: designers who want a fast remix surface, but the primary promise is t
 ## The loop
 
 1. **Start** — Clip real sections, pick from the library (sections or a starter mix, see `library.md`), or let the
-   guided start suggest one. A **Sketch** feel is the light wireframe: grey, plain, for deciding the layout first.
+   guided start suggest one. Built-in layouts begin as wireframes: grey and plain, for deciding the layout first.
    No required sequence.
 2. **Style** — A style guide (from the clips, from an existing site/brand, or dialed) transforms the sections into live previews. Simple dials for tuning by feel (spacing, type, color, radius, light/dark).
 3. **Mark & hand off** — Notes and marks live on the sections ("keep this layout", "try tighter"). Export a packet (styled components + notes + tokens) for your agent, or publish the mix.
@@ -39,12 +39,10 @@ Optional: publish the current mix to a noindex/nofollow page on blok.page so you
 
 ## Guided start
 
-New mix asks three light questions: what you're making (a product, a studio, a local business, an event, a
-portfolio, a newsletter), a feel (Calm, Friendly, Editorial, Technical, Bold, or Sketch), and optionally one brand
-color. It then shows three real starts side by side, A/B/C: matching starter mixes first, then mixes put together
-from the library. Each start is measured before you see it, in plain words: does the headline and button show on a
-laptop and a phone without scrolling, does anything spill sideways at any width. Pick one; the other two stay as
-versions to come back to.
+New mix asks what you're making (a product, a studio, a local business, an event, a portfolio, a newsletter). It then
+shows three raw starts side by side, A/B/C, to pick a structure: matching starter mixes first, then mixes put together
+from the library. That page then goes under the skins, side by side, with one brand color if you have one. Each start is measured before you see it, in plain words: does the headline and button show on a
+laptop and a phone without scrolling, does anything spill sideways at any width. The other two starts stay as versions to come back to.
 
 The measuring borrows from Shu Ding's "The Calculus of Interfaces" (a page is a function of a few inputs, so you can
 ask what fills the first screen and what moves it). We don't compile pages into math; we render the real sections

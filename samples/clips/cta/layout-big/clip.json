@@ -1,15 +1,16 @@
 {
   "title": "Big statement",
-  "layoutPattern": "oversized-heading-left-round-arrow-action",
+  "layoutPattern": "oversized-heading-action-below",
   "rhythm": "stack",
-  "style": "bold",
-  "feel": ["bold"],
   "density": "airy",
-  "motionNotes": "The oversized heading rises first, the body follows, and the round arrow rolls in beside its label; on hover the disc turns to point up and right.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

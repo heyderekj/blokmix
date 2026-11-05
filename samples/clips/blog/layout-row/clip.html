@@ -9,33 +9,34 @@
       <a href="#" class="btn secondary" data-mx-block="button" data-mx-field="cta">Read the journal</a>
     </div>
   </div>
-  <ul class="row" data-mx-block="list" data-mx-list="posts">
-    <li class="card soft post" data-mx-block="item" data-mx-label="Post">
-      <div class="media v1" data-mx-block="image" data-mx-media="p1Cover" data-mx-ratio="4/3" aria-hidden="true"><span class="art dots"></span><span class="orb"></span><span class="slab"></span></div>
+  <div class="slider" data-slider>
+      <ul data-slider-track class="row" data-mx-block="list" data-mx-list="posts">
+    <li class="card post" data-mx-block="item" data-mx-label="Post">
+      <div class="media" data-mx-block="image" data-mx-media="p1Cover" data-mx-ratio="4/3" aria-hidden="true"><svg class="x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 100 100M100 0 0 100"/></svg></div>
       <div class="text">
         <p class="meta" data-mx-block="text" data-mx-field="p1Meta">Process · 6 min</p>
         <h3 class="title" data-mx-block="heading"><a href="#" class="link" data-mx-field="p1Title">What a brand sprint actually looks like</a></h3>
         <p class="body" data-mx-block="text" data-mx-field="p1Excerpt">Five days, one wall of sticky notes and a logo that finally fits the business.</p>
       </div>
     </li>
-    <li class="card soft post" data-mx-block="item" data-mx-label="Post">
-      <div class="media v2" data-mx-block="image" data-mx-media="p2Cover" data-mx-ratio="4/3" aria-hidden="true"><span class="slab"></span><span class="slab two"></span><span class="orb"></span></div>
+    <li class="card post" data-mx-block="item" data-mx-label="Post">
+      <div class="media" data-mx-block="image" data-mx-media="p2Cover" data-mx-ratio="4/3" aria-hidden="true"><svg class="x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 100 100M100 0 0 100"/></svg></div>
       <div class="text">
         <p class="meta" data-mx-block="text" data-mx-field="p2Meta">Business · 4 min</p>
         <h3 class="title" data-mx-block="heading"><a href="#" class="link" data-mx-field="p2Title">Pricing a project without guessing</a></h3>
         <p class="body" data-mx-block="text" data-mx-field="p2Excerpt">How I scope fixed fees so neither of us gets a surprise invoice at the end.</p>
       </div>
     </li>
-    <li class="card soft post" data-mx-block="item" data-mx-label="Post">
-      <div class="media v3" data-mx-block="image" data-mx-media="p3Cover" data-mx-ratio="4/3" aria-hidden="true"><span class="art dots"></span><span class="slab"></span><span class="slab two"></span></div>
+    <li class="card post" data-mx-block="item" data-mx-label="Post">
+      <div class="media" data-mx-block="image" data-mx-media="p3Cover" data-mx-ratio="4/3" aria-hidden="true"><svg class="x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 100 100M100 0 0 100"/></svg></div>
       <div class="text">
         <p class="meta" data-mx-block="text" data-mx-field="p3Meta">Design · 5 min</p>
         <h3 class="title" data-mx-block="heading"><a href="#" class="link" data-mx-field="p3Title">The case for fewer typefaces</a></h3>
         <p class="body" data-mx-block="text" data-mx-field="p3Excerpt">One family, three weights, and a site that reads calmer for it.</p>
       </div>
     </li>
-    <li class="card soft post" data-mx-block="item" data-mx-label="Post">
-      <div class="media v4" data-mx-block="image" data-mx-media="p4Cover" data-mx-ratio="4/3" aria-hidden="true"><span class="orb"></span><span class="slab"></span></div>
+    <li class="card post" data-mx-block="item" data-mx-label="Post">
+      <div class="media" data-mx-block="image" data-mx-media="p4Cover" data-mx-ratio="4/3" aria-hidden="true"><svg class="x" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 100 100M100 0 0 100"/></svg></div>
       <div class="text">
         <p class="meta" data-mx-block="text" data-mx-field="p4Meta">Studio · 7 min</p>
         <h3 class="title" data-mx-block="heading"><a href="#" class="link" data-mx-field="p4Title">Notes from a year of working solo</a></h3>
@@ -43,4 +44,11 @@
       </div>
     </li>
   </ul>
+      <div class="controls">
+        <button type="button" class="arrow" data-slider-prev aria-label="Previous slide"><svg data-mx-icon="arrow-left" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+        <span class="dots" data-slider-dots></span>
+        <span class="count" data-slider-count aria-hidden="true"></span>
+        <button type="button" class="arrow" data-slider-next aria-label="Next slide"><svg data-mx-icon="arrow-right" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
 </section>

@@ -6,7 +6,7 @@
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -33,7 +33,7 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .media {
     position: relative;
@@ -43,12 +43,8 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
 
-  /* Two photographs flank the centred head, set like prints on a table. */
+  /* Two pictures flank the centred head, one set higher than the other. */
   & .stage {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr) minmax(0, 1fr);
@@ -56,14 +52,21 @@
     gap: var(--mx-space-9);
   }
   & .head { max-width: 640px; }
-  & .photo { aspect-ratio: 3 / 4; box-shadow: var(--mx-shadow-card); }
-  & .photo.left { rotate: -4deg; translate: 0 calc(var(--mx-space-7) * -1); }
-  & .photo.right { rotate: 3deg; translate: 0 var(--mx-space-8); }
-  & .photo .dots { opacity: 0.5; }
-  & .sky { inset: auto 0 0; height: 46%; border-radius: 0; background: color-mix(in oklab, var(--mx-color-text) 14%, var(--mx-color-surface)); }
-  & .photo .orb { left: 22%; top: 18%; width: 34%; }
-  & .ground { inset: 0 0 auto; height: 58%; border-radius: 0; background: color-mix(in oklab, var(--mx-color-accent) 16%, var(--mx-color-surface)); }
-  & .frame-in { left: 18%; right: 18%; top: 30%; bottom: 14%; background: color-mix(in oklab, var(--mx-color-text) 18%, var(--mx-color-surface)); }
+  & .photo { aspect-ratio: 3 / 4;}
+  & .photo.left {translate: 0 calc(var(--mx-space-7) * -1); }
+  & .photo.right {translate: 0 var(--mx-space-8); }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
@@ -73,7 +76,7 @@
     & .stage { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); gap: var(--mx-space-7); }
   }
 
-  /* Phone: the head first, then the two prints side by side. */
+  /* Phone: the head first, then the two pictures side by side. */
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }

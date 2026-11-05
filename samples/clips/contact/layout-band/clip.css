@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -31,11 +31,8 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
-  & .band { padding: var(--mx-space-9) var(--mx-space-8); background: var(--mx-color-surface); border-radius: var(--mx-radius-lg); }
-  & .band.inverse { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & .inverse .eyebrow, & .inverse .lead, & .inverse .note { color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
-  & .inverse .btn.primary { background: var(--mx-color-on-primary); color: var(--mx-color-primary); }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
+  & .band { padding: var(--mx-space-9) var(--mx-space-8); border: var(--mx-stroke) solid var(--mx-color-border); border-radius: var(--mx-radius-lg); }
 
   /* The email set large across the band, the button beside it. */
   & .band { padding-block: var(--mx-space-9) var(--mx-space-7); }
@@ -51,8 +48,8 @@
     overflow-wrap: anywhere;
     cursor: pointer;
     text-decoration: underline;
-    text-decoration-color: color-mix(in oklab, var(--mx-color-on-primary) 30%, transparent);
-    text-decoration-thickness: calc(var(--mx-stroke) * 2);
+    text-decoration-color: var(--mx-color-border);
+    text-decoration-thickness: var(--mx-stroke);
     text-underline-offset: 0.16em;
     transition: text-decoration-color var(--mx-motion-duration) var(--mx-motion-ease);
   }
@@ -64,17 +61,16 @@
     gap: var(--mx-space-4) var(--mx-space-6);
     margin-top: var(--mx-space-8);
     padding-top: var(--mx-space-6);
-    border-top: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-on-primary) 20%, transparent);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .details { display: flex; flex-wrap: wrap; gap: var(--mx-space-3) var(--mx-space-6); }
   & .detail { display: flex; align-items: center; gap: var(--mx-space-2); font-size: var(--mx-text-sm); }
-  & .detail svg { flex: none; color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
+  & .detail svg { flex: none; color: var(--mx-color-muted); }
   & .detail a { cursor: pointer; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
-    & .big:hover { text-decoration-color: var(--mx-color-on-primary); }
-    & .inverse .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 88%, var(--mx-color-primary)); }
+    & .big:hover { text-decoration-color: var(--mx-color-text); }
   }
 
   @media (max-width: 760px) {
@@ -86,6 +82,7 @@
     & .lead { font-size: var(--mx-text-base); }
     & .band { padding: var(--mx-space-8) var(--mx-space-5); }
     & .band { padding-block: var(--mx-space-8) var(--mx-space-6); }
+    & .big { font-size: var(--mx-text-lg); }
     & .mailrow .btn { flex: 1 1 100%; }
     & .foot { flex-direction: column; align-items: flex-start; }
   }

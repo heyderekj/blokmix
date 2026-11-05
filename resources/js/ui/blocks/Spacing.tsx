@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Smartphone } from 'lucide-react'
+import { Monitor, Smartphone } from 'lucide-react'
 import type { SectionSpace, Slot, SpaceStep } from '@/core/types'
+import { StepSlider } from '../panels/StyleRows'
 import { useStore } from '@/state/store'
 
 export type Device = 'desktop' | 'mobile'
@@ -13,23 +14,27 @@ export function useDevice(): [Device, (d: Device) => void] {
 /** Desktop | Mobile, for spacing groups. Mobile changes apply at 760px and below. */
 export function DeviceSwitch({ value, onChange }: { value: Device; onChange: (d: Device) => void }) {
   return (
-    <div className="flex rounded-full bg-chip p-0.5" role="radiogroup" aria-label="Spacing for">
-      {(['desktop', 'mobile'] as const).map((d) => (
-        <button
-          key={d}
-          type="button"
-          role="radio"
-          aria-checked={value === d}
-          title={d === 'mobile' ? 'Phones: 760px wide and below' : 'Every width, unless phones differ'}
-          onClick={(e) => {
-            e.stopPropagation()
-            onChange(d)
-          }}
-          className={`h-5 cursor-pointer rounded-full px-2 text-[11px] font-semibold transition active:scale-[0.97] ${value === d ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
-        >
-          {d === 'desktop' ? 'Desktop' : 'Mobile'}
-        </button>
-      ))}
+    <div className="flex gap-0.5" role="radiogroup" aria-label="Spacing for">
+      {(['desktop', 'mobile'] as const).map((d) => {
+        const Icon = d === 'desktop' ? Monitor : Smartphone
+        return (
+          <button
+            key={d}
+            type="button"
+            role="radio"
+            aria-checked={value === d}
+            aria-label={d === 'desktop' ? 'Desktop' : 'Mobile'}
+            title={d === 'mobile' ? 'Phones: 760px wide and below' : 'Every width, unless phones differ'}
+            onClick={(e) => {
+              e.stopPropagation()
+              onChange(d)
+            }}
+            className={`grid size-6 cursor-pointer place-items-center rounded-md transition-[background-color,color,scale] active:scale-[0.94] ${value === d ? 'bg-zinc-950/[0.08] text-zinc-900' : 'text-zinc-400 hover:text-zinc-700'}`}
+          >
+            <Icon size={13} />
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -113,30 +118,47 @@ export function Steps<T extends string | number>({
   )
 }
 
-/** Top and bottom spacing for a whole section, relative to the style guide's section padding; phones can differ. */
+const SPACE_ROOM: Record<string, number> = { none: 3, tight: 6, default: 10, roomy: 14 }
+
+/** Top and bottom spacing for a whole section, relative to the style guide's section padding; phones can differ. A small outline shows the room it leaves. */
 export function SectionSpacingRows({ slot, device }: { slot: Slot; device: Device }) {
   const st = useStore.getState
+  const shown = (side: 'top' | 'bottom') => (device === 'mobile' ? (slot.spacing?.mobile?.[side] ?? slot.spacing?.[side]) : slot.spacing?.[side]) ?? 'default'
   return (
-    <div className="space-y-2">
-      {(['top', 'bottom'] as const).map((side) => {
-        const desk = slot.spacing?.[side] ?? 'default'
-        const phone = slot.spacing?.mobile?.[side]
-        return (
-          <div key={side} className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <RowLabel label={side === 'top' ? 'Top' : 'Bottom'} phone={!!phone} />
-              <div className="flex-1">
-                {device === 'desktop' ? (
-                  <Steps options={SECTION_SPACES} value={desk} onPick={(v) => st().setSectionSpacing(slot.id, { [side]: v })} />
-                ) : (
-                  <Steps options={SECTION_SPACES} value={phone ?? desk} ghost={!phone} onPick={(v) => st().setSectionSpacing(slot.id, { mobile: { [side]: v } })} />
-                )}
+    <div className="flex items-center gap-3">
+      <div className="flex h-11 w-11 shrink-0 flex-col justify-between rounded-md px-2 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.14)] transition-[padding] duration-150 ease-out" style={{ paddingTop: SPACE_ROOM[shown('top')], paddingBottom: SPACE_ROOM[shown('bottom')] }} aria-hidden>
+        <span className="flex flex-1 flex-col justify-center gap-[3px]">
+          <span className="h-[3px] w-full rounded-full bg-zinc-500" />
+          <span className="h-[3px] w-2/3 rounded-full bg-zinc-300" />
+        </span>
+      </div>
+      <div className="grid min-w-0 flex-1 gap-0.5">
+        {(['top', 'bottom'] as const).map((side) => {
+          const phone = slot.spacing?.mobile?.[side]
+          return (
+            <div key={side} className="grid gap-0.5">
+              <div className="grid grid-cols-[46px_minmax(0,1fr)] items-center gap-1">
+                <span className="flex items-center gap-1 text-[12px] font-medium text-zinc-600">
+                  {side === 'top' ? 'Top' : 'Bottom'}
+                  {phone && <Smartphone size={10} className="text-key" aria-label="Different on mobile" />}
+                </span>
+                <StepSlider
+                  label={`Space ${side === 'top' ? 'above' : 'below'}`}
+                  value={shown(side)}
+                  steps={SECTION_SPACES}
+                  faded={device === 'mobile' && !phone}
+                  onChange={(v) => st().setSectionSpacing(slot.id, device === 'mobile' ? { mobile: { [side]: v } } : { [side]: v })}
+                />
               </div>
+              {device === 'mobile' && phone && (
+                <button type="button" onClick={(e) => { e.stopPropagation(); st().setSectionSpacing(slot.id, { mobile: { [side]: undefined } }) }} className="cursor-pointer text-left text-[11px] font-medium text-zinc-500 hover:text-zinc-900">
+                  Reset to desktop
+                </button>
+              )}
             </div>
-            {device === 'mobile' && <MobileHint overridden={!!phone} onReset={() => st().setSectionSpacing(slot.id, { mobile: { [side]: undefined } })} />}
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }

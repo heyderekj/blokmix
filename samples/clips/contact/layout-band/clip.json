@@ -1,11 +1,9 @@
 {
   "title": "Email in a band",
-  "layoutPattern": "inverse-band-big-email-button",
+  "layoutPattern": "band-big-email-button",
   "rhythm": "band",
-  "style": "bold",
-  "feel": ["bold"],
   "density": "airy",
-  "motionNotes": "The band fades up, then the heading and the big email rise one after the other. Reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

@@ -2,10 +2,8 @@
   "title": "Prose with a breakout quote",
   "layoutPattern": "reading-column-wide-pull-quote",
   "rhythm": "stack",
-  "style": "editorial",
-  "feel": ["editorial"],
   "density": "airy",
-  "motionNotes": "The breakout quote and its caption rise into place; reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

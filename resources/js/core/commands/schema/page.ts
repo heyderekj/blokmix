@@ -43,7 +43,7 @@ export const PAGE_COMMANDS = {
     write: true,
   },
   set_keep: {
-    description: 'What a section keeps from its source: layout (reproduce the structure), style (its own captured look instead of the style guide), copy (source words), motion.',
+    description: 'What a section keeps from its source: layout (reproduce the structure), style (its own captured look instead of the style guide), copy (source words), motion. A section its owner locked refuses this and every other change except marks.',
     input: z.object({ section, layout: z.boolean().optional(), style: z.boolean().optional(), copy: z.boolean().optional(), motion: z.boolean().optional() }),
     write: true,
   },

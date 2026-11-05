@@ -2,16 +2,20 @@
   "title": "Product shelf",
   "layoutPattern": "centered-head-over-three-product-tiles-with-picture-price-and-button",
   "rhythm": "grid",
-  "style": "minimal",
-  "feel": ["calm"],
   "density": "balanced",
   "status": "draft",
-  "inspiredBy": { "site": "Aesop", "url": "https://aesop.com/" },
-  "motionNotes": "The head rises, then the three products follow one after another; reduced motion keeps only the fades.",
+  "inspiredBy": {
+    "site": "Aesop",
+    "url": "https://aesop.com/"
+  },
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-30T00:00:00Z"
   }
 }

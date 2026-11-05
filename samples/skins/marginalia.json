@@ -1,0 +1,190 @@
+{
+  "name": "Marginalia",
+  "words": "Warm paper and oxblood ink, for reading slowly.",
+  "tier": "pack",
+  "mode": "light",
+  "tokens": {
+    "color.bg": "#f6f1e7",
+    "color.surface": "#ece4d3",
+    "color.text": "#1f1a14",
+    "color.muted": "#6b6155",
+    "color.border": "#d6c9b1",
+    "color.primary": "#7a1f1f",
+    "color.onPrimary": "#f6f1e7",
+    "color.accent": "#c2602e",
+    "font.display": "'Fraunces', Georgia, serif",
+    "font.body": "'Newsreader', Georgia, serif",
+    "font.mono": "'IBM Plex Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "380",
+    "radius.base": "2px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 0 #d6c9b1",
+    "space.base": "4px",
+    "space.section": "112px",
+    "motion.duration": "700ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+  },
+  "effects": {
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 0
+      }
+    },
+    "grain": {
+      "id": "grain",
+      "params": {
+        "amount": 10,
+        "size": 0.7
+      }
+    },
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "stops": [
+          "surface",
+          "bg"
+        ],
+        "angle": 180
+      }
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "line"
+    },
+    "card": {
+      "variant": "flat"
+    },
+    "button": {
+      "secondary": {
+        "variant": "arrow"
+      }
+    },
+    "heading": {
+      "variant": "light"
+    },
+    "icon": {
+      "variant": "bare"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "grain"
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "cta": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "nav": {
+      "backdrop": {
+        "id": "grain"
+      }
+    }
+  },
+  "picture": {
+    "style": "topo"
+  }
+}

@@ -7,7 +7,7 @@
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -34,7 +34,7 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .media {
     position: relative;
@@ -44,20 +44,21 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
 
-  /* A wide, cinematic cover: a shopfront of three arches over a counter. */
+  /* A wide, cinematic cover. */
   & .wide { aspect-ratio: 21 / 9; }
-  & .wide .dots { opacity: 0.6; }
-  & .arch { bottom: 22%; width: 18%; border-radius: var(--mx-radius-pill) var(--mx-radius-pill) 0 0; }
-  & .a1 { left: 17%; height: 52%; }
-  & .a2 { left: 41%; height: 62%; background: color-mix(in oklab, var(--mx-color-text) 15%, var(--mx-color-surface)); }
-  & .a3 { left: 65%; height: 52%; }
-  & .wide .orb { left: 46%; top: 30%; width: 8%; }
-  & .counter { left: 8%; right: 8%; bottom: 10%; height: 14%; background: color-mix(in oklab, var(--mx-color-text) 20%, var(--mx-color-surface)); }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
@@ -70,10 +71,5 @@
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .wide { aspect-ratio: 4 / 3; }
-    & .arch { width: 24%; }
-    & .a1 { left: 8%; }
-    & .a2 { left: 38%; }
-    & .a3 { left: 68%; }
-    & .wide .orb { left: 44%; width: 12%; }
   }
 }

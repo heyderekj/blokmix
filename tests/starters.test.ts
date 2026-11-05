@@ -14,7 +14,7 @@ describe('starter mixes', () => {
       expect(site.pages[0].path).toBe('/')
       expect(site.shared.nav, s.id).toBeTruthy()
       expect(site.shared.footer, s.id).toBeTruthy()
-      expect(Object.keys(guide.choices).length, s.id).toBeGreaterThan(0)
+      expect(guide.skin || Object.keys(guide.choices).length, s.id).toBeTruthy()
       const ids = allSlots(site).map((x) => x.id)
       expect(new Set(ids).size, s.id).toBe(ids.length)
       expect(new Set(site.pages.map((p) => p.path)).size, s.id).toBe(site.pages.length)

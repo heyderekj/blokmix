@@ -10,7 +10,7 @@ import { FILL_IDS } from './treatments/fills'
 export const PACK_OPENS = [
   'Three mixes, open at once, yours to keep',
   'Every layout, not just the core few',
-  'Every style guide control and block look',
+  'Every skin, Surprise me, every style guide control and block look',
   'Effects, backdrops, generative pictures and live shaders',
   'Unlimited clips and 10 GB of images and video',
 ] as const

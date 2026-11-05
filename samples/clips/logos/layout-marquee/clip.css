@@ -16,25 +16,29 @@
     text-align: center;
   }
 
-  /* Two identical sets; the track slides by exactly one set (see motion.css) */
+  /* One line from edge to edge between hairlines: it never wraps, and what doesn't fit scrolls sideways. */
   & .marquee {
     width: 100%;
-    max-width: 1440px;
-    overflow: hidden;
-    mask-image: linear-gradient(90deg, transparent, var(--mx-color-text) 16%, var(--mx-color-text) 84%, transparent);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--mx-space-8);
+    scrollbar-width: none;
+    border-block: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .track {
     display: flex;
     width: max-content;
+    min-width: 100%;
   }
+  /* The copy a looping row needs stays in step with the list, out of sight until something sets it moving. */
+  & .set[aria-hidden] { display: none; }
   & .set {
     display: flex;
-    flex: none;
-    min-width: min(100vw, 1440px);
+    flex: 1 0 auto;
     align-items: center;
     justify-content: space-around;
-    gap: var(--mx-space-10);
-    padding: var(--mx-space-2) var(--mx-space-10) var(--mx-space-2) 0;
+    gap: var(--mx-space-7);
+    padding: var(--mx-space-6) var(--mx-space-8);
     list-style: none;
     margin: 0;
   }
@@ -42,40 +46,19 @@
   & .logo {
     display: inline-flex;
     align-items: center;
-    gap: var(--mx-space-2);
     white-space: nowrap;
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
     font-size: var(--mx-text-xl);
     letter-spacing: -0.02em;
     line-height: 1;
-    color: color-mix(in oklab, var(--mx-color-text) 50%, transparent);
+    color: var(--mx-color-muted);
     transition: color var(--mx-motion-duration) var(--mx-motion-ease);
-  }
-  & .logo:hover { color: var(--mx-color-text); }
-  & .logo::before {
-    content: '';
-    flex: none;
-    width: 18px;
-    height: 18px;
-    background: currentColor;
-  }
-  & .l1::before { border-radius: 50%; }
-  & .l2 { font-family: var(--mx-font-body); font-weight: 500; letter-spacing: 0; }
-  & .l2::before { width: 4px; height: 20px; border-radius: 2px; }
-  & .l3 { text-transform: uppercase; font-size: var(--mx-text-sm); letter-spacing: 0.14em; font-weight: 700; }
-  & .l3::before { clip-path: polygon(0 0, 100% 50%, 0 100%, 25% 50%); }
-  & .l4 { font-size: var(--mx-text-2xl); letter-spacing: -0.04em; }
-  & .l4::before { display: none; }
-  & .l5::before { background: transparent; border: calc(var(--mx-stroke) * 2) solid currentColor; border-radius: 50%; }
-  & .l6 { font-family: var(--mx-font-mono); font-weight: 500; text-transform: lowercase; letter-spacing: -0.03em; }
-  & .l6::before { border-radius: 4px 4px 9px 9px; }
-  & .l7 { text-transform: uppercase; font-size: var(--mx-text-lg); letter-spacing: 0.04em; }
-  & .l7::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-  & .l8 { font-weight: 500; letter-spacing: -0.01em; }
-  & .l8::before {
-    background: radial-gradient(circle, currentColor 0 2px, transparent 2.5px) 0 0 / 6px 6px;
-    border-radius: 50%;
+    scroll-snap-align: start;
+}
+
+  @media (hover: hover) and (pointer: fine) {
+    & .logo:hover { color: var(--mx-color-text); }
   }
 
   @media (max-width: 760px) {
@@ -83,11 +66,8 @@
     gap: var(--mx-space-6);
   }
   @container (max-width: 616px) {
-    & .marquee { mask-image: linear-gradient(90deg, transparent, var(--mx-color-text) 10%, var(--mx-color-text) 90%, transparent); }
-    & .set { gap: var(--mx-space-8); padding-right: var(--mx-space-8); }
+    & .marquee { scroll-padding-inline: var(--mx-space-5); }
+    & .set { gap: var(--mx-space-7); padding-inline: var(--mx-space-5); }
     & .logo { font-size: var(--mx-text-lg); }
-    & .l3 { font-size: var(--mx-text-xs); }
-    & .l4 { font-size: var(--mx-text-xl); }
-    & .l7 { font-size: var(--mx-text-base); }
   }
 }

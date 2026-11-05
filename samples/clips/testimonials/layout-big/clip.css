@@ -4,7 +4,7 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-12 { grid-column-end: span 12; }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
@@ -16,15 +16,11 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
 
   & .col-10 { grid-column-end: span 10; }
 
   /* An oversized quote with hanging marks, set against the left edge. */
   & .quote p {
-    position: relative;
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
     font-size: clamp(var(--mx-text-2xl), 4.4vw, var(--mx-text-5xl));
@@ -32,8 +28,6 @@
     letter-spacing: -0.025em;
     text-wrap: pretty;
   }
-  & .quote p::before { content: "“"; position: absolute; right: 100%; padding-right: 0.06em; }
-  & .quote p::after { content: "”"; }
 
   & .person {
     display: flex;
@@ -43,10 +37,33 @@
     border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .portrait { flex: none; width: 88px; aspect-ratio: 4 / 5; border-radius: var(--mx-radius); }
-  & .head-shape { left: 34%; top: 20%; width: 32%; aspect-ratio: 1; border-radius: 50%; }
-  & .shoulders { left: 14%; right: 14%; bottom: -14%; height: 42%; border-radius: 50% 50% 0 0; }
   & .who { display: flex; flex-direction: column; gap: var(--mx-space-1); }
   & .name { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.3; }
+
+  & .quote { position: relative; }
+  /* A plain opening mark, real text, hanging off the left edge. */
+  & .mark {
+    position: absolute;
+    right: 100%;
+    padding-right: 0.06em;
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 4.4vw, var(--mx-text-5xl));
+    line-height: 1.12;
+    color: var(--mx-color-muted);
+  }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
@@ -56,10 +73,10 @@
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
+    & .mark { position: static; display: block; padding-right: 0; font-size: var(--mx-text-2xl); line-height: 1; }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .quote p { font-size: var(--mx-text-2xl); line-height: 1.2; }
-    & .quote p::before { position: static; padding-right: 0; }
     & .portrait { width: 64px; }
   }
 }

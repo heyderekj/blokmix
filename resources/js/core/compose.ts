@@ -1,9 +1,10 @@
 import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet, ListBinding } from './types'
 import { applyBindings, findList, sortedEntries, type BindContext, type Collection } from './collections'
-import { sectionTokens, widthTokens } from './surface'
+import { bandTokens, sectionTokens, widthTokens } from './surface'
 import { blockTextStyle } from './textStyles'
 import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
-import { blockCss, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
+import { blockCss, defaultFor, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
+import { pictureFor, withSectionDefaults } from './sectionDefaults'
 import { LAYER_ORDER } from './export/base-css'
 import { motionCss as presetMotionCss } from './motion'
 import { swapIcons } from './icons'
@@ -17,7 +18,7 @@ import { BANNER_CSS, BANNER_MOTION, bannerMoves } from './banner'
 import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
-import { MOCK_BASE_CSS, backdropCss, backdropInfo, backdropShaderId, describeParams, effectsVars, isBackdropId, backdropParams, type ShaderSpec, type TreatmentValue } from './treatments'
+import { MOCK_BASE_CSS, backdropCss, backdropInfo, backdropShaderId, describeParams, effectsVars, isBackdropId, backdropParams, readBackdrop, type ShaderSpec, type TreatmentValue } from './treatments'
 
 export interface ComposedSection {
   slotId: string
@@ -26,6 +27,8 @@ export interface ComposedSection {
   component: string
   clip: Clip
   keep: Keep
+  /** Hands off: Shuffle and agents leave it alone. */
+  locked?: boolean
   tree: HNode[]
   /** The same markup before the words go in (data-mx-* kept), for components that read a content file. */
   source: HNode[]
@@ -107,6 +110,8 @@ export interface ComposedPage {
   mediaFiles: Record<string, string | Uint8Array>
   /** Some section has video, a Lottie, an embed or a lightbox: ship the media player. */
   moving: boolean
+  /** A section is a slider: ship /mx-slider.js. */
+  sliding?: boolean
   /** Live shaders (backdrops and image blocks): ship /mx-shaders.js, and bake their posters. */
   shaders: ComposedShader[]
   /** Other pages that links lead to but the site doesn't have yet (/careers): for the agent to build. */
@@ -130,7 +135,7 @@ export interface ComposeInput {
   slotNotes?: Record<string, string[]>
   title?: string
   /** Extra brand colors, page-wide block looks and effects from the style guide. */
-  page?: Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles'>
+  page?: Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles' | 'sections' | 'picture'>
   /** Uploaded images by asset id (data URLs), from the browser's asset store. */
   uploads?: (id: string) => UploadData | undefined
   /** Keep each block's data-mx-b in the markup, so the page can be measured block by block (lib/measure.ts). */
@@ -159,6 +164,11 @@ export function componentName(clip: Clip): string {
   return pascal(clip.type) + pascal(folder)
 }
 
+/** A slider's choices, as attributes on its section root: the clip's CSS answers to them. */
+export function sliderAttrs(c: Slot['slider']): [string, string][] {
+  return [...(c?.slide ? [['data-slide', c.slide]] : []), ...(c?.show ? [['data-show', String(c.show)]] : []), ...(c?.intro ? [['data-intro', c.intro]] : [])] as [string, string][]
+}
+
 /** Everything the exporters, the packet and the reference build share. */
 export function composePage(input: ComposeInput): ComposedPage {
   const catalog = [...allFonts(input.library), ...BASE_FONTS]
@@ -184,7 +194,9 @@ export function composePage(input: ComposeInput): ComposedPage {
     const libraryClip = input.library.clips[own.clipId]
     if (!libraryClip) return
     // A section bound to a collection shows its entries (derived; the section keeps its own words).
-    const slot = input.bind && own.bind ? applyBindings(own, libraryClip, input.bind) : own
+    const bound = input.bind && own.bind ? applyBindings(own, libraryClip, input.bind) : own
+    // Its type's defaults from the style guide sit underneath what the section chose.
+    const slot = withSectionDefaults(bound, libraryClip.type, input.page?.sections, !!libraryClip.motionCss)
     // The clip as this section shows it: its lists in your order, blocks stamped with stable ids.
     const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
     let component = componentName(clip)
@@ -200,8 +212,9 @@ export function composePage(input: ComposeInput): ComposedPage {
     // A block whose text style you edited in the guide is changed too, with no edit of its own.
     const changed = clip.blocks
       .map((b) => {
-        const edit = effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind])
-        return { b, edit: edit ?? (blockTextStyle(b, clip.blocks, undefined, input.page) ? {} : undefined) }
+        const edit = effectiveEdit(edits?.[b.id], defaultFor(input.page?.components, b))
+        const picture = pictureFor(edit?.media, b, input.page?.picture, clip.origin, slot.keep.style)
+        return { b, edit: picture && !edit?.media ? { ...edit, media: picture } : edit ?? (blockTextStyle(b, clip.blocks, undefined, input.page) ? {} : undefined) }
       })
       .filter((x): x is { b: (typeof x)['b']; edit: BlockEdit } => !!x.edit)
     const blockClass = (id: string) => `mx-${key}${position + 1}-${id.replace(/\./g, '-')}`
@@ -210,9 +223,13 @@ export function composePage(input: ComposeInput): ComposedPage {
     const staggered = preset?.stagger ? clip.blocks.filter((b) => !b.parent || clip.blocks.find((x) => x.id === b.parent)?.kind === 'list').map((b) => b.id) : []
     const changedIds = new Set([...changed.map((x) => x.b.id), ...staggered])
     let order = 0
-    // Section spacing, on desktop or only on phones (spacing.mobile), and a backdrop need the root class too.
-    const backdrop = slot.backdrop && isBackdropId(slot.backdrop.id) ? slot.backdrop : undefined
-    const spaced = !!sectionSpacingCss(slot.spacing, 'x') || !!preset || !!backdrop
+    // Section spacing, on desktop or only on phones (spacing.mobile), a backdrop, and a band or width of its own need the root class too.
+    const chosenBackdrop = slot.backdrop && isBackdropId(slot.backdrop.id) ? slot.backdrop : undefined
+    // Over a backdrop, a section's colors answer to what's behind its words; one nothing can read over softens.
+    const reading = chosenBackdrop && !slot.keep.style ? readBackdrop(chosenBackdrop, bandTokens(input.guide.tokens, slot)) : null
+    const backdrop = reading?.value ?? chosenBackdrop
+    const banded = (slot.surface && slot.surface !== 'page') || !!slot.width || !!reading
+    const spaced = !!sectionSpacingCss(slot.spacing, 'x') || !!preset || !!backdrop || banded
     const addClass = (el: HEl, cls: string): HEl => ({
       ...el,
       attrs: el.attrs.some(([k]) => k === 'class') ? el.attrs.map(([k, v]) => (k === 'class' ? [k, `${v} ${cls}`] : [k, v])) : [...el.attrs, ['class', cls]],
@@ -281,7 +298,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     // A live backdrop runs in its own layer, the root's last child, over a poster.
     const liveId = backdropShaderId(backdrop)
     // Backdrops draw in the section's surface colors (core/surface.ts).
-    const backdropTokens = slot.keep.style ? clip.tokens : sectionTokens(input.guide.tokens, slot)
+    const backdropTokens = slot.keep.style ? clip.tokens : bandTokens(input.guide.tokens, slot)
     const live = liveId
       ? (() => {
           const spec = shaderFor(liveId, backdrop!.params, backdrop!.seed ?? 1, backdropTokens, '16/9')
@@ -302,7 +319,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       if (attr(el, 'data-mx-section') !== undefined) {
         // Every section has an anchor, so links can lead to it (#pricing), and is a size container (base CSS).
         const root = addClass(spaced ? addClass(el, `mx-${key}${position + 1}`) : el, 'mx-section')
-        return { ...root, attrs: [...root.attrs.filter(([k]) => k !== 'id'), ['id', anchors[slot.id]]], kids: live ? [...root.kids, live.el] : root.kids }
+        return { ...root, attrs: [...root.attrs.filter(([k]) => k !== 'id'), ['id', anchors[slot.id]], ...sliderAttrs(slot.slider)], kids: live ? [...root.kids, live.el] : root.kids }
       }
       if (attr(el, 'data-mx-block') === undefined) return el
       const id = attr(el, 'data-mx-b') ?? `b${order}`
@@ -343,10 +360,10 @@ export function composePage(input: ComposeInput): ComposedPage {
       })
       .join('\n')
     const rootSel = `.${clip.rootClass}.mx-${key}${position + 1}`
-    const behind = backdrop ? backdropCss(backdrop, backdropTokens, rootSel) : ''
+    const behind = backdrop ? backdropCss(backdrop, backdropTokens, rootSel, !!reading?.ink) : ''
     const generated = presetMotionCss({
       blocks: clip.blocks,
-      edits: (b) => effectiveEdit(edits?.[b.id], input.page?.components?.[b.kind]),
+      edits: (b) => effectiveEdit(edits?.[b.id], defaultFor(input.page?.components, b)),
       section: slot.motion,
       select: (b) => `.${clip.rootClass} .${blockClass(b.id)}`,
       root: rootSel,
@@ -360,7 +377,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       localVars = rest
       css = `${varsToCss(rest, `.${clip.rootClass}`)}\n\n${css}`
       addFonts(clip.tokens)
-    } else if ((slot.surface && slot.surface !== 'page') || slot.width) {
+    } else if (banded) {
       // A band in the guide's own colors, or its own width: the section's tokens, re-mixed, on this section only.
       const { ['--mx-vh']: _vh, ...rest } = expandTokens(sectionTokens(input.guide.tokens, slot))
       localVars = rest
@@ -387,6 +404,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       component,
       clip,
       keep: slot.keep,
+      ...(slot.locked ? { locked: true } : {}),
       ...(own.inspiredBy ?? libraryClip.inspiredBy ? { inspiredBy: own.inspiredBy ?? libraryClip.inspiredBy } : {}),
       tree,
       source: shown,
@@ -443,6 +461,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     sections,
     mediaFiles,
     moving: sections.some((x) => x.media.some((m) => (m.kind !== 'image' && m.kind !== 'mock' && m.kind !== 'shader') || m.lightbox)),
+    sliding: sections.some((x) => x.clip.html.includes('data-slider')),
     shaders,
     pages: [...new Set(sections.flatMap((x) => x.links.filter((l) => l.to === 'page').map((l) => l.href)))].sort(),
   }
@@ -503,6 +522,7 @@ export function composeSite(input: Omit<ComposeInput, 'slots' | 'key' | 'used' |
     sections: all.flatMap((c) => c.sections),
     mediaFiles: Object.assign({}, ...all.map((c) => c.mediaFiles), collectionMedia),
     moving: all.some((c) => c.moving),
+    sliding: all.some((c) => c.sliding),
     shaders: all.flatMap((c) => c.shaders),
     pages: [...new Set(all.flatMap((c) => c.pages))].filter((p) => !paths.has(p)).sort(),
     site: {

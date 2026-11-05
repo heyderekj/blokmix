@@ -140,6 +140,11 @@ export const BLOCK_COMMANDS = {
     }),
     write: true,
   },
+  set_slider: {
+    description: 'Arrange a slider section, among what its layout offers (get_page lists each section’s slider options): slide (how each slide is composed), show (how many at once), intro (where the section’s own words sit). Add, remove or reorder slides with edit_list; each slide has its own fields.',
+    input: z.object({ section, slide: z.string().optional(), show: z.number().int().min(1).max(8).optional(), intro: z.string().optional() }),
+    write: true,
+  },
   set_banner: {
     description: 'Navs only: show an announcement banner above the nav (a strip of short messages, a ticker by default) or remove it. Its messages are the notices list (edit_list / set_list); its looks are Inverted, Quiet, Accent and Still (set_block on the banner).',
     input: z.object({ section, on: z.boolean() }),

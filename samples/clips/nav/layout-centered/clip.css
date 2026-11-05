@@ -7,7 +7,8 @@
     max-width: var(--mx-width-content);
     margin: 0 auto;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    /* The name stays centred while both sides fit; when they don't, it moves rather than overlap them. */
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
     align-items: center;
     gap: var(--mx-space-6);
     padding-bottom: var(--mx-space-5);
@@ -26,65 +27,48 @@
     gap: var(--mx-space-6);
   }
   & .link {
-    position: relative;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     padding: var(--mx-space-1) 0;
     font-size: var(--mx-text-sm);
     font-weight: 500;
     color: var(--mx-color-muted);
     white-space: nowrap;
+    cursor: pointer;
     transition: color var(--mx-motion-duration) var(--mx-motion-ease);
   }
-  & .link::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform var(--mx-motion-duration) var(--mx-motion-ease);
-  }
-  & .link:hover { color: var(--mx-color-text); }
-  & .link:hover::after { transform: scaleX(1); }
   & .brand {
     display: inline-flex;
-    flex-direction: column;
     align-items: center;
-    gap: var(--mx-space-2);
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
     font-size: var(--mx-text-xl);
     line-height: 1;
     letter-spacing: -0.015em;
   }
-  & .mark {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--mx-color-accent);
-  }
   & .cta {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     padding: var(--mx-space-2) var(--mx-space-4);
     border-radius: var(--mx-radius-pill);
-    box-shadow: inset 0 0 0 1px var(--mx-color-border);
+    background: var(--mx-color-primary);
+    color: var(--mx-color-on-primary);
     font-size: var(--mx-text-sm);
     font-weight: 600;
     white-space: nowrap;
-    transition: background var(--mx-motion-duration) var(--mx-motion-ease), color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  & .cta:hover {
-    background: var(--mx-color-primary);
-    color: var(--mx-color-on-primary);
-    box-shadow: inset 0 0 0 1px var(--mx-color-primary);
-  }
+  & .cta:active { scale: 0.97; }
   & a:focus-visible {
-    outline: 2px solid var(--mx-color-accent);
+    outline: 2px solid var(--mx-color-text);
     outline-offset: 3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .link:hover { color: var(--mx-color-text); }
+    & .cta:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-bg)); }
   }
 
   @media (max-width: 760px) {
@@ -95,14 +79,15 @@
       /* Two equal halves, so long links wrap inside theirs instead of pushing the button off the edge. */
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       grid-template-areas: "brand cta" "left right";
-      row-gap: var(--mx-space-4);
+      row-gap: var(--mx-space-2);
       column-gap: var(--mx-space-5);
-      padding-bottom: var(--mx-space-3);
+      padding-bottom: var(--mx-space-1);
     }
-    & .brand { grid-area: brand; justify-self: start; flex-direction: row; font-size: var(--mx-text-lg); }
+    & .brand { grid-area: brand; justify-self: start; min-height: 44px; font-size: var(--mx-text-lg); }
     & .right { display: contents; }
-    & .cta { grid-area: cta; justify-self: end; }
-    & .left { grid-area: left; flex-wrap: wrap; gap: var(--mx-space-2) var(--mx-space-5); }
-    & .right .links { grid-area: right; justify-self: start; flex-wrap: wrap; gap: var(--mx-space-2) var(--mx-space-5); }
+    & .cta { grid-area: cta; justify-self: end; min-height: 44px; }
+    & .left { grid-area: left; flex-wrap: wrap; gap: 0 var(--mx-space-5); }
+    & .right .links { grid-area: right; justify-self: start; flex-wrap: wrap; gap: 0 var(--mx-space-5); }
+    & .link { min-height: 44px; padding: 0; }
   }
 }

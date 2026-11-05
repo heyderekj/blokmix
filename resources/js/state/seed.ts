@@ -31,6 +31,7 @@ export function buildSeed(lib: Library): MixData {
     id: 'seed',
     name: 'Blokmix launch page',
     description: 'The demo mix',
+    skin: 'wireframe',
     pages: [
       { path: '/', title: 'Home', sections: pick(SEED_PICKS), slotPrefix: 'slot_seed' },
       { path: '/about', title: 'About', sections: pick(ABOUT_PICKS), id: 'page_about', slotPrefix: 'slot_about' },

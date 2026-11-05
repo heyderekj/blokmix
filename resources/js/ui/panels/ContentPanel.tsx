@@ -1,3 +1,4 @@
+import { Switch } from './parts'
 import { useMemo, useState, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, Bookmark, Copy, Minus, Plus, Undo2, Archive } from 'lucide-react'
 import type { Slot } from '@/core/types'
@@ -93,6 +94,12 @@ function SectionWords({ slot, index }: { slot: Slot; index: number }) {
         <span className="text-[11px] font-semibold tabular-nums text-zinc-400">{String(index + 1).padStart(2, '0')}</span>
         <h4 className="eyebrow hover:text-zinc-900">{TYPE_LABEL[slot.type]}</h4>
       </button>
+      {clip.origin !== 'layout' && (
+        <div className="mb-2.5 flex items-center justify-between gap-3 text-[12px] font-medium text-zinc-600">
+          Use the words it came with
+          <Switch on={slot.keep.content} onChange={() => st().toggleKeep(slot.id, 'content')} label="Use the words this section was clipped with" />
+        </div>
+      )}
       {nodes.length ? <Nodes nodes={nodes} slot={slot} clip={clip} fields={fields} /> : <p className="text-[12px] text-zinc-400">No words in this section.</p>}
     </section>
   )

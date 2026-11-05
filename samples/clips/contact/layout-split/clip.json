@@ -2,11 +2,9 @@
   "title": "Split with form",
   "layoutPattern": "split-details-form",
   "rhythm": "split",
-  "style": "editorial",
-  "feel": ["calm"],
   "density": "balanced",
   "tier": "free",
-  "motionNotes": "Text column rises in a short stagger; the form card follows. Inputs ring on focus, the button lifts on hover.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

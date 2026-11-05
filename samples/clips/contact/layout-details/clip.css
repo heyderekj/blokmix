@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -16,7 +16,7 @@
   }
   & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
   & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
-  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
@@ -37,6 +37,7 @@
     border-radius: 50%;
     background: var(--mx-color-surface);
     color: var(--mx-color-text);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
   }
 
   & .value {
@@ -52,14 +53,14 @@
     cursor: pointer;
     text-decoration: underline;
     text-decoration-color: transparent;
-    text-decoration-thickness: calc(var(--mx-stroke) * 2);
+    text-decoration-thickness: var(--mx-stroke);
     text-underline-offset: 0.14em;
     transition: text-decoration-color var(--mx-motion-duration) var(--mx-motion-ease);
   }
   & .details + .note { margin-top: var(--mx-space-6); }
 
   @media (hover: hover) and (pointer: fine) {
-    & a.value:hover { text-decoration-color: var(--mx-color-accent); }
+    & a.value:hover { text-decoration-color: var(--mx-color-text); }
   }
 
   @container (max-width: 952px) {

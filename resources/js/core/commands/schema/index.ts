@@ -15,8 +15,9 @@ import { TREATMENT_COMMANDS } from './treatments'
 import { COLLECTION_COMMANDS } from './collections'
 import { LIBRARY_COMMANDS } from './library'
 import { START_COMMANDS } from './start'
+import { SKIN_COMMANDS } from './skins'
 
-export const COMMANDS = { ...PAGE_COMMANDS, ...SITE_COMMANDS, ...BLOCK_COMMANDS, ...TREATMENT_COMMANDS, ...NOTE_COMMANDS, ...VERSION_COMMANDS, ...COLLECTION_COMMANDS, ...LIBRARY_COMMANDS, ...START_COMMANDS } as const
+export const COMMANDS = { ...PAGE_COMMANDS, ...SITE_COMMANDS, ...BLOCK_COMMANDS, ...TREATMENT_COMMANDS, ...NOTE_COMMANDS, ...VERSION_COMMANDS, ...COLLECTION_COMMANDS, ...LIBRARY_COMMANDS, ...START_COMMANDS, ...SKIN_COMMANDS } as const
 
 export type CommandName = keyof typeof COMMANDS
 export type CommandInput<N extends CommandName> = z.infer<(typeof COMMANDS)[N]['input']>

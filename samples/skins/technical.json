@@ -1,0 +1,168 @@
+{
+  "name": "Technical",
+  "words": "Dark, precise and calm under pressure, like a good dev tool.",
+  "tier": "pack",
+  "mode": "dark",
+  "tokens": {
+    "font.display": "'Geist', system-ui, sans-serif",
+    "font.body": "'Geist', system-ui, sans-serif",
+    "font.mono": "'Geist Mono', ui-monospace, monospace",
+    "type.base": "15px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "600",
+    "radius.base": "8px",
+    "space.section": "96px",
+    "shadow.card": "0 0 0 1px rgb(255 255 255 / 0.06), 0 20px 40px rgb(0 0 0 / 0.4)",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "color.bg": "#0a1015",
+    "color.surface": "#141c22",
+    "color.text": "#ebeff3",
+    "color.muted": "#9fa6ab",
+    "color.border": "#272f35",
+    "color.primary": "#7cc7ff",
+    "color.onPrimary": "#0a131a",
+    "color.accent": "#e48da5"
+  },
+  "components": {
+    "badge": {
+      "variant": "mono"
+    },
+    "card": {
+      "variant": "bordered"
+    },
+    "icon": {
+      "variant": "ring"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "grid"
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "cta": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "nav": {
+      "backdrop": {
+        "id": "grid"
+      }
+    }
+  },
+  "picture": {
+    "style": "dither"
+  }
+}

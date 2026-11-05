@@ -1,8 +1,8 @@
-// The guided start: three light answers (what you're making, a feel, maybe a
-// brand color) become three real starting mixes. Starter mixes that fit come
-// first; the rest are put together from the library's two shelves, following the
-// page order people expect for that kind of site. Pure: measuring and picking
-// the best happen in the browser (`lib/start.ts`).
+// The guided start: what you're making becomes three raw starts, in Wireframe, to pick
+// a structure; the one you pick then goes under the skins, with your brand color if you
+// have one. Starter mixes that fit come first; the rest are put together from the
+// library's two shelves, following the page order people expect for that kind of site.
+// Pure: measuring and picking the best happen in the browser (`lib/start.ts`).
 
 import type { GuideState, Kind, Library, ProjectContent, SectionType, Site, Slot, Starter } from './types'
 import { DEFAULT_KEEP } from './types'
@@ -11,9 +11,11 @@ import { DEFAULT_CONTENT, FIELD_SCHEMA } from './content'
 import { KIND_WORDS, SHARED_WORDS } from './startWords'
 import { siteFromSlots } from './site'
 import { suggestClip, suggestTypes } from './suggest'
-import { pickable, shelfOf, starterOpen, toneOf } from './library'
-import { vibeById, vibeTokens, type Vibe } from './vibes'
-import type { Mode } from './palette'
+import { pickable, shelfOf, starterOpen } from './library'
+import { applySkin, skinById, skinList, WIREFRAME } from './skins'
+import { setTone } from './dials'
+import { paletteFrom, type Mode } from './palette'
+import { resolveGuide } from './guide'
 
 export interface StartInput {
   kind: Kind
@@ -21,8 +23,9 @@ export interface StartInput {
   name: string
   /** In one line, what it is: becomes the main headline. */
   oneLiner?: string
-  vibe: string
-  /** One brand color (hex); the vibe's own when left out. */
+  /** The skin it's dressed in; Wireframe until you've picked a structure. */
+  skin?: string
+  /** One brand color (hex); the skin's own when left out. */
   brand?: string | null
   mode?: Mode
   /** Shuffle: a different seed gives different picks. */
@@ -61,10 +64,14 @@ export const RECIPES: Record<Kind, { home: SectionType[]; about?: SectionType[] 
   writing: { home: ['nav', 'hero', 'blog', 'testimonials', 'cta', 'footer'] },
 }
 
-/** The style guide for a start: the vibe's choices and a palette from your brand color. */
-export function guideFor(input: Pick<StartInput, 'vibe' | 'brand' | 'mode'>): GuideState {
-  const vibe = vibeById(input.vibe)
-  return { ...emptyGuide(), base: vibeTokens(vibe, { brand: input.brand, mode: input.mode }) }
+/** The style guide for a start: a skin, with a palette from your brand color, or turned the other way, if you asked. */
+export function guideFor(input: Pick<StartInput, 'skin' | 'brand' | 'mode'>): GuideState {
+  const skin = skinById(input.skin ?? WIREFRAME) ?? skinList()[0]
+  if (!skin) return emptyGuide()
+  const guide = applySkin(emptyGuide(), skin)
+  const mode = input.mode ?? skin.mode
+  const colors = input.brand ? paletteFrom(input.brand, mode) : mode !== skin.mode ? setTone(resolveGuide(guide).tokens, mode) : null
+  return colors ? { ...guide, base: { ...guide.base, ...colors } } : guide
 }
 
 /** An address for the contact section, made from the site's name: "Fern & Co" → hello@fernco.com. */
@@ -109,21 +116,13 @@ const mix = (...parts: (string | number)[]) => {
   return h >>> 0
 }
 
-/** How well a clip suits the vibe: its feel tag, or (for clips without tags) whether its own colors match light or dark. */
-function suits(lib: Library, clipId: string, vibe: Vibe, mode: Mode): number {
-  const clip = lib.clips[clipId]
-  if (!vibe.feel) return clip.origin === 'layout' ? 1 : 0 // Sketch: plain sections read best
-  if (clip.feel?.length) return clip.feel.includes(vibe.feel) ? (clip.feel[0] === vibe.feel ? 3 : 2) : 0
-  const tone = toneOf(clip)
-  return (tone === 'dark') === (mode === 'dark') ? 1 : 0
-}
-
 /**
  * One page, filled section by section. Each spot ranks the clips for its type the
- * way Add section does (rhythm contrast with the section above), plus how well each
- * suits the vibe; `variant` and the seed pick among the best few so starts differ.
+ * way Add section does (rhythm contrast with the section above), built-in layouts
+ * first since they take any skin; `variant` and the seed pick among the best few so
+ * starts differ.
  */
-function fillPage(lib: Library, types: SectionType[], vibe: Vibe, mode: Mode, variant: number, seed: number, hero?: string): string[] {
+function fillPage(lib: Library, types: SectionType[], variant: number, seed: number, hero?: string): string[] {
   const out: string[] = []
   for (const type of types) {
     if (type === 'hero' && hero) {
@@ -132,7 +131,7 @@ function fillPage(lib: Library, types: SectionType[], vibe: Vibe, mode: Mode, va
     }
     const slots = out.map((clipId) => ({ type: lib.clips[clipId].type, clipId }))
     const ranked = suggestClip(type, slots, slots.length, lib)
-      .map((s, i) => ({ id: s.clipId, score: suits(lib, s.clipId, vibe, mode) * 2 - i * 0.25 }))
+      .map((s, i) => ({ id: s.clipId, score: (lib.clips[s.clipId].origin === 'layout' ? 2 : 0) - i * 0.25 }))
       .sort((a, b) => b.score - a.score)
     if (!ranked.length) continue
     const top = ranked.slice(0, Math.min(3, ranked.length))
@@ -141,12 +140,12 @@ function fillPage(lib: Library, types: SectionType[], vibe: Vibe, mode: Mode, va
   return out
 }
 
-/** Heroes for generated starts: the vibe's favourites, then any hero that suits it, then the rest. */
-function heroesFor(lib: Library, vibe: Vibe, mode: Mode): string[] {
+/** Heroes for generated starts: built-in layouts first, in an order the seed turns, so each start opens differently. */
+function heroesFor(lib: Library, seed: number): string[] {
   const all = pickable(lib, 'hero')
-  const fav = vibe.heroes.filter((id) => all.includes(id))
-  const suited = all.filter((id) => !fav.includes(id) && suits(lib, id, vibe, mode) >= 2)
-  return [...new Set([...fav, ...suited, ...all])]
+  const layouts = all.filter((id) => lib.clips[id].origin === 'layout')
+  const turn = layouts.length ? mix(seed, 'hero') % layouts.length : 0
+  return [...new Set([...layouts.slice(turn), ...layouts.slice(0, turn), ...all])]
 }
 
 const countShelves = (lib: Library, site: Site) => {
@@ -159,9 +158,9 @@ const countShelves = (lib: Library, site: Site) => {
 
 const signature = (site: Site) => [site.shared.nav, ...site.pages.flatMap((p) => p.slots), site.shared.footer].map((s) => s?.clipId ?? '').join(',')
 
-/** Starter mixes for a kind of site this mix can use, the ones in the chosen feel first. */
-export function startersFor(lib: Library, kind: Kind, vibe: string): Starter[] {
-  return lib.starters.filter((s) => s.kind === kind && starterOpen(lib, s)).sort((a, b) => Number(b.vibe === vibe) - Number(a.vibe === vibe))
+/** Starter mixes for a kind of site this mix can use. */
+export function startersFor(lib: Library, kind: Kind): Starter[] {
+  return lib.starters.filter((s) => s.kind === kind && starterOpen(lib, s))
 }
 
 /**
@@ -170,8 +169,6 @@ export function startersFor(lib: Library, kind: Kind, vibe: string): Starter[] {
  * Every start shares the same style guide and words, so they differ in layout only.
  */
 export function startCandidates(input: StartInput, lib: Library, n = 3): StartCandidate[] {
-  const vibe = vibeById(input.vibe)
-  const mode = input.mode ?? vibe.mode
   const seed = input.seed ?? 0
   const guide = guideFor(input)
   const content = contentFor(input)
@@ -184,7 +181,7 @@ export function startCandidates(input: StartInput, lib: Library, n = 3): StartCa
     out.push({ ...c, id: `start${out.length}`, shelves: countShelves(lib, c.site) })
   }
 
-  const starters = startersFor(lib, input.kind, input.vibe)
+  const starters = startersFor(lib, input.kind)
   const offset = starters.length ? seed % starters.length : 0
   for (const s of [...starters.slice(offset), ...starters.slice(0, offset)].slice(0, Math.min(2, n - 1))) {
     push({ label: `Starter: ${s.name}`, from: 'starter', starterId: s.id, site: siteFromPages(lib, s.pages, `${s.id}_`), guide, content })
@@ -192,11 +189,11 @@ export function startCandidates(input: StartInput, lib: Library, n = 3): StartCa
 
   const recipe = RECIPES[input.kind]
   const usedHeroes = new Set(out.map((c) => c.site.pages[0].slots.find((s) => s.type === 'hero')?.clipId))
-  const heroes = heroesFor(lib, vibe, mode).filter((id) => !usedHeroes.has(id))
+  const heroes = heroesFor(lib, seed).filter((id) => !usedHeroes.has(id))
   for (let variant = 0, tries = 0; out.length < n && tries < n * 4; variant++, tries++) {
     const hero = heroes.length ? heroes[(variant + seed) % heroes.length] : undefined
-    const pages = [{ path: '/', title: 'Home', sections: fillPage(lib, recipe.home, vibe, mode, variant, seed, hero) }]
-    if (recipe.about) pages.push({ path: '/about', title: 'About', sections: fillPage(lib, recipe.about, vibe, mode, variant, seed) })
+    const pages = [{ path: '/', title: 'Home', sections: fillPage(lib, recipe.home, variant, seed, hero) }]
+    if (recipe.about) pages.push({ path: '/about', title: 'About', sections: fillPage(lib, recipe.about, variant, seed) })
     const site = siteFromPages(lib, pages, `gen${variant}_`)
     const shelves = countShelves(lib, site)
     const label = shelves.real ? `${shelves.real} real-site section${shelves.real === 1 ? '' : 's'}, ${shelves.plain} plain` : `${lib.clips[hero ?? '']?.title ?? 'A fresh mix'}`

@@ -61,7 +61,7 @@
   & .question::-webkit-details-marker { display: none; }
   & .question::marker { content: ''; }
   & .question:hover { color: color-mix(in oklab, var(--mx-color-text) 72%, var(--mx-color-muted)); }
-  & .question:focus-visible { outline: 2px solid var(--mx-color-primary); outline-offset: 4px; border-radius: var(--mx-radius-sm); }
+  & .question:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 4px; border-radius: var(--mx-radius-sm); }
   & .icon {
     display: grid;
     place-items: center;
@@ -71,16 +71,8 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-pill);
     color: var(--mx-color-text);
-    transition: background var(--mx-motion-duration) var(--mx-motion-ease), border-color var(--mx-motion-duration) var(--mx-motion-ease), color var(--mx-motion-duration) var(--mx-motion-ease);
   }
-  & .icon svg { transition: transform var(--mx-motion-duration) var(--mx-motion-ease); }
   & .icon .v { transition: opacity var(--mx-motion-duration) var(--mx-motion-ease); }
-  & .item[open] .icon {
-    background: var(--mx-color-primary);
-    border-color: var(--mx-color-primary);
-    color: var(--mx-color-on-primary);
-  }
-  & .item[open] .icon svg { transform: rotate(180deg); }
   & .item[open] .icon .v { opacity: 0; }
   & .answer {
     max-width: 62ch;
@@ -109,13 +101,12 @@
     font-weight: 600;
     color: var(--mx-color-text);
     text-decoration: underline;
-    text-decoration-color: var(--mx-color-accent);
-    text-decoration-thickness: 2px;
     text-underline-offset: 4px;
+    cursor: pointer;
     transition: text-underline-offset var(--mx-motion-duration) var(--mx-motion-ease);
   }
   & .contact-cta:hover { text-underline-offset: 6px; }
-  & .contact-cta:focus-visible { outline: 2px solid var(--mx-color-primary); outline-offset: 2px; }
+  & .contact-cta:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 2px; }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-4);

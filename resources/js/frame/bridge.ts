@@ -72,6 +72,8 @@ export interface FrameState {
   fields: Record<string, string> | null
   fonts: (string | null)[]
   outline: boolean
+  /** A slider's arrangement, as attributes on the section root. */
+  slider: { slide?: string; show?: number; intro?: string }
   /** Block variants and styles: CSS for @layer blocks, plus each edited block's variant id. */
   blocks: { css: string; variants: Record<string, string> }
   /** Pictures and moving media filling image blocks, by block id. */

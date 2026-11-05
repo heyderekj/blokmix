@@ -4,7 +4,7 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container {
-    max-width: 1120px;
+    max-width: var(--mx-width-content);
     margin: 0 auto;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
@@ -21,13 +21,6 @@
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--mx-color-muted);
-  }
-  & .eyebrow::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--mx-color-accent);
   }
   & .heading {
     margin-top: var(--mx-space-4);
@@ -48,7 +41,7 @@
     text-wrap: pretty;
   }
 
-  /* 2×2 figures, each topped by a hairline */
+  /* 2×2 figures, each topped by a hairline. */
   & .stats {
     margin: 0;
     display: grid;
@@ -56,23 +49,12 @@
     gap: var(--mx-space-9) var(--mx-space-8);
   }
   & .stat {
-    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--mx-space-3);
     padding-top: var(--mx-space-6);
     border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
-  & .stat::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: 0;
-    width: 32px;
-    height: 2px;
-    background: var(--mx-color-text);
-  }
-  & .stat:first-child::before { background: var(--mx-color-accent); }
   & .value {
     margin: 0;
     font-family: var(--mx-font-display);

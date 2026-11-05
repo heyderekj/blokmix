@@ -1,4 +1,5 @@
 import type { Library, Note, Slot, MixSnapshot, VersionNode } from './types'
+import { isEmptyContract } from './contract'
 import { stableStringify } from './hash'
 import { slotOf } from './notes'
 
@@ -39,8 +40,8 @@ export function descendants(versions: Record<string, VersionNode>, id: string): 
   return kids.flatMap((k) => [k.id, ...descendants(versions, k.id)])
 }
 
-export function snapshotKey(s: Pick<MixSnapshot, 'site' | 'guide' | 'content'>): string {
-  return stableStringify({ site: s.site, guide: { candidates: s.guide.candidates, choices: s.guide.choices }, content: s.content })
+export function snapshotKey(s: Pick<MixSnapshot, 'site' | 'guide' | 'content' | 'contract'>): string {
+  return stableStringify({ site: s.site, guide: s.guide, content: s.content, contract: isEmptyContract(s.contract) ? null : s.contract })
 }
 
 export function slotNotesFor(slots: Slot[], notes: Note[]): Record<string, string[]> {

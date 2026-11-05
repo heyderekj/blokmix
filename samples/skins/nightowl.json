@@ -1,0 +1,206 @@
+{
+  "name": "Night Owl",
+  "words": "A terminal after midnight: near-black, neon green, glowing edges.",
+  "tier": "pack",
+  "mode": "dark",
+  "tokens": {
+    "color.bg": "#0b0d0e",
+    "color.surface": "#14181a",
+    "color.text": "#e8f0ec",
+    "color.muted": "#8a9a93",
+    "color.border": "#252d30",
+    "color.primary": "#3dff8f",
+    "color.onPrimary": "#04140b",
+    "color.accent": "#7cc7ff",
+    "font.display": "'Space Grotesk', system-ui, sans-serif",
+    "font.body": "'Inter', system-ui, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "15px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "600",
+    "radius.base": "10px",
+    "stroke.width": "1px",
+    "shadow.card": "0 0 0 1px #252d30, 0 20px 40px #00000066",
+    "space.base": "4px",
+    "space.section": "96px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+  },
+  "effects": {
+    "glow": {
+      "id": "glow",
+      "params": {
+        "color": "primary",
+        "size": 22,
+        "strength": 80
+      }
+    },
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 22,
+        "softness": 70,
+        "layers": 4,
+        "opacity": 40,
+        "tighten": 30,
+        "tint": "primary"
+      }
+    },
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "shape": "conic",
+        "stops": [
+          "primary",
+          "accent",
+          "primary"
+        ],
+        "angle": 90
+      }
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "mono"
+    },
+    "card": {
+      "variant": "glow"
+    },
+    "icon": {
+      "variant": "ring"
+    },
+    "link": {
+      "variant": "mono"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "dots"
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "cta": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "nav": {
+      "backdrop": {
+        "id": "dots"
+      }
+    }
+  },
+  "picture": {
+    "style": "ascii"
+  }
+}

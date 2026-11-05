@@ -1,15 +1,16 @@
 {
   "title": "Headline over a collage",
-  "layoutPattern": "oversized-headline-overlapping-tilted-collage",
+  "layoutPattern": "oversized-headline-overlapping-collage",
   "rhythm": "split",
-  "style": "playful",
-  "feel": ["friendly"],
   "density": "airy",
-  "motionNotes": "The headline and copy rise while the three pictures drop onto the pile one after another; on hover the pile loosens slightly. Reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-30T00:00:00Z"
   }
 }

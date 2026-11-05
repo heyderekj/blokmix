@@ -6,7 +6,7 @@
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -33,14 +33,9 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
-
-  /* The photograph fills the header; a centred pool of page colour keeps the copy legible on any image. */
+  /* The picture fills the header, under the copy. */
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -51,22 +46,20 @@
     inset: 0;
     z-index: 0;
     overflow: hidden;
-    background: color-mix(in oklab, var(--mx-color-text) 6%, var(--mx-color-surface));
+    background: var(--mx-color-surface);
   }
-  /* Placeholder: boards of timber laid at an angle across the bench. */
-  & .sheet { left: -10%; right: -10%; height: 30%; rotate: -8deg; border-radius: 0; }
-  & .s1 { top: -6%; background: color-mix(in oklab, var(--mx-color-text) 12%, var(--mx-color-surface)); }
-  & .s2 { top: 34%; background: color-mix(in oklab, var(--mx-color-accent) 18%, var(--mx-color-surface)); }
-  & .s3 { top: 74%; background: color-mix(in oklab, var(--mx-color-text) 16%, var(--mx-color-surface)); }
-  & .backdrop .orb { right: 9%; top: 16%; width: clamp(64px, 8vw, 120px); opacity: 0.8; }
-  & .scrim {
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
     position: absolute;
     inset: 0;
-    z-index: 1;
-    background:
-      radial-gradient(ellipse 52% 72% at 50% 50%, color-mix(in oklab, var(--mx-color-bg) 92%, transparent), color-mix(in oklab, var(--mx-color-bg) 70%, transparent) 60%, color-mix(in oklab, var(--mx-color-bg) 34%, transparent));
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
   }
-  & .lead { color: color-mix(in oklab, var(--mx-color-text) 76%, var(--mx-color-bg)); }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
@@ -77,7 +70,5 @@
   }
   @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
-    & .sheet { rotate: -14deg; }
-    & .scrim { background: color-mix(in oklab, var(--mx-color-bg) 80%, transparent); }
   }
 }

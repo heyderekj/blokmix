@@ -2,7 +2,7 @@
   "name": "Sign-up page",
   "description": "A warm, personal page to gather sign-ups: portrait hero, what you get, kind words, and a sign-up band.",
   "kind": "writing",
-  "vibe": "friendly",
+  "skin": "friendly",
   "tokens": {
     "color.bg": "#fdfcff",
     "color.surface": "#f3effe",

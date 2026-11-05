@@ -4,8 +4,8 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -24,33 +24,23 @@
   }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
   & .avatar {
+    position: relative;
+    overflow: hidden;
     display: grid;
     place-items: center;
     flex: none;
     width: 44px;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: linear-gradient(135deg, color-mix(in oklab, var(--mx-color-accent) 70%, var(--mx-color-bg)), var(--mx-color-primary));
-    color: var(--mx-color-on-primary);
     font-size: var(--mx-text-sm);
     font-weight: 600;
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    color: var(--mx-color-muted);
   }
 
   & .top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--mx-space-6); }
   & .top + .row { margin-top: var(--mx-space-9); }
-  /* Decoration only: a pair of arrows that reads as a carousel. */
-  & .arrows { display: flex; gap: var(--mx-space-2); }
-  & .arrow {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    color: var(--mx-color-muted);
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
-  }
-  & .arrow svg { width: 20px; height: 20px; }
-  & .arrow.next { color: var(--mx-color-text); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-text); }
 
   /* The row: two cards in view and the third peeking, snapping card by card. */
   & .row {
@@ -70,12 +60,44 @@
   & .who { display: flex; flex-direction: column; gap: var(--mx-space-1); }
   & .name { font-weight: 600; line-height: 1.3; }
 
+  & .slider { min-width: 0; display: grid; gap: var(--mx-space-4); }
+
+  /* Arrows, dots and a count, once /mx-slider.js is running; swiping works without it. Everything fitting hides them. */
+  & .controls { display: none; align-items: center; gap: var(--mx-space-2); }
+  & [data-slider-ready] > .controls { display: flex; }
+  & [data-slider-fits] > .controls { display: none; }
+  & .arrow {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border: 0;
+    border-radius: var(--mx-radius-pill);
+    background: transparent;
+    color: var(--mx-color-text);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .arrow:active { scale: 0.97; }
+  & .arrow:disabled { color: var(--mx-color-muted); cursor: default; opacity: 0.5; scale: 1; }
+  & .arrow svg { width: 18px; height: 18px; }
+  & .dots { display: flex; flex: 1; align-items: center; justify-content: center; flex-wrap: wrap; min-width: 0; }
+  & .dot { display: grid; place-items: center; width: 28px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  & .pip { width: 8px; height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 22%, transparent); transition: width 240ms cubic-bezier(0.23, 1, 0.32, 1), background-color 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+  & .dot[aria-current] .pip { width: 20px; background: var(--mx-color-text); }
+  & .count { flex: none; font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); color: var(--mx-color-muted); font-variant-numeric: tabular-nums; }
+  & button:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 2px; }
+  @media (hover: hover) and (pointer: fine) {
+    & .arrow:not(:disabled):hover { background: var(--mx-color-surface); }
+  }
+
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
     & .top + .row { margin-top: var(--mx-space-8); }
-    & .arrows { display: none; }
     & .row { grid-auto-columns: 84%; gap: var(--mx-space-3); }
     & .row .card { padding: var(--mx-space-6); gap: var(--mx-space-6); }
     & .quote p { font-size: var(--mx-text-lg); }

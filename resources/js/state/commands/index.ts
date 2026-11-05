@@ -2,8 +2,9 @@ import { COMMANDS, toolDefinitions, type CommandName } from '@/core/commands/sch
 import { useCollections } from '../collections'
 import { useStore } from '../store'
 import { canEdit, useAccount } from '@/lib/account'
-import { CommandError } from './refs'
+import { CommandError, findSection } from './refs'
 import { PackRefusal, strictly } from '../plan'
+import { contractRefusal } from '@/core/contract'
 import * as read from './read'
 import * as review from './review'
 import * as notes from './notes'
@@ -16,11 +17,12 @@ import * as treatments from './treatments'
 import * as collectionCmds from './collections'
 import * as libraryCmds from './library'
 import * as start from './start'
+import * as skins from './skins'
 
 export { CommandError, describeNote } from './refs'
 
-const READ = { ...read.read, ...pageCmds.textStyleRead, ...siteCmds.read, ...treatments.read, ...notes.read, ...versions.read, ...collectionCmds.read }
-const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write, ...collectionCmds.write }
+const READ = { ...read.read, ...pageCmds.textStyleRead, ...siteCmds.read, ...treatments.read, ...notes.read, ...versions.read, ...collectionCmds.read, ...skins.read }
+const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write, ...collectionCmds.write, ...skins.write }
 
 /**
  * Runs the commands in core/commands/schema.ts against the live mix. Every
@@ -65,6 +67,15 @@ function run(name: string, raw: unknown, by: Caller): unknown {
   const parsed = cmd.input.safeParse(raw ?? {})
   if (!parsed.success) throw new CommandError(`Invalid input for ${name}: ${parsed.error.issues.map((i) => `${i.path.join('.') || 'input'}: ${i.message}`).join('; ')}`)
   const input = parsed.data as Record<string, unknown>
+  // An agent answers to the contract; you own it, so your own controls don't.
+  if (cmd.write && by === 'agent') {
+    const refusal = contractRefusal(useStore.getState().contract, name, input)
+    if (refusal) throw new CommandError(refusal)
+    // A locked section is hands off for agents too, apart from leaving marks on it.
+    if (input.section !== undefined && !MARKS.has(name) && findSection(input.section as string | number, input.page as string | undefined).locked) {
+      throw new CommandError(`This section is locked, so ${name} can’t change it. Leave a note, or ask whoever owns this mix to unlock it.`)
+    }
+  }
   if (cmd.write && useAccount.getState().archived && !MARKS.has(name))
     throw new CommandError(`This mix is archived: you can leave marks (${[...MARKS].join(', ')}), not ${name}. Its owner can bring it back from the mixes page or the top bar.`)
   if (cmd.write && !canEdit(useAccount.getState().role) && !MARKS.has(name))
@@ -86,7 +97,7 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
   const t = useStore.temporal.getState()
   const s = useStore.getState()
   const collectionsBefore = useCollections.getState().bySlug
-  const before = { site: s.site, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }
+  const before = { site: s.site, guide: s.guide, content: s.content, contract: s.contract, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }
   t.pause()
   let result: unknown
   try {
@@ -95,7 +106,7 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
     t.resume()
   }
   const after = useStore.getState()
-  if (after.site !== before.site || after.guide !== before.guide || after.content !== before.content || after.versions !== before.versions || after.notes !== before.notes) {
+  if (after.site !== before.site || after.guide !== before.guide || after.content !== before.content || after.contract !== before.contract || after.versions !== before.versions || after.notes !== before.notes) {
     useStore.temporal.setState((x) => ({ pastStates: [...x.pastStates, before].slice(-100), futureStates: [] }))
     if (by === 'agent') after.showFlash(`Agent: ${summary(name, input)}`, { undo: true })
   } else if (by === 'agent' && useCollections.getState().bySlug !== collectionsBefore) after.showFlash(`Agent: ${summary(name, input)}`, { undo: 'collections' })
@@ -130,7 +141,7 @@ function summary(name: string, input: Record<string, unknown>): string {
     case 'use_site_style':
       return `added ${input.site}’s look to the style guide`
     case 'apply_start':
-      return `started over from a ${input.vibe} start`
+      return `started over from a ${input.skin ?? 'wireframe'} start`
     case 'reply_note':
       return `replied on N${String(input.note).replace(/^n/i, '')}`
     default:

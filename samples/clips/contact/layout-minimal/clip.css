@@ -4,8 +4,8 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -14,7 +14,7 @@
     letter-spacing: -0.02em;
   }
   & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
-  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-5 { grid-column-end: span 5; }
   & .col-7 { grid-column-end: span 7; }
@@ -41,14 +41,15 @@
     min-width: 0;
     overflow-wrap: anywhere;
     text-decoration: underline;
-    text-decoration-color: var(--mx-color-accent);
-    text-decoration-thickness: calc(var(--mx-stroke) * 2);
+    text-decoration-color: var(--mx-color-border);
+    text-decoration-thickness: var(--mx-stroke);
+    transition: text-decoration-color var(--mx-motion-duration) var(--mx-motion-ease);
     text-underline-offset: 0.16em;
   }
-  & .big svg { flex: none; width: 0.6em; height: 0.6em; transition: transform var(--mx-motion-duration) var(--mx-motion-ease); }
+  & .big svg { flex: none; width: 0.6em; height: 0.6em; }
 
   @media (hover: hover) and (pointer: fine) {
-    & .big:hover svg { transform: translate(3px, -3px); }
+    & .big:hover span { text-decoration-color: var(--mx-color-text); }
   }
 
   @container (max-width: 952px) {

@@ -1,0 +1,205 @@
+{
+  "name": "Puffin",
+  "words": "Soft and floaty: lavender whites, violet to peach, big round corners.",
+  "tier": "pack",
+  "mode": "light",
+  "tokens": {
+    "color.bg": "#fdfcff",
+    "color.surface": "#f3effe",
+    "color.text": "#1e1b3a",
+    "color.muted": "#6e6a8a",
+    "color.border": "#e6e1f7",
+    "color.primary": "#6f4ff2",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#ff8a65",
+    "font.display": "'Plus Jakarta Sans', system-ui, sans-serif",
+    "font.body": "'Plus Jakarta Sans', system-ui, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "800",
+    "radius.base": "20px",
+    "stroke.width": "1px",
+    "shadow.card": "0 2px 4px #1e1b3a0d, 0 12px 32px #7c5cff1f",
+    "space.base": "4px",
+    "space.section": "104px",
+    "motion.duration": "420ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+  },
+  "effects": {
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "shape": "radial",
+        "stops": [
+          "accent",
+          "primary",
+          "surface"
+        ]
+      }
+    },
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 18,
+        "softness": 80,
+        "layers": 4,
+        "opacity": 16,
+        "tighten": 25
+      }
+    },
+    "glow": {
+      "id": "glow",
+      "params": {
+        "color": "accent",
+        "size": 60,
+        "strength": 30
+      }
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "pill"
+    },
+    "card": {
+      "variant": "glass"
+    },
+    "button": {
+      "secondary": {
+        "variant": "soft"
+      }
+    },
+    "icon": {
+      "variant": "raised"
+    }
+  },
+  "sections": {
+    "hero": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "cta": {
+      "backdrop": {
+        "id": "mesh",
+        "params": {
+          "anchor": "bottom",
+          "reach": 90
+        }
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "slow"
+      }
+    }
+  },
+  "picture": {
+    "style": "grain-gradient"
+  }
+}

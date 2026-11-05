@@ -2,11 +2,9 @@
   "title": "Even image grid",
   "layoutPattern": "head-then-3col-image-grid-captions-below",
   "rhythm": "grid",
-  "style": "minimal",
-  "feel": ["calm"],
   "density": "balanced",
   "tier": "free",
-  "motionNotes": "The head rises, then the pictures rise one after another; reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

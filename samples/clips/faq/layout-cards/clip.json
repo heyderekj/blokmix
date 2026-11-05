@@ -2,14 +2,15 @@
   "title": "Question cards",
   "layoutPattern": "three-up-open-qa-cards",
   "rhythm": "grid",
-  "style": "playful",
   "density": "dense",
-  "feel": ["friendly"],
-  "motionNotes": "No entrance motion; the contact button presses in slightly and fills on hover.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

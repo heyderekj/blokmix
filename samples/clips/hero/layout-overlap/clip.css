@@ -4,21 +4,15 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .container.narrow { max-width: var(--mx-width-text); }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
-  & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-size: clamp(var(--mx-text-3xl), 4.6vw, var(--mx-text-5xl));
+    line-height: 1.04;
+    letter-spacing: -0.03em;
   }
-  & .heading.display { font-size: clamp(var(--mx-text-3xl), 5vw, var(--mx-text-6xl)); line-height: 1.04; letter-spacing: -0.03em; }
   & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
-  & .head .actions { margin-top: var(--mx-space-4); }
   & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
   & .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mx-space-3); }
@@ -33,67 +27,16 @@
     font-weight: 600;
     line-height: 1.1;
     cursor: pointer;
-    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
-  & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
-
-  & .media {
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 4 / 3;
-    background: var(--mx-color-surface);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius-lg);
-  }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
-  & .avatar {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 44px;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: linear-gradient(135deg, color-mix(in oklab, var(--mx-color-accent) 70%, var(--mx-color-bg)), var(--mx-color-primary));
-    color: var(--mx-color-on-primary);
-    font-size: var(--mx-text-sm);
-    font-weight: 600;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
-    & .btn.secondary:hover { background: var(--mx-color-surface); }
-  }
-
-  @container (max-width: 952px) {
-    & .grid { column-gap: var(--mx-space-5); }
-  }
-
-  @media (max-width: 760px) {
-    padding: var(--mx-space-9) var(--mx-space-5);
-  }
-  @container (max-width: 616px) {
-    & .head + * { margin-top: var(--mx-space-8); }
-    & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
-    & .lead { font-size: var(--mx-text-base); }
-  }
-
-  /* Asymmetric split: a tall picture on the right, the copy on a surface card that overlaps its left edge. */
-  & .stage { align-items: center; row-gap: 0; }
-  & .shot {
-    grid-column: 5 / span 8;
-    grid-row: 1;
-    aspect-ratio: 1 / 1;
-    margin-block: var(--mx-space-9) 0;
-    background: linear-gradient(165deg, color-mix(in oklab, var(--mx-color-accent) 18%, var(--mx-color-surface)), var(--mx-color-surface) 55%, color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)));
-  }
+  /* Asymmetric split: a tall picture on the right, the copy on a card that overlaps its left edge. */
+  & .stage { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--mx-space-6); align-items: center; }
+  & .shot { grid-column: 5 / span 8; grid-row: 1; margin-top: var(--mx-space-9); }
   & .panel {
     position: relative;
     z-index: 1;
@@ -107,29 +50,50 @@
     background: var(--mx-color-surface);
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
-    box-shadow: var(--mx-shadow-card);
   }
-  & .panel .heading { font-size: clamp(var(--mx-text-3xl), 4.6vw, var(--mx-text-5xl)); line-height: 1.04; letter-spacing: -0.03em; }
   & .panel .actions { margin-top: var(--mx-space-4); }
-  & .rule { width: var(--mx-space-8); height: calc(var(--mx-stroke) * 2); background: var(--mx-color-accent); }
-  /* Placeholder art: an interior, a window of light and a chair-like stack of shapes. */
-  & .shot .win { right: 12%; top: 10%; width: 34%; height: 44%; background: color-mix(in oklab, var(--mx-color-bg) 80%, var(--mx-color-surface)); box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 3) color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
-  & .shot .glow { right: 18%; top: 16%; width: 18%; opacity: 0.7; }
-  & .shot .floor { left: 0; right: 0; bottom: 0; height: 26%; border-radius: 0; background: color-mix(in oklab, var(--mx-color-text) 14%, var(--mx-color-surface)); }
-  & .shot .seat { right: 22%; bottom: 20%; width: 40%; height: 18%; background: color-mix(in oklab, var(--mx-color-primary) 34%, var(--mx-color-surface)); }
-  & .shot .back { right: 50%; bottom: 20%; width: 12%; height: 34%; background: color-mix(in oklab, var(--mx-color-primary) 46%, var(--mx-color-surface)); }
+  & .rule { width: var(--mx-space-8); height: var(--mx-stroke); background: var(--mx-color-border); }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
+  }
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
+    & .btn.secondary:hover { background: var(--mx-color-bg); }
+  }
 
   @container (max-width: 952px) {
+    & .stage { column-gap: var(--mx-space-5); }
     & .panel { grid-column: 1 / span 7; padding: var(--mx-space-7); }
-    & .shot { grid-column: 5 / span 8; }
   }
 
+  @media (max-width: 760px) {
+    padding: var(--mx-space-9) var(--mx-space-5);
+  }
   @container (max-width: 616px) {
     & .stage { grid-template-columns: minmax(0, 1fr); }
     & .shot, & .panel { grid-column: 1; grid-row: auto; }
     & .shot { margin: 0; }
     & .panel { margin: calc(var(--mx-space-8) * -1) var(--mx-space-2) 0; padding: var(--mx-space-6) var(--mx-space-5); }
-    & .panel .heading { font-size: clamp(var(--mx-text-2xl), 9vw, var(--mx-text-4xl)); }
+    & .heading { font-size: clamp(var(--mx-text-2xl), 9vw, var(--mx-text-4xl)); }
+    & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; justify-self: stretch; }
   }
 }

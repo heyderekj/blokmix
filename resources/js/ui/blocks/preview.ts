@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { BlockEdit, Slot } from '@/core/types'
+import type { BlockEdit, SliderChoice, Slot } from '@/core/types'
 import type { TreatmentValue } from '@/core/treatments'
 
 /**
@@ -24,6 +24,9 @@ interface BlockPreview {
   /** A backdrop you're hovering or dialing (null value = none), shown before you keep it. */
   backdrop: { slotId: string; value: TreatmentValue | null } | null
   showBackdrop: (b: { slotId: string; value: TreatmentValue | null } | null) => void
+  /** A slider arrangement you're pointing at, shown before you keep it. */
+  slider: { slotId: string; value: SliderChoice } | null
+  showSlider: (s: { slotId: string; value: SliderChoice } | null) => void
   /** Bumped to play entrances again on the focused section. */
   replays: number
   replay: () => void
@@ -43,14 +46,17 @@ export const useBlockPreview = create<BlockPreview>()((set) => ({
   setKeepNext: (keepNext) => set({ keepNext }),
   backdrop: null,
   showBackdrop: (backdrop) => set({ backdrop }),
+  slider: null,
+  showSlider: (slider) => set({ slider }),
   replays: 0,
   replay: () => set((s) => ({ replays: s.replays + 1 })),
 }))
 
 /** The slot as it would look with the hovered preview applied. */
-export function withPreview(slot: Slot, p: Pick<BlockPreview, 'slotId' | 'blockId' | 'patch' | 'words'> & { backdrop?: BlockPreview['backdrop'] }): Slot {
+export function withPreview(slot: Slot, p: Pick<BlockPreview, 'slotId' | 'blockId' | 'patch' | 'words'> & { backdrop?: BlockPreview['backdrop']; slider?: BlockPreview['slider'] }): Slot {
   if (p.words && p.words.slotId === slot.id) slot = { ...slot, words: { ...slot.words, [p.words.field]: p.words.text } }
   if (p.backdrop && p.backdrop.slotId === slot.id) slot = { ...slot, backdrop: p.backdrop.value ?? undefined }
+  if (p.slider && p.slider.slotId === slot.id) slot = { ...slot, slider: Object.fromEntries(Object.entries(p.slider.value).filter(([, v]) => v !== undefined)) }
   if (p.slotId !== slot.id || !p.blockId || !p.patch) return slot
   const forClip = slot.edits?.[slot.clipId] ?? {}
   const cur = forClip[p.blockId] ?? {}

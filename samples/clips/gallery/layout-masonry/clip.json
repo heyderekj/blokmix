@@ -2,11 +2,9 @@
   "title": "Masonry wall",
   "layoutPattern": "centered-head-then-css-columns-masonry-caption-chips",
   "rhythm": "grid",
-  "style": "warm",
-  "feel": ["friendly"],
   "density": "dense",
   "tier": "free",
-  "motionNotes": "The head rises and the pictures settle in one after another; reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

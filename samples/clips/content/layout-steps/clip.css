@@ -4,8 +4,8 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -29,14 +29,14 @@
   & .steps { display: flex; flex-direction: column; }
   & .step { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--mx-space-5); padding-bottom: var(--mx-space-7); }
   & .step:last-child { padding-bottom: 0; }
-  & .step:not(:last-child)::before {
-    content: "";
+  & .line {
     position: absolute;
     left: 24px;
     top: 48px;
     bottom: 0;
     border-left: var(--mx-stroke) solid var(--mx-color-border);
   }
+  & .step:last-child .line { display: none; }
   & .num {
     display: grid;
     place-items: center;
@@ -48,7 +48,6 @@
     box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
     background: var(--mx-color-bg);
   }
-  & .step:first-child .num { background: var(--mx-color-primary); color: var(--mx-color-on-primary); box-shadow: none; }
   & .step .body { padding-top: var(--mx-space-2); font-size: var(--mx-text-lg); color: var(--mx-color-text); }
   & .flow .note { padding-left: calc(48px + var(--mx-space-5)); }
 
@@ -65,7 +64,7 @@
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .step { grid-template-columns: 40px minmax(0, 1fr); gap: var(--mx-space-4); padding-bottom: var(--mx-space-6); }
-    & .step:not(:last-child)::before { left: 20px; top: 40px; }
+    & .line { left: 20px; top: 40px; }
     & .num { width: 40px; height: 40px; }
     & .step .body { padding-top: var(--mx-space-1); font-size: var(--mx-text-base); }
     & .flow .note { padding-left: calc(40px + var(--mx-space-4)); }

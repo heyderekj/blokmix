@@ -2,15 +2,16 @@
   "title": "Alternating feature rows",
   "layoutPattern": "alternating-media-rows",
   "rhythm": "split",
-  "style": "technical",
   "density": "airy",
   "tier": "free",
-  "feel": ["calm"],
-  "motionNotes": "Header rises, then each row’s media and text follow in turn; the dashed selection softly pulses and the lifted tile nudges back and forth.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-23T00:00:00Z"
   }
 }

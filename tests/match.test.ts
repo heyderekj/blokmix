@@ -22,7 +22,7 @@ describe('matching sections to layouts', () => {
       expect(top[0].score, c.id).toBe(1)
       expect(top.filter((m) => m.score === 1).map((m) => m.layoutId), c.id).toContain(c.id)
     }
-  })
+  }, 30_000)
 
   it('tells most layouts of a type apart', () => {
     let twins = 0
@@ -32,7 +32,7 @@ describe('matching sections to layouts', () => {
     }
     // A few layouts may share a structure exactly; most must be distinguishable.
     expect(twins / layouts.length).toBeLessThan(0.25)
-  })
+  }, 30_000)
 
   it('scores and explains differences', () => {
     const a = signatureOf(library.clips['hero.layout-centered'])

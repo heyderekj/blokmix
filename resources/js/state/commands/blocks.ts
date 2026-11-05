@@ -81,7 +81,7 @@ export const write = {
   set_section_surface: (i: CommandInput<'set_section_surface'>) => {
     const slot = findSection(i.section)
     useStore.getState().setSurface(slot.id, i.surface)
-    return { section: slot.id, surface: findSection(slot.id).surface ?? 'page' }
+    return { section: slot.id, surface: findSection(slot.id).surface ?? useStore.getState().guide.sections?.[slot.type]?.surface ?? 'page' }
   },
   set_image: (i: CommandInput<'set_image'>) => {
     const slot = findSection(i.section)
@@ -193,6 +193,19 @@ export const write = {
     const live = findSection(slot.id)
     const l = sectionLinks(slotClip(live).blocks, live.edits?.[live.clipId], wordsFor(live), linkScopeFor(live.id), live.id)[b.id]
     return { block: b.label, href: l.href, newTab: l.newTab, auto: l.auto }
+  },
+  set_slider: (i: CommandInput<'set_slider'>) => {
+    const slot = findSection(i.section)
+    const options = slotClip(slot).slider
+    if (!options) throw new CommandError('That section isn’t a slider.')
+    const check = (name: string, value: string | number | undefined, allowed: readonly (string | number)[] | undefined) => {
+      if (value !== undefined && !allowed?.includes(value)) throw new CommandError(`${name} can be: ${(allowed ?? []).join(', ') || 'nothing on this layout'}`)
+    }
+    check('slide', i.slide, options.slide?.map((o) => o.id))
+    check('show', i.show, options.show)
+    check('intro', i.intro, options.intro?.map((o) => o.id))
+    useStore.getState().setSlider(slot.id, { ...(i.slide ? { slide: i.slide } : {}), ...(i.show ? { show: i.show } : {}), ...(i.intro ? { intro: i.intro } : {}) })
+    return { slider: findSection(slot.id).slider ?? {}, options }
   },
   set_banner: (i: CommandInput<'set_banner'>) => {
     const slot = findSection(i.section)

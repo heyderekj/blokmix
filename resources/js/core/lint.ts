@@ -1,4 +1,5 @@
 import type { LintIssue, SectionType } from './types'
+import { SECTION_TYPES } from './types'
 import { FIELD_SCHEMA } from './content'
 import { attr, parseHtml, walk } from './html/parse'
 import { lintBlocks } from './blocks'
@@ -166,4 +167,42 @@ function checkCss(
     } else buf += ch
   }
   if (depth !== 0) err(`${file}: unbalanced braces`)
+}
+
+const isLogoBlock = (media: string | undefined) => !!media && /^logo/i.test(media)
+
+/** Section types whose built-in layouts are bare: structure only, with every look left to the skin. More join as they convert. */
+export const BARE_TYPES: readonly SectionType[] = SECTION_TYPES
+
+/**
+ * A bare layout is a wireframe: grid, spacing, type roles, hairlines, working interactions. Accents, gradients, shadows,
+ * tilts, decorative layers, its own motion and art inside pictures all belong to the skin.
+ */
+export function lintBones(input: { html: string; css: string; motionCss: string | null }): string[] {
+  const out: string[] = []
+  const css = stripComments(input.css)
+  if (input.motionCss) out.push('has its own motion.css; motion comes from the skin')
+  if (/--mx-color-accent/.test(css)) out.push('uses the accent color')
+  if (/(linear|radial|conic)-gradient\(|--mx-gradient/.test(css)) out.push('has a gradient')
+  if (/--mx-(shadow|glow|grain|glass)/.test(css)) out.push('uses an effect or shadow')
+  for (const m of css.matchAll(/box-shadow\s*:\s*([^;}]+)/g)) if (!/^inset 0 0 0 (var\(--mx-stroke\)|calc\(var\(--mx-stroke\))/.test(m[1].trim()) && m[1].trim() !== 'none') out.push(`has a shadow (${m[1].trim()}); only an inset hairline is fine`)
+  if (/\b(rotate|skew)[XYZ]?\(|(^|[;{\s])rotate\s*:/.test(css)) out.push('tilts something')
+  if (/text-shadow\s*:/.test(css)) out.push('has a text shadow')
+  if (/:hover[^{]*\{[^}]*\b(transform|translate)\s*:/.test(css)) out.push('lifts on hover; leave that to the skin')
+  if (/\b(backdrop-)?filter\s*:|mix-blend-mode/.test(css)) out.push('has a filter or blend')
+  if (/::(before|after)/.test(css)) out.push('has a ::before or ::after; make it real markup or leave it to the skin')
+  if (/max-width\s*:\s*\d{4,}px/.test(css)) out.push('has a fixed container width; use var(--mx-width-content)')
+  const visit = (n: ReturnType<typeof parseHtml>[number]) => {
+    if (n.t !== 'el') return
+    if (n.attrs.some(([k, v]) => k === 'data-mx-block' && v === 'image')) {
+      const inside = n.kids.filter((k) => k.t === 'el')
+      // A logo is the brand's name, not a picture: its wordmark stays.
+      if (isLogoBlock(n.attrs.find(([k]) => k === 'data-mx-media')?.[1])) return
+      if (inside.some((k) => k.t === 'el' && k.tag !== 'svg')) out.push(`picture ${n.attrs.find(([k]) => k === 'data-mx-media')?.[1] ?? ''} holds art; only the wireframe cross (svg.x) belongs inside`.replace('  ', ' '))
+      return
+    }
+    n.kids.forEach(visit)
+  }
+  parseHtml(input.html).forEach(visit)
+  return [...new Set(out)]
 }

@@ -96,11 +96,13 @@ export interface Clip {
   sourceId: string
   title: string
   layoutPattern: string
+  /** A slider: what can be arranged (`SliderOptions`). */
+  slider?: SliderOptions
   /** Visual rhythm, used to suggest layouts that contrast with their neighbours. */
   rhythm?: Rhythm
   /** How it feels, for browsing the library (`core/browse.ts`). Captured clips may leave it out. */
   style?: ClipStyle
-  /** How it feels, for the guided start (`core/vibes.ts`). */
+  /** How it feels, a Crate facet on layouts that still carry their own look. */
   feel?: Feel[]
   /** How much it holds and how tightly, for browsing the library. */
   density?: Density
@@ -123,6 +125,22 @@ export interface Clip {
   blocks: BlockInfo[]
   capture: Capture
   hash: string
+}
+
+/** What a slider layout lets you choose (`clip.json` `slider`). */
+export interface SliderOptions {
+  /** How each slide is composed. */
+  slide?: readonly { id: string; label: string }[]
+  /** How many show at once. */
+  show?: readonly number[]
+  /** Where the section's own words sit against the slider. */
+  intro?: readonly { id: string; label: string }[]
+}
+
+export interface SliderChoice {
+  slide?: string
+  show?: number
+  intro?: string
 }
 
 export interface Keep {
@@ -150,6 +168,8 @@ export interface Slot {
   spacing?: SectionSpacing
   /** Content from your collections (`core/collections.ts`): lists fed by entries, fields from the page's entry. */
   bind?: SlotBinding
+  /** A slider's arrangement, among what its clip offers (`Clip.slider`); written to the root as data-slide, data-show, data-intro. */
+  slider?: SliderChoice
   /** The band it sits on, from the style guide's colors (`core/surface.ts`); unset is the page. */
   surface?: 'page' | 'soft' | 'inverse' | 'brand'
   /** How wide its content runs against the guide's content width (`core/surface.ts`); unset is standard. */
@@ -227,6 +247,26 @@ export interface GuideState {
   textStyles?: import('./textStyles').TextStyleEdits
   /** Effects every section can use: shadow, gradient, grain, glass, glow (core/treatments/effects.ts). */
   effects?: Partial<Record<'shadow' | 'gradient' | 'grain' | 'glass' | 'glow', TreatmentValue>>
+  /** Defaults per type of section: its band, backdrop, motion and spacing. A section's own choice wins (core/sectionDefaults.ts). */
+  sections?: Partial<Record<SectionType, SectionDefault>>
+  /** What empty pictures in built-in layouts show; unset is the layout's own wireframe box. */
+  picture?: PictureDefault
+  /** The skin this guide came from (core/skins.ts), so the board and the packet can name it. */
+  skin?: { id: string; name: string }
+}
+
+/** A type of section's look across the page. */
+export interface SectionDefault {
+  surface?: 'page' | 'soft' | 'inverse' | 'brand'
+  backdrop?: TreatmentValue
+  motion?: SectionMotion
+  spacing?: SectionSpacing
+}
+
+/** A placeholder style for pictures nobody has filled yet. */
+export interface PictureDefault {
+  style: PlaceholderStyle
+  params?: import('./treatments/params').ParamValues
 }
 
 export interface ConflictOption {
@@ -344,6 +384,8 @@ export interface MixSnapshot {
   /** Marks (feedback with a kind and status) on this snapshot's sections or the page. */
   marks?: Note[]
   clipHashes: Record<string, string>
+  /** What the contract said at the time (core/contract.ts). */
+  contract?: import('./contract').Contract
 }
 
 export const STATUSES = ['in-progress', 'ready', 'changes', 'approved', 'archived'] as const
@@ -394,6 +436,8 @@ export interface BlockInfo {
   label: string
   /** The copy field on (or inside) this block, if any. */
   field?: string
+  /** Buttons: the quieter action beside the main one (a `secondary` or `ghost` class). */
+  secondary?: boolean
   /** Image slot name, for image blocks. */
   media?: string
   ratio?: string
@@ -572,6 +616,8 @@ export type SlotEdits = Record<string, Record<string, BlockEdit>>
 export interface ComponentDefault {
   variant?: string
   style?: BlockStyle
+  /** Buttons: a skin's look for the quieter action beside the main one, so a page keeps one solid primary. */
+  secondary?: { variant?: string; style?: BlockStyle }
 }
 
 export interface Swatch {
@@ -606,8 +652,8 @@ export interface Starter {
   name: string
   blurb: string
   kind: Kind
-  /** A vibe id from `core/vibes.ts`. */
-  vibe: string
+  /** The skin it's dressed in when opened on its own (samples/skins). */
+  skin: string
   /** Home first. Each page lists its sections' clip ids top to bottom, nav and footer included. */
   pages: { path: string; title: string; sections: string[] }[]
   tier?: Tier

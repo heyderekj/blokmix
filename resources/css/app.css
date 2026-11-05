@@ -483,3 +483,48 @@ body:has([data-board]) { overflow: hidden; }
 @media (prefers-reduced-motion: no-preference) {
   .bm-block, .bm-mix-block, .bm-lift { transition: transform 240ms cubic-bezier(0.3, 1.4, 0.5, 1), opacity 160ms ease-out; }
 }
+
+/* The Style panel's slider: a thin track filled to the thumb. */
+.style-range {
+  appearance: none;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+  --track: color-mix(in oklab, currentColor 14%, transparent);
+  --fill: color-mix(in oklab, currentColor 60%, transparent);
+}
+.style-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--fill) var(--p), var(--track) var(--p));
+}
+.style-range::-moz-range-track { height: 3px; border-radius: 999px; background: var(--track); }
+.style-range::-moz-range-progress { height: 3px; border-radius: 999px; background: var(--fill); }
+.style-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.14), 0 1px 3px rgb(0 0 0 / 0.22);
+  transition: scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.style-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.14), 0 1px 3px rgb(0 0 0 / 0.22);
+}
+.style-range:active::-webkit-slider-thumb { scale: 1.12; }
+.style-range:focus-visible { outline: none; }
+.style-range:focus-visible::-webkit-slider-thumb { outline: 2px solid currentColor; outline-offset: 2px; }
+.style-range:focus-visible::-moz-range-thumb { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* A section's rail label sizes to the section on screen: too short even for its number, it shows only the line. */
+.section-rail-label { container-type: size; }
+@container (max-height: 36px) {
+  .section-rail-label > div { display: none; }
+}

@@ -2,11 +2,9 @@
   "title": "Wide figure over a reading column",
   "layoutPattern": "centred-head-wide-figure-narrow-prose",
   "rhythm": "stack",
-  "style": "warm",
-  "feel": ["editorial", "calm"],
   "density": "airy",
   "tier": "free",
-  "motionNotes": "The head rises, then the wide figure settles from 98% and its hills drift up; reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

@@ -4,8 +4,8 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -25,7 +25,7 @@
   & .title { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
   & .body { color: var(--mx-color-muted); line-height: 1.6; }
 
-  /* Six checked rows in two columns, each with a small filled tick. */
+  /* Six checked rows in two columns, each with a small tick. */
   & .head { position: sticky; top: var(--mx-space-8); }
   & .checks { gap: var(--mx-space-7) var(--mx-space-6); }
   & .check { display: flex; align-items: start; gap: var(--mx-space-4); }
@@ -36,8 +36,8 @@
     width: 28px;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: var(--mx-color-primary);
-    color: var(--mx-color-on-primary);
+    color: var(--mx-color-text);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
   }
   & .text { display: grid; gap: var(--mx-space-1); padding-top: 2px; }
   & .title { font-size: var(--mx-text-base); }
