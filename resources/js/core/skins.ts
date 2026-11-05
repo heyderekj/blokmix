@@ -4,10 +4,12 @@
 // samples/skins/ are loaded by data/skins.ts.
 
 import { z } from 'zod'
-import type { GuideState, PictureDefault, SectionDefault, SectionType, TokenKey, TokenSet } from './types'
+import type { GuideState, Library, PictureDefault, SectionDefault, SectionType, Site, TokenKey, TokenSet, VersionNode } from './types'
+import { allSlots } from './site'
 import { PLACEHOLDER_STYLES, SECTION_TYPES, TOKEN_KEYS } from './types'
 import { resolveGuide } from './guide'
-import { BASE_TOKENS, CONTRAST_PAIRS, contrastRatio, TOKEN_GROUP_OF } from './tokens'
+import { BASE_TOKENS, CONTRAST_PAIRS, contrastRatio, hexToRgb, primaryFamily, TOKEN_GROUP_OF } from './tokens'
+import { toneOfGuide } from './dials'
 import { cleanTreatment, EFFECT_IDS, isBackdropId, shadowToken, type EffectId, type EffectsState } from './treatments'
 import type { TextStyleEdits } from './textStyles'
 import { emptyContract, isKept, settingOf, STYLE_AREAS, type Contract, type StyleArea } from './contract'
@@ -185,4 +187,73 @@ export function surpriseMe(guide: GuideState, contract: Contract, seed: number, 
   const hold: Contract = { areas: Object.fromEntries(STYLE_AREAS.filter((a) => !rolled.includes(a)).map((a) => [a, 'keep'])), keep: [], surprise: [] }
   const words = `${picks.map((p, i) => `${i ? AREA_WORD[p.area] : AREA_WORD[p.area].replace(/^./, (c) => c.toUpperCase())} from ${p.skin.name}`).join(', ')}.`
   return { guide: applySkin(guide, remix, hold), picks, words }
+}
+
+/** A guide that came from no skin (your own values), so a mix made with one isn't taken for one saved before skins. */
+export const OWN_LOOK = { id: 'own', name: 'Your own' }
+
+const rgbDistance = (a: string, b: string) => {
+  const x = hexToRgb(a)
+  const y = hexToRgb(b)
+  if (!x || !y) return 0.5
+  return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]) / 441.67
+}
+const family = (stack: string) => primaryFamily(stack).toLowerCase()
+
+/** How far a skin's look is from these values: a small number is close. Light or dark and the main color count most. */
+function lookDistance(t: TokenSet, s: TokenSet): number {
+  const number = (v: string) => parseFloat(v) || 0
+  return (
+    (toneOfGuide(t) === toneOfGuide(s) ? 0 : 100) +
+    rgbDistance(t['color.primary'], s['color.primary']) * 40 +
+    rgbDistance(t['color.bg'], s['color.bg']) * 10 +
+    (family(t['font.display']) === family(s['font.display']) ? 0 : 20) +
+    (family(t['font.body']) === family(s['font.body']) ? 0 : 8) +
+    Math.min(10, Math.abs(number(t['radius.base']) - number(s['radius.base'])) / 2) +
+    Math.abs(number(t['type.displayWeight']) - number(s['type.displayWeight'])) / 100 +
+    Math.abs(number(t['stroke.width']) - number(s['stroke.width'])) * 3
+  )
+}
+
+/** The skin closest to these values. Wireframe only for a mix that was already plain greys: it's a choice, not a default. */
+export function closestSkin(tokens: TokenSet, pool: Skin[]): Skin | null {
+  const grey = (s: Skin) => (['color.bg', 'color.primary', 'color.text'] as const).every((k) => s.tokens[k] === tokens[k])
+  const open = pool.filter((s) => s.id !== WIREFRAME || grey(s))
+  if (open.some((s) => s.id === WIREFRAME)) return open.find((s) => s.id === WIREFRAME)!
+  return open.reduce<Skin | null>((best, s) => (!best || lookDistance(tokens, skinTokens(s)) < lookDistance(tokens, skinTokens(best)) ? s : best), null)
+}
+
+/**
+ * Dress a mix saved before skins, now its layouts are bare. Everything it already chose stays, its colors and fonts above
+ * all; only what it never had comes from the closest skin: block looks, section defaults and pictures. Pure and
+ * repeatable, so a version and the mix it came from dress alike. A shadow effect would change its card shadow, so that's left.
+ */
+export function dressOldGuide(guide: GuideState, pool: Skin[]): GuideState {
+  const skin = closestSkin(resolveGuide(guide).tokens, pool)
+  if (!skin) return guide
+  const { shadow: _shadow, ...effects } = skin.effects ?? {}
+  const out: GuideState = {
+    ...guide,
+    effects: guide.effects ?? (Object.keys(effects).length ? effects : undefined),
+    textStyles: guide.textStyles ?? skin.textStyles,
+    components: skin.components || guide.components ? { ...skin.components, ...guide.components } : undefined,
+    sections: guide.sections ?? skin.sections,
+    picture: guide.picture ?? skin.picture,
+    skin: { id: skin.id, name: skin.name },
+  }
+  for (const k of ['effects', 'textStyles', 'components', 'sections', 'picture'] as const) if (out[k] === undefined) delete out[k]
+  return out
+}
+
+/**
+ * A mix as it opens: one saved before skins, with built-in layouts, gets dressed, versions too. One with none yet is only
+ * marked as your own look, so it isn't dressed later for having no skin. Anything that has a skin is left exactly as it is.
+ */
+export function dressSavedMix<M extends { guide: GuideState; site: Site; versions?: Record<string, VersionNode> }>(mix: M, lib: Pick<Library, 'clips'>, pool: Skin[]): M {
+  const dressed = (guide: GuideState, site: Site): GuideState => {
+    if (guide.skin) return guide
+    return allSlots(site).some((s) => lib.clips[s.clipId]?.origin === 'layout') ? dressOldGuide(guide, pool) : { ...guide, skin: OWN_LOOK }
+  }
+  const versions = mix.versions && Object.fromEntries(Object.entries(mix.versions).map(([id, v]) => [id, v.snapshot?.guide && !v.snapshot.guide.skin ? { ...v, snapshot: { ...v.snapshot, guide: dressed(v.snapshot.guide, v.snapshot.site) } } : v]))
+  return { ...mix, guide: dressed(mix.guide, mix.site), ...(versions ? { versions } : {}) }
 }

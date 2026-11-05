@@ -45,7 +45,7 @@ import { listOpOnEntries } from './collections'
 import { BASE_TOKENS } from '@/core/tokens'
 import { cleanContract, emptyContract, type Contract } from '@/core/contract'
 import { NO_BACKDROP } from '@/core/sectionDefaults'
-import { applySkin as applySkinTo, skinById, skinList, surpriseMe as remix } from '@/core/skins'
+import { applySkin as applySkinTo, dressSavedMix, OWN_LOOK, skinById, skinList, surpriseMe as remix } from '@/core/skins'
 import type { TextStyleDef, TextStyleEdits, TextStyleId } from '@/core/textStyles'
 import { cleanTreatment, shadowToken, type EffectId, type EffectsState, type TreatmentValue } from '@/core/treatments'
 import { buildSeed } from './seed'
@@ -682,12 +682,12 @@ export const useStore = create<State>()(
             if (fresh.length) set({ clips: [...have, ...fresh] })
           },
           removeMixClip: (id) => set({ clips: (get().clips ?? []).filter((c) => c !== id) }),
-          replaceGuide: (guide) => needsPack('A saved style guide') || set({ guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
+          replaceGuide: (guide) => needsPack('A saved style guide') || set({ guide: { skin: OWN_LOOK, ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
           startFrom: (site, guide) =>
             (allSlots(site).every((s) => layoutOpen(library, s.clipId)) || !needsPack('That starter’s layouts')) &&
             set((st) => ({
               site: structuredClone(site),
-              guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } },
+              guide: { skin: OWN_LOOK, ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } },
               ui: { ...st.ui, pageId: site.pages[0].id, focusedSlotId: null, selectedBlockId: null, selectedFrameId: 'mix' },
             })),
 
@@ -823,6 +823,8 @@ export const useStore = create<State>()(
         merged.site = mapSlots(merged.site, (s) => (library.clips[s.clipId] ? s : null))
         // A mix saved before mixes had their own clips starts with the clips it uses (never another mix's set).
         merged.clips = (Array.isArray(p.clips) ? p.clips : mixClipIds({ ...merged, clips: [] })).filter((id) => library.clips[id]?.origin === 'clip')
+        // Mixes saved before skins: their layouts went bare, so they take the closest skin's looks, keeping their own values.
+        if (merged.guide && merged.site) Object.assign(merged, dressSavedMix(merged, library, skinList()))
         // Copy fields added since the mix was saved (a nav banner's messages) start from the defaults.
         if (merged.content?.fields) {
           const fields = { ...merged.content.fields }

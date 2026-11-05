@@ -185,7 +185,7 @@ export function buildNotes(i: PacketInput): string {
     lines.push(`- **Status:** ${v.status}`)
   }
   lines.push(`- **Sections:** ${page.sections.length}`)
-  if (i.guideState?.skin) lines.push(`- **Skin:** ${i.guideState.skin.name}`)
+  if (i.guideState?.skin && i.guideState.skin.id !== 'own') lines.push(`- **Skin:** ${i.guideState.skin.name}`)
   lines.push('- **Contract:** read CONTRACT.md first: what to always keep and where you’re invited to surprise')
   const open = openGroups(guide)
   lines.push(`- **Open style decisions:** ${open.length ? open.map((g) => GROUP_LABEL[g]).join(', ') : 'none'}`)

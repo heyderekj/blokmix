@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applySkin, contrastFailures, parseSkin, skinById, skinList, skinTokens, surpriseMe, type Skin } from '@/core/skins'
+import { applySkin, closestSkin, contrastFailures, dressOldGuide, dressSavedMix, parseSkin, skinById, skinList, skinTokens, surpriseMe, type Skin } from '@/core/skins'
 import { areasOfCommand, cleanContract, contractMarkdown, contractRefusal, emptyContract, type Contract } from '@/core/contract'
 import { pictureFor, withSectionDefaults } from '@/core/sectionDefaults'
 import { emptyGuide, resolveGuide } from '@/core/guide'
@@ -7,7 +7,7 @@ import { snapshotKey } from '@/core/versions'
 import { BARE_TYPES, lintBones } from '@/core/lint'
 import { allFonts } from '@/core/library'
 import { BASE_FONTS, fontsForTokens } from '@/core/tokens'
-import { DEFAULT_KEEP, type GuideState, type SectionType, type Slot } from '@/core/types'
+import { DEFAULT_KEEP, type GuideState, type SectionType, type Site, type Slot, type VersionNode } from '@/core/types'
 import { DEFAULT_CONTENT } from '@/core/content'
 import { siteFromSlots } from '@/core/site'
 import { packetFiles } from '@/core/export/packet'
@@ -18,7 +18,7 @@ import { defaultFor } from '@/core/blocks/style'
 import { sectionTokens, SURFACES, surfaceTokens } from '@/core/surface'
 import { BACKDROP_IDS, backdropCss, backdropInfo, readBackdrop } from '@/core/treatments'
 import { paletteFrom } from '@/core/palette'
-import { contrastRatio } from '@/core/tokens'
+import { BASE_TOKENS, contrastRatio } from '@/core/tokens'
 import { runCommand } from '@/state/commands'
 import { useStore } from '@/state/store'
 
@@ -356,6 +356,45 @@ describe('the commands', () => {
     expect(useStore.getState().guide.skin?.id).toBe('calm')
     expect(useStore.temporal.getState().pastStates.length).toBe(before + 1)
     expect(() => runCommand('apply_skin', { skin: 'nope' })).toThrow(/No skin/)
+  })
+})
+
+describe('mixes saved before skins', () => {
+  it('finds each skin from its own values', () => {
+    for (const s of skinList()) expect(closestSkin(skinTokens(s), skinList())?.id, s.id).toBe(s.id)
+  })
+
+  it('never calls a colorful mix a wireframe, and matches on tone and color', () => {
+    const t = { ...BASE_TOKENS, 'color.bg': '#0b0d0e', 'color.text': '#e8f0ec', 'color.primary': '#44ff99', 'color.onPrimary': '#04140b' }
+    expect(closestSkin(t, skinList())?.mode).toBe('dark')
+    expect(closestSkin(BASE_TOKENS, skinList())?.id).not.toBe('wireframe')
+  })
+
+  it('adds only what it lacks, keeping its own values', () => {
+    const old: GuideState = { ...emptyGuide(), choices: { 'color.primary': { kind: 'custom', value: '#123456' }, 'font.display': { kind: 'custom', value: "'Fraunces', serif" } }, components: { button: { variant: 'ghost' } } }
+    const before = resolveGuide(old).tokens
+    const out = dressOldGuide(old, skinList())
+    expect(resolveGuide(out).tokens).toEqual(before)
+    expect(out.skin).toBeTruthy()
+    expect(out.components?.button?.variant).toBe('ghost')
+    expect(dressOldGuide(old, skinList())).toEqual(out)
+  })
+
+  it('dresses a saved mix and its versions on opening, and leaves the rest alone', () => {
+    const slot: Slot = { id: 's', type: 'hero', clipId: 'hero.layout-split', locked: false, keep: { ...DEFAULT_KEEP } }
+    const site = siteFromSlots([slot])
+    const snapshot = { site, guide: emptyGuide(), content: DEFAULT_CONTENT, slotNotes: {}, clipHashes: {} }
+    const version = { id: 'v', letter: 'A', parentId: null, title: 'A', status: 'in-progress', createdAt: 1, kind: 'snapshot', snapshot } as VersionNode
+    const state = (p: { guide: GuideState; site?: Site; versions?: Record<string, VersionNode> }) => dressSavedMix({ site, versions: {}, ...p }, library, skinList())
+    const old = state({ guide: emptyGuide(), versions: { v: version } })
+    expect(old.guide.skin?.id).toBeTruthy()
+    expect(old.guide.skin?.id).not.toBe('wireframe')
+    expect(old.versions!.v.snapshot.guide.skin).toEqual(old.guide.skin)
+    const chosen = applySkin(emptyGuide(), skinById('wireframe')!)
+    expect(state({ guide: chosen }).guide).toEqual(chosen)
+    const empty = state({ guide: emptyGuide(), site: siteFromSlots([]) })
+    expect(empty.guide.skin?.id).toBe('own')
+    expect(empty.guide.components).toBeUndefined()
   })
 })
 

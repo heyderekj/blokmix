@@ -137,7 +137,7 @@ export function contractMarkdown(c: Contract | undefined, skin?: { name: string 
     '',
     'What the person who made this mix always wants kept, and where they’d like to be surprised. It outranks the defaults in BLOKMIX.md. A section’s own notes and keep settings are more specific and win over it.',
   ]
-  if (skin) parts.push('', `The current skin is **${skin.name}**: the style guide’s values in tokens.css come from it, plus any changes made since.`)
+  if (skin && skin.name !== 'Your own') parts.push('', `The current skin is **${skin.name}**: the style guide’s values in tokens.css come from it, plus any changes made since.`)
   parts.push('', '## Always keep', '', 'Never change these. If the work seems to need it, ask first.', '')
   if (keep.length || contract.keep.length) parts.push(...(keep.length ? [keep.map(areaLine).join('\n')] : []), ...(contract.keep.length ? [bullets(contract.keep)] : []))
   else parts.push('Nothing named yet. Treat everything below as open only to the extent it says.')

@@ -146,6 +146,7 @@ over any band or backdrop, whatever the palette: `readBackdrop` picks the text c
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
 pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) is a
 remix: areas come whole from other skins.
+A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the closest skin (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
 The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus
 your own lines. Swaps and Surprise me leave Keep alone; agent commands that write to a kept area are refused
 (`areasOfCommand`, `contractRefusal`); your own controls aren't. Exports write `CONTRACT.md`, and `agentRules` opens or closes
