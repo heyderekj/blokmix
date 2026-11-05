@@ -87,6 +87,16 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `POST /api/billing/checkout`, `GET /api/billing/receipts`, and the signed webhook `POST /api/polar/webhook`
   (`order.paid` grants one pack per order once, a full `order.refunded` takes it back). Off until
   `BLOKMIX_PRICING_ENABLED`; then the buy buttons go to Polar's checkout and back to `/?bought=1`.
+- Publishing (blok.page): the board builds every page like an export (`core/export/publish.ts` `publishFiles`, `referenceHtml`'s
+  `web` mode: noindex, media as files, root links under `PUBLISH_BASE`), zips them and posts them (`lib/publish.ts`,
+  `POST /api/mixes/{id}/publication`, owners and editors; `GET` reads, `DELETE` unpublishes). `publications` (one per mix)
+  keeps the code (Mix::SHORT_PATTERN, never reused) and slug; files at `published/<code>/` on the uploads disk; the server
+  swaps the base for `/<code>/<slug>` and adds the "Made with Blokmix" badge for a Free owner. `PublishedController` serves
+  `blok.page/<code>/<slug>/<page>` on `Route::domain(config('blokmix.publish_host'))` without the web middleware (no
+  session, cookies or CSRF; noindex, CSP); an old slug redirects, unpublished is 410, nothing else answers there.
+  `BLOKMIX_PUBLISH_URL` (default https://blok.page, http://blok.localhost:8000 locally). Free has one live publication;
+  published bytes count toward the owner's upload room (`User::publishRefusal`). UI: Publish in the top bar (hosted
+  only); agents: `publish`, `get_publication`, `unpublish`. BLOKMIX.md lists the address while it's live.
 - Agents on the live site: the local MCP bridge also accepts Blokmix's hosted HTTPS origins (`HOSTED_ORIGINS` in
   `core/commands/bridge.ts`, plus BLOKMIX_ORIGINS). Chrome may ask once to let the site reach this device.
 - Waitlist (`waitlist`, `Api\WaitlistController`): blokmix.com's form posts to `POST /api/waitlist` (public, no CSRF

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { confirmAction } from './Confirm'
 import { motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
+import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, Globe, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
 import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
 import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
 import { pickFile } from '@/lib/pickFile'
@@ -25,6 +25,7 @@ import { canEdit, useAccount } from '@/lib/account'
 import { api, flushMix, openMixId } from '@/lib/mixSync'
 import { useStartFlow } from '../start/StartFlow'
 import { SharePanel } from '../panels/SharePanel'
+import { PublishPanel } from '../panels/PublishPanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
 import { Wordmark } from '../brand/Wordmark'
 import { BrandIcon } from '../brand/BrandIcon'
@@ -157,7 +158,7 @@ function SaveButton({ short }: { short?: boolean }) {
   )
 }
 
-const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'more', 'guide', 'notes', 'packet', 'share']
+const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'more', 'guide', 'notes', 'packet', 'share', 'publish']
 
 /**
  * The top bar on narrower windows and phones: one pill with the logo menu, the page, ⋯ and Save. ⋯ lists Style guide,
@@ -252,12 +253,13 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
           {row(MessageSquare, 'Notes', () => st().setUi({ sheet: 'notes' }), todo > 0 ? <span className="min-w-5 rounded-full bg-problem px-1.5 text-center text-[11px] font-bold tabular-nums text-white">{todo}</span> : undefined)}
           <div className="mx-3 my-1 h-px bg-zinc-950/6" />
           {isHosted() && row(Users, 'Share', () => st().setUi({ sheet: 'share' }), <Presence size={22} inline />)}
+          {isHosted() && row(Globe, 'Publish to blok.page', () => st().setUi({ sheet: 'publish' }))}
           {row(Package, 'Export for your agent', () => st().setUi({ sheet: 'packet' }))}
         </div>
       ) : (
         <>
-          {back(sheet === 'guide' ? (tab === 'style' ? 'Style guide' : 'Content') : sheet === 'notes' ? 'Notes' : sheet === 'share' ? 'Share' : 'Export')}
-          {sheet === 'notes' ? <NotesPanel /> : sheet === 'share' ? <SharePanel /> : sheet === 'packet' ? <PacketPanel /> : tab === 'style' ? <GuidePanel /> : <ContentPanel />}
+          {back(sheet === 'guide' ? (tab === 'style' ? 'Style guide' : 'Content') : sheet === 'notes' ? 'Notes' : sheet === 'share' ? 'Share' : sheet === 'publish' ? 'Publish' : 'Export')}
+          {sheet === 'notes' ? <NotesPanel /> : sheet === 'share' ? <SharePanel /> : sheet === 'publish' ? <PublishPanel /> : sheet === 'packet' ? <PacketPanel /> : tab === 'style' ? <GuidePanel /> : <ContentPanel />}
         </>
       )}
     </Island>
@@ -434,7 +436,7 @@ function ToolsIsland() {
 /** Share, Export and Save version: what you do with the mix. Export grows into the packet for your agent. */
 function ShipIsland() {
   const sheet = useStore((s) => s.ui.sheet)
-  const open = sheet === 'packet' || sheet === 'share'
+  const open = sheet === 'packet' || sheet === 'share' || sheet === 'publish'
   return (
     <Island
       open={open}
@@ -461,6 +463,20 @@ function ShipIsland() {
           ) : (
             <Presence size={24} />
           )}
+          {isHosted() && (
+            <button
+              type="button"
+              onClick={() => toggleSheet('publish')}
+              title="Publish this mix to blok.page: an unlisted page to show people"
+              aria-expanded={sheet === 'publish'}
+              className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-[background-color,color,scale] duration-150 active:scale-[0.97] ${
+                sheet === 'publish' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900'
+              }`}
+            >
+              <Globe size={15} />
+              Publish
+            </button>
+          )}
           <button
             type="button"
             onClick={() => toggleSheet('packet')}
@@ -477,7 +493,7 @@ function ShipIsland() {
         </>
       }
     >
-      {sheet === 'share' ? <SharePanel /> : <PacketPanel />}
+      {sheet === 'share' ? <SharePanel /> : sheet === 'publish' ? <PublishPanel /> : <PacketPanel />}
     </Island>
   )
 }

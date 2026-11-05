@@ -31,6 +31,8 @@ export interface PacketInput {
   marks?: Note[]
   /** What the person always wants kept and where they'd like to be surprised. */
   contract?: Contract
+  /** Where this mix is published on blok.page, when it is: what it looks like now, live. */
+  publishedUrl?: string
   generatedAt?: string
 }
 
@@ -185,6 +187,7 @@ export function buildNotes(i: PacketInput): string {
     lines.push(`- **Status:** ${v.status}`)
   }
   lines.push(`- **Sections:** ${page.sections.length}`)
+  if (i.publishedUrl) lines.push(`- **Published:** ${i.publishedUrl} (an unlisted snapshot of the mix, to compare your build against)`)
   if (i.guideState?.skin && i.guideState.skin.id !== 'own') lines.push(`- **Skin:** ${i.guideState.skin.name}`)
   lines.push('- **Contract:** read CONTRACT.md first: what to always keep and where you’re invited to surprise')
   const open = openGroups(guide)

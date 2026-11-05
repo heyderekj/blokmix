@@ -132,6 +132,10 @@ function summary(name: string, input: Record<string, unknown>): string {
       return `marked N${String(input.note).replace(/^n/i, '')} ${String(input.status).replace('_', ' ')}`
     case 'prepare_build':
       return `started building ${input.version}`
+    case 'publish':
+      return 'published to blok.page'
+    case 'unpublish':
+      return 'unpublished from blok.page'
     case 'report_build':
       return input.done ? `finished ${input.build}` : input.preview_url ? `put ${input.build}’s preview up` : `${input.build}: ${input.step ?? 'updated'}`
     case 'import_review_marks':

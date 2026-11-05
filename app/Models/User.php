@@ -95,7 +95,8 @@ class User extends Authenticatable
             'clips' => $this->clips()->count(),
             'collections' => $this->collections()->count(),
             'uploads' => (int) MixAsset::whereIn('mix_id', $this->ownedMixes()->select('mixes.id'))->sum('size')
-                + (int) CollectionAsset::whereIn('collection_id', $this->collections()->select('id'))->sum('size'),
+                + (int) CollectionAsset::whereIn('collection_id', $this->collections()->select('id'))->sum('size')
+                + (int) $this->publications()->whereNull('unpublished_at')->sum('size'),
         ];
     }
 
@@ -141,6 +142,30 @@ class User extends Authenticatable
 
         return $max !== null && $this->clips()->count() >= $max
             ? "Free includes {$max} clips. Remove one to make room, or get a mix pack for as many as you like."
+            : null;
+    }
+
+    /** What this person has on blok.page (counted toward them, as the owner of the mix it came from). */
+    public function publications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Publication::class);
+    }
+
+    /**
+     * Why $mix can't go live on blok.page with $bytes of files (null when it can). Free has one live publication;
+     * republishing the same mix replaces it, and its files only count the difference.
+     */
+    public function publishRefusal(Mix $mix, int $bytes): ?string
+    {
+        $live = $this->publications()->whereNotNull('published_at')->whereNull('unpublished_at');
+        $was = (int) (clone $live)->where('mix_id', $mix->id)->value('size');
+        if ($this->planName() === 'free' && (clone $live)->where(fn ($q) => $q->whereNull('mix_id')->orWhere('mix_id', '!=', $mix->id))->exists()) {
+            return 'Free has one published mix. Unpublish the other one, or get a mix pack to publish as many as you like.';
+        }
+        $mb = $this->limits()['upload_mb'];
+
+        return $mb !== null && $this->usage()['uploads'] - $was + $bytes > $mb * 1024 * 1024
+            ? "Publishing this would go over your {$mb} MB of images, video and published pages."
             : null;
     }
 

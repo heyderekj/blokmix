@@ -7,6 +7,7 @@ import type { PacketInput } from '@/core/export/packet'
 import { generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
 import { library } from '@/data/library'
 import { uploadData } from './assets'
+import { publishedUrl } from './publish'
 import type { MixData } from '@/state/store'
 
 /** Where each section sits inside a version frame, as measured on the canvas. */
@@ -62,5 +63,6 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 
     // A version's marks live on with the mix, so read them live rather than from the snapshot.
     marks: version ? marksFor(slots, st.notes) : snap.marks,
     contract: version ? (version.snapshot.contract ?? st.contract) : st.contract,
+    publishedUrl: publishedUrl(),
   }
 }

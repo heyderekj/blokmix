@@ -9,6 +9,7 @@ import { pressVersionAndFly } from '@/lib/actions'
 import { bridgeWriter } from '@/lib/agentLink'
 import { packetInputFor } from '@/lib/packet'
 import { withBakedPosters } from '@/lib/shaderPosters'
+import { loadPublication, publishMix, unpublishMix, usePublication, type Publication } from '@/lib/publish'
 import { useStore } from '../store'
 import { useLayout } from '../layout'
 import { CommandError } from './refs'
@@ -132,7 +133,45 @@ const prepare_build: AsyncCommand<Prepared> = {
   }) as AsyncCommand<Prepared>['apply'],
 }
 
-export const later = { prepare_build }
+function describePublication(p: Publication | null) {
+  if (!p) return { published: false }
+  const v = p.version ? useStore.getState().versions[p.version] : null
+  return { published: p.live, url: p.live ? p.url : null, name: p.name, pages: p.pages, version: v?.letter ?? null, badge: p.badge, published_at: p.publishedAt }
+}
+
+/** Errors from the server (a plan limit, a viewer) reach the agent as they are. */
+const asCommandError = (e: unknown): never => {
+  throw new CommandError(e instanceof Error ? e.message : String(e))
+}
+
+const publish: AsyncCommand<Publication> = {
+  prepare: (async (i: CommandInput<'publish'>) => {
+    const v = i.version ? findVersion(i.version) : null
+    if (v?.kind === 'build') throw new CommandError(`${v.letter} is a build; publish the version it came from`)
+    const current = usePublication.getState().pub ?? (await loadPublication().catch(() => null))
+    const name = i.name ?? current?.name ?? useStore.getState().mixName ?? 'Mix'
+    return publishMix({ version: v, name }).catch(asCommandError)
+  }) as AsyncCommand<Publication>['prepare'],
+  apply: ((_: unknown, p: Publication) => {
+    useStore.getState().showFlash('Agent: published to blok.page')
+    return describePublication(p)
+  }) as AsyncCommand<Publication>['apply'],
+}
+
+const get_publication: AsyncCommand<Publication | null> = {
+  prepare: (() => loadPublication().catch(asCommandError)) as AsyncCommand<Publication | null>['prepare'],
+  apply: ((_: unknown, p: Publication | null) => describePublication(p)) as AsyncCommand<Publication | null>['apply'],
+}
+
+const unpublish: AsyncCommand<Publication | null> = {
+  prepare: (() => unpublishMix().catch(asCommandError)) as AsyncCommand<Publication | null>['prepare'],
+  apply: ((_: unknown, p: Publication | null) => {
+    useStore.getState().showFlash('Agent: unpublished from blok.page')
+    return describePublication(p)
+  }) as AsyncCommand<Publication | null>['apply'],
+}
+
+export const later = { prepare_build, publish, get_publication, unpublish }
 
 function toBase64(bytes: Uint8Array): string {
   let s = ''

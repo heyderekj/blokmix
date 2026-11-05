@@ -30,6 +30,13 @@ return [
      */
     'waitlist_mode' => (bool) env('BLOKMIX_WAITLIST_MODE', true),
 
+    /**
+     * Where published mixes live (blok.page/<code>/<slug>): a separate site, so the pages people make never run on
+     * blokmix.com beside its session cookie. Locally http://blok.localhost:8000 (php artisan serve answers on any host).
+     */
+    'publish_url' => $publishUrl = rtrim((string) env('BLOKMIX_PUBLISH_URL', env('APP_ENV') === 'local' ? 'http://blok.localhost:8000' : 'https://blok.page'), '/'),
+    'publish_host' => parse_url($publishUrl, PHP_URL_HOST),
+
     /** Unsplash's access key, kept on the server: the board searches through /api/unsplash. */
     'unsplash_key' => env('UNSPLASH_ACCESS_KEY'),
 
