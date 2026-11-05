@@ -5,16 +5,9 @@
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .container.narrow { max-width: var(--mx-width-text); }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow {
-    font-family: var(--mx-font-mono);
-    font-size: var(--mx-text-xs);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--mx-color-accent);
-  }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -26,8 +19,7 @@
 
   /* The rail: one line down the left; each stop hangs a node on it. */
   & .rail { display: grid; gap: var(--mx-space-7); padding-left: var(--mx-space-8); }
-  & .stop:not(:last-child)::before {
-    content: '';
+  & .line {
     position: absolute;
     left: calc(var(--mx-space-8) * -1 + 7px);
     top: var(--mx-space-5);
@@ -35,7 +27,7 @@
     width: var(--mx-stroke);
     background: var(--mx-color-border);
   }
-  & .done::before { background: var(--mx-color-text); }
+  & .done .line { background: var(--mx-color-text); }
   & .stop { position: relative; display: grid; gap: var(--mx-space-2); }
   & .node {
     position: absolute;
@@ -48,10 +40,6 @@
     box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 2) var(--mx-color-text);
   }
   & .done .node { background: var(--mx-color-text); }
-  & .now .node {
-    background: var(--mx-color-accent);
-    box-shadow: 0 0 0 5px color-mix(in oklab, var(--mx-color-accent) 22%, transparent);
-  }
   & .next .node { box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 2) var(--mx-color-border); }
   & .step {
     font-family: var(--mx-font-mono);
@@ -60,7 +48,7 @@
     letter-spacing: 0.08em;
     color: var(--mx-color-muted);
   }
-  & .now .step { color: var(--mx-color-accent); }
+  & .now .step { color: var(--mx-color-text); }
   & .body { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; text-wrap: pretty; }
   & .done .body { color: var(--mx-color-muted); }
 
@@ -70,7 +58,6 @@
     flex-direction: column;
     gap: var(--mx-space-3);
     padding: var(--mx-space-6);
-    background: var(--mx-color-surface);
     border: var(--mx-stroke) dashed var(--mx-color-border);
     border-radius: var(--mx-radius);
   }
@@ -93,7 +80,7 @@
     & .lead, & .body { font-size: var(--mx-text-base); }
     & .rail { gap: var(--mx-space-6); padding-left: var(--mx-space-7); }
     & .node { left: calc(var(--mx-space-7) * -1); }
-    & .stop:not(:last-child)::before { left: calc(var(--mx-space-7) * -1 + 7px); bottom: calc(var(--mx-space-6) * -1); }
+    & .line { left: calc(var(--mx-space-7) * -1 + 7px); bottom: calc(var(--mx-space-6) * -1); }
     & .card { padding: var(--mx-space-5); }
     & .quote p { font-size: var(--mx-text-lg); }
   }

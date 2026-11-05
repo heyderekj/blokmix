@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { Play } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import type { BlockKind, BlockMotion, EnterPreset, MotionSpeed, SectionMotion, Slot } from '@/core/types'
 import { ENTER_INFO, HOVER_INFO, LOOP_INFO, SCROLL_INFO, SPEED_LABEL, canHover, presetsFor } from '@/core/motion'
+import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { Switch } from '../panels/parts'
 import { Steps } from './Spacing'
+import { StepSlider, StyleRow } from '../panels/StyleRows'
 import { useBlockPreview } from './preview'
 
 type Trigger = 'enter' | 'hover' | 'scroll' | 'loop'
@@ -180,51 +182,118 @@ export function SectionMotionRows({ slot }: { slot: Slot }) {
     st().setSectionMotion(slot.id, next)
     window.setTimeout(replay, 40)
   }
-  const preset = m.mode === 'preset' ? m : { mode: 'preset' as const, enter: 'rise' as EnterPreset, stagger: true }
+  const row = useRef<HTMLDivElement>(null)
+  const layout = library.clips[slot.clipId]?.origin === 'layout'
+  // A built-in layout has no motion of its own: "as it comes" is the skin's, which is nothing at all if the skin has none.
+  const fromSkin = useStore((s) => s.guide.sections?.[slot.type]?.motion)
+  const skinEnter = fromSkin?.mode === 'preset' ? (fromSkin.enter ?? 'rise') : null
+  const skinName = useStore((s) => s.guide.skin?.name)
+  const asComes = !layout || !!skinEnter
+  const on = m.mode === 'preset' ? (m.enter ?? 'rise') : m.mode === 'captured' && !asComes ? 'none' : m.mode
+  const tiles: { id: string; label: string; hint: string }[] = [
+    { id: 'none', label: 'None', hint: 'Still' },
+    ...(!asComes ? [] : layout ? [{ id: 'captured', label: 'From skin', hint: `What ${skinName ?? 'the skin'} does: ${ENTER_INFO.find((e) => e.id === skinEnter)?.label ?? 'Rise'}` }] : [{ id: 'captured', label: 'As clipped', hint: 'The motion it came with' }]),
+    ...ENTER_INFO,
+  ]
+  const pick = (id: string) => {
+    if (id === 'captured') {
+      if (!slot.keep.motion) st().toggleKeep(slot.id, 'motion')
+      set(null)
+    }
+    else if (id === 'none') set(asComes ? { mode: 'none' } : null)
+    else set({ stagger: true, ...(m.mode === 'preset' ? m : {}), mode: 'preset', enter: id as EnterPreset })
+  }
   return (
-    <div className="space-y-2">
-      <Steps
-        options={[
-          { v: 'captured', label: 'As clipped' },
-          { v: 'preset', label: 'Preset' },
-          { v: 'none', label: 'None' },
-        ]}
-        value={m.mode}
-        onPick={(v) => set(v === 'captured' ? null : v === 'none' ? { mode: 'none' } : preset)}
-      />
+    <div className="grid gap-2">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-semibold text-zinc-400">Motion</span>
+        <span className="flex gap-0.5">
+          {([-1, 1] as const).map((dir) => (
+            <button
+              key={dir}
+              type="button"
+              aria-label={dir < 0 ? 'Earlier motions' : 'More motions'}
+              onClick={(e) => {
+                e.stopPropagation()
+                row.current?.scrollBy({ left: dir * 208, behavior: 'smooth' })
+              }}
+              className="grid size-6 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.92]"
+            >
+              {dir < 0 ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+            </button>
+          ))}
+        </span>
+      </div>
+      <div
+        ref={row}
+        role="radiogroup"
+        aria-label="How the section arrives"
+        className="-mx-3 flex snap-x gap-2 overflow-x-auto scroll-smooth px-3 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ scrollPaddingInline: 12, maskImage: 'linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 24px), transparent 100%)' }}
+      >
+        {tiles.map((t) => (
+          <MotionTile key={t.id} id={t.id} shows={t.id === 'captured' && layout ? (skinEnter ?? undefined) : undefined} label={t.label} hint={t.hint} on={on === t.id} onPick={() => pick(t.id)} />
+        ))}
+      </div>
       {m.mode === 'preset' && (
         <>
-          <div className="flex flex-wrap gap-1">
-            {ENTER_INFO.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                title={p.hint}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  set({ ...m, enter: p.id })
-                }}
-                className={`h-7 rounded-full px-2.5 text-[12px] font-semibold transition active:scale-[0.97] ${(m.enter ?? 'rise') === p.id ? 'bg-zinc-900 text-white' : 'bg-chip text-zinc-700 hover:bg-chip-hover'}`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center justify-between text-[12px] text-zinc-600">
+          <StyleRow label="Speed">
+            <StepSlider label="Speed" value={m.speed ?? 'normal'} steps={(['slow', 'normal', 'quick'] as const).map((v) => ({ v, label: SPEED_LABEL[v] }))} onChange={(v: MotionSpeed) => set({ ...m, speed: v === 'normal' ? undefined : v })} />
+          </StyleRow>
+          <div className="flex items-center justify-between text-[12px] font-medium text-zinc-600">
             One after another
             <Switch on={!!m.stagger} onChange={() => set({ ...m, stagger: !m.stagger })} label="Stagger blocks" />
           </div>
-          <div className="flex items-center justify-between text-[12px] text-zinc-600">
+          <div className="flex items-center justify-between text-[12px] font-medium text-zinc-600">
             When scrolled into view
             <Switch on={!!m.onScroll} onChange={() => set({ ...m, onScroll: !m.onScroll })} label="Play on scroll" />
           </div>
-          <Steps
-            options={(['quick', 'normal', 'slow'] as const).map((v) => ({ v, label: SPEED_LABEL[v] }))}
-            value={m.speed ?? 'normal'}
-            onPick={(v: MotionSpeed) => set({ ...m, speed: v === 'normal' ? undefined : v })}
-          />
         </>
       )}
     </div>
+  )
+}
+
+/** A way for a section to arrive, shown by doing it: a tiny page that loops the motion while you point at it. */
+function MotionTile({ id, shows, label, hint, on, onPick }: { id: string; shows?: string; label: string; hint: string; on: boolean; onPick: () => void }) {
+  const [play, setPlay] = useState(0)
+  const [hovering, setHovering] = useState(false)
+  const tile = useRef<HTMLButtonElement>(null)
+  const enter = shows ?? id
+  const moves = enter !== 'none' && enter !== 'captured'
+  useEffect(() => {
+    if (!hovering || !moves) return
+    setPlay((n) => n + 1)
+    const timer = window.setInterval(() => setPlay((n) => n + 1), 1500)
+    return () => window.clearInterval(timer)
+  }, [hovering, moves])
+  // Bring your choice into view, without moving the panel around it.
+  useEffect(() => {
+    if (on) tile.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
+  }, [on])
+  const anim = (delay: number) => (moves ? { animation: `sw-${enter} 640ms cubic-bezier(0.23, 1, 0.32, 1) ${delay}ms both` } : undefined)
+  return (
+    <button
+      ref={tile}
+      type="button"
+      role="radio"
+      aria-checked={on}
+      title={hint}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      onClick={(e) => {
+        e.stopPropagation()
+        setPlay((n) => n + 1)
+        onPick()
+      }}
+      className="grid w-[96px] shrink-0 cursor-pointer snap-start gap-1.5 rounded-lg text-center transition-[scale] active:scale-[0.98]"
+    >
+      <span key={play} className={`flex h-[68px] flex-col justify-center gap-1 overflow-hidden rounded-lg bg-lift px-3 transition-shadow duration-150 ${on ? 'shadow-[0_0_0_1.5px_rgb(24_24_27)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.08)]'}`}>
+        <span className={`block h-1.5 w-full rounded-full ${moves ? 'bg-zinc-700' : 'bg-zinc-300'}`} style={anim(0)} />
+        <span className={`block h-1 w-2/3 rounded-full ${moves ? 'bg-zinc-400' : 'bg-zinc-200'}`} style={anim(70)} />
+        <span className={`mt-1 block h-3 w-8 rounded-full ${moves ? 'bg-zinc-700' : 'bg-zinc-300'}`} style={anim(140)} />
+      </span>
+      <span className={`text-[11.5px] leading-tight ${on ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{label}</span>
+    </button>
   )
 }

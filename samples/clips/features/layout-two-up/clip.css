@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -40,101 +40,24 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   /* Large cards: the picture sits on the card's surface, the words below it. */
   & .grid { gap: var(--mx-space-6); }
   & .card { gap: var(--mx-space-6); padding: var(--mx-space-4) var(--mx-space-4) var(--mx-space-7); }
-  & .card .media { aspect-ratio: 16 / 10; background: var(--mx-color-bg); border-radius: var(--mx-radius); }
+  & .card .media { aspect-ratio: 16 / 10; border-radius: var(--mx-radius); }
   & .text { display: grid; gap: var(--mx-space-2); padding-inline: var(--mx-space-3); max-width: 46ch; }
   & .title { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: var(--mx-text-xl); }
-
-  /* 1: a mood board of pinned pieces */
-  & .board-a { left: 12%; top: 16%; width: 38%; height: 58%; background: var(--mx-color-primary); }
-  & .board-b { left: 44%; top: 30%; width: 40%; height: 52%; box-shadow: var(--mx-shadow-card); }
-  & .board-orb { right: 12%; top: 12%; width: 16%; }
-
-  /* 2: a page that loads quickly */
-  & .window {
-    position: absolute;
-    inset: 14% 14% -8%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--mx-space-4);
-    background: var(--mx-color-surface);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius);
-    box-shadow: var(--mx-shadow-card);
-    overflow: hidden;
-  }
-  & .chrome { display: flex; gap: var(--mx-space-2); padding: var(--mx-space-3) var(--mx-space-4); border-bottom: var(--mx-stroke) solid var(--mx-color-border); }
-  & .chrome i { width: 8px; height: 8px; border-radius: 50%; background: color-mix(in oklab, var(--mx-color-text) 16%, transparent); }
-  & .rows { display: grid; gap: var(--mx-space-2); padding-inline: var(--mx-space-5); }
-  & .rows span { height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 14%, transparent); }
-  & .rows span:first-child { width: 70%; height: 12px; background: color-mix(in oklab, var(--mx-color-text) 28%, transparent); }
-  & .rows span:last-child { width: 55%; }
-  & .meter {
-    margin-inline: var(--mx-space-5);
-    height: 6px;
-    border-radius: var(--mx-radius-pill);
-    background: linear-gradient(90deg, var(--mx-color-primary) 0 88%, color-mix(in oklab, var(--mx-color-text) 12%, transparent) 88%);
-  }
-
-  /* 3: a sheet of words with a caret */
-  & .sheet {
-    position: absolute;
-    left: 16%;
-    top: 18%;
-    width: 52%;
-    height: 72%;
-    display: grid;
-    align-content: start;
-    gap: var(--mx-space-3);
-    padding: var(--mx-space-5);
-    background: var(--mx-color-surface);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius);
-    box-shadow: var(--mx-shadow-card);
-  }
-  & .type-line { height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 14%, transparent); }
-  & .type-line.big { height: 16px; width: 80%; background: color-mix(in oklab, var(--mx-color-text) 30%, transparent); }
-  & .type-line.short { width: 45%; background: color-mix(in oklab, var(--mx-color-primary) 55%, transparent); }
-  & .cursor-orb { right: 16%; bottom: 20%; width: 13%; }
-
-  /* 4: a phone with a simple switch beside it */
-  & .phone {
-    position: absolute;
-    left: 50%;
-    top: 12%;
-    width: 30%;
-    height: 100%;
-    translate: -50% 0;
-    display: grid;
-    align-content: start;
-    gap: var(--mx-space-3);
-    padding: var(--mx-space-3);
-    background: var(--mx-color-surface);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius-lg);
-    box-shadow: var(--mx-shadow-card);
-  }
-  & .phone .rows { padding: 0; }
-  & .phone-hero { position: relative; height: 72px; border-radius: var(--mx-radius); background: var(--mx-color-primary); }
-  & .toggle {
-    right: 9%;
-    top: 26%;
-    width: 52px;
-    height: 28px;
-    padding: 3px;
-    display: flex;
-    justify-content: flex-end;
-    border-radius: var(--mx-radius-pill);
-    background: var(--mx-color-accent);
-  }
-  & .toggle i { width: 22px; aspect-ratio: 1; border-radius: 50%; background: var(--mx-color-bg); }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
@@ -147,7 +70,5 @@
     & .card { padding: var(--mx-space-3) var(--mx-space-3) var(--mx-space-6); }
     & .text { padding-inline: var(--mx-space-2); }
     & .title { font-size: var(--mx-text-lg); }
-    & .phone-hero { height: 48px; }
-    & .toggle { right: 6%; }
   }
 }

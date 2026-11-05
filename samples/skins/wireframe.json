@@ -1,0 +1,25 @@
+{
+  "name": "Wireframe",
+  "words": "Plain grey boxes, to decide the layout before the look.",
+  "tier": "free",
+  "mode": "light",
+  "tokens": {
+    "font.display": "'Inter', system-ui, sans-serif",
+    "font.body": "'Inter', system-ui, sans-serif",
+    "type.ratio": "1.2",
+    "type.displayWeight": "600",
+    "radius.base": "4px",
+    "space.section": "88px",
+    "shadow.card": "none",
+    "motion.duration": "200ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "color.bg": "#fafafa",
+    "color.surface": "#ededed",
+    "color.text": "#262626",
+    "color.muted": "#6b6b6b",
+    "color.border": "#d4d4d4",
+    "color.primary": "#404040",
+    "color.onPrimary": "#fafafa",
+    "color.accent": "#8a8a8a"
+  }
+}

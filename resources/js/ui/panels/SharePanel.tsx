@@ -27,16 +27,24 @@ export function SharePanel() {
   const [links, setLinks] = useState<ShareLink[]>([])
   const [owner, setOwner] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState(false)
   const flash = (t: string) => useStore.getState().showFlash(t)
 
   const load = useCallback(async () => {
-    const res = await api<{ members: Member[]; links: ShareLink[]; can_share: boolean }>('GET', `/api/mixes/${mixId}/share`)
-    if (res.status === 200) {
-      setMembers(res.body.members)
-      setLinks(res.body.links)
-      setOwner(res.body.can_share)
+    setFailed(false)
+    try {
+      const res = await api<{ members: Member[]; links: ShareLink[]; can_share: boolean }>('GET', `/api/mixes/${mixId}/share`)
+      if (res.status === 200) {
+        setMembers(res.body.members)
+        setLinks(res.body.links)
+        setOwner(res.body.can_share)
+        setLoaded(true)
+        return
+      }
+    } catch {
+      // Offline, or the server didn't answer: say so rather than load forever.
     }
-    setLoaded(true)
+    setFailed(true)
   }, [mixId])
   useEffect(() => void load(), [load])
 
@@ -122,7 +130,14 @@ export function SharePanel() {
 
       <section>
         <h3 className="px-1 pb-1.5 text-[11px] font-semibold text-zinc-400">People</h3>
-        {!loaded ? (
+        {failed ? (
+          <p className="flex items-center gap-2 px-1 text-[12.5px] text-zinc-500">
+            Couldn’t reach Blokmix to see who’s here.
+            <button type="button" onClick={() => void load()} className="cursor-pointer font-medium text-zinc-900 underline underline-offset-2 active:scale-[0.97]">
+              Try again
+            </button>
+          </p>
+        ) : !loaded ? (
           <p className="px-1 text-[12.5px] text-zinc-400">Loading…</p>
         ) : (
           <ul className="flex flex-col gap-0.5">

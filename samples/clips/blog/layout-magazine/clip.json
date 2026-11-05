@@ -2,14 +2,15 @@
   "title": "Magazine",
   "layoutPattern": "wide-horizontal-lead-story-then-three-up",
   "rhythm": "split",
-  "style": "editorial",
   "density": "dense",
-  "feel": ["editorial"],
-  "motionNotes": "The head rises, then the lead story and the three posts under it follow in a stagger; reduced motion keeps only the fades. On hover a post’s title takes the accent and its picture’s frame darkens.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

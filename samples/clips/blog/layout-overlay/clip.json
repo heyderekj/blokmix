@@ -2,14 +2,15 @@
   "title": "Caption over picture",
   "layoutPattern": "split-head-three-tall-tiles-inset-captions",
   "rhythm": "grid",
-  "style": "bold",
-  "feel": ["friendly", "calm"],
   "density": "balanced",
-  "motionNotes": "The head rises, then each tile’s picture fades in and its caption panel rises over it, tile by tile; reduced motion keeps only the fades. On hover the caption lifts a step and the title takes the accent.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

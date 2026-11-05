@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
-import { sectionTokens, widthTokens } from '@/core/surface'
+import { bandTokens, sectionTokens, widthTokens } from '@/core/surface'
 import { create } from 'zustand'
 import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
-import { backdropCss, backdropShaderId, effectsVars, type EffectsState, type ShaderSpec, type TreatmentValue } from '@/core/treatments'
-import { blockCss, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
+import { backdropCss, backdropShaderId, effectsVars, isBackdropId, readBackdrop, type EffectsState, type ShaderSpec, type TreatmentValue } from '@/core/treatments'
+import { blockCss, defaultFor, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
+import { pictureFor, withSectionDefaults } from '@/core/sectionDefaults'
 import { motionCss } from '@/core/motion'
 import { renderMedia, shaderFor } from '@/core/media'
 import { iconNamesIn, iconSvg } from '@/core/icons'
@@ -24,7 +25,7 @@ export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
 
 /** Page-wide block defaults, extra colors and effects, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
-export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
+export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles' | 'sections' | 'picture'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
 
 /** Effects you're dialing, shown on every section before you let go. Not undoable state. */
 export const useEffectPreview = create<{ effects: EffectsState | null; set: (effects: EffectsState | null) => void }>()((set) => ({
@@ -38,6 +39,8 @@ export function usePageStyle(): PageStyle {
   const components = useStore((s) => s.guide.components)
   const textStyles = useStore((s) => s.guide.textStyles)
   const saved = useStore((s) => s.guide.effects)
+  const sections = useStore((s) => s.guide.sections)
+  const picture = useStore((s) => s.guide.picture)
   const dialing = useEffectPreview((s) => s.effects)
   const effects = dialing ?? saved
   // Only the site's shape matters to links (pages, paths, which sections where), not every edit.
@@ -50,9 +53,9 @@ export function usePageStyle(): PageStyle {
     const { site, ui } = useStore.getState()
     const here = site.pages.find((p) => p.id === ui.pageId) ?? site.pages[0]
     const sharedIds = [site.shared.nav?.id, site.shared.footer?.id].filter((x): x is string => !!x)
-    return { swatches, components, textStyles, effects, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
+    return { swatches, components, textStyles, effects, sections, picture, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swatches, components, textStyles, effects, shape])
+  }, [swatches, components, textStyles, effects, sections, picture, shape])
 }
 
 /** Where one section's links can lead: from its page, or from everywhere for the shared nav and footer. */
@@ -95,7 +98,7 @@ export function fontHrefsFor(tokens: TokenSet): string[] {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   libraryClip: Clip,
-  slot: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner' | 'surface' | 'width' | 'backdrop'> & { id?: string }) | null,
+  chosen: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner' | 'surface' | 'width' | 'backdrop' | 'slider'> & { id?: string }) | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
@@ -103,13 +106,19 @@ export function frameStateFor(
   page?: PageStyle,
 ): FrameState {
   const vh = VIEWPORT_VH[viewport]
+  // Its type's defaults from the style guide sit underneath what the section chose.
+  const slot = chosen && withSectionDefaults(chosen, libraryClip.type, page?.sections, !!libraryClip.motionCss)
   if (mode === 'captured' || !slot) {
     const clip = libraryClip
-    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: fontHrefsFor(clip.tokens), outline: false, blocks: NO_BLOCKS, media: NO_MEDIA, backdrop: null, icons: null, lists: NO_LISTS, links: NO_LINKS }
+    return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: fontHrefsFor(clip.tokens), outline: false, slider: NO_SLIDER, blocks: NO_BLOCKS, media: NO_MEDIA, backdrop: null, icons: null, lists: NO_LISTS, links: NO_LINKS }
   }
   // The clip as this section shows it: items you added, removed or reordered.
   const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
   const tokens = slot.keep.style ? widthTokens(clip.tokens, slot.width) : sectionTokens(guide, slot)
+  // A backdrop draws in the band's colors; over it the section's colors answer to what's behind its words.
+  const band = slot.keep.style ? tokens : bandTokens(guide, slot)
+  const reading = slot.backdrop && !slot.keep.style && isBackdropId(slot.backdrop.id) ? readBackdrop(slot.backdrop, band) : null
+  const backdrop = reading?.value ?? slot.backdrop
   const own = slot.words && Object.keys(slot.words).length ? slot.words : undefined
   return {
     // A section keeping its own captured look keeps its own shadows too.
@@ -119,9 +128,10 @@ export function frameStateFor(
     fields: slot.keep.content && !own ? null : resolveFields(clip.type, clip.fields, content, slot.keep.content, own).fields,
     fonts: fontHrefsFor(tokens),
     outline: !slot.keep.layout,
-    blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, slot.backdrop, tokens, page?.textStyles), clip.extras?.banner ? bannerMoves(slot) : null),
-    media: mediaFor(clip, slot.edits?.[clip.id], tokens),
-    backdrop: backdropShader(slot.backdrop, tokens),
+    slider: slot.slider ?? NO_SLIDER,
+    blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, backdrop, band, page?.textStyles, !!reading?.ink), clip.extras?.banner ? bannerMoves(slot) : null),
+    media: mediaFor(clip, slot.edits?.[clip.id], tokens, page?.picture, slot.keep.style),
+    backdrop: backdropShader(backdrop, band),
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? iconsFor(clip, slot.edits?.[clip.id], library.sources[clip.sourceId]?.tokens['icon.set'] ?? guide['icon.set'], true) : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
     lists: clip.patches.length ? clip.patches : NO_LISTS,
@@ -130,6 +140,7 @@ export function frameStateFor(
 }
 
 const NO_LINKS: FrameState['links'] = {}
+const NO_SLIDER: FrameState['slider'] = {}
 const linkCache = new Map<string, FrameState['links']>()
 /** Where the section's links lead, so previews can follow them. */
 function linksFor(clip: SectionClip, slot: Parameters<typeof frameStateFor>[1] & object, content: ProjectContent, scope: LinkScope | undefined): FrameState['links'] {
@@ -177,11 +188,11 @@ function iconsFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, set:
 
 const mediaCache = new Map<string, FrameState['media'][string]>()
 /** Pictures for image blocks; placeholders are redrawn from the current palette. */
-function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet): FrameState['media'] {
-  if (!edits) return NO_MEDIA
+function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet, picture: PageStyle['picture'], keepsStyle: boolean): FrameState['media'] {
+  if (!edits && !picture) return NO_MEDIA
   const out: FrameState['media'] = {}
   for (const b of clip.blocks) {
-    const fill = edits[b.id]?.media
+    const fill = pictureFor(edits?.[b.id]?.media, b, picture, clip.origin, keepsStyle)
     if (!fill || b.kind !== 'image') continue
     const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' || fill.source === 'mock' || fill.source === 'shader' ? tokens : null])
     let m = mediaCache.get(key)
@@ -249,24 +260,25 @@ function blocksFor(
   backdrop?: TreatmentValue,
   tokens?: TokenSet,
   textStyles?: GuideState['textStyles'],
+  solidBackdrop = false,
 ): FrameState['blocks'] {
   if (!edits && !components && !spacing && !backdrop && !textStyles && motion?.mode !== 'preset') return NO_BLOCKS
   const variants: Record<string, string> = {}
   for (const b of clip.blocks) {
-    const e = effectiveEdit(edits?.[b.id], components?.[b.kind])
+    const e = effectiveEdit(edits?.[b.id], defaultFor(components, b))
     if (e?.variant) variants[b.id] = e.variant
   }
   const select = (b: BlockInfo) => `[data-mx-b="${b.id}"]`
   const moving = motionCss({
     blocks: clip.blocks,
-    edits: (b) => effectiveEdit(edits?.[b.id], components?.[b.kind]),
+    edits: (b) => effectiveEdit(edits?.[b.id], defaultFor(components, b)),
     section: motion,
     select,
     root: '[data-mx-section]',
     prefix: 'mx-m',
     canvas: true,
   })
-  const behind = backdrop && tokens ? backdropCss(backdrop, tokens, '[data-mx-section]') : ''
+  const behind = backdrop && tokens ? backdropCss(backdrop, tokens, '[data-mx-section]', solidBackdrop) : ''
   const css = [behind, blockCss({ blocks: clip.blocks, edits, components, textStyles, select }), sectionSpacingCss(spacing, '[data-mx-section]'), moving]
     .filter(Boolean)
     .join('\n')

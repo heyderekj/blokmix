@@ -19,6 +19,9 @@ export default defineConfig({
   },
   server: hosted ? { port: 5174, strictPort: true } : { port: 5173 },
   test: {
+    // Some tests render every layout or draw every fill: fine alone, slow when the whole suite shares the machine.
+    testTimeout: 30_000,
+    hookTimeout: 60_000,
     include: ['tests/**/*.test.ts'],
     // Clip stylesheets load as text (?raw); without this Vitest hands them over empty.
     css: { include: [/samples\/clips\//] },

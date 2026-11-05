@@ -1,15 +1,16 @@
 {
   "title": "Ruled cells",
-  "layoutPattern": "brand-link-cells-filled-cta",
+  "layoutPattern": "brand-link-cells-cta",
   "rhythm": "grid",
-  "style": "technical",
   "density": "dense",
-  "feel": ["editorial", "bold"],
-  "motionNotes": "No entrance. Each link is its own ruled cell with a running number, filling with the surface colour on hover; the filled button cell’s arrow nudges up and out.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

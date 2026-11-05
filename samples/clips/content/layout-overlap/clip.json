@@ -2,10 +2,8 @@
   "title": "Overlapping panel",
   "layoutPattern": "offset-image-overlap-panel",
   "rhythm": "split",
-  "style": "bold",
-  "feel": ["bold"],
   "density": "balanced",
-  "motionNotes": "The picture scales in, then the text panel slides up into its overlapping corner.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

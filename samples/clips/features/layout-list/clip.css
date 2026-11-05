@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -31,7 +31,6 @@
     border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .num { font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
-  & .row:first-child .num { color: var(--mx-color-accent); }
   & .row .title {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);

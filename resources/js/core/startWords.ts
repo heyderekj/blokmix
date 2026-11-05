@@ -14,6 +14,8 @@ export const SHARED_WORDS: Words = {
   testimonials: { logo1: 'Northwind', logo2: 'Fieldnote', logo3: 'Paperplane', logo4: 'Lumen', logo5: 'Orbital', logo6: 'Kettle' },
   contact: { email: '{email}', nameLabel: 'Your name', emailLabel: 'Email', messageLabel: 'Message', submit: 'Send message' },
   footer: { brand: '{name}', legal: '© {year} {name}. All rights reserved.' },
+  hero: { s1Title: 'What we do best', s1Body: 'A sentence on why it matters to the people you serve.', s1Cta: 'Learn more', s2Title: 'How it works', s2Body: 'A sentence on what happens first, and what comes next.', s2Cta: 'Learn more', s3Title: 'Who it’s for', s3Body: 'A sentence on the people who get the most from it.', s3Cta: 'Learn more', s4Title: 'Why people stay', s4Body: 'A sentence on what keeps them coming back.', s4Cta: 'Learn more', s5Title: 'What’s new', s5Body: 'A sentence on the latest thing worth a look.', s5Cta: 'Learn more', s6Title: 'Where to start', s6Body: 'A sentence on the easiest way to begin.', s6Cta: 'Learn more' },
+  gallery: { g1Title: 'Project one', g2Title: 'Project two', g3Title: 'Project three', g4Title: 'Project four', g5Title: 'Project five', g6Title: 'Project six', g7Title: 'Project seven', g8Title: 'Project eight' },
   nav: { brand: '{name}' },
 }
 

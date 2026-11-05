@@ -4,8 +4,8 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -14,7 +14,7 @@
     letter-spacing: -0.02em;
   }
   & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-4 { grid-column-end: span 4; }
@@ -33,10 +33,6 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
 
   /* Head: heading on the left, the line and a link to every post on the right. */
   & .intro { align-items: end; }
@@ -49,11 +45,10 @@
     font-weight: 600;
     cursor: pointer;
   }
-  & .arrow { transition: transform var(--mx-motion-duration) var(--mx-motion-ease); }
 
   /* Tall tiles: the picture fills the tile and the words sit on a panel over its foot. */
   & .posts { margin-top: var(--mx-space-9); gap: var(--mx-space-5); }
-  & .tile { position: relative; display: grid; overflow: hidden; border-radius: var(--mx-radius-lg); }
+  & .tile { display: grid; overflow: hidden; border-radius: var(--mx-radius-lg); }
   & .tile .media { aspect-ratio: 3 / 4; grid-area: 1 / 1; }
   & .caption {
     grid-area: 1 / 1;
@@ -67,8 +62,7 @@
     padding: var(--mx-space-5);
     background: var(--mx-color-bg);
     border-radius: var(--mx-radius);
-    box-shadow: var(--mx-shadow-card);
-    transition: translate var(--mx-motion-duration) var(--mx-motion-ease);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
   }
   & .title {
     font-family: var(--mx-font-display);
@@ -80,32 +74,22 @@
   }
   & .body { font-size: var(--mx-text-sm); }
   & .link { cursor: pointer; }
-  /* The whole tile is the link: the panel’s overlay reaches past it and the tile clips it. */
-  & .link::after { content: ""; position: absolute; inset: -2000px -200px -200px; }
-  & .link:focus-visible { outline: none; }
-  & .tile:has(.link:focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; border-radius: var(--mx-radius-lg); }
 
-  /* Placeholder art: each post’s picture gets its own arrangement of the shared shapes. */
-  & .media .orb { width: 34%; right: 12%; top: 14%; }
-  & .media .slab { left: 10%; bottom: 12%; width: 46%; height: 28%; }
-  & .media .slab.two { left: auto; right: 10%; bottom: auto; top: 14%; width: 30%; height: 20%; background: color-mix(in oklab, var(--mx-color-primary) 16%, var(--mx-color-surface)); }
-  & .v2 .orb { width: 18%; left: 10%; right: auto; top: 14%; }
-  & .v2 .slab { width: 56%; }
-  & .v3 .slab { left: 10%; top: 24%; bottom: auto; width: 62%; height: 16%; }
-  & .v3 .slab.two { left: 10%; right: auto; top: 48%; width: 40%; height: 16%; }
-  & .v4 .orb { width: 62%; right: -10%; top: 28%; }
-  & .v4 .slab { width: 34%; height: 40%; }
-  & .tile .orb { width: 48%; }
-  & .tile .v2 .orb { width: 24%; }
-  & .tile .v1 .orb, & .tile .v2 .orb { top: 10%; }
-  & .tile .slab { bottom: auto; top: 26%; }
-  & .tile .v3 .slab { top: 14%; }
-  & .tile .v3 .slab.two { top: 34%; }
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (hover: hover) and (pointer: fine) {
-    & .more:hover .arrow { transform: translateX(3px); }
-    & .tile:hover .caption { translate: 0 calc(var(--mx-space-1) * -1); }
-    & .tile:hover .link { color: var(--mx-color-accent); }
+    & .more:hover { color: var(--mx-color-muted); }
+    & .tile:hover .link { color: var(--mx-color-muted); }
   }
 
   @container (max-width: 952px) {

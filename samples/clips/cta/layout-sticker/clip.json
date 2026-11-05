@@ -1,15 +1,16 @@
 {
-  "title": "Sticker call to action",
-  "layoutPattern": "display-heading-rotated-sticker-offset-shapes",
+  "title": "Badge over a big heading",
+  "layoutPattern": "display-heading-overlapped-by-round-badge",
   "rhythm": "stack",
-  "style": "playful",
-  "feel": ["friendly"],
   "density": "balanced",
-  "motionNotes": "Heading and pitch rise; the sticker slaps on with a small overshoot just after; the squiggle wiggles slowly. Reduced motion keeps fades and stills the squiggle.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-30T00:00:00Z"
   }
 }

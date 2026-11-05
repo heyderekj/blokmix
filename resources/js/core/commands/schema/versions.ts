@@ -39,4 +39,23 @@ export const VERSION_COMMANDS = {
     }),
     write: true,
   },
+  publish: {
+    description:
+      'Publish the mix (or a saved version) to blok.page: an unlisted page anyone with the link can open, search engines never index. Every page of the site, in the mix’s style. Publishing again updates the same address. Returns the URL. Only in hosted Blokmix (a saved mix); on Free one mix can be published at a time, with a small badge.',
+    input: z.object({
+      version: version.optional().describe('A saved version to publish instead of the mix as it is now'),
+      name: z.string().min(1).max(120).optional().describe('The name in the address (blok.page/<code>/<name>); defaults to what’s published, or the mix’s name'),
+    }),
+    write: true,
+  },
+  get_publication: {
+    description: 'Whether this mix is on blok.page: its URL, pages, the version published and when.',
+    input: z.object({}),
+    write: false,
+  },
+  unpublish: {
+    description: 'Take the mix off blok.page. Its address stops working (publishing again brings the same address back).',
+    input: z.object({}),
+    write: true,
+  },
 } as const

@@ -2,7 +2,7 @@
   "name": "Simple product launch",
   "blurb": "A clear page for an app or product: what it does, who trusts it, what it costs.",
   "kind": "product",
-  "vibe": "calm",
+  "skin": "calm",
   "pages": [
     {
       "path": "/",

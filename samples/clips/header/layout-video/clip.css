@@ -3,8 +3,8 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1280px; margin-inline: auto; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -32,7 +32,7 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-4 { grid-column-end: span 4; }
@@ -47,7 +47,6 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
 
   /* Title row: the heading on the left, the intro and button settle to its baseline on the right. */
   & .intro-row { align-items: end; }
@@ -55,62 +54,29 @@
   & .aside { display: grid; gap: var(--mx-space-6); justify-items: start; }
   & .aside .lead { font-size: var(--mx-text-base); }
 
-  /* The reel: a wide cinematic frame under the title, a play button over a still from the film. */
-  & .reel { aspect-ratio: 21 / 9; margin-top: var(--mx-space-9); box-shadow: var(--mx-shadow-card); }
-  & .sky {
-    background:
-      radial-gradient(ellipse 50% 70% at 70% 30%, color-mix(in oklab, var(--mx-color-accent) 26%, var(--mx-color-surface)), transparent 70%),
-      linear-gradient(180deg, color-mix(in oklab, var(--mx-color-primary) 10%, var(--mx-color-surface)), var(--mx-color-surface));
-  }
-  & .hill { position: absolute; border-radius: 50% 50% 0 0; }
-  & .h1 { left: -8%; right: 34%; bottom: -30%; height: 72%; background: color-mix(in oklab, var(--mx-color-text) 14%, var(--mx-color-surface)); }
-  & .h2 { left: 38%; right: -12%; bottom: -36%; height: 64%; background: color-mix(in oklab, var(--mx-color-text) 22%, var(--mx-color-surface)); }
-  & .mill {
-    position: absolute;
-    left: 22%;
-    bottom: 30%;
-    width: 9%;
-    aspect-ratio: 1 / 1.1;
-    background: color-mix(in oklab, var(--mx-color-text) 30%, var(--mx-color-surface));
-    clip-path: polygon(0 34%, 50% 0, 100% 34%, 100% 100%, 0 100%);
-  }
-  & .grain {
-    background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 10%, transparent) 1px, transparent 1.5px);
-    background-size: 6px 6px;
-    opacity: 0.6;
-  }
-  /* Letterbox: a faint band top and bottom, like a film still. */
-  & .bars {
+  /* The reel: a wide cinematic frame under the title, with a play mark. */
+  & .reel { aspect-ratio: 21 / 9; margin-top: var(--mx-space-9);}
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, color-mix(in oklab, var(--mx-color-text) 18%, transparent), transparent 14%, transparent 86%, color-mix(in oklab, var(--mx-color-text) 18%, transparent));
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
   }
+  & .x path { vector-effect: non-scaling-stroke; }
+
   & .play {
     position: absolute;
     left: 50%;
     top: 50%;
-    display: grid;
-    place-items: center;
-    width: clamp(64px, 7vw, 96px);
-    aspect-ratio: 1;
+    width: 40px;
+    height: 40px;
     translate: -50% -50%;
-    border-radius: 50%;
-    background: var(--mx-color-bg);
-    color: var(--mx-color-text);
-    box-shadow: var(--mx-shadow-card);
-  }
-  & .play svg { translate: 2px 0; }
-  & .time {
-    position: absolute;
-    right: var(--mx-space-5);
-    bottom: var(--mx-space-5);
-    padding: var(--mx-space-1) var(--mx-space-3);
-    border-radius: var(--mx-radius-pill);
-    background: var(--mx-color-bg);
-    color: var(--mx-color-text);
-    font-family: var(--mx-font-mono);
-    font-size: var(--mx-text-xs);
-    font-variant-numeric: tabular-nums;
+    fill: currentColor;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -130,7 +96,5 @@
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > * { grid-column: auto / span 12; }
     & .reel { aspect-ratio: 4 / 3; margin-top: var(--mx-space-8); }
-    & .mill { width: 16%; left: 16%; }
-    & .time { right: var(--mx-space-3); bottom: var(--mx-space-3); }
   }
 }

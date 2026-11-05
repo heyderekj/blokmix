@@ -2,14 +2,15 @@
   "title": "Photo backdrop",
   "layoutPattern": "full-bleed-image-copy-bottom-left",
   "rhythm": "band",
-  "style": "bold",
   "density": "airy",
-  "feel": ["bold"],
-  "motionNotes": "The photograph settles in from a slight zoom while the copy rises in a short stagger over the scrim; reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

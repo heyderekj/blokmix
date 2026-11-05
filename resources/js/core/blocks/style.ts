@@ -53,6 +53,12 @@ const INK_TOKEN: Partial<Record<BlockKind, string[]>> = {
   icon: ['--mx-color-primary', '--mx-color-text'],
 }
 
+/** The page-wide default for a block: its kind's, or for a quieter button, the skin's look for those. */
+export function defaultFor(components: Partial<Record<BlockKind, ComponentDefault>> | undefined, b: Pick<BlockInfo, 'kind' | 'secondary'>): ComponentDefault | undefined {
+  const def = components?.[b.kind]
+  return b.secondary && def?.secondary ? def.secondary : def
+}
+
 /** The block's edit with any page-wide default for its kind underneath. */
 export function effectiveEdit(edit: BlockEdit | undefined, def: ComponentDefault | undefined): BlockEdit | undefined {
   if (!edit && !def) return undefined
@@ -105,7 +111,7 @@ export function blockCss(i: BlockCssInput): string {
   const phone: string[] = []
   const styles = resolveTextStyles(i.textStyles)
   for (const b of i.blocks) {
-    const e = effectiveEdit(i.edits?.[b.id], i.components?.[b.kind])
+    const e = effectiveEdit(i.edits?.[b.id], defaultFor(i.components, b))
     const ts = blockTextStyle(b, i.blocks, e?.style?.text, i)
     if (!e && !ts) continue
     const decl: string[] = []

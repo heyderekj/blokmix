@@ -6,16 +6,26 @@ use App\Http\Controllers\Api\CollectionAssetController;
 use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\MixApiController;
+use App\Http\Controllers\Api\PublicationController;
 use App\Http\Controllers\Api\StyleGuideController;
 use App\Http\Controllers\Api\UnsplashController;
 use App\Http\Controllers\Api\WaitlistController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\LibraryAdminController;
 use App\Http\Controllers\MixController;
+use App\Http\Controllers\PublishedController;
 use App\Models\Mix;
 use App\Http\Controllers\ShareController;
 use App\Http\Controllers\WaitlistController as WaitlistPage;
 use Illuminate\Support\Facades\Route;
+
+// blok.page: published mixes, first so nothing else answers on that host. No web middleware: no session, no cookies, no
+// CSRF, so the pages people make never sit beside a signed-in session.
+Route::domain(config('blokmix.publish_host'))->withoutMiddleware('web')->group(function () {
+    Route::get('/', [PublishedController::class, 'home'])->name('published.home');
+    Route::get('/{code}/{rest?}', [PublishedController::class, 'show'])->where('code', Mix::SHORT_PATTERN)->where('rest', '.*')->name('published.show');
+    Route::any('/{any}', fn () => response('Not found', 404, ['X-Robots-Tag' => 'noindex, nofollow']))->where('any', '.*');
+});
 
 // Share links work for people who aren't signed in yet (they sign up, then come back here).
 Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join');
@@ -94,6 +104,11 @@ Route::middleware('auth')->group(function () {
         Route::delete('/library/sites/{slug}', [LibraryController::class, 'destroy'])->name('library.destroy');
         Route::patch('/library/sections/{section}', [LibraryController::class, 'updateSection'])->whereNumber('section')->name('library.sections.update');
         Route::get('/library/assets/{id}', [LibraryController::class, 'asset'])->where('id', 'ls_[a-z0-9]{8}')->name('library.assets.show');
+
+        // The mix on blok.page.
+        Route::get('/mixes/{mix}/publication', [PublicationController::class, 'show'])->name('publication.show');
+        Route::post('/mixes/{mix}/publication', [PublicationController::class, 'update'])->middleware('throttle:20,1')->name('publication.update');
+        Route::delete('/mixes/{mix}/publication', [PublicationController::class, 'destroy'])->name('publication.destroy');
 
         Route::get('/mixes/{mix}/share', [ShareController::class, 'index'])->name('share.index');
         Route::post('/mixes/{mix}/share/links', [ShareController::class, 'createLink'])->name('share.links.store');

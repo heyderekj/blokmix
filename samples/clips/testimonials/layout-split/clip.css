@@ -4,7 +4,7 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container {
-    max-width: 1120px;
+    max-width: var(--mx-width-content);
     margin: 0 auto;
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
@@ -19,20 +19,10 @@
     align-items: flex-start;
   }
   & .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--mx-space-2);
     font-size: var(--mx-text-sm);
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--mx-color-muted);
-  }
-  & .eyebrow::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--mx-color-accent);
   }
   & .quote { margin: var(--mx-space-6) 0 0; }
   & .quote p {
@@ -43,8 +33,6 @@
     letter-spacing: -0.02em;
     text-wrap: pretty;
   }
-  & .quote p::before { content: '“'; }
-  & .quote p::after { content: '”'; }
 
   & .person {
     margin-top: var(--mx-space-7);
@@ -52,7 +40,7 @@
     flex-direction: column;
     gap: 2px;
     padding-left: var(--mx-space-4);
-    border-left: calc(var(--mx-stroke) * 2) solid var(--mx-color-accent);
+    border-left: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .name { font-size: var(--mx-text-base); font-weight: 600; }
   & .role { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
@@ -76,71 +64,26 @@
     font-variant-numeric: tabular-nums;
   }
   & .label { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
-
-  /* Portrait placeholder: a soft silhouette on a tinted panel */
   & .portrait {
     position: relative;
-    aspect-ratio: 4 / 5;
     overflow: hidden;
-    border: var(--mx-stroke) solid var(--mx-color-border);
+    aspect-ratio: 4 / 5;
     border-radius: var(--mx-radius-lg);
-    background:
-      radial-gradient(70% 55% at 80% 10%, color-mix(in oklab, var(--mx-color-accent) 16%, transparent), transparent 70%),
-      linear-gradient(165deg, color-mix(in oklab, var(--mx-color-primary) 10%, var(--mx-color-surface)), var(--mx-color-surface));
-  }
-  & .figure {
-    position: absolute;
-    left: 18%;
-    right: 18%;
-    bottom: 0;
-    height: 74%;
-  }
-  & .figure::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 0;
-    width: 46%;
-    aspect-ratio: 1;
-    translate: -50% 0;
-    border-radius: 50%;
-    background: color-mix(in oklab, var(--mx-color-text) 13%, var(--mx-color-surface));
-  }
-  & .figure::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 46%;
-    border-radius: 50% 50% 0 0 / 70% 70% 0 0;
-    background: color-mix(in oklab, var(--mx-color-text) 13%, var(--mx-color-surface));
-  }
-  & .badge {
-    position: absolute;
-    left: var(--mx-space-5);
-    bottom: var(--mx-space-5);
-    display: flex;
-    align-items: center;
-    gap: var(--mx-space-2);
-    padding: var(--mx-space-2) var(--mx-space-3);
+    background: var(--mx-color-surface);
     border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius-pill);
-    background: var(--mx-color-bg);
-    box-shadow: var(--mx-shadow-card);
   }
-  & .badge i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--mx-color-accent);
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
   }
-  & .badge b {
-    width: 64px;
-    height: 8px;
-    border-radius: var(--mx-radius-pill);
-    background: color-mix(in oklab, var(--mx-color-text) 18%, transparent);
-  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
@@ -148,7 +91,6 @@
   @container (max-width: 616px) {
     & .container { grid-template-columns: 1fr; gap: var(--mx-space-8); }
     & .portrait { order: -1; aspect-ratio: 4 / 3; }
-    & .figure { left: 26%; right: 26%; height: 80%; }
     & .quote { margin-top: var(--mx-space-5); }
     & .quote p { font-size: var(--mx-text-xl); line-height: 1.35; }
     & .person { margin-top: var(--mx-space-6); }

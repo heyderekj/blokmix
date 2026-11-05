@@ -4,10 +4,10 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -32,7 +32,7 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-4 { grid-column-end: span 4; }
@@ -48,14 +48,23 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   /* A shelf of three products: a tall picture with its tag, then name, line, size, price and one quiet button. */
   & .products { align-items: stretch; }
   & .product { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--mx-space-3); text-align: center; }
-  & .product .media { align-self: stretch; aspect-ratio: 4 / 5; border-color: transparent; margin-bottom: var(--mx-space-3); }
+  & .product .media { align-self: stretch; aspect-ratio: 4 / 5; margin-bottom: var(--mx-space-3); }
   & .tag {
     position: absolute;
     top: var(--mx-space-4);
@@ -63,45 +72,15 @@
     padding: var(--mx-space-1) var(--mx-space-3);
     border-radius: var(--mx-radius-pill);
     background: var(--mx-color-bg);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
     font-size: var(--mx-text-xs);
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: var(--mx-color-accent);
+    color: var(--mx-color-muted);
   }
   & .info { display: flex; flex-direction: column; align-items: center; gap: var(--mx-space-2); max-width: 34ch; }
   & .price { margin-top: auto; padding-top: var(--mx-space-2); font-size: var(--mx-text-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
   & .product .btn { align-self: stretch; margin-top: var(--mx-space-2); }
-
-  /* Placeholder art: a boxed set on a soft floor, bottles and tubes standing in front, drawn from tokens. */
-  & .box { left: 14%; right: 14%; bottom: 20%; height: 40%; background: color-mix(in oklab, var(--mx-color-text) 8%, var(--mx-color-bg)); box-shadow: var(--mx-shadow-card); }
-  & .box.wide { left: 20%; right: 10%; height: 36%; }
-  & .box.low { left: 12%; right: 12%; height: 30%; bottom: 22%; }
-  & .lid { left: 14%; right: 14%; bottom: 60%; height: 16%; background: color-mix(in oklab, var(--mx-color-primary) 16%, var(--mx-color-surface)); transform: skewX(-8deg); }
-  & .bottle {
-    position: absolute;
-    bottom: 16%;
-    width: 13%;
-    height: 34%;
-    border-radius: var(--mx-radius-sm) var(--mx-radius-sm) var(--mx-radius) var(--mx-radius);
-    background: linear-gradient(color-mix(in oklab, var(--mx-color-text) 70%, var(--mx-color-bg)) 0 14%, color-mix(in oklab, var(--mx-color-accent) 55%, var(--mx-color-text)) 14%);
-  }
-  & .bottle.tall { left: 24%; }
-  & .bottle.short { left: 42%; height: 24%; }
-  & .bottle.left { left: 12%; height: 42%; width: 16%; }
-  & .tube {
-    position: absolute;
-    bottom: 16%;
-    left: 52%;
-    width: 9%;
-    height: 40%;
-    border-radius: var(--mx-radius-sm) var(--mx-radius-sm) var(--mx-radius-pill) var(--mx-radius-pill);
-    background: linear-gradient(color-mix(in oklab, var(--mx-color-primary) 22%, var(--mx-color-bg)) 0 82%, color-mix(in oklab, var(--mx-color-text) 75%, var(--mx-color-bg)) 82%);
-  }
-  & .tube.two { left: 64%; background: linear-gradient(color-mix(in oklab, var(--mx-color-accent) 26%, var(--mx-color-bg)) 0 82%, color-mix(in oklab, var(--mx-color-text) 75%, var(--mx-color-bg)) 82%); }
-  & .tube.three { left: 76%; background: linear-gradient(color-mix(in oklab, var(--mx-color-text) 18%, var(--mx-color-bg)) 0 82%, color-mix(in oklab, var(--mx-color-text) 75%, var(--mx-color-bg)) 82%); }
-  & .box.low ~ .tube { left: 30%; }
-  & .box.low ~ .tube.two { left: 45%; }
-  & .box.low ~ .tube.three { left: 60%; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.secondary:hover { background: var(--mx-color-surface); }

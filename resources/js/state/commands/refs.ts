@@ -4,7 +4,7 @@ import { bindContextFor, templateEntry } from '../collections'
 import { allSlots, isShared, normalizePath, pageOf, pageOfSlot, pageView, updateSlotIn } from '@/core/site'
 import { isMark, SOURCE_LABEL } from '@/core/notes'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
-import { effectiveEdit } from '@/core/blocks/style'
+import { defaultFor, effectiveEdit } from '@/core/blocks/style'
 import { advise } from '@/core/advise'
 import { resolveGuide } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
@@ -154,12 +154,13 @@ export function describeSection(slot: Slot, position: number) {
     ...((slot.inspiredBy ?? clip.inspiredBy) ? { inspiredBy: slot.inspiredBy ?? clip.inspiredBy } : {}),
     keep: { layout: slot.keep.layout, style: slot.keep.style, copy: slot.keep.content, motion: slot.keep.motion, locked: slot.locked },
     spacing: slot.spacing ?? {},
-    surface: slot.surface ?? 'page',
+    surface: slot.surface ?? st.guide.sections?.[slot.type]?.surface ?? 'page',
+    ...(clip.slider ? { slider: { options: clip.slider, chosen: slot.slider ?? {} } } : {}),
     width: slot.width ?? 'standard',
     motion: slot.motion ?? { mode: slot.keep.motion ? 'captured' : 'none' },
     words,
     blocks: clip.blocks.map((b) => {
-      const e = effectiveEdit(slot.edits?.[clip.id]?.[b.id], st.guide.components?.[b.kind])
+      const e = effectiveEdit(slot.edits?.[clip.id]?.[b.id], defaultFor(st.guide.components, b))
       return {
         id: b.id,
         label: b.label,

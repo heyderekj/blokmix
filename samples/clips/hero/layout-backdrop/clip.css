@@ -2,18 +2,23 @@
   background: var(--mx-color-bg);
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  min-height: calc(var(--mx-vh) * 88);
 
-  & .container { max-width: var(--mx-width-content); margin-inline: auto; }
+  & .container { position: relative; z-index: 1; width: 100%; max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-size: clamp(var(--mx-text-3xl), 5vw, var(--mx-text-6xl));
+    line-height: 1.04;
+    letter-spacing: -0.03em;
   }
-  & .heading.display { font-size: clamp(var(--mx-text-3xl), 5vw, var(--mx-text-6xl)); line-height: 1.04; letter-spacing: -0.03em; }
   & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
   & .head .actions { margin-top: var(--mx-space-4); }
   & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
@@ -30,49 +35,31 @@
     font-weight: 600;
     line-height: 1.1;
     cursor: pointer;
-    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & .btn.secondary { background: var(--mx-color-bg); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
-
-  /* The photograph fills the whole section; the copy sits on a scrim at the bottom left. */
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-  min-height: calc(var(--mx-vh) * 88);
-  & .container { position: relative; z-index: 2; width: 100%; }
+  /* The picture fills the whole section; the copy sits on it at the bottom left. */
   & .backdrop {
     position: absolute;
     inset: 0;
     z-index: 0;
     overflow: hidden;
-    background: linear-gradient(180deg, color-mix(in oklab, var(--mx-color-text) 9%, var(--mx-color-surface)), var(--mx-color-surface) 70%);
+    background: var(--mx-color-surface);
   }
-  & .backdrop .dots { opacity: 0.6; }
-  & .sun { right: 16%; top: 14%; width: clamp(120px, 15vw, 220px); opacity: 0.85; }
-  & .hill { border-radius: 50% 50% 0 0; }
-  & .hill.far { left: 30%; right: -14%; bottom: -24%; height: 86%; background: color-mix(in oklab, var(--mx-color-text) 13%, var(--mx-color-surface)); }
-  & .hill.near { left: -20%; right: 26%; bottom: -22%; height: 62%; background: color-mix(in oklab, var(--mx-color-text) 20%, var(--mx-color-surface)); }
-  /* Scrim from the page colour: whatever the photo, the copy reads in the text colour. */
-  & .scrim {
+  & .x {
     position: absolute;
     inset: 0;
-    z-index: 1;
-    background:
-      linear-gradient(to top, var(--mx-color-bg) 0%, color-mix(in oklab, var(--mx-color-bg) 84%, transparent) 30%, color-mix(in oklab, var(--mx-color-bg) 34%, transparent) 62%, transparent 88%),
-      linear-gradient(to right, color-mix(in oklab, var(--mx-color-bg) 62%, transparent), transparent 64%);
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
   }
-  & .lead { color: color-mix(in oklab, var(--mx-color-text) 78%, var(--mx-color-bg)); }
-  & .btn.secondary { background: color-mix(in oklab, var(--mx-color-bg) 55%, transparent); }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
@@ -86,11 +73,5 @@
   @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; }
-    & .sun { right: 10%; top: 8%; width: 96px; }
-    & .hill.far { left: 10%; bottom: -10%; height: 84%; }
-    & .hill.near { left: -40%; right: 0; bottom: 6%; height: 52%; }
-    & .scrim {
-      background: linear-gradient(to top, var(--mx-color-bg) 0%, color-mix(in oklab, var(--mx-color-bg) 88%, transparent) 46%, color-mix(in oklab, var(--mx-color-bg) 30%, transparent) 72%, transparent 92%);
-    }
   }
 }

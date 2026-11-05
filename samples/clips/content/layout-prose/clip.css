@@ -5,7 +5,7 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container {
-    max-width: 680px;
+    max-width: var(--mx-width-text);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -50,7 +50,7 @@
   & .pull {
     margin: var(--mx-space-5) 0;
     padding: var(--mx-space-2) 0 var(--mx-space-2) var(--mx-space-6);
-    border-left: calc(var(--mx-stroke) * 3) solid var(--mx-color-accent);
+    border-left: var(--mx-stroke) solid var(--mx-color-text);
     display: flex;
     flex-direction: column;
     gap: var(--mx-space-3);

@@ -4,8 +4,8 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -20,17 +20,15 @@
   & .col-5 { grid-column-end: span 5; }
   & .col-7 { grid-column-end: span 7; }
 
-  & .band { padding: var(--mx-space-9) var(--mx-space-8); background: var(--mx-color-surface); border-radius: var(--mx-radius-lg); }
-  & .band.inverse { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & .inverse .eyebrow, & .inverse .lead { color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
+  & .band { padding: var(--mx-space-9) var(--mx-space-8); border: var(--mx-stroke) solid var(--mx-color-border); border-radius: var(--mx-radius-lg); }
 
-  /* An inverse band: head and lead side by side, four figures in a row below a hairline. */
+  /* A panel: head and lead side by side, four figures in a row below a hairline. */
   & .top { align-items: end; }
   & .top .lead { font-size: var(--mx-text-base); max-width: 40ch; }
   & .stats {
     margin-top: var(--mx-space-9);
     padding-top: var(--mx-space-8);
-    border-top: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-on-primary) 22%, transparent);
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .stat { display: grid; gap: var(--mx-space-2); align-content: start; }
   & .value {
@@ -41,7 +39,7 @@
     letter-spacing: -0.035em;
     font-variant-numeric: tabular-nums;
   }
-  & .label { font-size: var(--mx-text-sm); line-height: 1.45; color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
+  & .label { font-size: var(--mx-text-sm); line-height: 1.45; color: var(--mx-color-muted); }
 
   @container (max-width: 952px) {
     & .grid > .t-col-6 { grid-column: auto / span 6; }

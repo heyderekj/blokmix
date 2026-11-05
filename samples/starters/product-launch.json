@@ -2,7 +2,7 @@
   "name": "Product launch",
   "description": "A bright one-page launch: product hero, bento features, proof, pricing and a closing call.",
   "kind": "product",
-  "vibe": "bold",
+  "skin": "bold",
   "tokens": {
     "color.bg": "#fdfcff",
     "color.surface": "#f3effe",

@@ -2,10 +2,8 @@
   "title": "Timeline",
   "layoutPattern": "vertical-timeline-milestones",
   "rhythm": "stack",
-  "style": "technical",
-  "feel": ["technical"],
   "density": "dense",
-  "motionNotes": "Milestones rise in order down the rail while the rail draws downward behind them.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

@@ -2,10 +2,8 @@
   "title": "Spotlight with thumbnails",
   "layoutPattern": "centered-head-then-16x9-stage-over-radio-thumbnail-row",
   "rhythm": "centered",
-  "style": "technical",
-  "feel": ["technical"],
   "density": "balanced",
-  "motionNotes": "The head and thumbnails rise in a stagger; each picked picture fades up into the stage with its caption. Reduced motion keeps only the fades. Thumbnails are radios, so picking works without script.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

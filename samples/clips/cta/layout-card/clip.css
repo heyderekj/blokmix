@@ -5,7 +5,7 @@
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -34,47 +34,19 @@
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
-  & .band { padding: var(--mx-space-9) var(--mx-space-8); background: var(--mx-color-surface); border-radius: var(--mx-radius-lg); }
-  & .band.inverse { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & .inverse .eyebrow, & .inverse .lead, & .inverse .note { color: color-mix(in oklab, var(--mx-color-on-primary) 72%, transparent); }
-  & .inverse .btn.primary { background: var(--mx-color-on-primary); color: var(--mx-color-primary); }
-  & .inverse .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) color-mix(in oklab, var(--mx-color-on-primary) 40%, transparent); }
-  & .inverse a:focus-visible { outline-color: var(--mx-color-on-primary); }
-
-  /* A card in the primary colour, copy on the left and a soft stack of rings rising from the far corner. */
+  /* A card with the copy on the left. */
   & .band {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
     padding: var(--mx-space-10) var(--mx-space-9);
-    box-shadow: var(--mx-shadow-card);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: var(--mx-radius-lg);
   }
-  & .shape {
-    position: absolute;
-    z-index: -1;
-    right: -8%;
-    bottom: -40%;
-    width: 52%;
-    aspect-ratio: 1;
-    display: grid;
-    place-items: center;
-  }
-  & .shape span {
-    grid-area: 1 / 1;
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: color-mix(in oklab, var(--mx-color-on-primary) 7%, transparent);
-  }
-  & .shape span:nth-child(2) { width: 70%; background: color-mix(in oklab, var(--mx-color-on-primary) 8%, transparent); }
-  & .shape span:nth-child(3) { width: 40%; background: color-mix(in oklab, var(--mx-color-accent) 55%, var(--mx-color-primary)); }
   & .head { max-width: 620px; }
 
   @media (hover: hover) and (pointer: fine) {
-    & .inverse .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 88%, var(--mx-color-primary)); }
-    & .inverse .btn.secondary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 10%, transparent); }
+    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
+    & .btn.secondary:hover { background: var(--mx-color-surface); }
   }
 
   @media (max-width: 760px) {
@@ -82,8 +54,7 @@
   }
   @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
-    & .band { padding: var(--mx-space-9) var(--mx-space-5) calc(var(--mx-space-10) * 1.5); }
-    & .shape { right: -24%; bottom: -18%; width: 80%; }
+    & .band { padding: var(--mx-space-9) var(--mx-space-5); }
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; }
   }
 }

@@ -1,0 +1,164 @@
+{
+  "name": "Calm",
+  "words": "Clean and quiet. Lots of room, one soft accent.",
+  "tier": "free",
+  "mode": "light",
+  "tokens": {
+    "font.display": "'Inter', system-ui, sans-serif",
+    "font.body": "'Inter', system-ui, sans-serif",
+    "type.ratio": "1.25",
+    "type.displayWeight": "650",
+    "radius.base": "10px",
+    "space.section": "104px",
+    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(0 0 0 / 0.05)",
+    "motion.duration": "320ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "color.bg": "#fcfcfd",
+    "color.surface": "#f2f2f3",
+    "color.text": "#1a1a1b",
+    "color.muted": "#696969",
+    "color.border": "#dfdfe0",
+    "color.primary": "#18181b",
+    "color.onPrimary": "#fbfbff",
+    "color.accent": "#b87251",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "stroke.width": "1px",
+    "icon.set": "lucide:regular",
+    "space.base": "4px",
+    "space.content": "1200px",
+    "space.text": "760px"
+  },
+  "components": {
+    "card": {
+      "variant": "bordered"
+    },
+    "icon": {
+      "variant": "tile"
+    }
+  },
+  "sections": {
+    "hero": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "testimonials": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "cta": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    }
+  },
+  "picture": {
+    "style": "waves"
+  }
+}

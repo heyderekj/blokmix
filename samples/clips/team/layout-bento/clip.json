@@ -2,14 +2,15 @@
   "title": "Team bento",
   "layoutPattern": "bento-lead-portrait-plus-four",
   "rhythm": "grid",
-  "style": "playful",
   "density": "balanced",
-  "feel": ["friendly"],
-  "motionNotes": "The head rises, then the portraits follow in a short stagger, the large one first; reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

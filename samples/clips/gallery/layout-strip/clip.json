@@ -2,12 +2,10 @@
   "title": "Category strip",
   "layoutPattern": "centered-head-over-one-row-of-small-labelled-picture-tiles",
   "rhythm": "stack",
-  "style": "minimal",
-  "feel": ["calm"],
   "density": "balanced",
   "status": "draft",
   "inspiredBy": { "site": "Aesop", "url": "https://aesop.com/" },
-  "motionNotes": "The head rises, then the tiles follow left to right; reduced motion keeps only the fades. Tiles lift slightly on hover; on phones the row scrolls sideways.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

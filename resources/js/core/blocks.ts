@@ -48,6 +48,7 @@ export function indexBlocks(tree: HNode[], type: SectionType): BlockInfo[] {
         const b: BlockInfo = { id: attr(n, 'data-mx-b') ?? `b${out.length}`, kind, parent: parent?.id ?? null, children: [], label: '' }
         const field = COMPOSITE.has(kind) ? undefined : firstField(n)
         if (field) b.field = field
+        if (kind === 'button' && /(^|\s)(secondary|ghost)(\s|$)/.test(attr(n, 'class') ?? '')) b.secondary = true
         const media = attr(n, 'data-mx-media')
         if (media) b.media = media
         const ratio = attr(n, 'data-mx-ratio')

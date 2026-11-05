@@ -28,9 +28,10 @@ export function MixFrame() {
   const W = VIEW_W[viewport]
   const guideState = useStore((s) => s.guide)
   const content = useStore((s) => s.content)
+  const contract = useStore((s) => s.contract)
   const dirty = useMemo(
-    () => !head || snapshotKey(head.snapshot) !== snapshotKey({ site, guide: guideState, content }),
-    [head, site, guideState, content],
+    () => !head || snapshotKey(head.snapshot) !== snapshotKey({ site, guide: guideState, content, contract }),
+    [head, site, guideState, content, contract],
   )
 
   // The pink row: the section you're on, or the first after the nav.

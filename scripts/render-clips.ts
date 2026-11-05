@@ -1,7 +1,7 @@
 // Screenshot library clips the way the reference build draws them, under any source's tokens,
 // to check layouts at desktop and phone widths without the app.
 //   npx vite-node scripts/render-clips.ts hero.layout-split features   (clip ids, or a type for all its layouts)
-//   … --sources layout --widths 1440,390 --copy yours --variants base,min,max,dark
+//   … --sources layout --widths 1440,390 --copy yours --variants base,min,max,dark --skins calm,bold (or all)
 // Variants stress a source's tokens with the Feel dials (core/dials.ts): min = every dial at 0 (tight, small,
 // square, light), max = every dial at 100, dark = Light/Dark flipped; each dial alone is <dial>0 / <dial>100.
 // Writes .out/renders/clips/<clip>@<source>-<width>.png and prints the paths.
@@ -11,12 +11,13 @@ import { join } from 'node:path'
 import { DEFAULT_KEEP, SECTION_TYPES, type SectionType, type Slot } from '../resources/js/core/types'
 import { DEFAULT_CONTENT } from '../resources/js/core/content'
 import { composeSite } from '../resources/js/core/compose'
-import { resolveGuide } from '../resources/js/core/guide'
+import { emptyGuide, resolveGuide } from '../resources/js/core/guide'
+import { applySkin, skinById, skinList } from '../resources/js/core/skins'
 import { siteFromSlots } from '../resources/js/core/site'
 import { referenceHtml } from '../resources/js/core/export/reference-html'
 import { library } from '../resources/js/data/library'
 import { DIAL_NAMES, DIALS, setTone, type DialName } from '../resources/js/core/dials'
-import type { TokenSet } from '../resources/js/core/types'
+import type { GuideState, TokenSet } from '../resources/js/core/types'
 import { launchBrowser } from '../extension/scripts/fixtures'
 
 const args = process.argv.slice(2)
@@ -24,12 +25,13 @@ const opt = (name: string, fallback: string) => {
   const i = args.indexOf(name)
   return i >= 0 ? args[i + 1] : fallback
 }
-const flagged = new Set(['--sources', '--widths', '--copy', '--variants'].flatMap((f) => [f, opt(f, '')]))
+const flagged = new Set(['--sources', '--widths', '--copy', '--variants', '--skins'].flatMap((f) => [f, opt(f, '')]))
 const wanted = args.filter((a) => !flagged.has(a))
 const sources = opt('--sources', 'layout').split(',')
 const widths = opt('--widths', '1440,390').split(',').map(Number)
 const yourCopy = opt('--copy', 'clip') === 'yours'
 const variants = opt('--variants', 'base').split(',')
+const skinIds = opt('--skins', '')
 
 function variantTokens(t: TokenSet, v: string): TokenSet {
   const all = (n: number) => Object.assign({}, ...DIAL_NAMES.map((d) => DIALS[d].write(n)))
@@ -51,16 +53,25 @@ if (!browser) throw new Error('No Chrome or Chromium found for playwright-core')
 const out = join(process.cwd(), '.out', 'renders', 'clips')
 mkdirSync(out, { recursive: true })
 
-for (const sourceId of sources) {
-  const source = library.sources[sourceId]
-  if (!source) throw new Error(`No source "${sourceId}"`)
-  for (const variant of variants) {
-  const guide = resolveGuide({ base: variantTokens(source.tokens, variant), candidates: [], choices: {} })
-  const tag = variant === 'base' ? sourceId : `${sourceId}~${variant}`
+// Under a skin the whole style guide applies (block looks, section defaults, pictures); otherwise a source's tokens.
+const runs: { tag: string; state: GuideState }[] = skinIds
+  ? (skinIds === 'all' ? skinList().map((x) => x.id) : skinIds.split(',')).map((sid) => {
+      const skin = skinById(sid)
+      if (!skin) throw new Error(`No skin "${sid}"`)
+      return { tag: `skin-${sid}`, state: applySkin(emptyGuide(), skin) }
+    })
+  : sources.flatMap((sourceId) => {
+      const source = library.sources[sourceId]
+      if (!source) throw new Error(`No source "${sourceId}"`)
+      return variants.map((variant) => ({ tag: variant === 'base' ? sourceId : `${sourceId}~${variant}`, state: { base: variantTokens(source.tokens, variant), candidates: [], choices: {} } }))
+    })
+
+for (const { tag, state } of runs) {
+  const guide = resolveGuide(state)
   for (const id of ids) {
     const clip = library.clips[id]
     const slot: Slot = { id: 'r', type: clip.type, clipId: id, locked: false, keep: { ...DEFAULT_KEEP, content: !yourCopy } }
-    const page = composeSite({ site: siteFromSlots([slot]), guide, content: DEFAULT_CONTENT, library, title: id })
+    const page = composeSite({ site: siteFromSlots([slot]), guide, content: DEFAULT_CONTENT, library, title: id, page: state })
     const html = referenceHtml(page, { vh: '9px' })
     for (const width of widths) {
       const tab = await browser.newPage({ viewport: { width, height: 900 } })
@@ -105,7 +116,6 @@ for (const sourceId of sources) {
       console.log(`${file}${notes.length ? `  ⚠ ${notes.join('; ')}` : ''}`)
       await tab.close()
     }
-  }
   }
 }
 await browser.close()

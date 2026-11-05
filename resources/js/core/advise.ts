@@ -4,7 +4,7 @@
 
 import type { BlockEdit, BlockInfo, BlockKind, ColorRef, ComponentDefault, Swatch, TokenSet } from './types'
 import { contrastRatio, hexToRgb } from './tokens'
-import { effectiveEdit, MOBILE_MAX } from './blocks/style'
+import { defaultFor, effectiveEdit, MOBILE_MAX } from './blocks/style'
 
 /**
  * Where a suggestion comes from. Like ReviseMy's craft lenses, these are our own
@@ -101,7 +101,7 @@ export function advise(i: AdviseInput): Advice[] {
   const byId = new Map(i.blocks.map((b) => [b.id, b]))
   const phone = i.width !== undefined && i.width <= MOBILE_MAX
   const eff = (b: BlockInfo) => {
-    const e = effectiveEdit(i.edits?.[b.id], i.components?.[b.kind])
+    const e = effectiveEdit(i.edits?.[b.id], defaultFor(i.components, b))
     if (!phone || !e?.mobile) return e
     return { ...e, hidden: e.hidden || e.mobile.hidden, style: e.mobile.style ? { ...e.style, ...e.mobile.style } : e.style }
   }

@@ -21,7 +21,7 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .stack { display: flex; flex-direction: column; gap: var(--mx-space-7); }
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
@@ -39,10 +39,6 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 18px 18px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
 
   /* Two halves under one hairline: studios and the signup on the left, the index and an about note on the right,
      then the name set as large as the page allows. */
@@ -50,7 +46,7 @@
   & .label { margin-bottom: calc(var(--mx-space-4) - var(--mx-space-7)); }
   & .offices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mx-space-5); }
   & .office { display: flex; flex-direction: column; align-items: flex-start; gap: var(--mx-space-2); min-width: 0; }
-  & .office .media { align-self: stretch; margin-bottom: var(--mx-space-2); border: 0; border-radius: var(--mx-radius); }
+  & .office .media { align-self: stretch; margin-bottom: var(--mx-space-2);}
   & .city { font-size: var(--mx-text-base); font-weight: 600; }
   & .mail {
     max-width: 100%;
@@ -65,13 +61,6 @@
     transition: color var(--mx-motion-duration) var(--mx-motion-ease);
   }
 
-  /* Placeholder art: two small buildings, drawn from tokens. */
-  & .tower { left: 18%; bottom: 0; width: 22%; height: 72%; border-radius: var(--mx-radius-sm) var(--mx-radius-sm) 0 0; }
-  & .block { left: 44%; right: 14%; bottom: 0; height: 44%; border-radius: var(--mx-radius-sm) var(--mx-radius-sm) 0 0; background: color-mix(in oklab, var(--mx-color-primary) 16%, var(--mx-color-surface)); }
-  & .block.low { left: 58%; right: 8%; height: 34%; }
-  & .orb { width: 16%; right: 18%; top: 14%; }
-  & .arch { left: 14%; bottom: 0; width: 38%; height: 66%; border-radius: var(--mx-radius-pill) var(--mx-radius-pill) 0 0; background: color-mix(in oklab, var(--mx-color-accent) 24%, var(--mx-color-surface)); }
-
   & .signup { display: flex; flex-direction: column; gap: var(--mx-space-3); max-width: 460px; padding-top: var(--mx-space-6); border-top: var(--mx-stroke) solid var(--mx-color-border); }
   & .signup-heading { font-size: var(--mx-text-sm); font-weight: 600; }
   & .field {
@@ -85,8 +74,8 @@
     transition: border-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
   }
   & .field:focus-within {
-    border-color: var(--mx-color-accent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--mx-color-accent) 22%, transparent);
+    border-color: var(--mx-color-text);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-text);
   }
   & .input {
     flex: 1;
@@ -140,9 +129,21 @@
     color: var(--mx-color-muted);
   }
 
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
+
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
-    & .col-links a:hover, & .mail:hover { color: var(--mx-color-accent); }
+    & .col-links a:hover, & .mail:hover { color: var(--mx-color-text); }
   }
 
   @container (max-width: 952px) {

@@ -4,7 +4,7 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container {
-    max-width: 900px;
+    max-width: var(--mx-width-content);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -19,7 +19,9 @@
   }
   & .mark {
     margin-top: var(--mx-space-7);
-    color: var(--mx-color-accent);
+    color: var(--mx-color-muted);
+    width: 32px;
+    height: 24px;
   }
   & .quote { margin: var(--mx-space-6) 0 0; }
   & .quote p {
@@ -39,24 +41,36 @@
     text-align: left;
   }
   & .avatar {
+    position: relative;
+    overflow: hidden;
     flex: none;
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background:
-      radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--mx-color-accent) 55%, transparent), transparent 62%),
-      linear-gradient(135deg, color-mix(in oklab, var(--mx-color-primary) 40%, var(--mx-color-surface)), var(--mx-color-surface));
-    box-shadow: 0 0 0 1px var(--mx-color-border), 0 0 0 4px var(--mx-color-bg), 0 0 0 5px var(--mx-color-border);
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .who { display: flex; flex-direction: column; gap: 2px; }
   & .name { font-size: var(--mx-text-base); font-weight: 600; }
   & .role { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
+
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
-    & .mark { margin-top: var(--mx-space-6); width: 36px; height: 27px; }
+    & .mark { margin-top: var(--mx-space-6); width: 32px; height: 24px; }
     & .quote { margin-top: var(--mx-space-5); }
     & .quote p { font-size: var(--mx-text-xl); line-height: 1.35; }
     & .person { margin-top: var(--mx-space-7); }

@@ -4,8 +4,8 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -29,7 +29,6 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .card.soft { background: var(--mx-color-surface); border-color: transparent; }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
   & .media {
     position: relative;
@@ -39,19 +38,25 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
 
   & .sticky { position: sticky; top: var(--mx-space-8); }
   & .members { gap: var(--mx-space-4); }
   & .member { flex-direction: row; align-items: center; gap: var(--mx-space-5); padding: var(--mx-space-5); }
-  & .face { flex: none; width: 72px; aspect-ratio: 1; border-radius: 50%; background: var(--mx-color-bg); }
-  & .face .dots { display: none; }
-  & .head-shape { left: 34%; top: 20%; width: 32%; aspect-ratio: 1; border-radius: 50%; }
-  & .shoulders { left: 14%; right: 14%; bottom: -14%; height: 42%; border-radius: 50% 50% 0 0; }
+  & .face { flex: none; width: 72px; aspect-ratio: 1; border-radius: 50%; }
   & .who { display: flex; flex-direction: column; gap: var(--mx-space-1); min-width: 0; }
   & .name { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }

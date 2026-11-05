@@ -2,11 +2,9 @@
   "title": "Lead over three columns",
   "layoutPattern": "head-and-lead-over-3-columns",
   "rhythm": "grid",
-  "style": "editorial",
-  "feel": ["calm"],
   "density": "dense",
   "tier": "free",
-  "motionNotes": "No entrance motion: a heading and lead across the top, the body in three ruled columns below.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

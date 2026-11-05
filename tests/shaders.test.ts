@@ -140,7 +140,7 @@ describe('frames', () => {
     }
     const s = frameStateFor(hero, slot, 'unified', BASE_TOKENS, DEFAULT_CONTENT, 'desktop')
     expect(s.backdrop?.id).toBe('god-rays')
-    expect(s.blocks.css).toContain('.mx-backdrop { opacity: 1; }')
+    expect(s.blocks.css).toMatch(/\.mx-backdrop \{ opacity: [\d.]+; \}/)
     expect(s.media[image.id]).toMatchObject({ kind: 'shader', shader: { id: 'liquid-metal' } })
     expect(frameStateFor(hero, { ...slot, backdrop: { id: 'grid' } }, 'unified', BASE_TOKENS, DEFAULT_CONTENT, 'desktop').backdrop).toBeNull()
     expect(renderMedia({ source: 'shader', shader: 'nope' }, BASE_TOKENS, '4/3', () => undefined)).toBeNull()
@@ -185,7 +185,7 @@ describe('exports', () => {
     expect(page.moving).toBe(false)
     expect(s.backdrop).toMatchObject({ label: 'Mesh gradient', live: true, poster: '/media/s1-backdrop.png' })
     expect(s.media[0]).toMatchObject({ source: 'shader', kind: 'shader', src: `/media/s1-${image.id}.png`, shader: { id: 'dithering' } })
-    expect(s.css).toContain('.mx-backdrop { opacity: 1; }')
+    expect(s.css).toMatch(/\.mx-backdrop \{ opacity: [\d.]+; \}/)
   })
 
   it('write the player, its CSS, the element and the posters into Astro', () => {

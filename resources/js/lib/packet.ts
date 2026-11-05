@@ -7,6 +7,7 @@ import type { PacketInput } from '@/core/export/packet'
 import { generalNotesFor, marksFor, slotNotesFor } from '@/core/versions'
 import { library } from '@/data/library'
 import { uploadData } from './assets'
+import { publishedUrl } from './publish'
 import type { MixData } from '@/state/store'
 
 /** Where each section sits inside a version frame, as measured on the canvas. */
@@ -25,7 +26,7 @@ export interface PacketSource {
  * style guide, notes and marks. No React, so the export panel and agent
  * commands (prepare_build) build the same packet.
  */
-export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 'content' | 'notes' | 'versions'>, src: PacketSource): PacketInput {
+export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 'content' | 'contract' | 'notes' | 'versions'>, src: PacketSource): PacketInput {
   const { version, targets, sections = {} } = src
   const live = allSlots(st.site)
   const snap: Pick<MixSnapshot, 'site' | 'guide' | 'content' | 'slotNotes' | 'marks' | 'generalNotes'> = version?.snapshot ?? {
@@ -61,5 +62,7 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 
     notes: [...(snap.generalNotes ?? []), ...frameNotes],
     // A version's marks live on with the mix, so read them live rather than from the snapshot.
     marks: version ? marksFor(slots, st.notes) : snap.marks,
+    contract: version ? (version.snapshot.contract ?? st.contract) : st.contract,
+    publishedUrl: publishedUrl(),
   }
 }

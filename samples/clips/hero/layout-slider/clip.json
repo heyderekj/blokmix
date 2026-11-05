@@ -1,15 +1,51 @@
 {
-  "title": "Picture slider",
-  "layoutPattern": "split-copy-left-radio-slider-right",
+  "title": "Slider with its words beside it",
+  "layoutPattern": "copy-beside-slider",
   "rhythm": "split",
-  "style": "warm",
-  "feel": ["friendly"],
   "density": "balanced",
-  "motionNotes": "Copy rises in a stagger; picking a dot crossfades to its slide while the art inside settles up a few pixels and the active dot stretches. Reduced motion keeps the crossfade and drops the movement.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-30T00:00:00Z"
+  },
+  "slider": {
+    "slide": [
+      {
+        "id": "caption",
+        "label": "Below"
+      },
+      {
+        "id": "picture",
+        "label": "No words"
+      },
+      {
+        "id": "over",
+        "label": "On top"
+      },
+      {
+        "id": "beside",
+        "label": "Beside"
+      }
+    ],
+    "show": [
+      1,
+      2,
+      3
+    ],
+    "intro": [
+      {
+        "id": "side",
+        "label": "Beside"
+      },
+      {
+        "id": "above",
+        "label": "Above"
+      }
+    ]
   }
 }

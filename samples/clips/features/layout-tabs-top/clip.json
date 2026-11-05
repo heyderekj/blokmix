@@ -1,15 +1,16 @@
 {
-  "title": "Tabs over a product shot",
+  "title": "Tabs over a picture",
   "layoutPattern": "horizontal-tabs-above-media",
   "rhythm": "centered",
-  "style": "technical",
-  "feel": ["technical"],
   "density": "balanced",
-  "motionNotes": "The head rises in a short stagger; picking a tab settles its product shot into the stage and lifts the window inside it. CSS-only tabs (radio + :has()); reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-30T00:00:00Z"
   }
 }

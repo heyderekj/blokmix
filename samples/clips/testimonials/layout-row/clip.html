@@ -5,12 +5,9 @@
         <p class="eyebrow" data-mx-block="badge" data-mx-field="eyebrow">From clients</p>
         <h2 class="heading" data-mx-block="heading" data-mx-field="heading">What it’s like to work together</h2>
       </div>
-      <div class="arrows" aria-hidden="true">
-        <span class="arrow"><svg data-mx-icon="arrow-left" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-        <span class="arrow next"><svg data-mx-icon="arrow-right" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
-      </div>
     </div>
-    <ul class="row" data-mx-block="list" data-mx-list="quotes">
+    <div class="slider" data-slider>
+      <ul data-slider-track class="row" data-mx-block="list" data-mx-list="quotes">
       <li data-mx-block="item" data-mx-label="Quote">
         <figure class="card">
           <blockquote class="quote"><p data-mx-block="text" data-mx-field="q1Quote">She asked better questions in our first call than we’d asked ourselves in a year. The new site finally sounds like us.</p></blockquote>
@@ -48,5 +45,12 @@
         </figure>
       </li>
     </ul>
+      <div class="controls">
+        <button type="button" class="arrow" data-slider-prev aria-label="Previous slide"><svg data-mx-icon="arrow-left" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+        <span class="dots" data-slider-dots></span>
+        <span class="count" data-slider-count aria-hidden="true"></span>
+        <button type="button" class="arrow" data-slider-next aria-label="Next slide"><svg data-mx-icon="arrow-right" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
   </div>
 </section>

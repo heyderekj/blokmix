@@ -6,7 +6,7 @@
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -19,7 +19,7 @@
   & .note { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
   & .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mx-space-3); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .stack { display: flex; flex-direction: column; gap: var(--mx-space-6); }
 
@@ -28,36 +28,12 @@
   & .col-6 { grid-column-end: span 6; }
   & .start-7 { grid-column-start: 7; }
 
-  /* An oversized heading stacked on the left; the action is a big round arrow, not a pill. */
-  & .head { max-width: 1040px; }
+  /* An oversized heading stacked on the left; the words and the action share the row under it. */
+  & .head { max-width: var(--mx-width-content); }
   & .head .heading.display { font-size: clamp(var(--mx-text-4xl), 7.6vw, calc(var(--mx-text-6xl) * 1.7)); line-height: 0.95; letter-spacing: -0.045em; }
   & .foot { align-items: end; }
   & .foot .stack { gap: var(--mx-space-4); }
   & .foot .actions { justify-content: flex-end; gap: var(--mx-space-5) var(--mx-space-7); }
-  & .go {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--mx-space-5);
-    font-size: var(--mx-text-lg);
-    font-weight: 600;
-    cursor: pointer;
-    transition: scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
-  }
-  & .go:active { scale: 0.97; }
-  & .disc {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: clamp(88px, 9vw, 128px);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: var(--mx-color-primary);
-    color: var(--mx-color-on-primary);
-    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), rotate var(--mx-motion-duration) var(--mx-motion-ease);
-  }
-  & .disc svg { transition: translate var(--mx-motion-duration) var(--mx-motion-ease); }
-  & .go:focus-visible { outline: 0; }
-  & .go:focus-visible .disc { outline: 2px solid var(--mx-color-accent); outline-offset: 4px; }
   & .link {
     display: inline-flex;
     align-items: center;
@@ -70,8 +46,23 @@
     transition: color var(--mx-motion-duration) var(--mx-motion-ease);
   }
 
+  & .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: var(--mx-space-3) var(--mx-space-6);
+    border-radius: var(--mx-radius-pill);
+    font-weight: 600;
+    line-height: 1.1;
+    cursor: pointer;
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  & .btn:active { scale: 0.97; }
+  & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+
   @media (hover: hover) and (pointer: fine) {
-    & .go:hover .disc { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); rotate: -45deg; }
+    & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
     & .link:hover { color: var(--mx-color-text); }
   }
 

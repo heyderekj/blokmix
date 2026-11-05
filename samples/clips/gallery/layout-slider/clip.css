@@ -4,187 +4,96 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
-  & .heading {
-    font-family: var(--mx-font-display);
-    font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
+  & .heading { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl)); line-height: 1.1; letter-spacing: -0.02em; }
   & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
+  & .head + * { margin-top: var(--mx-space-9); }
 
-  & .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--mx-space-2);
-    min-height: 44px;
-    padding: var(--mx-space-3) var(--mx-space-6);
-    border-radius: var(--mx-radius-pill);
-    font-weight: 600;
-    line-height: 1.1;
-    cursor: pointer;
-    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  /* A track that scrolls natively, so it holds any number of slides. */
+  & .slider { min-width: 0; display: grid; gap: var(--mx-space-5); }
+  & .track {
+    --show: 1;
+    --between: var(--mx-space-5);
+    display: flex;
+    gap: var(--between);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
   }
-  & .btn:active { scale: 0.97; }
-  & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & .btn svg { flex: none; }
-  & a:focus-visible, & label:has([type="radio"]:focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & .track::-webkit-scrollbar { display: none; }
+  & .slide { flex: 0 0 calc((100% - (var(--show) - 1) * var(--between)) / var(--show)); min-width: 0; scroll-snap-align: start; }
+  &[data-show="2"] .track { --show: 2; }
+  &[data-show="3"] .track { --show: 3; }
+  &[data-show="4"] .track { --show: 4; }
+  &[data-show="6"] .track { --show: 6; }
 
-  /* Media: a picture's frame. Placeholder art is soft token shapes, arranged differently per picture. */
+  /* A picture, unfilled: a box with a cross and its slide's number. A skin or a real image takes its place. */
   & .media {
     position: relative;
+    display: block;
     overflow: hidden;
     aspect-ratio: 4 / 3;
-    background: linear-gradient(170deg, color-mix(in oklab, var(--mx-color-primary) 9%, var(--mx-color-surface)), var(--mx-color-surface) 70%);
+    background: var(--mx-color-surface);
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb {
-    position: absolute;
-    width: 22%;
-    aspect-ratio: 1;
-    right: 16%;
-    top: 14%;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent));
-  }
-  & .orb.big { width: 58%; left: -10%; right: auto; top: auto; bottom: -18%; }
-  & .orb.small { width: 14%; right: auto; left: 43%; top: 12%; }
-  & .orb.low { width: 26%; right: auto; left: 37%; top: auto; bottom: 20%; }
-  & .orb.corner { width: 30%; right: -8%; top: auto; bottom: -10%; }
-  & .hill {
-    position: absolute;
-    width: 120%;
-    height: 64%;
-    left: -34%;
-    bottom: -34%;
-    border-radius: 50%;
-    background: color-mix(in oklab, var(--mx-color-text) 9%, var(--mx-color-surface));
-  }
-  & .hill.near { left: 24%; bottom: -42%; background: color-mix(in oklab, var(--mx-color-text) 16%, var(--mx-color-surface)); }
-  & .hill.wide { width: 160%; left: -30%; bottom: -40%; height: 70%; }
-  & .slab { position: absolute; border-radius: var(--mx-radius); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
-  & .slab.tint { right: 12%; top: 14%; width: 38%; height: 26%; background: color-mix(in oklab, var(--mx-color-primary) 18%, var(--mx-color-surface)); }
-  & .slab.tint.low { right: auto; left: 12%; top: auto; bottom: 12%; width: 30%; height: 18%; }
-  & .slab.back { left: 16%; top: 18%; width: 46%; height: 52%; }
-  & .slab.front { left: 38%; top: 34%; width: 46%; height: 50%; background: var(--mx-color-bg); box-shadow: var(--mx-shadow-card); }
-  & .arch {
-    position: absolute;
-    left: 30%;
-    bottom: 0;
-    width: 40%;
-    height: 62%;
-    border-radius: var(--mx-radius-pill) var(--mx-radius-pill) 0 0;
-    background: color-mix(in oklab, var(--mx-color-accent) 22%, var(--mx-color-surface));
-  }
-  & .arch.wide { left: 18%; width: 64%; height: 74%; }
-  & .page {
-    position: absolute;
-    left: 14%;
-    right: 14%;
-    top: 16%;
-    bottom: -8%;
-    border-radius: var(--mx-radius) var(--mx-radius) 0 0;
-    background:
-      linear-gradient(color-mix(in oklab, var(--mx-color-text) 22%, transparent), color-mix(in oklab, var(--mx-color-text) 22%, transparent)) 12% 12% / 44% 6% no-repeat,
-      linear-gradient(color-mix(in oklab, var(--mx-color-text) 10%, transparent), color-mix(in oklab, var(--mx-color-text) 10%, transparent)) 12% 26% / 64% 3.5% no-repeat,
-      linear-gradient(color-mix(in oklab, var(--mx-color-text) 10%, transparent), color-mix(in oklab, var(--mx-color-text) 10%, transparent)) 12% 33% / 50% 3.5% no-repeat,
-      linear-gradient(color-mix(in oklab, var(--mx-color-primary) 20%, transparent), color-mix(in oklab, var(--mx-color-primary) 20%, transparent)) 50% 84% / 76% 34% no-repeat,
-      var(--mx-color-bg);
-    box-shadow: var(--mx-shadow-card);
-  }
+  & .x { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: var(--mx-color-border); stroke-width: var(--mx-stroke); }
+  & .x path { vector-effect: non-scaling-stroke; }
+  & .num { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; translate: -50% -50%; border-radius: 50%; background: var(--mx-color-bg); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  & .num text { font-family: var(--mx-font-mono); font-size: 16px; fill: var(--mx-color-muted); }
+  & .media { aspect-ratio: 16 / 9; }
 
-  & .band { padding: var(--mx-space-9) var(--mx-space-8); background: var(--mx-color-surface); border-radius: var(--mx-radius-lg); }
-  & .media { background: linear-gradient(170deg, color-mix(in oklab, var(--mx-color-primary) 9%, var(--mx-color-bg)), var(--mx-color-bg) 70%); }
+  /* Each slide: words under the picture, or the picture alone, words over it, or side by side. */
+  & .slide { display: grid; align-content: start; gap: var(--mx-space-4); }
+  & .caption { display: grid; justify-items: start; gap: var(--mx-space-2); }
+  & .title { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: var(--mx-text-xl); line-height: 1.2; letter-spacing: -0.01em; }
+  & .body { color: var(--mx-color-muted); line-height: 1.55; }
+  & .more { margin-top: var(--mx-space-1); font-size: var(--mx-text-sm); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+  &[data-slide="picture"] .caption { display: none; }
+  &[data-slide="over"] .slide { position: relative; }
+  &[data-slide="over"] .caption { position: absolute; left: var(--mx-space-4); right: var(--mx-space-4); bottom: var(--mx-space-4); padding: var(--mx-space-4); background: var(--mx-color-bg); border-radius: var(--mx-radius); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  &[data-slide="beside"] .slide { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: center; gap: var(--mx-space-6); }
 
-  /* The slider: every picture sits in one 16:9 stage and only the checked one shows. Each dot is a label
-     around a radio (named by its caption), so it slides without script and reads as a set of choices. */
-  & .slides {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: var(--mx-space-1);
-    max-width: 960px;
-    margin: var(--mx-space-9) auto 0;
-    padding-top: calc(min(100%, 960px) * 9 / 16 + var(--mx-space-4));
-  }
-  & .dot {
+  /* Arrows, dots and a count, once /mx-slider.js is running; swiping works without it. Everything fitting hides them. */
+  & .controls { display: none; align-items: center; gap: var(--mx-space-2); }
+  & [data-slider-ready] > .controls { display: flex; }
+  & [data-slider-fits] > .controls { display: none; }
+  & .arrow {
     display: grid;
     place-items: center;
-    min-width: 44px;
+    width: 44px;
     height: 44px;
+    flex: none;
+    border: 0;
+    border-radius: var(--mx-radius-pill);
+    background: transparent;
+    color: var(--mx-color-text);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
     cursor: pointer;
-    transition: scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  & .dot:active { scale: 0.97; }
-  & .dot input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); opacity: 0; }
-  & .pip {
-    width: 10px;
-    height: 10px;
-    border-radius: var(--mx-radius-pill);
-    background: color-mix(in oklab, var(--mx-color-text) 24%, transparent);
-    transition: width var(--mx-motion-duration) var(--mx-motion-ease), background-color var(--mx-motion-duration) var(--mx-motion-ease);
-  }
-  & .slide:has(:checked) .pip { width: 28px; background: var(--mx-color-primary); }
-  & .dot:has(:focus-visible) { outline: none; }
-  & .dot:has(:focus-visible) .pip { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
-
-  & .figure {
-    position: absolute;
-    inset: 0 0 auto 0;
-    display: block;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity calc(var(--mx-motion-duration) * 1.4) var(--mx-motion-ease), visibility 0s linear calc(var(--mx-motion-duration) * 1.4);
-  }
-  & .slide:has(:checked) .figure { opacity: 1; visibility: visible; transition-delay: 0s; }
-  & .figure .media { display: block; aspect-ratio: 16 / 9; }
-  & .caption {
-    position: absolute;
-    left: 50%;
-    bottom: var(--mx-space-5);
-    translate: -50% 0;
-    width: max-content;
-    max-width: calc(100% - var(--mx-space-5) * 2);
-    padding: var(--mx-space-3) var(--mx-space-5);
-    border-radius: var(--mx-radius-pill);
-    background: var(--mx-color-bg);
-    box-shadow: var(--mx-shadow-card);
-    font-weight: 600;
-    line-height: 1.35;
-    text-align: center;
-    text-wrap: balance;
-  }
-
+  & .arrow:active { scale: 0.97; }
+  & .arrow:disabled { color: var(--mx-color-muted); cursor: default; opacity: 0.5; scale: 1; }
+  & .arrow svg { width: 18px; height: 18px; }
+  & .dots { display: flex; flex: 1; align-items: center; justify-content: center; flex-wrap: wrap; min-width: 0; }
+  & .dot { display: grid; place-items: center; width: 28px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  & .pip { width: 8px; height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 22%, transparent); transition: width 240ms cubic-bezier(0.23, 1, 0.32, 1), background-color 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+  & .dot[aria-current] .pip { width: 20px; background: var(--mx-color-text); }
+  & .count { flex: none; font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); color: var(--mx-color-muted); font-variant-numeric: tabular-nums; }
+  & button:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 2px; }
   @media (hover: hover) and (pointer: fine) {
-    & .slide:not(:has(:checked)) .dot:hover .pip { background: color-mix(in oklab, var(--mx-color-text) 48%, transparent); }
+    & .arrow:not(:disabled):hover { background: var(--mx-color-surface); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
+    & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
-    & .band { padding: var(--mx-space-8) var(--mx-space-4); }
-    & .slides { margin-top: var(--mx-space-8); padding-top: calc(100% + var(--mx-space-3)); }
-    & .figure .media { aspect-ratio: 1; }
-    & .caption {
-      left: var(--mx-space-3);
-      right: var(--mx-space-3);
-      bottom: var(--mx-space-3);
-      translate: none;
-      width: auto;
-      max-width: none;
-      padding: var(--mx-space-3) var(--mx-space-4);
-      border-radius: var(--mx-radius);
-      font-size: var(--mx-text-sm);
-    }
+    & .slide, &[data-slide="beside"] .slide { grid-template-columns: minmax(0, 1fr); }
+    &[data-show] .track { --show: 1; }
   }
 }

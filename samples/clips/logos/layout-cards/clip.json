@@ -1,15 +1,16 @@
 {
-  "title": "Logos on soft tiles",
+  "title": "Logos on tiles",
   "layoutPattern": "centered-head-logo-tiles-4x2",
   "rhythm": "grid",
-  "style": "warm",
   "density": "balanced",
-  "feel": ["friendly", "calm"],
-  "motionNotes": "The head rises, then the tiles fade up in a quick stagger; reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

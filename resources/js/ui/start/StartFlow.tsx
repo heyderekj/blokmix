@@ -1,15 +1,16 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Coffee, Feather, FileText, Moon, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
 import { create } from 'zustand'
 import type { Kind } from '@/core/types'
 import { KINDS } from '@/core/types'
-import { guideFor, KIND_LABEL, RECIPES, type StartInput } from '@/core/start'
-import { VIBES, vibeById } from '@/core/vibes'
+import { guideFor, KIND_LABEL, type StartInput } from '@/core/start'
+import { skinList, skinOpen, WIREFRAME, type Skin } from '@/core/skins'
 import { resolveGuide } from '@/core/guide'
+import type { PageScore } from '@/core/score'
+import { library } from '@/data/library'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
-import { scoredStarts, type ScoredStart } from '@/lib/start'
-import { previewHtml } from '@/lib/measure'
-import { MixThumb } from '@/ui/mixes/MixThumb'
+import { scoredStarts, scoreStart, type ScoredStart } from '@/lib/start'
+import { SkinPreview } from '@/ui/skins/SkinPreview'
 
 /** Whether the guided start is showing over the board (the browser-only mix opens on it the first time). */
 export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
@@ -24,12 +25,13 @@ const ON = 'shadow-[0_0_0_2px_#FF69B4,0_16px_32px_-20px_rgb(255_105_180/0.6)]'
 const PRIMARY = `btn-lit flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold disabled:pointer-events-none disabled:opacity-45 ${PRESS}`
 const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-medium text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`
 
-type Step = 'what' | 'feel' | 'starts'
+type Step = 'what' | 'starts' | 'skin'
 
 /**
- * The guided start: what you're making, a feel, and three real starts to pick
- * from. No design words; the starts are measured before you see them, so each
- * says plainly how its first screen holds up on a laptop and a phone.
+ * The guided start: what you're making, three raw starts to pick a structure from, then
+ * that page under the skins, to pick a look. No design words; the starts are measured
+ * before you see them, so each says plainly how its first screen holds up on a laptop
+ * and a phone, and the skin you pick is measured again since its fonts move things.
  */
 export function StartFlow({ onDone, onBlank, onClose, busy }: {
   /** The answers, every start (best first), and the one picked. */
@@ -43,15 +45,18 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
   const [kind, setKind] = useState<Kind | null>(null)
   const [name, setName] = useState('')
   const [oneLiner, setOneLiner] = useState('')
-  const [vibe, setVibe] = useState('calm')
-  const [mode, setMode] = useState<'light' | 'dark'>('light')
+  const [skin, setSkin] = useState(WIREFRAME)
+  const [mode, setMode] = useState<'light' | 'dark' | undefined>(undefined)
+  const [picked, setPicked] = useState<string | null>(null)
   const [brand, setBrand] = useState<string | null>(null)
   const [seed, setSeed] = useState(0)
   const [starts, setStarts] = useState<ScoredStart[] | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
 
-  const input: StartInput | null = kind ? { kind, name: name.trim() || 'Your site', oneLiner, vibe, brand, mode, seed } : null
-  useVibeFonts()
+  // The starts themselves are always raw; the skin goes on at the last step.
+  const input: StartInput | null = kind ? { kind, name: name.trim() || 'Your site', oneLiner, seed } : null
+  const pick = starts?.find((s) => s.id === picked) ?? null
+  useSkinFonts()
 
   // Lay the three starts out whenever the answers change on the last step.
   const key = JSON.stringify(input)
@@ -75,9 +80,11 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
     scroller.current?.scrollTo({ top: 0 })
   }, [step])
 
-  const pickVibe = (id: string) => {
-    setVibe(id)
-    setMode(vibeById(id).mode)
+  /** Every start under the skin you picked, so A, B and C stay comparable as versions. */
+  const finish = () => {
+    if (!input || !starts || !pick) return
+    const guide = guideFor({ skin, brand, mode })
+    onDone({ ...input, skin, brand, mode }, starts.map((s) => ({ ...s, guide })), pick.id)
   }
 
   return (
@@ -134,42 +141,12 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
           </section>
         )}
 
-        {step === 'feel' && kind && (
-            <section>
-              <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Pick a feel</h1>
-              <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Fonts, colors, corners and spacing that go together. Pick by eye; every one can be tuned later.</p>
-              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {VIBES.map((v) => (
-                  <VibeCard key={v.id} id={v.id} on={vibe === v.id} onPick={() => pickVibe(v.id)} kind={kind} name={name.trim() || 'Your site'} brand={brand} mode={vibe === v.id ? mode : v.mode} />
-                ))}
-              </div>
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-                <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
-                  <input type="color" value={brand ?? vibeById(vibe).brand ?? '#404040'} onChange={(e) => setBrand(e.target.value)} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" />
-                  {brand ? 'Your brand color' : 'Have a brand color? Pick it'}
-                </label>
-                {brand && (
-                  <button type="button" onClick={() => setBrand(null)} className={QUIET}>
-                    Use the feel’s own
-                  </button>
-                )}
-                <div className="flex rounded-full bg-white p-1 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]" role="radiogroup" aria-label="Light or dark">
-                  {(['light', 'dark'] as const).map((m) => (
-                    <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={`flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium capitalize ${PRESS} ${mode === m ? 'bg-[#17121A] text-white' : 'text-[#6B5F68]'}`}>
-                      {m === 'light' ? <Sun size={14} /> : <Moon size={14} />} {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
           {step === 'starts' && input && (
             <section>
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Three starts</h1>
-                  <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Each one is laid out on a laptop and a phone before you see it. Pick one; the other two are kept as versions to come back to.</p>
+                  <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Pick a structure</h1>
+                  <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Three raw layouts, plain on purpose: decide what goes where first, and the look comes next. Each is laid out on a laptop and a phone before you see it.</p>
                 </div>
                 <button type="button" onClick={() => setSeed((n) => n + 1)} disabled={!starts} className={QUIET}>
                   <Shuffle size={15} /> Shuffle
@@ -178,7 +155,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
               {problem && <p className="mt-6 rounded-xl bg-white p-4 text-[14px] text-red-700 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">{problem}</p>}
               <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
                 {starts
-                  ? starts.map((s, i) => <StartCard key={s.id} start={s} letter={String.fromCharCode(65 + i)} best={i === 0} busy={busy} onPick={() => onDone(input, starts, s.id)} />)
+                  ? starts.map((s, i) => <StartCard key={s.id} start={s} letter={String.fromCharCode(65 + i)} best={i === 0} busy={busy} onPick={() => { setPicked(s.id); setStep('skin') }} />)
                   : [0, 1, 2].map((i) => (
                       <div key={i} className="grid h-[420px] place-items-center rounded-[18px] bg-white/70 text-[13.5px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">
                         {i === 1 ? 'Laying out three starts…' : ''}
@@ -187,24 +164,37 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
               </div>
             </section>
           )}
+
+          {step === 'skin' && pick && (
+            <SkinStep
+              start={pick}
+              name={name.trim() || 'Your site'}
+              skin={skin}
+              brand={brand}
+              mode={mode}
+              onSkin={(id) => { setSkin(id); setMode(undefined) }}
+              onBrand={setBrand}
+              onMode={setMode}
+            />
+          )}
         </main>
 
         <footer className="flex items-center justify-between gap-3 border-t border-zinc-950/[0.06] bg-white px-4 py-3 sm:px-5">
           {step === 'what' ? (
             <span />
           ) : (
-            <button type="button" onClick={() => setStep(step === 'starts' ? 'feel' : 'what')} className={QUIET}>
+            <button type="button" onClick={() => setStep(step === 'skin' ? 'starts' : 'what')} className={QUIET}>
               <ArrowLeft size={16} /> Back
             </button>
           )}
           {step === 'what' && (
-            <button type="button" disabled={!kind || !name.trim()} onClick={() => setStep('feel')} className={PRIMARY}>
-              Next: pick a feel <ArrowRight size={16} />
+            <button type="button" disabled={!kind || !name.trim()} onClick={() => setStep('starts')} className={PRIMARY}>
+              Show me three structures <ArrowRight size={16} />
             </button>
           )}
-          {step === 'feel' && (
-            <button type="button" onClick={() => setStep('starts')} className={PRIMARY}>
-              Show me three starts <ArrowRight size={16} />
+          {step === 'skin' && (
+            <button type="button" disabled={busy} onClick={finish} className={PRIMARY}>
+              Start with {skinList().find((x) => x.id === skin)?.name ?? 'this'} <ArrowRight size={16} />
             </button>
           )}
         </footer>
@@ -216,8 +206,8 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
 function Steps({ step }: { step: Step }) {
   const all: [Step, string][] = [
     ['what', 'What'],
-    ['feel', 'Feel'],
-    ['starts', 'Starts'],
+    ['starts', 'Structure'],
+    ['skin', 'Skin'],
   ]
   const at = all.findIndex(([s]) => s === step)
   return (
@@ -249,22 +239,78 @@ function Field({ label, hint, value, onChange, placeholder }: { label: string; h
   )
 }
 
-/** A feel, drawn as your page would look in it: its colors, display font and your name. */
-function VibeCard({ id, on, onPick, kind, name, brand, mode }: { id: string; on: boolean; onPick: () => void; kind: Kind; name: string; brand: string | null; mode: 'light' | 'dark' }) {
-  const v = vibeById(id)
-  const guide = useMemo(() => guideFor({ vibe: id, brand, mode }), [id, brand, mode])
-  const display = guide.base['font.display']
+/** The last step: the page you picked under each skin this plan opens, your brand color on top if you have one. */
+function SkinStep({ start, name, skin, brand, mode, onSkin, onBrand, onMode }: {
+  start: ScoredStart
+  name: string
+  skin: string
+  brand: string | null
+  mode: 'light' | 'dark' | undefined
+  onSkin: (id: string) => void
+  onBrand: (brand: string | null) => void
+  onMode: (mode: 'light' | 'dark') => void
+}) {
+  const skins = skinList().filter((x) => skinOpen(library, x))
+  const current = skins.find((x) => x.id === skin) ?? skins[0]
+  const shownMode = mode ?? current?.mode ?? 'light'
+  // Fonts move things around, so the skin you pick gets measured too.
+  const [score, setScore] = useState<PageScore | null>(null)
+  useEffect(() => {
+    let live = true
+    setScore(null)
+    scoreStart({ ...start, guide: guideFor({ skin, brand, mode }) }).then((s) => live && setScore(s))
+    return () => {
+      live = false
+    }
+  }, [start, skin, brand, mode])
+  return (
+    <section>
+      <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Pick a skin</h1>
+      <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">The same page for {name}, in different clothes. Pick by eye; you can swap it, or tweak any of it, at any time.</p>
+      <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
+          <input type="color" value={brand ?? current?.tokens['color.primary'] ?? '#404040'} onChange={(e) => onBrand(e.target.value)} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Brand color" />
+          {brand ? 'Your brand color' : 'Have a brand color? Pick it'}
+        </label>
+        {brand && (
+          <button type="button" onClick={() => onBrand(null)} className={QUIET}>
+            Use the skin’s own
+          </button>
+        )}
+        <div className="flex rounded-full bg-white p-1 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]" role="radiogroup" aria-label="Light or dark">
+          {(['light', 'dark'] as const).map((m) => (
+            <button key={m} type="button" role="radio" aria-checked={shownMode === m} onClick={() => onMode(m)} className={`flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium capitalize ${PRESS} ${shownMode === m ? 'bg-[#17121A] text-white' : 'text-[#6B5F68]'}`}>
+              {m === 'light' ? <Sun size={14} /> : <Moon size={14} />} {m}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {skins.map((x) => (
+          <SkinCard key={x.id} skin={x} on={x.id === skin} start={start} brand={brand} mode={x.id === skin ? mode : undefined} onPick={() => onSkin(x.id)} />
+        ))}
+      </div>
+      <p className="mt-5 min-h-5 text-[13.5px] text-[#6B5F68]" aria-live="polite">
+        {score ? (score.checks.filter((c) => !c.ok).map((c) => c.words).join(' ') || 'Its first screen holds up on a laptop and a phone.') : 'Measuring this skin on a laptop and a phone…'}
+      </p>
+    </section>
+  )
+}
+
+/** A skin, drawn as your actual page in it. */
+function SkinCard({ skin, on, start, brand, mode, onPick }: { skin: Skin; on: boolean; start: ScoredStart; brand: string | null; mode: 'light' | 'dark' | undefined; onPick: () => void }) {
+  const guide = useMemo(() => guideFor({ skin: skin.id, brand, mode }), [skin.id, brand, mode])
   return (
     <button type="button" onClick={onPick} aria-pressed={on} className={`${CARD} overflow-hidden ${on ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
-      <span className="block overflow-hidden border-b border-zinc-950/5" style={{ background: guide.base['color.bg'] }}>
-        <MixThumb sections={RECIPES[kind].home} guide={guide} heading={name} />
+      <span className="block border-b border-zinc-950/5">
+        <SkinPreview site={start.site} guide={guide} content={start.content} title={skin.name} height={190} />
       </span>
       <span className="block p-4">
-        <span className="flex items-center justify-between gap-2 text-[16px] font-semibold" style={{ fontFamily: display }}>
-          {v.name}
+        <span className="flex items-center justify-between gap-2 text-[16px] font-semibold" style={{ fontFamily: guide.base['font.display'] }}>
+          {skin.name}
           {on && <Check size={16} style={{ color: PINK }} />}
         </span>
-        <span className="mt-1 block text-[13px] leading-snug text-[#6B5F68]">{v.words}</span>
+        <span className="mt-1 block text-[13px] leading-snug text-[#6B5F68]">{skin.words}</span>
       </span>
     </button>
   )
@@ -272,29 +318,10 @@ function VibeCard({ id, on, onPick, kind, name, brand, mode }: { id: string; on:
 
 /** One start: its first screen on a laptop, where it came from, and how it measured up. */
 function StartCard({ start, letter, best, busy, onPick }: { start: ScoredStart; letter: string; best: boolean; busy?: boolean; onPick: () => void }) {
-  const html = useMemo(() => previewHtml({ site: start.site, guide: start.guide, content: start.content }, 1280), [start])
-  // The laptop-wide page, scaled to the card's width.
-  const [scale, setScale] = useState(0.3)
-  const frame = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    const el = frame.current
-    if (!el) return
-    setScale(el.clientWidth / 1280)
-    const ro = new ResizeObserver(([e]) => setScale(e.contentRect.width / 1280))
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
   return (
     <article className="flex flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_24px_48px_-28px_rgb(23_18_26/0.3)]">
-      <div ref={frame} className="relative h-[300px] overflow-hidden border-b border-zinc-950/5 bg-zinc-50">
-        <iframe
-          title={`Start ${letter}`}
-          srcDoc={html}
-          sandbox="allow-same-origin"
-          tabIndex={-1}
-          className="pointer-events-none absolute left-0 top-0 origin-top-left border-0"
-          style={{ width: 1280, height: 300 / scale, transform: `scale(${scale})` }}
-        />
+      <div className="border-b border-zinc-950/5">
+        <SkinPreview site={start.site} guide={start.guide} content={start.content} title={`Start ${letter}`} height={300} />
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
@@ -321,7 +348,7 @@ function StartCard({ start, letter, best, busy, onPick }: { start: ScoredStart; 
           {start.score.phoneScreens !== null && <li className="pl-5 text-[#6B5F68]">About {Math.max(1, Math.round(start.score.phoneScreens))} screens long on a phone</li>}
         </ul>
         <button type="button" onClick={onPick} disabled={busy} className={`${PRIMARY} btn-ink mt-auto w-full justify-center`}>
-          Start with {letter}
+          Dress {letter} <ArrowRight size={15} />
         </button>
       </div>
     </article>
@@ -342,10 +369,10 @@ function Score({ value }: { value: number }) {
   )
 }
 
-/** Every feel's fonts, so the cards draw in them. */
-function useVibeFonts() {
+/** Every skin's fonts, so the cards draw in them. */
+function useSkinFonts() {
   useEffect(() => {
-    const hrefs = new Set(VIBES.flatMap((v) => fontHrefs(fontsForTokens(resolveGuide(guideFor({ vibe: v.id })).tokens, []))))
+    const hrefs = new Set(skinList().flatMap((v) => fontHrefs(fontsForTokens(resolveGuide(guideFor({ skin: v.id })).tokens, []))))
     for (const href of hrefs) {
       if (document.head.querySelector(`link[href="${CSS.escape(href)}"]`)) continue
       const link = document.createElement('link')

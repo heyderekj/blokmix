@@ -6,6 +6,8 @@ import { BrandColours, Candidates, Components, CopyFooter, GroupDecision, GroupT
 import { FontLinks, sourceName, useGuideData, withCandidate } from './shared'
 import { SavedGuides } from './SavedGuides'
 import { Dials } from './Dials'
+import { Skins } from './Skins'
+import { ContractTile } from './ContractTile'
 import { isHosted } from '@/lib/host'
 import { useStore } from '@/state/store'
 import { EffectsArt, EffectsPanel } from '../../dials/EffectsTile'
@@ -23,6 +25,8 @@ export function GuideBoard() {
     <div>
       <FontLinks tokens={[tokens, ...TOKEN_GROUPS.flatMap((g) => candidates(g).map((c) => withCandidate(tokens, c)))]} />
       <div className="grid grid-cols-2 gap-2 p-3">
+        <Skins />
+        <ContractTile />
         <Dials />
         {TOKEN_GROUPS.flatMap((g) => (g === 'type' ? [g, 'text' as const] : [g])).map((g) =>
           g === 'text' ? (

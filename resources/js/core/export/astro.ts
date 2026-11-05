@@ -2,6 +2,7 @@ import type { ComposedPage, ComposedSection } from '../compose'
 import { serialize } from '../html/serialize'
 import { BASE_CSS_LAYERED } from './base-css'
 import { MEDIA_CSS, MEDIA_JS } from './media-runtime'
+import { SLIDER_JS } from './slider-runtime'
 import { SHADERS_JS, SHADER_CSS } from './shaders'
 import { contentVar, fontLinks, routeFile, sectionCss, sectionHeader, sitePages, tokensCss, type FileMap } from './shared'
 import { bindContent } from './bind'
@@ -30,6 +31,7 @@ export function astroFiles(page: ComposedPage, root = 'astro/'): FileMap {
   files[`${root}src/styles/tokens.css`] = tokensCss(page)
   files[`${root}src/styles/base.css`] = BASE_CSS_LAYERED + (page.moving ? `\n${MEDIA_CSS}` : '') + (page.shaders.length ? `\n${SHADER_CSS}` : '')
   if (page.moving) files[`${root}public/mx-media.js`] = MEDIA_JS
+  if (page.sliding) files[`${root}public/mx-slider.js`] = SLIDER_JS
   if (page.shaders.length) files[`${root}public/mx-shaders.js`] = SHADERS_JS
 
   const site = sitePages(page)
@@ -68,7 +70,7 @@ const { title, nav = true, footer = true } = Astro.props
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-${links.map((l) => `    ${l}\n`).join('')}${page.moving ? '    <script is:inline src="/mx-media.js" defer></script>\n' : ''}${page.shaders.length ? '    <script is:inline src="/mx-shaders.js" defer></script>\n' : ''}  </head>
+${links.map((l) => `    ${l}\n`).join('')}${page.moving ? '    <script is:inline src="/mx-media.js" defer></script>\n' : ''}${page.sliding ? '    <script is:inline src="/mx-slider.js" defer></script>\n' : ''}${page.shaders.length ? '    <script is:inline src="/mx-shaders.js" defer></script>\n' : ''}  </head>
   <body>
 ${nav ? `    ${chrome(nav, 'nav')}\n` : ''}    <main>
       <slot />

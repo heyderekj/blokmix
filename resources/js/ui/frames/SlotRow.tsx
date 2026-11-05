@@ -66,13 +66,14 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   const pPatch = useBlockPreview((s) => s.patch)
   const pWords = useBlockPreview((s) => s.words)
   const pBackdrop = useBlockPreview((s) => s.backdrop)
+  const pSlider = useBlockPreview((s) => s.slider)
   const editText = useBlockPreview((s) => s.editText)
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
   // While an item is dragged, the section shows the list as it would be with the item dropped where it is now.
   const [sorting, setSorting] = useState<{ itemId: string; from: number; to: number } | null>(null)
   const live = useMemo(() => {
-    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop })
+    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop, slider: pSlider })
     if (sorting && sorting.to !== sorting.from)
       try {
         s = applyListEdit(s, slotClip(s), content, { op: 'move', itemId: sorting.itemId, to: sorting.to })
@@ -80,7 +81,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         /* not movable after all: show it as it is */
       }
     return s
-  }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, sorting, content])
+  }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, pSlider, sorting, content])
   const ids = pickable(library, slot.type)
   const W = VIEW_W[viewport]
 
@@ -125,6 +126,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
 
   const [heights, setHeights] = useState<Record<string, number>>({})
   const height = heights[shown] ?? 520
+  // The arrows hold still while you click through layouts of different heights; they re-center once the pointer leaves.
+  const [arrowY, setArrowY] = useState<number | null>(null)
   const rowRef = useRef<HTMLDivElement>(null)
   const setRow = useLayout((s) => s.setRow)
   useLayoutEffect(() => {
@@ -365,16 +368,27 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         }}
       />
       {!slot.keep.layout && mode === 'unified' && (
-        <div className="pointer-events-none absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }}>
-          <span className="m-2 inline-block rounded-md bg-zinc-900/80 px-2 py-1 text-[11px] font-medium text-white">Layout: reference only</span>
+        <div className="absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }} data-chrome>
+          <button
+            type="button"
+            title="An agent may restructure this section. Click to have it reproduce this layout"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              st().toggleKeep(slot.id, 'layout')
+            }}
+            className="m-2 inline-block cursor-pointer rounded-md bg-zinc-900/80 px-2 py-1 text-[11px] font-medium text-white"
+          >
+            Layout: reference only ×
+          </button>
         </div>
       )}
 
       {/* chevrons on the page edges */}
       {ids.length > 1 && !previewing && (
         <>
-          <EdgeButton side="left" onClick={() => st().cycle(slot.id, -1)} visible={focused} />
-          <EdgeButton side="right" onClick={() => st().cycle(slot.id, 1)} visible={focused} />
+          <EdgeButton side="left" y={arrowY ?? height / 2} onPin={() => setArrowY((y) => y ?? height / 2)} onRelease={() => setArrowY(null)} onClick={() => st().cycle(slot.id, -1)} visible={focused} />
+          <EdgeButton side="right" y={arrowY ?? height / 2} onPin={() => setArrowY((y) => y ?? height / 2)} onRelease={() => setArrowY(null)} onClick={() => st().cycle(slot.id, 1)} visible={focused} />
         </>
       )}
 
@@ -725,14 +739,16 @@ const Tile = memo(function Tile(p: {
   )
 })
 
-function EdgeButton({ side, onClick, visible }: { side: 'left' | 'right'; onClick: () => void; visible: boolean }) {
+function EdgeButton({ side, y, onPin, onRelease, onClick, visible }: { side: 'left' | 'right'; y: number; onPin: () => void; onRelease: () => void; onClick: () => void; visible: boolean }) {
   const Icon = side === 'left' ? ChevronLeft : ChevronRight
   return (
-    <div className="absolute top-1/2 z-30 h-0 w-0" style={{ [side]: 0 }} data-chrome>
+    <div className="absolute z-30 h-0 w-0" style={{ [side]: 0, top: y, transition: `top ${SWAP}` }} data-chrome>
       {/* a generous, invisible hit area around the visible button, clear of the gutter rail */}
       <button
         type="button"
         onPointerDown={(e) => e.stopPropagation()}
+        onPointerEnter={onPin}
+        onPointerLeave={onRelease}
         onClick={(e) => {
           e.stopPropagation()
           onClick()

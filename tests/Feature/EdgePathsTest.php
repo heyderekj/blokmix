@@ -13,6 +13,9 @@ class EdgePathsTest extends TestCase
         $edge = json_decode(file_get_contents(base_path('docs/edge-paths.json')), true);
         $missing = [];
         foreach (Route::getRoutes() as $route) {
+            if ($route->getDomain()) {
+                continue; // blok.page isn't behind blokmix.com's edge.
+            }
             $path = '/'.ltrim($route->uri(), '/');
             if ($path === '/') {
                 continue; // The edge sends / here when the signed-in cookie is set.

@@ -3,10 +3,10 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1120px; margin: 0 auto; }
+  & .container { max-width: var(--mx-width-content); margin: 0 auto; }
 
   & .head {
-    max-width: 680px;
+    max-width: var(--mx-width-text);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -19,13 +19,6 @@
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--mx-color-muted);
-  }
-  & .eyebrow::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--mx-color-accent);
   }
   & .heading {
     margin-top: var(--mx-space-4);
@@ -58,38 +51,7 @@
     padding: var(--mx-space-6);
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
-    background: var(--mx-color-surface);
-    transition: transform var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
   }
-  & .card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--mx-shadow-card);
-  }
-
-  /* Tiny bar chart placeholder; the last bar carries the primary colour */
-  & .bars {
-    display: flex;
-    align-items: flex-end;
-    gap: 4px;
-    height: 32px;
-    margin-bottom: var(--mx-space-8);
-  }
-  & .bars i {
-    width: 8px;
-    border-radius: 2px;
-    background: color-mix(in oklab, var(--mx-color-text) 16%, transparent);
-  }
-  & .bars i:nth-child(1) { height: 30%; }
-  & .bars i:nth-child(2) { height: 45%; }
-  & .bars i:nth-child(3) { height: 40%; }
-  & .bars i:nth-child(4) { height: 68%; }
-  & .bars i:nth-child(5) { height: 100%; background: var(--mx-color-primary); }
-  & .card:nth-child(2) .bars i:nth-child(2) { height: 60%; }
-  & .card:nth-child(2) .bars i:nth-child(4) { height: 52%; }
-  & .card:nth-child(3) .bars i:nth-child(1) { height: 50%; }
-  & .card:nth-child(3) .bars i:nth-child(3) { height: 62%; }
-  & .card:nth-child(4) .bars i:nth-child(2) { height: 32%; }
-  & .card:nth-child(4) .bars i:nth-child(4) { height: 80%; }
 
   & .value {
     font-family: var(--mx-font-display);
@@ -116,8 +78,6 @@
     & .lead { font-size: var(--mx-text-base); }
     & .cards { margin-top: var(--mx-space-8); gap: var(--mx-space-3); }
     & .card { padding: var(--mx-space-5) var(--mx-space-4); }
-    & .bars { margin-bottom: var(--mx-space-5); height: 24px; }
-    & .bars i { width: 6px; }
     & .value { font-size: var(--mx-text-2xl); }
   }
 }

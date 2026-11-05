@@ -69,9 +69,10 @@ describe.skipIf(!browser)('capture: saved fixtures', () => {
       for (const s of fx.sections) results.set(`${s.type}.${fx.host.split('.')[0]}`, captureClip(snaps.get(s.selector)!, { type: s.type }))
     }
   }, 60_000)
+  // Closing real Chrome can be slow when the whole suite shares the machine.
   afterAll(async () => {
     await browser?.close()
-  })
+  }, 60_000)
 
   const all = FIXTURE_PAGES.flatMap((fx) => fx.sections.map((s) => `${s.type}.${fx.host.split('.')[0]}`))
   const get = (id: string) => results.get(id)!

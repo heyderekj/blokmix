@@ -2,11 +2,9 @@
   "title": "Big contact details",
   "layoutPattern": "large-type-contact-rows",
   "rhythm": "stack",
-  "style": "editorial",
-  "feel": ["bold"],
   "density": "airy",
   "tier": "free",
-  "motionNotes": "No entrance motion; each address underlines in the accent on hover.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

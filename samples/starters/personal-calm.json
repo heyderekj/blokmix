@@ -2,7 +2,7 @@
   "name": "Personal site",
   "blurb": "A quiet home for you: who you are, what you write, how to reach you.",
   "kind": "personal",
-  "vibe": "calm",
+  "skin": "calm",
   "pages": [
     {
       "path": "/",

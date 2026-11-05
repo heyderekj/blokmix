@@ -6,7 +6,7 @@
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .container.narrow { max-width: var(--mx-width-text); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .container { display: flex; flex-direction: column; align-items: center; text-align: center; }
 
@@ -15,19 +15,11 @@
   & .brand {
     display: inline-flex;
     align-items: center;
-    gap: var(--mx-space-3);
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
     font-size: var(--mx-text-2xl);
     letter-spacing: -0.02em;
     white-space: nowrap;
-  }
-  & .mark {
-    width: 26px;
-    aspect-ratio: 1;
-    flex: none;
-    border-radius: 50%;
-    background: radial-gradient(circle at 50% 50%, var(--mx-color-accent) 0 28%, transparent 30%), var(--mx-color-text);
   }
   & .tagline { max-width: 44ch; font-size: var(--mx-text-base); line-height: 1.55; color: var(--mx-color-muted); }
 
@@ -73,7 +65,7 @@
   }
 
   @media (hover: hover) and (pointer: fine) {
-    & .col-links a:hover { color: var(--mx-color-accent); }
+    & .col-links a:hover { color: var(--mx-color-text); }
   }
 
   @media (max-width: 760px) {

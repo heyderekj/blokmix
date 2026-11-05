@@ -4,7 +4,7 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-4 { grid-column-end: span 4; }
   & .col-8 { grid-column-end: span 8; }
@@ -15,7 +15,6 @@
   & .eyebrow { padding-top: 0.4em; }
   & .quote { display: flex; flex-direction: column; gap: var(--mx-space-6); }
   & .words {
-    position: relative;
     max-width: 30ch;
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -24,10 +23,21 @@
     letter-spacing: -0.015em;
     text-wrap: pretty;
   }
-  & .words::before { content: "“"; position: absolute; right: 100%; padding-right: 0.08em; }
-  & .words::after { content: "”"; }
   & .credit { display: flex; flex-direction: column; gap: var(--mx-space-1); }
   & .name { font-style: normal; font-size: var(--mx-text-base); font-weight: 600; line-height: 1.3; }
+
+  & .quote { position: relative; }
+  /* A plain opening mark, real text, hanging off the left edge. */
+  & .mark {
+    position: absolute;
+    right: 100%;
+    padding-right: 0.08em;
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: clamp(var(--mx-text-2xl), 3vw, var(--mx-text-4xl));
+    line-height: 1.18;
+    color: var(--mx-color-muted);
+  }
 
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
@@ -37,10 +47,10 @@
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
+    & .mark { position: static; margin-bottom: calc(var(--mx-space-5) * -1); padding-right: 0; font-size: var(--mx-text-2xl); line-height: 1; }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .eyebrow { padding-top: 0; }
     & .words { font-size: var(--mx-text-2xl); line-height: 1.22; }
-    & .words::before { position: static; padding-right: 0; }
   }
 }

@@ -2,15 +2,16 @@
   "title": "Stat row with hairlines",
   "layoutPattern": "stat-row-4up",
   "rhythm": "band",
-  "style": "minimal",
   "density": "airy",
   "tier": "free",
-  "feel": ["editorial", "technical"],
-  "motionNotes": "Header rises, the hairlines fade in, then each figure lifts into place left to right.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-23T00:00:00Z"
   }
 }

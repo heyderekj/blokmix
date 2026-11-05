@@ -32,7 +32,7 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-3 { grid-column-end: span 3; }
@@ -43,7 +43,6 @@
 
   /* The call to action, set apart in its own panel above everything else. */
   & .band { padding-block: var(--mx-space-10); }
-  & .arrow { transition: transform var(--mx-motion-duration) var(--mx-motion-ease); }
 
   /* Brand and the link columns on the 12-column rail. */
   & .links-row { margin-top: var(--mx-space-9); }
@@ -53,14 +52,12 @@
     justify-self: start;
     display: inline-flex;
     align-items: center;
-    gap: var(--mx-space-3);
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
     font-size: var(--mx-text-lg);
     letter-spacing: -0.01em;
     white-space: nowrap;
   }
-  & .mark { width: 12px; aspect-ratio: 1; flex: none; border-radius: 50%; background: var(--mx-color-accent); }
   & .col { display: flex; flex-direction: column; gap: var(--mx-space-4); }
   & .col-title { font-size: var(--mx-text-sm); font-weight: 600; }
   & .col-links { display: flex; flex-direction: column; align-items: flex-start; gap: var(--mx-space-2); }
@@ -82,7 +79,6 @@
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
-    & .btn:hover .arrow { transform: translateX(3px); }
     & .col-links a:hover { color: var(--mx-color-text); }
   }
 

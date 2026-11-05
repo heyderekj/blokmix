@@ -3,10 +3,10 @@
   color: var(--mx-color-text);
   padding: var(--mx-space-section) var(--mx-space-8);
 
-  & .container { max-width: 1120px; margin: 0 auto; }
+  & .container { max-width: var(--mx-width-content); margin: 0 auto; }
 
   & .head {
-    max-width: 720px;
+    max-width: var(--mx-width-text);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -14,20 +14,10 @@
     text-align: center;
   }
   & .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--mx-space-2);
     font-size: var(--mx-text-sm);
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--mx-color-muted);
-  }
-  & .eyebrow::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--mx-color-accent);
   }
   & .heading {
     margin-top: var(--mx-space-4);
@@ -67,7 +57,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: var(--mx-space-3);
-    max-width: 440px;
+    max-width: 44ch;
   }
   & .num {
     font-family: var(--mx-font-mono);
@@ -89,114 +79,25 @@
     text-wrap: pretty;
   }
 
-  /* Media placeholders: soft surface blocks with simple shapes */
   & .media {
     position: relative;
     aspect-ratio: 4 / 3;
-    display: grid;
-    place-items: center;
     overflow: hidden;
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
-    background:
-      radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--mx-color-primary) 7%, transparent), transparent 60%),
-      var(--mx-color-surface);
+    background: var(--mx-color-surface);
   }
-  & .window, & .sheet {
-    position: relative;
-    width: 70%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--mx-space-3);
-    padding: var(--mx-space-5);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius);
-    background: var(--mx-color-bg);
-    box-shadow: var(--mx-shadow-card);
-  }
-  & .bar { display: flex; gap: 6px; margin-bottom: var(--mx-space-2); }
-  & .bar i {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: color-mix(in oklab, var(--mx-color-text) 16%, transparent);
-  }
-  & .line {
-    height: 8px;
-    border-radius: var(--mx-radius-pill);
-    background: color-mix(in oklab, var(--mx-color-text) 12%, transparent);
-  }
-  & .w70 { width: 70%; }
-  & .w45 { width: 45%; }
-  & .block {
-    height: 72px;
-    margin-top: var(--mx-space-2);
-    border-radius: var(--mx-radius-sm);
-    background: color-mix(in oklab, var(--mx-color-text) 6%, transparent);
-  }
-  & .pick {
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
     position: absolute;
-    left: var(--mx-space-3);
-    right: var(--mx-space-3);
-    bottom: var(--mx-space-3);
-    height: 88px;
-    border: calc(var(--mx-stroke) * 1.5) dashed var(--mx-color-accent);
-    border-radius: var(--mx-radius);
-    background: color-mix(in oklab, var(--mx-color-accent) 6%, transparent);
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
   }
-
-  & .m2 { place-items: initial; }
-  & .tile {
-    position: absolute;
-    width: 46%;
-    height: 34%;
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius);
-    background: var(--mx-color-bg);
-    box-shadow: var(--mx-shadow-card);
-  }
-  & .tile::after {
-    content: '';
-    position: absolute;
-    left: 14%;
-    top: 26%;
-    width: 52%;
-    height: 8px;
-    border-radius: var(--mx-radius-pill);
-    background: color-mix(in oklab, var(--mx-color-text) 14%, transparent);
-  }
-  & .t1 { left: 10%; top: 14%; }
-  & .t2 { left: 44%; top: 34%; z-index: 1; border-color: color-mix(in oklab, var(--mx-color-primary) 40%, var(--mx-color-border)); transform: rotate(-3deg); }
-  & .t2::before {
-    content: '';
-    position: absolute;
-    left: 14%;
-    bottom: 22%;
-    width: 30%;
-    height: 8px;
-    border-radius: var(--mx-radius-pill);
-    background: var(--mx-color-primary);
-  }
-  & .t3 { left: 16%; top: 58%; }
-
-  & .swatches { display: flex; gap: var(--mx-space-2); }
-  & .swatches i {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    box-shadow: inset 0 0 0 1px var(--mx-color-border);
-  }
-  & .swatches i:nth-child(1) { background: var(--mx-color-muted); }
-  & .swatches i:nth-child(2) { background: var(--mx-color-primary); }
-  & .swatches i:nth-child(3) { background: var(--mx-color-accent); }
-  & .swatches i:nth-child(4) { background: var(--mx-color-surface); }
-  & .type {
-    width: 56%;
-    height: 22px;
-    margin-top: var(--mx-space-2);
-    border-radius: var(--mx-radius-sm);
-    background: color-mix(in oklab, var(--mx-color-text) 22%, transparent);
-  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
@@ -210,8 +111,5 @@
     }
     & .row:nth-child(even) .media { order: 0; }
     & .body { font-size: var(--mx-text-base); }
-    & .window, & .sheet { width: 78%; padding: var(--mx-space-4); }
-    & .block { height: 48px; }
-    & .pick { height: 64px; }
   }
 }

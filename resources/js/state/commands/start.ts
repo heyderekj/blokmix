@@ -2,12 +2,14 @@ import { type CommandInput } from '@/core/commands/schema'
 import type { StartInput } from '@/core/start'
 import { scoredStarts, type ScoredStart } from '@/lib/start'
 import { allSlots } from '@/core/site'
+import { skinById, skinList, skinOpen } from '@/core/skins'
+import { library } from '@/data/library'
 import { useStore } from '../store'
 import { CommandError } from './refs'
 import type { AsyncCommand } from './index'
 
 type Answers = CommandInput<'suggest_starts'>
-const answers = (i: Answers): StartInput => ({ kind: i.kind, name: i.name, oneLiner: i.one_liner, vibe: i.vibe, brand: i.brand, mode: i.mode, seed: i.seed })
+const answers = (i: Answers): StartInput => ({ kind: i.kind, name: i.name, oneLiner: i.one_liner, skin: i.skin, brand: i.brand, mode: i.mode, seed: i.seed })
 
 /** A start as an agent reads it: where it came from, its pages' sections, and how it measured up. */
 const describe = (s: ScoredStart, i: number) => ({
@@ -32,6 +34,9 @@ export const later = {
     prepare: (i: CommandInput<'apply_start'>) => scoredStarts(answers(i)),
     apply: (i: CommandInput<'apply_start'>, starts: ScoredStart[]) => {
       const pick = starts[i.start - 1]
+      const skin = i.skin ? skinById(i.skin) : null
+      if (i.skin && !skin) throw new CommandError(`No skin called "${i.skin}". Skins: ${skinList().map((s) => s.id).join(', ')}`)
+      if (skin && !skinOpen(library, skin)) throw new CommandError(`The ${skin.name} skin needs a mix pack`)
       if (!pick) throw new CommandError(`There are only ${starts.length} starts for those answers`)
       useStore.getState().applyStart(pick)
       return describe(pick, i.start - 1)

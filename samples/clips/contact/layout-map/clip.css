@@ -4,9 +4,9 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -32,12 +32,13 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible, & button:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible, & button:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-5 { grid-column-end: span 5; }
   & .col-6 { grid-column-end: span 6; }
   & .split { align-items: center; }
   & .split.top { align-items: start; }
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
   & .media {
     position: relative;
     overflow: hidden;
@@ -46,21 +47,20 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   & .start-8 { grid-column-start: 8; }
 
-  /* The map: streets, a park and the river drawn from the palette, a pin on the corner. */
   & .map { aspect-ratio: 4 / 5; }
-  & .streets { width: 100%; height: 100%; }
-  & .road { fill: none; stroke: var(--mx-color-bg); stroke-width: 10; stroke-linecap: round; }
-  & .road.major { stroke-width: 18; }
-  & .road.minor { stroke-width: 6; }
-  & .park { fill: color-mix(in oklab, var(--mx-color-text) 7%, var(--mx-color-surface)); }
-  & .water { fill: color-mix(in oklab, var(--mx-color-primary) 10%, var(--mx-color-surface)); }
-  & .block { fill: color-mix(in oklab, var(--mx-color-text) 5%, var(--mx-color-surface)); }
-  & .halo { fill: color-mix(in oklab, var(--mx-color-accent) 22%, transparent); }
-  & .dot { fill: var(--mx-color-accent); stroke: var(--mx-color-bg); stroke-width: 4; }
 
   /* The side: head, details, then a short form. */
   & .side .head + * { margin-top: var(--mx-space-7); }
@@ -75,6 +75,7 @@
     height: 36px;
     border-radius: var(--mx-radius);
     background: var(--mx-color-surface);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
   }
   & .form { display: grid; gap: var(--mx-space-4); margin-top: var(--mx-space-6); }
 
@@ -88,12 +89,11 @@
     color: var(--mx-color-text);
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius);
-    transition: border-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease);
+    transition: border-color var(--mx-motion-duration) var(--mx-motion-ease);
   }
   & .input:focus-visible {
-    outline: none;
-    border-color: var(--mx-color-primary);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--mx-color-primary) 22%, transparent);
+    outline: 2px solid var(--mx-color-text);
+    outline-offset: 2px;
   }
   & .area { min-height: 132px; resize: vertical; line-height: 1.5; }
 
@@ -103,7 +103,7 @@
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
     & .input:hover { border-color: color-mix(in oklab, var(--mx-color-text) 30%, var(--mx-color-border)); }
-    & .detail a:hover { color: var(--mx-color-accent); }
+    & .detail a:hover { text-decoration: underline; text-underline-offset: 3px; }
   }
 
   @container (max-width: 952px) {

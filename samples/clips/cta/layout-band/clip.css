@@ -4,24 +4,22 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .band {
-    max-width: 1120px;
+    max-width: var(--mx-width-content);
     margin: 0 auto;
     padding: var(--mx-space-9) var(--mx-space-8);
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    background: var(--mx-color-primary);
-    color: var(--mx-color-on-primary);
+    background: var(--mx-color-surface);
     border-radius: var(--mx-radius-lg);
-    box-shadow: var(--mx-shadow-card);
   }
   & .eyebrow {
     font-family: var(--mx-font-body);
     font-size: var(--mx-text-sm);
     font-weight: 600;
     letter-spacing: 0.04em;
-    color: color-mix(in oklab, var(--mx-color-on-primary) 70%, transparent);
+    color: var(--mx-color-muted);
   }
   & .heading {
     margin-top: var(--mx-space-4);
@@ -38,7 +36,7 @@
     max-width: 46ch;
     font-size: var(--mx-text-lg);
     line-height: 1.5;
-    color: color-mix(in oklab, var(--mx-color-on-primary) 78%, transparent);
+    color: var(--mx-color-muted);
     text-wrap: pretty;
   }
   & .actions {
@@ -55,19 +53,24 @@
     border-radius: var(--mx-radius-pill);
     font-size: var(--mx-text-base);
     font-weight: 600;
-    transition: background var(--mx-motion-duration) var(--mx-motion-ease), transform var(--mx-motion-duration) var(--mx-motion-ease);
-  }
-  & .primary { background: var(--mx-color-on-primary); color: var(--mx-color-primary); }
-  & .primary:hover { transform: translateY(-1px); }
-  & .secondary {
-    color: var(--mx-color-on-primary);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mx-color-on-primary) 35%, transparent);
-  }
-  & .secondary:hover { background: color-mix(in oklab, var(--mx-color-on-primary) 10%, transparent); }
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    cursor: pointer;
+}
+  & .primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
+  & .secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
   & .note {
     margin-top: var(--mx-space-5);
     font-size: var(--mx-text-sm);
-    color: color-mix(in oklab, var(--mx-color-on-primary) 60%, transparent);
+    color: var(--mx-color-muted);
+  }
+
+  & .btn:active { scale: 0.97; }
+
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
+
+  @media (hover: hover) and (pointer: fine) {
+    & .primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
+    & .secondary:hover { background: var(--mx-color-bg); }
   }
 
   @media (max-width: 760px) {

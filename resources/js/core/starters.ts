@@ -2,7 +2,7 @@ import type { GuideState, Library, Page, SectionType, Site, Slot, TokenKey, Toke
 import { DEFAULT_KEEP, TOKEN_KEYS } from './types'
 import { siteFromSlots } from './site'
 import { choose, emptyGuide } from './guide'
-import { vibeById } from './vibes'
+import { applySkin, skinById } from './skins'
 
 /**
  * Starter mixes: short, ready combinations of sections under a sample style guide, the replacement for
@@ -22,9 +22,9 @@ export interface Starter {
   id: string
   name: string
   description: string
-  /** For the guided start (`core/start.ts`): what kind of site it is and its vibe. */
+  /** For the guided start (`core/start.ts`): what kind of site it is, and the skin it's dressed in when opened on its own. */
   kind?: string
-  vibe?: string
+  skin?: string
   /** Its sample style guide: the tokens it sets (the rest stay neutral). They land as your own values, so dials and
    * knobs move them like any other. */
   tokens?: Partial<TokenSet>
@@ -72,9 +72,10 @@ export function buildStarter(lib: Library, starter: Starter): StarterMix {
   const pages: Page[] = rest.map((p, i) => ({ id: p.id ?? `page_${i + 1}`, path: p.path, title: p.title, slots: slots(p, i + 1), show: { nav: true, footer: true } }))
   const site: Site = { ...home, pages: [...home.pages, ...pages] }
 
-  // Its own sample guide, or its vibe's (the guided start's starters name a vibe instead).
-  const tokens = starter.tokens ?? (starter.vibe ? vibeById(starter.vibe).tokens : {})
-  const guide = (Object.entries(tokens) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), emptyGuide())
+  // Its skin, then any sample values of its own on top.
+  const dressed = starter.skin && skinById(starter.skin)
+  const under = dressed ? applySkin(emptyGuide(), dressed) : emptyGuide()
+  const guide = (Object.entries(starter.tokens ?? {}) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), under)
   return { mixName: starter.name, site, guide }
 }
 

@@ -25,7 +25,7 @@ export interface MixFile {
   clips?: { id: string; files: Record<string, string> }[]
 }
 
-const FIELDS = ['site', 'guide', 'content', 'notes', 'branchFrom', 'head', 'framePos', 'clips'] as const
+const FIELDS = ['site', 'guide', 'content', 'contract', 'notes', 'branchFrom', 'head', 'framePos', 'clips'] as const
 
 const toBase64 = (buf: ArrayBuffer) => {
   const bytes = new Uint8Array(buf)

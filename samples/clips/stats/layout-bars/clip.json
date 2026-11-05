@@ -2,14 +2,15 @@
   "title": "Stats on meters",
   "layoutPattern": "centered-head-stat-meter-rows",
   "rhythm": "stack",
-  "style": "technical",
-  "feel": ["technical", "calm"],
   "density": "balanced",
-  "motionNotes": "The head rises, then each meter fills from the left in a short stagger; reduced motion fades the fills in instead.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

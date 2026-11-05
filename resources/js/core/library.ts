@@ -1,4 +1,4 @@
-import type { Capture, Clip, ClipStyle, Density, Feel, Library, Rhythm, SectionType, Source, Starter, Tier, TokenSet } from './types'
+import type { Capture, Clip, ClipStyle, Density, Feel, Library, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
 import { CLIP_STYLES, DENSITIES, FEELS, SECTION_TYPES } from './types'
 import { hexToRgb } from './tokens'
 import { extractFields, parseHtml } from './html/parse'
@@ -20,6 +20,7 @@ export interface RawClip {
     style?: ClipStyle
     feel?: Feel[]
     density?: Density
+    slider?: SliderOptions
     tier?: Tier
     status?: 'draft'
     inspiredBy?: { site: string; url: string }
@@ -67,6 +68,7 @@ export function buildLibrary(sources: Source[], raws: RawClip[], starters: Start
       style: CLIP_STYLES.includes(raw.meta.style as ClipStyle) ? raw.meta.style : undefined,
       ...(feel.length ? { feel } : {}),
       ...(density ? { density } : {}),
+      ...(raw.meta.slider ? { slider: raw.meta.slider } : {}),
       ...(raw.meta.tier ? { tier: raw.meta.tier } : {}),
       ...(raw.meta.status === 'draft' ? { status: 'draft' as const } : {}),
       ...(raw.meta.inspiredBy ? { inspiredBy: raw.meta.inspiredBy } : {}),

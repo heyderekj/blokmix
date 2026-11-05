@@ -2,15 +2,16 @@
   "title": "Founder with collaborators",
   "layoutPattern": "founder-portrait-intro-and-collaborators",
   "rhythm": "split",
-  "style": "editorial",
   "density": "airy",
   "tier": "free",
-  "feel": ["friendly"],
-  "motionNotes": "No entrance motion: a large portrait beside the founder’s intro, with a quiet row of collaborators.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

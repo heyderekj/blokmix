@@ -1,5 +1,6 @@
 import { BASE_CSS, LAYER_ORDER } from '@/core/export/base-css'
 import { MEDIA_CSS, MEDIA_JS } from '@/core/export/media-runtime'
+import { SLIDER_JS } from '@/core/export/slider-runtime'
 import { MOCK_BASE_CSS } from '@/core/treatments/mocks'
 import { SHADER_CSS } from '@/core/export/shaders'
 
@@ -86,6 +87,8 @@ const BRIDGE = `(function () {
     var id = t ? t.getAttribute('data-mx-b') : null;
     if (id !== hoverId) { hoverId = id; post({ hover: id ? { id: id, rect: rect(t) } : null }); }
   });
+  /* A slider's track scrolling moves what's selected: keep the outlines on it. */
+  document.addEventListener('scroll', function () { requestAnimationFrame(function () { if (sel) reportSel(); reportTracked(); }); }, true);
   document.addEventListener('pointerleave', function () { if (hoverId) { hoverId = null; post({ hover: null }); } });
   /* Note mode: click marks a block, drag marks an area. */
   document.addEventListener('pointerdown', function (e) {
@@ -134,6 +137,14 @@ const BRIDGE = `(function () {
     if (!editMode) return;
     if (noteMode) { e.preventDefault(); e.stopPropagation(); return; }
     if (editing && editing.contains(e.target)) return;
+    /* Dots, tabs, toggles and accordions still work while editing: the click switches them, and selects as usual. */
+    if (e.target.matches && e.target.matches('input[type=radio], input[type=checkbox]')) return;
+    if (e.target.closest && e.target.closest('[data-slider-prev], [data-slider-next], [data-slider-dot]')) return;
+    if (e.target.closest && e.target.closest('label, summary')) {
+      var hit = target(e.target, e.metaKey || e.ctrlKey);
+      post({ pick: hit ? hit.getAttribute('data-mx-b') : null });
+      return;
+    }
     e.preventDefault(); e.stopPropagation();
     /* A click only ever selects: words are edited with a double-click, ↵ or the bar's Edit text. */
     var t = target(e.target, e.metaKey || e.ctrlKey);
@@ -412,6 +423,12 @@ const BRIDGE = `(function () {
       if (el.textContent !== v) el.textContent = v;
     });
     if (typeof d.outline === 'boolean') document.documentElement.toggleAttribute('data-mx-outline', d.outline);
+    if (d.slider) {
+      var sliderRoot = document.querySelector('[data-mx-section]');
+      if (sliderRoot) [['data-slide', d.slider.slide], ['data-show', d.slider.show], ['data-intro', d.slider.intro]].forEach(function (a) {
+        if (a[1] == null) sliderRoot.removeAttribute(a[0]); else sliderRoot.setAttribute(a[0], String(a[1]));
+      });
+    }
     if (d.blocks) {
       blockStyle.textContent = d.blocks.css;
       document.querySelectorAll('[data-mx-b]').forEach(function (el) {
@@ -505,5 +522,6 @@ ${links}
 ${i.html}
 <script>${BRIDGE}</script>
 <script>${MEDIA_JS}</script>
+<script>${SLIDER_JS}</script>
 </body></html>`
 }

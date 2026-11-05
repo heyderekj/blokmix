@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { library } from '@/data/library'
 import { facetCounts, facetsOf, hueOf, matchesFacets, searchClips, toneOf } from '@/core/browse'
-import { CLIP_STYLES, DENSITIES } from '@/core/types'
+import { DENSITIES } from '@/core/types'
 
 const all = Object.keys(library.clips)
 
 describe('browsing the library', () => {
-  it('tags every sample clip with a style and a density', () => {
+  it('tags every sample clip with a density; built-in layouts leave style to the skin', () => {
     for (const clip of Object.values(library.clips)) {
-      expect(CLIP_STYLES, clip.id).toContain(clip.style)
+      if (clip.origin === 'layout') expect(clip.style, clip.id).toBeUndefined()
       expect(DENSITIES, clip.id).toContain(clip.density)
     }
   })
@@ -28,7 +28,7 @@ describe('browsing the library', () => {
     const f = facetsOf({ ...library.clips['hero.layout-centered'], tokens: { ...library.clips['hero.layout-centered'].tokens, 'color.bg': '#0b0d0e' } })
     expect(f.type).toBe('hero')
     expect(f.tone).toBe('dark')
-    expect(f.style).toBe('minimal')
+    expect(facetsOf({ ...library.clips['pricing.layout-tiers'], style: 'bold' }).style).toBe('bold')
     expect(facetsOf(library.clips['hero.layout-backdrop']).pictures).toBe(true)
   })
 
@@ -42,11 +42,15 @@ describe('browsing the library', () => {
   })
 
   it('combines facets: OR within a group, AND across groups', () => {
-    const either = searchClips(library, all, { facets: { style: ['bold', 'minimal'] } })
-    expect(either.every((id) => ['bold', 'minimal'].includes(library.clips[id].style!))).toBe(true)
-    const both = searchClips(library, all, { facets: { style: ['bold'], rhythm: ['band'] } })
+    const either = searchClips(library, all, { facets: { rhythm: ['band', 'split'] } })
+    expect(either.length).toBeGreaterThan(0)
+    expect(either.every((id) => ['band', 'split'].includes(library.clips[id].rhythm!))).toBe(true)
+    const both = searchClips(library, all, { facets: { rhythm: ['split'], density: ['airy'] } })
     expect(both.length).toBeGreaterThan(0)
-    expect(both.every((id) => library.clips[id].style === 'bold' && library.clips[id].rhythm === 'band')).toBe(true)
+    expect(both.every((id) => library.clips[id].rhythm === 'split' && library.clips[id].density === 'airy')).toBe(true)
+    // A captured clip may still carry a style.
+    expect(matchesFacets({ ...library.clips['hero.layout-backdrop'], style: 'bold' }, { style: ['bold'] })).toBe(true)
+    expect(matchesFacets(library.clips['hero.layout-backdrop'], { style: ['bold'] })).toBe(false)
     expect(matchesFacets(library.clips['hero.layout-backdrop'], { pictures: ['without'] })).toBe(false)
     expect(matchesFacets(library.clips['hero.layout-backdrop'], { style: [] })).toBe(true)
   })
@@ -55,6 +59,6 @@ describe('browsing the library', () => {
     const layouts = all.filter((id) => library.clips[id].origin === 'layout')
     const counts = facetCounts(library, layouts)
     expect(Object.keys(counts.tone)).toEqual(['light'])
-    expect(Object.values(counts.style).reduce((a, b) => a + b, 0)).toBe(layouts.length)
+    expect(counts.style ?? {}).toEqual({})
   })
 })

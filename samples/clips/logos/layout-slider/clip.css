@@ -4,141 +4,68 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
-  & .heading {
-    font-family: var(--mx-font-display);
-    font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-xl), 2.4vw, var(--mx-text-3xl));
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-  }
-  & .sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    opacity: 0;
-  }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
+  & .heading { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: clamp(var(--mx-text-xl), 2.4vw, var(--mx-text-3xl)); line-height: 1.15; letter-spacing: -0.02em; }
+  & .head + * { margin-top: var(--mx-space-7); }
 
-  /* Top: the title on the left, the pager on the right. */
-  & .top { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--mx-space-6); }
-  & .titles { display: grid; gap: var(--mx-space-3); max-width: 560px; }
-  & .pager {
-    position: relative;
+  /* A track that scrolls natively, so it holds any number of slides. */
+  & .slider { min-width: 0; display: grid; gap: var(--mx-space-5); }
+  & .track {
+    --show: 1;
+    --between: var(--mx-space-5);
     display: flex;
-    align-items: center;
-    gap: var(--mx-space-3);
-    flex: none;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    min-inline-size: 0;
+    gap: var(--between);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
   }
+  & .track::-webkit-scrollbar { display: none; }
+  & .slide { flex: 0 0 calc((100% - (var(--show) - 1) * var(--between)) / var(--show)); min-width: 0; scroll-snap-align: start; }
+  &[data-show="2"] .track { --show: 2; }
+  &[data-show="3"] .track { --show: 3; }
+  &[data-show="4"] .track { --show: 4; }
+  &[data-show="6"] .track { --show: 6; }
+  & .track { --show: 3; }
+  & .cell { display: grid; place-items: center; min-height: 104px; padding: var(--mx-space-4); border-radius: var(--mx-radius); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  & .logo { min-width: 0; max-width: 100%; font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: var(--mx-text-lg); color: var(--mx-color-muted); text-align: center; overflow-wrap: anywhere; }
+
+  /* Arrows, dots and a count, once /mx-slider.js is running; swiping works without it. Everything fitting hides them. */
+  & .controls { display: none; align-items: center; gap: var(--mx-space-2); }
+  & [data-slider-ready] > .controls { display: flex; }
+  & [data-slider-fits] > .controls { display: none; }
   & .arrow {
     display: grid;
     place-items: center;
     width: 44px;
     height: 44px;
-    border-radius: 50%;
+    flex: none;
+    border: 0;
+    border-radius: var(--mx-radius-pill);
+    background: transparent;
+    color: var(--mx-color-text);
     box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
     cursor: pointer;
-    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), color var(--mx-motion-duration) var(--mx-motion-ease), opacity var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   & .arrow:active { scale: 0.97; }
-  & .count { display: inline-flex; gap: var(--mx-space-1); min-width: 4.5em; justify-content: center; font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); font-variant-numeric: tabular-nums; color: var(--mx-color-muted); }
-  & .c1, & .c2 { color: var(--mx-color-text); }
-  & .c2 { display: none; }
-  &:has(#mx-logos-layout-slider-p1:checked) .prev,
-  &:has(#mx-logos-layout-slider-p2:checked) .next { opacity: 0.35; cursor: default; }
-  &:has(#mx-logos-layout-slider-p1:checked) .next,
-  &:has(#mx-logos-layout-slider-p2:checked) .prev { background: var(--mx-color-primary); color: var(--mx-color-on-primary); box-shadow: none; }
-  &:has(.pager input:focus-visible) .pager { outline: 2px solid var(--mx-color-accent); outline-offset: 4px; border-radius: var(--mx-radius-pill); }
-
-  /* Track: four logos to a page. The second page (the fifth logo on) shows when it is picked. */
-  & .viewport {
-    margin-top: var(--mx-space-8);
-    border-block: var(--mx-stroke) solid var(--mx-color-border);
-  }
-  & .track { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  & .cell {
-    display: grid;
-    place-items: center;
-    min-height: 152px;
-    padding: var(--mx-space-6);
-  }
-  & .cell + .cell { border-left: var(--mx-stroke) solid var(--mx-color-border); }
-  & .cell:nth-child(4n + 1) { border-left: 0; }
-  & .cell:nth-child(n + 5) { display: none; }
-  &:has(#mx-logos-layout-slider-p2:checked) {
-    & .cell:nth-child(-n + 4) { display: none; }
-    & .cell:nth-child(n + 5) { display: grid; }
-    & .c1 { display: none; }
-    & .c2 { display: inline; }
-    & .d2 { width: 28px; background: var(--mx-color-text); }
-    & .d1 { width: 8px; background: color-mix(in oklab, var(--mx-color-text) 22%, transparent); }
-  }
-
-  /* Wordmarks: text set as logos, each with its own small character. */
-  & .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--mx-space-2);
-    font-family: var(--mx-font-display);
-    font-weight: 700;
-    font-size: var(--mx-text-xl);
-    letter-spacing: -0.02em;
-    color: color-mix(in oklab, var(--mx-color-text) 70%, var(--mx-color-bg));
-    white-space: nowrap;
-  }
-  & .logo::before { content: ""; flex: none; width: 18px; height: 18px; background: currentColor; border-radius: var(--mx-radius-sm); }
-  & .l1::before { border-radius: 50%; }
-  & .l2 { font-family: var(--mx-font-body); font-weight: 500; letter-spacing: 0; }
-  & .l2::before { width: 4px; height: 20px; border-radius: 2px; }
-  & .l3 { text-transform: uppercase; font-size: var(--mx-text-sm); letter-spacing: 0.16em; }
-  & .l3::before { clip-path: polygon(0 0, 100% 50%, 0 100%, 25% 50%); }
-  & .l4 { font-style: italic; letter-spacing: -0.03em; }
-  & .l4::before { display: none; }
-  & .l5::before { background: transparent; border: calc(var(--mx-stroke) * 2) solid currentColor; border-radius: 50%; }
-  & .l6 { font-family: var(--mx-font-mono); font-weight: 500; text-transform: lowercase; letter-spacing: -0.03em; }
-  & .l7 { font-weight: 800; letter-spacing: -0.04em; }
-  & .l7::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-  & .l8 { text-transform: uppercase; font-size: var(--mx-text-base); letter-spacing: 0.06em; }
-  & .l8::before { border-radius: 50% 50% 0 50%; }
-
-  & .dots { display: flex; justify-content: center; gap: var(--mx-space-2); margin-top: var(--mx-space-6); }
-  & .dot {
-    display: block;
-    height: 8px;
-    border-radius: var(--mx-radius-pill);
-    cursor: pointer;
-    transition: width 200ms cubic-bezier(0.23, 1, 0.32, 1), background-color var(--mx-motion-duration) var(--mx-motion-ease);
-  }
-  & .d1 { width: 28px; background: var(--mx-color-text); }
-  & .d2 { width: 8px; background: color-mix(in oklab, var(--mx-color-text) 22%, transparent); }
-
+  & .arrow:disabled { color: var(--mx-color-muted); cursor: default; opacity: 0.5; scale: 1; }
+  & .arrow svg { width: 18px; height: 18px; }
+  & .dots { display: flex; flex: 1; align-items: center; justify-content: center; flex-wrap: wrap; min-width: 0; }
+  & .dot { display: grid; place-items: center; width: 28px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  & .pip { width: 8px; height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 22%, transparent); transition: width 240ms cubic-bezier(0.23, 1, 0.32, 1), background-color 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+  & .dot[aria-current] .pip { width: 20px; background: var(--mx-color-text); }
+  & .count { flex: none; font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); color: var(--mx-color-muted); font-variant-numeric: tabular-nums; }
+  & button:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 2px; }
   @media (hover: hover) and (pointer: fine) {
-    & .arrow:hover { background: var(--mx-color-surface); }
-    &:has(#mx-logos-layout-slider-p1:checked) .next:hover,
-    &:has(#mx-logos-layout-slider-p2:checked) .prev:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
-    & .cell:hover .logo { color: var(--mx-color-text); }
+    & .arrow:not(:disabled):hover { background: var(--mx-color-surface); }
   }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
-    & .top { align-items: flex-end; gap: var(--mx-space-4); }
-    & .count { display: none; }
-    & .pager { gap: var(--mx-space-2); }
-    & .viewport { margin-top: var(--mx-space-7); }
-    & .track { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    & .cell { min-height: 104px; padding: var(--mx-space-4); }
-    & .cell:nth-child(odd) { border-left: 0; }
-    & .cell:nth-child(4n + 3), & .cell:nth-child(4n + 4) { border-top: var(--mx-stroke) solid var(--mx-color-border); }
-    & .logo { font-size: var(--mx-text-base); }
-    & .l3 { font-size: var(--mx-text-xs); }
-    & .l8 { font-size: var(--mx-text-sm); }
+    & .track, &[data-show] .track { --show: 2; }
   }
 }

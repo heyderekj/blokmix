@@ -5,7 +5,7 @@
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -32,39 +32,16 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .band { padding: var(--mx-space-9) var(--mx-space-8); background: var(--mx-color-surface); border-radius: var(--mx-radius-lg); }
 
-  /* The header sits inside one inset panel; four rising bars on the right stand for the four weeks. */
+  /* The header sits inside one inset panel. */
   padding-block: var(--mx-space-8);
-  & .band {
-    position: relative;
-    overflow: hidden;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    gap: var(--mx-space-9);
-    padding: var(--mx-space-10) var(--mx-space-9);
-  }
-  & .marks { display: flex; align-items: flex-end; gap: var(--mx-space-3); height: 200px; }
-  & .marks span {
-    width: 28px;
-    border-radius: var(--mx-radius-pill);
-    background: color-mix(in oklab, var(--mx-color-text) 12%, var(--mx-color-surface));
-  }
-  & .marks span:nth-child(1) { height: 30%; }
-  & .marks span:nth-child(2) { height: 52%; }
-  & .marks span:nth-child(3) { height: 74%; }
-  & .marks span:nth-child(4) { height: 100%; background: var(--mx-color-accent); }
+  & .band { padding: var(--mx-space-10) var(--mx-space-9); }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
-  }
-
-  @container (max-width: 952px) {
-    & .marks { display: none; }
-    & .band { grid-template-columns: minmax(0, 1fr); }
   }
 
   @media (max-width: 760px) {

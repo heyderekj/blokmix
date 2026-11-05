@@ -13,7 +13,7 @@ import { clampParams, type ParamSpecs, type Preset, type TreatmentValue } from '
 
 export * from './params'
 export { EFFECTS, EFFECT_IDS, effectsVars, shadowToken, isEffectId, type EffectId, type EffectsState } from './effects'
-export { BACKDROPS, BACKDROP_IDS, CSS_BACKDROP_IDS, backdropCss, backdropDecls, backdropInfo, backdropParams, backdropShaderId, isBackdropId, type BackdropId } from './backdrops'
+export { BACKDROPS, BACKDROP_IDS, CSS_BACKDROP_IDS, backdropCss, backdropDecls, backdropInfo, backdropParams, backdropPlace, backdropShaderId, BACKDROP_ANCHORS, isBackdropId, readBackdrop, type BackdropAnchor, type BackdropId, type BackdropReading } from './backdrops'
 export { SHADERS, SHADER_IDS, isShaderId, shaderColors, shaderFrame, shaderSpec, type ShaderId, type ShaderSpec } from './shaders'
 export { FILLS, FILL_IDS, fillSvg, isFillId, type FillId } from './fills'
 export { MOCK_IDS, MOCK_PARAMS, MOCK_PRESETS, MOCK_BASE_CSS, mockRender, mockSource, mockSources, isMockId, registerMocks, type MockId, type MockSource } from './mocks'

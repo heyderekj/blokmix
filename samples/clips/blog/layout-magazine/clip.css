@@ -4,8 +4,8 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -26,15 +26,14 @@
     font-weight: 600;
     line-height: 1.1;
     cursor: pointer;
-    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   & .btn:active { scale: 0.97; }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-4 { grid-column-end: span 4; }
-  & .col-12 { grid-column-end: span 12; }
 
   & .title { font-size: var(--mx-text-lg); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
   & .body { color: var(--mx-color-muted); line-height: 1.6; }
@@ -48,17 +47,13 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
 
   & .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--mx-space-6); }
   & .top .btn { flex: none; }
 
   /* Posts: the first runs the full width as a horizontal story; the rest sit three across under it. */
   & .posts { margin-top: var(--mx-space-9); row-gap: var(--mx-space-8); }
-  & .post { position: relative; display: flex; flex-direction: column; gap: var(--mx-space-5); }
+  & .post { display: flex; flex-direction: column; gap: var(--mx-space-5); }
   & .text { display: flex; flex-direction: column; gap: var(--mx-space-2); }
   & .title {
     font-family: var(--mx-font-display);
@@ -83,25 +78,23 @@
   & .post:first-child .title { font-size: clamp(var(--mx-text-2xl), 3vw, var(--mx-text-4xl)); line-height: 1.1; letter-spacing: -0.02em; }
   & .post:first-child .body { font-size: var(--mx-text-lg); }
   & .link { cursor: pointer; transition: color var(--mx-motion-duration) var(--mx-motion-ease); }
-  & .link::after { content: ""; position: absolute; inset: 0; }
-  & .link:focus-visible { outline: none; }
-  & .post:has(.link:focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 4px; border-radius: var(--mx-radius-lg); }
   & .media { transition: border-color var(--mx-motion-duration) var(--mx-motion-ease); }
 
-  /* Placeholder art: each post’s picture gets its own arrangement of the shared shapes. */
-  & .media .orb { width: 34%; right: 12%; top: 14%; }
-  & .media .slab { left: 10%; bottom: 12%; width: 46%; height: 28%; }
-  & .media .slab.two { left: auto; right: 10%; bottom: auto; top: 14%; width: 30%; height: 20%; background: color-mix(in oklab, var(--mx-color-primary) 16%, var(--mx-color-surface)); }
-  & .v2 .orb { width: 18%; left: 10%; right: auto; top: 14%; }
-  & .v2 .slab { width: 56%; }
-  & .v3 .slab { left: 10%; top: 24%; bottom: auto; width: 62%; height: 16%; }
-  & .v3 .slab.two { left: 10%; right: auto; top: 48%; width: 40%; height: 16%; }
-  & .v4 .orb { width: 62%; right: -10%; top: 28%; }
-  & .v4 .slab { width: 34%; height: 40%; }
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.secondary:hover { background: var(--mx-color-surface); }
-    & .post:hover .link { color: var(--mx-color-accent); }
+    & .post:hover .link { color: var(--mx-color-muted); }
     & .post:hover .media { border-color: color-mix(in oklab, var(--mx-color-text) 30%, var(--mx-color-border)); }
   }
 

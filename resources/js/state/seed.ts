@@ -1,6 +1,7 @@
 import type { Library, SectionType, VersionNode } from '@/core/types'
 import { allSlots, siteFromSlots } from '@/core/site'
 import { emptyGuide } from '@/core/guide'
+import { applySkin, skinById, WIREFRAME } from '@/core/skins'
 import { buildStarter } from '@/core/starters'
 import { DEFAULT_CONTENT } from '@/core/content'
 import { autoTitle } from '@/core/versions'
@@ -31,6 +32,7 @@ export function buildSeed(lib: Library): MixData {
     id: 'seed',
     name: 'Blokmix launch page',
     description: 'The demo mix',
+    skin: 'wireframe',
     pages: [
       { path: '/', title: 'Home', sections: pick(SEED_PICKS), slotPrefix: 'slot_seed' },
       { path: '/about', title: 'About', sections: pick(ABOUT_PICKS), id: 'page_about', slotPrefix: 'slot_about' },
@@ -65,10 +67,12 @@ export function buildSeed(lib: Library): MixData {
 
 /** A new mix: one empty Home page, no style guide yet, the default words. */
 export function blankMix(name = 'Untitled mix'): MixData {
+  const wireframe = skinById(WIREFRAME)
   return {
     mixName: name,
     site: siteFromSlots([]),
-    guide: emptyGuide(),
+    // New and blank: raw until you dress it.
+    guide: wireframe ? applySkin(emptyGuide(), wireframe) : emptyGuide(),
     content: structuredClone(DEFAULT_CONTENT),
     versions: {},
     notes: [],

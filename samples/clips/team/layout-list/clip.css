@@ -5,7 +5,7 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container {
-    max-width: 1120px;
+    max-width: var(--mx-width-content);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -57,16 +57,15 @@
   }
   & .row:hover { background: color-mix(in oklab, var(--mx-color-surface) 70%, transparent); }
   & .avatar {
-    --tint: var(--mx-color-text);
+    position: relative;
+    overflow: hidden;
     display: block;
     width: 48px;
     height: 48px;
     border-radius: var(--mx-radius-pill);
-    background: linear-gradient(135deg, color-mix(in oklab, var(--tint) 30%, var(--mx-color-surface)), var(--mx-color-surface));
-    box-shadow: inset 0 0 0 1px var(--mx-color-border);
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
   }
-  & .row:nth-child(3n + 2) .avatar { --tint: var(--mx-color-accent); }
-  & .row:nth-child(3n) .avatar { --tint: var(--mx-color-primary); }
   & .name {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -74,6 +73,18 @@
     line-height: 1.3;
   }
   & .role { font-size: var(--mx-text-base); color: var(--mx-color-muted); text-align: right; }
+
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-8) var(--mx-space-4);

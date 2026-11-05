@@ -6,14 +6,18 @@ import { useStore, undo } from '@/state/store'
 export function Flash() {
   const flash = useStore((s) => s.flash)
   const [shown, setShown] = useState<typeof flash>(null)
+  const [bottom, setBottom] = useState(66)
   useEffect(() => {
     if (!flash) return
+    // Just above whatever the dock is showing right now: the toolbar, its hint, or a grown shelf.
+    const dock = document.querySelector('[data-dock]')?.getBoundingClientRect()
+    if (dock) setBottom(window.innerHeight - dock.top + 10)
     setShown(flash)
     const t = window.setTimeout(() => setShown(null), flash.undo ? 4500 : 2600)
     return () => window.clearTimeout(t)
   }, [flash])
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-[124px] z-50 flex justify-center">
+    <div className="pointer-events-none absolute inset-x-0 z-50 flex justify-center" style={{ bottom }}>
       <AnimatePresence>
         {shown && (
           <motion.div

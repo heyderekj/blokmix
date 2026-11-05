@@ -4,10 +4,10 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -24,19 +24,21 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .card.soft { background: var(--mx-color-surface); border-color: transparent; }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
   & .avatar {
+    position: relative;
+    overflow: hidden;
     display: grid;
     place-items: center;
     flex: none;
     width: 44px;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: linear-gradient(135deg, color-mix(in oklab, var(--mx-color-accent) 70%, var(--mx-color-bg)), var(--mx-color-primary));
-    color: var(--mx-color-on-primary);
     font-size: var(--mx-text-sm);
     font-weight: 600;
+    background: var(--mx-color-surface);
+    border: var(--mx-stroke) solid var(--mx-color-border);
+    color: var(--mx-color-muted);
   }
 
   /* The wall: one masonry flow in three columns. Each list flows on from the last, so the quotes, stats and logos
@@ -57,7 +59,7 @@
     letter-spacing: -0.03em;
   }
   & .brand { align-items: center; justify-content: center; min-height: 128px; }
-  & .wordmark { font-family: var(--mx-font-display); font-weight: 700; font-size: var(--mx-text-xl); letter-spacing: -0.02em; color: var(--mx-color-muted); }
+  & .wordmark { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: var(--mx-text-xl); letter-spacing: -0.02em; color: var(--mx-color-muted); }
 
   @container (max-width: 952px) {
     & .wall { columns: 2; }

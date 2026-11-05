@@ -87,6 +87,16 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `POST /api/billing/checkout`, `GET /api/billing/receipts`, and the signed webhook `POST /api/polar/webhook`
   (`order.paid` grants one pack per order once, a full `order.refunded` takes it back). Off until
   `BLOKMIX_PRICING_ENABLED`; then the buy buttons go to Polar's checkout and back to `/?bought=1`.
+- Publishing (blok.page): the board builds every page like an export (`core/export/publish.ts` `publishFiles`, `referenceHtml`'s
+  `web` mode: noindex, media as files, root links under `PUBLISH_BASE`), zips them and posts them (`lib/publish.ts`,
+  `POST /api/mixes/{id}/publication`, owners and editors; `GET` reads, `DELETE` unpublishes). `publications` (one per mix)
+  keeps the code (Mix::SHORT_PATTERN, never reused) and slug; files at `published/<code>/` on the uploads disk; the server
+  swaps the base for `/<code>/<slug>` and adds the "Made with Blokmix" badge for a Free owner. `PublishedController` serves
+  `blok.page/<code>/<slug>/<page>` on `Route::domain(config('blokmix.publish_host'))` without the web middleware (no
+  session, cookies or CSRF; noindex, CSP); an old slug redirects, unpublished is 410, nothing else answers there.
+  `BLOKMIX_PUBLISH_URL` (default https://blok.page, http://blok.localhost:8000 locally). Free has one live publication;
+  published bytes count toward the owner's upload room (`User::publishRefusal`). UI: Publish in the top bar (hosted
+  only); agents: `publish`, `get_publication`, `unpublish`. BLOKMIX.md lists the address while it's live.
 - Agents on the live site: the local MCP bridge also accepts Blokmix's hosted HTTPS origins (`HOSTED_ORIGINS` in
   `core/commands/bridge.ts`, plus BLOKMIX_ORIGINS). Chrome may ask once to let the site reach this device.
 - Waitlist (`waitlist`, `Api\WaitlistController`): blokmix.com's form posts to `POST /api/waitlist` (public, no CSRF
@@ -124,15 +134,35 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 ## Guided start
 
 The audience is non-designers first (`docs/simple-vision.md`). New mix (and the browser-only mix's first visit, or
-"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx`: what you're making (`KINDS`), a feel (`core/vibes.ts`:
-Calm, Friendly, Editorial, Technical, Bold, Sketch), an optional brand color (`core/palette.ts` `paletteFrom`, AA on
-every `CONTRAST_PAIRS`), then three starts. `core/start.ts` `startCandidates` offers matching starter mixes
+"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx`: what you're making (`KINDS`), three raw starts in Wireframe to
+pick a structure, then that page under the skins with an optional brand color (`core/palette.ts` `paletteFrom`, AA on
+every `CONTRAST_PAIRS`). `core/start.ts` `startCandidates` offers matching starter mixes
 (`samples/starters/*.json`, checked by `checkStarters`) first, then fills the kind's `RECIPES` from the library with
-`suggestClip` plus feel tags. Its words come from `core/startWords.ts`: every field of every section, per kind, with the
+`suggestClip`, built-in layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, with the
 name, an email and the year filled in (a test keeps Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone and widths between
 (`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its first screen
 holds up (after Shu Ding's "The Calculus of Interfaces"). The pick becomes the mix; every start is kept as a version
 (A/B/C). Hosted, it posts to `POST /api/mixes`; agents use `suggest_starts` and `apply_start`.
+
+## Skins and the contract
+
+Layouts are the bones; a skin is the whole look over them (`core/skins.ts`, `samples/skins/<id>.json`, `data/skins.ts`): tokens,
+effects, text styles, block looks (`components`), section defaults per type (`guide.sections`: surface, backdrop, motion,
+spacing) and a picture style for empty pictures in built-in layouts (`guide.picture`; never a logo). A skin's button look keeps
+one main action: `components.button.secondary` styles the quieter one (`defaultFor`, `BlockInfo.secondary`). `applySkin` writes it into the mix's own
+guide as one undo step; candidates and swatches stay. Section defaults and pictures sit under what a section or block chose
+(`core/sectionDefaults.ts`, used by both `composePage` and `frameStateFor`), so a swap never rewrites a slot. Words stay readable
+over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
+it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
+pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) is a
+remix: areas come whole from other skins.
+A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the closest skin (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
+The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus
+your own lines. Swaps and Surprise me leave Keep alone; agent commands that write to a kept area are refused
+(`areasOfCommand`, `contractRefusal`); your own controls aren't. Exports write `CONTRACT.md`, and `agentRules` opens or closes
+the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: the Skin and Contract tiles atop the Style
+guide; a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
+moves the canvas so the section shows beside it. Agents: `list_skins`, `apply_skin`, `surprise_me`, `get_contract`, `set_contract`.
 
 ## Agents
 
@@ -228,7 +258,7 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
 6. Motion lives only in `motion.css` and is CSS-only (keyframes, transitions on :hover are fine in
    clip.css). `clip.css` must render the final, at-rest state; `motion.css` adds the entrance/loop.
    Turning motion off just drops `motion.css`. No scroll-driven animations (frames don't scroll).
-7. Interactions without JS: `:hover`, `:focus-visible`, `<details>`, radio inputs + `:has()`.
+7. Interactions without JS: `:hover`, `:focus-visible`, `<details>`, radio inputs + `:has()`. Sliders are the one exception (see Sliders): they scroll natively without JS, and a shared script adds their controls.
 8. Copy: `data-mx-field="<name>"` on LEAF text elements only, names from `FIELD_SCHEMA` in
    `core/content.ts`. Put every piece of real copy in a field so "your copy" replaces it fully.
    Decorative static text (labels like "01", "↗", "Fig. 1") must not mention the source brand.
@@ -247,10 +277,8 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
     scripts/containerize-clips.ts [ids]` converts them (`core/containerize.ts`, also run on every capture). Bleeds to the
     window's edge (`calc(50% - 50vw)`) stay in `vw`.
 12. `clip.json` sets `rhythm` (`centered | split | grid | stack | band`): the section's dominant shape.
-    Suggestions use it to pick layouts that contrast with their neighbours. It also sets `style`
-    (`minimal | editorial | bold | playful | technical | warm`, the Crate's facets), `feel` (one or more of
-    `calm | friendly | editorial | technical | bold`, the guided start's vibes) and `density` (`airy | balanced | dense`);
-    captured clips may leave them out.
+    Suggestions use it to pick layouts that contrast with their neighbours. It also sets `density` (`airy | balanced |
+    dense`). Built-in layouts have no `style` or `feel`, since those belong to the skin; a captured clip may carry them.
 13. Blocks: mark what people will select, swap and restyle with `data-mx-block="<kind>"`.
     - Small blocks go on the element itself (often the same element as its `data-mx-field`):
       `heading`, `text`, `button`, `link`, `badge` (eyebrows, tags, pills), `icon`, `input`.
@@ -266,8 +294,7 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
       first position (`firstPosition` compares only the items' own attributes). Anything else about an item
       travels with it, so a treatment for "whichever comes first" is better written as `:first-child` in CSS.
     - Pictures (CSS/SVG art standing in for a photo, illustration, screenshot or avatar):
-      `data-mx-block="image" data-mx-media="<name>" data-mx-ratio="<w>/<h>"`. Keep the placeholder art inside;
-      a real image replaces it later. Media names are unique in the clip.
+      `data-mx-block="image" data-mx-media="<name>" data-mx-ratio="<w>/<h>"`. Keep the placeholder inside (a bare layout's is the wireframe cross); a real image replaces it later. Media names are unique in the clip.
     - Don't mark the section root, layout wrappers, decoration, or `data-mx-mirror` duplicates
       (the hidden half of a marquee). Logo wordmarks are `image` blocks (`data-mx-media="logo1"`).
 
@@ -303,7 +330,7 @@ Nudge) for hierarchy, spacing and type; Laws of UX for behavior; Emil Kowalski's
 
 From `docs/library.md` and `docs/simple-vision.md`: start from real sections, dial a style by feel.
 - The Crate searches and filters (`core/browse.ts`): words match title, pattern, type, source and tags; facets are
-  layout (`rhythm`), `style` and `density` from clip.json, plus tone, color family and pictures read off the clip
+  layout (`rhythm`), `density` and (on captured clips) `style` from clip.json, plus tone, color family and pictures read off the clip
   itself (OR within a group, AND across groups; a group shows only when the shelf's clips differ in it). Search and
   filters live in `ui.crateQuery` / `ui.crateFacets` and survive picking another section.
 - Starter mixes (`samples/starters/<id>.json`, `core/starters.ts` `buildStarter`): pages of layout ids plus `tokens`,
@@ -322,6 +349,7 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
   item titles Heading 4, intros Body large, eyebrows Label); `BlockStyle.size` sizes one block. Layouts look as authored
   until then. Block CSS writes them (`textDecl`, phone sizes in its @media), so frames and exports match. UI: the block bar's
   Text menu, the Style panel's Text styles tile. Agents: `list_text_styles`, `update_text_style`, `set_text_style`.
+- Locking (`slot.locked`, the section bar's Lock): only you change a locked section. Shuffle skips it, and agent commands naming it refuse, apart from marks. A captured section's own look, words and motion are switches where they belong (Style, Content, Motion's As clipped).
 - Section widths (`slot.width`, `widthTokens`): narrow, standard, wide or full, against the guide's content width, from
   the width picks in the section bar or `set_section_width`. `sectionTokens` applies surface then width.
 - The block bar steps through a block's looks with ‹ › around Look.
@@ -334,6 +362,10 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
   (also `<dial>0`/`<dial>100`); it flags page overflow, spill past the gutter and clipped text. On phones a `.grid`'s
   column gap stays at `--mx-space-4` or less (its 11 gaps must fit a phone at the widest spacing), single columns are
   `minmax(0, 1fr)`, and big prices cap at a share of the viewport (`min(var(--mx-text-5xl), 17vw)`).
+
+### Sliders
+
+A slider is a list in a natively scrolling track, so it holds any number of slides, each with its own picture and words (`[data-slider]` around `[data-slider-track]`, plus `[data-slider-prev]`, `[data-slider-next]`, `[data-slider-dots]` and `[data-slider-count]`). Swiping needs no script; `core/export/slider-runtime.ts` runs the arrows, dots and count in frames and ships as `/mx-slider.js`. `clip.json` `slider` says what can be arranged (`slide`, `show`, `intro`; the first of each is how the layout comes), `slot.slider` holds the choice, and compose writes it to the root as `data-slide`, `data-show` and `data-intro` for the clip's CSS. UI: the Style panel. Agents: `set_slider`, and `edit_list` for slides. Frames let sliders, tabs, toggles and accordions work while editing.
 
 ### Collections
 
@@ -420,14 +452,14 @@ Authored clips still use CSS/SVG art only (rule 5).
 ### Treatments
 
 The visual layer (`core/treatments/`): parameterized, palette-driven generators tuned with DialKit-style dials
-(`ui/dials/DialPanel.tsx`: presets, scrub-a-label sliders, palette colors, Shuffle/Randomize/Reset; dragging previews,
+(`ui/dials/DialPanel.tsx`: presets, scrub-a-label sliders, palette colors that open when asked, Shuffle/Reset; dragging previews,
 letting go is one undo step). One spec (`params.ts` `ParamSpec`) drives the dials, the agent schema (`zodFor`), the
 packet text (`describeParams`) and the defaults. Colors are palette roles (`primary`, `accent`…) so they re-theme.
 - **Effects** (`effects.ts`, `guide.effects`, Style guide → Effects tile): shadow, gradient, grain, glass, glow become
   `--mx-shadow-sm/card/lg`, `--mx-gradient`, `--mx-grain`, `--mx-glass-fill/blur/edge`, `--mx-glow` after the tokens
   (the shadow effect is also the `shadow.card` token). Looks read them with their old values as fallbacks (gradient
   buttons and headings, glass/grain/glow cards, lifted shadow, glow hover). Curated sets: `samples/treatments/*.json`.
-- **Backdrops** (`backdrops.ts`, `slot.backdrop`, section Look tab): gradient, mesh, grain, dots, grid, lines, topo,
+- **Backdrops** (`backdrops.ts`, `slot.backdrop`, the Style panel): each sits where `anchor` says (the whole section, or a spot on a 3×3 pad) and fades out by `reach`, on a masked `::before` (a live one masks its `.mx-backdrop`); new picks start at `backdropPlace`. They are: gradient, mesh, grain, dots, grid, lines, topo,
   halftone, op-art stripes, spotlight, orb, as background layers on the section root in `@layer effects`
   (`LAYER_ORDER` is `base, clip, effects, motion, blocks`). Inverse flips the section to primary.
 - **Generative fills** (`fills.ts`): more `PLACEHOLDER_STYLES` (dither, halftone, topo, flow, blocks, ascii, op-art,
@@ -458,12 +490,12 @@ packet text (`describeParams`) and the defaults. Colors are palette roles (`prim
 
 ### Built-in layouts
 
-Layouts are clips from the `layout` source: polished neutral structure (Inter, near-black on white,
-10px radius, generous spacing, one quiet pink accent used sparingly). They follow every rule above,
-fill every field in their type's schema where it makes sense, avoid any brand name in static text, and
-use CSS/SVG placeholders for imagery (soft surface-colored blocks with subtle shapes, avatars as
-initials or gradient circles from tokens). They must look finished under the neutral tokens AND under
-every site's tokens, since in "Your style" they take the user's style guide.
+Layouts are clips from the `layout` source, moving to bare wireframes: structure only, with every look left to the skin. They
+follow every rule above, fill every field in their type's schema where it makes sense and avoid any brand name in static text.
+All of them (`BARE_TYPES`, `core/lint.ts`) pass `lintBones` in `npm test`: no accent, gradient, shadow,
+tilt, filter, `::before`/`::after`, fixed container width or `motion.css`, and pictures hold only the wireframe cross
+(`svg.x`, in `samples/layout-primitives.css`). A logo is plain words (`data-mx-media="logo…"`). A nav shares the page's background: no filled bar. Keep what makes a layout distinct: its arrangement, fields, blocks and working
+interactions. One main button per section; every quieter action has the class `secondary`. The section root is always the page color, since bands are the skin's. All must read clearly under every skin.
 
 ### Layout primitives
 

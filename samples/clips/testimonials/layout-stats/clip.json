@@ -2,14 +2,15 @@
   "title": "Stats beside a featured quote",
   "layoutPattern": "stacked-stats-left-featured-quote-right",
   "rhythm": "split",
-  "style": "technical",
-  "feel": ["technical"],
   "density": "balanced",
-  "motionNotes": "No entrance motion: hairline stats on one side, one quote on an inverse panel on the other.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

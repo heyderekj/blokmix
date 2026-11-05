@@ -2,15 +2,16 @@
   "title": "Team grid",
   "layoutPattern": "portrait-grid-3up",
   "rhythm": "grid",
-  "style": "minimal",
-  "feel": ["friendly"],
   "density": "balanced",
   "tier": "free",
-  "motionNotes": "Heading rises, then portraits stagger in row by row; portraits lift on hover.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-23T00:00:00Z"
   }
 }

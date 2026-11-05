@@ -6,7 +6,7 @@
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -32,10 +32,17 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
   }
-  & .art { position: absolute; inset: 0; }
-  & .dots { background-image: radial-gradient(color-mix(in oklab, var(--mx-color-text) 14%, transparent) 1px, transparent 1.5px); background-size: 22px 22px; }
-  & .orb { position: absolute; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--mx-color-accent) 45%, var(--mx-color-bg)), var(--mx-color-accent)); }
-  & .slab { position: absolute; border-radius: var(--mx-radius-lg); background: color-mix(in oklab, var(--mx-color-text) 10%, var(--mx-color-surface)); }
+  /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
+  & .x {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--mx-color-border);
+    stroke-width: var(--mx-stroke);
+  }
+  & .x path { vector-effect: non-scaling-stroke; }
 
   /* Steps on the left read top to bottom, each with room to breathe; the picture on the right stays pinned. */
   & .steps { display: flex; flex-direction: column; }
@@ -54,51 +61,13 @@
     font-size: var(--mx-text-3xl);
     line-height: 1;
     letter-spacing: -0.03em;
-    color: var(--mx-color-accent);
+    color: var(--mx-color-muted);
   }
   & .step .title { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: var(--mx-text-2xl); line-height: 1.15; letter-spacing: -0.02em; }
   & .step .body { max-width: 44ch; }
 
   & .stage { position: sticky; top: var(--mx-space-8); grid-column-start: 6; padding-left: var(--mx-space-8); }
   & .stage .media { aspect-ratio: 4 / 5; }
-
-  /* Placeholder art: a layered page with a pinned note */
-  & .back { left: 18%; top: 10%; width: 64%; height: 64%; background: var(--mx-color-primary); }
-  & .page {
-    position: absolute;
-    left: 10%;
-    right: 22%;
-    top: 22%;
-    display: grid;
-    gap: var(--mx-space-4);
-    padding: var(--mx-space-7);
-    background: var(--mx-color-bg);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius);
-    box-shadow: var(--mx-shadow-card);
-  }
-  & .line { height: 10px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 13%, transparent); }
-  & .line.strong { height: 18px; width: 64%; background: color-mix(in oklab, var(--mx-color-text) 30%, transparent); }
-  & .line.short { width: 48%; }
-  & .blocks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--mx-space-3); margin-top: var(--mx-space-3); }
-  & .blocks i { aspect-ratio: 1; border-radius: var(--mx-radius-sm); background: var(--mx-color-surface); border: var(--mx-stroke) solid var(--mx-color-border); }
-  & .blocks i.on { background: color-mix(in oklab, var(--mx-color-accent) 30%, var(--mx-color-bg)); border-color: transparent; }
-  & .o1 { right: 10%; top: 14%; width: 15%; }
-  & .tag {
-    position: absolute;
-    right: 8%;
-    bottom: 9%;
-    width: 38%;
-    display: grid;
-    gap: var(--mx-space-2);
-    padding: var(--mx-space-4);
-    border-radius: var(--mx-radius);
-    background: var(--mx-color-bg);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    box-shadow: var(--mx-shadow-card);
-  }
-  & .tag i { height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 18%, transparent); }
-  & .tag i:last-child { width: 60%; }
 
   @container (max-width: 952px) {
     & .stage { padding-left: 0; }
@@ -116,9 +85,6 @@
     & .grid > * { grid-column: auto / span 12; }
     & .stage { position: static; order: -1; }
     & .stage .media { aspect-ratio: 4 / 3; }
-    & .page { left: 8%; right: 18%; top: 16%; padding: var(--mx-space-5); gap: var(--mx-space-3); }
-    & .blocks { display: none; }
-    & .tag { width: 44%; padding: var(--mx-space-3); }
     & .step { min-height: 0; padding-block: var(--mx-space-6); }
     & .num { font-size: var(--mx-text-2xl); }
   }

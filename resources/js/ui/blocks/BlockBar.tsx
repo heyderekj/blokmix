@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 import { Link2, ArrowLeft, ArrowRight, CaseSensitive, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile, Database } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
-import { effectiveEdit } from '@/core/blocks/style'
+import { defaultFor, effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
 import { advise, type Advice } from '@/core/advise'
 import { resolveFields } from '@/core/content'
@@ -57,7 +57,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   const blocks = slotClip(slot).blocks
   const components = useStore((s) => s.guide.components)
   const own = slot.edits?.[slot.clipId]?.[block.id]
-  const def = components?.[block.kind]
+  const def = defaultFor(components, block)
   const edit = effectiveEdit(own, def)
   const variants = variantsFor(block.kind)
   const [menu, setMenu] = useState<Menu>(null)

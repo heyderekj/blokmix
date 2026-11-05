@@ -9,6 +9,7 @@ import { clampParams, cssColor, hexColor, n2, rng, tint, type ColorValue, type P
 import { contourPaths, grainSvg, noise2, svgUrl } from './noise'
 import { gradientCss } from './effects'
 import { SHADERS, SHADER_IDS, isShaderId, shaderColors, shaderSpec, type ShaderId } from './shaders'
+import { contrastRatio, mixHex } from '../tokens'
 
 export const CSS_BACKDROP_IDS = ['gradient', 'mesh', 'grain', 'dots', 'grid', 'lines', 'topo', 'halftone', 'stripes', 'spotlight', 'orb'] as const
 export type CssBackdropId = (typeof CSS_BACKDROP_IDS)[number]
@@ -31,6 +32,39 @@ const color = (label: string, d: ColorValue) => ({ kind: 'color', label, default
 const COMMON: ParamSpecs = {
   fill: { kind: 'toggle', label: 'Fill behind', default: false },
   base: color('Behind', 'surface'),
+}
+
+export const BACKDROP_ANCHORS = ['full', 'top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'] as const
+export type BackdropAnchor = (typeof BACKDROP_ANCHORS)[number]
+
+/** Where a backdrop sits and how far it spreads before fading out. Most read better from an edge than behind every word. */
+const PLACE: ParamSpecs = {
+  anchor: { kind: 'choice', label: 'Sits', options: BACKDROP_ANCHORS.map((id) => ({ id, label: id === 'full' ? 'Whole section' : id.replace('-', ' ') })), default: 'full' },
+  reach: { kind: 'slider', label: 'Reach', min: 20, max: 120, step: 5, unit: '%', default: 70 },
+}
+
+/** Where each backdrop starts when you pick it: its natural spot. */
+export const BACKDROP_PLACE: Partial<Record<BackdropId, { anchor: BackdropAnchor; reach: number }>> = {
+  gradient: { anchor: 'top', reach: 80 },
+  mesh: { anchor: 'top-right', reach: 90 },
+  dots: { anchor: 'top', reach: 70 },
+  grid: { anchor: 'top', reach: 70 },
+  lines: { anchor: 'top-right', reach: 80 },
+  topo: { anchor: 'bottom-right', reach: 90 },
+  halftone: { anchor: 'bottom-right', reach: 80 },
+  stripes: { anchor: 'right', reach: 50 },
+  spotlight: { anchor: 'top', reach: 80 },
+  orb: { anchor: 'right', reach: 80 },
+}
+const SHADER_PLACE = { anchor: 'right', reach: 80 } as const
+export const backdropPlace = (id: BackdropId) => (isShaderId(id) ? SHADER_PLACE : BACKDROP_PLACE[id])
+
+/** The fade that places a backdrop: from an edge in a straight line, from a corner or the middle in a soft ellipse. */
+function placeMask(anchor: string, reach: number): string {
+  const edge: Record<string, string> = { top: 'to bottom', bottom: 'to top', left: 'to right', right: 'to left' }
+  if (edge[anchor]) return `linear-gradient(${edge[anchor]}, #000 0, transparent ${reach}%)`
+  const [y, x] = anchor === 'center' ? ['50%', '50%'] : [anchor.startsWith('top') ? '0%' : '100%', anchor.endsWith('left') ? '0%' : '100%']
+  return `radial-gradient(ellipse ${reach}% ${reach}% at ${x} ${y}, #000 0, transparent 100%)`
 }
 
 export const BACKDROPS: Record<CssBackdropId, Backdrop> = {
@@ -117,8 +151,8 @@ export const BACKDROPS: Record<CssBackdropId, Backdrop> = {
     hint: 'Fine lines in a square grid',
     params: { color: color('Color', 'text'), gap: { kind: 'slider', label: 'Cell', min: 12, max: 120, unit: 'px', default: 48 }, weight: { kind: 'slider', label: 'Line', min: 0.5, max: 3, step: 0.5, unit: 'px', default: 1 }, strength: strength(12) },
     presets: [
-      { id: 'blueprint', label: 'Blueprint', values: { gap: 32, strength: 18, color: 'onPrimary', fill: true, base: 'primary' } },
       { id: 'ledger', label: 'Ledger', values: { gap: 64, strength: 10 } },
+      { id: 'blueprint', label: 'Blueprint', values: { gap: 32, strength: 18, color: 'onPrimary', fill: true, base: 'primary' } },
     ],
     render: (p) => {
       const c = tint(p.color as string, p.strength as number)
@@ -251,7 +285,7 @@ const SHADER_COMMON: ParamSpecs = { strength: strength(100) }
 
 /** Every backdrop's dials, its own plus the common ones (fill behind). Flipping a section's colors is its surface (core/surface.ts). */
 export function backdropParams(id: BackdropId): ParamSpecs {
-  return isShaderId(id) ? { ...SHADERS[id].params, ...SHADER_COMMON } : { ...BACKDROPS[id].params, ...COMMON }
+  return isShaderId(id) ? { ...SHADERS[id].params, ...SHADER_COMMON, ...PLACE } : { ...BACKDROPS[id].params, ...COMMON, ...PLACE }
 }
 
 /** A backdrop's name, hint and presets, CSS or live. */
@@ -293,9 +327,23 @@ export function backdropDecls(v: TreatmentValue | undefined, tokens: TokenSet): 
  * (`.mx-backdrop`, z-index -1) sits above the section's color and under its content; its
  * position goes in the clip layer under :where(), so a clip that positions its root keeps it.
  */
-export function backdropCss(v: TreatmentValue | undefined, tokens: TokenSet, root: string): string {
+export function backdropCss(v: TreatmentValue | undefined, tokens: TokenSet, root: string, solid = false): string {
   const decl = backdropDecls(v, tokens)
+  // The section's own colors changed so its words read (readBackdrop), so the backdrop can't borrow them any more.
+  if (solid) {
+    if (!decl['background-color']) decl['background-color'] = tokens['color.bg']
+    for (const k of Object.keys(decl)) decl[k] = decl[k].replace(/var\(--mx-color-([a-z-]+)\)/g, (m, name: string) => tokens[`color.${name === 'on-primary' ? 'onPrimary' : name}` as keyof TokenSet] ?? m)
+  }
   const live = backdropShaderId(v)
+  const place = v && isBackdropId(v.id) ? clampParams(backdropParams(v.id), v.params) : null
+  // Placed, it has its own layer to fade: the section keeps its own color and the backdrop thins out over it.
+  if (place && place.anchor !== 'full' && Object.keys(decl).length) {
+    const mask = placeMask(place.anchor as string, place.reach as number)
+    const layer = Object.entries(decl).map(([k, x]) => `${k}: ${x};`).join(' ')
+    const own = solid ? ` background-color: ${tokens['color.bg']};` : ''
+    const shader = live ? `\n${root} > .mx-backdrop { opacity: ${n2((place.strength as number) / 100)}; mask-image: ${mask}; -webkit-mask-image: ${mask}; }` : ''
+    return `@layer effects {\n${root} { isolation: isolate;${own} }\n${root}::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; ${layer} mask-image: ${mask}; -webkit-mask-image: ${mask}; }${shader}\n}\n@layer clip { :where(${root}) { position: relative; } }`
+  }
   if (live) decl.isolation = 'isolate'
   const body = Object.entries(decl)
     .map(([k, x]) => `${k}: ${x};`)
@@ -312,4 +360,63 @@ function shaderStandIn(id: ShaderId, p: ParamValues, tokens: TokenSet, seed: num
   const r = rng(seed)
   const image = rest.slice(0, 4).map((c) => `radial-gradient(at ${Math.round(r() * 100)}% ${Math.round(r() * 100)}%, ${c} 0, transparent 60%)`)
   return { image: [...image, `linear-gradient(${back ?? 'transparent'}, ${back ?? 'transparent'})`] }
+}
+
+/** Backdrops of thin marks: lines and specks leave the section's color behind words, so they never need adjusting. */
+const THIN: readonly string[] = ['grain', 'dots', 'grid', 'lines', 'topo']
+const AA = 4.5
+const least = (ink: string, behind: string[]) => Math.min(...behind.map((c) => contrastRatio(ink, c) ?? 0))
+
+/** The colors a backdrop can put behind a section's words: what it fills with, then each of its colors at full strength. */
+function colorsBehind(v: TreatmentValue, tokens: TokenSet, strength: number): string[] {
+  const specs = backdropParams(v.id as BackdropId)
+  const p = clampParams(specs, v.params)
+  // Placed, it only reaches part of the section and thins out as it goes, so less of it sits behind words.
+  const placed = p.anchor !== 'full'
+  const share = placed ? (Math.min(100, p.reach as number) / 100) * 0.7 : 1
+  const base = hexColor((p.fill && !placed ? p.base : 'bg') as string, tokens)
+  const fill = p.fill && placed ? [mixHex(base, hexColor(p.base as string, tokens), share)] : []
+  if (THIN.includes(v.id)) return [base, ...fill]
+  const colors = Object.entries(specs).flatMap(([k, spec]) => {
+    if (k === 'base') return []
+    if (spec.kind === 'color') return [p[k] as string]
+    if (spec.kind === 'stops') return p[k] as string[]
+    return []
+  })
+  return [base, ...fill, ...colors.map((c) => mixHex(base, hexColor(c, tokens), (strength / 100) * share))]
+}
+
+export interface BackdropReading {
+  /** The backdrop to draw: softened if nothing could read over it at full strength. */
+  value: TreatmentValue
+  /** The text color the section needs instead of its own; null when its own reads. */
+  ink: string | null
+  /** What the section's words sit on. */
+  base: string
+  behind: string[]
+  softened: boolean
+}
+
+/**
+ * Keep a section's words readable over its backdrop, whatever the palette. The guide's own text if that passes AA over
+ * everything the backdrop can put behind it, else its other end of light and dark; a backdrop neither can read over softens
+ * until one does. A single color neither reads on (a mid-tone fill) takes plain black or white.
+ */
+export function readBackdrop(v: TreatmentValue, tokens: TokenSet): BackdropReading {
+  const start = clampParams(backdropParams(v.id as BackdropId), v.params).strength as number | undefined
+  const inks = [tokens['color.text'], tokens['color.bg']]
+  const plain = [...inks, '#ffffff', '#111111']
+  let strength = start ?? 100
+  for (let i = 0; ; i++) {
+    const behind = colorsBehind({ ...v, params: { ...v.params, strength } }, tokens, strength)
+    const own = inks.find((ink) => least(ink, behind) >= AA)
+    const flat = behind.every((c) => c === behind[0])
+    if (own || flat || strength <= 5 || i > 24) {
+      const ink = own ?? plain.reduce((a, b) => (least(b, behind) > least(a, behind) ? b : a))
+      const softened = start !== undefined && strength < start
+      const base = behind.slice(1).reduce((a, c, n) => mixHex(a, c, 1 / (n + 2)), behind[0])
+      return { value: softened ? { ...v, params: { ...v.params, strength } } : v, ink: ink === tokens['color.text'] ? null : ink, base, behind, softened }
+    }
+    strength = Math.max(5, strength - 5)
+  }
 }

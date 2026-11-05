@@ -1,15 +1,16 @@
 {
-  "title": "Accordion in a band",
-  "layoutPattern": "inverse-band-narrow-accordion",
+  "title": "Accordion in a panel",
+  "layoutPattern": "panel-narrow-accordion",
   "rhythm": "band",
-  "style": "bold",
-  "feel": ["bold", "calm"],
   "density": "balanced",
-  "motionNotes": "No entrance motion; opening a question turns its plus into a cross.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

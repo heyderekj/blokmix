@@ -43,6 +43,9 @@ import { suggestClip } from '@/core/suggest'
 import type { FacetFilter } from '@/core/browse'
 import { listOpOnEntries } from './collections'
 import { BASE_TOKENS } from '@/core/tokens'
+import { cleanContract, emptyContract, type Contract } from '@/core/contract'
+import { NO_BACKDROP } from '@/core/sectionDefaults'
+import { applySkin as applySkinTo, dressSavedMix, OWN_LOOK, skinById, skinList, surpriseMe as remix } from '@/core/skins'
 import type { TextStyleDef, TextStyleEdits, TextStyleId } from '@/core/textStyles'
 import { cleanTreatment, shadowToken, type EffectId, type EffectsState, type TreatmentValue } from '@/core/treatments'
 import { buildSeed } from './seed'
@@ -56,7 +59,7 @@ import { DEFAULT_CONTENT } from '@/core/content'
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
 /** The one surface that can be open at a time; each grows out of the control that summons it. */
-export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'looks' | 'menu' | 'more' | 'notes' | 'pages' | 'share'
+export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'looks' | 'menu' | 'more' | 'notes' | 'pages' | 'share' | 'publish'
 export type Tool = 'select' | 'hand' | 'sticky' | 'note'
 
 export interface Camera {
@@ -111,6 +114,8 @@ export interface MixData {
   site: Site
   guide: GuideState
   content: ProjectContent
+  /** What you always want kept and where you'd like to be surprised (core/contract.ts). */
+  contract?: Contract
   versions: Record<string, VersionNode>
   notes: Note[]
   branchFrom: string | null
@@ -169,6 +174,8 @@ export interface State extends MixData {
   chooseWords: (slotId: string, field: string, text: string) => void
   setSectionSpacing: (slotId: string, patch: Partial<SectionSpacing>) => void
   setSurface: (slotId: string, surface: Slot['surface']) => void
+  /** A slider's arrangement; a value of undefined goes back to how the layout comes. */
+  setSlider: (slotId: string, patch: NonNullable<Slot['slider']>) => void
   setSectionWidth: (slotId: string, width: Slot['width'] | 'standard') => void
   /** null = as clipped. */
   setSectionMotion: (slotId: string, motion: SectionMotion | null) => void
@@ -207,6 +214,11 @@ export interface State extends MixData {
   setEffects: (effects: EffectsState, replace?: boolean) => void
   /** What's behind a section (null = as clipped). */
   setBackdrop: (slotId: string, value: TreatmentValue | null) => void
+  /** Put a whole skin on: one undo step, and the contract says what it leaves alone. False when it needs a mix pack. */
+  applySkin: (skinId: string) => boolean
+  /** Remix: the areas the contract opens come from other skins. Says what changed, or null when nothing can. */
+  surpriseMe: (seed?: number) => string | null
+  setContract: (patch: Partial<Contract>) => void
   setField: (type: SectionType, key: string, value: string) => void
   setBrand: (brand: string) => void
 
@@ -403,7 +415,8 @@ export const useStore = create<State>()(
             }
             set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? { ...s, clipId: picks.get(s.id)! } : s)), shuffleSeq: x.shuffleSeq + 1 }))
           },
-          toggleLock: (slotId) => updateSlot(slotId, (s) => ({ ...s, locked: !s.locked })),
+          // Locked means hands off, including the structure: an agent can't treat its layout as a mere reference.
+          toggleLock: (slotId) => updateSlot(slotId, (s) => ({ ...s, locked: !s.locked, keep: s.locked ? s.keep : { ...s.keep, layout: true } })),
           toggleKeep: (slotId, key) => updateSlot(slotId, (s) => ({ ...s, keep: { ...s.keep, [key]: !s.keep[key] } })),
           focusSlot: (slotId) =>
             set((st) => ({
@@ -499,7 +512,15 @@ export const useStore = create<State>()(
           retireWords: (slotId, field, text) => updateSlot(slotId, (s) => retireOption(s, field, text)),
           putBackWords: (slotId, field, text) => updateSlot(slotId, (s) => putBackOption(s, field, text)),
           chooseWords: (slotId, field, text) => updateSlot(slotId, (s) => showWords(s, slotClip(s), get().content, field, text)),
-          setSurface: (slotId, surface) => updateSlot(slotId, (s) => ({ ...s, surface: surface === 'page' ? undefined : surface })),
+          // Page is the same as unset, unless the guide gives this type of section a band: then it's your choice against it.
+          setSurface: (slotId, surface) => updateSlot(slotId, (s) => ({ ...s, surface: surface === 'page' && !get().guide.sections?.[s.type]?.surface ? undefined : surface })),
+          setSlider: (slotId, patch) =>
+            updateSlot(slotId, (s) => {
+              const next = { ...s.slider, ...patch }
+              for (const k of Object.keys(next) as (keyof typeof next)[]) if (next[k] === undefined) delete next[k]
+              const { slider: _old, ...rest } = s
+              return Object.keys(next).length ? { ...rest, slider: next } : rest
+            }),
           setSectionWidth: (slotId, width) => updateSlot(slotId, (s) => ({ ...s, width: width === 'standard' ? undefined : width })),
           setSectionSpacing: (slotId, patch) =>
             updateSlot(slotId, (s) => {
@@ -661,12 +682,12 @@ export const useStore = create<State>()(
             if (fresh.length) set({ clips: [...have, ...fresh] })
           },
           removeMixClip: (id) => set({ clips: (get().clips ?? []).filter((c) => c !== id) }),
-          replaceGuide: (guide) => needsPack('A saved style guide') || set({ guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
+          replaceGuide: (guide) => needsPack('A saved style guide') || set({ guide: { skin: OWN_LOOK, ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
           startFrom: (site, guide) =>
             (allSlots(site).every((s) => layoutOpen(library, s.clipId)) || !needsPack('That starter’s layouts')) &&
             set((st) => ({
               site: structuredClone(site),
-              guide: { ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } },
+              guide: { skin: OWN_LOOK, ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } },
               ui: { ...st.ui, pageId: site.pages[0].id, focusedSlotId: null, selectedBlockId: null, selectedFrameId: 'mix' },
             })),
 
@@ -724,8 +745,24 @@ export const useStore = create<State>()(
             (!!value && needsPack('A section backdrop')) ||
             updateSlot(slotId, (s) => {
               const clean = value && cleanTreatment('backdrop', value)
-              return { ...s, backdrop: clean || undefined }
+              // Taking a backdrop off where the guide gives this type one needs saying, or the guide's comes back.
+              return { ...s, backdrop: clean || (get().guide.sections?.[s.type]?.backdrop ? NO_BACKDROP : undefined) }
             }),
+          applySkin: (skinId) => {
+            const skin = skinById(skinId)
+            if (!skin || (skin.tier !== 'free' && needsPack(`The ${skin.name} skin`))) return false
+            set((st) => ({ guide: applySkinTo(st.guide, skin, st.contract) }))
+            return true
+          },
+          surpriseMe: (seed = Date.now()) => {
+            if (needsPack('Surprise me')) return null
+            const st = get()
+            const out = remix(st.guide, st.contract ?? emptyContract(), seed, skinList())
+            if (!out) return null
+            set({ guide: out.guide })
+            return out.words
+          },
+          setContract: (patch) => set((st) => ({ contract: cleanContract({ ...(st.contract ?? emptyContract()), ...patch }) })),
           chooseTokens: (values) =>
             set((st) => ({ guide: (Object.entries(values) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide) })),
           chooseGroup: (candidateId) => needsPack('Picking a source’s values') || set((st) => ({ guide: chooseGroup(st.guide, candidateId) })),
@@ -751,9 +788,9 @@ export const useStore = create<State>()(
       },
       {
         limit: 100,
-        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head, clips: s.clips }),
+        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, contract: s.contract, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head, clips: s.clips }),
         equality: (a, b) =>
-          a.site === b.site && a.guide === b.guide && a.content === b.content && a.versions === b.versions && a.notes === b.notes && a.clips === b.clips,
+          a.site === b.site && a.guide === b.guide && a.content === b.content && a.contract === b.contract && a.versions === b.versions && a.notes === b.notes && a.clips === b.clips,
         handleSet: (handleSet) => leading(handleSet, 400),
       },
     ),
@@ -766,6 +803,7 @@ export const useStore = create<State>()(
         site: s.site,
         guide: s.guide,
         content: s.content,
+        contract: s.contract,
         versions: s.versions,
         notes: s.notes,
         branchFrom: s.branchFrom,
@@ -778,12 +816,15 @@ export const useStore = create<State>()(
       merge: (persisted, current) => {
         const p = siteState(renamedState(persisted)) as Partial<State>
         const merged = { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } } as State
+        merged.contract = cleanContract(p.contract)
         // Tokens added since the mix was saved (e.g. line weight) start at their defaults.
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
         // Drop anything that points at clips that no longer exist in the sample library.
         merged.site = mapSlots(merged.site, (s) => (library.clips[s.clipId] ? s : null))
         // A mix saved before mixes had their own clips starts with the clips it uses (never another mix's set).
         merged.clips = (Array.isArray(p.clips) ? p.clips : mixClipIds({ ...merged, clips: [] })).filter((id) => library.clips[id]?.origin === 'clip')
+        // Mixes saved before skins: their layouts went bare, so they take the closest skin's looks, keeping their own values.
+        if (merged.guide && merged.site) Object.assign(merged, dressSavedMix(merged, library, skinList()))
         // Copy fields added since the mix was saved (a nav banner's messages) start from the defaults.
         if (merged.content?.fields) {
           const fields = { ...merged.content.fields }

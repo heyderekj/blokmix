@@ -5,7 +5,6 @@ import { blockEditNeedsPack, fillNeedsPack } from '@/core/plan'
 import { KINDS, SECTION_TYPES } from '@/core/types'
 import { startCandidates } from '@/core/start'
 import { allSlots } from '@/core/site'
-import { VIBES } from '@/core/vibes'
 import { currentSlots, useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
 import { useBuySheet } from '@/state/plan'
@@ -38,9 +37,9 @@ describe('Free’s layouts', () => {
   it('starts Free mixes only from open layouts, with starters to spare', () => {
     free()
     for (const kind of KINDS)
-      for (const vibe of VIBES.slice(0, 2)) {
-        const starts = startCandidates({ kind, name: 'Fern & Co', vibe: vibe.id }, library)
-        expect(starts.length, `${kind} ${vibe.id}`).toBeGreaterThan(0)
+      for (const seed of [0, 1]) {
+        const starts = startCandidates({ kind, name: 'Fern & Co', seed }, library)
+        expect(starts.length, `${kind} ${seed}`).toBeGreaterThan(0)
         for (const s of starts) for (const slot of allSlots(s.site)) expect(layoutOpen(library, slot.clipId), `${kind}: ${slot.clipId}`).toBe(true)
       }
     expect(library.starters.filter((s) => starterOpen(library, s)).length).toBeGreaterThanOrEqual(3)

@@ -1,11 +1,9 @@
 {
   "title": "Bento mosaic",
-  "layoutPattern": "head-then-tall-left-plus-2x2-mosaic-hover-captions",
+  "layoutPattern": "head-then-tall-left-plus-2x2-mosaic-captions-below",
   "rhythm": "grid",
-  "style": "playful",
-  "feel": ["friendly"],
   "density": "dense",
-  "motionNotes": "The head rises and the tiles pop in one after another; with a mouse, captions slide up on hover or focus and the picture eases in a touch. Reduced motion keeps only the fades.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",

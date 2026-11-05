@@ -4,10 +4,10 @@
   padding: var(--mx-space-section) var(--mx-space-8);
 
   & .container { max-width: var(--mx-width-content); margin-inline: auto; }
-  & .head { display: grid; gap: var(--mx-space-4); max-width: 720px; justify-items: start; }
+  & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .head + * { margin-top: var(--mx-space-9); }
-  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-accent); }
+  & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
@@ -32,14 +32,14 @@
   }
   & .btn:active { scale: 0.97; }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-accent); outline-offset: 3px; }
+  & a:focus-visible, & summary:focus-visible, & label:has(:is([type="radio"], [type="checkbox"]):focus-visible) { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
   & .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--mx-space-7) var(--mx-space-6); }
   & .col-6 { grid-column-end: span 6; }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
   /* Two columns of question cards; each opens where it is. */
   & .grid.questions { gap: var(--mx-space-4); align-items: start; }
-  & .qa { padding-inline: var(--mx-space-6); background: var(--mx-color-surface); border-radius: var(--mx-radius-lg); }
+  & .qa { padding-inline: var(--mx-space-6); border: var(--mx-stroke) solid var(--mx-color-border); border-radius: var(--mx-radius-lg); }
 
   & .question {
     display: flex;
@@ -54,19 +54,19 @@
   }
   & .question::-webkit-details-marker { display: none; }
   & .question::marker { content: ""; }
-  & .icon { display: grid; place-items: center; flex: none; transition: transform var(--mx-motion-duration) var(--mx-motion-ease); }
+  & .icon { display: grid; place-items: center; flex: none; transition: scale var(--mx-motion-duration) var(--mx-motion-ease); }
   & .answer { max-width: 62ch; color: var(--mx-color-muted); line-height: 1.6; }
 
   & .question { padding-block: var(--mx-space-5); font-size: var(--mx-text-lg); }
-  & .icon { width: 32px; height: 32px; border-radius: 50%; background: var(--mx-color-bg); }
-  & .qa[open] .icon { transform: rotate(180deg); }
+  & .icon { width: 32px; height: 32px; border-radius: 50%; box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  & .qa[open] .icon { scale: 1 -1; }
   & .answer { padding-bottom: var(--mx-space-6); }
   & .actions.contact { justify-content: center; gap: var(--mx-space-4); margin-top: var(--mx-space-8); }
   & .contact .meta { font-size: var(--mx-text-base); }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.secondary:hover { background: var(--mx-color-surface); }
-    & .question:hover .icon { background: color-mix(in oklab, var(--mx-color-text) 8%, var(--mx-color-bg)); }
+    & .question:hover .icon { background: var(--mx-color-surface); }
   }
 
   @container (max-width: 952px) {

@@ -1,15 +1,16 @@
 {
   "title": "Plans with a billing switch",
-  "layoutPattern": "centered-head-switch-three-tiers-inverse-center",
+  "layoutPattern": "centered-head-switch-three-tiers-featured-center",
   "rhythm": "grid",
-  "style": "bold",
-  "feel": ["bold"],
   "density": "balanced",
-  "motionNotes": "Plans rise in a 60ms stagger. The switch knob slides and the track fills with the primary colour for yearly; prices lift in as they change. Reduced motion keeps fades only.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-30T00:00:00Z"
   }
 }

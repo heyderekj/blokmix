@@ -2,14 +2,15 @@
   "title": "Photo backdrop header",
   "layoutPattern": "centered-head-over-full-bleed-image",
   "rhythm": "band",
-  "style": "bold",
   "density": "airy",
-  "feel": ["bold"],
-  "motionNotes": "No entrance motion: the backdrop does the work. The button presses in on tap.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
-    "viewport": { "width": 1440, "height": 900 },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
     "capturedAt": "2026-10-24T00:00:00Z"
   }
 }

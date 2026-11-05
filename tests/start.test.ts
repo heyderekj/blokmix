@@ -5,18 +5,17 @@ import { suggestTypes } from '@/core/suggest'
 import { allSlots } from '@/core/site'
 import { resolveGuide } from '@/core/guide'
 import { expandTokens } from '@/core/tokens'
-import { VIBES } from '@/core/vibes'
+import { skinList } from '@/core/skins'
 import { filterClips, shelfOf, toneOf } from '@/core/library'
-import { DENSITIES, FEELS, KINDS, type SectionType } from '@/core/types'
+import { DENSITIES, KINDS, type SectionType } from '@/core/types'
 import { FIELD_SCHEMA } from '@/core/content'
 import { KIND_WORDS, SHARED_WORDS } from '@/core/startWords'
 
 describe('library tags', () => {
-  it('tags every built-in clip with a feel and a density', () => {
+  it('tags every built-in clip with a density, and no feel: that’s the skin’s', () => {
     for (const c of Object.values(library.clips)) {
-      expect(c.feel?.length, c.id).toBeGreaterThan(0)
-      for (const f of c.feel!) expect(FEELS, c.id).toContain(f)
       expect(DENSITIES, c.id).toContain(c.density)
+      expect(c.feel, c.id).toBeUndefined()
     }
   })
 
@@ -25,9 +24,10 @@ describe('library tags', () => {
     // Drafted layouts wait for review before anyone can pick them.
     expect(plain.length).toBe(Object.values(library.clips).filter((c) => c.origin === 'layout' && !c.status).length)
     expect(plain.every((id) => shelfOf(library.clips[id]) === 'plain')).toBe(true)
-    const editorialHeroes = filterClips(library, { type: 'hero', feel: 'editorial' })
-    expect(editorialHeroes).toContain('hero.layout-editorial')
-    expect(editorialHeroes.every((id) => library.clips[id].type === 'hero')).toBe(true)
+    const heroes = filterClips(library, { type: 'hero' })
+    expect(heroes.length).toBeGreaterThan(0)
+    expect(heroes.every((id) => library.clips[id].type === 'hero')).toBe(true)
+    expect(filterClips(library, { type: 'hero', feel: 'editorial' })).toEqual([])
     expect(filterClips(library, { density: 'dense', rhythm: 'grid' }).every((id) => library.clips[id].density === 'dense' && library.clips[id].rhythm === 'grid')).toBe(true)
   })
 
@@ -46,7 +46,7 @@ describe('starter mixes', () => {
   })
 
   it('cover every kind of site', () => {
-    for (const k of KINDS) expect(startersFor(library, k, 'calm').length, k).toBeGreaterThan(0)
+    for (const k of KINDS) expect(startersFor(library, k).length, k).toBeGreaterThan(0)
   })
 })
 
@@ -64,13 +64,13 @@ describe('guided start', () => {
     }
   })
 
-  it('makes three different starts for every kind and feel, from clips that exist', () => {
+  it('makes three different starts for every kind and seed, from clips that exist', () => {
     for (const kind of KINDS)
-      for (const vibe of VIBES) {
-        const starts = startCandidates({ kind, name: 'Fern & Co', vibe: vibe.id }, library)
-        expect(starts.length, `${kind}/${vibe.id}`).toBe(3)
+      for (const seed of [0, 1, 2]) {
+        const starts = startCandidates({ kind, name: 'Fern & Co', seed }, library)
+        expect(starts.length, `${kind}/${seed}`).toBe(3)
         const sigs = new Set(starts.map((s) => allSlots(s.site).map((x) => x.clipId).join(',')))
-        expect(sigs.size, `${kind}/${vibe.id}`).toBe(3)
+        expect(sigs.size, `${kind}/${seed}`).toBe(3)
         for (const s of starts) {
           for (const slot of allSlots(s.site)) expect(library.clips[slot.clipId], slot.clipId).toBeTruthy()
           expect(s.site.shared.nav).toBeTruthy()
@@ -80,24 +80,25 @@ describe('guided start', () => {
       }
   })
 
-  it('puts matching starter mixes first, the chosen feel’s ahead', () => {
-    const starts = startCandidates({ kind: 'studio', name: 'Fern', vibe: 'editorial' }, library)
-    expect(starts[0].starterId).toBe('studio-portfolio')
+  it('puts matching starter mixes first, raw in Wireframe', () => {
+    const starts = startCandidates({ kind: 'studio', name: 'Fern' }, library)
+    expect(starts[0].from).toBe('starter')
+    expect(starts[0].guide.skin?.id).toBe('wireframe')
     expect(starts.some((s) => s.from === 'library')).toBe(true)
   })
 
   it('is the same for the same answers, and different for another seed', () => {
-    const input = { kind: 'product' as const, name: 'Tally', vibe: 'calm' }
+    const input = { kind: 'product' as const, name: 'Tally' }
     const sig = (seed?: number) => startCandidates({ ...input, seed }, library).map((s) => allSlots(s.site).map((x) => x.clipId).join(',')).join('|')
     expect(sig()).toBe(sig())
     expect(sig(1)).not.toBe(sig())
   })
 
-  it('makes a style guide every vibe can resolve, in light and dark, with or without a brand color', () => {
-    for (const vibe of VIBES)
+  it('makes a style guide every skin can resolve, in light and dark, with or without a brand color', () => {
+    for (const skin of skinList())
       for (const mode of ['light', 'dark'] as const)
         for (const brand of [undefined, '#e2508d']) {
-          const g = resolveGuide(guideFor({ vibe: vibe.id, brand, mode }))
+          const g = resolveGuide(guideFor({ skin: skin.id, brand, mode }))
           expect(g.conflicts).toEqual([])
           expect(expandTokens(g.tokens)['--mx-color-bg']).toMatch(/^#/)
         }

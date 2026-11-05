@@ -2,10 +2,8 @@
   "title": "Form with detail cards",
   "layoutPattern": "form-beside-stacked-detail-cards",
   "rhythm": "split",
-  "style": "technical",
   "density": "dense",
-  "feel": ["friendly"],
-  "motionNotes": "No entrance motion; inputs ring on focus and the button presses in.",
+  "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",
     "selector": "layout",
