@@ -22,7 +22,7 @@ class PublishedController extends Controller
 
     public function home(): Response
     {
-        return $this->plain(redirect()->away(config('app.url')));
+        return $this->plain(redirect()->away(config('blokmix.home_url')));
     }
 
     public function show(Request $request, string $code, string $rest = ''): Response
@@ -84,7 +84,7 @@ class PublishedController extends Controller
         $html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
             .'<meta name="robots" content="noindex, nofollow"><title>blok.page</title></head>'
             .'<body style="font:16px/1.5 system-ui,sans-serif;display:grid;place-items:center;min-height:90vh;margin:0;color:#222">'
-            .'<p>'.e($message).' <a href="'.e(config('app.url')).'" style="color:inherit">Blokmix</a></p></body></html>';
+            .'<p>'.e($message).' <a href="'.e(config('blokmix.home_url')).'" style="color:inherit">Blokmix</a></p></body></html>';
 
         return $this->plain(response($html, $status, ['Content-Type' => 'text/html; charset=utf-8']), 'html');
     }
@@ -96,7 +96,7 @@ class PublishedController extends Controller
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         if ($ext === 'html' || $ext === 'svg') {
-            $app = rtrim((string) config('app.url'), '/');
+            $app = rtrim((string) config('blokmix.home_url'), '/');
             $response->headers->set('Content-Security-Policy', implode('; ', [
                 "default-src 'self'",
                 "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
