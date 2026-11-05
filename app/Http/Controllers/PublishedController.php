@@ -20,6 +20,12 @@ class PublishedController extends Controller
         'webm' => 'video/webm', 'mov' => 'video/quicktime', 'json' => 'application/json', 'lottie' => 'application/zip',
     ];
 
+    /** The Content-Type a published file is served (and stored) with. */
+    public static function typeOf(string $path): string
+    {
+        return self::TYPES[strtolower(pathinfo($path, PATHINFO_EXTENSION))] ?? 'application/octet-stream';
+    }
+
     public function home(): Response
     {
         return $this->plain(redirect()->away(config('blokmix.home_url')));

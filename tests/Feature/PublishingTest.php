@@ -138,4 +138,41 @@ class PublishingTest extends TestCase
         config(['app.url' => $this->host, 'blokmix.home_url' => 'https://blokmix.com']);
         $this->get("{$this->host}/")->assertRedirect('https://blokmix.com');
     }
+
+    public function test_files_go_up_to_a_bucket_together(): void
+    {
+        $mock = new \Aws\MockHandler;
+        $files = [];
+        for ($i = 1; $i <= 40; $i++) {
+            $files["media/p{$i}.svg"] = '<svg/>';
+            $mock->append(new \Aws\Result([]));
+        }
+        $files['index.html'] = '<html></html>';
+        $mock->append(new \Aws\Result([]));
+        $disk = Storage::build([
+            'driver' => 's3', 'key' => 'k', 'secret' => 's', 'region' => 'auto', 'bucket' => 'blokmix-test',
+            'endpoint' => 'https://r2.example.test', 'root' => 'app', 'handler' => $mock,
+        ]);
+
+        \App\Http\Controllers\Api\PublicationController::putAll($disk, 'published/k3x9', $files);
+
+        $this->assertSame(0, $mock->count(), 'every file was put');
+        $last = $mock->getLastCommand();
+        $this->assertSame('PutObject', $last->getName());
+        $this->assertSame('blokmix-test', $last['Bucket']);
+        $this->assertMatchesRegularExpression('#^app/published/k3x9/(index\.html|media/p\d+\.svg)$#', $last['Key']);
+        $this->assertContains($last['ContentType'], ['text/html; charset=utf-8', 'image/svg+xml']);
+    }
+
+    public function test_a_failed_put_fails_the_publish(): void
+    {
+        $mock = new \Aws\MockHandler([
+            new \Aws\Result([]),
+            fn ($cmd) => new \Aws\S3\Exception\S3Exception('Nope', $cmd),
+        ]);
+        $disk = Storage::build(['driver' => 's3', 'key' => 'k', 'secret' => 's', 'region' => 'auto', 'bucket' => 'b', 'handler' => $mock]);
+
+        $this->expectException(\Aws\S3\Exception\S3Exception::class);
+        \App\Http\Controllers\Api\PublicationController::putAll($disk, 'published/k3x9', ['index.html' => 'x', 'about.html' => 'y']);
+    }
 }
