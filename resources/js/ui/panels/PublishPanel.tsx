@@ -4,7 +4,7 @@ import { useStore } from '@/state/store'
 import { useSave } from '@/lib/mixSync'
 import { canEdit, useAccount } from '@/lib/account'
 import { useBuySheet } from '@/state/plan'
-import { loadPublication, publishMix, unpublishMix, usePublication } from '@/lib/publish'
+import { loadPublication, publishMix, unpublishMix, usePublication, type PublishStep } from '@/lib/publish'
 
 /**
  * The mix on blok.page: an unlisted snapshot anyone with the link can open, at blok.page/<code>/<name>. Publishing again
@@ -22,6 +22,7 @@ export function PublishPanel() {
   const [busy, setBusy] = useState<'publish' | 'unpublish' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [step, setStep] = useState<PublishStep | null>(null)
   const editable = canEdit(role)
 
   const snapshots = useMemo(() => Object.values(versions).filter((v) => v.kind === 'snapshot').sort((a, b) => a.createdAt - b.createdAt), [versions])
@@ -48,7 +49,7 @@ export function PublishPanel() {
     setError(null)
     try {
       if (what === 'publish') {
-        await publishMix({ version: source === 'working' ? null : (versions[source] ?? null), name })
+        await publishMix({ version: source === 'working' ? null : (versions[source] ?? null), name, onStep: setStep })
         useStore.getState().showFlash(live ? 'Updated on blok.page' : 'Published to blok.page')
       } else {
         await unpublishMix()
@@ -60,6 +61,7 @@ export function PublishPanel() {
       if (/mix pack/i.test(message) && !paidPlan) useBuySheet.setState({ open: true, what: 'Publishing more than one mix' })
     } finally {
       setBusy(null)
+      setStep(null)
     }
   }
   const copy = async () => {
@@ -127,7 +129,8 @@ export function PublishPanel() {
           )}
         </div>
 
-        {editable && snapshots.length > 0 && (
+        {busy === 'publish' && step && <PublishProgress step={step} />}
+        {editable && snapshots.length > 0 && busy !== 'publish' && (
           <label className="flex items-center gap-2 px-0.5 text-[12.5px] text-zinc-500">
             From
             <select
@@ -180,6 +183,64 @@ export function PublishPanel() {
       </ul>
     </div>
   )
+}
+
+/** While the server saves (the long part), say what it's doing in turn, then wait on the last line. */
+const SAVING = ['Putting each page in place', 'Hanging the pictures', 'Linking the pages together', 'Almost there']
+
+/** What publishing is doing right now, with a bar that moves the whole way through. */
+function PublishProgress({ step }: { step: PublishStep }) {
+  const [since, setSince] = useState(() => Date.now())
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    setSince(Date.now())
+  }, [step.stage])
+  useEffect(() => {
+    if (step.stage !== 'save') return
+    const t = setInterval(() => setTick((n) => n + 1), 500)
+    return () => clearInterval(t)
+  }, [step.stage])
+  const saving = (Date.now() - since) / 1000
+  let label: string
+  let done: number
+  switch (step.stage) {
+    case 'compose':
+      label = 'Laying out your pages'
+      done = 0.06
+      break
+    case 'posters':
+      label = step.count === 1 ? 'Painting a still of the moving background' : `Painting stills of ${step.count} moving backgrounds`
+      done = 0.14
+      break
+    case 'pack':
+      label = `Packing ${step.pages === 1 ? 'one page' : `${step.pages} pages`}${step.files ? ` and ${step.files} ${step.files === 1 ? 'picture' : 'pictures'}` : ''}`
+      done = 0.22
+      break
+    case 'upload':
+      label = `Sending it to blok.page · ${Math.round(step.progress * 100)}% of ${megabytes(step.bytes)}`
+      done = 0.25 + step.progress * 0.4
+      break
+    case 'save':
+      label = SAVING[Math.min(SAVING.length - 1, Math.floor(saving / 4))]
+      // Eases toward the end without claiming to get there: the server says when it has.
+      done = 0.65 + 0.32 * (1 - Math.exp(-saving / 12))
+      break
+  }
+  return (
+    <div className="flex flex-col gap-1.5 px-0.5" role="status" aria-live="polite">
+      <span key={label} className="flex items-center gap-2 text-[12.5px] text-zinc-600 motion-safe:animate-[sw-fade_200ms_cubic-bezier(0.23,1,0.32,1)]">
+        <Loader2 size={13} className="shrink-0 animate-spin text-zinc-400" />
+        {label}…
+      </span>
+      <div className="h-1 overflow-hidden rounded-full bg-zinc-950/6">
+        <div className="h-full rounded-full bg-zinc-900 transition-[width] duration-500 ease-out" style={{ width: `${Math.round(done * 100)}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function megabytes(bytes: number): string {
+  return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
 function Fact({ icon: Icon, children }: { icon: typeof Globe; children: React.ReactNode }) {
