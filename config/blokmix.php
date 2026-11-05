@@ -37,6 +37,12 @@ return [
     'publish_url' => $publishUrl = rtrim((string) env('BLOKMIX_PUBLISH_URL', env('APP_ENV') === 'local' ? 'http://blok.localhost:8000' : 'https://blok.page'), '/'),
     'publish_host' => parse_url($publishUrl, PHP_URL_HOST),
 
+    /**
+     * Where Blokmix itself lives, for blok.page's links back (its home and its notices) and the frames allowed to show
+     * a published page. Not APP_URL: Laravel Cloud may set that to whichever custom domain it takes as primary.
+     */
+    'home_url' => rtrim((string) env('BLOKMIX_HOME_URL', env('APP_ENV') === 'local' ? env('APP_URL', 'http://localhost:8000') : 'https://blokmix.com'), '/'),
+
     /** Unsplash's access key, kept on the server: the board searches through /api/unsplash. */
     'unsplash_key' => env('UNSPLASH_ACCESS_KEY'),
 

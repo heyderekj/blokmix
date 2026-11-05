@@ -133,6 +133,9 @@ class PublishingTest extends TestCase
         $this->get(config('app.url')."/{$code}/fern-co/")->assertNotFound();
         // The app's own pages don't answer on blok.page.
         $this->get("{$this->host}/login")->assertNotFound();
-        $this->get("{$this->host}/")->assertRedirect();
+        $this->get("{$this->host}/")->assertRedirect(config('blokmix.home_url'));
+        // Even when APP_URL is the publish host (Laravel Cloud can make a custom domain primary), home leads to Blokmix.
+        config(['app.url' => $this->host, 'blokmix.home_url' => 'https://blokmix.com']);
+        $this->get("{$this->host}/")->assertRedirect('https://blokmix.com');
     }
 }
