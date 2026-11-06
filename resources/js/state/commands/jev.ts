@@ -8,9 +8,11 @@ import type { LinkGuess } from '@/core/jev/links'
 import { firstScreenWords, fiveSecondRequest, readFiveSecond, type FiveSecondRead, type FirstScreen } from '@/core/jev/fiveSecond'
 import { linkWords } from '@/core/links'
 import { scorePage, SCREENS, type PageMeasure, type PageScore } from '@/core/score'
-import { slotClip } from '@/data/library'
+import { library, slotClip } from '@/data/library'
+import { fitsFor, layoutTitle, readsAs } from '../wordsFit'
+import { retypeSection } from '../retype'
 import { measureFirstScreen } from '@/lib/measure'
-import { askJev, JEV_OFF, jevOn, setJevAllowed } from '@/lib/jev'
+import { askJev, jevOffMessage, jevOn, setJevAllowed } from '@/lib/jev'
 import { useStore } from '../store'
 import { deadLinks, guessLinks } from '../jevLinks'
 import { findFocus } from '../jevPhotos'
@@ -31,7 +33,7 @@ import type { AsyncCommand } from './index'
 setJevAllowed(() => useStore.getState().ui.jev !== false)
 
 async function needJev() {
-  if (!(await jevOn())) throw new CommandError(JEV_OFF)
+  if (!(await jevOn())) throw new CommandError(await jevOffMessage())
 }
 
 /** The open page's sections (or another page's), the shared nav and footer included. */
@@ -83,9 +85,36 @@ export const write = {
     useStore.getState().chooseTokens(i.colors as Partial<Record<TokenKey, string>>)
     return { colors: i.colors }
   },
+  retype_section: (i: CommandInput<'retype_section'>) => {
+    const slot = findSection(i.section)
+    if (slot.locked) throw new CommandError(`${TYPE_LABEL[slot.type]} is locked`)
+    if (i.layout && library.clips[i.layout]?.type !== i.type) throw new CommandError(`"${i.layout}" isn’t a ${TYPE_LABEL[i.type]} layout`)
+    const out = retypeSection(slot.id, i.type, i.layout)
+    if (!out) throw new CommandError(`Couldn’t turn ${TYPE_LABEL[slot.type]} into ${TYPE_LABEL[i.type]}`)
+    return { section: slot.id, type: i.type, ...out, message: `${TYPE_LABEL[slot.type]} is now ${TYPE_LABEL[i.type]}: ${out.placed} lines placed${out.waiting ? `, ${out.waiting} waiting to be placed` : ''}.` }
+  },
 }
 
+type LayoutsRead = { view: ReturnType<typeof pageSlots>; reads: Awaited<ReturnType<typeof readsAs>> }
+
 export const later = {
+  suggest_layouts_for_words: {
+    prepare: async (i: CommandInput<'suggest_layouts_for_words'>): Promise<LayoutsRead> => {
+      const view = pageSlots(i.page)
+      return { view, reads: i.read && (await jevOn()) ? await readsAs(view) : null }
+    },
+    apply: (i: CommandInput<'suggest_layouts_for_words'>, { view, reads }: LayoutsRead) => {
+      const only = i.section !== undefined ? findSection(i.section, i.page).id : undefined
+      return fitsFor(view, only).map(({ slot, items, fits }) => ({
+        section: slot.id,
+        type: slot.type,
+        layout: slot.clipId,
+        items,
+        fits: fits.map((f) => ({ layout: f.clipId, title: layoutTitle(f.clipId), holds: Number.isFinite(f.holds) ? f.holds : null, current: f.current, built_in: f.builtIn })),
+        ...(reads?.[slot.id] ? { reads_as: { type: reads[slot.id].type, sure: Math.round(reads[slot.id].p * 100) / 100, layout: reads[slot.id].clipId } } : {}),
+      }))
+    },
+  } satisfies AsyncCommand<LayoutsRead>,
   place_links: {
     prepare: async (i: CommandInput<'place_links'>) => {
       await needJev()

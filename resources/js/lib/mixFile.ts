@@ -1,4 +1,5 @@
 import type { VersionNode } from '@/core/types'
+import { draftSites, type Draft } from '@/core/drafts'
 import { useStore, type MixData } from '@/state/store'
 import { assetIdsIn, putAssets, useAssets, type Asset } from './assets'
 import { allSlots } from '@/core/site'
@@ -12,7 +13,7 @@ import { clipFiles } from './userClips'
  */
 export const MIX_FILE_FORMAT = 'blokmix.mix/v1'
 
-type Fields = Omit<MixData, 'mixName' | 'versions'>
+type Fields = Omit<MixData, 'mixName' | 'versions' | 'drafts'>
 type FileAsset = Omit<Asset, 'bytes'> & { bytes?: string }
 export interface MixFile {
   format: typeof MIX_FILE_FORMAT
@@ -20,12 +21,14 @@ export interface MixFile {
   exportedAt: string
   data: Fields
   versions: Record<string, VersionNode>
+  /** The mix's drafts (core/drafts.ts); a file from before drafts has none, and opens as one. */
+  drafts?: Record<string, Draft>
   assets: FileAsset[]
   /** Captured clips the mix uses that aren't built in: they travel with it into another account. */
   clips?: { id: string; files: Record<string, string> }[]
 }
 
-const FIELDS = ['site', 'guide', 'content', 'contract', 'notes', 'branchFrom', 'head', 'framePos', 'clips'] as const
+const FIELDS = ['site', 'guide', 'content', 'contract', 'notes', 'branchFrom', 'head', 'draftId', 'framePos', 'clips'] as const
 
 const toBase64 = (buf: ArrayBuffer) => {
   const bytes = new Uint8Array(buf)
@@ -40,17 +43,17 @@ export function mixFile(): MixFile {
   const st = useStore.getState()
   const data = Object.fromEntries(FIELDS.map((k) => [k, st[k]])) as Fields
   const all = useAssets.getState().assets
-  const assets = assetIdsIn([data, st.versions])
+  const assets = assetIdsIn([data, st.versions, st.drafts])
     .map((id) => all[id])
     .filter((a): a is Asset => !!a)
     .map((a) => ({ ...a, bytes: a.bytes ? toBase64(a.bytes) : undefined }))
   // The clips it uses, and the rest of its own set, travel with it.
-  const used = new Set([...[...allSlots(st.site), ...Object.values(st.versions).flatMap((v) => allSlots(v.snapshot.site))].map((s) => s.clipId), ...(st.clips ?? [])])
+  const used = new Set([...[...draftSites(st).flatMap((site) => allSlots(site)), ...Object.values(st.versions).flatMap((v) => allSlots(v.snapshot.site))].map((s) => s.clipId), ...(st.clips ?? [])])
   const clips = [...used].flatMap((id) => {
     const files = clipFiles(id)
     return files ? [{ id, files }] : []
   })
-  return { format: MIX_FILE_FORMAT, name: st.mixName, exportedAt: new Date().toISOString(), data, versions: st.versions, assets, clips }
+  return { format: MIX_FILE_FORMAT, name: st.mixName, exportedAt: new Date().toISOString(), data, versions: st.versions, drafts: st.drafts, assets, clips }
 }
 
 /** Download the open mix as `<name>.blokmix.json`. */
@@ -80,6 +83,6 @@ export async function readMixFile(file: Blob): Promise<MixFile> {
 
 /** Without Laravel: make a mix file the mix in this browser (the page reloads to open it). */
 export function replaceLocalMix(file: MixFile, storageKey: string) {
-  localStorage.setItem(storageKey, JSON.stringify({ state: { ...file.data, mixName: file.name, versions: file.versions }, version: 1 }))
+  localStorage.setItem(storageKey, JSON.stringify({ state: { ...file.data, mixName: file.name, versions: file.versions, ...(file.drafts ? { drafts: file.drafts } : {}) }, version: 1 }))
   location.reload()
 }

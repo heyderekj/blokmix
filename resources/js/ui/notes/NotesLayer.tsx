@@ -89,7 +89,7 @@ const StickyNote = memo(function StickyNote({ note, x, y, placements }: { note: 
 
   return (
     <div className="absolute left-0 top-0 z-30" style={{ transform: `translate(${x}px, ${y}px)` }} data-note data-chrome>
-      <div className="origin-top-left" style={{ transform: 'scale(calc(1 / var(--z)))' }} onPointerDown={(e) => e.stopPropagation()}>
+      <div className="origin-top-left" style={{ transform: 'scale(calc(1 / var(--zl)))' }} onPointerDown={(e) => e.stopPropagation()}>
         <div
           className="group w-56 animate-pop rounded-md rounded-tl-none border shadow-[0_8px_20px_-6px_rgb(0_0_0/0.25)]"
           style={{ background: c.bg, borderColor: c.border, rotate: '-1deg' }}

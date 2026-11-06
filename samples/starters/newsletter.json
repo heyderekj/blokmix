@@ -40,5 +40,11 @@
         "footer.layout-newsletter"
       ]
     }
+  ],
+  "industries": [
+    "media"
+  ],
+  "formats": [
+    "blog"
   ]
 }

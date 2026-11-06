@@ -1,5 +1,6 @@
+import { briefOf, kindOf, patchBrief, type Brief } from '@/core/brief'
 import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import { createJSONStorage, persist, type PersistStorage, type StorageValue } from 'zustand/middleware'
 import { temporal } from 'zundo'
 import type {
   BlockEdit,
@@ -58,6 +59,8 @@ import { allSlots, freePath, mapSlots, pageOf, pageOfSlot, pageView, setPageSlot
 import { onSection } from '@/core/notes'
 import { uid } from './uid'
 import { versionActions } from './slices/versions'
+import { draftActions } from './slices/drafts'
+import { draftsFromLegacy, draftSites, type Draft } from '@/core/drafts'
 import { noteActions } from './slices/notes'
 import { contentFor } from '@/core/start'
 import type { FeelWord } from '@/core/feel'
@@ -65,7 +68,7 @@ import type { FeelWord } from '@/core/feel'
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
 /** The one surface that can be open at a time; each grows out of the control that summons it. */
-export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'looks' | 'menu' | 'more' | 'notes' | 'pages' | 'share' | 'publish'
+export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'looks' | 'menu' | 'more' | 'notes' | 'pages' | 'drafts' | 'share' | 'publish'
 export type Tool = 'select' | 'hand' | 'sticky' | 'note'
 
 export interface Camera {
@@ -103,6 +106,8 @@ export interface UiState {
   focusedSlotId: string | null
   selectedFrameId: string | null
   previewFrameId: string | null
+  /** Saved versions shown on the canvas as frames (this device); otherwise they live in their draft's history. */
+  pinnedVersions: string[]
   packetSource: string // 'mix' or a version id
   packetTargets: BuildTarget[]
   hintDismissed: boolean
@@ -118,6 +123,12 @@ export interface UiState {
   openNoteId: string | null
   /** The page open on the canvas (null: the first). */
   pageId: string | null
+  /** The page scrolls like a website ('page'), or the whole free canvas with every version ('canvas'). */
+  canvasMode: 'page' | 'canvas'
+  /** The panel docked at the window's left: your words, the look, or notes (`ui/shell/LeftPanel.tsx`). */
+  leftPanel: 'none' | 'words' | 'look' | 'notes'
+  /** Where each page was scrolled to on this device: the page y at the top of the screen. */
+  pageScroll: Record<string, number>
 }
 
 export interface MixData {
@@ -130,8 +141,13 @@ export interface MixData {
   contract?: Contract
   versions: Record<string, VersionNode>
   notes: Note[]
+  /** Retired by drafts: where the mix was branched from (kept so older saves read). New code leaves it null. */
   branchFrom: string | null
+  /** The open draft's head: the version last saved or restored in it. */
   head: string | null
+  /** The mix's drafts (core/drafts.ts): the open one's body is this mix's site, guide, content and contract. */
+  drafts: Record<string, Draft>
+  draftId: string
   framePos: Record<string, { x: number; y: number }>
   /**
    * This mix's own clips (ids): its shelf and Crate show them first, and clips added while it's open join it. The
@@ -238,6 +254,8 @@ export interface State extends MixData {
   setBrand: (brand: string) => number
   /** Your logo once, for the nav's and footer's logo (null takes it away). */
   setLogo: (logo: MediaFill | null) => void
+  /** What the site is for (core/brief.ts), patched in one undo step; the kind follows it. */
+  setBrief: (patch: Partial<Brief>) => void
   /** One brand color: a whole palette made from it, kept when you try other themes (null forgets it). */
   setBrandColor: (color: string | null) => void
 
@@ -252,6 +270,17 @@ export interface State extends MixData {
   updateBuild: (buildId: string, patch: Partial<NonNullable<VersionNode['build']>>, status?: Status) => void
   setAgent: (agent: Partial<AgentState>) => void
   moveFrame: (frameId: string, x: number, y: number) => void
+
+  // drafts
+  /** Open another draft (one undo step): the open one keeps its own copy. */
+  switchDraft: (id: string) => boolean
+  /** A new draft from a draft (the open one by default) or a saved version; null at the limit. Opens it unless told not to. */
+  addDraft: (from?: { draft?: string; version?: string }, opts?: { name?: string; open?: boolean }) => string | null
+  updateDraft: (id: string, patch: { name?: string; status?: Status }) => void
+  /** Delete a draft and its history (not the last one); deleting the open one opens its neighbour. */
+  deleteDraft: (id: string) => boolean
+  /** The open draft takes on a saved version (in that version's draft); unsaved edits are saved first. */
+  restoreVersion: (versionId: string) => string | null
 
   // notes
   addNote: (anchor: NoteAnchor, color?: NoteColor) => string
@@ -293,6 +322,7 @@ const DEFAULT_UI: UiState = {
   focusedSlotId: null,
   selectedFrameId: null,
   previewFrameId: null,
+  pinnedVersions: [],
   packetSource: 'mix',
   packetTargets: ['astro'],
   hintDismissed: false,
@@ -303,6 +333,9 @@ const DEFAULT_UI: UiState = {
   jev: true,
   openNoteId: null,
   pageId: null,
+  canvasMode: 'page',
+  leftPanel: 'none',
+  pageScroll: {},
 }
 
 function pickDifferent(options: string[], current: string): string {
@@ -348,8 +381,48 @@ export function carryOver(ls: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'
   }
 }
 
+/** The parts of what's saved that are the mix's work, not this device's view of it (ui, camera). */
+const MIX_KEYS = ['mixName', 'site', 'guide', 'content', 'contract', 'versions', 'notes', 'branchFrom', 'head', 'framePos', 'clips', 'drafts', 'draftId'] as const
+/** The same work as last time, by reference: only the view changed (the camera came to rest, a panel opened). */
+export const sameMix = (a: Partial<MixData> | null | undefined, b: Partial<MixData>) => !!a && MIX_KEYS.every((k) => a[k] === b[k])
+
+const viewWrites = new Set<() => void>()
+if (typeof window !== 'undefined') window.addEventListener('pagehide', () => viewWrites.forEach((w) => w()))
+
+/**
+ * Storage that writes a change to the work at once, but a change to the view only a moment after the last one, so
+ * scrolling and zooming don't re-save the whole mix every time the camera stops.
+ */
+export function calmStorage<S extends Partial<MixData>>(inner: PersistStorage<S> | undefined, wait = 1000): PersistStorage<S> | undefined {
+  // No storage here (tests, a locked-down browser): nothing to calm.
+  if (!inner) return inner
+  let last: S | null = null
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let pending: [string, StorageValue<S>] | null = null
+  const write = () => {
+    clearTimeout(timer)
+    if (!pending) return
+    const [name, value] = pending
+    pending = null
+    void inner.setItem(name, value)
+  }
+  viewWrites.add(write)
+  return {
+    getItem: inner.getItem,
+    removeItem: inner.removeItem,
+    setItem: (name, value) => {
+      const quiet = sameMix(last, value.state)
+      last = value.state
+      pending = [name, value]
+      if (!quiet) return write()
+      clearTimeout(timer)
+      timer = setTimeout(write, wait)
+    },
+  }
+}
+
 /** The mix kept in this browser (the default, and what "local" opens). */
-export const localMixStorage = () => createJSONStorage<Persisted>(() => carryOver(localStorage))
+export const localMixStorage = () => calmStorage(createJSONStorage<Persisted>(() => carryOver(localStorage)))
 
 /** What the store saves: the mix itself plus this device's view of it (ui, camera). */
 export type Persisted = MixData & { ui: UiState; camera: Camera | null }
@@ -831,6 +904,13 @@ export const useStore = create<State>()(
             set({ content: out.content, site: out.site })
             return out.count
           },
+          setBrief: (patch) =>
+            set((st) => {
+              const brief = patchBrief(briefOf(st.content), patch)
+              const { brief: _, ...rest } = st.content
+              const known = brief.format || brief.industry
+              return { content: { ...rest, ...(Object.keys(brief).length ? { brief } : {}), ...(known ? { kind: kindOf(brief, st.content.kind) } : {}) } }
+            }),
           setLogo: (logo) =>
             set((st) => {
               const { logo: _, ...rest } = st.content
@@ -848,6 +928,7 @@ export const useStore = create<State>()(
             }),
 
           ...versionActions(set, get),
+          ...draftActions(set, get),
           ...noteActions(set),
 
           setUi: (patch) => set((st) => ({ ui: { ...st.ui, ...patch } })),
@@ -863,9 +944,9 @@ export const useStore = create<State>()(
       },
       {
         limit: 100,
-        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, contract: s.contract, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head, clips: s.clips }),
+        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, contract: s.contract, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head, clips: s.clips, drafts: s.drafts, draftId: s.draftId }),
         equality: (a, b) =>
-          a.site === b.site && a.guide === b.guide && a.content === b.content && a.contract === b.contract && a.versions === b.versions && a.notes === b.notes && a.clips === b.clips,
+          a.site === b.site && a.guide === b.guide && a.content === b.content && a.contract === b.contract && a.versions === b.versions && a.notes === b.notes && a.clips === b.clips && a.drafts === b.drafts && a.draftId === b.draftId,
         handleSet: (handleSet) => leading(handleSet, 400),
       },
     ),
@@ -883,6 +964,8 @@ export const useStore = create<State>()(
         notes: s.notes,
         branchFrom: s.branchFrom,
         head: s.head,
+        drafts: s.drafts,
+        draftId: s.draftId,
         framePos: s.framePos,
         clips: s.clips,
         ui: { ...s.ui, previewFrameId: null, editingNoteId: null, sheet: 'none' as const },
@@ -890,6 +973,8 @@ export const useStore = create<State>()(
       }),
       merge: (persisted, current) => {
         const p = siteState(renamedState(persisted)) as Partial<State>
+        // Saved before drafts: one draft holding every version.
+        if (!p.drafts || !p.draftId || !p.drafts[p.draftId]) Object.assign(p, draftsFromLegacy(p), { branchFrom: null })
         const merged = { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } } as State
         merged.contract = cleanContract(p.contract)
         // Tokens added since the mix was saved (e.g. line weight) start at their defaults.
@@ -915,10 +1000,21 @@ export const useStore = create<State>()(
           }
           merged.content = { ...merged.content, fields }
         }
+        // Content was a sheet that took over the screen; it's the Words panel beside the page now.
+        if (merged.ui.sheet === 'guide' && merged.ui.guideTab === 'content') merged.ui = { ...merged.ui, sheet: 'none', leftPanel: 'words' }
         // The Copy tab became Content.
         if ((merged.ui.guideTab as string) === 'copy') merged.ui.guideTab = 'content'
         // One framework per hand-off.
         merged.ui.packetTargets = (merged.ui.packetTargets ?? ['astro']).slice(0, 1)
+        // The other drafts' bodies get what the open one did: missing clips dropped, a look if saved before skins.
+        merged.drafts = Object.fromEntries(
+          Object.entries(merged.drafts).map(([id, d]) => {
+            if (!d.body) return [id, d]
+            const site = mapSlots(d.body.site, (s) => (library.clips[s.clipId] ? s : null))
+            const guide = d.body.guide?.base ? { ...d.body.guide, base: { ...BASE_TOKENS, ...d.body.guide.base } } : d.body.guide
+            return [id, { ...d, body: { ...d.body, ...dressSavedMix({ ...d.body, site, guide }, library, skinList()), site } }]
+          }),
+        )
         for (const [id, v] of Object.entries(merged.versions ?? {})) {
           // A reference build dies with the tab; an agent's build goes on without it, so it stays open.
           if (v.build && !v.build.done && v.build.by !== 'agent') merged.versions[id] = { ...v, status: 'changes', build: { ...v.build, done: true } }
@@ -942,7 +1038,8 @@ export const pauseHistory = () => useStore.temporal.getState().pause()
 export const resumeHistory = () => useStore.temporal.getState().resume()
 
 /** This mix's clips: its own set, plus any of your clips used on its pages (shared nav and footer included). */
-export function mixClipIds(s: Pick<MixData, 'clips' | 'site'>): string[] {
-  const used = allSlots(s.site).map((slot) => slot.clipId).filter((id) => library.clips[id]?.origin === 'clip')
+export function mixClipIds(s: Pick<MixData, 'clips' | 'site'> & Partial<Pick<MixData, 'drafts' | 'draftId'>>): string[] {
+  const sites = s.drafts && s.draftId ? draftSites({ site: s.site, drafts: s.drafts, draftId: s.draftId }) : [s.site]
+  const used = sites.flatMap((site) => allSlots(site)).map((slot) => slot.clipId).filter((id) => library.clips[id]?.origin === 'clip')
   return [...new Set([...(s.clips ?? []), ...used])]
 }

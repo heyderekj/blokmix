@@ -24,8 +24,8 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `resources/js/pages/` instead of the bare board.
 - `npm run build:laravel` writes `public/build`; `npm run build` still writes the Vite-only `dist/`.
 - `php artisan test` runs the PHP feature tests (`tests/Feature`); Vitest only picks up `tests/**/*.test.ts`.
-- Mixes are saved in the database (`mixes`: name + `data` json with site, guide, content, notes, heads;
-  `mix_versions`: one row per version node). `/{short}` hands the board the mix as props, and
+- Mixes are saved in the database (`mixes`: name + `data` json with site, guide, content, notes, heads, draftId;
+  `mix_versions`: one row per version node; `mix_drafts`: one row per draft, at most `Mix::MAX_DRAFTS`). `/{short}` hands the board the mix as props, and
   `lib/mixSync.ts` `openMix` points the store's persist at it: saves go out 800ms after a change, one at a
   time, with only what changed (`PUT /api/mixes/{id}`, `If-Match: "<lock>"`; a stale lock gets 412 and the
   mix as it is now, which replaces what's on screen). The store's `merge` migrations run on server data too.
@@ -55,6 +55,18 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Captured clips (`clips`, `ClipController`, `lib/userClips.ts`): the extension's zip, added from the Crate, linted
   in the browser, saved to your account. You get yours and those of people you share mixes with; they join the
   library (`core/library.ts` `extendLibrary`) before the board opens a mix.
+- Drafts (`core/drafts.ts`, `state/slices/drafts.ts`): a mix holds a few, side by side, each one you can work on. "Mix"
+  on screen means only the project. The open draft's body is the mix's top-level site, guide, content and contract, so
+  every action edits it; the others keep a `body` until opened (`switchDraft`, one undo step; the site's name, logo and
+  brief are shared and follow you). A guided start makes three (A, B, C; `mixFromStart`); a mix saved before drafts opens
+  as one, "Draft A", holding every version (`draftsFromLegacy`, run by the store's `merge`). Saved versions belong to a
+  draft (`VersionNode.draftId`, letters A1, A2…): its history, in the Drafts panel under the top bar's
+  "Mix / Draft A ▾ / Page" (`ui/drafts/DraftsPanel.tsx`: open, new draft from this, rename, delete; history: go back to
+  this, new draft, export, show on canvas). On the canvas the other drafts are columns beside the open one
+  (`placeDrafts`, `ui/frames/DraftFrame.tsx`, a click opens one); version frames are only builds, versions you chose to
+  show (`ui.pinnedVersions`) and versions with notes (`placeVersions`). Sync sends drafts one by one like versions. Free has
+  3 drafts in a mix, a pack 6 (`FREE_DRAFTS`, `MAX_DRAFTS`). Export and Publish can pick another draft (`draft:<id>`,
+  `lib/packet.ts` `sourceVersion`). Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
   drops one, and sections it uses always count. A section's arrows (‹ Layout n of m ›, ← →, Shuffle, `get_options`)
   step through the built-in layouts plus this mix's clips only (`core/library.ts` `cycleIds`), never another mix's or a
@@ -67,12 +79,12 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   pictures) and credits it (`slot.inspiredBy`, shown in the Source tab, written to blokmix.json and BLOKMIX.md; a slot
   without one falls back to its clip's). A site's look joins the style guide as candidates `src:site:<slug>#<group>`
   (`promoteSource`, `candidateSource`). Agents: `list_library_sites`, `get_library_site`, `clip_from_site`, `use_site_style`.
-  New mix → "Start from a site" posts a page's layouts plus the site's look (`mixFromSitePage`).
+  Starting a mix from a site is gone for v1 (`mixFromSitePage` stays for the Crate's Sites).
 - Saved style guides (`style_guides`, `Api\StyleGuideController`, `lib/styleGuides.ts`): save a mix's guide under a
-  name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). New mix → "Start from…" offers
-  starter mixes and style guides (neutral, a saved guide, or another mix's): it posts `guide` (and a starter's `site`
-  and `name`) to `/mixes`, which stores `data = {guide, site}`; the board fills the rest from a blank mix. Every mix
-  keeps its own copy, so edits never spread.
+  name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). The guided start's "Or start from"
+  offers a starter (posts `site`, `guide` and `name` to `/mixes`, which stores `data = {guide, site}`; the board fills
+  the rest from a blank mix), a saved style guide or another mix's (the questions go on with that guide, and the look
+  step folds away), a blank page or a mix file. Every mix keeps its own copy, so edits never spread.
 - Plans (`config/blokmix.php` `plans` and `pack`, `docs/pricing.md`): Free is 1 mix, 40 clips, 100 MB, the core layouts
   and the Feel dials; a mix pack ($20 once, `users.mix_packs`) is 3 mixes open at a time (packs stack), every layout,
   control and treatment, unlimited clips and 10 GB. Mixes are slots: archived ones (`mixes.archived_at`, `POST
@@ -137,28 +149,37 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 
 ## Guided start
 
-The audience is non-designers first (`docs/simple-vision.md`). New mix (and the browser-only mix's first visit, or
-"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx` on one box (`ui/start/StartBox.tsx`): a sentence to fill in, "I'm making a site for
-[a bakery] called [Fern & Co]. It should feel [cozy] and help people [order ahead]. Show [our menu], [opening hours] and
-[+ more]." (`core/jev/sentence.ts`: `BUSINESSES` → kind, `FEELS` → skins, `GOALS` → the main button and sections, `SHOWS` →
-sections, or a want when there's none; `fillStart`). Each blank opens a row of options (`ui/jev/Sentence.tsx`, after the
-motion menu) and takes your own words; Jev ranks the open blanks' options from the sentence so far (`rankRequest`, a
-kind-led `defaultOrder` when it's off) and maps your words to the nearest option (`matchRequest`, both orders). Below it,
-paste the words you already have, or describe the site in a line or two. Code tells them apart (`core/jev/describe.ts` `textMode`: one or
-two short lines describe). A description goes to Jev (`describeRequest`: the kind, each optional section, the look) and
-becomes the kind's page with sections added or dropped (`sectionsFor`); pasted words become a page from your words in
-three arrangements (`lib/startFromText.ts` `wordsCandidates`, the pure `state/jevPage.ts` `wordsPage`, a nav and footer from
-`chromeFor`; lines it wasn't sure of ride along in `content.tray`). What Jev heard shows as chips you can change (kind,
-sections ✕ and +, looks). "Answer three questions" is the old form (what you're making, `KINDS`), and the only way in when
-Jev is off. Then three raw starts in Wireframe to pick a structure, then that page under the skins, the suggested look first ("Suggested") with an optional brand color (`core/palette.ts` `paletteFrom`, AA on every `CONTRAST_PAIRS`) or colors by feel from
-the description (`ui/start/FeelColors.tsx`, `StartInput.palette`). `core/start.ts` `startCandidates` offers matching starter mixes
-(`samples/starters/*.json`, checked by `checkStarters`) first, then fills the kind's `RECIPES` from the library with
-`suggestClip`, built-in layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, with the
-name, an email and the year filled in (a test keeps Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone and widths between
-(`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its first screen
-holds up (after Shu Ding's "The Calculus of Interfaces"). The pick becomes the mix; every start is kept as a version
-(A/B/C). Hosted, it posts to `POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, the
-box's words, and `sections`). The flash says how many spots still hold sample words.
+The audience is non-designers first (`docs/simple-vision.md`). New mix (the gallery's tile, the browser-only mix's first
+visit, or "Start a new mix" in its menu) opens `ui/start/StartGuide.tsx`: plain questions one at a time on the left, the
+page they add up to on the right (`startCandidates`' first, drawn at once; measuring waits for the end). The first screen is
+a sentence to fill in, "I'm making a site for [a bakery] called [Fern & Co]. It should feel [cozy] and help people [order
+ahead]. Show [our menu]…" (`core/jev/sentence.ts` `startSentence`, `fillStart`; `ui/jev/Sentence.tsx`: each blank a row of
+options Jev puts in order, `rankRequest`, or your own words, matched to the nearest, `matchRequest`), with a box under it
+to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
+those questions and folds them (`answersFromSentence`, `heardFromSentence`, `SENTENCE_GOAL`, `SENTENCE_FEEL`). Answered
+questions fold into one line each with Change; "Skip, show me pages" takes every suggestion. The questions
+(`core/startFlow.ts`, pure: `QUESTIONS`, `nextQuestion`, `folded`, `skipToPages`, `briefFrom`, `sectionsFrom`):
+1–2. The sentence (its name, what it is), or the words you already have (`textMode` tells a paste apart) 3. The kind
+of site and industry, folded when the first sentence settled both 4. What should it do for you? (goals, something else,
+who it's for) 5. What should the main button say? (`actionChoices`, or your own words) 6. What goes on the page? (section
+chips, ✕ and +; folded for pasted words) 7. How should it feel? (feel words from the industry and kind, three themes,
+brand color, light/dark, colors by feel) 8. Three ways to lay it out: measured, in the theme you picked; the one you open
+is the mix and the other two are kept (A/B/C).
+The answers are the brief (see The brief): `recipeFor` shapes the kind's page by format and goals, `contentFor` puts the
+main button's words in the buttons. Jev only ranks what's offered: one request (`describeRequest`: the kind, each
+optional section, the look, the format, the industry and each goal, `readDescribe`, `sureGoals`) after question 2, while a
+keyword guess (`guessHeard`, `guessBrief`) shows at once; with suggestions off the same questions are ranked by keywords
+alone. Pasted words become a page from your words in three arrangements (`lib/startFromText.ts` `wordsCandidates`, the
+pure `state/jevPage.ts` `wordsPage`, a nav and footer from `chromeFor`; lines it wasn't sure of ride along in
+`content.tray`). `startCandidates` offers matching starter mixes (`samples/starters/*.json`, ranked by their `industries`
+and `formats`, checked by `checkStarters`) first, then fills the recipe from the library with `suggestClip`, built-in
+layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, read as a believable site
+(tests keep instructions, greetings and Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone
+and widths between (`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its
+first screen holds up (after Shu Ding's "The Calculus of Interfaces"). Under the first questions, "Or start from": a
+starter, a saved style guide (hosted), a blank page, a mix file (`ui/start/StartFrom.tsx`). Hosted, a start posts to
+`POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, `sections`, `format`, `industry`,
+`goals`, `main_action` and `who`). The flash says how many spots still hold sample words.
 
 ## Skins and the contract
 
@@ -176,7 +197,7 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
 pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) mixes
-skins: areas come whole from other skins; on screen it's "A mix", drawn before it lands.
+skins: areas come whole from other skins; on screen it's "Mashup" (so "mix" only ever means the project), drawn before it lands.
 Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers: How should it feel?
 (`core/feel.ts` `FEEL_WORDS`, a skin's `feel` in its JSON, `ui.feelWords`) brings up three themes that fit (`themesFor`), or with
 "Something different" two that match none of the words plus a mix (the same `surpriseMe` roll, drawn first); every theme is a card in
@@ -204,10 +225,11 @@ dates: code does those.
 - Key: `TYPESAFE_API_KEY`, server only. Hosted: `Api\JevController` (signed in, `throttle:jev` 120/min 3,000/day, checks
   shape and image sizes, passes the body on unchanged). Vite-only dev: `scripts/jev/devProxy.ts` reads `.env.local`. No key
   means Jev is off. Per device: "Suggestions" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
-- On screen there's no "Jev" and no feature names, only plain words: Suggestions (the menu switch, the one place TypeSafe is
-  credited), "From what you wrote", "Suggested", "Suggestions are off (Blokmix menu)", "What do you want to change?" (the
+- On screen there's no "Jev" and no feature names, only plain words: Suggestions (the menu switch, whose credit line,
+  "Suggestions by Jev (TypeSafe)", is the one place the name shows; `tests/jev-name.test.ts` checks it), "From what you wrote", "Suggested", "Suggestions are off (Blokmix menu)", "What do you want to change?" (the
   bar), "Add your text to this page", "Make a page from your text", "Text not placed yet", "Background ideas", "Find colors",
-  "Is it clear?", "Best match first". Code names (`core/jev`, commands, files) stay.
+  "Is it clear?", "Best match first". Code names (`core/jev`, commands, files) stay. Without a server key the Say bar isn't
+  drawn (`useJevServer`, `checkJevServer` in `lib/jev.ts`); command errors come from `jevOffMessage`.
 - Features (commands first, `core/commands/schema/jev.ts`, `state/commands/jev.ts`): `place_links` (smart links; the
   checklist's dead-link fix, "Suggested" in the link menu), `five_second_test` (the first screen's words to a visitor;
   "Is it clear?" card in the export panel), `find_subject` (`MediaFill.focus` → object-position; the Image
@@ -215,7 +237,8 @@ dates: code does those.
   arguments from the page → one ordinary command), `pour_words` and `page_from_words` (your words placed verbatim; "Text not placed yet"), `suggest_palettes`/`set_palette` (Find colors in the Feel tile; candidates are AA by construction,
   drawn as swatch cards), `suggest_treatments` (Background ideas in a section's Style panel), and the start box
   (`describe.ts`, `suggest_starts` with `text`; see Guided start).
-- On the board Say it is a bar that's always there above the Dock (`ui/jev/SayBar.tsx`, ⌘K focuses it). Empty and
+- On the board Say it is a bar above the Dock (`ui/jev/SayBar.tsx`), hidden until ⌘K or the Dock's wand button opens it; it
+  hides again on a click elsewhere with nothing typed (a "n not placed" chip still shows). Empty and
   focused, it offers a verb-led sentence ("Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]", "Add [a FAQ
   section]", `barSentence`); `fillBar` builds the same action Say it would (`buildAction` on certain answers). It also takes a
   typed command, or a paste of two or more lines: "Add to this page" / "Make a new page" hand the words to `WordsSheet`
@@ -420,6 +443,17 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
 - Locking (`slot.locked`, the section bar's Lock): only you change a locked section. Shuffle skips it, and agent commands naming it refuse, apart from marks. A captured section's own look, words and motion are switches where they belong (Style, Content, Motion's As clipped).
 - Section widths (`slot.width`, `widthTokens`): narrow, standard, wide or full, against the guide's content width, from
   the width picks in the section bar or `set_section_width`. `sectionTokens` applies surface then width.
+- Moving around (`ui/canvas/Canvas.tsx`, pure math in `ui/canvas/camera.ts`): the page scrolls like a website by default
+  (`ui.canvasMode: 'page'`): it fits the free space's width (`fitWidth`, 100% at most), the wheel scrolls it with a give at
+  either end, and pinching zooms around the pointer's height. Pinching out below 60% of fitting (`leavesPage`) or ⇧1 opens
+  the free canvas (`'canvas'`, every version); Esc, ⌘0 or a click on the page goes back. Keys (`zoomKey`): ⌘+ ⌘− + − step
+  `ZOOM_STOPS`, ⌘0 fits the width, ⌘1 and ⇧0 are 100%, ⇧1 fits everything, ⇧2 the selection, PgUp/PgDn (and ↑ ↓ with nothing
+  selected) scroll. Docked panels set `ui/canvas/insets.ts` `setInset(side, px)` and the page refits beside them. Each page's
+  scroll spot is kept per device (`ui.pageScroll`); opening a page shows its top. `canvasApi` has `setMode`, `fitWidth`,
+  `zoomTo`, `zoomStep`, `zoomToSelection`, `scrollToY`, `scrollBy`, `revealRow(slotId, 'top' | 'nearest')`, `pageTop`, and
+  `onPaint`/`onSettle` to follow it. Screen-sized chrome in world space reads `--zl` (written every frame) for transforms,
+  outlines and shadows, and `--z` (written once the camera rests) for anything that takes layout: widths, heights,
+  margins, container queries. Camera-only saves skip the mix's diff and write the view a second later (`sameMix`).
 - Selecting: one click picks the smallest block under the pointer, in any section (focusing it on the way); a click on a
   section's empty space, its rail or Escape selects the section. Both bars hang below what they belong to, so it stays in
   view; the section bar holds still while you point at it (‹ › don't slide away as the height changes), and on anything
@@ -480,16 +514,37 @@ use them in shows the same entries.
 - Not yet: the account sync on the server (`collections` tables, API, access, plan limits) and rendering a whole
   rich-text body as HTML in a section (template pages show its first paragraphs).
 
+### The brief
+
+What the site is for (`core/brief.ts`, `content.brief`): a format (landing page, small business site, portfolio, blog,
+event page), an industry (the site library's ids plus services and other), goals (take bookings, get sign-ups…), who
+it's for and what it is in the owner's words, and the main button's words. Context, never copy: nothing composes from
+it, except the main button's words, which `contentFor` puts in the hero, nav, cta and footer buttons (yours only when
+typed). `content.kind` stays and follows it (`kindOf`); a mix without one reads one from its kind (`briefOf`). It steers
+Jev's requests (`briefContext` is the one sentence they get), Add section (goal sections first, "Suggested for…"),
+starters (`industries`/`formats` in their JSON), the photo search's first words (`INDUSTRY_PHOTO`), and goes to the agent
+as "What this site is for" in BLOKMIX.md and `brief` in blokmix.json. Store: `setBrief` (one undo step). Agents:
+`get_brief`, `set_brief`; `get_page` includes it.
+
 ### Content
 
 Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI calls it Content, never "CMS".
-- Content is a document (`ui/content/PageDoc.tsx`): on a wide window it takes the main area in place of the canvas
-  (`ui/content/ContentDoc.tsx`, Escape goes back), on a narrow one it sits in the top bar's pill (`ContentPanel`). The page's
-  words top to bottom, each at its size on the page (by `roleOfField`), typed into in place; a section's name goes back to it
-  on the canvas. Whose words they are comes from `core/ownWords.ts` (`fieldOwner`, `pageOwnership`): yours (in `slot.words`,
-  or `content.mine`: the name, email and one line the start was given) or not yet (a layout's or the start's sample words,
-  muted and marked; focusing one selects it). The name and logo sit at the top; the header counts "18 of 31 are yours"; hidden blocks don't count. A paste
-  box at the bottom pours more in; "Text not placed yet" is a column beside it.
+- The board's left side is a slim rail, Words · Look · Notes (`ui/shell/LeftPanel.tsx`, `ui.leftPanel`, W and G; on a narrow
+  window a sheet from the bottom); the open one docks beside the page, which stays in view and fits beside it (`setInset`).
+  The top bar holds the mix, draft and page on the left and Share · Publish · Export · Save version on the right.
+- Words (`ui/words/WordsPanel.tsx`) is your words beside the page: the site's name and logo, "What it's for" (the brief, to
+  change), "18 of 31 are yours" and Next (the first spot still holding sample words), then each section top to bottom
+  (`ui/content/PageDoc.tsx`: each field at its size on the page, by `roleOfField`, typed into in place; focusing one selects
+  its block and scrolls the page to it). Under each section's name, the layouts that hold its words (`core/wordsFit.ts`
+  `itemsOf`, `layoutsThatFit` over `cycleIds` and `capacity`, built-in first) and, with suggestions on, "These words read
+  like a FAQ" with Make it one (one Jev request per page, `readsAsRequest`, cached by its words, `state/wordsFit.ts`;
+  `state/retype.ts` `retypeSection` pours the section's own words into a layout of that type, same id, one undo step).
+  Write or paste at the end (the whole start of an empty page): Show me sections reads it (`planPage`) and lists what it
+  would make, in three arrangements, to add as a new page or replace this one; or place the lines into the sections here
+  (`pour_words`). Text not placed yet is listed below. The panel and the page follow each other as you scroll
+  (`useScrollSync`, `canvasApi.revealRow`, `onSettle`). Whose words they are comes from `core/ownWords.ts` (`fieldOwner`,
+  `pageOwnership`): yours (in `slot.words`, or `content.mine`) or not yet (sample words, muted and marked). Agents:
+  `suggest_layouts_for_words`, `retype_section`.
 - Your site's name (`content.brand`, Content → "Your site's name", `set_brand`) changes everywhere it's written when you
   finish typing: fields, each section's words and kept options, whole words only (`renameBrand`), one undo step.
 - Your logo once (`content.logo`, `set_logo`) fills the nav's and footer's logo spot (`isSiteLogo`) wherever it has no

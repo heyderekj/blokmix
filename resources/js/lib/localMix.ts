@@ -16,11 +16,11 @@ export function localMixState(): Record<string, unknown> | null {
  * address, or the reason it couldn't (a full plan, a dropped connection), in words.
  */
 export async function saveLocalMix(state: Record<string, unknown>, fallbackName = 'Untitled mix'): Promise<{ short: string } | { problem: string }> {
-  const { mixName, versions, ui: _ui, camera: _camera, ...data } = state
+  const { mixName, versions, drafts, ui: _ui, camera: _camera, ...data } = state
   void _ui
   void _camera
   try {
-    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: (mixName as string | undefined) ?? fallbackName, data, versions: versions ?? {} })
+    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: (mixName as string | undefined) ?? fallbackName, data, versions: versions ?? {}, ...(drafts ? { drafts } : {}) })
     return res.status === 201 ? { short: res.body.short } : { problem: res.body?.message ?? 'Couldn’t save that mix. Try again.' }
   } catch {
     return { problem: 'Couldn’t reach Blokmix. Check your connection and try again.' }

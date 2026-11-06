@@ -1,10 +1,11 @@
+import { briefContext, briefOf, FORMAT_LABEL, GOAL_LABEL, INDUSTRY_LABEL } from '../brief'
 import { AREA_LABEL, areasSetTo, contractMarkdown, emptyContract, type Contract, type ContractSetting } from '../contract'
 import type { Note } from '../types'
 import { MARK_GUIDANCE, workPackets, type WorkItem } from '../notes'
 import { describeSectionMotion } from '../motion'
 import { describeEdit } from './describe'
 import { PACK_CREDIT, iconSet } from '../icons'
-import type { BuildTarget, GuideState, Library, ResolvedGuide, Status } from '../types'
+import type { BuildTarget, GuideState, Library, ProjectContent, ResolvedGuide, Status } from '../types'
 import type { ComposedPage } from '../compose'
 import { GROUP_LABEL, TOKEN_LABEL, toDtcg } from '../tokens'
 import { candidateSource, openGroups } from '../guide'
@@ -33,6 +34,8 @@ export interface PacketInput {
   contract?: Contract
   /** Where this mix is published on blok.page, when it is: what it looks like now, live. */
   publishedUrl?: string
+  /** What the site is for (core/brief.ts): context for the agent, never copy. */
+  about?: Pick<ProjectContent, 'brand' | 'brief' | 'kind'>
   generatedAt?: string
 }
 
@@ -114,6 +117,7 @@ export function packetJson(i: PacketInput) {
       version: i.version ? { id: i.version.id, letter: i.version.letter, title: i.version.title, status: i.version.status, parent: i.version.parentLetter ?? null } : null,
     },
     targets: i.targets,
+    brief: i.about ? { ...briefOf(i.about), in_a_sentence: briefContext(i.about) } : null,
     tokens: guide.tokens,
     provenance: Object.fromEntries(Object.entries(guide.provenance).map(([k, p]) => [k, provenanceLabel(library, p)])),
     conflicts: guide.conflicts.map((c) => ({
@@ -174,11 +178,27 @@ export function packetJson(i: PacketInput) {
   }
 }
 
+/** "What this site is for": the owner's brief, as context. Nothing when the mix knows nothing about it. */
+function aboutLines(about: PacketInput['about']): string[] {
+  if (!about) return []
+  const b = briefOf(about)
+  const rows: string[] = []
+  if (b.what?.trim()) rows.push(`- **What it is, in the owner’s words:** ${b.what.trim()}`)
+  if (b.format) rows.push(`- **Kind of site:** ${FORMAT_LABEL[b.format]}`)
+  if (b.industryWords?.trim() || (b.industry && b.industry !== 'other')) rows.push(`- **Industry:** ${b.industryWords?.trim() || INDUSTRY_LABEL[b.industry!]}`)
+  const goals = [...(b.goals ?? []).map((g) => GOAL_LABEL[g]), ...(b.goalsOther?.trim() ? [b.goalsOther.trim()] : [])]
+  if (goals.length) rows.push(`- **What it should do:** ${goals.join('; ')}`)
+  if (b.who?.trim()) rows.push(`- **Who it’s for:** ${b.who.trim()}`)
+  if (b.mainAction?.trim()) rows.push(`- **Main button:** ${b.mainAction.trim()}`)
+  if (!rows.length) return []
+  return ['## What this site is for', '', 'The owner’s notes about the site: context, not copy. Don’t put these words on the page unless they’re already in a section.', '', ...rows, '']
+}
+
 export function buildNotes(i: PacketInput): string {
   const { page, guide, library } = i
   const v = i.version
   const lines: string[] = []
-  lines.push(`# ${i.mixName}${v ? ` · Version ${v.letter}` : ' · Working mix'}`)
+  lines.push(`# ${i.mixName}${v ? (v.id.startsWith('draft:') ? ` · ${v.title}` : ` · Version ${v.letter}`) : ''}`)
   lines.push('')
   lines.push('> Build notes for an agent. Build this page in ' + i.targets.map((t) => (t === 'astro' ? 'Astro' : 'Next.js')).join(' or ') + ' from the reference build in this packet.')
   lines.push('')
@@ -193,6 +213,7 @@ export function buildNotes(i: PacketInput): string {
   const open = openGroups(guide)
   lines.push(`- **Open style decisions:** ${open.length ? open.map((g) => GROUP_LABEL[g]).join(', ') : 'none'}`)
   lines.push('')
+  lines.push(...aboutLines(i.about))
   if (page.site && page.site.pages.length > 1) {
     lines.push('## Pages')
     lines.push('')

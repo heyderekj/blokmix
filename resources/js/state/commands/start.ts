@@ -1,8 +1,9 @@
 import { type CommandInput } from '@/core/commands/schema'
-import type { StartInput } from '@/core/start'
+import { recipeFor, type StartInput } from '@/core/start'
+import { kindOf, patchBrief, type Brief } from '@/core/brief'
 import { scoredStarts, type ScoredStart } from '@/lib/start'
 import { hearStart, startsFromText, type Heard } from '@/lib/startFromText'
-import { jevOn } from '@/lib/jev'
+import { jevOffMessage, jevOn } from '@/lib/jev'
 import type { Kind } from '@/core/types'
 import { allSlots } from '@/core/site'
 import { skinById, skinList, skinOpen } from '@/core/skins'
@@ -12,7 +13,18 @@ import { CommandError } from './refs'
 import type { AsyncCommand } from './index'
 
 type Answers = CommandInput<'suggest_starts'>
-const answers = (i: Answers, kind: Kind): StartInput => ({ kind, name: i.name, oneLiner: i.one_liner, skin: i.skin, brand: i.brand, mode: i.mode, seed: i.seed, sections: i.sections })
+/** The brief the answers give: theirs, over what was heard. */
+const briefOf = (i: Answers, heard: Heard | null): Brief =>
+  patchBrief(
+    { ...(heard?.format ? { format: heard.format } : {}), ...(heard?.industry ? { industry: heard.industry } : {}), ...(heard?.goals.length ? { goals: heard.goals } : {}), ...(heard?.mode === 'describe' && i.text ? { what: i.text.trim() } : {}) },
+    { format: i.format, industry: i.industry, goals: i.goals, mainAction: i.main_action, mainActionTyped: !!i.main_action, who: i.who },
+  )
+const answers = (i: Answers, kind: Kind, heard: Heard | null = null): StartInput => {
+  const brief = briefOf(i, heard)
+  // Goals add their sections to a described page (pasted words decide their own).
+  const sections = i.sections ?? (heard?.mode === 'paste' ? undefined : brief.goals?.length || brief.format ? recipeFor(brief, kind, heard?.want) : undefined)
+  return { kind, name: i.name, oneLiner: i.one_liner, skin: i.skin, brand: i.brand, mode: i.mode, seed: i.seed, sections, brief }
+}
 
 interface Prepared {
   starts: ScoredStart[]
@@ -22,18 +34,19 @@ interface Prepared {
 /** From the answers, or from the box's text through Jev. */
 async function prepare(i: Answers): Promise<Prepared> {
   if (!i.text?.trim()) {
-    if (!i.kind) throw new CommandError('Say what kind of site it is (kind), or give the words they typed (text)')
-    return { starts: await scoredStarts(answers(i, i.kind)), heard: null }
+    const kind = i.kind ?? (i.format || i.industry ? kindOf({ format: i.format, industry: i.industry }) : null)
+    if (!kind) throw new CommandError('Say what kind of site it is (kind or format), or give the words they typed (text)')
+    return { starts: await scoredStarts(answers(i, kind)), heard: null }
   }
-  if (!(await jevOn())) throw new CommandError('Starting from text needs suggestions: turn them on in the Blokmix menu (the server needs a TypeSafe key)')
+  if (!(await jevOn())) throw new CommandError(await jevOffMessage())
   const heard = await hearStart(i.text, i.kind)
-  if (!heard) throw new CommandError('No answer that time. Try again, or give a kind instead of text.')
-  const kind = i.kind ?? heard.kind ?? heard.kinds[0] ?? 'studio'
-  return { starts: await startsFromText(answers(i, kind), heard), heard }
+  if (!heard) throw new CommandError('No answer this time. Try again, or give a kind instead of text.')
+  const kind = i.kind ?? (i.format || i.industry ? kindOf({ format: i.format ?? heard.format ?? undefined, industry: i.industry ?? heard.industry ?? undefined }) : (heard.kind ?? heard.kinds[0] ?? 'studio'))
+  return { starts: await startsFromText(answers(i, kind, heard), heard), heard }
 }
 
 const heardOf = (h: Heard | null) =>
-  h && { mode: h.mode === 'paste' ? 'your words, placed as written' : 'a description', kind: h.kind, sections: h.sections, looks: h.looks, ...(h.mode === 'paste' ? { lines: h.lines, placed: h.placed, waiting: h.waiting } : {}) }
+  h && { mode: h.mode === 'paste' ? 'your words, placed as written' : 'a description', kind: h.kind, format: h.format, industry: h.industry, goals: h.goals, sections: h.sections, looks: h.looks, ...(h.mode === 'paste' ? { lines: h.lines, placed: h.placed, waiting: h.waiting } : {}) }
 
 /** A start as an agent reads it: where it came from, its pages' sections, and how it measured up. */
 const describe = (s: ScoredStart, i: number) => ({

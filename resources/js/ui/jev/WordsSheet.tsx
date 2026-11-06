@@ -130,7 +130,7 @@ export function WordsTray() {
   const open = useTrayOpen((s) => s.open)
   const setOpen = (v: boolean | ((v: boolean) => boolean)) => useTrayOpen.setState((s) => ({ open: typeof v === 'function' ? v(s.open) : v }))
   // Content shows them in its own column.
-  const inContent = useStore((s) => s.ui.sheet === 'guide' && s.ui.guideTab === 'content')
+  const inContent = useStore((s) => s.ui.leftPanel === 'words')
   if (!lines.length || !open || inContent) return null
   const drop = (id: string) => setTray((all) => all.filter((x) => x.id !== id))
   return (

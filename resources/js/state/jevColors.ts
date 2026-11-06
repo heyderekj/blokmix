@@ -8,7 +8,7 @@ import { imageRef, type JevAsset } from '@/core/jev'
 import { distinct, hueCandidates, paletteRequest, rankPalettes, variantCandidates, type Candidate, type PaletteBrief, type Ranked } from '@/core/jev/palettes'
 import { yes } from '@/core/jev'
 import { swatchSvg, SWATCH } from '@/core/jev/swatch'
-import { KIND_WORDS } from '@/core/jev/vocab'
+import { briefContext } from '@/core/brief'
 import { askJev } from '@/lib/jev'
 import { svgToJpeg, toJevJpeg } from '@/lib/jevImage'
 import { colorsFrom } from '@/lib/colorsFrom'
@@ -31,7 +31,7 @@ function brief(feel?: string, site?: ColorAsk['site']): PaletteBrief {
   const hero = currentSlots(st).find((s) => s.type === 'hero')
   return {
     feel,
-    site: st.content.kind ? `${st.content.brand}, ${KIND_WORDS[st.content.kind]}` : st.content.brand,
+    site: briefContext(st.content),
     headline: hero ? wordsFor(hero).headline : undefined,
   }
 }

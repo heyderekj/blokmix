@@ -264,4 +264,60 @@ class MixesTest extends TestCase
         $this->deleteJson("/api/mixes/{$mix->id}")->assertNoContent();
         $this->assertDatabaseCount('mix_versions', 0);
     }
+
+    private function draft(string $letter, bool $open = false): array
+    {
+        return ['id' => "draft_$letter", 'letter' => $letter, 'name' => "Draft $letter", 'createdAt' => ord($letter), 'body' => $open ? null : ['site' => ['pages' => []]]];
+    }
+
+    public function test_a_new_mix_keeps_its_drafts(): void
+    {
+        $this->postJson('/api/mixes', ['name' => 'Bakery', 'data' => ['site' => ['pages' => []], 'draftId' => 'draft_A'], 'drafts' => ['draft_A' => $this->draft('A', true), 'draft_B' => $this->draft('B')]])
+            ->assertCreated()
+            ->assertJsonPath('drafts.draft_A.letter', 'A')
+            ->assertJsonPath('drafts.draft_B.name', 'Draft B')
+            ->assertJsonPath('data.draftId', 'draft_A');
+    }
+
+    public function test_drafts_save_one_at_a_time_and_stop_at_six(): void
+    {
+        $mix = $this->mine(['name' => 'Bakery', 'data' => ['site' => ['pages' => []]]]);
+        $mix->drafts()->create(['key' => 'draft_A', 'letter' => 'A', 'node' => $this->draft('A', true)]);
+
+        $this->putJson("/api/mixes/{$mix->id}", ['drafts' => ['put' => ['draft_B' => $this->draft('B')]]], ['If-Match' => '"1"'])->assertOk();
+        $this->assertSame(['draft_A', 'draft_B'], $mix->drafts()->orderBy('key')->pluck('key')->all());
+
+        $this->putJson("/api/mixes/{$mix->id}", ['drafts' => ['remove' => ['draft_B']]], ['If-Match' => '"2"'])->assertOk();
+        $this->assertSame(['draft_A'], $mix->drafts()->pluck('key')->all());
+
+        $many = collect(['B', 'C', 'D', 'E', 'F', 'G'])->mapWithKeys(fn ($l) => ["draft_$l" => $this->draft($l)])->all();
+        $this->putJson("/api/mixes/{$mix->id}", ['drafts' => ['put' => $many]], ['If-Match' => '"3"'])->assertStatus(422);
+        $this->assertSame(1, $mix->drafts()->count());
+    }
+
+    public function test_viewers_cant_change_drafts(): void
+    {
+        $mix = Mix::create(['name' => 'Theirs', 'data' => ['site' => ['pages' => []], 'notes' => []]]);
+        $mix->admit(User::factory()->create(), MixRole::Owner);
+        $mix->admit($this->me, MixRole::Viewer);
+        $this->putJson("/api/mixes/{$mix->id}", ['drafts' => ['put' => ['draft_B' => $this->draft('B')]]], ['If-Match' => '"1"'])->assertOk();
+        $this->assertSame(0, $mix->drafts()->count());
+    }
+
+    public function test_duplicating_copies_drafts_and_the_gallery_rings_them(): void
+    {
+        $mix = Mix::create(['name' => 'Bakery', 'data' => ['site' => ['pages' => []]]]);
+        $mix->admit(User::factory()->create(), MixRole::Owner);
+        $mix->admit($this->me, MixRole::Viewer);
+        $mix->drafts()->create(['key' => 'draft_A', 'letter' => 'A', 'node' => $this->draft('A', true)]);
+        $mix->drafts()->create(['key' => 'draft_B', 'letter' => 'B', 'node' => [...$this->draft('B'), 'status' => 'ready']]);
+
+        $copy = Mix::findOrFail($this->postJson("/api/mixes/{$mix->id}/duplicate")->assertCreated()->json('id'));
+        $this->assertSame(2, $copy->drafts()->count());
+
+        $this->get('/')->assertInertia(fn (Assert $page) => $page
+            ->where('mixes.0.drafts', 2)
+            ->where('mixes.0.heads.1.letter', 'B')
+            ->where('mixes.0.heads.1.status', 'ready'));
+    }
 }

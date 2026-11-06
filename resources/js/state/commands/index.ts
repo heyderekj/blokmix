@@ -10,6 +10,7 @@ import * as read from './read'
 import * as review from './review'
 import * as notes from './notes'
 import * as versions from './versions'
+import * as drafts from './drafts'
 import * as blocks from './blocks'
 import * as words from './words'
 import * as pageCmds from './page'
@@ -23,8 +24,8 @@ import * as jev from './jev'
 
 export { CommandError, describeNote } from './refs'
 
-const READ = { ...read.read, ...pageCmds.textStyleRead, ...siteCmds.read, ...treatments.read, ...notes.read, ...versions.read, ...collectionCmds.read, ...skins.read }
-const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write, ...collectionCmds.write, ...skins.write, ...jev.write }
+const READ = { ...read.read, ...pageCmds.textStyleRead, ...siteCmds.read, ...treatments.read, ...notes.read, ...versions.read, ...drafts.read, ...collectionCmds.read, ...skins.read }
+const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write, ...drafts.write, ...collectionCmds.write, ...skins.write, ...jev.write }
 
 /**
  * Runs the commands in core/commands/schema.ts against the live mix. Every
@@ -155,6 +156,16 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return `rewrote the words${inSec}`
       case 'add_block':
         return `added a ${String(input.kind) === 'image' ? 'picture' : String(input.kind)}${inSec}`
+      case 'retype_section':
+        return `turned ${sec ?? 'a section'} into ${TYPE_LABEL[input.type as keyof typeof TYPE_LABEL] ?? 'another kind'}`
+      case 'switch_draft':
+        return `opened draft ${String(input.draft)}`
+      case 'new_draft':
+        return 'made a new draft'
+      case 'delete_draft':
+        return `deleted draft ${String(input.draft)}`
+      case 'set_brief':
+        return 'changed what the site is for'
       case 'set_brand':
         return `renamed the site ${String(input.name)}`
       case 'set_brand_color':

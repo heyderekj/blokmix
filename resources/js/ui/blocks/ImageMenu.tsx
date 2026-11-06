@@ -6,6 +6,7 @@ import type { BlockInfo, MediaFill, MediaPlay, PlaceholderStyle, Slot, StockPhot
 import { jevOn } from '@/lib/jev'
 import { findFocus, photoBrief, rankPhotos } from '@/state/jevPhotos'
 import { PLACEHOLDER_STYLES } from '@/core/types'
+import { briefOf, INDUSTRY_PHOTO } from '@/core/brief'
 import { PLACEHOLDER_LABEL, detectLink, embedPoster, parseUnsplash, placeholderSvg, shaderFor, svgDataUri, unsplashSearchUrl } from '@/core/media'
 import { MOCK_BASE_CSS, SHADERS, SHADER_IDS, isFillId, mockRender, mockSources, treatmentInfo, type ShaderId, type TreatmentValue } from '@/core/treatments'
 import { useShaderThumb } from '@/lib/shaderPosters'
@@ -417,7 +418,11 @@ function KeepInFrame({ fill, set }: { fill: MediaFill; set: (m: Partial<MediaFil
 }
 
 function Stock({ block, slot, fill, onHover, onPick }: { block: BlockInfo; slot?: Slot; fill?: MediaFill; onHover: (m: MediaFill | null) => void; onPick: (m: MediaFill) => void }) {
-  const [q, setQ] = useState('')
+  // Starts from the site's industry ("food cafe"), so the first search is one keystroke away.
+  const [q, setQ] = useState(() => {
+    const b = briefOf(useStore.getState().content)
+    return (b.industry && INDUSTRY_PHOTO[b.industry]) || ''
+  })
   const [results, setResults] = useState<(StockPhoto & { track: string })[]>([])
   // Jev's order (best fit for this section first) and Unsplash's own, to switch between.
   const [ranked, setRanked] = useState<(StockPhoto & { track: string })[] | null>(null)

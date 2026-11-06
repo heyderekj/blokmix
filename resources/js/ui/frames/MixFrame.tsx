@@ -25,7 +25,8 @@ export function MixFrame() {
   const selected = useStore((s) => s.ui.selectedFrameId === MIX_ID)
   const previewing = useStore((s) => s.ui.previewFrameId === MIX_ID)
   const head = useStore((s) => (s.head ? s.versions[s.head] : null))
-  const branchFrom = useStore((s) => (s.branchFrom ? s.versions[s.branchFrom] : null))
+  const draft = useStore((s) => s.drafts[s.draftId])
+  const many = useStore((s) => Object.keys(s.drafts).length > 1)
   const guide = useResolvedGuide()
   const W = VIEW_W[viewport]
   const guideState = useStore((s) => s.guide)
@@ -45,7 +46,8 @@ export function MixFrame() {
   // A bar hanging below the last section (its section bar, or a block's bar and menus): what sits under the page makes
   // exactly that much room, on screen.
   const room = useBarOverhang((s) => (previewing ? 0 : barRoomBelow(s, slots.at(-1)?.id)))
-  const label = branchFrom ? `From ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
+  const label = head ? (dirty ? `edited since ${head.letter}` : `saved as ${head.letter}`) : 'not saved yet'
+  const name = draft?.name ?? 'Your mix'
 
   return (
     <div
@@ -60,8 +62,8 @@ export function MixFrame() {
           <MixMark types={slots.map((s) => s.type)} active={markAt} edited={dirty} />
         </span>
         <HeaderTitle
-          title={site.pages.length > 1 ? `Your mix · ${page.title}` : 'Your mix'}
-          meta={`${site.pages.length > 1 ? `${page.path} · ` : ''}${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} sections`}
+          title={site.pages.length > 1 ? `${name} · ${page.title}` : name}
+          meta={`${many ? 'You’re working here · ' : ''}${site.pages.length > 1 ? `${page.path} · ` : ''}${label} · ${slots.length} sections`}
         />
         {page.template && <EntrySwitcher pageId={page.id} collection={page.template.collection} />}
         <span className="@max-[220px]:hidden">
@@ -134,7 +136,7 @@ function Seams({ onAdd }: { onAdd: (at: number) => void }) {
                 onAdd(at)
               }}
               className="absolute top-1/2 grid size-5 place-items-center rounded-full border border-zinc-950/12 bg-white text-zinc-700 opacity-0 shadow-sm transition-opacity duration-150 hover:text-zinc-950 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 pointer-coarse:size-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 group-hover/seam:opacity-100"
-              style={{ right: 'calc(9px / var(--z))', transform: 'translate(50%, -50%) scale(min(calc(1 / var(--z)), 3.4))' }}
+              style={{ right: 'calc(9px / var(--z))', transform: 'translate(50%, -50%) scale(min(calc(1 / var(--zl)), 3.4))' }}
             >
               <Plus size={12} strokeWidth={2.6} />
             </button>
@@ -155,7 +157,7 @@ function AddAt({ at, onClose }: { at: number; onClose: () => void }) {
   return (
     <div
       className="absolute left-0 z-40 origin-top-left"
-      style={{ top: y, transform: `scale(min(calc(1 / var(--z)), 3.4))${below ? ' translateY(56px)' : ''}` }}
+      style={{ top: y, transform: `scale(min(calc(1 / var(--zl)), 3.4))${below ? ' translateY(56px)' : ''}` }}
     >
       <div className="m-2">
         <AddSectionMenu at={at} onClose={onClose} />
@@ -190,7 +192,7 @@ function AddSection({ width, onAdd, room }: { width: number; onAdd: () => void; 
 function MissingShared({ kind, room = 0 }: { kind: 'nav' | 'footer'; room?: number }) {
   return (
     <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))', marginTop: room ? `calc(${room + 8}px / var(--z))` : 0 }} data-chrome>
-      <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+      <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}>
         <span className="text-[12.5px]">No {kind} yet</span>
         <button
           type="button"
@@ -212,7 +214,7 @@ function MissingShared({ kind, room = 0 }: { kind: 'nav' | 'footer'; room?: numb
 function HiddenShared({ kind, pageId, room = 0 }: { kind: 'nav' | 'footer'; pageId: string; room?: number }) {
   return (
     <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))', marginTop: room ? `calc(${room + 8}px / var(--z))` : 0 }} data-chrome>
-      <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+      <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}>
         <span className="text-[12.5px]">No {kind} on this page</span>
         <span className="text-zinc-300">·</span>
         <button

@@ -6,6 +6,8 @@ import { canEdit, useAccount } from '@/lib/account'
 import { useBuySheet } from '@/state/plan'
 import { loadPublication, publishMix, unpublishMix, usePublication, type PublishStep } from '@/lib/publish'
 import { localMixState, saveLocalMix } from '@/lib/localMix'
+import { sourceVersion } from '@/lib/packet'
+import { draftList } from '@/core/drafts'
 import { router } from '@inertiajs/react'
 
 /**
@@ -16,6 +18,10 @@ export function PublishPanel() {
   const mixId = useSave((s) => s.mixId)
   const mixName = useStore((s) => s.mixName)
   const versions = useStore((s) => s.versions)
+  const drafts = useStore((s) => s.drafts)
+  const draftId = useStore((s) => s.draftId)
+  const notes = useStore((s) => s.notes)
+  const others = draftList(drafts).filter((d) => d.id !== draftId && d.body)
   const role = useAccount((s) => s.role)
   const paidPlan = useAccount((s) => s.paid)
   const { pub, loaded } = usePublication()
@@ -50,7 +56,7 @@ export function PublishPanel() {
     setError(null)
     try {
       if (what === 'publish') {
-        await publishMix({ version: source === 'working' ? null : (versions[source] ?? null), name, onStep: setStep })
+        await publishMix({ version: source === 'working' ? null : sourceVersion({ versions, drafts, draftId, notes }, source), name, onStep: setStep })
         useStore.getState().showFlash(live ? 'Updated on blok.page' : 'Published to blok.page')
       } else {
         await unpublishMix()
@@ -131,7 +137,7 @@ export function PublishPanel() {
         </div>
 
         {busy === 'publish' && step && <PublishProgress step={step} />}
-        {editable && snapshots.length > 0 && busy !== 'publish' && (
+        {editable && (snapshots.length > 0 || others.length > 0) && busy !== 'publish' && (
           <label className="flex items-center gap-2 px-0.5 text-[12.5px] text-zinc-500">
             From
             <select
@@ -139,7 +145,12 @@ export function PublishPanel() {
               onChange={(e) => setSource(e.target.value)}
               className="h-8 min-w-0 flex-1 cursor-pointer rounded-lg bg-white px-2 text-[13px] text-zinc-900 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] outline-none"
             >
-              <option value="working">The mix as it is now</option>
+              <option value="working">{drafts[draftId]?.name ?? 'The mix'}, as it is now</option>
+              {others.map((d) => (
+                <option key={d.id} value={`draft:${d.id}`}>
+                  {d.name}
+                </option>
+              ))}
               {snapshots.map((v) => (
                 <option key={v.id} value={v.id}>
                   Version {v.letter}

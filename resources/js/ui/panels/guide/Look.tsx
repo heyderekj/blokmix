@@ -96,7 +96,7 @@ function Themes() {
   const putMix = () => {
     const st = useStore.getState()
     if (st.surpriseMe(seed) && mix) {
-      st.showFlash(`A mix is on: ${mix.words.replace(/^./, (c) => c.toLowerCase())}`, { undo: true })
+      st.showFlash(`Mashup on: ${mix.words.replace(/^./, (c) => c.toLowerCase())}`, { undo: true })
       setSeed((n) => n + 1)
     }
   }
@@ -104,7 +104,7 @@ function Themes() {
   return (
     <div className={TILE}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="min-w-0 truncate text-[12.5px] font-semibold text-zinc-900">Theme{on ? `: ${on.id === 'remix' ? 'a mix' : on.name}` : ''}</span>
+        <span className="min-w-0 truncate text-[12.5px] font-semibold text-zinc-900">Theme{on ? `: ${on.id === 'remix' ? 'a mashup' : on.name}` : ''}</span>
         {words.length > 0 && (
           <button type="button" onClick={() => setDifferent((d) => !d)} className={LINK}>
             {away ? '‹ Back to my words' : 'Something different'}
@@ -116,12 +116,12 @@ function Themes() {
         {shown.map(({ skin, tokens, components }) => (
           <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={on?.id === skin.id} locked={!skinOpen(library, skin)} onPick={() => putSkin(skin)} />
         ))}
-        {mix && <SkinCard label="A mix" words={mix.words} tokens={mix.tokens} components={mix.components} here={false} locked={library.paid === false} onPick={putMix} />}
+        {mix && <SkinCard label="Mashup" words={mix.words} tokens={mix.tokens} components={mix.components} here={false} locked={library.paid === false} onPick={putMix} />}
       </div>
       {mix && (
         <div className="mt-2 flex items-start justify-between gap-2 text-[11px] leading-snug text-zinc-500">
-          <span className="min-w-0 text-pretty">A mix: {mix.words}</span>
-          <button type="button" onClick={() => setSeed((n) => n + 1)} aria-label="Another mix" className={`flex shrink-0 items-center gap-1 ${LINK}`}>
+          <span className="min-w-0 text-pretty">Mashup: {mix.words}</span>
+          <button type="button" onClick={() => setSeed((n) => n + 1)} aria-label="Another mashup" className={`flex shrink-0 items-center gap-1 ${LINK}`}>
             <RefreshCw size={11} /> Another
           </button>
         </div>

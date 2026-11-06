@@ -14,14 +14,13 @@ import { Wordmark } from '@/ui/brand/Wordmark'
 import { LiftedBlock, Slot as BlockSlot } from '@/ui/auth/AuthCard'
 import { StatusRing } from '@/ui/frames/FrameHeader'
 import { MixThumb } from '@/ui/mixes/MixThumb'
-import { StartModal, type GuideChoice, type StartChoice } from '@/ui/mixes/StartModal'
+import type { GuideChoice } from '@/ui/start/StartFrom'
 import { resolveGuide } from '@/core/guide'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { library } from '@/data/library'
-import { buildStarter } from '@/core/starters'
-import { mixFromSitePage } from '@/lib/siteLibrary'
+import { buildStarter, type Starter } from '@/core/starters'
 import { starterOpen } from '@/core/library'
-import { StartFlow } from '@/ui/start/StartFlow'
+import { StartGuide } from '@/ui/start/StartGuide'
 import { mixFromStart } from '@/lib/start'
 
 interface SavedMix {
@@ -188,11 +187,31 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
   // New mix opens the guided start; the start you pick becomes the mix, the others its versions.
   const [guided, setGuided] = useState(false)
   const startGuided = () => (full ? setProblem(MIX_FULL) : (setProblem(null), setGuided(true)))
-  const saveStart: Parameters<typeof StartFlow>[0]['onDone'] = async (input, starts, chosen) => {
-    const { mixName, versions, ...data } = mixFromStart(input, starts, chosen)
+  // Saved style guides, and other mixes' guides, to start from (asked for once the start opens).
+  const [saved, setSaved] = useState<SavedGuide[] | null>(null)
+  useEffect(() => {
+    if (guided && saved === null) void listGuides().then(setSaved)
+  }, [guided, saved])
+  const styled = mixes.filter((m) => m.role === 'owner' && m.guide && Object.keys(m.guide.base ?? {}).length)
+  const guides: GuideChoice[] | null =
+    saved === null
+      ? null
+      : [
+          ...saved.map((g) => ({ key: `s${g.id}`, name: g.name, note: 'Saved style guide', guide: g.guide })),
+          ...styled.map((m) => ({ key: m.id, name: m.name, note: 'This mix’s style guide', guide: m.guide! })),
+        ]
+  const post = (body: { name: string; site?: Site; guide?: GuideState }) =>
+    router.post('/mixes', body as unknown as Record<string, string>, { onError: (e) => (setGuided(false), e.mix && setProblem(e.mix)) })
+  const startStarter = (starter: Starter, name: string) => {
+    if (!starterOpen(library, starter)) return setProblem(`“${starter.name}” uses layouts in a mix pack. Free starts from the starters without a lock, or answers the questions.`)
+    const { site, guide } = buildStarter(library, starter)
+    post({ name: name === 'Your site' ? starter.name : name, site, guide })
+  }
+  const saveStart: Parameters<typeof StartGuide>[0]['onDone'] = async (input, starts, chosen) => {
+    const { mixName, versions, drafts, ...data } = mixFromStart(input, starts, chosen)
     setMoving(true)
-    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: mixName, data, versions })
-    if (res.status === 201) return router.visit(`/${res.body.short}`)
+    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: mixName, data, versions, drafts })
+    if (res.status === 201) return router.visit(`/${res.body.short}?start=1`)
     setMoving(false)
     setGuided(false)
     setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
@@ -208,7 +227,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         setMoving(true)
         // Its captured clips join your account first, so the mix opens with every section.
         await importClips(file.clips ?? [])
-        const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions })
+        const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions, ...(file.drafts ? { drafts: file.drafts } : {}) })
         setMoving(false)
         if (res.status === 201) router.visit(`/${res.body.short}`)
         else setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
@@ -222,10 +241,13 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     <div className="min-h-full" style={{ background: '#FBF8F9', backgroundImage: 'radial-gradient(#DDD2D9 1.2px, transparent 1.3px)', backgroundSize: '24px 24px' }}>
       <Head title="Mixes" />
       {guided && (
-        <StartFlow
+        <StartGuide
           busy={moving}
+          guides={guides}
           onClose={() => setGuided(false)}
-          onBlank={() => router.post('/mixes', {}, { onError: (e) => (setGuided(false), e.mix && setProblem(e.mix)) })}
+          onBlank={(name) => post({ name: name === 'Your site' ? 'Untitled mix' : name })}
+          onStarter={startStarter}
+          onImport={() => (setGuided(false), importFile())}
           onDone={saveStart}
         />
       )}
@@ -315,7 +337,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         <ul className={GRID}>
           {!query && (
             <li className="animate-rise">
-              <NewMix mixes={mine} full={full ? MIX_FULL : null} onRefused={setProblem} onGuided={startGuided} />
+              <NewMix full={full ? MIX_FULL : null} onOpen={startGuided} />
             </li>
           )}
           {mine.map((m, i) => (
@@ -414,44 +436,12 @@ const CARD_BUTTON =
 const CARD =
   'group/card relative flex h-full flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_24px_48px_-28px_rgb(23_18_26/0.3)] transition-[translate,box-shadow,scale] duration-200 active:scale-[0.99] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_30px_56px_-26px_rgb(23_18_26/0.4)]'
 
-/** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It opens the New mix
- * modal: blank, a starter mix (its pages and sample style guide), a real site, or a style guide (the new mix keeps its own
- * copy), then a name; "Help me choose" opens the guided start. */
-function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full: string | null; onRefused: (why: string) => void; onGuided: () => void }) {
-  const [picking, setPicking] = useState(false)
-  const [saved, setSaved] = useState<SavedGuide[] | null>(null)
-  useEffect(() => {
-    if (picking && saved === null) void listGuides().then(setSaved)
-  }, [picking, saved])
-  const post = (body: { name: string; site?: Site; guide?: GuideState }) =>
-    router.post('/mixes', body as unknown as Record<string, string>, { onError: (e) => e.mix && onRefused(e.mix) })
-  // What the New mix modal picked, under the name it was given.
-  const create = (c: StartChoice, name: string) => {
-    if (c.kind === 'blank') return post({ name })
-    if (c.kind === 'guide') return post({ name, guide: c.guide })
-    if (c.kind === 'starter') {
-      if (!starterOpen(library, c.starter)) return onRefused(`“${c.starter.name}” uses layouts in a mix pack. Free starts from the starters without a lock, or Help me choose.`)
-      const { site, guide } = buildStarter(library, c.starter)
-      return post({ name, site, guide })
-    }
-    const { site, guide } = mixFromSitePage(library, c.site, c.page)
-    if (!site.pages[0].slots.length && !site.shared.nav && !site.shared.footer) return onRefused(`${c.site.name} ${c.page.path} has no sections with a layout yet`)
-    post({ name, site, guide })
-  }
-  const open = () => (full ? onRefused(full) : setPicking(true))
-  const styled = mixes.filter((m) => m.guide && Object.keys(m.guide.base ?? {}).length)
-
-  const guides: GuideChoice[] | null =
-    saved === null
-      ? null
-      : [
-          ...saved.map((g) => ({ key: `s${g.id}`, name: g.name, note: 'Saved style guide', guide: g.guide })),
-          ...styled.map((m) => ({ key: m.id, name: m.name, note: 'This mix’s style guide', guide: m.guide! })),
-        ]
-
+/** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It opens the guided
+ * start, which also offers a starter, a saved style guide, a blank page or a mix file. */
+function NewMix({ full, onOpen }: { full: string | null; onOpen: () => void }) {
   return (
     <div className="group/new relative grid h-full min-h-[260px] w-full place-items-center rounded-[22px] border-2 border-dashed border-[#E4D9DF] transition-[border-color,background-color] duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-[#FF69B4]/60 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/60">
-      <button type="button" onClick={open} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
+      <button type="button" onClick={onOpen} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
       <span className="pointer-events-none grid justify-items-center gap-4">
         <span className="relative block size-[64px]">
           <BlockSlot size={64} className="left-0 top-0" />
@@ -462,9 +452,6 @@ function NewMix({ mixes, full, onRefused, onGuided }: { mixes: SavedMix[]; full:
         </span>
         {full && <span className="-mt-2 text-[12.5px] text-[#6B5F68]">No room for another: archive one, or add a pack</span>}
       </span>
-      {picking && (
-        <StartModal guides={guides} onCreate={create} onGuided={() => (setPicking(false), onGuided())} onClose={() => setPicking(false)} />
-      )}
     </div>
   )
 }

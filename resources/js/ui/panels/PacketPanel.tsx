@@ -6,7 +6,8 @@ import { agentPrompt, packetFiles, type PacketInput } from '@/core/export/packet
 import { zipFiles } from '@/core/export/zip'
 import { useAssets } from '@/lib/assets'
 import { useAgentLink } from '@/lib/agentLink'
-import { packetInputFor } from '@/lib/packet'
+import { packetInputFor, sourceVersion } from '@/lib/packet'
+import { draftList, versionsOf } from '@/core/drafts'
 import { withBakedPosters } from '@/lib/shaderPosters'
 import { slug } from '@/core/export/astro'
 import { dfsOrder } from '@/core/versions'
@@ -35,7 +36,10 @@ export function PacketPanel() {
   const mcp = useAgentLink((s) => s.status === 'connected')
   const st = useStore.getState
 
-  const version = source !== 'mix' ? versions[source] : null
+  const drafts = useStore((s) => s.drafts)
+  const draftId = useStore((s) => s.draftId)
+  const version = useMemo(() => sourceVersion({ versions, drafts, draftId, notes }, source), [versions, drafts, draftId, notes, source])
+  const others = draftList(drafts).filter((d) => d.id !== draftId && d.body)
 
   const assets = useAssets((s) => s.assets)
   const input: PacketInput = useMemo(
@@ -93,17 +97,36 @@ export function PacketPanel() {
         <div className="min-w-0 flex-1">
           <div className="relative -ml-1.5 w-fit max-w-full">
             <select
-              value={source in versions || source === 'mix' ? source : 'mix'}
+              value={version ? source : 'mix'}
               onChange={(e) => st().setUi({ packetSource: e.target.value })}
               className="w-full max-w-full cursor-pointer appearance-none truncate rounded-md bg-transparent py-0.5 pl-1.5 pr-6 text-[15px] font-semibold text-zinc-900 outline-none transition hover:bg-zinc-950/5"
-              aria-label="Which version to export"
+              aria-label="Which draft or version to export"
             >
-              <option value="mix">Your mix, as it is now</option>
-              {dfsOrder(versions).map(({ node }) => (
-                <option key={node.id} value={node.id}>
-                  {node.letter} · {node.title}
+              <option value="mix">{drafts[draftId]?.name ?? 'Your mix'}, as it is now</option>
+              {others.map((d) => (
+                <option key={d.id} value={`draft:${d.id}`}>
+                  {d.name}
                 </option>
               ))}
+              {draftList(drafts).map((d) => {
+                const saved = versionsOf(versions, d.id)
+                return saved.length ? (
+                  <optgroup key={d.id} label={`${d.name}: saved`}>
+                    {saved.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.letter} · {v.title}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null
+              })}
+              {dfsOrder(versions)
+                .filter(({ node }) => !node.draftId || !drafts[node.draftId])
+                .map(({ node }) => (
+                  <option key={node.id} value={node.id}>
+                    {node.letter} · {node.title}
+                  </option>
+                ))}
             </select>
             <ChevronDown size={14} className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           </div>

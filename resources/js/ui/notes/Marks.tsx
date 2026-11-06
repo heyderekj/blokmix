@@ -119,8 +119,8 @@ function Outline({ box, dashed, soft }: { box: FrameRect; dashed?: boolean; soft
         top: box.y,
         width: box.w,
         height: box.h,
-        boxShadow: `0 0 0 calc(${soft ? 1.5 : 2}px / var(--z)) ${soft ? 'color-mix(in oklab, var(--color-problem) 55%, transparent)' : 'var(--color-problem)'}`,
-        outline: dashed ? 'calc(1px / var(--z)) dashed var(--color-problem)' : undefined,
+        boxShadow: `0 0 0 calc(${soft ? 1.5 : 2}px / var(--zl)) ${soft ? 'color-mix(in oklab, var(--color-problem) 55%, transparent)' : 'var(--color-problem)'}`,
+        outline: dashed ? 'calc(1px / var(--zl)) dashed var(--color-problem)' : undefined,
       }}
     />
   )
@@ -130,7 +130,7 @@ function Outline({ box, dashed, soft }: { box: FrameRect; dashed?: boolean; soft
 function Floating({ x, y, children }: { x: number; y: number; children: React.ReactNode }) {
   return (
     <div className="absolute z-40" style={{ left: x, top: y, width: 0, height: 0 }}>
-      <div className="absolute left-0 top-0 origin-top-left pt-2" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }} data-chrome onPointerDown={(e) => e.stopPropagation()}>
+      <div className="absolute left-0 top-0 origin-top-left pt-2" style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }} data-chrome onPointerDown={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>
@@ -155,7 +155,7 @@ function Pin({ mark, x, y, onHover }: { mark: Note; x: number; y: number; onHove
         }}
         title={`N${mark.number} · ${KIND_LABEL[mark.kind!]} · ${STATUS_LABEL[mark.status!]}: ${mark.text}`}
         className={`absolute grid h-6 min-w-6 place-items-center rounded-full rounded-bl-[4px] px-1.5 text-[11px] font-bold tabular-nums shadow-md ring-2 ring-white transition hover:scale-110 ${tone.pin} ${mark.status === 'verified' ? 'opacity-55' : ''} ${open ? 'scale-110' : ''}`}
-        style={{ transform: 'translate(-30%, -70%) scale(min(calc(1 / var(--z)), 3.4))', transformOrigin: '0 100%', left: 0, top: 0 }}
+        style={{ transform: 'translate(-30%, -70%) scale(min(calc(1 / var(--zl)), 3.4))', transformOrigin: '0 100%', left: 0, top: 0 }}
       >
         {done ? <Check size={12} strokeWidth={3} /> : `N${mark.number}`}
       </button>

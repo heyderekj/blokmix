@@ -1,6 +1,7 @@
 // Core types. Nothing in core/ imports React or Vite APIs, so the same code can
 // later run inside the capture extension and the MCP server.
 
+import type { Brief } from './brief'
 import type { ParamValues, TreatmentValue } from './treatments/params'
 
 /** In typical page order. Inner pages use `header` (a page header) instead of `hero`. */
@@ -309,6 +310,11 @@ export interface ProjectContent {
   mine?: string[]
   /** Lines of your words that a pour or a page from your words wasn't sure where to put: Words to place. */
   tray?: TrayLine[]
+  /**
+   * What the site is for (core/brief.ts): format, industry, goals, who it's for, the main button. Context for Jev and
+   * your agent; never placed on a page. When set, `kind` is derived from it (`kindOf`).
+   */
+  brief?: Brief
 }
 
 /** A line of your words waiting for a home, with the best two guesses (a section and the role it'd play there). */
@@ -425,6 +431,8 @@ export interface VersionNode {
   status: Status
   createdAt: number
   kind: 'snapshot' | 'build'
+  /** The draft whose history it's in (core/drafts.ts); builds are in their version's draft. */
+  draftId?: string
   snapshot: MixSnapshot // builds keep a copy of the snapshot they were built from
   build?: {
     by: 'reference' | 'agent'
@@ -702,6 +710,9 @@ export interface Starter {
   /** Home first. Each page lists its sections' clip ids top to bottom, nav and footer included. */
   pages: { path: string; title: string; sections: string[] }[]
   tier?: Tier
+  /** Industries and formats it suits best (core/brief.ts ids): the guided start offers it first for those. */
+  industries?: string[]
+  formats?: string[]
 }
 
 export interface Library {

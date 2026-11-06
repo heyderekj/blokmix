@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { create } from 'zustand'
 import { CornerDownLeft, FilePlus2, Type, Wand2, X } from 'lucide-react'
 import type { SayAction } from '@/core/jev/say'
-import { jevOn } from '@/lib/jev'
+import { checkJevServer, jevOn, useJevServer } from '@/lib/jev'
 import { doSay, hear, sayContext, useJevTools, type Heard } from '@/state/jevSay'
 import { barSentence, fillBar, matchRequest, openBlanks, rankRequest, readMatch, readRank, sentenceText, type Blank, type Picks } from '@/core/jev/sentence'
 import { askJev, askLatest } from '@/lib/jev'
@@ -29,13 +29,16 @@ export function SayBar() {
   const open = useSay((s) => s.open)
   const sheet = useJevTools((s) => s.open === 'pour' || s.open === 'page')
   // Content lists the lines waiting for a home itself.
-  const waiting = useStore((s) => (s.ui.sheet === 'guide' && s.ui.guideTab === 'content' ? 0 : trayLines(s).length))
+  const waiting = useStore((s) => (s.ui.leftPanel === 'words' ? 0 : trayLines(s).length))
   const [text, setText] = useState('')
   const [pasted, setPasted] = useState<string | null>(null)
   const [heard, setHeard] = useState<Heard | null>(null)
   const [busy, setBusy] = useState(false)
   const [off, setOff] = useState(false)
   const input = useRef<HTMLInputElement>(null)
+  // No key on this server: the bar isn't drawn at all (only lines waiting for a home, if any).
+  const server = useJevServer((s) => s.ready)
+  useEffect(checkJevServer, [])
   const box = useRef<HTMLDivElement>(null)
   // The sentence you build from the blanks ("Make [Pricing] [darker]"), while nothing is typed.
   const [picks, setPicks] = useState<Picks>({})
@@ -65,6 +68,8 @@ export function SayBar() {
     if (!open) return
     const down = (e: MouseEvent) => {
       if (box.current?.contains(e.target as Node)) return
+      // The dock's button toggles it itself.
+      if ((e.target as Element).closest?.('[data-say-toggle]')) return
       if (!input.current?.value) useSay.setState({ open: false })
     }
     window.addEventListener('mousedown', down)
@@ -114,6 +119,8 @@ export function SayBar() {
 
   // The words sheet takes the bar's place while it's up.
   if (sheet) return null
+  // Out of the way until asked for (⌘K, or its button in the dock): only lines still waiting for a home show.
+  if (!open && !text && !pasted) return waiting > 0 ? <div className="pointer-events-auto flex justify-center"><TrayChip count={waiting} /></div> : null
   const clear = () => {
     setText('')
     setPasted(null)
@@ -137,6 +144,7 @@ export function SayBar() {
   }
   const action = heard?.action
   const options = heard?.options ?? []
+  if (server === false) return waiting > 0 ? <div className="pointer-events-auto flex justify-center" data-say><TrayChip count={waiting} /></div> : null
   const showing = !off && !pasted && (action || options.length > 0 || (heard && !busy && text.trim().length > 1))
   const building = open && !off && !pasted && !text.trim()
   const runBuilt = () => {
@@ -171,7 +179,7 @@ export function SayBar() {
           {action && (
             <button type="button" onClick={() => run(action)} className="flex w-full cursor-pointer items-center gap-2 rounded-xl bg-zinc-950/[0.05] px-2.5 py-2 text-left transition hover:bg-zinc-950/[0.08] active:scale-[0.99]">
               <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{action.words}</span>
-              {heard?.kept && <span className="shrink-0 text-[11px] text-zinc-500" title={heard.kept}>Your contract keeps this</span>}
+              {heard?.kept && <span className="shrink-0 text-[11px] text-zinc-500" title={heard.kept}>Your rules keep this as it is</span>}
               <span className="kbd flex items-center gap-1">
                 <CornerDownLeft size={11} />
               </span>

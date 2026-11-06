@@ -42,5 +42,12 @@
         "footer.layout-columns"
       ]
     }
+  ],
+  "industries": [
+    "devtools",
+    "ai"
+  ],
+  "formats": [
+    "landing"
   ]
 }

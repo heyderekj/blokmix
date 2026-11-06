@@ -26,5 +26,12 @@
         "cta.layout-card"
       ]
     }
+  ],
+  "industries": [
+    "agency",
+    "services"
+  ],
+  "formats": [
+    "business"
   ]
 }

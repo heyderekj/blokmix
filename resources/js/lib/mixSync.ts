@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import type { PersistStorage, StorageValue } from 'zustand/middleware'
 import type { VersionNode } from '@/core/types'
-import { STORAGE_KEY, localMixStorage, useStore, type MixData, type Persisted } from '@/state/store'
+import type { Draft } from '@/core/drafts'
+import { STORAGE_KEY, localMixStorage, sameMix, useStore, type MixData, type Persisted } from '@/state/store'
 import { blankMix } from '@/state/seed'
 import { useAccount, type MixRole } from './account'
 import { xsrf } from './http'
@@ -24,6 +25,8 @@ export interface ServerMix {
   name: string
   data: MixFields | null
   versions: Record<string, VersionNode>
+  /** The mix's drafts, by id (the open one's body is in `data`). */
+  drafts?: Record<string, Draft>
   lock: number
   schema?: number
   /** Archived: read-only until its owner brings it back. */
@@ -32,14 +35,18 @@ export interface ServerMix {
   paid?: boolean
 }
 
-type MixFields = Omit<MixData, 'mixName' | 'versions'>
-const FIELDS = ['site', 'guide', 'content', 'contract', 'notes', 'branchFrom', 'head', 'framePos', 'clips'] as const
+type MixFields = Omit<MixData, 'mixName' | 'versions' | 'drafts'>
+const FIELDS = ['site', 'guide', 'content', 'contract', 'notes', 'branchFrom', 'head', 'draftId', 'framePos', 'clips'] as const
+/** Versions and drafts each go up one by one: only the ones that changed. */
+type Keyed = 'versions' | 'drafts'
+type KeyedPut = { versions: VersionNode; drafts: Draft }
 
 export type SaveStatus = 'local' | 'saved' | 'saving' | 'offline' | 'error'
 /** How saving is going, for the top bar. */
 export const useSave = create<{ status: SaveStatus; mixId: string }>()(() => ({ status: 'local', mixId: 'local' }))
 
 const SAVE_AFTER = 800
+const VIEW_AFTER = 1000
 const cacheKey = (id: string) => `blokmix:mix:${id}`
 
 interface Cache {
@@ -67,8 +74,8 @@ const writeCache = (id: string, c: Cache) => {
 
 const fields = (s: Partial<Persisted>): MixFields => Object.fromEntries(FIELDS.map((k) => [k, s[k]])) as MixFields
 const json = new WeakMap<object, string>()
-/** JSON for a version node, remembered per object (nodes are replaced, never changed in place). */
-const nodeJson = (v: VersionNode) => {
+/** JSON for a version or draft, remembered per object (they're replaced, never changed in place). */
+const nodeJson = (v: object) => {
   let s = json.get(v)
   if (s === undefined) json.set(v, (s = JSON.stringify(v)))
   return s
@@ -90,12 +97,15 @@ class MixSync {
   readonly id: string
   private lock: number
   /** What the server has, to send only the difference. */
-  private base: { name: string; data: string | null; versions: Record<string, string> }
+  private base: { name: string; data: string | null; versions: Record<string, string>; drafts: Record<string, string> }
   private latest: Persisted | null = null
   private timer: ReturnType<typeof setTimeout> | undefined
   private inflight: Promise<void> | null = null
   private retry = 0
   private closed = false
+  private viewTimer: ReturnType<typeof setTimeout> | undefined
+  /** Whether the latest state holds edits the server doesn't have yet. */
+  private unsent = false
 
   constructor(mix: ServerMix) {
     this.id = mix.id
@@ -104,6 +114,7 @@ class MixSync {
       name: mix.name,
       data: mix.data ? JSON.stringify(mix.data) : null,
       versions: Object.fromEntries(Object.entries(mix.versions ?? {}).map(([k, v]) => [k, JSON.stringify(v)])),
+      drafts: Object.fromEntries(Object.entries(mix.drafts ?? {}).map(([k, v]) => [k, JSON.stringify(v)])),
     }
   }
 
@@ -114,7 +125,7 @@ class MixSync {
     const view = { ui: cache?.ui, camera: cache?.camera ?? null }
     // A new mix may hold only some fields (a guide it started from); a blank mix fills the rest.
     const data = { ...fields(blankMix(mix.name)), ...mix.data }
-    return { ...data, mixName: mix.name, versions: mix.versions ?? {}, ...view } as Persisted
+    return { ...data, mixName: mix.name, versions: mix.versions ?? {}, ...(mix.drafts && Object.keys(mix.drafts).length ? { drafts: mix.drafts } : {}), ...view } as Persisted
   }
 
   storage(mix: ServerMix): PersistStorage<Persisted> {
@@ -128,8 +139,17 @@ class MixSync {
 
   private changed(state: Persisted) {
     if (this.closed) return
+    const quiet = sameMix(this.latest, state)
     this.latest = state
+    clearTimeout(this.viewTimer)
+    if (quiet) {
+      // Only this device's view moved (the camera came to rest): nothing to compare or send, and the offline copy
+      // is written a moment after the last such change.
+      this.viewTimer = setTimeout(() => this.writeView(), VIEW_AFTER)
+      return
+    }
     const pending = this.diff(state)
+    this.unsent = !!pending
     writeCache(this.id, { lock: this.lock, ui: state.ui, camera: state.camera, ...(pending ? { unsent: state } : {}) })
     if (!pending) return
     useSave.setState({ status: 'saving' })
@@ -137,15 +157,25 @@ class MixSync {
     this.timer = setTimeout(() => void this.flush(), SAVE_AFTER)
   }
 
+  /** This device's view (and the edits still waiting to be sent) into the offline copy. */
+  writeView() {
+    clearTimeout(this.viewTimer)
+    const s = this.latest
+    if (s) writeCache(this.id, { lock: this.lock, ui: s.ui, camera: s.camera, ...(this.unsent ? { unsent: s } : {}) })
+  }
+
   private diff(state: Persisted) {
-    const out: { name?: string; data?: MixFields; versions?: { put: Record<string, VersionNode>; remove: string[] } } = {}
+    const out: { name?: string; data?: MixFields } & { [K in Keyed]?: { put: Record<string, KeyedPut[K]>; remove: string[] } } = {}
     if (state.mixName !== this.base.name) out.name = state.mixName
     const data = JSON.stringify(fields(state))
     if (data !== this.base.data) out.data = fields(state)
-    const put: Record<string, VersionNode> = {}
-    for (const [k, v] of Object.entries(state.versions ?? {})) if (this.base.versions[k] !== nodeJson(v)) put[k] = v
-    const remove = Object.keys(this.base.versions).filter((k) => !state.versions?.[k])
-    if (Object.keys(put).length || remove.length) out.versions = { put, remove }
+    for (const key of ['versions', 'drafts'] as const) {
+      const now = (state[key] ?? {}) as Record<string, object>
+      const put: Record<string, object> = {}
+      for (const [k, v] of Object.entries(now)) if (this.base[key][k] !== nodeJson(v)) put[k] = v
+      const remove = Object.keys(this.base[key]).filter((k) => !now[k])
+      if (Object.keys(put).length || remove.length) (out as Record<string, unknown>)[key] = { put, remove }
+    }
     return Object.keys(out).length ? out : null
   }
 
@@ -171,9 +201,11 @@ class MixSync {
             name: change.name ?? this.base.name,
             data: change.data ? JSON.stringify(change.data) : this.base.data,
             versions: Object.fromEntries(Object.entries(state.versions ?? {}).map(([k, v]) => [k, nodeJson(v)])),
+            drafts: Object.fromEntries(Object.entries(state.drafts ?? {}).map(([k, v]) => [k, nodeJson(v)])),
           }
           this.retry = 0
           const still = this.latest && this.diff(this.latest)
+          this.unsent = !!still
           writeCache(this.id, { lock: this.lock, ui: state.ui, camera: state.camera, ...(still ? { unsent: this.latest! } : {}) })
           if (!this.closed) useSave.setState({ status: still ? 'saving' : 'saved' })
           if (still && !this.closed) this.timer = setTimeout(() => void this.flush(), SAVE_AFTER)
@@ -203,6 +235,7 @@ class MixSync {
   }
 
   close() {
+    if (this.viewTimer) this.writeView()
     void this.flush(true)
     this.closed = true
   }
@@ -245,12 +278,12 @@ export function openMix(mix: ServerMix | 'local', opts: { force?: boolean; role?
   // Uploads: fetch what this browser lacks, send what the server lacks.
   if (mix !== 'local') {
     const st = useStore.getState()
-    void syncAssets(mix.id, assetIdsIn([st.site, st.versions]), role !== 'viewer')
+    void syncAssets(mix.id, assetIdsIn([st.site, st.versions, st.drafts]), role !== 'viewer')
   } else void syncAssets(null, [], false)
 }
 
 /** What a viewer can't change: everything but the marks (notes) and their own view. */
-const HELD = ['mixName', 'site', 'guide', 'content', 'contract', 'versions', 'branchFrom', 'head', 'clips'] as const
+const HELD = ['mixName', 'site', 'guide', 'content', 'contract', 'versions', 'branchFrom', 'head', 'clips', 'drafts', 'draftId'] as const
 let viewOnly: (() => void) | null = null
 
 /**
@@ -272,5 +305,8 @@ function holdStill(): () => void {
 
 if (typeof window !== 'undefined') {
   // Last chance to send edits when the tab closes (the offline copy covers it if this doesn't make it).
-  window.addEventListener('pagehide', () => void current?.flush(true))
+  window.addEventListener('pagehide', () => {
+    current?.writeView()
+    void current?.flush(true)
+  })
 }

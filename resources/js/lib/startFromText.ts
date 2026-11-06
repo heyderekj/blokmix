@@ -6,7 +6,9 @@
 import type { Kind, SectionType, Slot } from '@/core/types'
 import { DEFAULT_KEEP } from '@/core/types'
 import { chromeFor, contentFor, guideFor, RECIPES, type StartCandidate, type StartInput } from '@/core/start'
-import { describeRequest, readDescribe, sectionsFor, textMode, type Look, type TextMode } from '@/core/jev/describe'
+import { describeRequest, readDescribe, sectionsFor, sureGoals, textMode, type Look, type TextMode } from '@/core/jev/describe'
+import { briefFromKind, guessBrief, kindOf } from '@/core/brief'
+import type { HeardBrief } from '@/core/startFlow'
 import { describeSections } from '@/core/jev/pageFromWords'
 import { siteFromSlots } from '@/core/site'
 import { skinList, skinOpen, WIREFRAME } from '@/core/skins'
@@ -15,8 +17,8 @@ import { askJev } from './jev'
 import { scoreStart, scoredStarts, type ScoredStart } from './start'
 import { planPage, wordsPage, type PagePlan } from '@/state/jevPage'
 
-/** What Jev heard in the box. */
-export interface Heard {
+/** What Jev heard in the box (and, for the guided start, what the site is: format, industry, goals). */
+export interface Heard extends HeardBrief {
   mode: TextMode
   /** The kind when Jev is sure; otherwise the chip waits for you. */
   kind: Kind | null
@@ -49,13 +51,65 @@ export async function hearStart(text: string, fallbackKind: Kind = 'studio'): Pr
     if (!plan) return null
     const kind = plan.read.kind
     const made = wordsPage(plan, 1, contentFor({ kind: kind ?? fallbackKind, name: '' }), (i) => `preview${i}`)
-    return { mode, kind, kinds: kind ? [kind] : [], sections: made.types, looks: [], plan, lines: plan.lines.length, placed: plan.lines.length - made.tray.length, waiting: made.tray.length }
+    const b = briefFromKind(kind ?? undefined)
+    const guess = guessBrief(t)
+    return {
+      mode,
+      jev: true,
+      kind,
+      kinds: kind ? [kind] : [],
+      sections: made.types,
+      want: {},
+      looks: [],
+      format: b.format ?? guess.format ?? null,
+      formats: [],
+      industry: guess.industry ?? b.industry ?? null,
+      industries: [],
+      goals: guess.goals ?? [],
+      plan,
+      lines: plan.lines.length,
+      placed: plan.lines.length - made.tray.length,
+      waiting: made.tray.length,
+    }
   }
   const res = await askJev(describeRequest(t, looksOnOffer()), { timeoutMs: 6000 })
   const read = readDescribe(res)
   if (!read) return null
   const kind = read.kind ?? read.kinds[0]?.kind ?? fallbackKind
-  return { mode, kind: read.kind, kinds: read.kinds.map((k) => k.kind), sections: sectionsFor(kind, read.want), looks: read.looks }
+  return {
+    mode,
+    jev: true,
+    kind: read.kind,
+    kinds: read.kinds.map((k) => k.kind),
+    sections: sectionsFor(kind, read.want),
+    want: read.want,
+    looks: read.looks,
+    format: read.format,
+    formats: read.formats,
+    industry: read.industry,
+    industries: read.industries,
+    goals: sureGoals(read),
+  }
+}
+
+/** What keywords alone can tell, when suggestions are off or didn't answer: the same questions, ranked by code. */
+export function guessHeard(text: string): Heard {
+  const g = guessBrief(text)
+  const kind = g.format || g.industry ? kindOf(g) : null
+  return {
+    mode: 'describe',
+    jev: false,
+    kind,
+    kinds: kind ? [kind] : [],
+    sections: kind ? RECIPES[kind].home : [],
+    want: {},
+    looks: [],
+    format: g.format ?? null,
+    formats: g.format ? [g.format] : [],
+    industry: g.industry ?? null,
+    industries: g.industry ? [g.industry] : [],
+    goals: g.goals ?? [],
+  }
 }
 
 /** A described start's sections for a kind you picked yourself: the kind's page, as the description changed it. */

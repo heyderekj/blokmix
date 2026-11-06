@@ -1,8 +1,10 @@
+import { toggleLeft } from '@/ui/shell/LeftPanel'
 import { useEffect } from 'react'
 import { useTiles } from '@/ui/frames/tiles'
 import type { Keep } from '@/core/types'
 import { useStore, undo, redo, currentSlots } from '@/state/store'
 import { canvasApi } from '@/ui/canvas/Canvas'
+import { zoomKey } from '@/ui/canvas/camera'
 import { pressVersionAndFly } from '@/lib/actions'
 import { library, slotClip } from '@/data/library'
 import { tileNeighbor, listContext } from '@/core/lists'
@@ -35,6 +37,32 @@ export function useShortcuts(onHelp: () => void) {
       const mod = e.metaKey || e.ctrlKey
       const focused = currentSlots(st).find((s) => s.id === st.ui.focusedSlotId)
       const k = e.key
+
+      // The view's keys, ⌘ ones included (never the browser's own zoom).
+      const zoom = zoomKey(e)
+      if (zoom) {
+        e.preventDefault()
+        if (zoom === 'in' || zoom === 'out') canvasApi.zoomStep(zoom === 'in' ? 1 : -1)
+        else if (zoom === 'fitWidth') canvasApi.fitWidth()
+        else if (zoom === 'actual') canvasApi.zoomTo(1)
+        else if (zoom === 'fitAll') canvasApi.fitAll()
+        else if (!canvasApi.zoomToSelection()) st.showFlash('Select a section to zoom to it')
+        return
+      }
+      // Page mode: the page scrolls a screen at a time, and by a little with ↑ ↓ when nothing is selected.
+      if (!mod && !e.altKey && canvasApi.mode() === 'page') {
+        const page = canvasApi.view().h - canvasApi.view().top - canvasApi.view().bottom
+        if (k === 'PageDown' || k === 'PageUp') {
+          e.preventDefault()
+          canvasApi.scrollBy((k === 'PageDown' ? 1 : -1) * page * 0.85)
+          return
+        }
+        if ((k === 'ArrowDown' || k === 'ArrowUp') && !focused && !e.shiftKey) {
+          e.preventDefault()
+          canvasApi.scrollBy((k === 'ArrowDown' ? 1 : -1) * 120)
+          return
+        }
+      }
 
       // ⌘K: say what to change (Jev).
       if (mod && k.toLowerCase() === 'k') {
@@ -120,9 +148,6 @@ export function useShortcuts(onHelp: () => void) {
         return
       }
       if (mod || e.altKey) return
-
-      if (e.shiftKey && (e.code === 'Digit1' || k === '!')) return void (e.preventDefault(), canvasApi.fitAll())
-      if (e.shiftKey && (e.code === 'Digit0' || k === ')')) return void (e.preventDefault(), canvasApi.fitMix())
 
       switch (k) {
         case 'ArrowLeft':
@@ -212,15 +237,9 @@ export function useShortcuts(onHelp: () => void) {
             const block = slotClip(focused).blocks.find((b) => b.id === st.ui.selectedBlockId)
             st.selectBlock(block?.parent ?? null)
           } else if (st.ui.sheet !== 'none') st.setUi({ sheet: 'none' })
+          // With nothing left to step out of, Esc goes back from the canvas to the page.
+          else if (!focused && st.ui.tool === 'select' && !st.ui.previewFrameId && canvasApi.mode() === 'canvas') canvasApi.setMode('page')
           else st.setUi({ tool: 'select', previewFrameId: null, focusedSlotId: null })
-          return
-        case '=':
-        case '+':
-          canvasApi.zoomBy(1.25)
-          return
-        case '-':
-        case '_':
-          canvasApi.zoomBy(0.8)
           return
         case 'c':
         case 'C':
@@ -228,7 +247,11 @@ export function useShortcuts(onHelp: () => void) {
           return
         case 'g':
         case 'G':
-          st.setUi({ sheet: st.ui.sheet === 'guide' ? 'none' : 'guide' })
+          toggleLeft('look')
+          return
+        case 'w':
+        case 'W':
+          toggleLeft('words')
           return
         case '?':
           onHelp()

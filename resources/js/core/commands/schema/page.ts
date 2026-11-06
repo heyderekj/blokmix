@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { DIAL_NAMES } from '../../dials'
+import { FORMATS, GOALS, INDUSTRIES } from '../../brief'
 import { SECTION_TYPES, TOKEN_KEYS } from '../../types'
 import { TEXT_STYLES, TYPE_STEPS } from '../../textStyles'
 import { section, block } from './shared'
@@ -146,6 +147,27 @@ export const PAGE_COMMANDS = {
     description:
       'Change the site’s name everywhere it’s written: the nav and footer, headlines, the copyright line, each section’s own words and kept word options (whole words only). One undo step; says how many places changed.',
     input: z.object({ name: z.string().trim().min(1).max(80) }),
+    write: true,
+  },
+  get_brief: {
+    description:
+      'What the site is for: its format (landing page, business site, portfolio, blog, event page), industry, goals, who it’s for, what it is in the owner’s words, and the main button’s words. Context for choosing sections, layouts, colors and pictures. Never put these words on the page unless they’re already in a section.',
+    input: z.object({}),
+    write: false,
+  },
+  set_brief: {
+    description:
+      'Change what the site is for (only the fields given; an empty string or empty list clears one). The kind of site follows the format and industry. It steers suggestions and goes to the agent in BLOKMIX.md; it never changes the page’s words. One undo step.',
+    input: z.object({
+      format: z.enum(FORMATS).optional(),
+      industry: z.enum(INDUSTRIES).optional(),
+      industry_words: z.string().max(80).optional().describe('The industry as the owner put it, when more specific than the list'),
+      goals: z.array(z.enum(GOALS)).max(4).optional(),
+      goals_other: z.string().max(120).optional(),
+      who: z.string().max(200).optional(),
+      what: z.string().max(600).optional(),
+      main_action: z.string().max(40).optional().describe('The main button’s words; set_words puts them on the page'),
+    }),
     write: true,
   },
   set_brand_color: {

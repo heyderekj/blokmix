@@ -25,6 +25,9 @@ export interface Starter {
   /** For the guided start (`core/start.ts`): what kind of site it is, and the skin it's dressed in when opened on its own. */
   kind?: string
   skin?: string
+  /** Industries and formats it suits best (core/brief.ts ids): the guided start offers it first for those. */
+  industries?: string[]
+  formats?: string[]
   /** Its sample style guide: the tokens it sets (the rest stay neutral). They land as your own values, so dials and
    * knobs move them like any other. */
   tokens?: Partial<TokenSet>
@@ -85,6 +88,8 @@ export function describeStarter(lib: Library, starter: Starter) {
     id: starter.id,
     name: starter.name,
     description: starter.description,
+    formats: starter.formats ?? [],
+    industries: starter.industries ?? [],
     pages: starter.pages.map((p) => ({ path: p.path, title: p.title, sections: p.sections.map((id) => lib.clips[id]?.type).filter(Boolean) as SectionType[] })),
   }
 }

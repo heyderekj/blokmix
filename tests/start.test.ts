@@ -125,6 +125,15 @@ describe('guided start', () => {
     }
   })
 
+  it('reads like a real site, not instructions or a greeting', () => {
+    const instructions = /^(Welcome to|Say what|A line |A sentence |What you do|What you write|What makes |How you |Where you |Why someone)|in a sentence|a sentence or two|Keep it plain|Learn more/
+    for (const kind of KINDS) {
+      const c = contentFor({ kind, name: 'Fern & Co' }, 2026)
+      for (const [type, fields] of Object.entries(c.fields))
+        for (const [k, v] of Object.entries(fields!)) expect(v, `${kind} ${type}.${k}`).not.toMatch(instructions)
+    }
+  })
+
   it('fills in an email and the year', () => {
     const c = contentFor({ kind: 'studio', name: 'Fern & Co' }, 2026)
     expect(c.fields.contact?.email).toBe('hello@fernco.com')

@@ -220,12 +220,19 @@ const BRIDGE = `(function () {
     e.preventDefault();
     post({ wheel: { dx: e.deltaX, dy: e.deltaY, mode: e.deltaMode, x: e.clientX, y: e.clientY, ctrl: e.ctrlKey, meta: e.metaKey, shift: e.shiftKey } });
   }, { passive: false });
+  /* Safari pinches with gesture events: the page's zoom, never the frame's. */
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) {
+    document.addEventListener(t, function (e) {
+      e.preventDefault();
+      post({ gesture: { phase: t === 'gesturestart' ? 'start' : t === 'gesturechange' ? 'change' : 'end', scale: e.scale || 1, x: e.clientX || 0, y: e.clientY || 0 } });
+    });
+  });
   /* Keys pressed while the frame has focus still drive the canvas. */
   document.addEventListener('keydown', function (e) {
     if (editing) return;
     if (editMode && e.key === 'Enter' && sel) { var f = fieldEl(byId(sel)); if (f) { e.preventDefault(); startEdit(f); return; } }
     post({ key: { key: e.key, code: e.code, meta: e.metaKey, ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey } });
-    if (e.key === ' ' || e.key === 'Tab' || e.key.indexOf('Arrow') === 0 || ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D'))) e.preventDefault();
+    if (e.key === ' ' || e.key === 'Tab' || e.key.indexOf('Arrow') === 0 || e.key === 'PageUp' || e.key === 'PageDown' || ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D' || (e.key.length === 1 && '=+-_01'.indexOf(e.key) >= 0)))) e.preventDefault();
   });
   /* …and their release, so a key held down out here (Space pans) is let go of too. */
   document.addEventListener('keyup', function (e) {

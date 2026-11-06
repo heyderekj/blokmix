@@ -48,7 +48,7 @@ const fromBase64 = (s: string): Uint8Array | null => {
 
 /** What's wrong with a request, in a sentence, or null when it's one Blokmix would send. */
 export function requestProblem(body: unknown, rawBytes: number): string | null {
-  if (rawBytes > JEV_LIMITS.maxBody) return 'That is more than Jev is asked about at once.'
+  if (rawBytes > JEV_LIMITS.maxBody) return 'That’s too much to read at once.'
   if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Send the request as JSON.'
   const b = body as Record<string, unknown>
   if (!MODELS.includes(b.model as string)) return 'Ask jev-latest or jev-preview.'
@@ -61,7 +61,7 @@ export function requestProblem(body: unknown, rawBytes: number): string | null {
   const assets = (b.assets ?? {}) as Record<string, { type?: string; format?: string; data_base64?: string }>
   if (typeof assets !== 'object' || Array.isArray(assets)) return 'Assets go by reference.'
   const list = Object.values(assets)
-  if (!list.length && rawBytes > JEV_LIMITS.maxJsonWithoutImages) return 'That is more words than Jev is asked about at once.'
+  if (!list.length && rawBytes > JEV_LIMITS.maxJsonWithoutImages) return 'That’s too many words to read at once.'
   if (list.length > JEV_LIMITS.maxImages) return `At most ${JEV_LIMITS.maxImages} pictures at once.`
   for (const a of list) {
     const bytes = a?.type === 'image' && ['jpg', 'jpeg', 'png'].includes(a.format ?? '') && a.data_base64 ? fromBase64(a.data_base64) : null

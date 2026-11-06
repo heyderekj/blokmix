@@ -74,7 +74,7 @@ class JevController extends Controller
         abort_if($key === '', 503, 'Jev is off: the server has no TypeSafe key (TYPESAFE_API_KEY).');
 
         $raw = $request->getContent();
-        abort_if(strlen($raw) > self::MAX_BODY, 413, 'That is more than Jev is asked about at once.');
+        abort_if(strlen($raw) > self::MAX_BODY, 413, 'That’s too much to read at once.');
         $body = json_decode($raw, true);
         abort_unless(is_array($body), 422, 'Send the request as JSON.');
 
@@ -131,7 +131,7 @@ class JevController extends Controller
             return 'Assets go by reference.';
         }
         if ($assets === [] && strlen($raw) > self::MAX_JSON_WITHOUT_IMAGES) {
-            return 'That is more words than Jev is asked about at once.';
+            return 'That’s too many words to read at once.';
         }
         if (count($assets) > self::MAX_IMAGES) {
             return 'At most '.self::MAX_IMAGES.' pictures at once.';

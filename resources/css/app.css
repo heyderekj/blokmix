@@ -444,9 +444,9 @@ body:has([data-board]) { overflow: hidden; }
 
 /* Page frames on the canvas: rounded like the chrome, measured on screen, but
    capped in page pixels so zooming out never rounds away real content. */
-.frame-r { border-radius: min(calc(14px / var(--z, 1)), 40px); }
-.frame-r-top { border-top-left-radius: min(calc(14px / var(--z, 1)), 40px); border-top-right-radius: min(calc(14px / var(--z, 1)), 40px); }
-.frame-r-bottom { border-bottom-left-radius: min(calc(14px / var(--z, 1)), 40px); border-bottom-right-radius: min(calc(14px / var(--z, 1)), 40px); }
+.frame-r { border-radius: min(calc(14px / var(--zl, 1)), 40px); }
+.frame-r-top { border-top-left-radius: min(calc(14px / var(--zl, 1)), 40px); border-top-right-radius: min(calc(14px / var(--zl, 1)), 40px); }
+.frame-r-bottom { border-bottom-left-radius: min(calc(14px / var(--zl, 1)), 40px); border-bottom-right-radius: min(calc(14px / var(--zl, 1)), 40px); }
 
 /* Motion swatches: each preset performs itself in the Motion menu (same curves as core/motion.ts). */
 @keyframes sw-rise { from { opacity: 0; translate: 0 8px; } }

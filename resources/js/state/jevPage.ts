@@ -36,7 +36,7 @@ export async function planPage(text: string): Promise<PagePlan | null> {
  * How many items of this kind (plans by their names, questions, people…) a layout holds: only lists whose items take
  * that role count, so a one-plan band whose plan lists eight features doesn't pass for eight plans.
  */
-function capacity(clipId: string, lead: Role | null): number {
+export function capacity(clipId: string, lead: Role | null): number {
   const c = library.clips[clipId]
   if (!c || !lead) return c ? Infinity : 0
   // The stamped section (block ids on its lists), as the board reads it: the raw html's lists have none.

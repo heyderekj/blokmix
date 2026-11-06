@@ -10,10 +10,16 @@ import { choice, noul } from './ask'
 import { clip } from './state'
 import { merged, shuffled } from './shuffle'
 import { ranked, yes } from './read'
-import { KIND_CRITERIA, SECTION_CRITERIA } from './vocab'
+import { FORMAT_CRITERIA, GOAL_CRITERIA, INDUSTRY_CRITERIA, KIND_CRITERIA, SECTION_CRITERIA } from './vocab'
+import { FORMATS, GOALS, INDUSTRIES, type Format, type Goal, type Industry } from '../brief'
 import type { Criterion, JevRequest, JevResponse } from './types'
 
 export const DESCRIBE_THRESHOLDS = {
+  /** The format and the industry, when both orders agree at these; below, the chips wait for you. */
+  format: 0.45,
+  industry: 0.4,
+  /** A goal is ticked for you at this. */
+  goal: 0.6,
   /** The kind, when both orders agree at this. Below, the kind chip waits for you. */
   kind: 0.45,
   /** A section the kind doesn't have joins at this. */
@@ -59,6 +65,10 @@ export function describeRequest(text: string, looks: Look[]): JevRequest {
     const criteria: Record<string, Criterion> = Object.fromEntries(looks.slice(0, 40).map((l) => [l.id, { what: `${l.name}: ${l.words}` }]))
     Object.assign(questions, shuffled('look', choice({ question: 'Which of these looks suits the website described here best?', description }, criteria)))
   }
+  // What the site is (format and industry) and what it should do (goals), for the brief.
+  Object.assign(questions, shuffled('format', choice({ question: 'What kind of website is this description for?', description }, FORMAT_CRITERIA)))
+  Object.assign(questions, shuffled('industry', choice({ question: 'What industry is the website described here in?', description }, INDUSTRY_CRITERIA)))
+  for (const g of GOALS) questions[`goal_${g}`] = noul({ question: `Should the website described here ${GOAL_CRITERIA[g]}?`, description })
   return { state: { description }, questions }
 }
 
@@ -71,6 +81,13 @@ export interface Described {
   want: Partial<Record<SectionType, number>>
   /** Looks worth offering, best first (at most two). */
   looks: string[]
+  /** The format and industry when sure, and every one likeliest first. */
+  format: Format | null
+  formats: Format[]
+  industry: Industry | null
+  industries: Industry[]
+  /** How likely each goal is, likeliest first. */
+  goals: { goal: Goal; p: number }[]
 }
 
 export function readDescribe(res: JevResponse | null): Described | null {
@@ -88,8 +105,20 @@ export function readDescribe(res: JevResponse | null): Described | null {
   }
   const l = merged(res, 'look')
   const looks = l ? ranked(l).filter((x) => x.p >= DESCRIBE_THRESHOLDS.skin).slice(0, 2).map((x) => x.option) : []
-  return { kind, kinds, want, looks }
+  const sure = <T extends string>(key: string, ids: readonly T[], at: number): { one: T | null; all: T[] } => {
+    const m = merged(res, key)
+    if (!m) return { one: null, all: [] }
+    const all = ranked(m).filter((x) => (ids as readonly string[]).includes(x.option))
+    return { one: all[0] && m.agree && all[0].p >= at ? (all[0].option as T) : null, all: all.map((x) => x.option as T) }
+  }
+  const f = sure('format', FORMATS, DESCRIBE_THRESHOLDS.format)
+  const i = sure('industry', INDUSTRIES, DESCRIBE_THRESHOLDS.industry)
+  const goals = GOALS.map((goal) => ({ goal, p: yes(res, `goal_${goal}`) ?? 0 })).sort((a, b) => b.p - a.p)
+  return { kind, kinds, want, looks, format: f.one, formats: f.all, industry: i.one, industries: i.all, goals }
 }
+
+/** Goals sure enough to tick for you. */
+export const sureGoals = (d: Pick<Described, 'goals'>): Goal[] => d.goals.filter((g) => g.p >= DESCRIBE_THRESHOLDS.goal).map((g) => g.goal).slice(0, 3)
 
 /** The kind's home page with the sections a description asks for added and the ones it clearly doesn't want dropped. */
 export function sectionsFor(kind: Kind, want: Described['want']): SectionType[] {

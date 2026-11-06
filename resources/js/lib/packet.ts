@@ -1,3 +1,4 @@
+import { snapshotOf } from '@/state/snapshot'
 import type { BuildTarget, MixSnapshot, Note, VersionNode } from '@/core/types'
 import { bindContextFor } from '@/state/collections'
 import { resolveGuide } from '@/core/guide'
@@ -57,6 +58,8 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 
     guideState: snap.guide,
     library,
     mixName: st.mixName,
+    // What the site is for is the mix's, not a version's: the brief is shared.
+    about: { brand: snap.content.brand, brief: st.content.brief ?? snap.content.brief, kind: snap.content.kind },
     version: version ? { id: version.id, letter: version.letter, title: version.title, status: version.status, parentLetter: parent?.letter } : null,
     targets,
     notes: [...(snap.generalNotes ?? []), ...frameNotes],
@@ -65,4 +68,28 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 
     contract: version ? (version.snapshot.contract ?? st.contract) : st.contract,
     publishedUrl: publishedUrl(),
   }
+}
+
+/**
+ * What an Export or Publish source names: 'mix' (the open draft as it is now, null), a saved version, or another draft
+ * ('draft:<id>'), read like a version so the packet and the published page compose it the same way.
+ */
+export function sourceVersion(st: Pick<MixData, 'versions' | 'drafts' | 'draftId' | 'notes'>, source: string): VersionNode | null {
+  if (source === 'mix') return null
+  if (source.startsWith('draft:')) {
+    const d = st.drafts[source.slice(6)]
+    if (!d || d.id === st.draftId || !d.body) return null
+    return {
+      id: source,
+      letter: d.letter,
+      parentId: null,
+      title: d.name,
+      status: d.status ?? 'in-progress',
+      createdAt: d.createdAt,
+      kind: 'snapshot',
+      draftId: d.id,
+      snapshot: snapshotOf({ ...d.body, notes: st.notes }),
+    }
+  }
+  return st.versions[source] ?? null
 }

@@ -42,5 +42,13 @@
         "footer.layout-columns"
       ]
     }
+  ],
+  "industries": [
+    "saas",
+    "ai",
+    "ecommerce"
+  ],
+  "formats": [
+    "landing"
   ]
 }
