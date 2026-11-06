@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { create } from 'zustand'
 import { useEscape } from './keys'
 import { openHelp } from './Overlays'
-import { ChevronDown, Dices, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard, MoveHorizontal, Scan, Square } from 'lucide-react'
+import { ChevronDown, Dices, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard, MoveHorizontal, Scan, Square, Wand2 } from 'lucide-react'
 import { useStore, type Tool, currentSlots } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi, onPaint } from '../canvas/Canvas'
@@ -14,7 +14,7 @@ import { Alternatives } from './Alternatives'
 import { toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
-import { SayBar } from '../jev/SayBar'
+import { SayBar, toggleSay, useSay } from '../jev/SayBar'
 import { WordsSheet, WordsTray } from '../jev/WordsSheet'
 
 const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
@@ -68,6 +68,7 @@ export function Dock() {
             >
               <Library size={16} />
             </button>
+            <SayToggle />
             <Divider />
             <ViewMenu />
           </>
@@ -76,6 +77,24 @@ export function Dock() {
         {open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
       </Island>
     </div>
+  )
+}
+
+/** Shows or hides the bar for saying what to change (⌘K), so it never sits over the page uninvited. */
+function SayToggle() {
+  const open = useSay((s) => s.open)
+  return (
+    <button
+      type="button"
+      onClick={toggleSay}
+      title="Say what to change (⌘K)"
+      aria-label="Say what to change"
+      aria-pressed={open}
+      data-say-toggle
+      className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
+    >
+      <Wand2 size={16} />
+    </button>
   )
 }
 

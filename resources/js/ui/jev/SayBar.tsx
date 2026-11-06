@@ -65,6 +65,8 @@ export function SayBar() {
     if (!open) return
     const down = (e: MouseEvent) => {
       if (box.current?.contains(e.target as Node)) return
+      // The dock's button toggles it itself.
+      if ((e.target as Element).closest?.('[data-say-toggle]')) return
       if (!input.current?.value) useSay.setState({ open: false })
     }
     window.addEventListener('mousedown', down)
@@ -114,6 +116,8 @@ export function SayBar() {
 
   // The words sheet takes the bar's place while it's up.
   if (sheet) return null
+  // Out of the way until asked for (⌘K, or its button in the dock): only lines still waiting for a home show.
+  if (!open && !text && !pasted) return waiting > 0 ? <div className="pointer-events-auto flex justify-center"><TrayChip count={waiting} /></div> : null
   const clear = () => {
     setText('')
     setPasted(null)

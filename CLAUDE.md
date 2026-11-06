@@ -215,7 +215,8 @@ dates: code does those.
   arguments from the page → one ordinary command), `pour_words` and `page_from_words` (your words placed verbatim; "Text not placed yet"), `suggest_palettes`/`set_palette` (Find colors in the Feel tile; candidates are AA by construction,
   drawn as swatch cards), `suggest_treatments` (Background ideas in a section's Style panel), and the start box
   (`describe.ts`, `suggest_starts` with `text`; see Guided start).
-- On the board Say it is a bar that's always there above the Dock (`ui/jev/SayBar.tsx`, ⌘K focuses it). Empty and
+- On the board Say it is a bar above the Dock (`ui/jev/SayBar.tsx`), hidden until ⌘K or the Dock's wand button opens it; it
+  hides again on a click elsewhere with nothing typed (a "n not placed" chip still shows). Empty and
   focused, it offers a verb-led sentence ("Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]", "Add [a FAQ
   section]", `barSentence`); `fillBar` builds the same action Say it would (`buildAction` on certain answers). It also takes a
   typed command, or a paste of two or more lines: "Add to this page" / "Make a new page" hand the words to `WordsSheet`
