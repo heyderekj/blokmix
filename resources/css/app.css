@@ -550,10 +550,11 @@ body:has([data-board]) { overflow: hidden; }
 
 /* The padlock (ui/frames/LockGlyph.tsx): open, the shackle is lifted and swung; locking drops it home with the brand's
    small overshoot, then the body clunks once. Only transform moves. */
+.lock-glyph { overflow: visible; }
 .lock-glyph .lock-shackle {
   transform-box: view-box;
   transform-origin: 7px 11px;
-  transform: translateY(-2.5px) rotate(-18deg);
+  transform: translateY(-1.5px) rotate(-14deg);
   transition: transform 220ms cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 .lock-glyph[data-locked] .lock-shackle { transform: none; }
