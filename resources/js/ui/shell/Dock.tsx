@@ -4,17 +4,17 @@ import { AnimatePresence, motion } from 'motion/react'
 import { create } from 'zustand'
 import { useEscape } from './keys'
 import { openHelp } from './Overlays'
-import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard } from 'lucide-react'
+import { ChevronDown, Dices, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard, MoveHorizontal, Scan, Square, Wand2 } from 'lucide-react'
 import { useStore, type Tool, currentSlots } from '@/state/store'
 import { library } from '@/data/library'
-import { canvasApi } from '../canvas/Canvas'
+import { canvasApi, onPaint } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
 import { Alternatives } from './Alternatives'
 import { toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
-import { SayBar } from '../jev/SayBar'
+import { SayBar, toggleSay, useSay } from '../jev/SayBar'
 import { WordsSheet, WordsTray } from '../jev/WordsSheet'
 
 const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
@@ -68,6 +68,7 @@ export function Dock() {
             >
               <Library size={16} />
             </button>
+            <SayToggle />
             <Divider />
             <ViewMenu />
           </>
@@ -76,6 +77,24 @@ export function Dock() {
         {open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
       </Island>
     </div>
+  )
+}
+
+/** Shows or hides the bar for saying what to change (⌘K), so it never sits over the page uninvited. */
+function SayToggle() {
+  const open = useSay((s) => s.open)
+  return (
+    <button
+      type="button"
+      onClick={toggleSay}
+      title="Say what to change (⌘K)"
+      aria-label="Say what to change"
+      aria-pressed={open}
+      data-say-toggle
+      className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
+    >
+      <Wand2 size={16} />
+    </button>
   )
 }
 
@@ -101,15 +120,37 @@ function ShuffleButton() {
   )
 }
 
-/** The zoom readout doubles as the view menu: device, zoom and fit, out of the way. */
+/** The zoom on screen, as it changes (at most once a frame). */
+function useLiveZoom() {
+  const [pct, setPct] = useState(() => Math.round((useStore.getState().camera?.z ?? 0.3) * 100))
+  useEffect(() => {
+    let raf = 0
+    let z = 0
+    const off = onPaint((c) => {
+      z = c.z
+      if (!raf)
+        raf = requestAnimationFrame(() => {
+          raf = 0
+          setPct(Math.round(z * 100))
+        })
+    })
+    return () => {
+      off()
+      cancelAnimationFrame(raf)
+    }
+  }, [])
+  return pct
+}
+
+/** The zoom readout doubles as the view menu: page or canvas, device, zoom and fit, out of the way. */
 function ViewMenu() {
-  const [z, setZ] = useState(useStore.getState().camera?.z ?? 0.3)
+  const pct = useLiveZoom()
   const [open, setOpen] = useState(false)
   const viewport = useStore((s) => s.ui.viewport)
   const mode = useStore((s) => s.ui.mode)
+  const canvasMode = useStore((s) => s.ui.canvasMode ?? 'page')
   const sheet = useStore((s) => s.ui.sheet)
   const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => useStore.subscribe((s) => s.camera && setZ(s.camera.z)), [])
   useEffect(() => setOpen(false), [sheet])
   useOutsideClose(open, ref, () => setOpen(false))
   const row = (Icon: typeof Plus, label: string, kbd: string, run: () => void, keep = false) => (
@@ -126,9 +167,27 @@ function ViewMenu() {
       <span className="kbd">{kbd}</span>
     </button>
   )
+  const seg = (on: boolean) =>
+    `flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md text-[12px] font-medium transition ${on ? 'bg-lift text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`
   return (
     <div ref={ref} className="relative">
       <DockMenu anchor={ref} open={open} align="right">
+            {/* How you move around: scroll the page like a website, or the free canvas with every version. */}
+            <div className="mb-1 flex gap-0.5 rounded-lg bg-well p-0.5" role="radiogroup" aria-label="View">
+              {(['page', 'canvas'] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={canvasMode === m}
+                  title={m === 'page' ? 'Scroll the page like a website (⌘0)' : 'Every version side by side (⇧1)'}
+                  onClick={() => canvasApi.setMode(m)}
+                  className={seg(canvasMode === m)}
+                >
+                  {m === 'page' ? 'Page' : 'Canvas'}
+                </button>
+              ))}
+            </div>
             <div className="mb-1 flex gap-0.5 rounded-lg bg-well p-0.5">
               {(['desktop', 'mobile'] as const).map((v) => (
                 <button
@@ -139,7 +198,7 @@ function ViewMenu() {
                     useStore.getState().setUi({ viewport: v })
                     setTimeout(() => canvasApi.fitMix(), 120)
                   }}
-                  className={`flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md text-[12px] font-medium transition ${viewport === v ? 'bg-lift text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+                  className={seg(viewport === v)}
                 >
                   {v === 'desktop' ? <Monitor size={13} /> : <Smartphone size={13} />}
                   {v === 'desktop' ? 'Desktop' : 'Mobile'}
@@ -156,15 +215,19 @@ function ViewMenu() {
                   aria-checked={mode === m}
                   title={m === 'unified' ? 'Your style and words on every section (U)' : 'Every section as it came (U)'}
                   onClick={() => useStore.getState().setUi({ mode: m })}
-                  className={`flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md text-[12px] font-medium transition ${mode === m ? 'bg-lift text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+                  className={seg(mode === m)}
                 >
                   {m === 'unified' ? 'Your style' : 'Original'}
                 </button>
               ))}
             </div>
-            {row(Plus, 'Zoom in', '+', () => canvasApi.zoomBy(1.3), true)}
-            {row(Minus, 'Zoom out', '−', () => canvasApi.zoomBy(1 / 1.3), true)}
-            {row(Disc3, 'Back to the mix', '⇧0', () => canvasApi.fitMix())}
+            {row(Plus, 'Zoom in', '⌘+', () => canvasApi.zoomStep(1), true)}
+            {row(Minus, 'Zoom out', '⌘−', () => canvasApi.zoomStep(-1), true)}
+            {row(MoveHorizontal, 'Fit width', '⌘0', () => canvasApi.fitWidth())}
+            {row(Square, '100%', '⌘1', () => canvasApi.zoomTo(1))}
+            {row(Scan, 'Zoom to selection', '⇧2', () => {
+              if (!canvasApi.zoomToSelection()) useStore.getState().showFlash('Select a section to zoom to it')
+            })}
             {row(Maximize, 'Fit everything', '⇧1', () => canvasApi.fitAll())}
             <div className="my-1 border-t border-zinc-950/6" />
             {row(Keyboard, 'Keyboard shortcuts', '?', () => openHelp())}
@@ -173,10 +236,11 @@ function ViewMenu() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        title="View: zoom and device"
+        title={canvasMode === 'page' ? 'View: the page, zoom and device' : 'View: the canvas, zoom and device'}
         className={`flex h-8 items-center gap-1 rounded-full pl-2.5 pr-2 text-[12.5px] font-medium tabular-nums transition ${open ? 'bg-zinc-950/5 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
       >
-        {Math.round(z * 100)}%
+        {canvasMode === 'canvas' && <span className="mr-0.5 rounded-full bg-zinc-950/6 px-1.5 py-px text-[11px] font-semibold text-zinc-600">Canvas</span>}
+        {pct}%
         <ChevronDown size={13} className={`text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
     </div>
@@ -233,6 +297,8 @@ function FirstRunTip() {
           exit={{ opacity: 0, y: 4 }}
           className="glass flex items-center gap-2 rounded-full py-1 pl-1.5 pr-3 text-[12px] text-zinc-600 max-md:hidden"
         >
+          <span className="pl-1.5">Scroll to read</span>
+          <span className="text-zinc-300">·</span>
           <span className="kbd">←</span>
           <span className="kbd">→</span> try another layout
           <span className="text-zinc-300">·</span>

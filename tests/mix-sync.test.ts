@@ -57,6 +57,20 @@ describe('saving a mix to the server', () => {
     expect(calls).toHaveLength(0)
   })
 
+  it('a view change (the camera at rest) sends nothing and writes the offline copy a moment later', async () => {
+    openMix(serverMix())
+    useStore.getState().setCamera({ x: 0, y: 0, z: 1 })
+    await settle()
+    calls = []
+    ls.delete('blokmix:mix:m1')
+    useStore.getState().setCamera({ x: 1, y: 2, z: 0.5 })
+    useStore.getState().setCamera({ x: 3, y: 4, z: 0.5 })
+    expect(ls.get('blokmix:mix:m1')).toBeUndefined()
+    await settle()
+    expect(calls).toHaveLength(0)
+    expect(JSON.parse(ls.get('blokmix:mix:m1')!).camera).toEqual({ x: 3, y: 4, z: 0.5 })
+  })
+
   it('sends only what changed, a moment later, naming its lock', async () => {
     openMix(serverMix())
     useStore.getState().renameMix('Launch page')

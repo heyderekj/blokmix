@@ -20,6 +20,7 @@ import { SectionMarks, draftForBlock, useMarkDraft, type MarkDraft } from '../no
 import { resolveFields, TYPE_LABEL } from '@/core/content'
 import { useAssets } from '@/lib/assets'
 import { ClipFrame } from '@/frame/ClipFrame'
+import { canvasApi } from '../canvas/Canvas'
 import { VIEW_W } from '../canvas/geometry'
 import { useBarFloor } from '../canvas/useBarFloor'
 import { SectionPill, SectionRail } from './SectionPill'
@@ -258,6 +259,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
           // A click in a section you weren't in focuses it on the way; a click on its empty space selects the section.
           if (st().ui.focusedSlotId !== slot.id) st().focusSlot(slot.id)
           st().selectBlock(e.pick ?? null)
+          // A click on the page from the canvas goes back to reading it.
+          if (st().ui.canvasMode === 'canvas') canvasApi.setMode('page', { slotId: slot.id })
         }
         if ('selRect' in e) setSelRect(e.selRect ?? null)
         // Words typed into a field that shows a collection go to its entry.
@@ -395,9 +398,9 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         // Same kind of section: the drop replaces this one's layout. Any other: it goes in after this one.
         <div
           className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-key/15"
-          style={{ boxShadow: dropping === 'replace' ? 'inset 0 0 0 calc(4px / var(--z)) var(--color-key)' : 'inset 0 calc(-6px / var(--z)) 0 var(--color-key)' }}
+          style={{ boxShadow: dropping === 'replace' ? 'inset 0 0 0 calc(4px / var(--zl)) var(--color-key)' : 'inset 0 calc(-6px / var(--zl)) 0 var(--color-key)' }}
         >
-          <span className="rounded-full bg-key px-3 py-1 text-[13px] font-semibold text-white shadow-lg" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+          <span className="rounded-full bg-key px-3 py-1 text-[13px] font-semibold text-white shadow-lg" style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}>
             {dropping === 'replace' ? `Replace this ${TYPE_LABEL[slot.type].toLowerCase()}` : 'Add after this section'}
           </span>
         </div>
@@ -407,12 +410,12 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-200 ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''}`}
         style={{
-          boxShadow: `inset 0 0 0 calc(3px / var(--z)) var(--color-key)`,
+          boxShadow: `inset 0 0 0 calc(3px / var(--zl)) var(--color-key)`,
           opacity: focused ? 1 : 0,
         }}
       />
       {!slot.keep.layout && mode === 'unified' && (
-        <div className="absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }} data-chrome>
+        <div className="absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--zl)))' }} data-chrome>
           <button
             type="button"
             title="Your agent may rearrange this section. Click to keep this layout."
@@ -435,11 +438,11 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
       {noting && hover && !drawing && (
         <div
           className="pointer-events-none absolute z-10 rounded-[3px] bg-problem/5"
-          style={{ left: hover.rect.x, top: hover.rect.y, width: hover.rect.w, height: hover.rect.h, boxShadow: '0 0 0 calc(1.5px / var(--z)) var(--color-problem)' }}
+          style={{ left: hover.rect.x, top: hover.rect.y, width: hover.rect.w, height: hover.rect.h, boxShadow: '0 0 0 calc(1.5px / var(--zl)) var(--color-problem)' }}
         >
           <span
             className="absolute bottom-full left-0 mb-1 origin-bottom-left whitespace-nowrap rounded-md bg-problem px-1.5 py-0.5 text-[11px] font-semibold text-white"
-            style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}
+            style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}
           >
             {blocks.find((b) => b.id === hover.id)?.label.split(' · ').slice(1).join(' · ') || 'Block'}
           </span>
@@ -451,7 +454,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
           {!typing && (
             // Below the block, menus opening downwards, so the block stays in view while you preview looks on it.
             <div ref={blockAnchor} className="absolute z-30" style={{ left: barAt!.x, top: barAt!.y + barAt!.h, width: 0, height: 0 }}>
-              <div ref={blockBar} className="absolute left-0 top-0 w-max origin-top-left pt-2.5" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+              <div ref={blockBar} className="absolute left-0 top-0 w-max origin-top-left pt-2.5" style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}>
                 <BlockBar slot={slot} block={block} rect={selRect} />
               </div>
             </div>
@@ -613,9 +616,9 @@ function ItemDrag({
           height: rect.h,
           transform: `translate(${rect.x}px, ${rect.y}px)`,
           transition: 'transform 160ms cubic-bezier(0.23, 1, 0.32, 1), width 160ms cubic-bezier(0.23, 1, 0.32, 1), height 160ms cubic-bezier(0.23, 1, 0.32, 1)',
-          borderRadius: 'calc(6px / var(--z))',
-          outline: `calc(${dragging ? 2 : 1.5}px / var(--z)) dashed color-mix(in oklab, var(--color-key) ${dragging ? 100 : 70}%, transparent)`,
-          outlineOffset: 'calc(3px / var(--z))',
+          borderRadius: 'calc(6px / var(--zl))',
+          outline: `calc(${dragging ? 2 : 1.5}px / var(--zl)) dashed color-mix(in oklab, var(--color-key) ${dragging ? 100 : 70}%, transparent)`,
+          outlineOffset: 'calc(3px / var(--zl))',
           background: dragging ? 'color-mix(in oklab, var(--color-key) 8%, transparent)' : undefined,
         }}
       />
@@ -627,14 +630,14 @@ function ItemDrag({
             width: ghost.w,
             height: ghost.h,
             transform: `translate(${ghost.x}px, ${ghost.y}px) rotate(-1deg)`,
-            borderRadius: 'calc(8px / var(--z))',
+            borderRadius: 'calc(8px / var(--zl))',
             background: 'color-mix(in oklab, var(--color-key) 16%, transparent)',
-            boxShadow: '0 0 0 calc(2px / var(--z)) var(--color-key), 0 calc(24px / var(--z)) calc(48px / var(--z)) calc(-16px / var(--z)) rgb(0 0 0 / 0.45)',
+            boxShadow: '0 0 0 calc(2px / var(--zl)) var(--color-key), 0 calc(24px / var(--zl)) calc(48px / var(--zl)) calc(-16px / var(--zl)) rgb(0 0 0 / 0.45)',
           }}
         >
           <span
             className="absolute left-0 top-0 origin-top-left whitespace-nowrap rounded-md bg-key px-2 py-0.5 text-[12px] font-semibold text-white"
-            style={{ transform: 'translate(calc(6px / var(--z)), calc(6px / var(--z))) scale(min(calc(1 / var(--z)), 3.4))' }}
+            style={{ transform: 'translate(calc(6px / var(--zl)), calc(6px / var(--zl))) scale(min(calc(1 / var(--zl)), 3.4))' }}
           >
             {partLabel(items.item.label)}
           </span>
@@ -651,7 +654,7 @@ function ItemDrag({
             begin({ x: e.clientX, y: e.clientY })
           }}
           className={`absolute left-0 top-0 grid origin-center -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-key text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.4)] transition-transform ${dragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`}
-          style={{ width: 26, height: 26, scale: 'min(calc(1 / var(--z)), 3.4)', touchAction: 'none' }}
+          style={{ width: 26, height: 26, scale: 'min(calc(1 / var(--zl)), 3.4)', touchAction: 'none' }}
         >
           <GripVertical size={14} />
         </button>
@@ -709,7 +712,7 @@ function ItemActions({ slotId, itemId }: { slotId: string; itemId: string }) {
   return (
     <div
       className="absolute left-0 top-0 flex origin-left items-center rounded-full p-0.5"
-      style={{ transform: 'translate(16px, -50%) scale(min(calc(1 / var(--z)), 3.4))', transformOrigin: '-16px 50%', backgroundColor: 'var(--lift)', boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 6px 16px -8px rgb(0 0 0 / 0.35)' }}
+      style={{ transform: 'translate(16px, -50%) scale(min(calc(1 / var(--zl)), 3.4))', transformOrigin: '-16px 50%', backgroundColor: 'var(--lift)', boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 6px 16px -8px rgb(0 0 0 / 0.35)' }}
       data-chrome
     >
       {btn(`Add a ${noun} after this one`, Plus, () => pick(st().editList(slotId, { op: 'add', listId: ctx.list.id, after: itemId })), full ? max : undefined)}
@@ -737,16 +740,16 @@ function PickOutline({ rect, picked, label }: { rect: FrameRect | null; picked?:
         height: `calc(${r.h}px + 10px / var(--z))`,
         transform: `translate(calc(${r.x}px - 5px / var(--z)), calc(${r.y}px - 5px / var(--z)))`,
         opacity: rect ? 1 : 0,
-        borderRadius: 'calc(8px / var(--z))',
+        borderRadius: 'calc(8px / var(--zl))',
         background: `color-mix(in oklab, var(--color-key) ${picked ? 7 : 10}%, transparent)`,
-        boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--z)) var(--color-key), 0 0 0 calc(${picked ? 6 : 5.5}px / var(--z)) color-mix(in oklab, var(--color-key) 18%, transparent)`,
+        boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--zl)) var(--color-key), 0 0 0 calc(${picked ? 6 : 5.5}px / var(--zl)) color-mix(in oklab, var(--color-key) 18%, transparent)`,
         transition: 'opacity 140ms cubic-bezier(0.2, 0, 0, 1), transform 90ms cubic-bezier(0.2, 0, 0, 1), width 90ms cubic-bezier(0.2, 0, 0, 1), height 90ms cubic-bezier(0.2, 0, 0, 1)',
       }}
     >
       {label && (
         <span
           className="absolute bottom-full left-0 mb-[calc(8px/var(--z))] origin-bottom-left whitespace-nowrap rounded-md bg-key px-2 py-0.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.35)]"
-          style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}
+          style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}
         >
           {label}
         </span>

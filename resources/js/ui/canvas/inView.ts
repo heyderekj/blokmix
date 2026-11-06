@@ -31,12 +31,19 @@ let beside: { before: Camera; left: Camera } | null = null
 
 /**
  * Bring a section into the free space beside a docked panel, so its changes show live: pan as little as needed, and
- * zoom out only if it can't fit (never in). The room left below it is for the section's bar.
+ * zoom out only if it can't fit (never in). The room left below it is for the section's bar. On the page it only
+ * scrolls: never a zoom, never sideways.
  */
 export function frameBeside(el: Element, panel: Element) {
   const cam = canvasApi.get()
   const r = el.getBoundingClientRect()
   const p = panel.getBoundingClientRect()
+  // Reading the page: it already fits the space beside the panel (the panel's inset refits it), so only scroll.
+  if (canvasApi.mode() === 'page') {
+    const slotId = el.getAttribute('data-slot')
+    if (slotId) canvasApi.revealRow(slotId, 'nearest')
+    return
+  }
   const dock = [...document.querySelectorAll('[data-dock] .glass-panel')].at(-1)
   const sheet = p.left < window.innerWidth / 2 // on a phone the panel is a sheet along the bottom
   const area = {
@@ -66,5 +73,7 @@ export function frameBeside(el: Element, panel: Element) {
 export function leaveBeside() {
   const was = beside
   beside = null
+  // The page refits by itself once the panel's inset goes.
+  if (canvasApi.mode() === 'page') return
   if (was && canvasApi.get() === was.left) canvasApi.set(was.before, true)
 }

@@ -89,6 +89,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
       // The shader player loads only in frames that show a shader.
       if (d.needShaders) postState(win, { shadersJs: SHADERS_JS })
       if (d.wheel) forwardWheel(ref.current, d.wheel)
+      if (d.gesture) forwardGesture(ref.current, d.gesture)
       // Following a link while previewing: sections on the page come into view, the rest open in a tab.
       if (d.goto) revealSection(d.goto)
       if (d.open && /^(https?:|mailto:|tel:)/.test(d.open)) window.open(d.open, '_blank', 'noopener')
@@ -159,6 +160,14 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     />
   )
 })
+
+/** A pinch inside a frame (Safari's gesture events), handed to the canvas in page coordinates. */
+function forwardGesture(frame: HTMLIFrameElement | null, g: { phase: 'start' | 'change' | 'end'; scale: number; x: number; y: number }) {
+  if (!frame) return
+  const r = frame.getBoundingClientRect()
+  const scale = frame.offsetWidth ? r.width / frame.offsetWidth : 1
+  frame.dispatchEvent(new CustomEvent('mx-gesture', { bubbles: true, detail: { phase: g.phase, scale: g.scale, x: r.left + g.x * scale, y: r.top + g.y * scale } }))
+}
 
 /**
  * A wheel event from inside a frame, replayed on the frame's element in page

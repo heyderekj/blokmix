@@ -107,7 +107,7 @@ export function SectionPill({
         release.current = window.setTimeout(() => setHeldAt(null), 150)
       }}
     >
-      <div ref={bar} className={`absolute left-0 top-0 w-max origin-top-left ${BAR_GAP}`} style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+      <div ref={bar} className={`absolute left-0 top-0 w-max origin-top-left ${BAR_GAP}`} style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}>
         <motion.div
           layout
           transition={MORPH}

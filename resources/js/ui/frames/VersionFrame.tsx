@@ -129,7 +129,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
 
       <div
         className="frame-r relative overflow-hidden bg-white shadow-[0_30px_80px_-20px_rgb(0_0_0/0.25),0_0_0_1px_rgb(0_0_0/0.06)]"
-        style={{ minHeight: 600, outline: selected ? `calc(3px / var(--z)) solid ${meta.color}` : undefined }}
+        style={{ minHeight: 600, outline: selected ? `calc(3px / var(--zl)) solid ${meta.color}` : undefined }}
       >
         {building ? (
           <BuildProgress v={v} />
@@ -151,14 +151,14 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
         )}
         {!building && <PreviewPins v={v} width={pageW} frameW={p.w} frameH={frameH} />}
         {live && !v.build?.done && (
-          <div className="pointer-events-none absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }}>
+          <div className="pointer-events-none absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--zl)))' }}>
             <span className="m-2 inline-block rounded-md bg-zinc-900/85 px-2 py-1 text-[11px] font-medium text-white">
               {v.build?.agentName} is still working{v.build?.steps.length ? `: ${v.build.steps[v.build.steps.length - 1]}` : ''}
             </span>
           </div>
         )}
         {v.kind === 'build' && v.build?.done && !v.build.previewUrl && v.build.by === 'reference' && (
-          <div className="pointer-events-none absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }}>
+          <div className="pointer-events-none absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--zl)))' }}>
             <span className="m-2 inline-block rounded-md bg-zinc-900/85 px-2 py-1 text-[11px] font-medium text-white">
               Reference build · what the {v.build.target === 'astro' ? 'Astro' : 'Next.js'} export renders
             </span>
@@ -329,7 +329,7 @@ function BuildProgress({ v }: { v: VersionNode }) {
   return (
     <div className="relative h-[1400px] overflow-hidden bg-zinc-50">
       <div className="absolute inset-0 animate-pulse bg-[linear-gradient(110deg,transparent_30%,rgb(0_0_0/0.04)_50%,transparent_70%)]" />
-      <div className="absolute left-1/2 top-24 origin-top" style={{ transform: 'translateX(-50%) scale(calc(1 / var(--z)))' }}>
+      <div className="absolute left-1/2 top-24 origin-top" style={{ transform: 'translateX(-50%) scale(calc(1 / var(--zl)))' }}>
         <div className="w-80 rounded-2xl border border-zinc-950/10 bg-white p-4 shadow-xl">
           <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-zinc-900">
             <Avatar who={agent(v.build?.agentName ?? 'Agent')} size={24} ring={false} />

@@ -232,7 +232,8 @@ dates: code does those.
   arguments from the page → one ordinary command), `pour_words` and `page_from_words` (your words placed verbatim; "Text not placed yet"), `suggest_palettes`/`set_palette` (Find colors in the Feel tile; candidates are AA by construction,
   drawn as swatch cards), `suggest_treatments` (Background ideas in a section's Style panel), and the start box
   (`describe.ts`, `suggest_starts` with `text`; see Guided start).
-- On the board Say it is a bar that's always there above the Dock (`ui/jev/SayBar.tsx`, ⌘K focuses it). Empty and
+- On the board Say it is a bar above the Dock (`ui/jev/SayBar.tsx`), hidden until ⌘K or the Dock's wand button opens it; it
+  hides again on a click elsewhere with nothing typed (a "n not placed" chip still shows). Empty and
   focused, it offers a verb-led sentence ("Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]", "Add [a FAQ
   section]", `barSentence`); `fillBar` builds the same action Say it would (`buildAction` on certain answers). It also takes a
   typed command, or a paste of two or more lines: "Add to this page" / "Make a new page" hand the words to `WordsSheet`
@@ -437,6 +438,17 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
 - Locking (`slot.locked`, the section bar's Lock): only you change a locked section. Shuffle skips it, and agent commands naming it refuse, apart from marks. A captured section's own look, words and motion are switches where they belong (Style, Content, Motion's As clipped).
 - Section widths (`slot.width`, `widthTokens`): narrow, standard, wide or full, against the guide's content width, from
   the width picks in the section bar or `set_section_width`. `sectionTokens` applies surface then width.
+- Moving around (`ui/canvas/Canvas.tsx`, pure math in `ui/canvas/camera.ts`): the page scrolls like a website by default
+  (`ui.canvasMode: 'page'`): it fits the free space's width (`fitWidth`, 100% at most), the wheel scrolls it with a give at
+  either end, and pinching zooms around the pointer's height. Pinching out below 60% of fitting (`leavesPage`) or ⇧1 opens
+  the free canvas (`'canvas'`, every version); Esc, ⌘0 or a click on the page goes back. Keys (`zoomKey`): ⌘+ ⌘− + − step
+  `ZOOM_STOPS`, ⌘0 fits the width, ⌘1 and ⇧0 are 100%, ⇧1 fits everything, ⇧2 the selection, PgUp/PgDn (and ↑ ↓ with nothing
+  selected) scroll. Docked panels set `ui/canvas/insets.ts` `setInset(side, px)` and the page refits beside them. Each page's
+  scroll spot is kept per device (`ui.pageScroll`); opening a page shows its top. `canvasApi` has `setMode`, `fitWidth`,
+  `zoomTo`, `zoomStep`, `zoomToSelection`, `scrollToY`, `scrollBy`, `revealRow(slotId, 'top' | 'nearest')`, `pageTop`, and
+  `onPaint`/`onSettle` to follow it. Screen-sized chrome in world space reads `--zl` (written every frame) for transforms,
+  outlines and shadows, and `--z` (written once the camera rests) for anything that takes layout: widths, heights,
+  margins, container queries. Camera-only saves skip the mix's diff and write the view a second later (`sameMix`).
 - Selecting: one click picks the smallest block under the pointer, in any section (focusing it on the way); a click on a
   section's empty space, its rail or Escape selects the section. Both bars hang below what they belong to, so it stays in
   view; the section bar holds still while you point at it (‹ › don't slide away as the height changes), and on anything

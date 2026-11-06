@@ -37,7 +37,7 @@ export function PreviewPins({ v, width, frameW, frameH }: { v: VersionNode; widt
             top: open.anchor.y * frameH,
             width: open.anchor.w * frameW,
             height: open.anchor.h * frameH,
-            boxShadow: '0 0 0 calc(1.5px / var(--z)) color-mix(in oklab, var(--color-problem) 55%, transparent)',
+            boxShadow: '0 0 0 calc(1.5px / var(--zl)) color-mix(in oklab, var(--color-problem) 55%, transparent)',
           }}
         />
       )}
@@ -46,7 +46,7 @@ export function PreviewPins({ v, width, frameW, frameH }: { v: VersionNode; widt
       ))}
       {open && (
         <div className="absolute z-40" style={{ left: (open.anchor.x + (open.anchor.w ?? 0)) * frameW, top: open.anchor.y * frameH + 14, width: 0, height: 0 }}>
-          <div className="absolute left-0 top-0 origin-top-left pt-2" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }} data-chrome onPointerDown={(e) => e.stopPropagation()}>
+          <div className="absolute left-0 top-0 origin-top-left pt-2" style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }} data-chrome onPointerDown={(e) => e.stopPropagation()}>
             <MarkCard mark={open} />
           </div>
         </div>
@@ -69,7 +69,7 @@ function Pin({ mark, x, y, open }: { mark: PreviewMark; x: number; y: number; op
         }}
         title={`N${mark.number} · ${KIND_LABEL[mark.kind!]} · ${STATUS_LABEL[mark.status!]}: ${mark.text}`}
         className={`absolute grid h-6 min-w-6 place-items-center rounded-full rounded-bl-[4px] px-1.5 text-[11px] font-bold tabular-nums shadow-md ring-2 ring-white transition hover:scale-110 ${KIND_TONE[mark.kind!].pin} ${mark.status === 'verified' ? 'opacity-55' : ''}`}
-        style={{ transform: 'translate(-30%, -70%) scale(min(calc(1 / var(--z)), 3.4))', transformOrigin: '0 100%', left: 0, top: 0 }}
+        style={{ transform: 'translate(-30%, -70%) scale(min(calc(1 / var(--zl)), 3.4))', transformOrigin: '0 100%', left: 0, top: 0 }}
       >
         {done ? <Check size={12} strokeWidth={3} /> : `N${mark.number}`}
       </button>

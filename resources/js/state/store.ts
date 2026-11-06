@@ -1,6 +1,6 @@
 import { briefOf, kindOf, patchBrief, type Brief } from '@/core/brief'
 import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import { createJSONStorage, persist, type PersistStorage, type StorageValue } from 'zustand/middleware'
 import { temporal } from 'zundo'
 import type {
   BlockEdit,
@@ -123,6 +123,10 @@ export interface UiState {
   openNoteId: string | null
   /** The page open on the canvas (null: the first). */
   pageId: string | null
+  /** The page scrolls like a website ('page'), or the whole free canvas with every version ('canvas'). */
+  canvasMode: 'page' | 'canvas'
+  /** Where each page was scrolled to on this device: the page y at the top of the screen. */
+  pageScroll: Record<string, number>
 }
 
 export interface MixData {
@@ -327,6 +331,8 @@ const DEFAULT_UI: UiState = {
   jev: true,
   openNoteId: null,
   pageId: null,
+  canvasMode: 'page',
+  pageScroll: {},
 }
 
 function pickDifferent(options: string[], current: string): string {
@@ -372,8 +378,48 @@ export function carryOver(ls: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'
   }
 }
 
+/** The parts of what's saved that are the mix's work, not this device's view of it (ui, camera). */
+const MIX_KEYS = ['mixName', 'site', 'guide', 'content', 'contract', 'versions', 'notes', 'branchFrom', 'head', 'framePos', 'clips', 'drafts', 'draftId'] as const
+/** The same work as last time, by reference: only the view changed (the camera came to rest, a panel opened). */
+export const sameMix = (a: Partial<MixData> | null | undefined, b: Partial<MixData>) => !!a && MIX_KEYS.every((k) => a[k] === b[k])
+
+const viewWrites = new Set<() => void>()
+if (typeof window !== 'undefined') window.addEventListener('pagehide', () => viewWrites.forEach((w) => w()))
+
+/**
+ * Storage that writes a change to the work at once, but a change to the view only a moment after the last one, so
+ * scrolling and zooming don't re-save the whole mix every time the camera stops.
+ */
+export function calmStorage<S extends Partial<MixData>>(inner: PersistStorage<S> | undefined, wait = 1000): PersistStorage<S> | undefined {
+  // No storage here (tests, a locked-down browser): nothing to calm.
+  if (!inner) return inner
+  let last: S | null = null
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let pending: [string, StorageValue<S>] | null = null
+  const write = () => {
+    clearTimeout(timer)
+    if (!pending) return
+    const [name, value] = pending
+    pending = null
+    void inner.setItem(name, value)
+  }
+  viewWrites.add(write)
+  return {
+    getItem: inner.getItem,
+    removeItem: inner.removeItem,
+    setItem: (name, value) => {
+      const quiet = sameMix(last, value.state)
+      last = value.state
+      pending = [name, value]
+      if (!quiet) return write()
+      clearTimeout(timer)
+      timer = setTimeout(write, wait)
+    },
+  }
+}
+
 /** The mix kept in this browser (the default, and what "local" opens). */
-export const localMixStorage = () => createJSONStorage<Persisted>(() => carryOver(localStorage))
+export const localMixStorage = () => calmStorage(createJSONStorage<Persisted>(() => carryOver(localStorage)))
 
 /** What the store saves: the mix itself plus this device's view of it (ui, camera). */
 export type Persisted = MixData & { ui: UiState; camera: Camera | null }

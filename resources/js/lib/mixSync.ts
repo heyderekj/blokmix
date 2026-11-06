@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { PersistStorage, StorageValue } from 'zustand/middleware'
 import type { VersionNode } from '@/core/types'
 import type { Draft } from '@/core/drafts'
-import { STORAGE_KEY, localMixStorage, useStore, type MixData, type Persisted } from '@/state/store'
+import { STORAGE_KEY, localMixStorage, sameMix, useStore, type MixData, type Persisted } from '@/state/store'
 import { blankMix } from '@/state/seed'
 import { useAccount, type MixRole } from './account'
 import { xsrf } from './http'
@@ -46,6 +46,7 @@ export type SaveStatus = 'local' | 'saved' | 'saving' | 'offline' | 'error'
 export const useSave = create<{ status: SaveStatus; mixId: string }>()(() => ({ status: 'local', mixId: 'local' }))
 
 const SAVE_AFTER = 800
+const VIEW_AFTER = 1000
 const cacheKey = (id: string) => `blokmix:mix:${id}`
 
 interface Cache {
@@ -102,6 +103,9 @@ class MixSync {
   private inflight: Promise<void> | null = null
   private retry = 0
   private closed = false
+  private viewTimer: ReturnType<typeof setTimeout> | undefined
+  /** Whether the latest state holds edits the server doesn't have yet. */
+  private unsent = false
 
   constructor(mix: ServerMix) {
     this.id = mix.id
@@ -135,13 +139,29 @@ class MixSync {
 
   private changed(state: Persisted) {
     if (this.closed) return
+    const quiet = sameMix(this.latest, state)
     this.latest = state
+    clearTimeout(this.viewTimer)
+    if (quiet) {
+      // Only this device's view moved (the camera came to rest): nothing to compare or send, and the offline copy
+      // is written a moment after the last such change.
+      this.viewTimer = setTimeout(() => this.writeView(), VIEW_AFTER)
+      return
+    }
     const pending = this.diff(state)
+    this.unsent = !!pending
     writeCache(this.id, { lock: this.lock, ui: state.ui, camera: state.camera, ...(pending ? { unsent: state } : {}) })
     if (!pending) return
     useSave.setState({ status: 'saving' })
     clearTimeout(this.timer)
     this.timer = setTimeout(() => void this.flush(), SAVE_AFTER)
+  }
+
+  /** This device's view (and the edits still waiting to be sent) into the offline copy. */
+  writeView() {
+    clearTimeout(this.viewTimer)
+    const s = this.latest
+    if (s) writeCache(this.id, { lock: this.lock, ui: s.ui, camera: s.camera, ...(this.unsent ? { unsent: s } : {}) })
   }
 
   private diff(state: Persisted) {
@@ -185,6 +205,7 @@ class MixSync {
           }
           this.retry = 0
           const still = this.latest && this.diff(this.latest)
+          this.unsent = !!still
           writeCache(this.id, { lock: this.lock, ui: state.ui, camera: state.camera, ...(still ? { unsent: this.latest! } : {}) })
           if (!this.closed) useSave.setState({ status: still ? 'saving' : 'saved' })
           if (still && !this.closed) this.timer = setTimeout(() => void this.flush(), SAVE_AFTER)
@@ -214,6 +235,7 @@ class MixSync {
   }
 
   close() {
+    if (this.viewTimer) this.writeView()
     void this.flush(true)
     this.closed = true
   }
@@ -283,5 +305,8 @@ function holdStill(): () => void {
 
 if (typeof window !== 'undefined') {
   // Last chance to send edits when the tab closes (the offline copy covers it if this doesn't make it).
-  window.addEventListener('pagehide', () => void current?.flush(true))
+  window.addEventListener('pagehide', () => {
+    current?.writeView()
+    void current?.flush(true)
+  })
 }

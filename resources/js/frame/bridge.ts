@@ -48,7 +48,7 @@ export interface BlockEvent {
 
 /** Routes postMessages from sandboxed frames to the component that owns each frame. */
 type Handler = (
-  data: { ns: 'mx'; ready?: boolean; needShaders?: boolean; height?: number; goto?: string; open?: string; wheel?: { dx: number; dy: number; mode: number; x: number; y: number; ctrl: boolean; meta: boolean; shift: boolean }; sections?: { slot: string; top: number; height: number }[] } & BlockEvent,
+  data: { ns: 'mx'; ready?: boolean; needShaders?: boolean; height?: number; goto?: string; open?: string; wheel?: { dx: number; dy: number; mode: number; x: number; y: number; ctrl: boolean; meta: boolean; shift: boolean }; gesture?: { phase: 'start' | 'change' | 'end'; scale: number; x: number; y: number }; sections?: { slot: string; top: number; height: number }[] } & BlockEvent,
 ) => void
 
 const handlers = new Map<MessageEventSource, Handler>()
