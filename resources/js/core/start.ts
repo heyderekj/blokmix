@@ -92,7 +92,7 @@ export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner'>
   }
   const line = input.oneLiner?.trim()
   if (line && fields.hero) fields.hero = { ...fields.hero, headline: line }
-  return { brand: name, fields }
+  return { brand: name, kind: input.kind, fields }
 }
 
 const slotFor = (id: string, type: SectionType, clipId: string): Slot => ({ id, type, clipId, locked: false, keep: { ...DEFAULT_KEEP } })

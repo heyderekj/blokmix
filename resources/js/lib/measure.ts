@@ -114,8 +114,9 @@ export function measurePage(width: MeasureWidth, pageId?: string | null): Promis
  * headline and first button, and whether anything spills sideways. For mixes
  * that aren't open, like the guided start's candidates.
  */
-export async function measureFirstScreen(data: PageData, width: number, height: number): Promise<PageMeasure> {
-  const html = pageHtml(width, data.site.pages[0]?.id, data)
+export async function measureFirstScreen(data: PageData, width: number, height: number, pageId?: string): Promise<PageMeasure> {
+  const pg = (pageId && data.site.pages.find((p) => p.id === pageId)) || data.site.pages[0]
+  const html = pageHtml(width, pg?.id, data)
   const run = async (): Promise<PageMeasure> => {
     const doc = await load(frameFor(width), html)
     await doc.fonts?.ready
@@ -126,8 +127,8 @@ export async function measureFirstScreen(data: PageData, width: number, height: 
     })
     const box = (el: Element | null | undefined) => (el ? el.getBoundingClientRect() : null)
     const top = (doc.scrollingElement ?? doc.documentElement).scrollTop
-    const nav = data.site.shared.nav && data.site.pages[0]?.show.nav ? box(doc.querySelector(`[data-mx-slot="${data.site.shared.nav.id}"]`)) : null
-    const opening = data.site.pages[0]?.slots.find((s) => s.type === 'hero' || s.type === 'header')
+    const nav = data.site.shared.nav && pg?.show.nav ? box(doc.querySelector(`[data-mx-slot="${data.site.shared.nav.id}"]`)) : null
+    const opening = pg?.slots.find((s) => s.type === 'hero' || s.type === 'header')
     const blocks = opening ? (library.clips[opening.clipId]?.blocks ?? []) : []
     const pick = (kind: string, field: string) => blocks.find((b) => b.kind === kind && b.field === field) ?? blocks.find((b) => b.kind === kind)
     const section = opening ? doc.querySelector(`[data-mx-slot="${opening.id}"]`) : null
@@ -137,6 +138,16 @@ export async function measureFirstScreen(data: PageData, width: number, height: 
     const hb = box(head)
     const bb = box(btn)
     const lineHeight = head ? parseFloat(getComputedStyle(head).lineHeight) || parseFloat(getComputedStyle(head).fontSize) * 1.2 : 0
+    // What starts above the fold, top to bottom.
+    const shown: { slot: string; block: string; y: number }[] = []
+    for (const sec of doc.querySelectorAll<HTMLElement>('[data-mx-slot]')) {
+      for (const el of [sec, ...sec.querySelectorAll<HTMLElement>('[data-mx-b]')]) {
+        const r = el.getBoundingClientRect()
+        if (!el.dataset.mxB || (!r.width && !r.height) || r.top + top >= height) continue
+        shown.push({ slot: sec.dataset.mxSlot!, block: el.dataset.mxB, y: r.top + top })
+      }
+    }
+    shown.sort((a, b) => a.y - b.y)
     return {
       width,
       height,
@@ -145,6 +156,7 @@ export async function measureFirstScreen(data: PageData, width: number, height: 
       navBottom: nav ? Math.round(nav.bottom + top) : 0,
       headline: hb && hb.height ? { top: Math.round(hb.top + top), bottom: Math.round(hb.bottom + top), lines: Math.max(1, Math.round(hb.height / lineHeight)) } : undefined,
       button: bb && bb.height ? { top: Math.round(bb.top + top), bottom: Math.round(bb.bottom + top) } : undefined,
+      shown: shown.map(({ slot, block }) => ({ slot, block })),
     }
   }
   const next = (queue.get(width) ?? Promise.resolve()).then(run, run)

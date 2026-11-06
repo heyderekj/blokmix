@@ -22,7 +22,8 @@ import { ImageMenu } from './ImageMenu'
 import { IconMenu } from './IconMenu'
 import { blockIconName } from '@/core/icons'
 import { listContext } from '@/core/lists'
-import { sectionLinks } from '@/core/links'
+import { linkWords, sectionLinks } from '@/core/links'
+import { deadLinks, guessFor, guessLinks, useJevLinks } from '@/state/jevLinks'
 import { WordsCycler, WordsMenu } from './WordsMenu'
 import { LinkLabel, LinkMenu } from './LinkMenu'
 import { CollectionMenu } from './CollectionMenu'
@@ -784,6 +785,12 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
   const content = useStore((s) => s.content)
   const slots = useStore(currentSlots)
   const linkScope = useLinkScope(slot.id)
+  const jevGuesses = useJevLinks((s) => s.guesses)
+  // A link that leads nowhere: ask Jev where its words point (cached; nothing happens when Jev is off).
+  useEffect(() => {
+    const dead = deadLinks([slot]).filter((a) => a.blockId === block.id && !guessFor(slot.id, block.id, a.words))
+    if (dead.length) void guessLinks(dead)
+  }, [slot, block.id, linkScope])
   return useMemo(() => {
     const clip = slotClip(slot)
     const fields = resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields
@@ -799,11 +806,17 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
       }
     }
     const links = sectionLinks(clip.blocks, slot.edits?.[slot.clipId], fields, linkScope, slot.id)
+    const linkGuesses = Object.fromEntries(
+      clip.blocks.flatMap((b) => {
+        const g = b.linkable ? guessFor(slot.id, b.id, linkWords(b, clip.blocks, fields)) : undefined
+        return g && g.target && g.route !== 'none' ? [[b.id, { target: g.target, label: g.label }]] : []
+      }),
+    )
     const seen = new Set<string>()
     return [MEASURE_WIDTHS.desktop, MEASURE_WIDTHS.mobile].flatMap((width) => {
       const shownHere = (viewport === 'mobile') === (width === MEASURE_WIDTHS.mobile)
       const rects = measured[width]?.rects[slot.id] ?? (shownHere && rect ? { [block.id]: rect } : undefined)
-      return advise({ blocks: clip.blocks, sectionType: clip.type, edits: slot.edits?.[slot.clipId], components, tokens: guide.tokens, swatches, fields, rects, width, pageStyles, links }).filter((a) => {
+      return advise({ blocks: clip.blocks, sectionType: clip.type, edits: slot.edits?.[slot.clipId], components, tokens: guide.tokens, swatches, fields, rects, width, pageStyles, links, linkGuesses }).filter((a) => {
         // Advice that reads the same at both widths shows once.
         const key = `${a.rule}|${a.message}`
         if (a.blockId !== block.id || seen.has(key)) return false
@@ -811,5 +824,5 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
         return true
       })
     })
-  }, [slot, block.id, rect, guide.tokens, swatches, components, content, slots, linkScope, measured, viewport])
+  }, [slot, block.id, rect, guide.tokens, swatches, components, content, slots, linkScope, measured, viewport, jevGuesses])
 }

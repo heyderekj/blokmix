@@ -291,6 +291,8 @@ export interface ResolvedGuide {
 
 export interface ProjectContent {
   brand: string
+  /** What the site is for, as answered in the guided start (the five-second test compares a visitor's guess with it). */
+  kind?: Kind
   fields: Partial<Record<SectionType, Record<string, string>>>
 }
 

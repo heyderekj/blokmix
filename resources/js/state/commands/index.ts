@@ -18,6 +18,7 @@ import * as collectionCmds from './collections'
 import * as libraryCmds from './library'
 import * as start from './start'
 import * as skins from './skins'
+import * as jev from './jev'
 
 export { CommandError, describeNote } from './refs'
 
@@ -42,7 +43,7 @@ export interface AsyncCommand<P = unknown> {
   apply: (input: never, prepared: P) => unknown
 }
 // Modules export `later` maps of async commands; merge them here.
-const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later, ...libraryCmds.later, ...start.later } as Record<string, AsyncCommand>
+const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later, ...libraryCmds.later, ...start.later, ...jev.later } as Record<string, AsyncCommand>
 
 /** What a viewer can still do: leave and answer marks. */
 const MARKS = new Set(['add_note', 'update_note', 'reply_note'])

@@ -13,6 +13,7 @@ import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { Segmented } from '../shell/TopBar'
 import { AstroIcon, NextIcon } from '../shell/FrameworkIcons'
+import { FiveSecondCard } from '../jev/FiveSecondCard'
 
 export function PacketPanel() {
   const source = useStore((s) => s.ui.packetSource)
@@ -118,6 +119,8 @@ export function PacketPanel() {
           <Download size={14} /> Download
         </button>
       </div>
+
+      <FiveSecondCard />
 
       {/* tier 2: tabs left, targets right */}
       <div className="flex items-end gap-0.5 border-t border-zinc-950/6 px-2 pt-1.5">
