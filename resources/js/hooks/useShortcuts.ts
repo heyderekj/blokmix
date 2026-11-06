@@ -1,3 +1,4 @@
+import { toggleLeft } from '@/ui/shell/LeftPanel'
 import { useEffect } from 'react'
 import { useTiles } from '@/ui/frames/tiles'
 import type { Keep } from '@/core/types'
@@ -246,7 +247,11 @@ export function useShortcuts(onHelp: () => void) {
           return
         case 'g':
         case 'G':
-          st.setUi({ sheet: st.ui.sheet === 'guide' ? 'none' : 'guide' })
+          toggleLeft('look')
+          return
+        case 'w':
+        case 'W':
+          toggleLeft('words')
           return
         case '?':
           onHelp()

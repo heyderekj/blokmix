@@ -211,7 +211,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     const { mixName, versions, drafts, ...data } = mixFromStart(input, starts, chosen)
     setMoving(true)
     const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: mixName, data, versions, drafts })
-    if (res.status === 201) return router.visit(`/${res.body.short}`)
+    if (res.status === 201) return router.visit(`/${res.body.short}?start=1`)
     setMoving(false)
     setGuided(false)
     setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')

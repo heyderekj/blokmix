@@ -29,7 +29,7 @@ export function SayBar() {
   const open = useSay((s) => s.open)
   const sheet = useJevTools((s) => s.open === 'pour' || s.open === 'page')
   // Content lists the lines waiting for a home itself.
-  const waiting = useStore((s) => (s.ui.sheet === 'guide' && s.ui.guideTab === 'content' ? 0 : trayLines(s).length))
+  const waiting = useStore((s) => (s.ui.leftPanel === 'words' ? 0 : trayLines(s).length))
   const [text, setText] = useState('')
   const [pasted, setPasted] = useState<string | null>(null)
   const [heard, setHeard] = useState<Heard | null>(null)

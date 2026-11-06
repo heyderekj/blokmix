@@ -34,15 +34,17 @@ export async function scoredStarts(input: StartInput): Promise<ScoredStart[]> {
 }
 
 /** What the flash says once a start is on the board: what's yours so far, and where the rest is. */
-export function startedWords(name: string, mix: Pick<MixData, 'site' | 'content'>): string {
+export function startedWords(name: string, mix: Pick<MixData, 'site' | 'content'> & Partial<Pick<MixData, 'drafts'>>): string {
   const home = mix.site.pages[0]
   const slots = home ? pageView(mix.site, home.id) : []
   const { yours, total } = pageOwnership(slots, slotClip, mix.content)
   const waiting = mix.content.tray?.length ?? 0
   const left = total - yours
   const who = name.trim() || 'your mix'
-  if (waiting) return `Started ${who}. ${waiting} of your lines aren’t placed yet; Content shows them.`
-  return left ? `Started ${who}. ${left} spots on Home still hold sample words: Content shows them.` : `Started ${who}. The other starts are kept as drafts.`
+  const drafts = Object.keys(mix.drafts ?? {}).length
+  const started = `Started ${who}${drafts > 1 ? ` with ${drafts} drafts` : ''}.`
+  if (waiting) return `${started} ${waiting} of your lines aren’t placed yet; Words shows them.`
+  return left ? `${started} ${left} spots still hold sample words: Next in Words shows the first.` : `${started} Every word on Home is yours.`
 }
 
 /** A start's name as a version: the starter's, else its hero's ("Photo backdrop"). */

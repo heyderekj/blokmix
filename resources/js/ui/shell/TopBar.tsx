@@ -2,17 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { confirmAction } from './Confirm'
 import { motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, Globe, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, Wand2, X } from 'lucide-react'
+import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, Globe, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Type, Undo2, Users, Wand2, X } from 'lucide-react'
 import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
 import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
 import { pickFile } from '@/lib/pickFile'
 import { useResolvedGuide } from '@/state/derived'
 import { openGroups } from '@/core/guide'
 import { pressVersionAndFly } from '@/lib/actions'
-import { GuidePanel } from '../panels/GuidePanel'
-import { ContentPanel } from '../panels/ContentPanel'
 import { PacketPanel } from '../panels/PacketPanel'
-import { NotesPanel } from '../panels/NotesPanel'
 import { outstanding } from '@/core/notes'
 import { Island, MORPH } from './Island'
 import { Avatar } from './Avatar'
@@ -69,7 +66,9 @@ export function TopBar({ onHelp }: { onHelp: () => void }) {
       <div className="flex min-w-0 justify-start">
         <BrandIsland onHelp={onHelp} />
       </div>
-      <ToolsIsland />
+      <div className="flex justify-center">
+        <CapturedChip />
+      </div>
       <div className="flex min-w-0 justify-end">
         <ShipIsland />
       </div>
@@ -162,7 +161,7 @@ function SaveButton({ short }: { short?: boolean }) {
   )
 }
 
-const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'drafts', 'more', 'guide', 'notes', 'packet', 'share', 'publish']
+const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'drafts', 'more', 'packet', 'share', 'publish']
 
 /**
  * The top bar on narrower windows and phones: one pill with the logo menu, the page, ⋯ and Save. ⋯ lists Look,
@@ -170,13 +169,12 @@ const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'drafts', 'more', 'guide', 'no
  */
 function CompactBar({ onHelp }: { onHelp: () => void }) {
   const sheet = useStore((s) => s.ui.sheet)
-  const tab = useStore((s) => s.ui.guideTab)
   const mode = useStore((s) => s.ui.mode)
   const todo = useStore((s) => s.notes.filter(outstanding).length)
   const decisions = openGroups(useResolvedGuide()).length
   const st = useStore.getState
   const open = COMPACT_SHEETS.includes(sheet)
-  const inTool = sheet === 'guide' || sheet === 'notes' || sheet === 'packet' || sheet === 'share' || sheet === 'publish'
+  const inTool = sheet === 'packet' || sheet === 'share' || sheet === 'publish'
   const attention = decisions > 0 || todo > 0 || mode === 'captured'
   const row = (Icon: typeof Sun, label: string, onClick: () => void, extra?: ReactNode) => (
     <button
@@ -255,9 +253,9 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
               <X size={16} /> Showing as clipped: back to your style
             </button>
           )}
-          {row(SwatchBook, 'Look', () => st().setUi({ sheet: 'guide', guideTab: 'style' }), decisions > 0 ? <span className="text-[12px] font-semibold text-attention-ink">{decisions} to decide</span> : undefined)}
-          {row(FileText, 'Content', () => st().setUi({ sheet: 'guide', guideTab: 'content' }))}
-          {row(MessageSquare, 'Notes', () => st().setUi({ sheet: 'notes' }), todo > 0 ? <span className="min-w-5 rounded-full bg-problem px-1.5 text-center text-[11px] font-bold tabular-nums text-white">{todo}</span> : undefined)}
+          {row(SwatchBook, 'Look', () => st().setUi({ sheet: 'none', leftPanel: 'look' }), decisions > 0 ? <span className="text-[12px] font-semibold text-attention-ink">{decisions} to decide</span> : undefined)}
+          {row(Type, 'Words', () => st().setUi({ sheet: 'none', leftPanel: 'words' }))}
+          {row(MessageSquare, 'Notes', () => st().setUi({ sheet: 'none', leftPanel: 'notes' }), todo > 0 ? <span className="min-w-5 rounded-full bg-problem px-1.5 text-center text-[11px] font-bold tabular-nums text-white">{todo}</span> : undefined)}
           <div className="mx-3 my-1 h-px bg-zinc-950/6" />
           {isHosted() && row(Users, 'Share', () => st().setUi({ sheet: 'share' }), <Presence size={22} inline />)}
           {isHosted() && row(Globe, 'Publish to blok.page', () => st().setUi({ sheet: 'publish' }))}
@@ -265,8 +263,8 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
         </div>
       ) : (
         <>
-          {back(sheet === 'guide' ? (tab === 'style' ? 'Look' : 'Content') : sheet === 'notes' ? 'Notes' : sheet === 'share' ? 'Share' : sheet === 'publish' ? 'Publish' : 'Export')}
-          {sheet === 'notes' ? <NotesPanel /> : sheet === 'share' ? <SharePanel /> : sheet === 'publish' ? <PublishPanel /> : sheet === 'packet' ? <PacketPanel /> : tab === 'style' ? <GuidePanel /> : <ContentPanel />}
+          {back(sheet === 'share' ? 'Share' : sheet === 'publish' ? 'Publish' : 'Export')}
+          {sheet === 'share' ? <SharePanel /> : sheet === 'publish' ? <PublishPanel /> : <PacketPanel />}
         </>
       )}
     </Island>
@@ -374,74 +372,22 @@ function JevHelp() {
   )
 }
 
-/**
- * Your tools: the style guide, the page's words and collections, and notes. Each grows into its panel. Whether the
- * canvas shows sections as clipped or in your style lives in the View menu (U); while it shows originals, a chip here
- * says so and takes you back.
- */
-function ToolsIsland() {
-  const sheet = useStore((s) => s.ui.sheet)
-  const tab = useStore((s) => s.ui.guideTab)
+/** While sections show as they were clipped: a chip that says so and takes you back to your style. */
+function CapturedChip() {
   const mode = useStore((s) => s.ui.mode)
-  const notes = useStore((s) => s.notes)
-  const todo = notes.filter(outstanding).length
-  const decisions = openGroups(useResolvedGuide()).length
-  // Content takes the main area (ContentDoc) instead of growing this island.
-  const open = (sheet === 'guide' && tab !== 'content') || sheet === 'notes'
-  const st = useStore.getState
-  const at = (which: 'style' | 'content' | 'notes') => (which === 'notes' ? sheet === 'notes' : sheet === 'guide' && tab === which)
-  const go = (which: 'style' | 'content' | 'notes') => {
-    if (at(which)) return st().setUi({ sheet: 'none' })
-    st().setUi(which === 'notes' ? { sheet: 'notes' } : { sheet: 'guide', guideTab: which })
-  }
-  const tool = (which: 'style' | 'content' | 'notes', Icon: typeof Sun, label: string, title: string, badge?: ReactNode) => (
-    <button
-      type="button"
-      onClick={() => go(which)}
-      title={title}
-      aria-expanded={at(which)}
-      className={`relative flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-[background-color,color,scale] duration-150 active:scale-[0.97] ${
-        at(which) ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'
-      }`}
-    >
-      <Icon size={15} className="shrink-0" />
-      {label}
-      {badge}
-    </button>
-  )
+  if (mode !== 'captured') return null
   return (
-    <Island
-      open={open}
-      width={440}
-      anchor="center"
-      onClose={() => useStore.getState().setUi({ sheet: 'none' })}
-      bar={
-        <>
-          {mode === 'captured' && (
-            <button
-              type="button"
-              onClick={() => st().setUi({ mode: 'unified' })}
-              title="Showing originals. Back to your style (U)"
-              aria-label="Showing originals. Back to your style"
-              className="mr-0.5 flex h-8 cursor-pointer items-center gap-1 rounded-full bg-attention-soft pl-3 pr-2 text-[12.5px] font-semibold text-attention-ink transition-[scale] active:scale-[0.97]"
-            >
-              Original <X size={13} strokeWidth={2.4} />
-            </button>
-          )}
-          {tool('style', SwatchBook, 'Look', decisions ? `Look: ${decisions} choice${decisions > 1 ? 's' : ''} to make in the style guide (G)` : 'Look: themes, feel and the style guide (G)', decisions > 0 ? <span className="size-2 rounded-full bg-attention" aria-label={`${decisions} to decide`} /> : undefined)}
-          {tool('content', FileText, 'Content', 'The page’s words and your collections')}
-          {tool(
-            'notes',
-            MessageSquare,
-            'Notes',
-            todo ? `${todo} note${todo > 1 ? 's' : ''} to do` : 'Notes',
-            todo > 0 ? <span className={`min-w-4 rounded-full px-1 text-[11px] font-bold tabular-nums ${at('notes') ? 'bg-white/20' : 'bg-problem text-white'}`}>{todo}</span> : undefined,
-          )}
-        </>
-      }
-    >
-      {sheet === 'notes' ? <NotesPanel /> : tab === 'style' ? <GuidePanel /> : <ContentPanel />}
-    </Island>
+    <div className="glass-menu pointer-events-auto rounded-full p-1">
+      <button
+        type="button"
+        onClick={() => useStore.getState().setUi({ mode: 'unified' })}
+        title="Showing originals. Back to your style (U)"
+        aria-label="Showing originals. Back to your style"
+        className="flex h-8 cursor-pointer items-center gap-1 rounded-full bg-attention-soft pl-3 pr-2 text-[12.5px] font-semibold text-attention-ink transition-[scale] active:scale-[0.97]"
+      >
+        Original <X size={13} strokeWidth={2.4} />
+      </button>
+    </div>
   )
 }
 

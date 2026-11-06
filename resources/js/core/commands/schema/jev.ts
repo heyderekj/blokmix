@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { SECTION_TYPES } from '../../types'
 import { block, section } from './shared'
 
 /**
@@ -22,6 +23,18 @@ export const JEV_COMMANDS = {
       'Show the first screen (what a laptop shows before scrolling) to Jev as a visitor who has never seen the site, and hear what it would say the site is for and how sure it is, whether the headline says what’s offered, whether the first button says what happens next, and whether it says who it’s for. Also measures the first screen at a laptop and a phone, so the answer comes with the page score’s checks. Changes nothing.',
     input: z.object({ page: z.string().optional().describe('A page path or id; default the open page') }),
     write: false,
+  },
+  suggest_layouts_for_words: {
+    description:
+      'For each section of a page (or one), what its words hold (how many items, of what), the layouts of its type that hold that many (built-in first, the current one marked), and, when read is true and suggestions are on, whether its words read like another kind of section ("reads_as": a FAQ, a menu with prices) with layouts that would hold them. Changes nothing; retype_section acts on a reads_as.',
+    input: z.object({ page: z.string().optional(), section: z.string().optional(), read: z.boolean().default(true) }),
+    write: false,
+  },
+  retype_section: {
+    description:
+      'Turn a section into another type (a list of questions into a FAQ, prices into pricing), its own words poured into a layout of that type: each line keeps the part it played, lines with no place wait in Words to place. Keeps the section in place with its id, so notes and links follow. Optional layout picks the clip (from suggest_layouts_for_words). One undo step.',
+    input: z.object({ section: z.string(), type: z.enum(SECTION_TYPES), layout: z.string().optional() }),
+    write: true,
   },
   pour_words: {
     description:

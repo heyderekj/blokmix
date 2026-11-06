@@ -50,7 +50,7 @@ export function chunkLines(lines: Line[]): Chunk[] {
 }
 
 const PLACEABLE = SECTION_CRITERIA as Record<string, Criterion>
-const TYPE_OPTIONS: Record<string, Criterion> = {
+export const TYPE_OPTIONS: Record<string, Criterion> = {
   ...Object.fromEntries(Object.entries(PLACEABLE).filter(([k]) => k !== 'nav' && k !== 'footer')),
   skip: { what: 'Not part of a web page: notes to self, instructions, leftovers' },
 }

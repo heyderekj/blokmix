@@ -156,6 +156,8 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return `rewrote the words${inSec}`
       case 'add_block':
         return `added a ${String(input.kind) === 'image' ? 'picture' : String(input.kind)}${inSec}`
+      case 'retype_section':
+        return `turned ${sec ?? 'a section'} into ${TYPE_LABEL[input.type as keyof typeof TYPE_LABEL] ?? 'another kind'}`
       case 'switch_draft':
         return `opened draft ${String(input.draft)}`
       case 'new_draft':

@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { createContext, useContext, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Copy, Minus, Plus, Type, Wand2, X } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
@@ -63,18 +63,31 @@ const COMPACT: Partial<Record<Role, string>> = { headline: 'text-[22px] font-bol
  * that aren't yours yet (a layout's samples, the start's filler) are marked and counted; paste more and Jev places it.
  * The same words the canvas shows and the export writes to src/content/<section>.json.
  */
-export function PageDoc({ compact = false, onShowSection }: { compact?: boolean; onShowSection?: (slotId: string) => void }) {
+export function PageDoc({ compact = false, onShowSection, extra, onFocusField, paste = true }: {
+  compact?: boolean
+  onShowSection?: (slotId: string) => void
+  /** Under each section's name: the Words panel's layouts that fit, and what the words read as. */
+  extra?: (slot: Slot, index: number) => ReactNode
+  /** A field took focus (the Words panel shows its block on the page). */
+  onFocusField?: (slotId: string, field: string) => void
+  /** The paste box at the end (the Words panel has its own). */
+  paste?: boolean
+}) {
   const slots = useStore(currentSlots)
-  if (!slots.length) return <p className="px-4 py-6 text-[13px] text-zinc-500">Add a section to start writing.</p>
+  if (!slots.length) return paste ? <p className="px-4 py-6 text-[13px] text-zinc-500">Add a section to start writing.</p> : null
   return (
-    <div className={compact ? 'px-4 pb-4' : ''}>
-      {slots.map((s, i) => (
-        <SectionDoc key={s.id} slot={s} index={i} compact={compact} onShow={onShowSection} />
-      ))}
-      <PasteMore />
-    </div>
+    <FocusField.Provider value={onFocusField ?? null}>
+      <div className={compact ? 'px-4 pb-4' : ''}>
+        {slots.map((s, i) => (
+          <SectionDoc key={s.id} slot={s} index={i} compact={compact} onShow={onShowSection} extra={extra?.(s, i)} />
+        ))}
+        {paste && <PasteMore />}
+      </div>
+    </FocusField.Provider>
   )
 }
+
+const FocusField = createContext<((slotId: string, field: string) => void) | null>(null)
 
 /** "18 of 31 are yours" for the open page. */
 export function useOwnership() {
@@ -109,7 +122,7 @@ function hiddenFields(slot: Slot, clip: SectionClip): Set<string> {
   return out
 }
 
-function SectionDoc({ slot, index, compact, onShow }: { slot: Slot; index: number; compact: boolean; onShow?: (slotId: string) => void }) {
+function SectionDoc({ slot, index, compact, onShow, extra }: { slot: Slot; index: number; compact: boolean; onShow?: (slotId: string) => void; extra?: ReactNode }) {
   const content = useStore((s) => s.content)
   const clip = slotClip(slot)
   const nodes = useMemo(() => outline(parseHtml(clip.html)), [clip])
@@ -132,6 +145,7 @@ function SectionDoc({ slot, index, compact, onShow }: { slot: Slot; index: numbe
           </label>
         )}
       </div>
+      {extra}
       {nodes.length ? <Nodes nodes={nodes} ctx={ctx} /> : <p className="text-[13px] text-zinc-400">No words in this section.</p>}
     </section>
   )
@@ -165,6 +179,7 @@ function Field({ ctx, field, role, label }: { ctx: Ctx; field: string; role: Rol
   // While you type, the box shows what you typed (even empty), not the fallback words.
   const [draft, setDraft] = useState<string | null>(null)
   const st = useStore.getState
+  const focused = useContext(FocusField)
   const owner = fieldOwner(slot, clip, content, field)
   const mine = owner === 'yours'
   const choices = wordChoices(clip, slot, content, field)
@@ -185,7 +200,9 @@ function Field({ ctx, field, role, label }: { ctx: Ctx; field: string; role: Rol
           rows={1}
           spellCheck
           aria-label={`${TYPE_LABEL[slot.type]}: ${label}`}
-          onFocus={(e) => !mine && e.currentTarget.select()}
+          onFocus={(e) => (!mine && e.currentTarget.select(), focused?.(slot.id, field))}
+          data-field={`${slot.id}:${field}`}
+          data-sample={mine ? undefined : ''}
           onChange={(e) => {
             setDraft(e.target.value)
             st().chooseWords(slot.id, field, e.target.value)
@@ -270,7 +287,7 @@ function Mini({ icon: Icon, label, onClick, disabled }: { icon: typeof Plus; lab
 }
 
 /** Paste more of your words at the bottom of the page: Jev places each line where it belongs, word for word. */
-function PasteMore() {
+export function PasteMore() {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)

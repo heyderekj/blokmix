@@ -529,13 +529,22 @@ as "What this site is for" in BLOKMIX.md and `brief` in blokmix.json. Store: `se
 ### Content
 
 Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI calls it Content, never "CMS".
-- Content is a document (`ui/content/PageDoc.tsx`): on a wide window it takes the main area in place of the canvas
-  (`ui/content/ContentDoc.tsx`, Escape goes back), on a narrow one it sits in the top bar's pill (`ContentPanel`). The page's
-  words top to bottom, each at its size on the page (by `roleOfField`), typed into in place; a section's name goes back to it
-  on the canvas. Whose words they are comes from `core/ownWords.ts` (`fieldOwner`, `pageOwnership`): yours (in `slot.words`,
-  or `content.mine`: the name, email and one line the start was given) or not yet (a layout's or the start's sample words,
-  muted and marked; focusing one selects it). The name and logo sit at the top; the header counts "18 of 31 are yours"; hidden blocks don't count. A paste
-  box at the bottom pours more in; "Text not placed yet" is a column beside it.
+- The board's left side is a slim rail, Words · Look · Notes (`ui/shell/LeftPanel.tsx`, `ui.leftPanel`, W and G; on a narrow
+  window a sheet from the bottom); the open one docks beside the page, which stays in view and fits beside it (`setInset`).
+  The top bar holds the mix, draft and page on the left and Share · Publish · Export · Save version on the right.
+- Words (`ui/words/WordsPanel.tsx`) is your words beside the page: the site's name and logo, "What it's for" (the brief, to
+  change), "18 of 31 are yours" and Next (the first spot still holding sample words), then each section top to bottom
+  (`ui/content/PageDoc.tsx`: each field at its size on the page, by `roleOfField`, typed into in place; focusing one selects
+  its block and scrolls the page to it). Under each section's name, the layouts that hold its words (`core/wordsFit.ts`
+  `itemsOf`, `layoutsThatFit` over `cycleIds` and `capacity`, built-in first) and, with suggestions on, "These words read
+  like a FAQ" with Make it one (one Jev request per page, `readsAsRequest`, cached by its words, `state/wordsFit.ts`;
+  `state/retype.ts` `retypeSection` pours the section's own words into a layout of that type, same id, one undo step).
+  Write or paste at the end (the whole start of an empty page): Show me sections reads it (`planPage`) and lists what it
+  would make, in three arrangements, to add as a new page or replace this one; or place the lines into the sections here
+  (`pour_words`). Text not placed yet is listed below. The panel and the page follow each other as you scroll
+  (`useScrollSync`, `canvasApi.revealRow`, `onSettle`). Whose words they are comes from `core/ownWords.ts` (`fieldOwner`,
+  `pageOwnership`): yours (in `slot.words`, or `content.mine`) or not yet (sample words, muted and marked). Agents:
+  `suggest_layouts_for_words`, `retype_section`.
 - Your site's name (`content.brand`, Content → "Your site's name", `set_brand`) changes everywhere it's written when you
   finish typing: fields, each section's words and kept options, whole words only (`renameBrand`), one undo step.
 - Your logo once (`content.logo`, `set_logo`) fills the nav's and footer's logo spot (`isSiteLogo`) wherever it has no

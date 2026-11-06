@@ -7,7 +7,7 @@ import { runCommand, CommandError } from '@/state/commands'
 
 /** Open a collection in the Content panel. */
 export function openCollection(slug: string) {
-  useStore.getState().setUi({ sheet: 'guide', guideTab: 'content', contentView: 'collections', openCollection: slug })
+  useStore.getState().setUi({ sheet: 'none', leftPanel: 'words', contentView: 'collections', openCollection: slug })
 }
 
 /**

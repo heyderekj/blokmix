@@ -125,6 +125,8 @@ export interface UiState {
   pageId: string | null
   /** The page scrolls like a website ('page'), or the whole free canvas with every version ('canvas'). */
   canvasMode: 'page' | 'canvas'
+  /** The panel docked at the window's left: your words, the look, or notes (`ui/shell/LeftPanel.tsx`). */
+  leftPanel: 'none' | 'words' | 'look' | 'notes'
   /** Where each page was scrolled to on this device: the page y at the top of the screen. */
   pageScroll: Record<string, number>
 }
@@ -332,6 +334,7 @@ const DEFAULT_UI: UiState = {
   openNoteId: null,
   pageId: null,
   canvasMode: 'page',
+  leftPanel: 'none',
   pageScroll: {},
 }
 
@@ -997,6 +1000,8 @@ export const useStore = create<State>()(
           }
           merged.content = { ...merged.content, fields }
         }
+        // Content was a sheet that took over the screen; it's the Words panel beside the page now.
+        if (merged.ui.sheet === 'guide' && merged.ui.guideTab === 'content') merged.ui = { ...merged.ui, sheet: 'none', leftPanel: 'words' }
         // The Copy tab became Content.
         if ((merged.ui.guideTab as string) === 'copy') merged.ui.guideTab = 'content'
         // One framework per hand-off.

@@ -35,6 +35,8 @@ export function StartOverlay() {
         const mix = mixFromStart(input, starts, chosen)
         useStore.getState().openMixData(mix)
         close()
+        // Your words are what's left to do: the Words panel opens beside the page, its Next on the first sample.
+        useStore.getState().setUi({ leftPanel: 'words' })
         useStore.getState().showFlash(startedWords(input.name, mix))
       }}
     />
