@@ -253,6 +253,8 @@ export interface GuideState {
   picture?: PictureDefault
   /** The skin this guide came from (core/skins.ts), so the board and the packet can name it. */
   skin?: { id: string; name: string }
+  /** Your brand color: the palette is made from it, and trying another theme keeps it (unless color is set to Surprise). */
+  brand?: { color: string }
 }
 
 /** A type of section's look across the page. */
@@ -291,6 +293,8 @@ export interface ResolvedGuide {
 
 export interface ProjectContent {
   brand: string
+  /** Your logo, once: it fills the nav's and footer's logo wherever they don't have a picture of their own. */
+  logo?: MediaFill
   fields: Partial<Record<SectionType, Record<string, string>>>
 }
 

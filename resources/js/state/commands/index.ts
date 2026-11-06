@@ -122,6 +122,12 @@ function summary(name: string, input: Record<string, unknown>): string {
       return String(input.block).includes(' · ') ? `changed ${input.block}` : `changed ${input.block}${sec ? ` in${sec}` : ''}`
     case 'set_words':
       return `rewrote${sec}`
+    case 'set_brand':
+      return `renamed the site ${String(input.name)}`
+    case 'set_brand_color':
+      return input.color ? 'changed the brand color' : 'forgot the brand color'
+    case 'set_logo':
+      return input.remove ? 'took the logo away' : 'set the logo'
     case 'add_section':
       return `added a ${input.type}`
     case 'add_page':

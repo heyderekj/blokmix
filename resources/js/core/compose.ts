@@ -213,7 +213,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const changed = clip.blocks
       .map((b) => {
         const edit = effectiveEdit(edits?.[b.id], defaultFor(input.page?.components, b))
-        const picture = pictureFor(edit?.media, b, input.page?.picture, clip.origin, slot.keep.style)
+        const picture = pictureFor(edit?.media, b, input.page?.picture, clip.origin, slot.keep.style, { type: clip.type, logo: input.content.logo })
         return { b, edit: picture && !edit?.media ? { ...edit, media: picture } : edit ?? (blockTextStyle(b, clip.blocks, undefined, input.page) ? {} : undefined) }
       })
       .filter((x): x is { b: (typeof x)['b']; edit: BlockEdit } => !!x.edit)

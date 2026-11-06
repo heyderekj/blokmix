@@ -58,7 +58,7 @@ export function BrandColours() {
   const state = useStore((s) => s.guide)
   const st = useStore.getState
   return (
-    <PanelSection title="Brand colors" action={<AddSwatch />}>
+    <PanelSection title="Extra colors" action={<AddSwatch />}>
       {state.swatches?.length ? (
         <div className="flex flex-wrap gap-1.5">
           {state.swatches.map((w) => (

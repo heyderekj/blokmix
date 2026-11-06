@@ -71,7 +71,8 @@ export function guideFor(input: Pick<StartInput, 'skin' | 'brand' | 'mode'>): Gu
   const guide = applySkin(emptyGuide(), skin)
   const mode = input.mode ?? skin.mode
   const colors = input.brand ? paletteFrom(input.brand, mode) : mode !== skin.mode ? setTone(resolveGuide(guide).tokens, mode) : null
-  return colors ? { ...guide, base: { ...guide.base, ...colors } } : guide
+  // A brand color is remembered, so trying another theme later keeps it.
+  return colors ? { ...guide, base: { ...guide.base, ...colors }, ...(input.brand ? { brand: { color: input.brand } } : {}) } : guide
 }
 
 /** An address for the contact section, made from the site's name: "Fern & Co" → hello@fernco.com. */

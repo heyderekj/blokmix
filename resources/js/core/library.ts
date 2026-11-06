@@ -1,4 +1,4 @@
-import type { Capture, Clip, ClipStyle, Density, Feel, Keep, Library, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
+import type { BlockEdit, Capture, Clip, ClipStyle, Density, Feel, Keep, Library, SlotEdits, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
 import { CLIP_STYLES, DENSITIES, FEELS, SECTION_TYPES } from './types'
 import { hexToRgb } from './tokens'
 import { extractFields, parseHtml } from './html/parse'
@@ -225,11 +225,56 @@ export function cycleIds(lib: Library, type: SectionType, mixClips: Iterable<str
  * with" and "Use its own look" belong to captured clips, so they're turned off on the way to a layout (where there'd
  * be no switch to turn them back).
  */
-export function withClip<S extends { clipId: string; keep: Keep }>(slot: S, clipId: string, lib: Library): S {
+export function withClip<S extends { clipId: string; keep: Keep; edits?: SlotEdits }>(slot: S, clipId: string, lib: Library): S {
   if (slot.clipId === clipId) return slot
+  const edits = carryEdits(slot.edits, lib.clips[slot.clipId], lib.clips[clipId])
+  const next = { ...slot, clipId, ...(edits !== slot.edits ? { edits } : {}) }
   const toLayout = lib.clips[clipId]?.origin === 'layout'
-  if (!toLayout || (!slot.keep.style && !slot.keep.content)) return { ...slot, clipId }
-  return { ...slot, clipId, keep: { ...slot.keep, style: false, content: false } }
+  if (!toLayout || (!slot.keep.style && !slot.keep.content)) return next
+  return { ...next, keep: { ...slot.keep, style: false, content: false } }
+}
+
+const isLogoSpot = (m: string) => /^logo1?$/i.test(m)
+const sameMedia = (a: string, b: string) => a === b || (isLogoSpot(a) && isLogoSpot(b))
+
+/**
+ * Trying another layout keeps your pictures and links: each picture or link in the new layout that has nothing of its
+ * own takes the one from the layout you're leaving. Pictures match by name (any logo spot to any logo spot), then the
+ * rest in page order; links match by the words they hold. Nothing the new layout already has is touched.
+ */
+export function carryEdits(edits: SlotEdits | undefined, from: Clip | undefined, to: Clip | undefined): SlotEdits | undefined {
+  const old = from && edits?.[from.id]
+  if (!old || !to || from.id === to.id) return edits
+  const mine: Record<string, BlockEdit> = { ...(edits[to.id] ?? {}) }
+  let changed = false
+  const put = (id: string, patch: Partial<BlockEdit>) => {
+    mine[id] = { ...mine[id], ...patch }
+    changed = true
+  }
+  // Pictures with a fill of their own, in the order the old layout shows them.
+  const pictures = from.blocks.filter((b) => b.kind === 'image' && b.media && old[b.id]?.media)
+  const used = new Set<string>()
+  const empty = to.blocks.filter((b) => b.kind === 'image' && b.media && !mine[b.id]?.media)
+  for (const b of empty) {
+    const src = pictures.find((p) => !used.has(p.id) && sameMedia(p.media!, b.media!))
+    if (src) {
+      used.add(src.id)
+      put(b.id, { media: old[src.id].media })
+    }
+  }
+  const rest = pictures.filter((p) => !used.has(p.id) && !isLogoSpot(p.media!))
+  for (const b of empty.filter((x) => !mine[x.id]?.media && !isLogoSpot(x.media!))) {
+    const src = rest.shift()
+    if (!src) break
+    put(b.id, { media: old[src.id].media })
+  }
+  // Links, by the words they hold ("Start a mix" goes where it went before).
+  for (const b of to.blocks) {
+    if (!b.field || mine[b.id]?.link) continue
+    const src = from.blocks.find((x) => x.field === b.field && old[x.id]?.link)
+    if (src) put(b.id, { link: old[src.id].link })
+  }
+  return changed ? { ...edits, [to.id]: mine } : edits
 }
 
 /** The library's two shelves: Blokmix's plain layouts, and sections captured from real sites. */

@@ -416,6 +416,14 @@ use them in shows the same entries.
 ### Content
 
 Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI calls it Content, never "CMS".
+- Your site's name (`content.brand`, Content → "Your site's name", `set_brand`) changes everywhere it's written when you
+  finish typing: fields, each section's words and kept options, whole words only (`renameBrand`), one undo step.
+- Your logo once (`content.logo`, `set_logo`) fills the nav's and footer's logo spot (`isSiteLogo`) wherever it has no
+  picture of its own, clipped or built in (`pictureFor`'s `site` argument).
+- One brand color (`guide.brand`, the Feel tile, `set_brand_color`) makes a whole AA palette (`paletteFrom`), and
+  `applySkin` remakes the theme's colors from it unless the contract keeps color (stays) or sets it to Surprise.
+- Trying another layout keeps your pictures and links (`carryEdits`, run by `withClip`): by picture name (any logo spot
+  to any logo spot), then the rest in page order; links by the words they hold. Never over what the layout has.
 - Every field's words have options (`slot.options`): your copy, the clip's words, and options you or an
   agent kept. ‹ 2/3 › in the block bar (or `[` `]`) cycles them; Keep, Retire, Put it back and "Another way
   to say it" are Koati's words.

@@ -10,6 +10,7 @@ import type {
   Choice,
   GuideState,
   Keep,
+  MediaFill,
   Note,
   NoteAnchor,
   NoteColor,
@@ -31,14 +32,16 @@ import type {
   VersionNode,
 } from '@/core/types'
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
-import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, SOURCE_PREFIX } from '@/core/guide'
+import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, resolveGuide, SOURCE_PREFIX } from '@/core/guide'
+import { paletteFrom } from '@/core/palette'
+import { toneOfGuide } from '@/core/dials'
 import { library, slotClip } from '@/data/library'
 import { cycleIds, layoutOpen, withClip } from '@/core/library'
 import { blockEditNeedsPack, FREE_TOKENS } from '@/core/plan'
 import { needsPack } from './plan'
 import { BANNER_ID } from '@/core/banner'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
-import { keepOption, putBackOption, retireOption, showWords } from '@/core/words'
+import { keepOption, putBackOption, renameBrand, retireOption, showWords } from '@/core/words'
 import { suggestClip } from '@/core/suggest'
 import type { FacetFilter } from '@/core/browse'
 import { listOpOnEntries } from './collections'
@@ -220,7 +223,12 @@ export interface State extends MixData {
   surpriseMe: (seed?: number) => string | null
   setContract: (patch: Partial<Contract>) => void
   setField: (type: SectionType, key: string, value: string) => void
-  setBrand: (brand: string) => void
+  /** Your site's name, changed everywhere it's written; returns how many places changed. */
+  setBrand: (brand: string) => number
+  /** Your logo once, for the nav's and footer's logo (null takes it away). */
+  setLogo: (logo: MediaFill | null) => void
+  /** One brand color: a whole palette made from it, kept when you try other themes (null forgets it). */
+  setBrandColor: (color: string | null) => void
 
   // versions
   pressVersion: () => string
@@ -781,7 +789,27 @@ export const useStore = create<State>()(
             set((st) => ({
               content: { ...st.content, fields: { ...st.content.fields, [type]: { ...(st.content.fields[type] ?? {}), [key]: value } } },
             })),
-          setBrand: (brand) => set((st) => ({ content: { ...st.content, brand } })),
+          setBrand: (brand) => {
+            const st = get()
+            const out = renameBrand(st.content, st.site, st.content.brand, brand)
+            set({ content: out.content, site: out.site })
+            return out.count
+          },
+          setLogo: (logo) =>
+            set((st) => {
+              const { logo: _, ...rest } = st.content
+              return { content: logo ? { ...rest, logo } : rest }
+            }),
+          setBrandColor: (color) =>
+            set((st) => {
+              if (!color) {
+                const { brand: _, ...rest } = st.guide
+                return { guide: rest }
+              }
+              const colors = paletteFrom(color, toneOfGuide(resolveGuide(st.guide).tokens))
+              const guide = (Object.entries(colors) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide)
+              return { guide: { ...guide, brand: { color } } }
+            }),
 
           ...versionActions(set, get),
           ...noteActions(set),
