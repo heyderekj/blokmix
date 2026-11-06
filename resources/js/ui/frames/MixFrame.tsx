@@ -12,6 +12,7 @@ import { useResolvedGuide } from '@/state/derived'
 import { MIX_ID, VIEW_W } from '../canvas/geometry'
 import { FrameHeader, HeaderButton, HeaderTitle } from './FrameHeader'
 import { SlotRow } from './SlotRow'
+import { SectionDropLine } from './SectionDrag'
 import { AddSectionMenu, insertSection } from '../shell/AddSection'
 
 export function MixFrame() {
@@ -95,6 +96,7 @@ export function MixFrame() {
       </div>
 
       {!previewing && <Seams onAdd={setAddAt} />}
+      <SectionDropLine />
       {addAt !== null && <AddAt at={addAt} onClose={closeAdd} />}
       <AddSection width={W} onAdd={() => setAddAt(slots.length)} />
     </div>

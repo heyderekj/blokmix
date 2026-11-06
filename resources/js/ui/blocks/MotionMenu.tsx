@@ -7,6 +7,7 @@ import { useStore } from '@/state/store'
 import { Switch } from '../panels/parts'
 import { Steps } from './Spacing'
 import { StepSlider, StyleRow } from '../panels/StyleRows'
+import { Strip } from '../panels/Strip'
 import { useBlockPreview } from './preview'
 
 type Trigger = 'enter' | 'hover' | 'scroll' | 'loop'
@@ -46,9 +47,12 @@ export function MotionMenu({
   motion,
   onHover,
   onPick,
+  bare,
 }: {
   kind: BlockKind
   motion?: BlockMotion
+  /** In a panel rather than a floating menu. */
+  bare?: boolean
   onHover: (m: BlockMotion | null) => void
   onPick: (m: BlockMotion) => void
 }) {
@@ -97,12 +101,43 @@ export function MotionMenu({
             : []
 
   return (
-    <div className="glass-menu w-[340px] animate-pop rounded-2xl p-3">
+    <div className={bare ? '' : 'glass-menu w-[340px] animate-pop rounded-2xl p-3'}>
       <p className="text-[14px] leading-[1.95] text-zinc-600">
         This {KIND_NOUN[kind]} <Phrase t="enter" after="," /> {hoverable && <Phrase t="hover" after="," />} <Phrase t="scroll" /> and <Phrase t="loop" after="." />
       </p>
 
-      {open && (
+      {open && bare && (
+        // In the panel, one sideways row instead of a tall grid.
+        <div className="mt-2.5 border-t border-zinc-950/6 pt-2.5" onMouseLeave={() => show(null)}>
+          <Strip label="Motion" watch={open}>
+          {options.map((o) => {
+            const on = (motion?.[open] as string | undefined) === o.id
+            return (
+              <button
+                key={o.id ?? 'default'}
+                type="button"
+                title={o.hint}
+                onMouseEnter={() => {
+                  setPlays((p) => ({ ...p, [o.id ?? 'default']: (p[o.id ?? 'default'] ?? 0) + 1 }))
+                  show({ [open]: o.id } as BlockMotion)
+                }}
+                onClick={() => pick(open, o.id)}
+                data-on={on || undefined}
+                className={`group flex flex-col items-center gap-1 rounded-xl p-1 transition active:scale-[0.97] ${bare ? 'w-[68px] shrink-0 snap-start' : ''}`}
+              >
+                <span
+                  className={`grid h-11 w-full place-items-center overflow-hidden rounded-lg transition ${on ? 'bg-zinc-900/[0.07] ring-[1.5px] ring-zinc-900' : 'bg-zinc-950/[0.04] group-hover:bg-zinc-950/[0.07]'}`}
+                >
+                  <SwatchShape kind={kind} trigger={open} preset={o.id} play={plays[o.id ?? 'default'] ?? 0} />
+                </span>
+                <span className={`text-[11px] leading-tight ${on ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{o.label}</span>
+              </button>
+            )
+          })}
+          </Strip>
+        </div>
+      )}
+      {open && !bare && (
         <div className="mt-2.5 grid grid-cols-4 gap-1 border-t border-zinc-950/6 pt-2.5" onMouseLeave={() => show(null)}>
           {options.map((o) => {
             const on = (motion?.[open] as string | undefined) === o.id
@@ -116,7 +151,8 @@ export function MotionMenu({
                   show({ [open]: o.id } as BlockMotion)
                 }}
                 onClick={() => pick(open, o.id)}
-                className="group flex flex-col items-center gap-1 rounded-xl p-1 transition active:scale-[0.97]"
+                data-on={on || undefined}
+                className={`group flex flex-col items-center gap-1 rounded-xl p-1 transition active:scale-[0.97] ${bare ? 'w-[68px] shrink-0 snap-start' : ''}`}
               >
                 <span
                   className={`grid h-11 w-full place-items-center overflow-hidden rounded-lg transition ${on ? 'bg-zinc-900/[0.07] ring-[1.5px] ring-zinc-900' : 'bg-zinc-950/[0.04] group-hover:bg-zinc-950/[0.07]'}`}
@@ -174,7 +210,7 @@ function SwatchShape({ kind, trigger, preset, play }: { kind: BlockKind; trigger
 }
 
 /** A whole section's motion: as clipped, a preset (optionally staggered and on scroll), or none. */
-export function SectionMotionRows({ slot }: { slot: Slot }) {
+export function SectionMotionRows({ slot, untitled }: { slot: Slot; untitled?: boolean }) {
   const st = useStore.getState
   const replay = useBlockPreview((s) => s.replay)
   const m: SectionMotion = slot.motion ?? { mode: slot.keep.motion ? 'captured' : 'none' }
@@ -206,7 +242,7 @@ export function SectionMotionRows({ slot }: { slot: Slot }) {
   return (
     <div className="grid gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold text-zinc-400">Motion</span>
+        <span className="text-[11px] font-semibold text-zinc-400">{untitled ? '' : 'Motion'}</span>
         <span className="flex gap-0.5">
           {([-1, 1] as const).map((dir) => (
             <button

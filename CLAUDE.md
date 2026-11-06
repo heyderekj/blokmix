@@ -352,12 +352,18 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
 - Locking (`slot.locked`, the section bar's Lock): only you change a locked section. Shuffle skips it, and agent commands naming it refuse, apart from marks. A captured section's own look, words and motion are switches where they belong (Style, Content, Motion's As clipped).
 - Section widths (`slot.width`, `widthTokens`): narrow, standard, wide or full, against the guide's content width, from
   the width picks in the section bar or `set_section_width`. `sectionTokens` applies surface then width.
-- The block bar steps through a block's looks with ‹ › around Look.
-- List items move like sliding tiles: pointing at or selecting anything in an item shows its arrows on each side that
-  has a neighbour on screen (`tileNeighbor`, by position, so "below" in a grid is three places on), and a click swaps
-  the two (list op `swap`, one undo step; ⌥ + arrow keys too; agents: `edit_list` op `swap`). Its grip drags it: the
-  list reflows live in the frame as it passes over the others (a preview `move`), a screen-wide layer holds the pointer
-  over the frames, Escape cancels, letting go commits one `move`. `ui/frames/tiles.ts` shares the item rects.
+- Selecting: one click picks the smallest block under the pointer, in any section (focusing it on the way); a click on a
+  section's empty space, its rail or Escape selects the section. The block bar is slim like the section bar (name with its
+  parents, ‹ Look ›, words, picture, link, item add/duplicate/remove, Style, note, ⋯); everything about how a block or a
+  section looks is in one Style panel at the window's side that follows the selection (`ui/panels/SelectionStyle.tsx`).
+  ← → step the selected block's looks, else the section's layouts (the section bar's ‹ Layout n of m ›).
+- List items move by dragging: selecting anything in an item shows one grip on its corner; drag it, or press on the item
+  and move (the frame posts `dragItem`/`dragMove`/`dragEnd`). The list reflows live in the frame (a preview `move`), the
+  nearest item counts, the canvas pans near the window's edges and with the wheel, Escape cancels, letting go commits one
+  `move`. ⌥ + arrow keys swap with the on-screen neighbour (`tileNeighbor`; agents: `edit_list` op `swap`).
+- Sections move by dragging their rail or the section bar's grip (`ui/frames/SectionDrag.tsx`: a drop line at the nearest
+  seam, frames let go of the pointer via `[data-dragging-section]`), or ⌥↑ ⌥↓ with the section selected. A Crate clip
+  dropped on a section replaces it (same type) or goes after it.
 - Stress-test layouts against the dials: `npx vite-node scripts/render-clips.ts <types> --variants min,max,dark`
   (also `<dial>0`/`<dial>100`); it flags page overflow, spill past the gutter and clipped text. On phones a `.grid`'s
   column gap stays at `--mx-space-4` or less (its 11 gaps must fit a phone at the widest spacing), single columns are

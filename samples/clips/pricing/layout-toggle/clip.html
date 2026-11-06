@@ -6,15 +6,9 @@
       <p class="lead" data-mx-block="text" data-mx-field="intro">Every plan has the full editor and unlimited drafts. Pay yearly and two months are on us.</p>
       <fieldset class="period">
         <legend class="sr">Billing period</legend>
-        <input class="sr" type="radio" name="mx-pricing-layout-toggle-period" id="mx-pricing-layout-toggle-monthly" checked>
-        <input class="sr" type="radio" name="mx-pricing-layout-toggle-period" id="mx-pricing-layout-toggle-yearly">
-        <label class="opt opt-m" for="mx-pricing-layout-toggle-monthly">Monthly</label>
-        <span class="switch">
-          <label class="half" for="mx-pricing-layout-toggle-monthly" aria-hidden="true"></label>
-          <label class="half" for="mx-pricing-layout-toggle-yearly" aria-hidden="true"></label>
-          <span class="knob" aria-hidden="true"></span>
-        </span>
-        <label class="opt opt-y" for="mx-pricing-layout-toggle-yearly">Yearly</label>
+        <label class="pick pick-m"><input class="sr monthly" type="radio" name="mx-pricing-layout-toggle-period" checked><span class="opt">Monthly</span><span class="half" aria-hidden="true"></span></label>
+        <label class="pick pick-y"><input class="sr yearly" type="radio" name="mx-pricing-layout-toggle-period"><span class="half" aria-hidden="true"></span><span class="opt">Yearly</span></label>
+        <span class="switch" aria-hidden="true"><span class="knob"></span></span>
       </fieldset>
     </header>
     <div class="grid tiers" data-mx-block="list" data-mx-list="plans">

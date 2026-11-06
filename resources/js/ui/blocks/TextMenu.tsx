@@ -15,7 +15,10 @@ export function TextMenu({
   shownPx,
   onHover,
   onPick,
+  bare,
 }: {
+  /** In a panel rather than a floating menu. */
+  bare?: boolean
   /** The block's own picks: its text style and size. */
   style: BlockStyle | undefined
   /** The style the block reads as. */
@@ -44,7 +47,7 @@ export function TextMenu({
       onMouseEnter={() => onHover({ text: value })}
       onMouseLeave={() => onHover(null)}
       onClick={() => onPick({ text: value })}
-      className={`flex min-h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-1 text-left transition-colors ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
+      className={`flex ${bare ? 'min-h-7' : 'min-h-8'} w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-0.5 text-left transition-colors ${on ? 'bg-zinc-950/[0.06]' : 'hover:bg-zinc-950/[0.04]'}`}
     >
       <span
         className="min-w-0 flex-1 truncate text-zinc-900"
@@ -54,7 +57,7 @@ export function TextMenu({
                 fontFamily: tokens[`font.${def.font}` as 'font.display'],
                 fontWeight: def.weight === 'display' ? Number(tokens['type.displayWeight']) || 700 : def.weight,
                 // Big styles shrink so all ten fit without scrolling; their order still reads largest to smallest.
-                fontSize: Math.min(21, Math.max(11, sizePx(def.size) * 0.45)),
+                fontSize: Math.min(bare ? 17 : 21, Math.max(11, sizePx(def.size) * (bare ? 0.36 : 0.45))),
                 letterSpacing: `${def.tracking}em`,
                 textTransform: def.upper ? 'uppercase' : undefined,
                 lineHeight: 1.2,
@@ -69,7 +72,7 @@ export function TextMenu({
   )
 
   return (
-    <div className="glass-menu animate-pop rounded-2xl p-1.5" style={{ width: 300 }}>
+    <div className={bare ? '' : 'glass-menu animate-pop rounded-2xl p-1.5'} style={bare ? undefined : { width: 300 }}>
       {row({ id: 'Automatic', note: auto ? `as ${TEXT_STYLE_LABEL[auto]}` : 'clip’s own', on: !picked, value: undefined })}
       <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
       <div>

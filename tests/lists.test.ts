@@ -69,6 +69,28 @@ describe('lists', () => {
     expect([...faq.html.matchAll(/<details[^>]*>/g)].map((m) => /\bopen\b/.test(m[0]))).toEqual([true, false, false])
   })
 
+  it('keeps the open tab with the first position: add, duplicate, remove and move', () => {
+    const c = clip('features.layout-tabs')
+    const base = sectionClip(c)
+    const list = base.blocks.find((b) => b.kind === 'list')!
+    const slot: Slot = { id: 's', type: c.type, clipId: c.id, locked: false, keep: { ...DEFAULT_KEEP } }
+    const checks = (s: ReturnType<typeof sectionClip>) => [...s.html.matchAll(/<input[^>]*type="radio"[^>]*>/g)].map((m) => /\bchecked\b/.test(m[0]))
+    const items = (s: ReturnType<typeof sectionClip>) => s.blocks.filter((b) => b.parent === list.id && b.kind === 'item')
+    expect(checks(base)).toEqual([true, false, false, false])
+    const run = (op: Parameters<typeof editList>[3]) => sectionClip(c, editList(slot, base, DEFAULT_CONTENT, op).lists)
+    const first = items(base)[0].id
+    expect(checks(run({ op: 'add', listId: list.id }))).toEqual([true, false, false, false, false])
+    const dup = run({ op: 'duplicate', itemId: first })
+    expect(checks(dup)).toEqual([true, false, false, false, false])
+    expect(listOrder(dup, list.id)[0]).toBe(1)
+    const removed = run({ op: 'remove', itemId: first })
+    expect(listOrder(removed, list.id)).toEqual([2, 3, 4])
+    expect(checks(removed)).toEqual([true, false, false])
+    const moved = run({ op: 'move', itemId: first, to: 2 })
+    expect(listOrder(moved, list.id)).toEqual([2, 3, 1, 4])
+    expect(checks(moved)).toEqual([true, false, false, false])
+  })
+
   it('reorders, removes and adds items, renumbering copies and keeping ids stable', () => {
     const c = clip('faq.layout-accordion')
     const base = sectionClip(c)

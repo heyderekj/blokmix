@@ -1,9 +1,9 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react'
+import { GripVertical } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
 import { pickable } from '@/core/library'
-import { editList as applyListEdit, listContext, listOrder, sectionClip, tileNeighbor, type TileDir } from '@/core/lists'
+import { editList as applyListEdit, listContext, listOrder, sectionClip } from '@/core/lists'
 import { useTiles } from './tiles'
 import { applyBindings, emptyTargets } from '@/core/collections'
 import { entryPathFor, templateEntry, useCollections } from '@/state/collections'
@@ -21,6 +21,7 @@ import { useAssets } from '@/lib/assets'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { VIEW_W } from '../canvas/geometry'
 import { SectionPill, SectionRail } from './SectionPill'
+import { edgePan, panBy } from '../canvas/dragPan'
 
 const SPIN_STEP = 90
 /** Clip swaps: short, firm and settled, like flipping a card, not spinning a reel. */
@@ -126,8 +127,6 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
 
   const [heights, setHeights] = useState<Record<string, number>>({})
   const height = heights[shown] ?? 520
-  // The arrows hold still while you click through layouts of different heights; they re-center once the pointer leaves.
-  const [arrowY, setArrowY] = useState<number | null>(null)
   const rowRef = useRef<HTMLDivElement>(null)
   const setRow = useLayout((s) => s.setRow)
   useLayoutEffect(() => {
@@ -140,14 +139,15 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
     return () => ro.disconnect()
   }, [slot.id, setRow, height, index])
 
-  const [dropping, setDropping] = useState(false)
+  const [dropping, setDropping] = useState<'replace' | 'after' | null>(null)
   const prevRel = useRef<Record<string, number>>({})
   const shownIndex = ids.indexOf(shown)
   const st = useStore.getState
 
   // ---- blocks: hover, select and edit inside the current clip; or mark them with the Note tool ----
   const current = !previewing && !spinning && shown === slot.clipId
-  const canEdit = focused && mode === 'unified' && tool === 'select' && current
+  // Every section takes clicks: one click picks the block under the pointer, focusing its section on the way.
+  const canEdit = mode === 'unified' && tool === 'select' && current
   const noting = tool === 'note' && current
   const [hover, setHover] = useState<{ id: string; rect: FrameRect } | null>(null)
   const [selRect, setSelRect] = useState<FrameRect | null>(null)
@@ -158,6 +158,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   if (selRect && (!previewingHere || !barRef.current)) barRef.current = selRect
   const barAt = selRect ? barRef.current : null
   const [typing, setTyping] = useState(false)
+  const dragHandle = useRef<ItemDragHandle | null>(null)
   const [rects, setRects] = useState<Record<string, FrameRect>>({})
   const [drawing, setDrawing] = useState<FrameRect | null>(null)
   useEffect(() => {
@@ -166,11 +167,24 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   useEffect(() => {
     if (!selectedBlock) setSelRect(null)
   }, [selectedBlock])
+  // The selection's box, for the Style panel (which sits outside the section).
+  useEffect(() => {
+    if (focused) useBlockPreview.getState().setSelRect(selRect)
+  }, [focused, selRect])
+  // Block ids are by position in a layout: another layout's rects (and selection) mean other blocks.
+  useEffect(() => setRects({}), [shown])
+  const prevClip = useRef(own.clipId)
+  useEffect(() => {
+    if (prevClip.current === own.clipId) return
+    prevClip.current = own.clipId
+    const s = useStore.getState()
+    if (s.ui.focusedSlotId === own.id && s.ui.selectedBlockId) s.selectBlock(null)
+  }, [own.clipId, own.id])
   const sectioned = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists, { banner: slot.banner }) : null
   const blocks = sectioned?.blocks ?? []
   const block = selectedBlock ? blocks.find((b) => b.id === selectedBlock) : undefined
-  // List items can be dragged among their siblings. Pointing at (or selecting) anything inside an item shows its grip;
-  // it stays on that item while the pointer travels to it. The frame reports where every movable item is.
+  // List items can be dragged among their siblings: selecting anything inside an item shows its grip. The frame reports
+  // where every movable item of the focused section is.
   const itemOf = useCallback(
     (id: string | null | undefined) => {
       for (let b = blocks.find((x) => x.id === id); b; b = blocks.find((x) => x.id === b!.parent)) if (b.kind === 'item') return b
@@ -179,25 +193,17 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
     [blocks],
   )
   const movable = useMemo(
-    () => (canEdit && sectioned ? blocks.filter((b) => b.kind === 'item' && listContext(sectioned, slot, b.id)?.count! > 1) : []),
-    [canEdit, sectioned, slot, blocks],
+    () => (canEdit && focused && sectioned ? blocks.filter((b) => b.kind === 'item' && listContext(sectioned, slot, b.id)?.count! > 1) : []),
+    [canEdit, focused, sectioned, slot, blocks],
   )
-  const [pointed, setPointed] = useState<string | null>(null)
-  useEffect(() => {
-    if (!hover) return // the pointer left the frame (maybe for the grip): keep the last item
-    setPointed(itemOf(hover.id)?.id ?? null)
-  }, [hover, itemOf])
-  useEffect(() => {
-    if (!canEdit) setPointed(null)
-  }, [canEdit])
-  const grabbed = sorting?.itemId ?? itemOf(selectedBlock)?.id ?? pointed
+  const grabbed = sorting?.itemId ?? itemOf(selectedBlock)?.id
   const items = useMemo(() => {
-    const ctx = sectioned && grabbed && canEdit ? listContext(sectioned, slot, grabbed) : null
+    const ctx = sectioned && grabbed && canEdit && focused ? listContext(sectioned, slot, grabbed) : null
     if (!ctx?.item || ctx.count < 2 || !sectioned) return null
     const order = listOrder(sectioned, ctx.list.id)
     const siblings = blocks.filter((b) => b.parent === ctx.list.id && b.kind === 'item' && b.n != null).sort((a, b) => order.indexOf(a.n!) - order.indexOf(b.n!))
     return { item: ctx.item, index: ctx.index, siblings }
-  }, [sectioned, grabbed, canEdit, slot, blocks])
+  }, [sectioned, grabbed, canEdit, focused, slot, blocks])
   // Blocks with a pin on them: the frame reports where they are.
   const notes = useStore((s) => s.notes)
   const track = useMemo(
@@ -236,7 +242,11 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
       track: trackAll,
       onEvent: (e: BlockEvent) => {
         if ('hover' in e) setHover(e.hover ?? null)
-        if ('pick' in e) st().selectBlock(e.pick ?? null)
+        if ('pick' in e) {
+          // A click in a section you weren't in focuses it on the way; a click on its empty space selects the section.
+          if (st().ui.focusedSlotId !== slot.id) st().focusSlot(slot.id)
+          st().selectBlock(e.pick ?? null)
+        }
         if ('selRect' in e) setSelRect(e.selRect ?? null)
         // Words typed into a field that shows a collection go to its entry.
         const bound = e.word ? targets?.fields.get(e.word.field) : undefined
@@ -251,6 +261,9 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
             useBlockPreview.getState().setKeepNext(null)
           }
         }
+        if (e.dragItem) dragHandle.current?.start(e.dragItem)
+        if (e.dragMove) dragHandle.current?.move(e.dragMove)
+        if (e.dragEnd) dragHandle.current?.end(true)
         if ('editing' in e) setTyping(!!e.editing)
         if (e.rects) setRects((r) => ({ ...r, ...e.rects }))
         if ('drag' in e) setDrawing(e.drag ?? null)
@@ -281,7 +294,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         }
         if (e.key) {
           const k = e.key
-          window.dispatchEvent(new KeyboardEvent('keydown', { key: k.key, code: k.code, metaKey: k.meta, ctrlKey: k.ctrl, shiftKey: k.shift, altKey: k.alt, bubbles: true }))
+          window.dispatchEvent(new KeyboardEvent(k.up ? 'keyup' : 'keydown', { key: k.key, code: k.code, metaKey: k.meta, ctrlKey: k.ctrl, shiftKey: k.shift, altKey: k.alt, bubbles: true }))
         }
       },
     }),
@@ -298,7 +311,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         height,
         transition: `height ${SWAP}`,
         // Above its neighbours while it's focused or has a note open, so cards and menus aren't covered.
-        zIndex: focused || noteOpen ? 20 : 1,
+        // A section you're pointing into lifts too, so its outline isn't cut off by the next section.
+        zIndex: focused || noteOpen ? 20 : hover ? 10 : 1,
       }}
       onPointerDown={() => st().focusSlot(slot.id)}
       onDragOver={(e) => {
@@ -306,12 +320,15 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         e.preventDefault()
         e.stopPropagation()
         e.dataTransfer.dropEffect = 'copy'
-        setDropping(true)
+        setDropping(e.dataTransfer.types.includes(`application/x-blokmix-type-${slot.type}`) ? 'replace' : 'after')
       }}
-      onDragLeave={() => setDropping(false)}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropping(null)
+      }}
       onDrop={(e) => {
         const clipId = e.dataTransfer.getData('application/x-blokmix-clip')
-        setDropping(false)
+        setDropping(null)
+        document.documentElement.removeAttribute('data-dragging-clip')
         const clip = library.clips[clipId]
         if (!clip) return
         e.preventDefault()
@@ -357,7 +374,17 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         })}
       </div>
 
-      {dropping && <div className="pointer-events-none absolute inset-0 z-10 bg-key/15" style={{ boxShadow: 'inset 0 0 0 calc(4px / var(--z)) var(--color-key)' }} />}
+      {dropping && (
+        // Same kind of section: the drop replaces this one's layout. Any other: it goes in after this one.
+        <div
+          className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-key/15"
+          style={{ boxShadow: dropping === 'replace' ? 'inset 0 0 0 calc(4px / var(--z)) var(--color-key)' : 'inset 0 calc(-6px / var(--z)) 0 var(--color-key)' }}
+        >
+          <span className="rounded-full bg-key px-3 py-1 text-[13px] font-semibold text-white shadow-lg" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+            {dropping === 'replace' ? `Replace this ${TYPE_LABEL[slot.type].toLowerCase()}` : 'Add after this section'}
+          </span>
+        </div>
+      )}
 
       {/* focus ring */}
       <div
@@ -382,14 +409,6 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
             Layout: reference only ×
           </button>
         </div>
-      )}
-
-      {/* chevrons on the page edges */}
-      {ids.length > 1 && !previewing && (
-        <>
-          <EdgeButton side="left" y={arrowY ?? height / 2} onPin={() => setArrowY((y) => y ?? height / 2)} onRelease={() => setArrowY(null)} onClick={() => st().cycle(slot.id, -1)} visible={focused} />
-          <EdgeButton side="right" y={arrowY ?? height / 2} onPin={() => setArrowY((y) => y ?? height / 2)} onRelease={() => setArrowY(null)} onClick={() => st().cycle(slot.id, 1)} visible={focused} />
-        </>
       )}
 
       {/* block outlines, in page pixels: the current frame sits at 0,0 at 1:1 */}
@@ -424,7 +443,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
       )}
 
       {items && rects[items.item.id] && !typing && (
-        <ItemDrag slotId={slot.id} items={items} rect={rects[items.item.id]} rects={rects} row={rowRef} pageW={W} sorting={sorting} onSort={setSorting} />
+        <ItemDrag slotId={slot.id} items={items} rect={rects[items.item.id]} rects={rects} row={rowRef} pageW={W} sorting={sorting} onSort={setSorting} handle={dragHandle} />
       )}
 
       <SectionMarks slot={slot} width={W} height={frameH} rects={rects} drawing={drawing} />
@@ -443,11 +462,14 @@ const partLabel = (label: string | undefined) => label?.split(' · ').slice(1).j
  * border with a faint fill and a soft halo, thicker once picked. It stays mounted and
  * glides between blocks instead of blinking from one to the next.
  */
+/** Starting, moving and letting go of an item drag from outside (the frame, when you press on the item itself). */
+export type ItemDragHandle = { start: (p: { x: number; y: number }) => void; move: (p: { x: number; y: number }) => void; end: (commit: boolean) => void }
+
 /**
- * Drag a list item among its siblings, like a sortable list: grab the grip, and as the pointer passes over another
- * item the list reflows live in the section (the others make room); letting go keeps that order (one undo step, like
- * ⌥←/→). Escape puts it back. A screen-wide layer takes the pointer while dragging, so the section's frame can't
- * swallow it.
+ * Drag a list item among its siblings, like a sortable list: grab the grip (or press on the item and move), and as the
+ * pointer passes over another item the list reflows live in the section (the others make room); letting go keeps that
+ * order (one undo step, like ⌥ + arrows). Escape puts it back. A screen-wide layer takes the pointer while dragging, so
+ * the section's frame can't swallow it; the canvas pans near the window's edges and with the wheel.
  */
 function ItemDrag({
   slotId,
@@ -458,71 +480,110 @@ function ItemDrag({
   pageW,
   sorting,
   onSort,
+  handle,
 }: {
   slotId: string
-  items: { item: { id: string }; index: number; siblings: { id: string }[] }
+  items: { item: { id: string; label: string }; index: number; siblings: { id: string }[] }
   rect: FrameRect
   rects: Record<string, FrameRect>
   row: React.RefObject<HTMLDivElement | null>
   pageW: number
   sorting: { itemId: string; from: number; to: number } | null
   onSort: (s: { itemId: string; from: number; to: number } | null) => void
+  handle: React.MutableRefObject<ItemDragHandle | null>
 }) {
   const [ghost, setGhost] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
-  const state = useRef({ to: items.index, at: 0, grab: { x: 0, y: 0 }, rects, order: items.siblings.map((b) => b.id) })
+  const state = useRef({ to: items.index, at: 0, grab: { x: 0, y: 0 }, rects, order: items.siblings.map((b) => b.id), client: { x: 0, y: 0 }, pan: null as ReturnType<typeof edgePan> | null })
   state.current.rects = rects
-  // The pointer in page pixels (the row is drawn at the canvas zoom).
-  const at = (e: { clientX: number; clientY: number }) => {
+  const scale = () => {
     const box = row.current!.getBoundingClientRect()
-    const k = box.width / pageW
-    return { x: (e.clientX - box.left) / k, y: (e.clientY - box.top) / k }
+    return { box, k: box.width / pageW }
   }
-  const start = (e: React.PointerEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
+  // The pointer in page pixels (the row is drawn at the canvas zoom), from where it is on screen.
+  const toPage = (c: { x: number; y: number }) => {
+    const { box, k } = scale()
+    return { x: (c.x - box.left) / k, y: (c.y - box.top) / k }
+  }
+  const toClient = (p: { x: number; y: number }) => {
+    const { box, k } = scale()
+    return { x: box.left + p.x * k, y: box.top + p.y * k }
+  }
+  const begin = (client: { x: number; y: number }) => {
     const st = state.current
     // The committed order, and where in the item the pointer took hold.
     st.order = items.siblings.map((b) => b.id)
     st.to = items.index
+    st.client = client
     // A wide item travels as a compact card, held at the same spot.
-    const p0 = at(e)
+    const p0 = toPage(client)
     const k = Math.min(1, 360 / rect.w)
     st.grab = { x: (p0.x - rect.x) * k, y: (p0.y - rect.y) * k }
     setGhost({ x: p0.x - st.grab.x, y: p0.y - st.grab.y, w: rect.w * k, h: rect.h * k })
     onSort({ itemId: items.item.id, from: items.index, to: items.index })
+    st.pan?.stop()
+    st.pan = edgePan(() => over(toPage(st.client)))
   }
-  const move = (e: React.PointerEvent) => {
+  // Which place the item would take with the pointer here: the item under it, else the nearest (gaps count).
+  const over = (p: { x: number; y: number }) => {
     const st = state.current
-    const p = at(e)
     setGhost((g) => (g ? { ...g, x: p.x - st.grab.x, y: p.y - st.grab.y } : g))
     // Wait for the last reflow to land before reading where things are now.
-    if (performance.now() - st.at < 140) return
+    if (performance.now() - st.at < 120) return
     // The order on screen right now: the committed one with the dragged item at its preview place.
     const shown = st.order.filter((id) => id !== items.item.id)
     shown.splice(st.to, 0, items.item.id)
-    const over = shown.find((id) => {
-      if (id === items.item.id) return false
+    let best: string | null = null
+    let dist = Infinity
+    for (const id of shown) {
       const r = st.rects[id]
-      return r && p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h
-    })
-    if (!over) return
-    const to = shown.indexOf(over)
+      if (!r) continue
+      const dx = Math.max(r.x - p.x, 0, p.x - (r.x + r.w))
+      const dy = Math.max(r.y - p.y, 0, p.y - (r.y + r.h))
+      const d = Math.hypot(dx, dy)
+      if (d < dist) {
+        dist = d
+        best = id
+      }
+    }
+    if (!best || best === items.item.id) return
+    const to = shown.indexOf(best)
     if (to === st.to) return
     st.to = to
     st.at = performance.now()
     onSort({ itemId: items.item.id, from: items.index, to })
   }
+  const moveTo = (client: { x: number; y: number }) => {
+    state.current.client = client
+    state.current.pan?.move(client.x, client.y)
+    over(toPage(client))
+  }
   const end = (commit: boolean) => {
-    const to = state.current.to
+    const st = state.current
+    st.pan?.stop()
+    st.pan = null
+    const to = st.to
     setGhost(null)
     if (commit && to !== items.index) useStore.getState().editList(slotId, { op: 'move', itemId: items.item.id, to })
     onSort(null)
   }
+  // The frame starts, moves and ends a drag from the item itself (its coordinates are page pixels).
+  handle.current = {
+    start: (p) => begin(toClient(p)),
+    move: (p) => moveTo(toClient(p)),
+    end: (commit) => ghost && end(commit),
+  }
+  useEffect(() => () => state.current.pan?.stop(), [])
   useEffect(() => {
     if (!sorting) return
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && end(false)
-    window.addEventListener('keydown', esc)
-    return () => window.removeEventListener('keydown', esc)
+    // Escape cancels the drag and nothing else (the selection stays where it is).
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      end(false)
+    }
+    window.addEventListener('keydown', esc, true)
+    return () => window.removeEventListener('keydown', esc, true)
   }) // eslint-disable-line react-hooks/exhaustive-deps
   const dragging = !!ghost
   return (
@@ -542,7 +603,7 @@ function ItemDrag({
         }}
       />
       {ghost && (
-        // What you're carrying, under the pointer.
+        // What you're carrying, under the pointer, with its name.
         <div
           className="pointer-events-none absolute left-0 top-0 z-40"
           style={{
@@ -553,79 +614,48 @@ function ItemDrag({
             background: 'color-mix(in oklab, var(--color-key) 16%, transparent)',
             boxShadow: '0 0 0 calc(2px / var(--z)) var(--color-key), 0 calc(24px / var(--z)) calc(48px / var(--z)) calc(-16px / var(--z)) rgb(0 0 0 / 0.45)',
           }}
-        />
+        >
+          <span
+            className="absolute left-0 top-0 origin-top-left whitespace-nowrap rounded-md bg-key px-2 py-0.5 text-[12px] font-semibold text-white"
+            style={{ transform: 'translate(calc(6px / var(--z)), calc(6px / var(--z))) scale(min(calc(1 / var(--z)), 3.4))' }}
+          >
+            {partLabel(items.item.label)}
+          </span>
+        </div>
       )}
       <div className="absolute z-30" style={{ left: rect.x, top: rect.y, width: 0, height: 0 }} data-chrome>
         <button
           type="button"
-          title="Drag to move this item among the others (or ⌥← ⌥→)"
+          title="Drag to move this item (or ⌥ + arrow keys)"
           aria-label="Drag to move this item"
-          onPointerDown={start}
-          className={`absolute left-[calc(8px/var(--z))] top-[calc(8px/var(--z))] grid origin-top-left place-items-center rounded-full bg-key text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.4)] transition-transform ${dragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`}
+          onPointerDown={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            begin({ x: e.clientX, y: e.clientY })
+          }}
+          className={`absolute left-0 top-0 grid origin-center -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-key text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.4)] transition-transform ${dragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`}
           style={{ width: 26, height: 26, scale: 'min(calc(1 / var(--z)), 3.4)', touchAction: 'none' }}
         >
           <GripVertical size={14} />
         </button>
       </div>
-      {!dragging && <TileArrows slotId={slotId} itemId={items.item.id} rect={rect} rects={rects} ids={items.siblings.map((b) => b.id)} />}
       {dragging &&
         createPortal(
-          // Takes the pointer for the whole drag, above the canvas frames.
+          // Takes the pointer for the whole drag, above the canvas frames; the wheel still pans.
           <div
             className="fixed inset-0 z-[100] cursor-grabbing"
             style={{ touchAction: 'none' }}
-            onPointerMove={move}
+            onPointerMove={(e) => moveTo({ x: e.clientX, y: e.clientY })}
             onPointerUp={() => end(true)}
             onPointerCancel={() => end(false)}
+            onWheel={(e) => {
+              panBy(-e.deltaX, -e.deltaY)
+              over(toPage(state.current.client))
+            }}
             onContextMenu={(e) => e.preventDefault()}
           />,
           document.body,
         )}
-    </>
-  )
-}
-
-const TILE_ARROW = { up: ArrowUp, down: ArrowDown, left: ArrowLeft, right: ArrowRight } as const
-
-/**
- * Sliding-tile arrows on an item's edges: one for each side that has a neighbour on screen. A click swaps the two
- * (the item below in a grid, the next question in a stack), one undo step; ⌥ + arrow keys do the same.
- */
-function TileArrows({ slotId, itemId, rect, rects, ids }: { slotId: string; itemId: string; rect: FrameRect; rects: Record<string, FrameRect>; ids: string[] }) {
-  const dirs = (['up', 'down', 'left', 'right'] as TileDir[]).flatMap((d) => {
-    const other = tileNeighbor(rects, ids, itemId, d)
-    return other ? [{ d, other }] : []
-  })
-  const place: Record<TileDir, { left: number; top: number }> = {
-    up: { left: rect.x + rect.w / 2, top: rect.y },
-    down: { left: rect.x + rect.w / 2, top: rect.y + rect.h },
-    left: { left: rect.x, top: rect.y + rect.h / 2 },
-    right: { left: rect.x + rect.w, top: rect.y + rect.h / 2 },
-  }
-  const keys: Record<TileDir, string> = { up: '↑', down: '↓', left: '←', right: '→' }
-  return (
-    <>
-      {dirs.map(({ d, other }) => {
-        const Icon = TILE_ARROW[d]
-        return (
-          <div key={d} className="absolute z-30" style={{ ...place[d], width: 0, height: 0 }} data-chrome>
-            <button
-              type="button"
-              title={`Swap with the item ${d === 'up' ? 'above' : d === 'down' ? 'below' : `to the ${d}`} (⌥${keys[d]})`}
-              aria-label={`Swap with the item ${d === 'up' ? 'above' : d === 'down' ? 'below' : `to the ${d}`}`}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation()
-                useStore.getState().editList(slotId, { op: 'swap', itemId, withId: other })
-              }}
-              className="absolute grid -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white text-key-ink shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_4px_12px_-4px_rgb(0_0_0/0.35)] transition-[scale,background-color] duration-150 hover:bg-key hover:text-white active:scale-[0.92]"
-              style={{ width: 28, height: 28, scale: 'min(calc(1 / var(--z)), 3.4)' }}
-            >
-              <Icon size={14} strokeWidth={2.4} />
-            </button>
-          </div>
-        )
-      })}
     </>
   )
 }
@@ -738,35 +768,3 @@ const Tile = memo(function Tile(p: {
     </div>
   )
 })
-
-function EdgeButton({ side, y, onPin, onRelease, onClick, visible }: { side: 'left' | 'right'; y: number; onPin: () => void; onRelease: () => void; onClick: () => void; visible: boolean }) {
-  const Icon = side === 'left' ? ChevronLeft : ChevronRight
-  return (
-    <div className="absolute z-30 h-0 w-0" style={{ [side]: 0, top: y, transition: `top ${SWAP}` }} data-chrome>
-      {/* a generous, invisible hit area around the visible button, clear of the gutter rail */}
-      <button
-        type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onPointerEnter={onPin}
-        onPointerLeave={onRelease}
-        onClick={(e) => {
-          e.stopPropagation()
-          onClick()
-        }}
-        className={`group/edge grid size-16 place-items-center rounded-full transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`}
-        style={{
-          transform: `scale(min(calc(1 / var(--z)), 3.4)) translate(${side === 'left' ? '-34px' : '34px'}, -50%)`,
-          transformOrigin: side === 'left' ? '100% 0' : '0 0',
-          position: 'absolute',
-          [side === 'left' ? 'right' : 'left']: 0,
-          top: 0,
-        }}
-        aria-label={side === 'left' ? 'Previous clip' : 'Next clip'}
-      >
-        <span className="grid size-11 place-items-center rounded-full border border-zinc-950/10 bg-white text-zinc-800 shadow-lg transition-[scale] duration-150 group-hover/edge:scale-110 group-active/edge:scale-90">
-          <Icon size={22} strokeWidth={2.4} />
-        </span>
-      </button>
-    </div>
-  )
-}

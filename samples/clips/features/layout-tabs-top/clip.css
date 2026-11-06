@@ -40,23 +40,22 @@
   }
   & .x path { vector-effect: non-scaling-stroke; }
 
-  /* Tabs in a row; the checked tab's picture fills the stage under them.
-     The list keeps the stage's room (16:9 of its own width) as bottom padding. */
+  /* Tabs in a row; the checked tab's picture fills the stage under them, its own ratio setting the height.
+     Each tab's box steps aside (display: contents), so its pick joins the row and its panel takes a row of its own. */
   & .tabs {
-    position: relative;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
-    gap: var(--mx-space-4);
-    padding-bottom: calc(56.25% + var(--mx-space-7));
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mx-space-7) var(--mx-space-4);
   }
+  & .tab { display: contents; }
   & .pick {
     position: relative;
     display: grid;
     align-content: start;
     gap: var(--mx-space-1);
+    flex: 1 1 0;
+    min-width: 0;
     min-height: 44px;
-    height: 100%;
     padding: var(--mx-space-5) var(--mx-space-1) var(--mx-space-2);
     border-top: calc(var(--mx-stroke) * 2) solid var(--mx-color-border);
     cursor: pointer;
@@ -70,7 +69,7 @@
   & .tab:has(:checked) .title { color: var(--mx-color-text); }
 
   & .tab:not(:has(:checked)) .panel { display: none; }
-  & .panel { position: absolute; left: 0; right: 0; bottom: 0; }
+  & .panel { order: 1; flex: 0 0 100%; min-width: 0; }
 
   @media (hover: hover) and (pointer: fine) {
     & .tab:not(:has(:checked)) .pick:hover { border-top-color: color-mix(in oklab, var(--mx-color-text) 40%, var(--mx-color-border)); }
@@ -84,13 +83,9 @@
   @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
-    & .tabs {
-      grid-template-columns: minmax(0, 1fr);
-      grid-auto-flow: row;
-      gap: 0;
-      padding-bottom: calc(56.25% + var(--mx-space-6));
-    }
-    & .pick { padding: var(--mx-space-3) var(--mx-space-1); border-top-width: var(--mx-stroke); }
+    & .tabs { row-gap: 0; }
+    & .pick { flex-basis: 100%; padding: var(--mx-space-3) var(--mx-space-1); border-top-width: var(--mx-stroke); }
+    & .panel { margin-top: var(--mx-space-6); }
     & .tab:not(:has(:checked)) .pick .body { display: none; }
   }
 }

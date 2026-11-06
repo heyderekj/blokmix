@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Link2, ArrowLeft, ArrowRight, CaseSensitive, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, Lightbulb, MoreHorizontal, Palette, Plus, RotateCcw, Shapes, Type, Users, MessageSquarePlus, Waves, Image as ImageIcon, Smile, Database } from 'lucide-react'
+import { create } from 'zustand'
+import { Link2, LayoutTemplate, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, MoreHorizontal, Palette, Plus, RotateCcw, Type, Users, MessageSquarePlus, Image as ImageIcon, Smile, Database } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { defaultFor, effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
 import { advise, type Advice } from '@/core/advise'
-import { resolveFields } from '@/core/content'
+import { resolveFields, TYPE_LABEL } from '@/core/content'
 import { slotClip } from '@/data/library'
 import { useStore, currentSlots } from '@/state/store'
 import { useLinkScope, useResolvedGuide } from '@/state/derived'
@@ -26,12 +27,14 @@ import { WordsCycler, WordsMenu } from './WordsMenu'
 import { LinkLabel, LinkMenu } from './LinkMenu'
 import { CollectionMenu } from './CollectionMenu'
 import { TextMenu } from './TextMenu'
-import { autoTextStyle, TEXT_STYLE_LABEL } from '@/core/textStyles'
+import { autoTextStyle } from '@/core/textStyles'
+import { LooksPicker, stepLook } from './LooksPicker'
+import { setStylePanel, useStylePanel } from '../panels/stylePanel'
 
 /** Icons that read as included or not. */
 const MARK_ON = ['check', 'check-circle']
 const MARK_OFF = ['minus', 'x']
-type Menu = 'variant' | 'text' | 'style' | 'motion' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'advice' | 'collection' | null
+type Menu = 'crumbs' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'collection' | null
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -49,9 +52,9 @@ const PLURAL: Record<BlockKind, string> = {
 }
 
 /**
- * The selected block's controls, floating beside it on the page: where it sits
- * (a breadcrumb you can climb), its look (variant), its colors and shape, and
- * whether the change is just here or for every block of its kind.
+ * The selected block's bar, slim like the section's: what it is (its parents a click away), its look a step at a time,
+ * then what it says and where it goes. Everything about how it looks (text style, color and shape, motion) is in the
+ * Style panel at the window's side, the same panel a section uses.
  */
 export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; rect: FrameRect | null }) {
   const blocks = slotClip(slot).blocks
@@ -64,6 +67,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   const ref = useRef<HTMLDivElement>(null)
   const st = useStore.getState
   const preview = useBlockPreview()
+  const styling = useStylePanel((s) => s.open)
 
   useEffect(() => {
     setMenu(null)
@@ -102,71 +106,58 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
     st().editBlock(slot.id, block.id, patch)
   }
   const hover = (patch: Partial<BlockEdit> | null) => (patch ? preview.show(slot.id, block.id, patch) : preview.clear())
-  // Type: blocks that are words get a text style and a size.
-  const typed = ['heading', 'text', 'button', 'link', 'badge'].includes(block.kind)
-  const autoStyle = typed ? autoTextStyle(block, blocks) : undefined
-  const picked = own?.style?.text
-  const textLabel = picked && picked !== 'none' ? TEXT_STYLE_LABEL[picked] : 'Text'
   const current = variants.find((v) => v.id === edit?.variant)
-  const looksOpen = useStore((s) => s.ui.sheet === 'looks')
-  const stepLook = (d: 1 | -1) => {
-    const order = [undefined, ...variants.map((v) => v.id)]
-    const i = order.indexOf(current?.id)
-    apply({ variant: order[(i + d + order.length) % order.length] })
-  }
-  const advice = useAdvice(slot, block, rect)
+  // The Style panel measures the page for its suggestions; while it's closed, the bar does, for the dot on Style.
+  const advice = useAdvice(slot, block, rect, !styling)
   const list = listContext(slotClip(slot), slot, block.id)
-  const fix = (a: Advice) => {
-    if (a.fix?.promote) {
-      st().promoteBlock(slot.id, block.id)
-      st().showFlash(`Every ${BLOCK_LABEL[block.kind].toLowerCase()} now uses this look`, { undo: true })
-    } else if (a.fix?.edit) apply(a.fix.edit)
-    setMenu(null)
-  }
 
   return (
     <div ref={ref} className="flex w-max flex-col items-start gap-1.5" data-chrome onPointerDown={(e) => e.stopPropagation()}>
-      <div className="glass-panel flex h-10 items-center whitespace-nowrap gap-0.5 rounded-[14px] pl-2 pr-1 text-[12.5px]">
-        {/* where you are: climb by clicking a crumb */}
-        <div className="flex min-w-0 items-center gap-0.5 pr-1">
-          {crumbs.map((b, i) => (
-            <span key={b.id} className="flex items-center gap-0.5">
-              {i > 0 && <ChevronRight size={12} className="shrink-0 text-zinc-300" />}
-              <button
-                type="button"
-                onClick={() => st().selectBlock(b.id)}
-                className={`max-w-[120px] truncate rounded-md px-1 py-0.5 transition ${b.id === block.id ? 'font-semibold text-zinc-900' : 'text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-800'}`}
-              >
-                {name(b)}
-              </button>
-            </span>
-          ))}
-        </div>
-        <Sep />
+      <div className="glass-panel flex h-11 items-center gap-1 whitespace-nowrap rounded-2xl pl-1.5 pr-1.5 text-[13px]">
+        {/* what it is; its parents (up to the section) are a click away */}
+        <button
+          type="button"
+          aria-expanded={menu === 'crumbs'}
+          title={crumbs.map(name).join(' › ')}
+          onClick={() => setMenu(menu === 'crumbs' ? null : 'crumbs')}
+          className={`flex h-8 cursor-pointer items-center gap-1 rounded-full pl-2.5 pr-2 text-[14px] font-semibold transition active:scale-[0.97] ${menu === 'crumbs' ? 'bg-zinc-950/[0.06] text-zinc-900' : 'text-zinc-900 hover:bg-zinc-950/5'}`}
+        >
+          <span className="max-w-[140px] truncate">{name(block)}</span>
+          <ChevronDown size={13} className="text-zinc-400" />
+        </button>
         {variants.length > 0 && (
-          // Step through the looks right here (Original, then each look), or open them all.
+          // Its looks a step at a time (← → too); the name opens them all in the Style panel.
           <div className="flex items-center">
-            <button type="button" title="Previous look" aria-label="Previous look" onClick={() => stepLook(-1)} className="grid h-8 w-5 cursor-pointer place-items-center rounded-l-[10px] text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-800 active:scale-[0.94]">
-              <ChevronLeft size={13} />
+            <button type="button" title="Previous look (←)" aria-label="Previous look" onClick={() => stepLook(slot.id, block.id, -1)} className={STEP + ' rounded-l-full'}>
+              <ChevronLeft size={15} />
             </button>
-            <BarButton active={looksOpen} onClick={() => st().setUi({ sheet: looksOpen ? 'none' : 'looks' })} icon={Shapes} title="Looks: browse them in the dock below (← → to step through)">
+            <button
+              type="button"
+              title="See every look in the Style panel"
+              onClick={() => setStylePanel(!styling)}
+              className="flex h-8 max-w-[150px] cursor-pointer items-center truncate px-1.5 text-[12.5px] font-medium text-zinc-600 transition hover:text-zinc-900 active:scale-[0.97]"
+            >
               {current?.label ?? 'Original'}
-              <ChevronDown size={12} className="opacity-60" />
-            </BarButton>
-            <button type="button" title="Next look" aria-label="Next look" onClick={() => stepLook(1)} className="grid h-8 w-5 cursor-pointer place-items-center rounded-r-[10px] text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-800 active:scale-[0.94]">
-              <ChevronRight size={13} />
+            </button>
+            <button type="button" title="Next look (→)" aria-label="Next look" onClick={() => stepLook(slot.id, block.id, 1)} className={STEP + ' rounded-r-full'}>
+              <ChevronRight size={15} />
             </button>
           </div>
         )}
-        {typed && (
-          <BarButton active={menu === 'text'} onClick={() => setMenu(menu === 'text' ? null : 'text')} icon={CaseSensitive} title="Text style and size">
-            {textLabel}
+        <Sep />
+        {block.field && (
+          <BarButton onClick={() => preview.requestEditText(block.id)} icon={Type} title="Edit the words (double-click or ↵)">
+            Edit
           </BarButton>
         )}
-        <BarButton active={menu === 'style'} onClick={() => setMenu(menu === 'style' ? null : 'style')} icon={Palette} title="Color and shape">
-          <StyleDots style={edit?.style} />
-        </BarButton>
-        {block.kind === 'icon' && (
+        {block.field && <WordsCycler slot={slot} field={block.field} open={menu === 'words'} onOpen={() => setMenu(menu === 'words' ? null : 'words')} />}
+        {block.kind === 'image' && (
+          <BarButton active={menu === 'image'} onClick={() => setMenu(menu === 'image' ? null : 'image')} icon={ImageIcon} title="Picture or video">
+            Picture
+            {edit?.media ? <span className="size-1.5 rounded-full bg-key" /> : null}
+          </BarButton>
+        )}
+        {block.kind === 'icon' && !mark && (
           <BarButton active={menu === 'icon'} onClick={() => setMenu(menu === 'icon' ? null : 'icon')} icon={Smile} title="Choose the icon">
             Icon
           </BarButton>
@@ -177,31 +168,30 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             {mark.on ? 'Included' : 'Not included'}
           </BarButton>
         )}
-        {block.kind === 'image' && (
-          <BarButton active={menu === 'image'} onClick={() => setMenu(menu === 'image' ? null : 'image')} icon={ImageIcon} title="Media">
-            {edit?.media ? <span className="size-1.5 rounded-full bg-key" /> : 'Media'}
-          </BarButton>
-        )}
-        <BarButton active={menu === 'motion'} onClick={() => setMenu(menu === 'motion' ? null : 'motion')} icon={Waves} title="Motion">
-          {edit?.motion ? <span className="size-1.5 rounded-full bg-key" /> : null}
-        </BarButton>
-        {block.field && (
-          <BarButton onClick={() => preview.requestEditText(block.id)} icon={Type} title="Edit text (double-click or ↵)">
-            Edit
-          </BarButton>
-        )}
         {block.linkable && (
           <BarButton active={menu === 'link'} onClick={() => setMenu(menu === 'link' ? null : 'link')} icon={Link2} title="Where it goes">
             <LinkLabel slot={slot} block={block} />
           </BarButton>
         )}
-        {block.field && <WordsCycler slot={slot} field={block.field} open={menu === 'words'} onOpen={() => setMenu(menu === 'words' ? null : 'words')} />}
         {list && <ListControls slotId={slot.id} ctx={list} />}
         {list && (
           <BarButton active={menu === 'collection'} onClick={() => setMenu(menu === 'collection' ? null : 'collection')} icon={Database} title="Collection: show your content here">
             {slot.bind?.lists?.[list.list.listKey ?? ''] ? <span className="size-1.5 rounded-full bg-key" /> : null}
           </BarButton>
         )}
+        <Sep />
+        <button
+          type="button"
+          aria-expanded={styling}
+          title={advice.length ? `Style · ${advice.length} suggestion${advice.length > 1 ? 's' : ''}` : 'Style: its look, text, color, shape and motion'}
+          onClick={() => setStylePanel(!styling)}
+          className={`relative flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 font-medium transition-[background-color,color,scale] active:scale-[0.97] ${styling ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+        >
+          <Palette size={15} /> Style
+          {advice.length > 0 && !styling && (
+            <span className={`absolute right-1 top-1 size-2 rounded-full ring-2 ring-white ${advice.some((a) => a.level === 'problem') ? 'bg-problem' : 'bg-attention'}`} />
+          )}
+        </button>
         <BarButton
           onClick={() => {
             const clip = slotClip(slot)
@@ -212,70 +202,26 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
           icon={MessageSquarePlus}
           title="Leave a note on this block (N)"
         />
-        <Sep />
-        {advice.length > 0 && (
-          <button
-            type="button"
-            title={advice[0].message}
-            onClick={() => setMenu(menu === 'advice' ? null : 'advice')}
-            className={`relative grid size-8 shrink-0 place-items-center rounded-[10px] transition ${menu === 'advice' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
-            aria-label={`${advice.length} suggestion${advice.length > 1 ? 's' : ''}`}
-          >
-            <Lightbulb size={15} />
-            <span className={`absolute right-1 top-1 size-2 rounded-full ring-2 ring-white ${advice.some((a) => a.level === 'problem') ? 'bg-problem' : 'bg-attention'}`} />
-          </button>
-        )}
         <BarButton active={menu === 'more'} onClick={() => setMenu(menu === 'more' ? null : 'more')} icon={MoreHorizontal} title="More" />
       </div>
 
-      {menu === 'advice' && (
-        <Popover width={300}>
-          {advice.map((a, n) => (
-            <div key={n} className="flex gap-2.5 rounded-xl px-2.5 py-2">
-              <span className={`mt-1.5 size-2 shrink-0 rounded-full ${a.level === 'problem' ? 'bg-problem' : 'bg-attention'}`} />
-              <div className="min-w-0 flex-1">
-                <div className="mb-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400">{a.lens}</div>
-                <div className="text-[12.5px] leading-snug text-zinc-700">{a.message}</div>
-                {a.fix && (
-                  <button
-                    type="button"
-                    onMouseEnter={() => a.fix?.edit && hover(a.fix.edit)}
-                    onMouseLeave={() => hover(null)}
-                    onClick={() => fix(a)}
-                    className="mt-1.5 rounded-full bg-zinc-900 px-2.5 py-1 text-[12px] font-semibold text-white transition hover:bg-zinc-700"
-                  >
-                    {a.fix.label}
-                  </button>
-                )}
-              </div>
-            </div>
+      {menu === 'crumbs' && (
+        <Popover width={220}>
+          <MenuItem icon={LayoutTemplate} onClick={() => st().selectBlock(null)} kbd="esc">
+            {TYPE_LABEL[slot.type]} section
+          </MenuItem>
+          {crumbs.map((b, i) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => (b.id === block.id ? setMenu(null) : st().selectBlock(b.id))}
+              className={`flex min-h-8 w-full cursor-pointer items-center rounded-lg pr-2.5 text-left text-[13px] transition-colors ${b.id === block.id ? 'bg-zinc-950/[0.06] font-semibold text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/[0.04]'}`}
+              style={{ paddingLeft: 10 + (i + 1) * 12 }}
+            >
+              {name(b)}
+            </button>
           ))}
-          <div className="px-2.5 pb-1 pt-0.5 text-[11px] leading-snug text-zinc-400">
-            Suggestions, not rules: our distillations of IIDS, Laws of UX and Emil Kowalski’s design-engineering craft, not endorsed by them.
-          </div>
         </Popover>
-      )}
-      {menu === 'style' && (
-        <StyleMenu
-          style={own?.style}
-          inherited={def?.style}
-          phone={own?.mobile?.style}
-          composite={COMPOSITE.has(block.kind)}
-          onHover={(s) => hover(s ? { style: s } : null)}
-          onPick={(s) => apply({ style: s })}
-          // Phone previews carry the whole phone edit, since a preview replaces it.
-          onHoverPhone={(s) => hover(s ? { mobile: { ...own?.mobile, style: { ...own?.mobile?.style, ...s } } } : null)}
-          onPickPhone={(s) => apply({ mobile: { style: s } })}
-        />
-      )}
-      {menu === 'text' && (
-        <TextMenu
-          style={own?.style}
-          auto={autoStyle}
-          shownPx={rect?.font}
-          onHover={(t) => hover(t ? { style: { ...own?.style, ...t } } : null)}
-          onPick={(t) => apply({ style: t })}
-        />
       )}
       {menu === 'icon' && (
         <IconMenu
@@ -291,41 +237,8 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
       {menu === 'link' && <LinkMenu slot={slot} block={block} />}
       {menu === 'collection' && list && <CollectionMenu slot={slot} list={list.list} onClose={() => setMenu(null)} />}
       {menu === 'words' && block.field && <WordsMenu slot={slot} field={block.field} blockId={block.id} onClose={() => setMenu(null)} />}
-      {menu === 'motion' && <MotionMenu kind={block.kind} motion={edit?.motion} onHover={(m) => hover(m ? { motion: m } : null)} onPick={(m) => apply({ motion: m })} />}
       {menu === 'more' && (
         <Popover width={248}>
-          <MenuItem
-            icon={Users}
-            disabled={!own}
-            onClick={() => {
-              st().promoteBlock(slot.id, block.id)
-              st().showFlash(`Every ${BLOCK_LABEL[block.kind].toLowerCase()} now uses this look`, { undo: true })
-              setMenu(null)
-            }}
-          >
-            Use for all {PLURAL[block.kind]}
-          </MenuItem>
-          {def && (
-            <MenuItem
-              icon={RotateCcw}
-              onClick={() => {
-                st().clearComponent(block.kind)
-                setMenu(null)
-              }}
-            >
-              Stop the look for all {PLURAL[block.kind]}
-            </MenuItem>
-          )}
-          <MenuItem
-            icon={RotateCcw}
-            disabled={!own}
-            onClick={() => {
-              st().editBlock(slot.id, block.id, null)
-              setMenu(null)
-            }}
-          >
-            Reset this block
-          </MenuItem>
           {list?.changed && (
             <MenuItem
               icon={ListRestart}
@@ -379,7 +292,159 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   )
 }
 
-/** Add, duplicate, move and remove a list's items, right where they are. */
+const STEP = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]'
+
+/**
+ * How the selected block looks, in the Style panel: suggestions, its looks, its text, its color and shape, its motion,
+ * and whether that's for this one or every block of its kind.
+ */
+export function BlockStyleBody({ slot, block }: { slot: Slot; block: BlockInfo }) {
+  const blocks = slotClip(slot).blocks
+  const components = useStore((s) => s.guide.components)
+  const own = slot.edits?.[slot.clipId]?.[block.id]
+  const def = defaultFor(components, block)
+  const edit = effectiveEdit(own, def)
+  const rect = useBlockPreview((s) => s.selRect)
+  const st = useStore.getState
+  const preview = useBlockPreview.getState
+  const apply = (patch: Partial<BlockEdit>) => {
+    preview().clear()
+    st().editBlock(slot.id, block.id, patch)
+  }
+  const hover = (patch: Partial<BlockEdit> | null) => (patch ? preview().show(slot.id, block.id, patch) : preview().clear())
+  const typed = ['heading', 'text', 'button', 'link', 'badge'].includes(block.kind)
+  const advice = useAdvice(slot, block, rect, true)
+  const fix = (a: Advice) => {
+    if (a.fix?.promote) {
+      st().promoteBlock(slot.id, block.id)
+      st().showFlash(`Every ${BLOCK_LABEL[block.kind].toLowerCase()} now uses this look`, { undo: true })
+    } else if (a.fix?.edit) apply(a.fix.edit)
+  }
+  useEffect(() => () => preview().clear(), [block.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      {advice.length > 0 && (
+        <PanelGroup title="Suggestions">
+          {advice.map((a, n) => (
+            <div key={n} className="flex gap-2.5 py-1">
+              <span className={`mt-1.5 size-2 shrink-0 rounded-full ${a.level === 'problem' ? 'bg-problem' : 'bg-attention'}`} />
+              <div className="min-w-0 flex-1">
+                <div className="text-[12.5px] leading-snug text-zinc-700">{a.message}</div>
+                {a.fix && (
+                  <button
+                    type="button"
+                    onMouseEnter={() => a.fix?.edit && hover(a.fix.edit)}
+                    onMouseLeave={() => hover(null)}
+                    onClick={() => fix(a)}
+                    className="mt-1.5 cursor-pointer rounded-full bg-zinc-900 px-2.5 py-1 text-[12px] font-semibold text-white transition hover:bg-zinc-700 active:scale-[0.97]"
+                  >
+                    {a.fix.label}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </PanelGroup>
+      )}
+      {variantsFor(block.kind).length > 0 && (
+        <PanelGroup title="Look">
+          <LooksPicker slot={slot} block={block} />
+        </PanelGroup>
+      )}
+      {typed && (
+        <PanelGroup title="Text">
+          <TextMenu
+            bare
+            style={own?.style}
+            auto={autoTextStyle(block, blocks)}
+            shownPx={rect?.font}
+            onHover={(t) => hover(t ? { style: { ...own?.style, ...t } } : null)}
+            onPick={(t) => apply({ style: t })}
+          />
+        </PanelGroup>
+      )}
+      <PanelGroup title="Color and shape">
+        <StyleMenu
+          bare
+          style={own?.style}
+          inherited={def?.style}
+          phone={own?.mobile?.style}
+          composite={COMPOSITE.has(block.kind)}
+          onHover={(s) => hover(s ? { style: s } : null)}
+          onPick={(s) => apply({ style: s })}
+          // Phone previews carry the whole phone edit, since a preview replaces it.
+          onHoverPhone={(s) => hover(s ? { mobile: { ...own?.mobile, style: { ...own?.mobile?.style, ...s } } } : null)}
+          onPickPhone={(s) => apply({ mobile: { style: s } })}
+        />
+      </PanelGroup>
+      <PanelGroup title="Motion">
+        <MotionMenu bare kind={block.kind} motion={edit?.motion} onHover={(m) => hover(m ? { motion: m } : null)} onPick={(m) => apply({ motion: m })} />
+      </PanelGroup>
+      <div className="grid gap-0.5 border-t border-zinc-950/6 pt-2">
+        <MenuItem
+          icon={Users}
+          disabled={!own}
+          onClick={() => {
+            st().promoteBlock(slot.id, block.id)
+            st().showFlash(`Every ${BLOCK_LABEL[block.kind].toLowerCase()} now uses this look`, { undo: true })
+          }}
+        >
+          Use this look for all {PLURAL[block.kind]}
+        </MenuItem>
+        {def && (
+          <MenuItem icon={RotateCcw} onClick={() => st().clearComponent(block.kind)}>
+            Stop the look for all {PLURAL[block.kind]}
+          </MenuItem>
+        )}
+        <MenuItem icon={RotateCcw} disabled={!own} onClick={() => st().editBlock(slot.id, block.id, null)}>
+          Reset this {BLOCK_LABEL[block.kind].toLowerCase()}
+        </MenuItem>
+      </div>
+    </div>
+  )
+}
+
+/** A titled group in the Style panel that folds away, Figma's way: click its title. What you fold stays folded. */
+export function PanelGroup({ title, children }: { title?: string; children: ReactNode }) {
+  const folded = useFolded((s) => (title ? !!s.folded[title] : false))
+  return (
+    <section className="border-t border-zinc-950/6 pt-1.5 first:border-t-0 first:pt-0">
+      {title && (
+        <button
+          type="button"
+          aria-expanded={!folded}
+          onClick={() => toggleFolded(title)}
+          className="group/fold -mx-1.5 flex h-8 w-[calc(100%+12px)] cursor-pointer items-center gap-1 rounded-lg px-1.5 text-left text-[12px] font-semibold text-zinc-500 transition-colors hover:text-zinc-900"
+        >
+          <ChevronRight size={13} className={`shrink-0 text-zinc-400 transition-transform duration-150 ${folded ? '' : 'rotate-90'}`} />
+          {title}
+        </button>
+      )}
+      {!folded && <div className={title ? 'pb-1.5 pt-0.5' : 'py-1.5'}>{children}</div>}
+    </section>
+  )
+}
+
+const FOLD_KEY = 'blokmix:style-panel:folded'
+const useFolded = create<{ folded: Record<string, boolean> }>()(() => {
+  try {
+    return { folded: JSON.parse(localStorage.getItem(FOLD_KEY) ?? '{}') }
+  } catch {
+    return { folded: {} }
+  }
+})
+function toggleFolded(title: string) {
+  const folded = { ...useFolded.getState().folded, [title]: !useFolded.getState().folded[title] }
+  useFolded.setState({ folded })
+  try {
+    localStorage.setItem(FOLD_KEY, JSON.stringify(folded))
+  } catch {
+    /* private window: folding lasts this visit */
+  }
+}
+
+/** Add, duplicate and remove a list's items, right where they are (they move by their grip, or ⌥ + arrows). */
 function ListControls({ slotId, ctx }: { slotId: string; ctx: NonNullable<ReturnType<typeof listContext>> }) {
   const st = useStore.getState
   const full = ctx.count >= ctx.max
@@ -394,8 +459,6 @@ function ListControls({ slotId, ctx }: { slotId: string; ctx: NonNullable<Return
   return (
     <div className="flex items-center">
       <IconButton icon={Copy} title={full ? `This layout holds up to ${ctx.max} items` : 'Duplicate (⌘D)'} disabled={full} onClick={() => select(st().editList(slotId, { op: 'duplicate', itemId: item }))} />
-      <IconButton icon={ArrowLeft} title="Move earlier (⌥←)" disabled={ctx.index <= 0} onClick={() => st().editList(slotId, { op: 'move', itemId: item, to: ctx.index - 1 })} />
-      <IconButton icon={ArrowRight} title="Move later (⌥→)" disabled={ctx.index >= ctx.count - 1} onClick={() => st().editList(slotId, { op: 'move', itemId: item, to: ctx.index + 1 })} />
       <IconButton
         icon={Minus}
         title={ctx.count <= 1 ? 'A list keeps at least one item' : 'Remove (⌫)'}
@@ -502,18 +565,6 @@ function usePaint() {
   }
 }
 
-function StyleDots({ style }: { style?: BlockStyle }) {
-  const paint = usePaint()
-  // Inherits the button's color, so it turns white with the button when its menu is open.
-  if (!style?.fill && !style?.ink) return <span>Style</span>
-  return (
-    <span className="flex items-center -space-x-1">
-      {style.fill && <span className="size-3.5 rounded-full ring-2 ring-white" style={{ background: paint(style.fill) }} />}
-      {style.ink && <span className="size-3.5 rounded-full ring-2 ring-white" style={{ background: paint(style.ink) }} />}
-    </span>
-  )
-}
-
 const SPACE_PROPS: { k: 'padding' | 'above' | 'below' | 'gap'; label: string }[] = [
   { k: 'padding', label: 'Padding' },
   { k: 'above', label: 'Space above' },
@@ -521,7 +572,7 @@ const SPACE_PROPS: { k: 'padding' | 'above' | 'below' | 'gap'; label: string }[]
   { k: 'gap', label: 'Gap' },
 ]
 
-function StyleMenu({
+export function StyleMenu({
   style,
   inherited,
   phone,
@@ -530,7 +581,10 @@ function StyleMenu({
   onPick,
   onHoverPhone,
   onPickPhone,
+  bare,
 }: {
+  /** In a panel rather than a floating menu. */
+  bare?: boolean
   style?: BlockStyle
   inherited?: BlockStyle
   /** Spacing that differs on phones. */
@@ -578,8 +632,8 @@ function StyleMenu({
     </div>
   )
 
-  return (
-    <Popover width={300}>
+  const body = (
+    <>
       <Row prop="fill" label="Fill" />
       {base && (
         // Explore around the chosen color: lighter mixes of it towards the page.
@@ -648,8 +702,9 @@ function StyleMenu({
           onPick={(v) => onPick({ shadow: v })}
         />
       </div>
-    </Popover>
+    </>
   )
+  return bare ? <div className="-mx-2">{body}</div> : <Popover width={300}>{body}</Popover>
 }
 
 function Swatch({ color, label, on, onHover, onPick, small }: { color?: string; label: string; on: boolean; onHover: () => void; onPick: () => void; small?: boolean }) {
@@ -719,8 +774,8 @@ function NewSwatch({ onDone }: { onDone: (name: string | null) => void }) {
  * both in hidden frames; until that's in, the canvas's own box stands in for
  * the width it shows.
  */
-function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } | null): Advice[] {
-  useMeasuredPage(true)
+function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } | null, measure: boolean): Advice[] {
+  useMeasuredPage(measure)
   const measured = useLayout((s) => s.blockRects)
   const viewport = useStore((s) => s.ui.viewport)
   const guide = useResolvedGuide()

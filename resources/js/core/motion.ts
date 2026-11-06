@@ -125,15 +125,17 @@ export function motionCss(i: MotionCssInput): string {
   const entrance = (sel: string, preset: EnterPreset, speed: MotionSpeed, delay: number, onScroll: boolean) => {
     frames.add(enterKeyframes(p, preset))
     const ms = ENTER_MS[speed]
-    const base = `animation: ${p}-${preset} ${ms}ms ${EASE_OUT} ${delay}ms both;`
+    // Entrances only have a `from`: filling backwards holds it until they start, and once they end nothing stays
+    // applied, so a finished entrance leaves no transform behind (one would trap absolutely placed children).
+    const base = `animation: ${p}-${preset} ${ms}ms ${EASE_OUT} ${delay}ms backwards;`
     if (onScroll && !i.canvas) {
       frames.add(enterKeyframes(p, 'fade'))
       moving.push(
-        `${sel} { ${base} }\n@supports (animation-timeline: view()) { ${sel} { animation: ${p}-${preset} linear both; animation-timeline: view(); animation-range: entry 0% cover 28%; } }`,
+        `${sel} { ${base} }\n@supports (animation-timeline: view()) { ${sel} { animation: ${p}-${preset} linear backwards; animation-timeline: view(); animation-range: entry 0% cover 28%; } }`,
       )
     } else moving.push(`${sel} { ${base} }`)
     frames.add(enterKeyframes(p, 'fade'))
-    reduced.push(`${sel} { animation: ${p}-fade 200ms ease-out ${Math.min(delay, 120)}ms both; }`)
+    reduced.push(`${sel} { animation: ${p}-fade 200ms ease-out ${Math.min(delay, 120)}ms backwards; }`)
   }
 
   // Section preset: the root arrives, or its top-level blocks arrive one after another.

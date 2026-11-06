@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
+import { create } from 'zustand'
 import { ChevronDown, Dices, Disc3, Hand, LayoutTemplate, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus } from 'lucide-react'
 import { useStore, type Tool, currentSlots } from '@/state/store'
 import { library } from '@/data/library'
@@ -8,7 +9,6 @@ import { canvasApi } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
 import { Alternatives } from './Alternatives'
-import { LooksTray } from '../blocks/LooksTray'
 import { toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
@@ -20,16 +20,20 @@ const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
   { id: 'sticky', icon: StickyNote, label: 'Sticky note', key: 'S' },
 ]
 
+/** Which section's other layouts the dock is showing (the section bar's Layout label asks too). */
+export const useDockLayouts = create<{ slotId: string | null }>()(() => ({ slotId: null }))
+
 /** The dock: how you work the canvas. The Clips button grows it upward into the crate. */
 export function Dock() {
   const sheet = useStore((s) => s.ui.sheet)
-  // The Clips button grows the crate; a block's Look button grows its looks (the block stays in view above).
-  const open = sheet === 'crate' || sheet === 'looks'
+  // The Clips button grows the crate.
+  const open = sheet === 'crate'
   // On a section (and nothing else open) the dock offers that section's other layouts, but only grows them when asked:
   // focusing a section opens nothing, so the section's own card stays clear. Not while you're working on one of its
   // blocks, either: the clips would compete with it.
   const section = useStore((s) => (s.ui.sheet === 'none' && !s.ui.selectedBlockId ? currentSlots(s).find((x) => x.id === s.ui.focusedSlotId) : undefined))
-  const [asked, setAsked] = useState<string | null>(null)
+  const asked = useDockLayouts((s) => s.slotId)
+  const setAsked = (slotId: string | null) => useDockLayouts.setState({ slotId })
   const focused = section && asked === section.id ? section : undefined
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3" data-dock>
@@ -72,7 +76,7 @@ export function Dock() {
           </>
         }
       >
-        {sheet === 'looks' ? <LooksTray /> : open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
+        {open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
       </Island>
     </div>
   )
@@ -231,7 +235,7 @@ function FirstRunTip() {
           className="glass flex items-center gap-2 rounded-full py-1 pl-1.5 pr-3 text-[12px] text-zinc-600 max-md:hidden"
         >
           <span className="kbd">←</span>
-          <span className="kbd">→</span> slide a section
+          <span className="kbd">→</span> try another layout
           <span className="text-zinc-300">·</span>
           <span className="kbd">Space</span> shuffle
           <span className="text-zinc-300">·</span>

@@ -416,7 +416,7 @@ function ToolsIsland() {
               As clipped <X size={13} strokeWidth={2.4} />
             </button>
           )}
-          {tool('style', SwatchBook, 'Style', decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide (G)', decisions > 0 ? <span className="size-2 rounded-full bg-attention" aria-label={`${decisions} to decide`} /> : undefined)}
+          {tool('style', SwatchBook, 'Style guide', decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide (G)', decisions > 0 ? <span className="size-2 rounded-full bg-attention" aria-label={`${decisions} to decide`} /> : undefined)}
           {tool('content', FileText, 'Content', 'The page’s words and your collections')}
           {tool(
             'notes',

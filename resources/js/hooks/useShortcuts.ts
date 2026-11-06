@@ -7,6 +7,8 @@ import { pressVersionAndFly } from '@/lib/actions'
 import { library, slotClip } from '@/data/library'
 import { tileNeighbor, listContext } from '@/core/lists'
 import { wordChoices, currentWords } from '@/core/words'
+import { TYPE_LABEL } from '@/core/content'
+import { stepLook } from '@/ui/blocks/LooksPicker'
 
 const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
 
@@ -19,7 +21,7 @@ function typing(t: EventTarget | null) {
 export function useShortcuts(onHelp: () => void) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (typing(e.target)) return
+      if (typing(e.target) || e.defaultPrevented) return
       const st = useStore.getState()
       const mod = e.metaKey || e.ctrlKey
       const focused = currentSlots(st).find((s) => s.id === st.ui.focusedSlotId)
@@ -57,15 +59,18 @@ export function useShortcuts(onHelp: () => void) {
         else st.editList(focused.id, { op: 'move', itemId: tile.item.id, to: tile.index + (k === 'ArrowUp' || k === 'ArrowLeft' ? -1 : 1) })
         return
       }
-      // A selected list item: duplicate and remove it in place.
+      // ⌘D duplicates the item the selection is in (never the browser's bookmark).
+      if (mod && k.toLowerCase() === 'd') {
+        e.preventDefault()
+        if (focused && tile?.item) {
+          const r = st.editList(focused.id, { op: 'duplicate', itemId: tile.item.id })
+          if (r?.itemId) st.selectBlock(r.itemId)
+        }
+        return
+      }
+      // A selected list item: remove it in place.
       const item = focused && clip && st.ui.selectedBlockId ? listContext(clip, focused, st.ui.selectedBlockId) : null
       if (focused && item?.item) {
-        if (mod && k.toLowerCase() === 'd') {
-          e.preventDefault()
-          const r = st.editList(focused.id, { op: 'duplicate', itemId: item.item.id })
-          if (r?.itemId) st.selectBlock(r.itemId)
-          return
-        }
         if (!mod && !e.altKey && (k === 'Backspace' || k === 'Delete')) {
           e.preventDefault()
           if (st.editList(focused.id, { op: 'remove', itemId: item.item.id })) {
@@ -92,7 +97,8 @@ export function useShortcuts(onHelp: () => void) {
           return
         }
       }
-      if (e.altKey && !mod && (k === 'ArrowUp' || k === 'ArrowDown') && focused) {
+      // ⌥↑ ⌥↓ move the section, when the section itself is what's selected.
+      if (e.altKey && !mod && (k === 'ArrowUp' || k === 'ArrowDown') && focused && !st.ui.selectedBlockId) {
         e.preventDefault()
         const i = currentSlots(st).indexOf(focused)
         st.moveSlot(focused.id, i + (k === 'ArrowUp' ? -1 : 1))
@@ -107,6 +113,8 @@ export function useShortcuts(onHelp: () => void) {
         case 'ArrowLeft':
         case 'ArrowRight': {
           e.preventDefault()
+          // The selected thing's options a step at a time: a block's looks, else the section's layouts.
+          if (focused && st.ui.selectedBlockId && stepLook(focused.id, st.ui.selectedBlockId, k === 'ArrowRight' ? 1 : -1)) return
           const target = focused ?? currentSlots(st)[0]
           if (!target) return
           if (!focused) st.focusSlot(target.id)
@@ -168,7 +176,10 @@ export function useShortcuts(onHelp: () => void) {
             st.showFlash('Block hidden', { undo: true })
             return
           }
-          if (focused && currentSlots(st).length > 1) st.removeSlot(focused.id)
+          if (focused && currentSlots(st).length > 1) {
+            st.removeSlot(focused.id)
+            st.showFlash(`Removed the ${TYPE_LABEL[focused.type].toLowerCase()} section`, { undo: true })
+          }
           return
         case 'Escape':
           if (st.ui.openNoteId) st.setUi({ openNoteId: null })

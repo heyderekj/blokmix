@@ -308,6 +308,7 @@ export function Canvas({ children }: { children: ReactNode }) {
         if (e.dataTransfer.types.includes('application/x-blokmix-clip')) e.preventDefault()
       }}
       onDrop={(e) => {
+        document.documentElement.removeAttribute('data-dragging-clip')
         const clipId = e.dataTransfer.getData('application/x-blokmix-clip')
         const st = useStore.getState()
         const type = clipId.split('.')[0] as Parameters<typeof st.addSlot>[0]

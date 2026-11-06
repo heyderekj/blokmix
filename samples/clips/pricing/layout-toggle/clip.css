@@ -49,19 +49,21 @@
     opacity: 0;
   }
 
-  /* The billing switch: two radios. Their words sit either side of a track whose halves are labels too,
+  /* The billing switch: two radios, each in a label holding its word and one half of the track,
      so a click anywhere picks a period and the arrow keys move between them. */
   & .period {
     position: relative;
-    display: inline-flex;
+    display: inline-grid;
+    grid-template-columns: auto 32px 32px auto;
     align-items: center;
-    gap: var(--mx-space-4);
     margin: var(--mx-space-5) 0 0;
     padding: 0;
     border: 0;
     min-inline-size: 0;
   }
+  & .pick { display: contents; }
   & .opt {
+    grid-row: 1;
     display: inline-flex;
     align-items: center;
     min-height: 44px;
@@ -71,18 +73,21 @@
     cursor: pointer;
     transition: color var(--mx-motion-duration) var(--mx-motion-ease);
   }
+  & .pick-m .opt { grid-column: 1; padding-inline-end: var(--mx-space-4); }
+  & .pick-y .opt { grid-column: 4; padding-inline-start: var(--mx-space-4); }
+  & .half { grid-row: 1; height: 36px; z-index: 1; cursor: pointer; }
+  & .pick-m .half { grid-column: 2; }
+  & .pick-y .half { grid-column: 3; }
   & .switch {
+    grid-row: 1;
+    grid-column: 2 / 4;
     position: relative;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 64px;
     height: 36px;
-    flex: none;
     border-radius: var(--mx-radius-pill);
     box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
+    pointer-events: none;
   }
-  & .half { cursor: pointer; }
-  & .switch:active .knob { scale: 0.92; }
+  &:has(.half:active) .knob { scale: 0.92; }
   & .knob {
     position: absolute;
     top: 4px;
@@ -92,17 +97,16 @@
     border-radius: 50%;
     background: var(--mx-color-surface);
     box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
-    pointer-events: none;
     transition: translate 200ms cubic-bezier(0.23, 1, 0.32, 1), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  &:has(#mx-pricing-layout-toggle-monthly:checked) .opt-m,
-  &:has(#mx-pricing-layout-toggle-yearly:checked) .opt-y { color: var(--mx-color-text); }
-  &:has(#mx-pricing-layout-toggle-yearly:checked) .knob { translate: 28px 0; }
+  &:has(.monthly:checked) .pick-m .opt,
+  &:has(.yearly:checked) .pick-y .opt { color: var(--mx-color-text); }
+  &:has(.yearly:checked) .knob { translate: 28px 0; }
   &:has(.period input:focus-visible) .switch { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   /* Which price shows. */
   & .amt.y, & .by { display: none; }
-  &:has(#mx-pricing-layout-toggle-yearly:checked) {
+  &:has(.yearly:checked) {
     & .amt.m, & .bm { display: none; }
     & .amt.y, & .by { display: inline; }
   }
@@ -132,11 +136,12 @@
   }
   & .desc { font-size: var(--mx-text-sm); line-height: 1.5; color: var(--mx-color-muted); }
   & .price { display: flex; flex-direction: column; gap: var(--mx-space-1); }
-  & .amount { display: flex; align-items: baseline; gap: var(--mx-space-2); }
+  & .amount { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--mx-space-2); }
   & .amt {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: var(--mx-text-5xl);
+    /* Big prices cap at a share of the window, so a heavy display face still fits three across. */
+    font-size: min(var(--mx-text-5xl), 4.4vw);
     line-height: 1;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
@@ -162,7 +167,7 @@
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-4); }
     & .tier { padding-inline: var(--mx-space-5); }
-    & .amt { font-size: var(--mx-text-4xl); }
+    & .amt { font-size: min(var(--mx-text-4xl), 5.2vw); }
   }
 
   @media (max-width: 760px) {
@@ -174,5 +179,6 @@
     & .grid { gap: var(--mx-space-4); }
     & .grid > * { grid-column: auto / span 12; }
     & .tier, & .featured { padding: var(--mx-space-6) var(--mx-space-5); }
+    & .amt { font-size: min(var(--mx-text-4xl), 17vw); }
   }
 }
