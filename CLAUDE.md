@@ -67,12 +67,12 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   pictures) and credits it (`slot.inspiredBy`, shown in the Source tab, written to blokmix.json and BLOKMIX.md; a slot
   without one falls back to its clip's). A site's look joins the style guide as candidates `src:site:<slug>#<group>`
   (`promoteSource`, `candidateSource`). Agents: `list_library_sites`, `get_library_site`, `clip_from_site`, `use_site_style`.
-  New mix → "Start from a site" posts a page's layouts plus the site's look (`mixFromSitePage`).
+  Starting a mix from a site is gone for v1 (`mixFromSitePage` stays for the Crate's Sites).
 - Saved style guides (`style_guides`, `Api\StyleGuideController`, `lib/styleGuides.ts`): save a mix's guide under a
-  name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). New mix → "Start from…" offers
-  starter mixes and style guides (neutral, a saved guide, or another mix's): it posts `guide` (and a starter's `site`
-  and `name`) to `/mixes`, which stores `data = {guide, site}`; the board fills the rest from a blank mix. Every mix
-  keeps its own copy, so edits never spread.
+  name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). The guided start's "Or start from"
+  offers a starter (posts `site`, `guide` and `name` to `/mixes`, which stores `data = {guide, site}`; the board fills
+  the rest from a blank mix), a saved style guide or another mix's (the questions go on with that guide, and the look
+  step folds away), a blank page or a mix file. Every mix keeps its own copy, so edits never spread.
 - Plans (`config/blokmix.php` `plans` and `pack`, `docs/pricing.md`): Free is 1 mix, 40 clips, 100 MB, the core layouts
   and the Feel dials; a mix pack ($20 once, `users.mix_packs`) is 3 mixes open at a time (packs stack), every layout,
   control and treatment, unlimited clips and 10 GB. Mixes are slots: archived ones (`mixes.archived_at`, `POST
@@ -137,24 +137,32 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 
 ## Guided start
 
-The audience is non-designers first (`docs/simple-vision.md`). New mix (and the browser-only mix's first visit, or
-"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx` on one box (`ui/start/StartBox.tsx`): the name, then a
-sentence about the site or the words you already have. Code tells them apart (`core/jev/describe.ts` `textMode`: one or
-two short lines describe). A description goes to Jev (`describeRequest`: the kind, each optional section, the look) and
-becomes the kind's page with sections added or dropped (`sectionsFor`); pasted words become a page from your words in
-three arrangements (`lib/startFromText.ts` `wordsCandidates`, the pure `state/jevPage.ts` `wordsPage`, a nav and footer from
-`chromeFor`; lines it wasn't sure of ride along in `content.tray`). What Jev heard shows as chips you can change (kind,
-sections ✕ and +, looks). "Answer three questions" is the old form (what you're making, `KINDS`), and the only way in when
-Jev is off. Then three raw starts in Wireframe to pick a structure, then that page under the skins, Jev's look first ("Jev's
-pick") with an optional brand color (`core/palette.ts` `paletteFrom`, AA on every `CONTRAST_PAIRS`) or colors by feel from
-the description (`ui/start/FeelColors.tsx`, `StartInput.palette`). `core/start.ts` `startCandidates` offers matching starter mixes
-(`samples/starters/*.json`, checked by `checkStarters`) first, then fills the kind's `RECIPES` from the library with
-`suggestClip`, built-in layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, with the
-name, an email and the year filled in (a test keeps Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone and widths between
-(`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its first screen
-holds up (after Shu Ding's "The Calculus of Interfaces"). The pick becomes the mix; every start is kept as a version
-(A/B/C). Hosted, it posts to `POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, the
-box's words, and `sections`). The flash says how many spots still hold sample words.
+The audience is non-designers first (`docs/simple-vision.md`). New mix (the gallery's tile, the browser-only mix's first
+visit, or "Start a new mix" in its menu) opens `ui/start/StartGuide.tsx`: plain questions one at a time on the left, the
+page they add up to on the right (`startCandidates`' first, drawn at once; measuring waits for the end). Answered
+questions fold into one line each with Change; "Skip, show me pages" takes every suggestion. The questions
+(`core/startFlow.ts`, pure: `QUESTIONS`, `nextQuestion`, `folded`, `skipToPages`, `briefFrom`, `sectionsFrom`):
+1. What's it called? 2. What is it? (a sentence, or the words you already have; `textMode` tells them apart) 3. The kind
+of site and industry, folded when the first sentence settled both 4. What should it do for you? (goals, something else,
+who it's for) 5. What should the main button say? (`actionChoices`, or your own words) 6. What goes on the page? (section
+chips, ✕ and +; folded for pasted words) 7. How should it feel? (feel words from the industry and kind, three themes,
+brand color, light/dark, colors by feel) 8. Three ways to lay it out: measured, in the theme you picked; the one you open
+is the mix and the other two are kept (A/B/C).
+The answers are the brief (see The brief): `recipeFor` shapes the kind's page by format and goals, `contentFor` puts the
+main button's words in the buttons. Jev only ranks what's offered: one request (`describeRequest`: the kind, each
+optional section, the look, the format, the industry and each goal, `readDescribe`, `sureGoals`) after question 2, while a
+keyword guess (`guessHeard`, `guessBrief`) shows at once; with suggestions off the same questions are ranked by keywords
+alone. Pasted words become a page from your words in three arrangements (`lib/startFromText.ts` `wordsCandidates`, the
+pure `state/jevPage.ts` `wordsPage`, a nav and footer from `chromeFor`; lines it wasn't sure of ride along in
+`content.tray`). `startCandidates` offers matching starter mixes (`samples/starters/*.json`, ranked by their `industries`
+and `formats`, checked by `checkStarters`) first, then fills the recipe from the library with `suggestClip`, built-in
+layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, read as a believable site
+(tests keep instructions, greetings and Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone
+and widths between (`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its
+first screen holds up (after Shu Ding's "The Calculus of Interfaces"). Under the first questions, "Or start from": a
+starter, a saved style guide (hosted), a blank page, a mix file (`ui/start/StartFrom.tsx`). Hosted, a start posts to
+`POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, `sections`, `format`, `industry`,
+`goals`, `main_action` and `who`). The flash says how many spots still hold sample words.
 
 ## Skins and the contract
 

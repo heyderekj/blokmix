@@ -24,7 +24,7 @@ import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
 import { canEdit, useAccount } from '@/lib/account'
 import { api, flushMix, openMixId } from '@/lib/mixSync'
-import { useStartFlow } from '../start/StartFlow'
+import { useStartFlow } from '../start/StartGuide'
 import { SharePanel } from '../panels/SharePanel'
 import { PublishPanel } from '../panels/PublishPanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
@@ -287,23 +287,7 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
           <MenuItem
             icon={Upload}
             label="Import a mix file…"
-            onClick={() =>
-              pickFile('.json,application/json', async (f) => {
-                try {
-                  const file = await readMixFile(f)
-                  if (file.clips?.length) return st().showFlash('This mix uses captured clips, which need an account: import it on your Blokmix mixes page.')
-                  const ok = await confirmAction({
-                    title: `Replace this mix with “${file.name}”?`,
-                    body: 'The mix in this browser is replaced. Export it first if you want to keep it.',
-                    confirm: 'Replace',
-                    tone: 'caution',
-                  })
-                  if (ok) replaceLocalMix(file, STORAGE_KEY)
-                } catch (e) {
-                  st().showFlash(e instanceof Error ? e.message : String(e))
-                }
-              })
-            }
+            onClick={importLocalMix}
           />
         )}
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
@@ -649,4 +633,24 @@ function NameField() {
       />
     </label>
   )
+}
+
+/** Replace the browser-only mix with one from a file, after asking (the menu, and the guided start's "a mix file"). */
+export function importLocalMix() {
+  const st = useStore.getState
+  pickFile('.json,application/json', async (f) => {
+    try {
+      const file = await readMixFile(f)
+      if (file.clips?.length) return st().showFlash('This mix uses captured clips, which need an account: import it on your Blokmix mixes page.')
+      const ok = await confirmAction({
+        title: `Replace this mix with “${file.name}”?`,
+        body: 'The mix in this browser is replaced. Export it first if you want to keep it.',
+        confirm: 'Replace',
+        tone: 'caution',
+      })
+      if (ok) replaceLocalMix(file, STORAGE_KEY)
+    } catch (e) {
+      st().showFlash(e instanceof Error ? e.message : String(e))
+    }
+  })
 }

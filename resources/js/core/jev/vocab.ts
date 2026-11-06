@@ -5,6 +5,7 @@
 // hero) apart; edit here when an answer surprises you.
 
 import type { Kind, SectionType } from '../types'
+import type { Format, Goal, Industry } from '../brief'
 import type { Criterion } from './types'
 
 type Described = Exclude<Criterion, string | null>
@@ -45,4 +46,49 @@ export const KIND_WORDS: Record<Kind, string> = {
   event: 'an event',
   personal: 'a personal site',
   writing: 'writing or a newsletter',
+}
+
+/** What a site is, as a format (core/brief.ts), for Jev. */
+export const FORMAT_CRITERIA: Record<Format, Described> = {
+  landing: { what: 'One page that sells one thing: an app, a product, a launch, a sign-up', not_for: 'A business people visit (business), a person’s own work (portfolio)', examples: ['A landing page for a budgeting app', 'A waitlist for a new product'] },
+  business: { what: 'A small business or service with a few pages: what it offers, about, how to reach it', not_for: 'One product to sign up for (landing), one person’s work (portfolio)', examples: ['A bakery', 'A dental clinic', 'A design studio'] },
+  portfolio: { what: 'One person’s or a small studio’s work, to get hired or seen', not_for: 'Writing first (blog)', examples: ['A photographer’s portfolio', 'A developer’s CV site'] },
+  blog: { what: 'Writing first: a blog, newsletter, magazine or podcast', not_for: 'A portfolio with a few posts (portfolio)', examples: ['A weekly newsletter', 'A food blog'] },
+  event: { what: 'An event with a date: a conference, festival, meetup, launch party, wedding', not_for: 'A business open all year (business)', examples: ['A design conference in May'] },
+}
+
+/** Industries (core/brief.ts), for Jev. */
+export const INDUSTRY_CRITERIA: Record<Industry, Described> = {
+  saas: { what: 'Software or an app people sign up for' },
+  ai: { what: 'An AI product or service' },
+  devtools: { what: 'Tools for developers: APIs, SDKs, code tools' },
+  fintech: { what: 'Money: banking, payments, investing, accounting, tax' },
+  ecommerce: { what: 'A shop selling physical products online' },
+  agency: { what: 'An agency or studio: design, branding, marketing, development for clients' },
+  health: { what: 'Health and wellness: clinics, dentists, therapy, gyms, yoga, spas' },
+  education: { what: 'Teaching and learning: schools, courses, tutors, workshops' },
+  food: { what: 'Food and drink: cafés, bakeries, restaurants, bars, catering' },
+  architecture: { what: 'Architecture, interiors and spaces' },
+  travel: { what: 'Travel and stays: hotels, tours, rentals, retreats' },
+  nonprofit: { what: 'A nonprofit, charity or cause' },
+  events: { what: 'Events: conferences, festivals, meetups, weddings' },
+  media: { what: 'Media and writing: newsletters, blogs, magazines, podcasts' },
+  services: { what: 'Other services people hire: consultants, coaches, photographers, trades' },
+  other: { what: 'None of these' },
+}
+
+/** What a site should do (core/brief.ts goals), as yes/no questions for Jev. */
+export const GOAL_CRITERIA: Record<Goal, string> = {
+  sell: 'sell things directly',
+  signups: 'get people to sign up or start a free trial',
+  waitlist: 'collect a waitlist before launch',
+  bookings: 'take bookings, reservations or appointments',
+  calls: 'get people to book a call or ask for a quote',
+  orders: 'take orders or pre-orders',
+  subscribers: 'grow a list of subscribers or readers',
+  showWork: 'show off work or projects',
+  hire: 'get the owner hired',
+  visit: 'get people to visit a place in person',
+  tickets: 'sell tickets or take sign-ups for an event',
+  donate: 'raise money or donations',
 }

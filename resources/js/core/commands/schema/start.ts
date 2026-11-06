@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { KINDS, SECTION_TYPES } from '../../types'
+import { FORMATS, GOALS, INDUSTRIES } from '../../brief'
 
 const startInput = {
   text: z
@@ -17,13 +18,18 @@ const startInput = {
   brand: z.string().regex(/^#[0-9a-f]{6}$/i).optional().describe('One brand color as #rrggbb; the whole palette is made from it'),
   mode: z.enum(['light', 'dark']).optional().describe('Light or dark; default: the skin’s own'),
   seed: z.number().int().min(0).optional().describe('Change it for different picks'),
+  format: z.enum(FORMATS).optional().describe('What kind of site: landing (one page that sells one thing), business (a small business or service), portfolio, blog (or newsletter), event. With kind left out, it decides the kind'),
+  industry: z.enum(INDUSTRIES).optional().describe('The industry; ranks starters and themes'),
+  goals: z.array(z.enum(GOALS)).max(4).optional().describe('What the site should do; each adds the section it leans on'),
+  main_action: z.string().trim().max(40).optional().describe('The main button’s words, put in the page’s main buttons'),
+  who: z.string().trim().max(200).optional().describe('Who it’s for, in their words (context, never on the page)'),
 }
 
 /** The guided start: three light answers become three real starting mixes, measured before anyone sees them. */
 export const START_COMMANDS = {
   suggest_starts: {
     description:
-      'Suggest three starting mixes from a kind of site or from what the person typed or pasted (text), raw in Wireframe unless you name a skin. With text it also says what Jev heard (kind, sections, looks). Otherwise: matching starter mixes first, then mixes put together from the library. Each is laid out at a laptop, a phone and widths between, and comes back with a score and plain checks (does the headline and button show without scrolling, does anything spill sideways). Changes nothing; apply_start uses one.',
+      'Suggest three starting mixes from a kind of site or from what the person typed or pasted (text), raw in Wireframe unless you name a skin. With text it also says what was heard (kind, format, industry, goals, sections, looks). Otherwise: matching starter mixes first, then mixes put together from the library. Each is laid out at a laptop, a phone and widths between, and comes back with a score and plain checks (does the headline and button show without scrolling, does anything spill sideways). Changes nothing; apply_start uses one.',
     input: z.object(startInput),
     write: false,
   },

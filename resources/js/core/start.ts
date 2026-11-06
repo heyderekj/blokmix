@@ -17,7 +17,8 @@ import { setTone } from './dials'
 import { paletteFrom, type Mode, type Palette } from './palette'
 import { resolveGuide } from './guide'
 import { mineKey } from './ownWords'
-import { FORMATS, INDUSTRIES, MAIN_ACTION_FIELDS, type Brief } from './brief'
+import { FORMATS, GOAL_SECTIONS, goalsOf, INDUSTRIES, MAIN_ACTION_FIELDS, type Brief } from './brief'
+import { placeSection, sectionsFor } from './jev/describe'
 
 export interface StartInput {
   kind: Kind
@@ -71,6 +72,20 @@ export const RECIPES: Record<Kind, { home: SectionType[]; about?: SectionType[] 
   event: { home: ['nav', 'hero', 'features', 'stats', 'faq', 'cta', 'footer'] },
   personal: { home: ['nav', 'hero', 'content', 'blog', 'contact', 'footer'] },
   writing: { home: ['nav', 'hero', 'blog', 'testimonials', 'cta', 'footer'] },
+}
+
+/**
+ * Home's sections from the brief: the kind's page, shaped by the format (a portfolio leads with the work) and the goals
+ * (each adds the section it leans on most, where it belongs), then what a description asked for (`want`).
+ */
+export function recipeFor(brief: Brief, kind: Kind, want: Partial<Record<SectionType, number>> = {}): SectionType[] {
+  let out = sectionsFor(kind, want)
+  if (brief.format === 'portfolio' && !out.includes('gallery')) out = [...out.slice(0, 2), 'gallery', ...out.slice(2)]
+  for (const g of goalsOf(brief)) {
+    const t = GOAL_SECTIONS[g][0]
+    if (t && !out.includes(t)) out = placeSection(out, t)
+  }
+  return out
 }
 
 /** The style guide for a start: a skin, with a palette from your brand color, or turned the other way, if you asked. */

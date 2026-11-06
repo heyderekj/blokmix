@@ -88,6 +88,8 @@ export function describeStarter(lib: Library, starter: Starter) {
     id: starter.id,
     name: starter.name,
     description: starter.description,
+    formats: starter.formats ?? [],
+    industries: starter.industries ?? [],
     pages: starter.pages.map((p) => ({ path: p.path, title: p.title, sections: p.sections.map((id) => lib.clips[id]?.type).filter(Boolean) as SectionType[] })),
   }
 }

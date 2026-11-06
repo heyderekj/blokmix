@@ -53,13 +53,17 @@ Optional: publish the current mix to a noindex/nofollow page on blok.page so you
 
 ## Guided start
 
-New mix opens on one box. Say what you're making in a sentence ("a bakery on Elm Street that takes pre-orders, with our
-menu and hours"), or paste what you already have: an About page, a menu, your old site. Jev reads it and picks: the kind of
-site, the sections, the look, the colors. It never writes; a sentence describes the site and stays off the page, and pasted
-words land as written. What it heard shows as chips you can change. Three plain questions stand in when Jev is off. It then
-shows three raw starts side by side, A/B/C, to pick a structure: matching starter mixes first, then mixes put together
-from the library (or your words in three arrangements). That page then goes under the skins, side by side, with one brand color if you have one. Each start is measured before you see it, in plain words: does the headline and button show on a
-laptop and a phone without scrolling, does anything spill sideways at any width. The other two starts stay as versions to come back to.
+New mix asks a few plain questions, one at a time, with the page they add up to beside them. What's it called, then what
+is it: say it in a sentence ("a bakery on Elm Street that takes pre-orders"), or paste what you already have. Jev reads
+it and pre-picks the rest, so most questions are a glance and a Next: the kind of site and the industry, what it should
+do for you (take bookings, get sign-ups…), what the main button says, which sections, how it should feel. It never
+writes; a sentence describes the site and stays off the page, and pasted words land as written. With Jev off the same
+questions are ranked by keywords. "Skip, show me pages" takes every suggestion. Last come three ways to lay it out,
+A/B/C, already in the look you picked: open one, and the other two come along to go back to. A starter, a saved style
+guide, a blank page or a mix file are one quiet line under the first questions, not a first screen.
+
+What you said the site is for (the brief) stays with the mix: it steers what's suggested later and goes to your agent
+as "What this site is for".
 
 The measuring borrows from Shu Ding's "The Calculus of Interfaces" (a page is a function of a few inputs, so you can
 ask what fills the first screen and what moves it). We don't compile pages into math; we render the real sections
