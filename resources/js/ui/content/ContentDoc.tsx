@@ -5,6 +5,7 @@ import { pageOf } from '@/core/site'
 import { CollectionsPanel } from '@/ui/panels/collections/CollectionsPanel'
 import { useWideBar } from '@/ui/shell/TopBar'
 import { OwnershipCount, PageDoc, TrayColumn } from './PageDoc'
+import { SiteLogo, SiteName } from './SiteName'
 
 /** Whether Content has the main area (the Content tool on a wide window; narrower ones keep it in the top bar's pill). */
 export function useContentOpen() {
@@ -49,12 +50,7 @@ export function ContentDoc() {
       <div className="mx-auto grid max-w-[1120px] grid-cols-1 gap-10 px-6 pb-40 lg:grid-cols-[minmax(0,720px)_280px] lg:justify-center">
         <article className="min-w-0 rounded-[28px] bg-white px-6 py-8 shadow-[0_0_0_1px_rgb(0_0_0/0.05),0_24px_48px_-32px_rgb(0_0_0/0.25)] sm:px-12 sm:py-10 dark:bg-zinc-900">
           <header className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <input
-              value={brand}
-              onChange={(e) => st().setBrand(e.target.value)}
-              aria-label="The site’s name"
-              className="min-w-0 rounded-md bg-transparent px-1.5 text-[13px] font-semibold text-zinc-900 outline-none [field-sizing:content] hover:bg-zinc-950/[0.04] focus:bg-zinc-950/[0.04]"
-            />
+            <SiteName brand={brand} className="min-w-0 rounded-md bg-transparent px-1.5 text-[13px] font-semibold text-zinc-900 outline-none [field-sizing:content] hover:bg-zinc-950/[0.04] focus:bg-zinc-950/[0.04]" />
             <span className="text-[13px] text-zinc-400">{page ? `${page.title} · ${page.path}` : ''}</span>
             <span className="flex-1" />
             <div className="flex rounded-full bg-zinc-950/[0.05] p-0.5" role="tablist">
@@ -77,8 +73,9 @@ export function ContentDoc() {
           </header>
           {view === 'words' ? (
             <>
-              <div className="mt-4">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
                 <OwnershipCount />
+                <SiteLogo />
               </div>
               <PageDoc onShowSection={show} />
             </>

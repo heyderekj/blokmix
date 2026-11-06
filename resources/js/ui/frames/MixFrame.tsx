@@ -6,6 +6,7 @@ import { Eye, Plus } from 'lucide-react'
 import { MixMark } from '../brand/MixMark'
 import { snapshotKey } from '@/core/versions'
 import { pageOf } from '@/core/site'
+import { barRoomBelow, useBarOverhang } from '../canvas/useBarFloor'
 import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { useResolvedGuide } from '@/state/derived'
@@ -41,7 +42,10 @@ export function MixFrame() {
   const [addAt, setAddAt] = useState<number | null>(null)
   const closeAdd = useCallback(() => setAddAt(null), [])
   const st = useStore.getState
-  const label = branchFrom ? `Remixing ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
+  // A bar hanging below the last section (its section bar, or a block's bar and menus): what sits under the page makes
+  // exactly that much room, on screen.
+  const room = useBarOverhang((s) => (previewing ? 0 : barRoomBelow(s, slots.at(-1)?.id)))
+  const label = branchFrom ? `From ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
 
   return (
     <div
@@ -56,7 +60,7 @@ export function MixFrame() {
           <MixMark types={slots.map((s) => s.type)} active={markAt} edited={dirty} />
         </span>
         <HeaderTitle
-          title={site.pages.length > 1 ? `Working mix · ${page.title}` : 'Working mix'}
+          title={site.pages.length > 1 ? `Your mix · ${page.title}` : 'Your mix'}
           meta={`${site.pages.length > 1 ? `${page.path} · ` : ''}${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} sections`}
         />
         {page.template && <EntrySwitcher pageId={page.id} collection={page.template.collection} />}
@@ -86,11 +90,11 @@ export function MixFrame() {
             focused={focused === slot.id}
           />
         ))}
-        {!previewing && site.shared.footer && !page.show.footer && <HiddenShared kind="footer" pageId={page.id} />}
-        {!previewing && !site.shared.footer && slots.length > 0 && <MissingShared kind="footer" />}
+        {!previewing && site.shared.footer && !page.show.footer && <HiddenShared kind="footer" pageId={page.id} room={room} />}
+        {!previewing && !site.shared.footer && slots.length > 0 && <MissingShared kind="footer" room={room} />}
         {!slots.length && (
           <div className="grid place-items-center py-40 text-center" style={{ fontSize: 'calc(16px / var(--z))' }}>
-            <p className="text-zinc-400">Nothing here yet. Add a section to start mixing.</p>
+            <p className="text-zinc-400">This page is empty. Add a section to start.</p>
           </div>
         )}
       </div>
@@ -98,7 +102,7 @@ export function MixFrame() {
       {!previewing && <Seams onAdd={setAddAt} />}
       <SectionDropLine />
       {addAt !== null && <AddAt at={addAt} onClose={closeAdd} />}
-      <AddSection width={W} onAdd={() => setAddAt(slots.length)} />
+      <AddSection width={W} onAdd={() => setAddAt(slots.length)} room={site.shared.footer && page.show.footer ? room : 0} />
     </div>
   )
 }
@@ -129,7 +133,7 @@ function Seams({ onAdd }: { onAdd: (at: number) => void }) {
                 e.stopPropagation()
                 onAdd(at)
               }}
-              className="absolute top-1/2 grid size-5 place-items-center rounded-full border border-zinc-950/12 bg-white text-zinc-700 opacity-0 shadow-sm transition-opacity duration-150 hover:text-zinc-950 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 group-hover/seam:opacity-100"
+              className="absolute top-1/2 grid size-5 place-items-center rounded-full border border-zinc-950/12 bg-white text-zinc-700 opacity-0 shadow-sm transition-opacity duration-150 hover:text-zinc-950 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 pointer-coarse:size-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 group-hover/seam:opacity-100"
               style={{ right: 'calc(9px / var(--z))', transform: 'translate(50%, -50%) scale(min(calc(1 / var(--z)), 3.4))' }}
             >
               <Plus size={12} strokeWidth={2.6} />
@@ -160,11 +164,11 @@ function AddAt({ at, onClose }: { at: number; onClose: () => void }) {
   )
 }
 
-function AddSection({ width, onAdd }: { width: number; onAdd: () => void }) {
+function AddSection({ width, onAdd, room }: { width: number; onAdd: () => void; room: number }) {
   return (
     <div
-      className="@container absolute left-0 top-full origin-top-left pt-3"
-      style={{ width: `max(calc(${width}px * var(--z)), 48px)`, transform: 'scale(calc(1 / var(--z)))' }}
+      className="@container absolute left-0 top-full origin-top-left transition-[padding] duration-200"
+      style={{ width: `max(calc(${width}px * var(--z)), 48px)`, transform: 'scale(calc(1 / var(--z)))', paddingTop: room + 12 }}
       data-chrome
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -173,7 +177,7 @@ function AddSection({ width, onAdd }: { width: number; onAdd: () => void }) {
           type="button"
           onClick={onAdd}
           title="Add a section"
-          className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-95 @max-[150px]:px-2.5"
+          className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-zinc-400/60 bg-white/60 px-4 py-2 text-[13px] font-medium text-zinc-600 transition hover:border-zinc-500 hover:bg-white active:scale-[0.97] @max-[150px]:px-2.5"
         >
           <Plus size={15} /> <span className="@max-[150px]:hidden">Add a section</span>
         </button>
@@ -183,9 +187,9 @@ function AddSection({ width, onAdd }: { width: number; onAdd: () => void }) {
 }
 
 /** Where the nav or footer would be when the site has none yet: every page needs both, so offer the one that fits. */
-function MissingShared({ kind }: { kind: 'nav' | 'footer' }) {
+function MissingShared({ kind, room = 0 }: { kind: 'nav' | 'footer'; room?: number }) {
   return (
-    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))' }} data-chrome>
+    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))', marginTop: room ? `calc(${room + 8}px / var(--z))` : 0 }} data-chrome>
       <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
         <span className="text-[12.5px]">No {kind} yet</span>
         <button
@@ -205,9 +209,9 @@ function MissingShared({ kind }: { kind: 'nav' | 'footer' }) {
 }
 
 /** Where the shared nav or footer would be on a page that hides it, with a way to show it again. */
-function HiddenShared({ kind, pageId }: { kind: 'nav' | 'footer'; pageId: string }) {
+function HiddenShared({ kind, pageId, room = 0 }: { kind: 'nav' | 'footer'; pageId: string; room?: number }) {
   return (
-    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))' }} data-chrome>
+    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))', marginTop: room ? `calc(${room + 8}px / var(--z))` : 0 }} data-chrome>
       <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
         <span className="text-[12.5px]">No {kind} on this page</span>
         <span className="text-zinc-300">·</span>
@@ -236,7 +240,7 @@ function EntrySwitcher({ pageId, collection }: { pageId: string; collection: str
     const next = list[(at + d + list.length) % list.length]
     useStore.getState().setUi({ previewEntry: { ...picked, [pageId]: next.id } })
   }
-  const btn = 'grid size-7 cursor-pointer place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]'
+  const btn = 'grid size-7 cursor-pointer place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]'
   return (
     <span className="flex min-w-0 shrink items-center rounded-full bg-key-soft/60 pl-0.5 pr-0.5" title={`Previewing /${c.slug}/${shown.entry.slug}`}>
       <button type="button" aria-label="Previous entry" onClick={() => go(-1)} className={btn}>

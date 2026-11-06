@@ -36,9 +36,22 @@ const seedOf = (id: string) => {
  * What an image block shows: its own fill, else the skin's picture style. Only built-in layouts' pictures take one;
  * a captured section's images are the real thing, and a section keeping its own look keeps them.
  */
-export function pictureFor(own: MediaFill | undefined, b: Pick<BlockInfo, 'id' | 'kind' | 'media' | 'field'>, picture: PictureDefault | undefined, origin: 'clip' | 'layout', keepsStyle: boolean): MediaFill | undefined {
+export function pictureFor(
+  own: MediaFill | undefined,
+  b: Pick<BlockInfo, 'id' | 'kind' | 'media' | 'field'>,
+  picture: PictureDefault | undefined,
+  origin: 'clip' | 'layout',
+  keepsStyle: boolean,
+  site?: { type: SectionType; logo?: MediaFill },
+): MediaFill | undefined {
+  // Your logo fills the nav's and footer's own logo (not a logo strip's customer logos), clipped or built in.
+  if (!own && !keepsStyle && site?.logo && isSiteLogo(b, site.type)) return site.logo
   if (own || !picture || b.kind !== 'image' || origin !== 'layout' || keepsStyle) return own
   // A logo is the brand's name, and a block holding words shows them: neither is an empty picture.
   if (/^logo/i.test(b.media ?? '') || b.field) return own
   return { source: 'placeholder', style: picture.style, seed: seedOf(b.id), ...(picture.params ? { params: picture.params } : {}) }
 }
+
+/** The site's own logo spot: the nav's or footer's logo picture. */
+export const isSiteLogo = (b: Pick<BlockInfo, 'kind' | 'media'>, type: SectionType) =>
+  b.kind === 'image' && (type === 'nav' || type === 'footer') && /^logo1?$/i.test(b.media ?? '')

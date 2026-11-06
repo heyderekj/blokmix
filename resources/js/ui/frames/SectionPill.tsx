@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpRight, ChevronLeft, ChevronRight, GripVertical, Link2, Lock, LockOpen, Palette, Plus, Sparkles, Trash2, Type } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, Eye, ChevronLeft, ChevronRight, GripVertical, Link2, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
 import type { Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -25,6 +25,10 @@ import { setStylePanel, useStylePanel } from '../panels/stylePanel'
 import { PanelGroup } from '../blocks/BlockBar'
 import { useDockLayouts } from '../shell/Dock'
 import { pressSection, sectionMovable } from './SectionDrag'
+import { useBarFloor } from '../canvas/useBarFloor'
+import { LockGlyph } from './LockGlyph'
+import { useEscape } from '../shell/keys'
+import { BAR_GAP, BAR_SURFACE } from './bar'
 
 type Tab = 'style' | 'source'
 
@@ -37,7 +41,24 @@ const TABS: { id: Tab; label: string; icon: typeof Type }[] = [
  * A section's label: what it is and where it sits, its moves, and tabs in words for everything else, which open only
  * when asked, so the bar stays short and nothing needs a tooltip to make sense.
  */
-export function SectionPill({ slot, index, count, focused, pos, total }: { slot: Slot; index: number; count: number; focused: boolean; pos: number; total: number }) {
+export function SectionPill({
+  slot,
+  count,
+  focused,
+  pos,
+  total,
+  bottom,
+  row,
+}: {
+  slot: Slot
+  count: number
+  focused: boolean
+  pos: number
+  total: number
+  /** The section's height: the bar hangs just below it. */
+  bottom: number
+  row: RefObject<HTMLDivElement | null>
+}) {
   const clip = library.clips[slot.clipId]
   const source = library.sources[clip?.sourceId ?? '']
   const sheet = useStore((s) => s.ui.sheet)
@@ -50,6 +71,17 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
   const [tab, setTab] = useState<Tab | null>(null)
   const styling = useStylePanel((s) => s.open)
   const st = useStore.getState
+  // While you point at the bar it stays put, so ‹ › don't slide away as the section changes height under them; once
+  // you leave, it glides to the section's new bottom.
+  const [heldAt, setHeldAt] = useState<number | null>(null)
+  const release = useRef(0)
+  useEffect(() => () => window.clearTimeout(release.current), [])
+  const top = heldAt ?? bottom
+  const anchor = useRef<HTMLDivElement>(null)
+  const bar = useRef<HTMLDivElement>(null)
+  useBarFloor(anchor, bar, row, [top, tab, focused], `${slot.id}:section`)
+  // Esc folds the open tab first.
+  useEscape(focused && !!tab, () => setTab(null))
 
   // One open surface at a time: losing focus or opening a sheet folds the tabs.
   useEffect(() => {
@@ -59,126 +91,137 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
   if (!clip) return null
 
   return (
-    // A tab on the section's top edge, where you clicked into it even on a tall section (just inside on the first one,
-    // clear of the frame's header).
-    <div className="absolute left-0 top-0 z-30 origin-top-left" style={{ transform: 'scale(calc(1 / var(--z)))' }} data-chrome>
-      <motion.div
-        layout
-        transition={MORPH}
-        // The bottom toolbar's size and corners, solid and lifted so it reads over any section.
-        style={{
-          borderRadius: 16,
-          backgroundColor: 'var(--lift)',
-          boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 12px 28px -12px rgb(0 0 0 / 0.35)',
-        }}
-        className={`glass-panel ml-3 w-max overflow-hidden ${index === 0 ? 'mt-2.5' : '-mt-[22px]'}`}
-        onPointerDown={(e) => {
-          e.stopPropagation()
-          st().focusSlot(slot.id)
-        }}
-      >
-        {/* one slim row: what it is, its tabs, its utilities, the one strong action */}
-        <motion.div layout="position" transition={MORPH} className={`flex h-11 items-center gap-1 pr-1.5 ${sectionMovable(slot.id) ? 'pl-1.5' : 'pl-3.5'}`}>
-          {sectionMovable(slot.id) && (
-            <span
-              role="button"
-              tabIndex={-1}
-              title="Drag to move this section (or ⌥↑ ⌥↓)"
-              aria-label="Drag to move this section"
-              onPointerDown={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                st().focusSlot(slot.id)
-                pressSection(slot.id, e)
-              }}
-              className="grid h-8 w-6 cursor-grab place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-700"
-              style={{ touchAction: 'none' }}
-            >
-              <GripVertical size={15} />
-            </span>
-          )}
-          <div className="mr-1 flex shrink-0 items-baseline gap-1.5 whitespace-nowrap" title={source?.name ?? ''}>
-            <span className="text-[14px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
-            {sharedOn > 0 && multi ? (
-              <span className="rounded-full bg-key-soft px-1.5 py-px text-[10.5px] font-semibold text-key-ink" title="Edits here show on every page that shows it">
-                Shared · {sharedOn}
+    // Just below the section, like the block bar below a block, so the whole section stays in view while you change it.
+    // On a section taller than the screen it rises to just above the dock (useBarFloor).
+    <div
+      ref={anchor}
+      className="absolute left-0 z-30 h-0 w-0"
+      style={{ top, transition: 'top 240ms cubic-bezier(0.2, 0.9, 0.25, 1)' }}
+      data-chrome
+      onPointerEnter={() => {
+        window.clearTimeout(release.current)
+        setHeldAt((h) => h ?? bottom)
+      }}
+      onPointerLeave={() => {
+        window.clearTimeout(release.current)
+        release.current = window.setTimeout(() => setHeldAt(null), 150)
+      }}
+    >
+      <div ref={bar} className={`absolute left-0 top-0 w-max origin-top-left ${BAR_GAP}`} style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+        <motion.div
+          layout
+          transition={MORPH}
+          // The bottom toolbar's size and corners, solid and lifted so it reads over any section.
+          style={BAR_SURFACE}
+          className="glass-panel ml-3 w-max overflow-hidden"
+          onPointerDown={(e) => {
+            e.stopPropagation()
+            st().focusSlot(slot.id)
+          }}
+        >
+          {/* one slim row: what it is, its tabs, its utilities, the one strong action */}
+          <motion.div layout="position" transition={MORPH} className={`flex h-11 items-center gap-1 pr-1.5 ${sectionMovable(slot.id) ? 'pl-1.5' : 'pl-3.5'}`}>
+            {sectionMovable(slot.id) && (
+              <span
+                role="button"
+                tabIndex={-1}
+                title="Drag to move this section (or ⌥↑ ⌥↓)"
+                aria-label="Drag to move this section"
+                onPointerDown={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  st().focusSlot(slot.id)
+                  pressSection(slot.id, e)
+                }}
+                className="grid h-8 w-6 cursor-grab place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-700"
+                style={{ touchAction: 'none' }}
+              >
+                <GripVertical size={15} />
               </span>
-            ) : null}
-          </div>
-          {total > 1 && <LayoutStepper slotId={slot.id} pos={pos} total={total} />}
-          {focused && (
-            <>
-              <span className="mx-1 h-5 w-px bg-zinc-950/10" />
-              {TABS.filter((t) => t.id !== 'source' || clip.origin !== 'layout' || !!(slot.inspiredBy ?? clip.inspiredBy)).map((t) => (
+            )}
+            <div className="mr-1 flex shrink-0 items-baseline gap-1.5 whitespace-nowrap" title={source?.name ?? ''}>
+              <span className="text-[14px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
+              {sharedOn > 0 && multi ? (
+                <span className="rounded-full bg-key-soft px-1.5 py-px text-[10.5px] font-semibold text-key-ink" title="Edits here show on every page that shows it">
+                  Shared · {sharedOn}
+                </span>
+              ) : null}
+            </div>
+            {total > 1 && <LayoutStepper slotId={slot.id} pos={pos} total={total} captured={clip.origin !== 'layout'} prev={slot.prevClipId && slot.prevClipId !== slot.clipId && library.clips[slot.prevClipId]?.type === slot.type ? slot.prevClipId : undefined} />}
+            {focused && (
+              <>
+                <span className="mx-1 h-4 w-px shrink-0 bg-zinc-950/[0.08]" aria-hidden />
+                {TABS.filter((t) => t.id !== 'source' || clip.origin !== 'layout' || !!(slot.inspiredBy ?? clip.inspiredBy)).map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    aria-expanded={t.id === 'style' ? styling : tab === t.id}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (t.id === 'style') {
+                        setTab(null)
+                        if (!styling) st().setUi({ sheet: 'none' })
+                        setStylePanel(!styling)
+                        return
+                      }
+                      if (tab !== t.id) {
+                        st().setUi({ sheet: 'none' })
+                        if (styling) setStylePanel(false)
+                      }
+                      setTab(tab === t.id ? null : t.id)
+                    }}
+                    className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${(t.id === 'style' ? styling : tab === t.id) ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+                  >
+                    <t.icon size={15} /> {t.label}
+                  </button>
+                ))}
                 <button
-                  key={t.id}
                   type="button"
-                  aria-expanded={t.id === 'style' ? styling : tab === t.id}
+                  aria-pressed={slot.locked}
+                  title={slot.locked ? 'Locked: Shuffle and agents leave this section alone. Click to unlock (L)' : 'Lock this section, so only you can change it (L)'}
                   onClick={(e) => {
                     e.stopPropagation()
-                    if (t.id === 'style') {
-                      setTab(null)
-                      if (!styling) st().setUi({ sheet: 'none' })
-                      setStylePanel(!styling)
-                      return
-                    }
-                    if (tab !== t.id) {
-                      st().setUi({ sheet: 'none' })
-                      if (styling) setStylePanel(false)
-                    }
-                    setTab(tab === t.id ? null : t.id)
+                    st().toggleLock(slot.id)
                   }}
-                  className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${(t.id === 'style' ? styling : tab === t.id) ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+                  className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${slot.locked ? 'bg-key-soft font-semibold text-key-ink' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
                 >
-                  <t.icon size={15} /> {t.label}
+                  <LockGlyph locked={slot.locked} strokeWidth={slot.locked ? 2.4 : 2} /> {slot.locked ? 'Locked' : 'Lock'}
                 </button>
-              ))}
-              <button
-                type="button"
-                aria-pressed={slot.locked}
-                title={slot.locked ? 'Locked: Shuffle and agents leave this section alone. Click to unlock (L)' : 'Lock this section, so only you can change it (L)'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  st().toggleLock(slot.id)
-                }}
-                className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${slot.locked ? 'bg-key-soft font-semibold text-key-ink' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
-              >
-                {slot.locked ? <Lock size={15} strokeWidth={2.4} /> : <LockOpen size={15} />} {slot.locked ? 'Locked' : 'Lock'}
-              </button>
-              <span className="mx-1 h-5 w-px bg-zinc-950/10" />
-              <Util
-                label="Remove section (⌫)"
-                disabled={count <= 1}
-                danger
-                onClick={() => {
-                  st().removeSlot(slot.id)
-                  st().showFlash(`Removed the ${TYPE_LABEL[slot.type].toLowerCase()} section`, { undo: true })
-                }}
-              >
-                <Trash2 size={16} />
-              </Util>
-            </>
-          )}
-        </motion.div>
+                <span className="mx-1 h-4 w-px shrink-0 bg-zinc-950/[0.08]" aria-hidden />
+                <Util
+                  label={count <= 1 ? 'A page keeps at least one section' : 'Remove section (⌫)'}
+                  disabled={count <= 1}
+                  danger
+                  onClick={() => {
+                    st().removeSlot(slot.id)
+                    st().showFlash(`Removed the ${TYPE_LABEL[slot.type].toLowerCase()} section`, { undo: true })
+                  }}
+                >
+                  <Trash2 size={16} />
+                </Util>
+              </>
+            )}
+          </motion.div>
 
-        <AnimatePresence initial={false} mode="popLayout">
-          {focused && tab && (
-            <motion.div
-              key={tab}
-              layout="position"
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: 1,
-                transition: { delay: 0.05, duration: 0.14 },
-              }}
-              exit={{ opacity: 0, transition: { duration: 0.06 } }}
-              className="bg-well p-3"
-            >
-              {tab === 'source' && <SourceTab slot={slot} />}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+          <AnimatePresence initial={false} mode="popLayout">
+            {focused && tab && (
+              <motion.div
+                key={tab}
+                layout="position"
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 1,
+                  transition: { delay: 0.05, duration: 0.14 },
+                }}
+                exit={{ opacity: 0, transition: { duration: 0.06 } }}
+                className="bg-well p-3"
+              >
+                {tab === 'source' && <SourceTab slot={slot} />}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </div>
   )
 }
@@ -206,6 +249,7 @@ export function StyleTab({ slot }: { slot: Slot }) {
           <WidthPicks slot={slot} />
         </div>
         {slot.type === 'nav' && <BannerRow slot={slot} />}
+        <HiddenHere slot={slot} />
         {clip.slider && <SliderPicker slot={slot} options={clip.slider} />}
         <div className="mt-2.5">
           <DressUp slot={slot} />
@@ -289,7 +333,7 @@ function CapturedLook({ slot }: { slot: Slot }) {
               className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium transition active:scale-[0.97] ${on ? 'bg-zinc-900 text-white' : 'bg-lift text-zinc-600 hover:text-zinc-900'}`}
             >
               {GROUP_LABEL[g]}
-              {promoted.has(g) && <span className="size-1.5 rounded-full bg-key" title="Already a candidate" />}
+              {promoted.has(g) && <span className="size-1.5 rounded-full bg-key" title="Already an option" />}
             </button>
           )
         })}
@@ -301,13 +345,13 @@ function CapturedLook({ slot }: { slot: Slot }) {
           onClick={(e) => {
             e.stopPropagation()
             st().promoteClip(clip.id, groups)
-            st().showFlash(`${source.name} is now a candidate for ${names}`, {
+            st().showFlash(`${source.name}’s ${names} are now options in your style guide`, {
               undo: true,
             })
           }}
           className="btn-quiet flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full text-[12.5px] font-medium"
         >
-          <Plus size={14} /> Add as candidate
+          <Plus size={14} /> Add as an option
         </button>
         <button
           type="button"
@@ -375,6 +419,36 @@ function SpacingGroup({ slot }: { slot: Slot }) {
 }
 
 /** An announcement strip above the nav: the clip's own ticker, or one added to any nav. */
+/** Blocks hidden in this section, each a click from coming back (Add a blok in the block bar has them too). */
+function HiddenHere({ slot }: { slot: Slot }) {
+  const clip = slotClip(slot)
+  const hidden = Object.entries(slot.edits?.[slot.clipId] ?? {}).flatMap(([id, e]) => (e.hidden ? clip.blocks.filter((b) => b.id === id && b.kind !== 'banner') : []))
+  if (!hidden.length) return null
+  const st = useStore.getState
+  return (
+    <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
+      <div className="mb-1.5 text-[12.5px] font-medium text-zinc-800">Hidden here</div>
+      <div className="flex flex-wrap gap-1.5">
+        {hidden.map((b) => (
+          <button
+            key={b.id}
+            type="button"
+            title="Show it again"
+            onClick={(e) => {
+              e.stopPropagation()
+              st().editBlock(slot.id, b.id, { hidden: false })
+              st().selectBlock(b.id)
+            }}
+            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-full bg-lift px-2.5 text-[12px] font-medium text-zinc-700 shadow-[0_0_0_1px_rgb(0_0_0/0.08)] transition-[background-color,scale] hover:text-zinc-900 active:scale-[0.97]"
+          >
+            <Eye size={13} className="text-zinc-400" /> {b.label.split(' · ').at(-1)}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function BannerRow({ slot }: { slot: Slot }) {
   const banner = slotClip(slot).blocks.find((b) => b.kind === 'banner')
   const on = !!banner && !slot.edits?.[slot.clipId]?.[banner.id]?.hidden
@@ -561,13 +635,14 @@ function Util({ label, onClick, disabled, danger, children }: { label: string; o
       type="button"
       title={label}
       aria-label={label}
-      disabled={disabled}
+      // A disabled button keeps its tooltip, which says why.
+      aria-disabled={disabled || undefined}
       onClick={(e) => {
         e.stopPropagation()
-        onClick()
+        if (!disabled) onClick()
       }}
-      className={`grid size-8 cursor-pointer place-items-center rounded-full text-zinc-600 transition active:scale-[0.97] disabled:pointer-events-none disabled:opacity-25 ${
-        danger ? 'hover:bg-problem-soft hover:text-problem-ink' : 'hover:bg-zinc-950/5 hover:text-zinc-900'
+      className={`grid size-8 cursor-pointer place-items-center rounded-full text-zinc-600 transition-[background-color,color,scale] active:scale-[0.97] pointer-coarse:size-11 ${
+        disabled ? 'cursor-default opacity-25' : danger ? 'hover:bg-problem-soft hover:text-problem-ink' : 'hover:bg-zinc-950/5 hover:text-zinc-900'
       }`}
     >
       {children}
@@ -580,16 +655,16 @@ function Util({ label, onClick, disabled, danger, children }: { label: string; o
  * quiet rail with the number and name, so the design itself is never covered.
  */
 /**
- * The section's other layouts, a step at a time (← → do the same), like the block bar's ‹ Look ›. The label opens them
- * all in the dock.
+ * The section's other layouts and this mix's clips, a step at a time (← → do the same), like the block bar's ‹ Look ›.
+ * The label opens them all in the dock.
  */
-function LayoutStepper({ slotId, pos, total }: { slotId: string; pos: number; total: number }) {
+function LayoutStepper({ slotId, pos, total, captured, prev }: { slotId: string; pos: number; total: number; captured: boolean; prev?: string }) {
   const st = useStore.getState
   const open = useDockLayouts((s) => s.slotId === slotId)
-  const step = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]'
+  const step = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]'
   return (
     <div className="ml-1 flex items-center rounded-full">
-      <button type="button" title="Previous layout (←)" aria-label="Previous layout" onClick={() => st().cycle(slotId, -1)} className={`${step} rounded-l-full`}>
+      <button type="button" title="Previous (←)" aria-label="Previous layout" onClick={() => st().cycle(slotId, -1)} className={`${step} rounded-l-full`}>
         <ChevronLeft size={15} />
       </button>
       <button
@@ -600,13 +675,27 @@ function LayoutStepper({ slotId, pos, total }: { slotId: string; pos: number; to
           st().setUi({ sheet: 'none' })
           useDockLayouts.setState({ slotId: open ? null : slotId })
         }}
-        className={`flex h-8 cursor-pointer items-center whitespace-nowrap px-1.5 text-[12.5px] font-medium tabular-nums transition active:scale-[0.97] ${open ? 'text-zinc-900' : 'text-zinc-600 hover:text-zinc-900'}`}
-      >
-        Layout {pos} of {total}
-      </button>
-      <button type="button" title="Next layout (→)" aria-label="Next layout" onClick={() => st().cycle(slotId, 1)} className={`${step} rounded-r-full`}>
+        className={`flex h-8 cursor-pointer items-center gap-0.5 whitespace-nowrap rounded-full px-2 text-[12.5px] font-medium tabular-nums transition-[background-color,color,scale] active:scale-[0.97] ${open ? 'bg-zinc-950/[0.06] text-zinc-900' : 'text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+        >
+        {/* the layouts and this mix's own clips; a clip you captured says so. ▾: see them all */}
+        {captured ? 'Clip' : 'Layout'} {pos} of {total}
+        <ChevronDown size={13} className="text-zinc-400" />
+        </button>
+      <button type="button" title="Next (→)" aria-label="Next layout" onClick={() => st().cycle(slotId, 1)} className={`${step} rounded-r-full`}>
         <ChevronRight size={15} />
       </button>
+      {prev && (
+        // Flip back to the layout it had before (again flips forward): handy after a Shuffle or a pick from the dock.
+        <button
+          type="button"
+          title={`Back to the one you had: ${library.clips[prev].title}`}
+          aria-label="Back to the layout you had"
+          onClick={() => st().setClip(slotId, prev)}
+          className="ml-0.5 grid h-8 w-7 cursor-pointer place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
+        >
+          <Undo2 size={14} />
+        </button>
+      )}
     </div>
   )
 }
@@ -624,12 +713,13 @@ export function SectionRail({ slot, index, focused }: { slot: Slot; index: numbe
         pressSection(slot.id, e)
       }}
       data-chrome
-      title={sectionMovable(slot.id) ? `${TYPE_LABEL[slot.type]}: click to select, drag to move` : `${TYPE_LABEL[slot.type]}: click to select`}
+      title={`${TYPE_LABEL[slot.type]}${slot.locked ? ' (locked)' : ''}: ${sectionMovable(slot.id) ? 'click to select, drag to move' : 'click to select'}`}
     >
       {/* the rail's line, drawn in page space so it spans the whole section */}
       <div
-        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${focused ? 'bg-key' : 'bg-zinc-300 group-hover/row:bg-key/70 group-hover/rail:bg-key/70'}`}
-        style={{ width: 'calc(2px / var(--z))' }}
+        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${focused ? 'bg-key' : slot.locked ? 'bg-key/60' : 'bg-zinc-300 group-hover/row:bg-key/70 group-hover/rail:bg-key/70'}`}
+        // Locked, the rail is a touch heavier and pink: the lock lives here, beside the design, never on it.
+        style={{ width: slot.locked ? 'calc(3px / var(--z))' : 'calc(2px / var(--z))' }}
       />
       {/* The label, at screen size, in exactly the height its section has on screen. A column that wraps into a clipped
           second column drops what doesn't fit whole, so a short section shows its number, then only its line. */}
@@ -650,7 +740,7 @@ export function SectionRail({ slot, index, focused }: { slot: Slot; index: numbe
           >
             {TYPE_LABEL[slot.type]}
           </span>
-          {slot.locked && <Lock size={11} strokeWidth={2.4} className="text-key-ink" />}
+          {slot.locked && <LockGlyph locked size={11} strokeWidth={2.4} className="text-key-ink" />}
         </div>
       </div>
     </div>

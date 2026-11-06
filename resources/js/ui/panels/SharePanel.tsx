@@ -18,7 +18,7 @@ interface ShareLink {
 }
 
 const ROLE_LABEL: Record<MixRole, string> = { owner: 'Owner', editor: 'Can edit', viewer: 'Can view' }
-const ROLE_HINT: Record<MixRole, string> = { owner: 'Shares and deletes', editor: 'Changes anything', viewer: 'Looks and leaves marks' }
+const ROLE_HINT: Record<MixRole, string> = { owner: 'Shares and deletes', editor: 'Changes anything', viewer: 'Looks and leaves notes' }
 
 /** Who's in this mix, and links that bring more people in. Only the owner changes either. */
 export function SharePanel() {

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { bandTokens, sectionTokens, widthTokens } from '@/core/surface'
 import { create } from 'zustand'
-import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
+import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, MediaFill, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
 import { backdropCss, backdropShaderId, effectsVars, isBackdropId, readBackdrop, type EffectsState, type ShaderSpec, type TreatmentValue } from '@/core/treatments'
 import { blockCss, defaultFor, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { pictureFor, withSectionDefaults } from '@/core/sectionDefaults'
@@ -11,7 +11,8 @@ import { iconNamesIn, iconSvg } from '@/core/icons'
 import { uploadData } from '@/lib/assets'
 import { resolveGuide } from '@/core/guide'
 import { resolveFields } from '@/core/content'
-import { sectionClip, type SectionClip } from '@/core/lists'
+import { extrasOf, sectionClip, type SectionClip } from '@/core/lists'
+import { INSERT_CSS } from '@/core/inserts'
 import { sectionLinks, siteScope, type LinkScope } from '@/core/links'
 import { BANNER_CSS, BANNER_MOTION, bannerMoves } from '@/core/banner'
 import { BASE_FONTS, expandTokens, fontHrefs, fontsForTokens, varsToCss } from '@/core/tokens'
@@ -25,7 +26,7 @@ export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
 
 /** Page-wide block defaults, extra colors and effects, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
-export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles' | 'sections' | 'picture'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
+export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles' | 'sections' | 'picture'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] }; logo?: MediaFill }
 
 /** Effects you're dialing, shown on every section before you let go. Not undoable state. */
 export const useEffectPreview = create<{ effects: EffectsState | null; set: (effects: EffectsState | null) => void }>()((set) => ({
@@ -41,6 +42,7 @@ export function usePageStyle(): PageStyle {
   const saved = useStore((s) => s.guide.effects)
   const sections = useStore((s) => s.guide.sections)
   const picture = useStore((s) => s.guide.picture)
+  const logo = useStore((s) => s.content.logo)
   const dialing = useEffectPreview((s) => s.effects)
   const effects = dialing ?? saved
   // Only the site's shape matters to links (pages, paths, which sections where), not every edit.
@@ -53,9 +55,9 @@ export function usePageStyle(): PageStyle {
     const { site, ui } = useStore.getState()
     const here = site.pages.find((p) => p.id === ui.pageId) ?? site.pages[0]
     const sharedIds = [site.shared.nav?.id, site.shared.footer?.id].filter((x): x is string => !!x)
-    return { swatches, components, textStyles, effects, sections, picture, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
+    return { swatches, components, textStyles, effects, sections, picture, logo, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swatches, components, textStyles, effects, sections, picture, shape])
+  }, [swatches, components, textStyles, effects, sections, picture, logo, shape])
 }
 
 /** Where one section's links can lead: from its page, or from everywhere for the shared nav and footer. */
@@ -108,7 +110,7 @@ export function fontHrefsFor(tokens: TokenSet): string[] {
 /** What a clip should look like in a given slot, mode and style guide. */
 export function frameStateFor(
   libraryClip: Clip,
-  chosen: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner' | 'surface' | 'width' | 'backdrop' | 'slider'> & { id?: string }) | null,
+  chosen: (Pick<Slot, 'keep' | 'words' | 'edits' | 'spacing' | 'motion' | 'lists' | 'banner' | 'inserts' | 'surface' | 'width' | 'backdrop' | 'slider'> & { id?: string }) | null,
   mode: Mode,
   guide: TokenSet,
   content: ProjectContent,
@@ -123,7 +125,7 @@ export function frameStateFor(
     return { css: tokensCssFor(clip.tokens, vh), motion: true, fields: null, fonts: fontHrefsFor(clip.tokens), outline: false, slider: NO_SLIDER, blocks: NO_BLOCKS, media: NO_MEDIA, backdrop: null, icons: null, lists: NO_LISTS, links: NO_LINKS }
   }
   // The clip as this section shows it: items you added, removed or reordered.
-  const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
+  const clip = sectionClip(libraryClip, slot.lists, extrasOf(slot, libraryClip.id))
   const tokens = slot.keep.style ? widthTokens(clip.tokens, slot.width) : sectionTokens(guide, slot)
   // A backdrop draws in the band's colors; over it the section's colors answer to what's behind its words.
   const band = slot.keep.style ? tokens : bandTokens(guide, slot)
@@ -139,8 +141,8 @@ export function frameStateFor(
     fonts: fontHrefsFor(tokens),
     outline: !slot.keep.layout,
     slider: slot.slider ?? NO_SLIDER,
-    blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, backdrop, band, page?.textStyles, !!reading?.ink), clip.extras?.banner ? bannerMoves(slot) : null),
-    media: mediaFor(clip, slot.edits?.[clip.id], tokens, page?.picture, slot.keep.style),
+    blocks: withExtrasCss(withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, backdrop, band, page?.textStyles, !!reading?.ink), clip.extras?.banner ? bannerMoves(slot) : null), !!clip.extras?.inserts?.length),
+    media: mediaFor(clip, slot.edits?.[clip.id], tokens, page?.picture, slot.keep.style, page?.logo),
     backdrop: backdropShader(backdrop, band),
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? iconsFor(clip, slot.edits?.[clip.id], library.sources[clip.sourceId]?.tokens['icon.set'] ?? guide['icon.set'], true) : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
@@ -169,6 +171,11 @@ function linksFor(clip: SectionClip, slot: Parameters<typeof frameStateFor>[1] &
 const NO_LISTS: FrameState['lists'] = []
 
 /** An added banner's CSS rides along with the block CSS (its scroll, unless the section's motion is off). */
+/** Bloks you added bring their own little CSS (core/inserts.ts) for the ones drawn from primitives. */
+function withExtrasCss(b: FrameState['blocks'], inserts: boolean): FrameState['blocks'] {
+  return inserts ? { ...b, css: [INSERT_CSS, b.css].filter(Boolean).join('\n') } : b
+}
+
 function withBanner(b: FrameState['blocks'], moves: boolean | null): FrameState['blocks'] {
   if (moves === null) return b
   const css = [BANNER_CSS, moves ? BANNER_MOTION : '', b.css].filter(Boolean).join('\n')
@@ -198,11 +205,11 @@ function iconsFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, set:
 
 const mediaCache = new Map<string, FrameState['media'][string]>()
 /** Pictures for image blocks; placeholders are redrawn from the current palette. */
-function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet, picture: PageStyle['picture'], keepsStyle: boolean): FrameState['media'] {
-  if (!edits && !picture) return NO_MEDIA
+function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet, picture: PageStyle['picture'], keepsStyle: boolean, logo?: MediaFill): FrameState['media'] {
+  if (!edits && !picture && !logo) return NO_MEDIA
   const out: FrameState['media'] = {}
   for (const b of clip.blocks) {
-    const fill = pictureFor(edits?.[b.id]?.media, b, picture, clip.origin, keepsStyle)
+    const fill = pictureFor(edits?.[b.id]?.media, b, picture, clip.origin, keepsStyle, { type: clip.type, logo })
     if (!fill || b.kind !== 'image') continue
     const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' || fill.source === 'mock' || fill.source === 'shader' ? tokens : null])
     let m = mediaCache.get(key)

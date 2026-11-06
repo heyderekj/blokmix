@@ -1,5 +1,6 @@
 import type { VersionNode } from '@/core/types'
-import { autoTitle, descendants, nextLetter } from '@/core/versions'
+import { autoTitle, descendants, nextLetter, snapshotKey } from '@/core/versions'
+import { emptyContract } from '@/core/contract'
 import { library } from '@/data/library'
 import { allSlots, mapSlots, pageOf } from '@/core/site'
 import { snapshotOf } from '../snapshot'
@@ -29,20 +30,27 @@ export function versionActions(set: Set, get: Get): Pick<State, 'pressVersion' |
       set({ versions: { ...st.versions, [id]: node }, head: id, ui: { ...st.ui, selectedFrameId: id } })
       return id
     },
+    // Your mix takes on a version. Unsaved edits are saved as a version first, so nothing is lost; ⌘Z undoes the switch.
     remix: (versionId) => {
       const v = get().versions[versionId]
-      if (!v) return
+      if (!v) return null
+      const now = get()
+      const head = now.head ? now.versions[now.head] : null
+      const dirty = allSlots(now.site).length > 0 && (!head || snapshotKey(head.snapshot) !== snapshotKey({ site: now.site, guide: now.guide, content: now.content, contract: now.contract }))
+      const saved = dirty ? get().pressVersion() : null
       const snap = structuredClone(v.snapshot)
       const site = mapSlots(snap.site, (s) => (library.clips[s.clipId] ? s : null))
       set((st) => ({
         site,
         guide: snap.guide,
         content: snap.content,
+        contract: snap.contract ?? emptyContract(),
         branchFrom: v.kind === 'build' ? v.parentId : v.id,
         head: v.kind === 'build' ? v.parentId : v.id,
         // Stay on the same page if the version has it.
         ui: { ...st.ui, selectedFrameId: 'mix', focusedSlotId: null, pageId: pageOf(site, st.ui.pageId).id, mode: 'unified' },
       }))
+      return saved ? get().versions[saved]?.letter ?? null : null
     },
     setStatus: (versionId, status) =>
       set((st) => (st.versions[versionId] ? { versions: { ...st.versions, [versionId]: { ...st.versions[versionId], status } } } : {})),

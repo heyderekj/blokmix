@@ -10,6 +10,8 @@ import type {
   Choice,
   GuideState,
   Keep,
+  InsertKind,
+  MediaFill,
   Note,
   NoteAnchor,
   NoteColor,
@@ -31,19 +33,22 @@ import type {
   VersionNode,
 } from '@/core/types'
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
-import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, SOURCE_PREFIX } from '@/core/guide'
+import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, resolveGuide, SOURCE_PREFIX } from '@/core/guide'
+import { paletteFrom } from '@/core/palette'
+import { toneOfGuide } from '@/core/dials'
 import { library, slotClip } from '@/data/library'
-import { layoutOpen, pickable } from '@/core/library'
+import { cycleIds, layoutOpen, withClip } from '@/core/library'
 import { blockEditNeedsPack, FREE_TOKENS } from '@/core/plan'
 import { needsPack } from './plan'
 import { BANNER_ID } from '@/core/banner'
+import { addInsert, insertOf, InsertError, removeInsert } from '@/core/inserts'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
-import { keepOption, putBackOption, retireOption, showWords } from '@/core/words'
+import { keepOption, putBackOption, renameBrand, retireOption, showWords } from '@/core/words'
 import { suggestClip } from '@/core/suggest'
 import type { FacetFilter } from '@/core/browse'
 import { listOpOnEntries } from './collections'
 import { BASE_TOKENS } from '@/core/tokens'
-import { cleanContract, emptyContract, type Contract } from '@/core/contract'
+import { cleanContract, emptyContract, isKept, type Contract } from '@/core/contract'
 import { NO_BACKDROP } from '@/core/sectionDefaults'
 import { applySkin as applySkinTo, dressSavedMix, OWN_LOOK, skinById, skinList, surpriseMe as remix } from '@/core/skins'
 import type { TextStyleDef, TextStyleEdits, TextStyleId } from '@/core/textStyles'
@@ -54,7 +59,7 @@ import { onSection } from '@/core/notes'
 import { uid } from './uid'
 import { versionActions } from './slices/versions'
 import { noteActions } from './slices/notes'
-import { DEFAULT_CONTENT } from '@/core/content'
+import { contentFor } from '@/core/start'
 
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
@@ -166,6 +171,8 @@ export interface State extends MixData {
   setWord: (slotId: string, field: string, value: string | null) => void
   /** Navs: show or remove an announcement banner (the clip's own, or one added above it). */
   setBanner: (slotId: string, on: boolean) => void
+  /** Add a blok after a block (in every item when it's inside a list's item); returns the new block's id. */
+  addBlock: (slotId: string, kind: InsertKind, afterId: string) => string | null
   /** Add, duplicate, remove or move a list's items. Returns the item to select (a new one), or null if it couldn't. */
   editList: (slotId: string, change: ListOp) => { itemId: string | null } | null
   /** Keep words as an option for a field ("Keep as an option"). */
@@ -222,11 +229,17 @@ export interface State extends MixData {
   surpriseMe: (seed?: number) => string | null
   setContract: (patch: Partial<Contract>) => void
   setField: (type: SectionType, key: string, value: string) => void
-  setBrand: (brand: string) => void
+  /** Your site's name, changed everywhere it's written; returns how many places changed. */
+  setBrand: (brand: string) => number
+  /** Your logo once, for the nav's and footer's logo (null takes it away). */
+  setLogo: (logo: MediaFill | null) => void
+  /** One brand color: a whole palette made from it, kept when you try other themes (null forgets it). */
+  setBrandColor: (color: string | null) => void
 
   // versions
   pressVersion: () => string
-  remix: (versionId: string) => void
+  /** Your mix takes on a version; unsaved edits are saved as a version first (returns its letter, if one was made). */
+  remix: (versionId: string) => string | null
   setStatus: (versionId: string, status: Status) => void
   renameVersion: (versionId: string, title: string) => void
   deleteVersion: (versionId: string) => void
@@ -395,28 +408,42 @@ export const useStore = create<State>()(
           shuffleSeq: 0,
           flash: null,
 
-          cycle: (slotId, dir) =>
+          // The arrows step through the layouts and this mix's own clips (cycleIds), never your other mixes'.
+          cycle: (slotId, dir) => {
+            const mix = mixClipIds(get())
             updateSlot(slotId, (s) => {
-              const ids = pickable(library, s.type)
+              const ids = cycleIds(library, s.type, mix, s.clipId)
               if (ids.length < 2) return s
               const i = ids.indexOf(s.clipId)
-              return { ...s, clipId: ids[(i + dir + ids.length) % ids.length] }
-            }),
+              return withClip(s, ids[(i + dir + ids.length) % ids.length], library)
+            })
+          },
+          // Picking a clip from another shelf (All your clips) brings it into this mix, and so into its arrows.
           setClip: (slotId, clipId) => {
             if (!layoutOpen(library, clipId) && needsPack('That layout')) return
-            updateSlot(slotId, (s) => (library.clips[clipId]?.type === s.type ? { ...s, clipId } : s))
+            const clip = library.clips[clipId]
+            const have = get().clips ?? []
+            set((st) => ({
+              site: updateSlotIn(st.site, slotId, (s) => (clip?.type === s.type ? withClip(s, clipId, library) : s)),
+              ...(clip?.origin === 'clip' && !have.includes(clipId) ? { clips: [...have, clipId] } : {}),
+            }))
           },
           shuffle: () => {
             const st = get()
             const view = currentSlots(st)
-            if (view.every((s) => s.locked)) return st.showFlash('Every section is locked')
+            if (view.every((s) => s.locked)) return st.showFlash('Every section is locked. Unlock one to shuffle.')
+            // Layouts set to Keep (Keep or surprise) are hands off, for you as for agents.
+            if (isKept(st.contract, 'layout')) return st.showFlash('Layouts are set to Keep, so Shuffle leaves them alone')
             let picks = new Map<string, string>()
+            const mix = mixClipIds(st)
             // Never "shuffle" into the same arrangement.
             for (let tries = 0; tries < 8; tries++) {
-              picks = new Map(view.filter((s) => !s.locked).map((s) => [s.id, pickDifferent(pickable(library, s.type), s.clipId)]))
+              picks = new Map(view.filter((s) => !s.locked).map((s) => [s.id, pickDifferent(cycleIds(library, s.type, mix, s.clipId), s.clipId)]))
               if (view.some((s) => picks.has(s.id) && picks.get(s.id) !== s.clipId)) break
             }
-            set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? { ...s, clipId: picks.get(s.id)! } : s)), shuffleSeq: x.shuffleSeq + 1 }))
+            set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? withClip(s, picks.get(s.id)!, library) : s)), shuffleSeq: x.shuffleSeq + 1 }))
+            const n = view.filter((s) => picks.has(s.id) && picks.get(s.id) !== s.clipId).length
+            get().showFlash(`Shuffled ${n} section${n === 1 ? '' : 's'}`, { undo: true })
           },
           // Locked means hands off, including the structure: an agent can't treat its layout as a mere reference.
           toggleLock: (slotId) => updateSlot(slotId, (s) => ({ ...s, locked: !s.locked, keep: s.locked ? s.keep : { ...s.keep, layout: true } })),
@@ -441,12 +468,29 @@ export const useStore = create<State>()(
             if (own) get().editBlock(slotId, own.id, { hidden: on ? undefined : true })
             else updateSlot(slotId, (s) => ({ ...s, banner: on || undefined }))
           },
+          addBlock: (slotId, kind, afterId) => {
+            const slot = allSlots(get().site).find((s) => s.id === slotId)
+            if (!slot) return null
+            try {
+              const out = addInsert(slot, slotClip(slot), kind, afterId)
+              updateSlot(slotId, () => out.slot)
+              return out.blockId
+            } catch (e) {
+              if (e instanceof InsertError) {
+                get().showFlash(e.message)
+                return null
+              }
+              throw e
+            }
+          },
           editBlock: (slotId, blockId, patch) => {
             const locked = blockEditNeedsPack(patch)
             if (locked && needsPack(locked)) return
             updateSlot(slotId, (s) => {
-              // Hiding an added banner removes it.
+              // Hiding an added banner removes it; so does hiding a blok you added.
               if (blockId === BANNER_ID && patch?.hidden) return { ...s, banner: undefined }
+              const added = insertOf(blockId)
+              if (added && patch?.hidden && (s.inserts?.[s.clipId] ?? []).some((i) => i.id === added)) return removeInsert(s, added)
               const forClip = { ...(s.edits?.[s.clipId] ?? {}) }
               if (patch === null) delete forClip[blockId]
               else {
@@ -475,13 +519,14 @@ export const useStore = create<State>()(
               return { ...s, edits: { ...s.edits, [s.clipId]: forClip } }
             })
           },
-          setWord: (slotId, field, value) =>
+          setWord: (slotId, field, value) => {
             updateSlot(slotId, (s) => {
               const words = { ...s.words }
               if (value === null) delete words[field]
               else words[field] = value
               return { ...s, words }
-            }),
+            })
+          },
           editList: (slotId, change) => {
             const slot = allSlots(get().site).find((s) => s.id === slotId)
             if (!slot) return null
@@ -599,7 +644,7 @@ export const useStore = create<State>()(
                 set((x) => ({ site: updatePageIn(x.site, page.id, { show: { ...page.show, [chrome]: true } }) }))
                 return st.showFlash(`Showing the site ${chrome} on this page`, { undo: true })
               }
-              return st.showFlash(`The site already has a ${chrome}. Swap its clip instead.`)
+              return st.showFlash(`The site already has a ${chrome}. Change its layout instead.`)
             }
             if (clipId && !layoutOpen(library, clipId) && needsPack('That layout')) return
             // With no clip named, take the one that suits this spot best.
@@ -773,7 +818,27 @@ export const useStore = create<State>()(
             set((st) => ({
               content: { ...st.content, fields: { ...st.content.fields, [type]: { ...(st.content.fields[type] ?? {}), [key]: value } } },
             })),
-          setBrand: (brand) => set((st) => ({ content: { ...st.content, brand } })),
+          setBrand: (brand) => {
+            const st = get()
+            const out = renameBrand(st.content, st.site, st.content.brand, brand)
+            set({ content: out.content, site: out.site })
+            return out.count
+          },
+          setLogo: (logo) =>
+            set((st) => {
+              const { logo: _, ...rest } = st.content
+              return { content: logo ? { ...rest, logo } : rest }
+            }),
+          setBrandColor: (color) =>
+            set((st) => {
+              if (!color) {
+                const { brand: _, ...rest } = st.guide
+                return { guide: rest }
+              }
+              const colors = paletteFrom(color, toneOfGuide(resolveGuide(st.guide).tokens))
+              const guide = (Object.entries(colors) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide)
+              return { guide: { ...guide, brand: { color } } }
+            }),
 
           ...versionActions(set, get),
           ...noteActions(set),
@@ -822,16 +887,21 @@ export const useStore = create<State>()(
         merged.contract = cleanContract(p.contract)
         // Tokens added since the mix was saved (e.g. line weight) start at their defaults.
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
-        // Drop anything that points at clips that no longer exist in the sample library.
-        merged.site = mapSlots(merged.site, (s) => (library.clips[s.clipId] ? s : null))
+        // Drop anything that points at clips that no longer exist in the sample library. A built-in layout shows your
+        // words and style: switches only captured clips have, left on from one, are turned off (withClip does this now).
+        merged.site = mapSlots(merged.site, (s) =>
+          !library.clips[s.clipId] ? null : library.clips[s.clipId].origin === 'layout' && (s.keep?.style || s.keep?.content) ? { ...s, keep: { ...s.keep, style: false, content: false } } : s,
+        )
         // A mix saved before mixes had their own clips starts with the clips it uses (never another mix's set).
         merged.clips = (Array.isArray(p.clips) ? p.clips : mixClipIds({ ...merged, clips: [] })).filter((id) => library.clips[id]?.origin === 'clip')
         // Mixes saved before skins: their layouts went bare, so they take the closest skin's looks, keeping their own values.
         if (merged.guide && merged.site) Object.assign(merged, dressSavedMix(merged, library, skinList()))
-        // Copy fields added since the mix was saved (a nav banner's messages) start from the defaults.
+        // Copy fields added since the mix was saved (a nav banner's messages) start from plain starter words, never
+        // Blokmix's own demo copy.
         if (merged.content?.fields) {
           const fields = { ...merged.content.fields }
-          for (const [type, defaults] of Object.entries(DEFAULT_CONTENT.fields) as [SectionType, Record<string, string>][]) {
+          const starter = contentFor({ kind: 'product', name: merged.content.brand ?? '' }).fields
+          for (const [type, defaults] of Object.entries(starter) as [SectionType, Record<string, string>][]) {
             const mine = fields[type] ?? {}
             const missing = Object.fromEntries(Object.entries(defaults).filter(([k]) => !(k in mine)))
             if (Object.keys(missing).length) fields[type] = { ...mine, ...missing }

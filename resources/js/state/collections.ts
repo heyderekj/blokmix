@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { temporal } from 'zundo'
 import type { Page, Site, Slot } from '@/core/types'
-import { listOrder, sectionClip, type ListOp } from '@/core/lists'
+import { extrasOf, listOrder, sectionClip, type ListOp } from '@/core/lists'
 import { library } from '@/data/library'
 import {
   addEntry,
@@ -123,7 +123,7 @@ export function listOpOnEntries(slot: Slot, change: ListOp, site: Pick<Site, 'pa
   if (!lib) return null
   const targets = emptyTargets()
   const shown = applyBindings(slot, lib, bindContextFor(site), targets)
-  const clip = sectionClip(lib, shown.lists, { banner: slot.banner })
+  const clip = sectionClip(lib, shown.lists, extrasOf(slot, lib.id))
   const listId = 'listId' in change ? change.listId : clip.blocks.find((b) => b.id === change.itemId)?.parent
   const list = clip.blocks.find((b) => b.id === listId && b.kind === 'list')
   const t = list?.listKey ? targets.items.get(list.listKey) : undefined

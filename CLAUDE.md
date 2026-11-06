@@ -1,8 +1,9 @@
 # Blokmix
 
-Canvas prototype for clipping website sections, remixing them like a sliding-tile
-puzzle, resolving one style guide, and handing a packet to an agent that builds
-Astro or Next.js. Frontend only for now; the layout (`resources/js`, `@/` alias,
+Start a website from layouts, skins and palettes that already work (built in, or clipped from sites you like),
+mix them into something that's yours under one style guide, and hand a packet to an agent that builds Astro or
+Next.js. What comes back (captures, an agent's changes) should only add options, never change your picks
+(`docs/simple-vision.md`). Frontend only for now; the layout (`resources/js`, `@/` alias,
 `pages/`) mirrors the Laravel React starter kit so it can move into Laravel +
 Inertia on Laravel Cloud later.
 
@@ -55,7 +56,10 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   in the browser, saved to your account. You get yours and those of people you share mixes with; they join the
   library (`core/library.ts` `extendLibrary`) before the board opens a mix.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
-  drops one, and sections it uses always count. The Crate and Alternatives show This mix / All your clips / Layouts (a focused section opens nothing by itself: the dock's Layouts button grows its alternatives);
+  drops one, and sections it uses always count. A section's arrows (‹ Layout n of m ›, ← →, Shuffle, `get_options`)
+  step through the built-in layouts plus this mix's clips only (`core/library.ts` `cycleIds`), never another mix's or a
+  collaborator's; picking one from All your clips (`setClip`) adds it to the mix. Stepping onto a built-in layout turns
+  off a captured clip's own words and look (`withClip`), so layouts always show your words and style. The Crate and Alternatives show This mix / All your clips / Layouts (a focused section opens nothing by itself: the dock's Layouts button grows its alternatives);
   agents use `list_mix_clips`, `add_clips_to_mix`, `remove_clip_from_mix`.
 - Site library (Landbook-style, `lib/siteLibrary.ts`, `ui/library/SiteLibrary.tsx`): real sites captured offline, each page's
   sections matched to built-in layouts (`GET /api/library`, `GET /api/library/sites/{slug}`; Vite-only dev uses the made-up
@@ -154,6 +158,11 @@ box's words, and `sections`). The flash says how many spots still hold sample wo
 
 ## Skins and the contract
 
+On screen (`docs/simple-vision.md`, the brand guide's B3): Your mix (not working mix), Themes (skins), Keep or surprise
+(the contract), Options (candidates), Crate (the clips drawer), Original / Your style, Export (code) vs Download a copy
+(the mix file), Notes (not marks). Word tags read Your words · Placeholder · Original · Saved. No "packet", "tokens" or
+"slot" in anything a person reads.
+
 Layouts are the bones; a skin is the whole look over them (`core/skins.ts`, `samples/skins/<id>.json`, `data/skins.ts`): tokens,
 effects, text styles, block looks (`components`), section defaults per type (`guide.sections`: surface, backdrop, motion,
 spacing) and a picture style for empty pictures in built-in layouts (`guide.picture`; never a logo). A skin's button look keeps
@@ -162,14 +171,14 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 (`core/sectionDefaults.ts`, used by both `composePage` and `frameStateFor`), so a swap never rewrites a slot. Words stay readable
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
-pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) is a
-remix: areas come whole from other skins.
+pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) mixes
+skins: areas come whole from other skins.
 A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the closest skin (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
 The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus
 your own lines. Swaps and Surprise me leave Keep alone; agent commands that write to a kept area are refused
 (`areasOfCommand`, `contractRefusal`); your own controls aren't. Exports write `CONTRACT.md`, and `agentRules` opens or closes
-the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: the Skin and Contract tiles atop the Style
-guide; a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
+the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: the Theme and Keep or surprise tiles atop the Style
+guide (on screen a skin is a Theme and the contract is Keep or surprise; code keeps `skin` and `contract`); a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
 moves the canvas so the section shows beside it. Agents: `list_skins`, `apply_skin`, `surprise_me`, `get_contract`, `set_contract`.
 
 ## Jev (TypeSafe)
@@ -331,6 +340,11 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
       text follows position; an attribute only the first item has (`open`, a wide first tile) belongs to the
       first position (`firstPosition` compares only the items' own attributes). Anything else about an item
       travels with it, so a treatment for "whichever comes first" is better written as `:first-child` in CSS.
+    - Bloks can be added to a section on the canvas (`core/inserts.ts`, `slot.inserts[clipId]`, the block bar's + / A,
+      agents `add_block`): a button, link, text, heading, badge, picture or icon after a block, or after it in every item of
+      a list. A new blok copies the nearest block of its kind (else primitives + `INSERT_CSS`), gets a fixed id (a1, a1f3)
+      and `data-mx-extra`, and is drawn after stamping, so a clip's own ids never shift. Hiding one removes it; hidden
+      blocks come back from the same menu ("Bring back") or the section's Style tab.
     - Pictures (CSS/SVG art standing in for a photo, illustration, screenshot or avatar):
       `data-mx-block="image" data-mx-media="<name>" data-mx-ratio="<w>/<h>"`. Keep the placeholder inside (a bare layout's is the wireframe cross); a real image replaces it later. Media names are unique in the clip.
     - Don't mark the section root, layout wrappers, decoration, or `data-mx-mirror` duplicates
@@ -391,10 +405,16 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
 - Section widths (`slot.width`, `widthTokens`): narrow, standard, wide or full, against the guide's content width, from
   the width picks in the section bar or `set_section_width`. `sectionTokens` applies surface then width.
 - Selecting: one click picks the smallest block under the pointer, in any section (focusing it on the way); a click on a
-  section's empty space, its rail or Escape selects the section. The block bar is slim like the section bar (name with its
+  section's empty space, its rail or Escape selects the section. Both bars hang below what they belong to, so it stays in
+  view; the section bar holds still while you point at it (‹ › don't slide away as the height changes), and on anything
+  taller than the screen both stop just above the dock (`ui/canvas/useBarFloor.ts`, which also reports how far a bar
+  hangs below the last section so Add a section makes that much room). Both share one look (`ui/frames/bar.ts`). Esc
+  closes the thing on top first (`useEscape` in `ui/shell/keys.ts`: a menu, a tab, the shortcuts sheet) and stops there;
+  Enter and Space press a focused button instead of saving or shuffling (`pressable`). The block bar is slim like the section bar (name with its
   parents, ‹ Look ›, words, picture, link, item add/duplicate/remove, Style, note, ⋯); everything about how a block or a
   section looks is in one Style panel at the window's side that follows the selection (`ui/panels/SelectionStyle.tsx`).
-  ← → step the selected block's looks, else the section's layouts (the section bar's ‹ Layout n of m ›).
+  ← → step the selected block's looks, else the section's layouts (the section bar's ‹ Layout n of m ›). Over a skin's
+  default look, Original is stored as `variant: 'original'` (`ORIGINAL`), so it can be picked.
 - List items move by dragging: selecting anything in an item shows one grip on its corner; drag it, or press on the item
   and move (the frame posts `dragItem`/`dragMove`/`dragEnd`). The list reflows live in the frame (a preview `move`), the
   nearest item counts, the canvas pans near the window's edges and with the wheel, Escape cancels, letting go commits one
@@ -452,11 +472,23 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
   words top to bottom, each at its size on the page (by `roleOfField`), typed into in place; a section's name goes back to it
   on the canvas. Whose words they are comes from `core/ownWords.ts` (`fieldOwner`, `pageOwnership`): yours (in `slot.words`,
   or `content.mine`: the name, email and one line the start was given) or not yet (a layout's or the start's sample words,
-  muted and marked; focusing one selects it). The header counts "18 of 31 are yours"; hidden blocks don't count. A paste
+  muted and marked; focusing one selects it). The name and logo sit at the top; the header counts "18 of 31 are yours"; hidden blocks don't count. A paste
   box at the bottom pours more in; Words to place is a column beside it.
+- Your site's name (`content.brand`, Content → "Your site's name", `set_brand`) changes everywhere it's written when you
+  finish typing: fields, each section's words and kept options, whole words only (`renameBrand`), one undo step.
+- Your logo once (`content.logo`, `set_logo`) fills the nav's and footer's logo spot (`isSiteLogo`) wherever it has no
+  picture of its own, clipped or built in (`pictureFor`'s `site` argument).
+- One brand color (`guide.brand`, the Feel tile, `set_brand_color`) makes a whole AA palette (`paletteFrom`), and
+  `applySkin` remakes the theme's colors from it unless the contract keeps color (stays) or sets it to Surprise.
+- Trying another layout keeps your pictures and links (`carryEdits`, run by `withClip`): by picture name (any logo spot
+  to any logo spot), then the rest in page order; links by the words they hold. Never over what the layout has.
 - Every field's words have options (`slot.options`): your copy, the clip's words, and options you or an
   agent kept. ‹ 2/3 › in the block bar (or `[` `]`) cycles them; Keep, Retire, Put it back and "Another way
   to say it" are Koati's words.
+- Adding items: the pill by an item's grip adds one right after it (`editList` add `after`), duplicates or removes it. A
+  grid whose count changed rebalances (`rebalance`: another per-row count that fills every row, else the last row
+  centred, as `data-mx-span`/`data-mx-start` drawn by `GRID_SPAN_CSS` on wide screens); a copy drops classes that place
+  one item (a bento's `c1`); a new item's title reads "New feature" until you write one.
 - Lists (`slot.lists`, by the key their fields are numbered by) add, duplicate, remove and reorder items on
   the canvas (block bar, ⌘D, ⌥←/→, ⌫) or in the Content view. Frames patch the changed list in place
   (`FrameState.lists`); blocks in a copied item get ids like `b5.f4`, so edits and notes follow items.

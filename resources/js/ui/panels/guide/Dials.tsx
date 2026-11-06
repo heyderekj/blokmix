@@ -1,4 +1,5 @@
-import { Moon, Sun } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Moon, Sun, X } from 'lucide-react'
 import { DIAL_NAMES, DIALS, readDials, setTone, toneOfGuide } from '@/core/dials'
 import { useStore } from '@/state/store'
 import { useGuideData } from './shared'
@@ -35,6 +36,7 @@ export function Dials() {
           ))}
         </div>
       </div>
+      <BrandColor fallback={tokens['color.primary']} />
       <div className="grid gap-2.5">
         {DIAL_NAMES.map((d) => {
           const dial = DIALS[d]
@@ -60,6 +62,52 @@ export function Dials() {
         })}
       </div>
       <ColorsByFeel />
+    </div>
+  )
+}
+
+/**
+ * One brand color: a whole palette that reads (AA) is made from it, and trying another theme keeps it. The color
+ * lands once you close the picker, as one undo step.
+ */
+function BrandColor({ fallback }: { fallback: string }) {
+  const brand = useStore((s) => s.guide.brand?.color)
+  const [draft, setDraft] = useState(brand ?? fallback)
+  useEffect(() => setDraft(brand ?? fallback), [brand, fallback])
+  const input = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    const el = input.current
+    if (!el) return
+    // The native "change" fires when the picker closes; React's onChange fires on every drag.
+    const done = () => {
+      useStore.getState().setBrandColor(el.value)
+      useStore.getState().showFlash('Made a palette from your brand color', { undo: true })
+    }
+    el.addEventListener('change', done)
+    return () => el.removeEventListener('change', done)
+  }, [])
+  return (
+    <div className="mb-3 flex items-center gap-2">
+      <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1 py-1 transition-[background-color] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5">
+        <span className="relative size-6 shrink-0 overflow-hidden rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: draft }}>
+          <input ref={input} type="color" value={draft} onChange={(e) => setDraft(e.target.value)} aria-label="Brand color" className="absolute inset-0 cursor-pointer opacity-0" />
+        </span>
+        <span className="grid leading-tight">
+          <span className="text-[11.5px] font-medium text-zinc-700">Brand color</span>
+          <span className="text-[10.5px] text-zinc-400">{brand ? 'Your palette, kept when you try themes' : 'Pick one: the whole palette follows'}</span>
+        </span>
+      </label>
+      {brand && (
+        <button
+          type="button"
+          title="Forget the brand color (the colors stay; themes bring their own again)"
+          aria-label="Forget the brand color"
+          onClick={() => useStore.getState().setBrandColor(null)}
+          className="grid size-7 cursor-pointer place-items-center rounded-md text-zinc-400 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-800 active:scale-[0.97]"
+        >
+          <X size={13} />
+        </button>
+      )}
     </div>
   )
 }

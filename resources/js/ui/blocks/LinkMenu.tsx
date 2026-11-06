@@ -122,7 +122,7 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
           key="page"
           placeholder="/about"
           initial={current?.to === 'page' ? current.path : ''}
-          hint="A page of the site. One that isn’t made yet goes in the packet for your agent to make."
+          hint="A page of the site. One that isn’t made yet, your agent makes when it builds."
           onSave={(v) => {
             if (!v) return
             const path = v.startsWith('/') ? v : `/${v}`

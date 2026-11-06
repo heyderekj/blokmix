@@ -48,7 +48,7 @@ export function CopyFooter() {
     <div className="sticky bottom-0 z-10 border-t border-zinc-950/6 px-4 py-3 backdrop-blur-md [background:var(--header-bg)]">
       <button type="button" onClick={copy} className="btn-quiet flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-full text-[13px] font-medium">
         {copied ? <Check size={14} className="text-green-600" /> : <ClipboardCopy size={14} />}
-        {copied ? 'Copied for your agent' : 'Copy values + instruction'}
+        {copied ? 'Copied for your agent' : 'Copy for your agent'}
       </button>
     </div>
   )
@@ -58,7 +58,7 @@ export function BrandColours() {
   const state = useStore((s) => s.guide)
   const st = useStore.getState
   return (
-    <PanelSection title="Brand colors" action={<AddSwatch />}>
+    <PanelSection title="Extra colors" action={<AddSwatch />}>
       {state.swatches?.length ? (
         <div className="flex flex-wrap gap-1.5">
           {state.swatches.map((w) => (
@@ -83,7 +83,7 @@ export function Components() {
   const state = useStore((s) => s.guide)
   const st = useStore.getState
   return (
-    <PanelSection title="Components">
+    <PanelSection title="Block looks">
       {state.components && Object.keys(state.components).length ? (
         <div className="space-y-1">
           {(Object.entries(state.components) as [BlockKind, ComponentDefault][]).map(([kind, d]) => (
@@ -137,7 +137,7 @@ export function Candidates() {
   const state = useStore((s) => s.guide)
   const st = useStore.getState
   return (
-    <PanelSection title="Candidates">
+    <PanelSection title="Options">
       {state.candidates.length ? (
         <div className="flex flex-wrap gap-1.5">
           {state.candidates.map((c) => (
@@ -150,7 +150,7 @@ export function Candidates() {
           ))}
         </div>
       ) : (
-        <p className="text-[12px] text-zinc-500">Nothing promoted yet. Use a section’s “Use look” to start your style guide.</p>
+        <p className="text-[12px] text-zinc-500">No options yet. In a clipped section’s Style, pick “Add as an option”.</p>
       )}
     </PanelSection>
   )
@@ -222,7 +222,7 @@ export function GroupDecision({ group, open }: { group: TokenGroup; open: boolea
   const winner = groupWinner(state, group)
   return (
     <div className={`mb-3 rounded-xl p-2 ${open ? 'bg-attention-soft/60 ring-1 ring-attention/40' : 'bg-well'}`}>
-      <div className="mb-1.5 px-0.5 text-[11.5px] font-medium text-zinc-500">{open ? 'Pick a direction' : 'Direction'}</div>
+      <div className="mb-1.5 px-0.5 text-[11.5px] font-medium text-zinc-500">{open ? 'Pick one' : 'Picked'}</div>
       <div className="grid grid-cols-2 gap-1.5">
         {cands.map((c) => {
           const clip = library.clips[c.clipId]
@@ -233,7 +233,7 @@ export function GroupDecision({ group, open }: { group: TokenGroup; open: boolea
               key={c.id}
               type="button"
               onClick={() => useStore.getState().chooseGroup(c.id)}
-              className={`flex items-center gap-2 rounded-lg border p-1.5 text-left transition active:scale-95 ${
+              className={`flex items-center gap-2 rounded-lg border p-1.5 text-left transition active:scale-[0.97] ${
                 active ? 'border-zinc-900 bg-white shadow-sm' : 'border-zinc-950/10 bg-white/70 hover:border-zinc-950/30'
               }`}
             >
@@ -308,7 +308,7 @@ export function TokenRow({ k, value, provenance, conflict, chosen }: { k: TokenK
                 type="button"
                 title={`${o.value} from ${o.candidateIds.map((id) => sourceOf(id)?.name).join(', ')}`}
                 onClick={() => st().chooseToken(k, { kind: 'candidate', candidateId: o.candidateIds[0] })}
-                className={`flex h-7 items-center gap-1.5 rounded-full border pl-1 pr-2.5 text-[11.5px] transition active:scale-95 ${
+                className={`flex h-7 items-center gap-1.5 rounded-full border pl-1 pr-2.5 text-[11.5px] transition active:scale-[0.97] ${
                   active ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-zinc-950/10 bg-white text-zinc-600 hover:border-zinc-950/30'
                 }`}
               >

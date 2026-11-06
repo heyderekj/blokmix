@@ -1,4 +1,4 @@
-import type { Capture, Clip, ClipStyle, Density, Feel, Library, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
+import type { BlockEdit, Capture, Clip, ClipStyle, Density, Feel, Insert, Keep, Library, SlotEdits, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
 import { CLIP_STYLES, DENSITIES, FEELS, SECTION_TYPES } from './types'
 import { hexToRgb } from './tokens'
 import { extractFields, parseHtml } from './html/parse'
@@ -155,7 +155,7 @@ export function allFonts(lib: Library) {
 
 /**
  * Add clips to a library that's already in use (an account's captured clips, loaded
- * after the built-in samples). Its own clips come before the layouts, as in
+ * after the built-in samples). The layouts come first, then captured clips by id, as in
  * buildLibrary. Returns the ids added; clips already there are left alone.
  */
 export function extendLibrary(lib: Library, sources: Source[], raws: RawClip[]): string[] {
@@ -196,11 +196,114 @@ export const starterOpen = (lib: Library, starter: { pages: { sections: string[]
   starter.pages.every((p) => p.sections.every((id) => !lib.clips[id] || layoutOpen(lib, id)))
 
 /**
- * The clips you can pick for a section: your clips, then the layouts. Draft layouts wait for review. On Free, layouts
- * in a mix pack are left out unless `locked` asks for them too (the Crate shows them with a lock).
+ * The clips you can pick for a section, from the whole account: the layouts, then captured clips. Draft layouts wait
+ * for review. On Free, layouts in a mix pack are left out unless `locked` asks for them too (the Crate shows them with
+ * a lock).
  */
 export const pickable = (lib: Library, type: SectionType, opts: { locked?: boolean } = {}): string[] =>
   lib.byType[type].filter((id) => !isSample(lib, id) && !lib.clips[id]?.status && (opts.locked || layoutOpen(lib, id)))
+
+/**
+ * What a section's ‹ › arrows (and ← →, Shuffle) step through: the built-in layouts plus this mix's own clips, never
+ * clips that belong to your other mixes or to people you share with (those are a Crate shelf away). The section's
+ * current clip is always in the list, so it never reads "0 of n".
+ */
+export function cycleIds(lib: Library, type: SectionType, mixClips: Iterable<string>, current?: string): string[] {
+  const mine = new Set(mixClips)
+  const ids = pickable(lib, type).filter((id) => lib.clips[id]?.origin === 'layout' || mine.has(id))
+  if (current && lib.clips[current]?.type === type && !ids.includes(current)) {
+    // Where it would sit in the account's order, so stepping away and back lands in the same place.
+    const order = lib.byType[type]
+    const at = ids.findIndex((id) => order.indexOf(id) > order.indexOf(current))
+    ids.splice(at < 0 ? ids.length : at, 0, current)
+  }
+  return ids
+}
+
+/**
+ * Put another clip in a section. A built-in layout always shows your words and your style: "Use the words it came
+ * with" and "Use its own look" belong to captured clips, so they're turned off on the way to a layout (where there'd
+ * be no switch to turn them back).
+ */
+export function withClip<S extends { clipId: string; keep: Keep; edits?: SlotEdits; prevClipId?: string; inserts?: Record<string, Insert[]> }>(slot: S, clipId: string, lib: Library): S {
+  if (slot.clipId === clipId) return slot
+  const edits = carryEdits(slot.edits, lib.clips[slot.clipId], lib.clips[clipId])
+  const inserts = carryInserts(slot.inserts, lib.clips[slot.clipId], lib.clips[clipId])
+  const next = { ...slot, clipId, prevClipId: slot.clipId, ...(edits !== slot.edits ? { edits } : {}), ...(inserts !== slot.inserts ? { inserts } : {}) }
+  const toLayout = lib.clips[clipId]?.origin === 'layout'
+  if (!toLayout || (!slot.keep.style && !slot.keep.content)) return next
+  return { ...next, keep: { ...slot.keep, style: false, content: false } }
+}
+
+/**
+ * Bloks you added come along to the next layout when it has nothing of its own added yet: each goes after the block
+ * holding the same words (the same field), or the same kind of block when its anchor has none; in a list, after that
+ * block in every item. Bloks with no such place stay with the layout they were made in, and come back with it.
+ */
+export function carryInserts(all: Record<string, Insert[]> | undefined, from: Clip | undefined, to: Clip | undefined): Record<string, Insert[]> | undefined {
+  const mine = from && all?.[from.id]
+  if (!from || !mine?.length || !to || all?.[to.id]?.length) return all
+  const moved: Insert[] = []
+  for (const ins of mine) {
+    const anchor = from.blocks.find((b) => b.id === ins.after)
+    if (!anchor) continue
+    const match = to.blocks.find((b) => (anchor.field ? b.field === anchor.field : b.kind === anchor.kind && !b.field))
+    if (!match) continue
+    if (!ins.every) {
+      moved.push({ ...ins, after: match.id })
+      continue
+    }
+    let list: Clip['blocks'][number] | undefined = match
+    while (list && list.kind !== 'list') list = list.parent ? to.blocks.find((b) => b.id === list!.parent) : undefined
+    const key = anchor.field && /^([a-z]+)\d+/i.exec(anchor.field)?.[1]
+    if (!list || !key) continue
+    moved.push({ ...ins, after: match.id, every: { ...ins.every, list: list.id, key } })
+  }
+  return moved.length ? { ...all, [to.id]: moved } : all
+}
+
+const isLogoSpot = (m: string) => /^logo1?$/i.test(m)
+const sameMedia = (a: string, b: string) => a === b || (isLogoSpot(a) && isLogoSpot(b))
+
+/**
+ * Trying another layout keeps your pictures and links: each picture or link in the new layout that has nothing of its
+ * own takes the one from the layout you're leaving. Pictures match by name (any logo spot to any logo spot), then the
+ * rest in page order; links match by the words they hold. Nothing the new layout already has is touched.
+ */
+export function carryEdits(edits: SlotEdits | undefined, from: Clip | undefined, to: Clip | undefined): SlotEdits | undefined {
+  const old = from && edits?.[from.id]
+  if (!old || !to || from.id === to.id) return edits
+  const mine: Record<string, BlockEdit> = { ...(edits[to.id] ?? {}) }
+  let changed = false
+  const put = (id: string, patch: Partial<BlockEdit>) => {
+    mine[id] = { ...mine[id], ...patch }
+    changed = true
+  }
+  // Pictures with a fill of their own, in the order the old layout shows them.
+  const pictures = from.blocks.filter((b) => b.kind === 'image' && b.media && old[b.id]?.media)
+  const used = new Set<string>()
+  const empty = to.blocks.filter((b) => b.kind === 'image' && b.media && !mine[b.id]?.media)
+  for (const b of empty) {
+    const src = pictures.find((p) => !used.has(p.id) && sameMedia(p.media!, b.media!))
+    if (src) {
+      used.add(src.id)
+      put(b.id, { media: old[src.id].media })
+    }
+  }
+  const rest = pictures.filter((p) => !used.has(p.id) && !isLogoSpot(p.media!))
+  for (const b of empty.filter((x) => !mine[x.id]?.media && !isLogoSpot(x.media!))) {
+    const src = rest.shift()
+    if (!src) break
+    put(b.id, { media: old[src.id].media })
+  }
+  // Links, by the words they hold ("Start a mix" goes where it went before).
+  for (const b of to.blocks) {
+    if (!b.field || mine[b.id]?.link) continue
+    const src = from.blocks.find((x) => x.field === b.field && old[x.id]?.link)
+    if (src) put(b.id, { link: old[src.id].link })
+  }
+  return changed ? { ...edits, [to.id]: mine } : edits
+}
 
 /** The library's two shelves: Blokmix's plain layouts, and sections captured from real sites. */
 export type Shelf = 'plain' | 'real'

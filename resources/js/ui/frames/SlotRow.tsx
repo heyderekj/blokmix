@@ -1,15 +1,16 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, Plus, Copy, Minus } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
-import { pickable } from '@/core/library'
-import { editList as applyListEdit, listContext, listOrder, sectionClip } from '@/core/lists'
+import { cycleIds } from '@/core/library'
+import { currentWords } from '@/core/words'
+import { editList as applyListEdit, extrasOf, listContext, listOrder, sectionClip } from '@/core/lists'
 import { useTiles } from './tiles'
 import { applyBindings, emptyTargets } from '@/core/collections'
 import { entryPathFor, templateEntry, useCollections } from '@/state/collections'
 import { createPortal } from 'react-dom'
 import { onSection } from '@/core/notes'
-import { useStore, currentSlots } from '@/state/store'
+import { useStore, currentSlots, mixClipIds } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { frameStateFor, usePageStyle, withoutShaders } from '@/state/derived'
 import { postState, type BlockEvent, type FrameRect } from '@/frame/bridge'
@@ -20,7 +21,9 @@ import { resolveFields, TYPE_LABEL } from '@/core/content'
 import { useAssets } from '@/lib/assets'
 import { ClipFrame } from '@/frame/ClipFrame'
 import { VIEW_W } from '../canvas/geometry'
+import { useBarFloor } from '../canvas/useBarFloor'
 import { SectionPill, SectionRail } from './SectionPill'
+import { useLockMoment } from './LockGlyph'
 import { edgePan, panBy } from '../canvas/dragPan'
 
 const SPIN_STEP = 90
@@ -68,13 +71,14 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   const pWords = useBlockPreview((s) => s.words)
   const pBackdrop = useBlockPreview((s) => s.backdrop)
   const pSlider = useBlockPreview((s) => s.slider)
+  const pInserts = useBlockPreview((s) => s.inserts)
   const editText = useBlockPreview((s) => s.editText)
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
   // While an item is dragged, the section shows the list as it would be with the item dropped where it is now.
   const [sorting, setSorting] = useState<{ itemId: string; from: number; to: number } | null>(null)
   const live = useMemo(() => {
-    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop, slider: pSlider })
+    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop, slider: pSlider, inserts: pInserts })
     if (sorting && sorting.to !== sorting.from)
       try {
         s = applyListEdit(s, slotClip(s), content, { op: 'move', itemId: sorting.itemId, to: sorting.to })
@@ -82,8 +86,11 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         /* not movable after all: show it as it is */
       }
     return s
-  }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, pSlider, sorting, content])
-  const ids = pickable(library, slot.type)
+  }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, pSlider, pInserts, sorting, content])
+  // What the arrows step through: the layouts and this mix's own clips (never your other mixes').
+  const mixKey = useStore((s) => mixClipIds(s).join(' '))
+  const lockMoment = useLockMoment(slot.locked)
+  const ids = useMemo(() => cycleIds(library, slot.type, mixKey.split(' '), slot.clipId), [slot.type, mixKey, slot.clipId])
   const W = VIEW_W[viewport]
 
   // `shown` trails the store so shuffles can spin like a slot machine before landing.
@@ -157,7 +164,12 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   const previewingHere = pSlot === slot.id && !!pPatch
   if (selRect && (!previewingHere || !barRef.current)) barRef.current = selRect
   const barAt = selRect ? barRef.current : null
+  // The block bar hangs below the block; on a tall block, or one near the screen's edge, it stays on screen.
+  const blockAnchor = useRef<HTMLDivElement>(null)
+  const blockBar = useRef<HTMLDivElement>(null)
   const [typing, setTyping] = useState(false)
+  // Re-measured whenever the bar comes back (after typing, a sort) as well as when the block moves.
+  useBarFloor(blockAnchor, blockBar, rowRef, [barAt?.x, barAt?.y, barAt?.h, selectedBlock, typing, !!sorting], `${slot.id}:block`)
   const dragHandle = useRef<ItemDragHandle | null>(null)
   const [rects, setRects] = useState<Record<string, FrameRect>>({})
   const [drawing, setDrawing] = useState<FrameRect | null>(null)
@@ -180,7 +192,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
     const s = useStore.getState()
     if (s.ui.focusedSlotId === own.id && s.ui.selectedBlockId) s.selectBlock(null)
   }, [own.clipId, own.id])
-  const sectioned = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists, { banner: slot.banner }) : null
+  const sectioned = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists, extrasOf(slot, shown)) : null
   const blocks = sectioned?.blocks ?? []
   const block = selectedBlock ? blocks.find((b) => b.id === selectedBlock) : undefined
   // List items can be dragged among their siblings: selecting anything inside an item shows its grip. The frame reports
@@ -253,7 +265,11 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         if (e.word && bound) {
           useCollections.getState().updateEntry(bound.collection, bound.entry, { data: { [bound.field]: e.word.value } })
         } else if (e.word) {
-          st().setWord(slot.id, e.word.field, e.word.value)
+          // Clicking into words and out again posts them unchanged: that isn't a choice, so nothing is pinned (pinned
+          // words follow the section to every other layout).
+          const now = currentSlots(useStore.getState()).find((x) => x.id === slot.id)
+          const same = !!now && !(e.word.field in (now.words ?? {})) && e.word.value === currentWords(slotClip(now), now, useStore.getState().content, e.word.field)
+          if (!same) st().setWord(slot.id, e.word.field, e.word.value)
           // "Another way to say it": what you just wrote is kept as an option too.
           const k = useBlockPreview.getState().keepNext
           if (k && k.slotId === slot.id && k.field === e.word.field) {
@@ -341,7 +357,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
     >
       {/* the clips side by side, clipped to the current clip's height */}
       {/* slides happen inside the page: only the current clip is ever visible */}
-      <div className={`absolute inset-0 overflow-hidden ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''}`}>
+      {/* Locking presses the section in and lets it settle; unlocking lifts it and lets go. */}
+      <div className={`absolute inset-0 overflow-hidden ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''} ${lockMoment === 'lock' ? 'lock-press' : lockMoment === 'unlock' ? 'lock-lift' : ''}`}>
         {ids.map((clipId, i) => {
           const n = ids.length
           let rel = (((i - shownIndex) % n) + n) % n
@@ -398,7 +415,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         <div className="absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }} data-chrome>
           <button
             type="button"
-            title="An agent may restructure this section. Click to have it reproduce this layout"
+            title="Your agent may rearrange this section. Click to keep this layout."
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
@@ -406,7 +423,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
             }}
             className="m-2 inline-block cursor-pointer rounded-md bg-zinc-900/80 px-2 py-1 text-[11px] font-medium text-white"
           >
-            Layout: reference only ×
+            Layout may change ×
           </button>
         </div>
       )}
@@ -433,8 +450,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
           <PickOutline rect={selRect} picked />
           {!typing && (
             // Below the block, menus opening downwards, so the block stays in view while you preview looks on it.
-            <div className="absolute z-30" style={{ left: barAt!.x, top: barAt!.y + barAt!.h, width: 0, height: 0 }}>
-              <div className="absolute left-0 top-0 w-max origin-top-left pt-3.5" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+            <div ref={blockAnchor} className="absolute z-30" style={{ left: barAt!.x, top: barAt!.y + barAt!.h, width: 0, height: 0 }}>
+              <div ref={blockBar} className="absolute left-0 top-0 w-max origin-top-left pt-2.5" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
                 <BlockBar slot={slot} block={block} rect={selRect} />
               </div>
             </div>
@@ -449,7 +466,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
       <SectionMarks slot={slot} width={W} height={frameH} rects={rects} drawing={drawing} />
 
       <SectionRail slot={slot} index={index} focused={focused} />
-      {focused && !block && <SectionPill slot={slot} index={index} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} />}
+      {focused && !block && <SectionPill slot={slot} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} bottom={height} row={rowRef} />}
     </div>
   )
 })
@@ -638,6 +655,8 @@ function ItemDrag({
         >
           <GripVertical size={14} />
         </button>
+        {/* The item's own actions sit with its grip, on the item: add one after it, duplicate it, remove it. */}
+        {!dragging && <ItemActions slotId={slotId} itemId={items.item.id} />}
       </div>
       {dragging &&
         createPortal(
@@ -657,6 +676,50 @@ function ItemDrag({
           document.body,
         )}
     </>
+  )
+}
+
+/** Add after, duplicate, remove: a small pill beside an item's grip, so the block bar keeps to the block. */
+function ItemActions({ slotId, itemId }: { slotId: string; itemId: string }) {
+  const slot = useStore((s) => currentSlots(s).find((x) => x.id === slotId))
+  if (!slot) return null
+  const ctx = listContext(slotClip(slot), slot, itemId)
+  if (!ctx?.item) return null
+  const st = useStore.getState
+  const full = ctx.count >= ctx.max
+  const noun = (ctx.item.label.split(' · ').at(-1) ?? 'item').replace(/\s*\d+$/, '').toLowerCase() || 'item'
+  const pick = (r: { itemId: string | null } | null) => r?.itemId && st().selectBlock(r.itemId)
+  const btn = (label: string, Icon: typeof Plus, onClick: () => void, off?: string) => (
+    <button
+      type="button"
+      title={off ?? label}
+      aria-label={label}
+      aria-disabled={!!off || undefined}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation()
+        if (!off) onClick()
+      }}
+      className={`grid size-7 place-items-center rounded-full transition-[background-color,color,scale] active:scale-[0.97] pointer-coarse:size-10 ${off ? 'cursor-default text-zinc-300' : 'cursor-pointer text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+    >
+      <Icon size={14} />
+    </button>
+  )
+  const max = `This layout holds up to ${ctx.max}`
+  return (
+    <div
+      className="absolute left-0 top-0 flex origin-left items-center rounded-full p-0.5"
+      style={{ transform: 'translate(16px, -50%) scale(min(calc(1 / var(--z)), 3.4))', transformOrigin: '-16px 50%', backgroundColor: 'var(--lift)', boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 6px 16px -8px rgb(0 0 0 / 0.35)' }}
+      data-chrome
+    >
+      {btn(`Add a ${noun} after this one`, Plus, () => pick(st().editList(slotId, { op: 'add', listId: ctx.list.id, after: itemId })), full ? max : undefined)}
+      {btn(`Duplicate this ${noun} (⌘D)`, Copy, () => pick(st().editList(slotId, { op: 'duplicate', itemId })), full ? max : undefined)}
+      {btn(`Remove this ${noun} (⌫)`, Minus, () => {
+        if (!st().editList(slotId, { op: 'remove', itemId })) return
+        st().selectBlock(ctx.list.id)
+        st().showFlash(`Removed the ${noun}`, { undo: true })
+      }, ctx.count <= 1 ? 'A list keeps at least one item' : undefined)}
+    </div>
   )
 }
 

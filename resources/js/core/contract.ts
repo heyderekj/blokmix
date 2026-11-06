@@ -70,6 +70,7 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     }
     case 'add_brand_colour':
     case 'set_palette':
+    case 'set_brand_color':
     case 'set_tone':
       return ['color']
     case 'set_dial': {
@@ -93,6 +94,7 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'set_section_motion':
       return ['sections']
     case 'set_slider':
+    case 'add_block':
     case 'add_section':
     case 'swap_section':
     case 'edit_list':
@@ -100,10 +102,12 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'clip_from_site':
       return ['layout']
     case 'set_words':
+    case 'set_brand':
     case 'word_options':
     case 'pour_words':
       return ['words']
     case 'set_mock':
+    case 'set_logo':
     case 'set_image':
     case 'set_media':
     case 'find_subject':

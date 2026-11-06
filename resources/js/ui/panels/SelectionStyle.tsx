@@ -56,11 +56,13 @@ function Panel({ slot, block }: { slot: Slot; block?: BlockInfo }) {
     <motion.div
       ref={panel}
       data-chrome
+      data-style-sheet
       initial={{ opacity: 0, x: 12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
       style={{ backgroundColor: 'var(--lift)', boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 16px 40px -16px rgb(0 0 0 / 0.35)' }}
-      className="fixed right-3 top-3 z-40 flex max-h-[calc(100dvh-24px)] w-[340px] flex-col overflow-hidden rounded-2xl max-sm:inset-x-3 max-sm:bottom-3 max-sm:top-auto max-sm:max-h-[46vh] max-sm:w-auto"
+      // Below the top bar (Save, Share, Export stay reachable); on phones a sheet that sits above the dock.
+      className="fixed right-3 top-[68px] z-40 flex max-h-[calc(100dvh-80px)] w-[340px] flex-col overflow-hidden rounded-2xl max-sm:inset-x-3 max-sm:bottom-[72px] max-sm:top-auto max-sm:max-h-[42vh] max-sm:w-auto"
       onPointerDown={(e) => e.stopPropagation()}
       onPointerUp={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}

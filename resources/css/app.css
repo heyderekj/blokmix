@@ -364,7 +364,10 @@ body:has([data-board]) { overflow: hidden; }
     --btn-ink: var(--background);
     --btn-text-shadow: none;
   }
-  .btn-lit:hover { --btn-sheen: 26%; translate: 0 -1px; }
+  /* Hover lifts only where there's a pointer to hover with: a tapped button doesn't stay lifted. */
+  @media (hover: hover) and (pointer: fine) {
+    .btn-lit:hover { --btn-sheen: 26%; translate: 0 -1px; }
+  }
   .btn-quiet {
     color: var(--foreground);
     background-color: var(--raised);
@@ -375,7 +378,9 @@ body:has([data-board]) { overflow: hidden; }
   .dark .btn-quiet {
     --tw-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.06), inset 0 -2px 0 hsl(0 0% 0% / 0.2), 0 1px 1px hsl(0 0% 0% / 0.4), 0 4px 10px -4px hsl(0 0% 0% / 0.5);
   }
-  .btn-quiet:hover { translate: 0 -1px; border-color: color-mix(in srgb, var(--border), var(--foreground) 18%); }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-quiet:hover { translate: 0 -1px; border-color: color-mix(in srgb, var(--border), var(--foreground) 18%); }
+  }
   /* The brand's block button, for sign-in, sign-up and the website (the app uses btn-lit): the logo's pink block as a key. A glossy face with the icon's highlight band,
      a rose side, and a shadow falling down and right from a top-left light. Hover lifts it off the board
      (the guide's 240 ms with a small overshoot); press pushes it home. White text on the pink. */
@@ -542,3 +547,37 @@ body:has([data-board]) { overflow: hidden; }
 @container (max-height: 36px) {
   .section-rail-label > div { display: none; }
 }
+
+/* The padlock (ui/frames/LockGlyph.tsx): open, the shackle is lifted and swung; locking drops it home with the brand's
+   small overshoot, then the body clunks once. Only transform moves. */
+.lock-glyph { overflow: visible; }
+.lock-glyph .lock-shackle {
+  transform-box: view-box;
+  transform-origin: 7px 11px;
+  transform: translateY(-1.5px) rotate(-14deg);
+  transition: transform 220ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.lock-glyph[data-locked] .lock-shackle { transform: none; }
+.lock-glyph .lock-body { transform-box: fill-box; transform-origin: 50% 100%; }
+.lock-glyph.lock-clunk .lock-body { animation: lock-clunk 200ms cubic-bezier(0.23, 1, 0.32, 1) 150ms both; }
+@keyframes lock-clunk {
+  45% { transform: scale(1.08, 0.86); }
+}
+/* A section locking clicks into place: a quick press in, then it settles with the brand's small overshoot. Unlocking
+   lifts it a touch and lets go. Only transform moves, around the section's middle. */
+.lock-press { animation: lock-press 340ms both; transform-origin: 50% 50%; }
+@keyframes lock-press {
+  0% { transform: scale(1); animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1); }
+  30% { transform: scale(0.982); animation-timing-function: cubic-bezier(0.3, 1.4, 0.5, 1); }
+  100% { transform: scale(1); }
+}
+.lock-lift { animation: lock-lift 240ms cubic-bezier(0.23, 1, 0.32, 1) both; transform-origin: 50% 50%; }
+@keyframes lock-lift {
+  40% { transform: scale(1.006); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lock-glyph .lock-shackle { transition: none; }
+  .lock-glyph.lock-clunk .lock-body { animation: none; }
+  .lock-press, .lock-lift { animation: none; }
+}
+

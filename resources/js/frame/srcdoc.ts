@@ -1,4 +1,4 @@
-import { BASE_CSS, LAYER_ORDER } from '@/core/export/base-css'
+import { BASE_CSS, GRID_SPAN_CSS, LAYER_ORDER } from '@/core/export/base-css'
 import { MEDIA_CSS, MEDIA_JS } from '@/core/export/media-runtime'
 import { SLIDER_JS } from '@/core/export/slider-runtime'
 import { MOCK_BASE_CSS } from '@/core/treatments/mocks'
@@ -408,6 +408,7 @@ const BRIDGE = `(function () {
       var next = t.content.firstElementChild;
       if (!next) return;
       if (p.before) cur.before(next);
+      else if (p.after) cur.after(next);
       else {
         if (!listOrig[p.sel]) listOrig[p.sel] = cur.cloneNode(true);
         cur.replaceWith(next);
@@ -420,6 +421,13 @@ const BRIDGE = `(function () {
       });
     });
     if (window.mxMedia) window.mxMedia.wire(document);
+    /* The selection may be in what was just swapped in (an item you added): mark it again, and bring a new one into
+       view (a slide off to the side, a tab that isn't open). The selection can arrive before the patch, too. */
+    if (sel) {
+      var ns = byId(sel);
+      if (ns) { ns.setAttribute('data-mx-sel', ''); if (!had[sel]) reveal(ns); }
+      requestAnimationFrame(reportSel);
+    }
   }
 
   /* ---- where links lead: real hrefs, and following them while previewing ---- */
@@ -566,7 +574,7 @@ export function buildSrcdoc(i: SrcdocInput): string {
 ${links}
 <style>${LAYER_ORDER}</style>
 <style id="mx-tokens">${i.tokensCss}</style>
-<style id="mx-base">@layer base {\n${BASE_CSS}}\n${FRAME_CSS}</style>
+<style id="mx-base">@layer base {\n${BASE_CSS}}\n${FRAME_CSS}\n${GRID_SPAN_CSS}</style>
 <style id="mx-clip">@layer clip {\n${i.css}\n}</style>
 <style id="mx-motion"${i.motion === false ? ' media="not all"' : ''}>@layer motion {\n${i.motionCss ?? ''}\n}</style>
 <style id="mx-blocks">${i.blocksCss ?? ''}</style>

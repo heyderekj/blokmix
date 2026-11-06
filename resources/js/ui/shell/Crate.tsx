@@ -181,10 +181,16 @@ export function Crate() {
         )}
         {!shelved.length && (
           <div className="flex h-[60px] items-center gap-2 text-[12.5px] text-zinc-500">
-            No {effective === 'all' ? '' : `${TYPE_LABEL[effective]} `}clips yet.
-            <button type="button" onClick={() => setShelf('layouts')} className={`rounded-full px-2 py-0.5 font-semibold text-zinc-800 hover:bg-zinc-950/5 ${chip}`}>
-              Browse layouts
-            </button>
+            {shelf === 'layouts' ? (
+              `No ${effective === 'all' ? '' : `${TYPE_LABEL[effective].toLowerCase()} `}layouts here.`
+            ) : (
+              <>
+                No {effective === 'all' ? '' : `${TYPE_LABEL[effective].toLowerCase()} `}clips yet. Clip one from a site you like, or
+                <button type="button" onClick={() => setShelf('layouts')} className={`rounded-full px-2 py-0.5 font-semibold text-zinc-800 hover:bg-zinc-950/5 ${chip}`}>
+                  see the layouts
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -329,11 +335,11 @@ function ClipCard({ clip, used, inMix, own, scroller }: { clip: Clip; used: bool
       {clip.origin === 'clip' && !used && (
         <button
           type="button"
-          title={own ? 'Take out of this mix (it stays in your library)' : 'Keep in this mix'}
+          title={own ? 'Take out of this mix (it stays in your crate)' : 'Add to this mix'}
           aria-label={own ? `Take ${clip.title} out of this mix` : `Keep ${clip.title} in this mix`}
           onClick={() => (own ? st().removeMixClip(clip.id) : st().addMixClips([clip.id]))}
           className={`absolute right-1.5 top-1.5 grid size-6 cursor-pointer place-items-center rounded-full text-[11px] transition active:scale-[0.97] ${
-            inMix ? 'bg-key-soft text-key-ink' : 'bg-white text-zinc-500 opacity-0 shadow-sm ring-1 ring-zinc-950/10 group-hover/card:opacity-100 focus-visible:opacity-100'
+            inMix ? 'bg-key-soft text-key-ink' : 'bg-white text-zinc-500 opacity-0 shadow-sm ring-1 ring-zinc-950/10 group-hover/card:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100'
           }`}
         >
           {inMix ? <Check size={13} strokeWidth={2.5} /> : <Plus size={13} strokeWidth={2.5} />}

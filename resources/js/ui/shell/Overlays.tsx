@@ -1,17 +1,30 @@
 import { useEffect, useState } from 'react'
 import { undoCollections } from '@/state/collections'
 import { AnimatePresence, motion } from 'motion/react'
+import { create } from 'zustand'
 import { useStore, undo } from '@/state/store'
+import { useEscape } from './keys'
 
 export function Flash() {
   const flash = useStore((s) => s.flash)
   const [shown, setShown] = useState<typeof flash>(null)
   const [bottom, setBottom] = useState(66)
+  // Just above whatever the dock is showing: the toolbar, its hint, or a grown shelf, and it follows when that changes.
+  useEffect(() => {
+    const dock = document.querySelector('[data-dock]')
+    if (!dock) return
+    const place = () => setBottom(window.innerHeight - dock.getBoundingClientRect().top + 10)
+    place()
+    const ro = new ResizeObserver(place)
+    ro.observe(dock)
+    window.addEventListener('resize', place)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', place)
+    }
+  }, [])
   useEffect(() => {
     if (!flash) return
-    // Just above whatever the dock is showing right now: the toolbar, its hint, or a grown shelf.
-    const dock = document.querySelector('[data-dock]')?.getBoundingClientRect()
-    if (dock) setBottom(window.innerHeight - dock.top + 10)
     setShown(flash)
     const t = window.setTimeout(() => setShown(null), flash.undo ? 4500 : 2600)
     return () => window.clearTimeout(t)
@@ -51,36 +64,34 @@ export function Flash() {
 
 const HELP: [string, [string, string][]][] = [
   [
-    'Mixing',
+    'Sections',
     [
-      ['← →', 'Slide the focused section'],
+      ['← →', 'Try another layout (or, on a block, another look)'],
       ['↑ ↓', 'Move between sections'],
-      ['Space', 'Shuffle unlocked sections (hold + drag to pan)'],
-      ['L', 'Lock / unlock section'],
-      ['⌥↑ ⌥↓', 'Move section up / down'],
-      ['1 2 3 4', 'Keep layout · style · copy · motion'],
-      ['P', 'Use this section’s design as the style guide'],
-      ['⌫', 'Remove section'],
+      ['Space', 'Shuffle unlocked sections (hold and drag to pan)'],
+      ['L', 'Lock or unlock a section'],
+      ['⌥↑ ⌥↓', 'Move a section up or down'],
+      ['1 2 3 4', 'Use the original layout · style · words · motion'],
+      ['⌫', 'Remove a section'],
     ],
   ],
   [
     'Blocks and words',
     [
-      ['Click', 'Select a block, one level deeper each click'],
-      ['⌘ click', 'Select the smallest block under the pointer'],
-      ['↵ / double-click', 'Edit the selected words'],
+      ['Click', 'Select the block under the pointer'],
+      ['↵ / double-click', 'Edit the words'],
       ['[ ]', 'Other ways to say them'],
       ['⌘D', 'Duplicate a list item'],
-      ['⌥← ⌥→', 'Move a list item'],
-      ['⌫', 'Remove a list item (or hide a block)'],
-      ['Esc', 'Select the block around this one'],
+      ['⌥ arrows', 'Move a list item'],
+      ['⌫', 'Remove a list item, or hide a block'],
+      ['Esc', 'Close a menu, or select what’s around it'],
     ],
   ],
   [
     'Versions',
     [
       ['⌘K', 'Say what to change (“roomier”, “FAQ above pricing”)'],
-      ['Enter / ⌘S', 'Save a version'],
+      ['↵ / ⌘S', 'Save a version'],
       ['U', 'Original ↔ Your style'],
       ['⌘Z / ⇧⌘Z', 'Undo / redo'],
     ],
@@ -88,23 +99,36 @@ const HELP: [string, [string, string][]][] = [
   [
     'Canvas',
     [
-      ['V H S', 'Select · hand · sticky note'],
-      ['⇧1 / ⇧0', 'Fit everything / back to the mix'],
+      ['V H N S', 'Select · hand · note · sticky note'],
+      ['⇧1 / ⇧0', 'Fit everything / back to your mix'],
       ['+ −', 'Zoom'],
-      ['C', 'Open the clip crate'],
+      ['C', 'Open the crate'],
       ['G', 'Open the style guide'],
-      ['Esc', 'Close, stop interacting, deselect'],
+      ['?', 'This sheet'],
     ],
   ],
 ]
 
-export function HelpOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
+/** The keyboard sheet: opened with ?, from the logo menu, or from the dock's view menu. */
+export const useHelpSheet = create<{ open: boolean }>()(() => ({ open: false }))
+export const openHelp = () => useHelpSheet.setState({ open: true })
+export const toggleHelp = () => useHelpSheet.setState((s) => ({ open: !s.open }))
+
+export function HelpOverlay() {
+  const open = useHelpSheet((s) => s.open)
+  const onClose = () => useHelpSheet.setState({ open: false })
+  useEscape(open, onClose)
+  // While it's open the sheet takes the keyboard: nothing behind it moves.
   useEffect(() => {
     if (!open) return
-    const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', k)
-    return () => window.removeEventListener('keydown', k)
-  }, [open, onClose])
+    const k = (e: KeyboardEvent) => {
+      if (e.key === 'Tab' || e.key === 'Escape') return
+      e.stopPropagation()
+      if (e.key === '?') onClose()
+    }
+    window.addEventListener('keydown', k, true)
+    return () => window.removeEventListener('keydown', k, true)
+  }, [open])
   return (
     <AnimatePresence>
       {open && (
@@ -118,7 +142,7 @@ export function HelpOverlay({ open, onClose }: { open: boolean; onClose: () => v
             className="glass-panel w-[560px] rounded-3xl p-6"
           >
             <h2 className="mb-1 text-[18px] font-bold text-zinc-900">Keyboard</h2>
-            <p className="mb-5 text-[13px] text-zinc-500">Everything in the loop has a key. Nothing asks if you’re sure; ⌘Z undoes it.</p>
+            <p className="mb-5 text-[13px] text-zinc-500">Almost everything has a key, and ⌘Z undoes it.</p>
             <div className="grid grid-cols-2 gap-x-8 gap-y-5">
               {HELP.map(([group, rows]) => (
                 <div key={group}>

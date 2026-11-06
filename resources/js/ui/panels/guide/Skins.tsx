@@ -26,7 +26,7 @@ export function Skins() {
   return (
     <div className="col-span-2 rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)]">
       <div className="mb-2.5 flex items-center justify-between gap-2">
-        <span className="min-w-0 truncate text-[12.5px] font-semibold text-zinc-900">Skin{on ? `: ${on.name}` : ''}</span>
+        <span className="min-w-0 truncate text-[12.5px] font-semibold text-zinc-900">Theme{on ? `: ${on.name}` : ''}</span>
         <button type="button" onClick={surprise} className={`flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-chip px-2.5 text-[11.5px] font-semibold text-zinc-700 ${PRESS}`}>
           <Shuffle size={12} /> Surprise me
         </button>
@@ -69,9 +69,9 @@ function Compare({ onClose, onPick }: { onClose: () => void; onPick: (s: Skin) =
   // On the body: the panel it opens from has its own stacking and transforms, which would trap a fixed overlay inside it.
   return createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center bg-zinc-950/30 p-3 sm:p-6" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Compare skins" onClick={(e) => e.stopPropagation()} className="flex h-[min(860px,100%)] w-full max-w-[1120px] flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_40px_80px_-32px_rgb(0_0_0/0.5)]">
+      <div role="dialog" aria-modal="true" aria-label="Compare themes" onClick={(e) => e.stopPropagation()} className="flex h-[min(860px,100%)] w-full max-w-[1120px] flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_40px_80px_-32px_rgb(0_0_0/0.5)]">
         <header className="flex items-center justify-between gap-3 border-b border-zinc-950/5 px-5 py-3">
-          <span className="text-[15px] font-semibold text-zinc-900">Same page, every skin</span>
+          <span className="text-[15px] font-semibold text-zinc-900">Same page, every theme</span>
           <button type="button" onClick={onClose} aria-label="Close" className={`grid size-11 place-items-center rounded-full text-zinc-500 ${PRESS}`}><X size={18} /></button>
         </header>
         <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-1 content-start gap-3 overflow-y-auto p-4 sm:grid-cols-2 lg:grid-cols-3">

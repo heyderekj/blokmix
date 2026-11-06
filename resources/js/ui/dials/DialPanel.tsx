@@ -258,7 +258,7 @@ export function ColorPick({ value, tokens, onHover, onPick }: { value: string; t
             e.stopPropagation()
             onPick(r)
           }}
-          className={`size-5 cursor-pointer rounded-full transition-[scale,box-shadow] duration-150 active:scale-[0.94] ${value === r ? 'ring-2 ring-zinc-900 ring-offset-2 ring-offset-[var(--lift)]' : 'ring-1 ring-zinc-950/15 hover:scale-110'}`}
+          className={`size-5 cursor-pointer rounded-full transition-[scale,box-shadow] duration-150 active:scale-[0.97] ${value === r ? 'ring-2 ring-zinc-900 ring-offset-2 ring-offset-[var(--lift)]' : 'ring-1 ring-zinc-950/15 hover:scale-110'}`}
           style={{ background: tokens[`color.${r}` as TokenKey] }}
         />
       ))}
@@ -309,7 +309,7 @@ function StopsDial({ spec, value, tokens, onSettle }: { spec: Extract<ParamSpec,
                 onSettle([...value, value[value.length - 1]])
                 setAt(value.length)
               }}
-              className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.92]"
+              className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
             >
               <Plus size={13} />
             </button>

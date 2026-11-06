@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { BlockEdit, SliderChoice, Slot } from '@/core/types'
+import type { BlockEdit, Insert, SliderChoice, Slot } from '@/core/types'
 import type { TreatmentValue } from '@/core/treatments'
 import type { FrameRect } from '@/frame/bridge'
 
@@ -28,6 +28,9 @@ interface BlockPreview {
   /** A slider arrangement you're pointing at, shown before you keep it. */
   slider: { slotId: string; value: SliderChoice } | null
   showSlider: (s: { slotId: string; value: SliderChoice } | null) => void
+  /** The bloks a section would have with the one you're pointing at in the Add menu, shown before you add it. */
+  inserts: { slotId: string; value: Record<string, Insert[]> | undefined } | null
+  showInserts: (i: { slotId: string; value: Record<string, Insert[]> | undefined } | null) => void
   /** Bumped to play entrances again on the focused section. */
   replays: number
   replay: () => void
@@ -52,6 +55,8 @@ export const useBlockPreview = create<BlockPreview>()((set) => ({
   showBackdrop: (backdrop) => set({ backdrop }),
   slider: null,
   showSlider: (slider) => set({ slider }),
+  inserts: null,
+  showInserts: (inserts) => set({ inserts }),
   replays: 0,
   replay: () => set((s) => ({ replays: s.replays + 1 })),
   selRect: null,
@@ -59,7 +64,8 @@ export const useBlockPreview = create<BlockPreview>()((set) => ({
 }))
 
 /** The slot as it would look with the hovered preview applied. */
-export function withPreview(slot: Slot, p: Pick<BlockPreview, 'slotId' | 'blockId' | 'patch' | 'words'> & { backdrop?: BlockPreview['backdrop']; slider?: BlockPreview['slider'] }): Slot {
+export function withPreview(slot: Slot, p: Pick<BlockPreview, 'slotId' | 'blockId' | 'patch' | 'words'> & { backdrop?: BlockPreview['backdrop']; slider?: BlockPreview['slider']; inserts?: BlockPreview['inserts'] }): Slot {
+  if (p.inserts && p.inserts.slotId === slot.id) slot = { ...slot, inserts: p.inserts.value }
   if (p.words && p.words.slotId === slot.id) slot = { ...slot, words: { ...slot.words, [p.words.field]: p.words.text } }
   if (p.backdrop && p.backdrop.slotId === slot.id) slot = { ...slot, backdrop: p.backdrop.value ?? undefined }
   if (p.slider && p.slider.slotId === slot.id) slot = { ...slot, slider: Object.fromEntries(Object.entries(p.slider.value).filter(([, v]) => v !== undefined)) }

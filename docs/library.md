@@ -9,7 +9,7 @@ This is inspired by how Landbook organizes real site sections and examples by vi
 - Give people who are not designers immediate, non-slop starting points.
 - Let anyone begin with real sections that already work, then dial a style guide so they transform under a coherent look.
 - Complement (not replace) personal clipping. You can still clip from any site; the library is the ready-made entry when you don’t have references yet or want variety fast.
-- Support the “everything is a remix” idea: the unit is real sections (or short mixes of them), not locked themes.
+- Support "take what works, make it yours": the unit is real sections (or short mixes of them), not locked themes.
 
 ## What lives in the library
 
@@ -34,7 +34,7 @@ This keeps the free tier useful for completing one starting point while the lice
 
 ## Curation and growth
 
-- Begin curated and small. Quality and variety matter more than volume. Focus on sections that remix cleanly and look intentional under different style guides.
+- Begin curated and small. Quality and variety matter more than volume. Focus on sections that mix cleanly and look intentional under different style guides.
 - Organize for browsing the way Landbook does—by style, type, and other visual traits—so non-designers can find something that feels right without design vocabulary.
 - Later, optionally allow people to share a mix into a gallery so others can start from it. Keep this light (preview + duplicate) to avoid marketplace overhead.
 - Personal clips remain first-class. The library never blocks or replaces clipping from the live web.

@@ -2,8 +2,9 @@
 // it, to switch between on the canvas. Borrowed from Koati: Keep, Retire,
 // Put it back, "Another way to say it".
 
-import type { Clip, ProjectContent, Slot, WordOption } from './types'
+import type { Clip, ProjectContent, Site, Slot, WordOption } from './types'
 import { resolveFields } from './content'
+import { mapSlots } from './site'
 
 export interface WordChoice {
   text: string
@@ -74,3 +75,32 @@ function clean(o: WordOption): WordOption {
   const { retiredAt, ...rest } = o
   return retiredAt ? { ...rest, retiredAt } : rest
 }
+
+/**
+ * Your site's name, changed everywhere it's written: the page's copy, each section's own words and the options kept
+ * for them. Whole words only ("Brand" leaves "Brandon" alone), never to or from nothing. Returns how many places changed.
+ */
+export function renameBrand(content: ProjectContent, site: Site, from: string, to: string): { content: ProjectContent; site: Site; count: number } {
+  const a = from.trim()
+  const b = to.trim()
+  if (!a || !b || a === b) return { content: { ...content, brand: to }, site, count: 0 }
+  const escaped = a.replace(/[.*+?^$()|[\]{}\\]/g, '\\$&')
+  const re = new RegExp('(?<![\\p{L}\\p{N}])' + escaped + '(?![\\p{L}\\p{N}])', 'gu')
+  let count = 0
+  const swap = (text: string) =>
+    text.replace(re, () => {
+      count++
+      return b
+    })
+  const fields: ProjectContent['fields'] = {}
+  for (const [type, words] of Object.entries(content.fields) as [keyof ProjectContent['fields'], Record<string, string>][])
+    fields[type] = Object.fromEntries(Object.entries(words ?? {}).map(([k, v]) => [k, swap(v)]))
+  const nextSite = mapSlots(site, (s) => {
+    const before = count
+    const words = s.words ? Object.fromEntries(Object.entries(s.words).map(([k, v]) => [k, swap(v)])) : s.words
+    const options = s.options ? Object.fromEntries(Object.entries(s.options).map(([k, list]) => [k, list.map((o) => ({ ...o, text: swap(o.text) }))])) : s.options
+    return count === before ? s : { ...s, ...(words ? { words } : {}), ...(options ? { options } : {}) }
+  })
+  return { content: { ...content, brand: to, fields }, site: nextSite, count }
+}
+

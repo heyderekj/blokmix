@@ -5,6 +5,8 @@ import { useSave } from '@/lib/mixSync'
 import { canEdit, useAccount } from '@/lib/account'
 import { useBuySheet } from '@/state/plan'
 import { loadPublication, publishMix, unpublishMix, usePublication, type PublishStep } from '@/lib/publish'
+import { localMixState, saveLocalMix } from '@/lib/localMix'
+import { router } from '@inertiajs/react'
 
 /**
  * The mix on blok.page: an unlisted snapshot anyone with the link can open, at blok.page/<code>/<name>. Publishing again
@@ -38,8 +40,7 @@ export function PublishPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pub?.code, loaded])
 
-  if (mixId === 'local')
-    return <p className="px-4 py-5 text-[13px] text-pretty text-zinc-500">This mix lives only in this browser. Save it to your mixes (on the Mixes page) to publish it.</p>
+  if (mixId === 'local') return <SaveLocalFirst />
 
   const live = pub?.live ? pub : null
   // The address up to the name: blok.page/<code>/ (the code stays when you unpublish, so it shows then too).
@@ -285,3 +286,29 @@ function timeAgo(iso: string): string {
   if (s < 86400) return `${Math.round(s / 3600)} h ago`
   return new Date(iso).toLocaleDateString()
 }
+
+/** A mix kept only in this browser can't be published until it's one of your mixes: one click does that. */
+function SaveLocalFirst() {
+  const [busy, setBusy] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
+  const save = async () => {
+    const state = localMixState()
+    if (!state) return setProblem('There’s nothing saved in this browser yet. Make a change, then try again.')
+    setBusy(true)
+    setProblem(null)
+    const out = await saveLocalMix(state)
+    if ('short' in out) return router.visit(`/${out.short}`)
+    setBusy(false)
+    setProblem(out.problem)
+  }
+  return (
+    <div className="grid gap-3 px-4 py-5">
+      <p className="text-[13px] text-pretty text-zinc-600">This mix lives only in this browser. Save it to your mixes to publish it (this browser keeps its copy).</p>
+      <button type="button" disabled={busy} onClick={save} className="btn-lit btn-ink flex h-8 w-fit cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold active:scale-[0.97]">
+        {busy ? <Loader2 size={14} className="animate-spin" /> : null} Save to your mixes
+      </button>
+      {problem && <p className="text-[12px] text-problem-ink">{problem}</p>}
+    </div>
+  )
+}
+

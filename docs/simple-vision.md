@@ -4,7 +4,20 @@ A niche, useful, and simple tool for starting a website from real sections inste
 
 ## Core idea
 
-Blokmix is a place to begin with real web material. You clip or pick sections you like (or start from a light wireframe), apply and dial a style guide so they transform into coherent previews, mark notes for an agent, and optionally publish the current mix as a noindex snapshot. That is the loop. No forced journey, no full site builder, no production hosting.
+Skip the blank page. Blokmix gives you layouts, skins, palettes and looks that already work, and you mix them into
+something that's yours: pick the layouts, put a skin and your colors on them, tune by feel, swap in your words. Clip
+what you like from other sites and it joins the mix as more of the same: a layout, words, a look, or a whole skin.
+Then hand the mix to your AI to build. No forced journey, no full site builder, no production hosting.
+
+It's less "remix the web" than "take what works, make it yours". The fun is in trying things, so trying a layout never
+costs you your words or your style.
+
+## What comes back only adds options
+
+Whatever comes into a mix after you start, from the extension, a site in the library, or your agent's build, lands as
+more to choose from, marked with where it came from ("From stripe.com", "From Claude"). It never changes a pick you
+made, it can be dismissed, and taking it is one undo step. The choices grow; the screen doesn't get busier. See
+`roadmap.md` (Capture what you like, Bring it back).
 
 It stays incomplete on purpose. The value is a grounded starting point and clear notes you can hand to whatever AI tool or stack you already use.
 
@@ -12,13 +25,14 @@ It stays incomplete on purpose. The value is a grounded starting point and clear
 
 People who are not designers (founders, marketers, developers who do not design) and who want to explore better design than the current wave of AI-slop defaults. They need a place to start from real sections that already work, then tune them under a coherent style.
 
-Secondary: designers who want a fast remix surface, but the primary promise is the non-designer starting point.
+Secondary: designers who want a fast surface for trying layouts and looks, but the primary promise is the non-designer starting point.
 
 ## The loop
 
-1. **Start** — Clip real sections, pick from the library (sections or a starter mix, see `library.md`), or let the
-   guided start suggest one. Built-in layouts begin as wireframes: grey and plain, for deciding the layout first.
-   No required sequence.
+1. **Start** — Pick a kind of site and let the guided start offer three, start from a starter mix or a site in the
+   library, or clip sections you like. Built-in layouts begin as wireframes: grey and plain, for deciding the layout
+   first. A section's arrows step through the layouts and this mix's own clips, always in your words and style. No
+   required sequence.
 2. **Style** — A style guide (from the clips, from an existing site/brand, or dialed) transforms the sections into live previews. Simple dials for tuning by feel (spacing, type, color, radius, light/dark).
 3. **Mark & hand off** — Notes and marks live on the sections ("keep this layout", "try tighter"). Export a packet (styled components + notes + tokens) for your agent, or publish the mix.
 
@@ -53,8 +67,8 @@ in hidden frames at several widths and read what we see.
 
 ## Pricing direction
 
-See `pricing.md`: a free tier that completes one real starting point, and a $29 one-time license for the full
-library and unlimited mixes. No subscription. Editors and viewers free. No seat math.
+See `pricing.md`: a free tier that completes one real starting point, and a $20 one-time mix pack for the full
+library, every control and 3 mixes open at a time (packs stack). No subscription. Editors and viewers free. No seat math.
 
 ## Relationship to the rest of the suite
 

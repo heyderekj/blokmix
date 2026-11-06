@@ -11,13 +11,9 @@ import { TYPE_LABEL } from '@/core/content'
 import { stepLook } from '@/ui/blocks/LooksPicker'
 import { toggleSay } from '@/ui/jev/SayBar'
 import { useJevTools } from '@/state/jevSay'
+import { pressable, typing } from '@/ui/shell/keys'
 
 const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
-
-function typing(t: EventTarget | null) {
-  const el = t as HTMLElement | null
-  return !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
-}
 
 /** Keyboard-first: everything in the core loop has a key. */
 export function useShortcuts(onHelp: () => void) {
@@ -33,6 +29,8 @@ export function useShortcuts(onHelp: () => void) {
     window.addEventListener('paste', onPaste)
     const onKey = (e: KeyboardEvent) => {
       if (typing(e.target) || e.defaultPrevented) return
+      // Enter on a focused button presses it; it doesn't save a version.
+      if (e.key === 'Enter' && pressable(e.target)) return
       const st = useStore.getState()
       const mod = e.metaKey || e.ctrlKey
       const focused = currentSlots(st).find((s) => s.id === st.ui.focusedSlotId)
@@ -163,6 +161,14 @@ export function useShortcuts(onHelp: () => void) {
             st.adoptClipDesign(focused.clipId)
             const clip = library.clips[focused.clipId]
             st.showFlash(`Style guide now follows ${library.sources[clip.sourceId]?.name}`, { undo: true })
+          }
+          return
+        case 'a':
+        case 'A':
+          // Add a blok after the selected one (the block bar opens its menu).
+          if (focused && st.ui.selectedBlockId && !mod) {
+            e.preventDefault()
+            window.dispatchEvent(new Event('blokmix:add-blok'))
           }
           return
         case 'u':

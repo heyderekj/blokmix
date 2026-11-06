@@ -10,7 +10,7 @@ export default function Register({ invite }: { invite?: { mix: string; role: key
       <Head title="Create an account" />
       <AuthCard
         title={invite ? `You’re invited to ${ROLE_WORDS[invite.role]} “${invite.mix}”` : 'Create your Blokmix account'}
-        lede={invite ? 'Create your account to open it. Your name shows on the marks you leave and the versions you save.' : 'Your name shows on the marks you leave and the versions you save.'}
+        lede={invite ? 'Create your account to open it. Your name shows on the notes you leave and the versions you save.' : 'Your name shows on the notes you leave and the versions you save.'}
         onSubmit={() => form.post('/register', { onFinish: () => form.reset('password', 'password_confirmation') })}
         footer={
           <>

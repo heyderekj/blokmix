@@ -34,7 +34,7 @@ export function IconMenu({ current, original, onHover, onPick }: { current?: str
             title={label(n)}
             onMouseEnter={() => onHover(n)}
             onClick={() => onPick(n)}
-            className={`grid aspect-square place-items-center rounded-lg text-zinc-800 transition active:scale-[0.95] ${chosen === n ? 'bg-zinc-900 text-white' : 'hover:bg-zinc-950/6'}`}
+            className={`grid aspect-square place-items-center rounded-lg text-zinc-800 transition active:scale-[0.97] ${chosen === n ? 'bg-zinc-900 text-white' : 'hover:bg-zinc-950/6'}`}
           >
             <IconGlyph name={n} set={set} />
           </button>

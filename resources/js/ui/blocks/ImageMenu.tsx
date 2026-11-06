@@ -162,7 +162,7 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
       <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>
         {styles.generative.map(tile)}
       </div>
-      <div className="mb-1.5 mt-3 px-0.5 text-[11px] font-semibold text-zinc-400">Live, in WebGL</div>
+      <div className="mb-1.5 mt-3 px-0.5 text-[11px] font-semibold text-zinc-400">Moving</div>
       <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>
         {SHADER_IDS.map((id) => (
           <ShaderTile key={id} id={id} fill={live(id)} on={fill?.source === 'shader' && fill.shader === id} tokens={tokens} onHover={onHover} onPick={onPick} />
@@ -317,7 +317,7 @@ function Uploads({ fill, onHover, onPick }: { fill?: MediaFill; onHover: (m: Med
       >
         {busy ? <Upload size={18} className="animate-pulse text-zinc-500" /> : <ImagePlus size={18} className="text-zinc-500" />}
         <span className="text-[12.5px] font-semibold text-zinc-800">{busy ? 'Adding…' : 'Drop, paste or choose a file'}</span>
-        <span className="text-[11px] text-zinc-400">Images, videos or Lotties (.lottie, .json), kept in this browser</span>
+        <span className="text-[11px] text-zinc-400">Images, videos or Lotties (.lottie, .json)</span>
       </button>
       <input ref={input} type="file" accept="image/*,video/*,.lottie,.json" hidden onChange={(e) => void take(e.target.files)} />
       {error && <p className="px-1 pt-1.5 text-[12px] text-problem-ink">{error}</p>}
@@ -474,7 +474,7 @@ function Stock({ block, slot, fill, onHover, onPick }: { block: BlockInfo; slot?
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search Unsplash" className="h-8 flex-1 bg-transparent text-[12.5px] outline-none" />
       </form>
       {state === 'error' && <p className="px-1 pt-2 text-[12px] text-problem-ink">Unsplash didn’t answer. Try again in a moment.</p>}
-      {state === 'nokey' && <p className="px-1 pt-2 text-[12px] text-problem-ink">Stock photos need an Unsplash key on the server (UNSPLASH_ACCESS_KEY).</p>}
+      {state === 'nokey' && <p className="px-1 pt-2 text-[12px] text-problem-ink">Stock photos aren’t set up here yet.</p>}
       {(ranking || ranked) && (
         <div className="flex items-center gap-1.5 px-1 pt-2 text-[11.5px] text-zinc-500">
           <Wand2 size={12} className={ranking ? 'animate-pulse' : ''} />

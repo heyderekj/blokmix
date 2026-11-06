@@ -44,7 +44,7 @@ export const DIALS: Record<DialName, Dial> = {
     write: (v) => ({ 'type.base': `${to(v, 14, 20, 1)}px`, 'type.ratio': DIAL_RATIOS[to(v, 0, DIAL_RATIOS.length - 1, 1)] }),
   },
   roundness: {
-    label: 'Roundness',
+    label: 'Corners',
     ends: ['Square', 'Round'],
     read: (t) => Math.round(at(px(t['radius.base']), 0, 24)),
     write: (v) => ({ 'radius.base': `${to(v, 0, 24, 1)}px` }),

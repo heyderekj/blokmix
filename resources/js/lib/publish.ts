@@ -114,7 +114,7 @@ function send(form: FormData, onStep: OnStep): Promise<Publication | null> {
       }
       if (xhr.status < 200 || xhr.status >= 300) {
         const first = json?.errors ? Object.values(json.errors)[0]?.[0] : undefined
-        reject(new PublishError(first ?? json?.message ?? `Publishing failed (${xhr.status}).`))
+        reject(new PublishError(publishProblem(xhr.status, first ?? json?.message)))
         return
       }
       const pub = json?.publication ?? null
@@ -149,3 +149,14 @@ export function publishedUrl(): string | undefined {
   const { pub, loaded } = usePublication.getState()
   return pub?.live && loaded === useSave.getState().mixId ? pub.url : undefined
 }
+
+/** Why publishing didn't work, in words: what happened and what to do next, never a bare status code. */
+export function publishProblem(status: number, said?: string): string {
+  if (status === 401 || status === 419) return 'You’ve been signed out. Sign in, then publish again.'
+  if (status === 413) return 'Too big to publish. Try smaller pictures or videos.'
+  if (status === 429) return 'That’s a lot of publishing at once. Wait a minute and try again.'
+  if (said) return said
+  if (status >= 500) return 'Blokmix had a problem publishing. Try again in a moment.'
+  return 'Publishing didn’t work. Try again.'
+}
+

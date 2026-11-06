@@ -1,6 +1,6 @@
 import type { Slot, Source } from '@/core/types'
 import { buildLibrary, rawClipsFromFiles } from '@/core/library'
-import { sectionClip, type SectionClip } from '@/core/lists'
+import { extrasOf, sectionClip, type SectionClip } from '@/core/lists'
 import { startersFromFiles, type Starter } from '@/core/starters'
 // Mockups and curated looks register with core/treatments whenever the library loads.
 import './treatments'
@@ -28,6 +28,6 @@ if (import.meta.env.DEV && library.warnings.length) {
 }
 
 /** The clip a section shows: the library clip with the section's lists applied (blocks, fields, ids). */
-export function slotClip(slot: Pick<Slot, 'clipId' | 'lists' | 'banner'>): SectionClip {
-  return sectionClip(library.clips[slot.clipId], slot.lists, { banner: slot.banner })
+export function slotClip(slot: Pick<Slot, 'clipId' | 'lists' | 'banner' | 'inserts'>): SectionClip {
+  return sectionClip(library.clips[slot.clipId], slot.lists, extrasOf(slot))
 }

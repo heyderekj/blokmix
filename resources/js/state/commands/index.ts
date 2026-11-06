@@ -153,6 +153,14 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return `restyled ${blockWord(input.section, input.block)}${inSec}`
       case 'set_words':
         return `rewrote the words${inSec}`
+      case 'add_block':
+        return `added a ${String(input.kind) === 'image' ? 'picture' : String(input.kind)}${inSec}`
+      case 'set_brand':
+        return `renamed the site ${String(input.name)}`
+      case 'set_brand_color':
+        return input.color ? 'changed the brand color' : 'forgot the brand color'
+      case 'set_logo':
+        return input.remove ? 'took the logo away' : 'set the logo'
       case 'word_options':
         return `suggested other words${inSec}`
       case 'add_section':

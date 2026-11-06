@@ -36,5 +36,16 @@ input, select, textarea { font: inherit; color: inherit; }
  */
 export const LAYER_ORDER = '@layer base, clip, effects, motion, blocks;'
 
-/** The reset as exported: layer order first, then the reset in the lowest layer. */
-export const BASE_CSS_LAYERED = `${LAYER_ORDER}\n\n@layer base {\n${BASE_CSS}}\n`
+/**
+ * When a section's list grows or shrinks, its grid rebalances (core/lists.ts `rebalance`): items get a span and the last
+ * row a start, as data attributes, since a clip only carries the column rules it uses. Wide screens only (the section is
+ * the container); tablets and phones keep the layout's own re-spans. Unlayered, so it beats the clip's own `.col-N`.
+ */
+export const GRID_SPAN_CSS = `@container (min-width: 953px) {
+${[2, 3, 4, 6].map((n) => `  [data-mx-section] .grid > [data-mx-span="${n}"] { grid-column: auto / span ${n}; }`).join('\n')}
+${Array.from({ length: 11 }, (_, i) => i + 2).map((n) => `  [data-mx-section] .grid > [data-mx-span][data-mx-start="${n}"] { grid-column-start: ${n}; }`).join('\n')}
+}
+`
+
+/** The reset as exported: layer order first, then the reset in the lowest layer, then the grid spans. */
+export const BASE_CSS_LAYERED = `${LAYER_ORDER}\n\n@layer base {\n${BASE_CSS}}\n\n${GRID_SPAN_CSS}`

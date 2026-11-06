@@ -73,12 +73,12 @@ export const PAGE_COMMANDS = {
   },
   edit_list: {
     description:
-      'Change a list’s items (features, questions, plans, logos…): add one (it copies the first item’s structure), duplicate, remove or move an item, swap two items (they trade places, nothing else moves), or reset to the layout’s own items.',
+      'Change a list’s items (features, questions, plans, logos…): add one (it copies the first item’s structure; with item, right after that one), duplicate, remove or move an item, swap two items (they trade places, nothing else moves), or reset to the layout’s own items.',
     input: z.object({
       section,
       list: z.string().describe('The list: its block id, label or name ("questions") from get_content'),
       op: z.enum(['add', 'duplicate', 'remove', 'move', 'swap', 'reset']),
-      item: z.number().int().min(1).optional().describe('Which item, 1 = first (duplicate, remove, move, swap)'),
+      item: z.number().int().min(1).optional().describe('Which item, 1 = first (duplicate, remove, move, swap; add puts the new one after it)'),
       to: z.number().int().min(1).optional().describe('Move: the new position; swap: the other item’s position (1 = first)'),
     }),
     write: true,
@@ -140,6 +140,24 @@ export const PAGE_COMMANDS = {
   set_tone: {
     description: 'Make the style guide light or dark: background and text trade places and the surface, border and muted colors follow. Accent stays.',
     input: z.object({ tone: z.enum(['light', 'dark']) }),
+    write: true,
+  },
+  set_brand: {
+    description:
+      'Change the site’s name everywhere it’s written: the nav and footer, headlines, the copyright line, each section’s own words and kept word options (whole words only). One undo step; says how many places changed.',
+    input: z.object({ name: z.string().trim().min(1).max(80) }),
+    write: true,
+  },
+  set_brand_color: {
+    description:
+      'Set the brand color: a whole readable palette is made from it (text, muted, borders, buttons and the text on them all pass AA), and trying another skin keeps it unless the contract sets color to Surprise. null forgets it (the colors stay as they are).',
+    input: z.object({ color: z.string().regex(/^#[0-9a-f]{3,8}$/i).nullable() }),
+    write: true,
+  },
+  set_logo: {
+    description:
+      'Use one picture as the site’s logo: it fills the nav’s and footer’s logo wherever they have no picture of their own. Give the section and block of a picture already on the page (one you or the person put there), or remove to go back to the logo as words.',
+    input: z.object({ section: section.optional(), block: block.optional(), remove: z.boolean().optional() }),
     write: true,
   },
   add_brand_colour: {

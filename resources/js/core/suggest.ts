@@ -161,13 +161,13 @@ const RHYTHM_WORD: Record<Rhythm, string> = { centered: 'Centered', split: 'Spli
  * with the neighbours: they're the dependable start for a new section. Your clips
  * follow (personal and specific, they stay a click away on their own shelf).
  */
-export function suggestClip(type: SectionType, slots: PageSlot[], index: number, library: Library, replace = false): ClipSuggestion[] {
+export function suggestClip(type: SectionType, slots: PageSlot[], index: number, library: Library, replace = false, pool?: string[]): ClipSuggestion[] {
   const above = slots[index - 1]
   const below = slots[replace ? index + 1 : index]
   const aboveClip = above ? library.clips[above.clipId] : undefined
   const belowClip = below ? library.clips[below.clipId] : undefined
 
-  return pickable(library, type)
+  return (pool ?? pickable(library, type))
     .map((clipId, order): ClipSuggestion & { order: number } => {
       const clip = library.clips[clipId]
       let score = clip.origin === 'layout' ? 100 : 0

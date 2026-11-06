@@ -276,7 +276,7 @@ function Steps({ step }: { step: Step }) {
   const all: [Step, string][] = [
     ['what', 'What'],
     ['starts', 'Structure'],
-    ['skin', 'Skin'],
+    ['skin', 'Theme'],
   ]
   const at = step === 'box' ? 0 : all.findIndex(([s]) => s === step)
   return (
@@ -370,7 +370,7 @@ function SkinStep({ start, name, skin, brand, palette, mode, looks, feel, kind, 
         ))}
       </div>
       <p className="mt-5 min-h-5 text-[13.5px] text-[#6B5F68]" aria-live="polite">
-        {score ? (score.checks.filter((c) => !c.ok).map((c) => c.words).join(' ') || 'Its first screen holds up on a laptop and a phone.') : 'Measuring this skin on a laptop and a phone…'}
+        {score ? (score.checks.filter((c) => !c.ok).map((c) => c.words).join(' ') || 'Its first screen holds up on a laptop and a phone.') : 'Measuring this theme on a laptop and a phone…'}
       </p>
     </section>
   )

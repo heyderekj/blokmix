@@ -86,6 +86,8 @@
   & .caption { font-size: var(--mx-text-base); font-weight: 600; line-height: 1.35; text-wrap: pretty; }
 
   & .slider { min-width: 0; display: grid; gap: var(--mx-space-4); }
+  /* The head and the slider below it: the same room as any head and what follows it. */
+  & .container + .slider { margin-top: var(--mx-space-9); }
 
   /* Arrows, dots and a count, once /mx-slider.js is running; swiping works without it. Everything fitting hides them. */
   & .controls { display: none; align-items: center; gap: var(--mx-space-2); }
@@ -126,6 +128,7 @@
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
+    & .container + .slider { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
     & .top { flex-direction: column; align-items: flex-start; }
     & .strip {

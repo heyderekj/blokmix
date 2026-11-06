@@ -192,7 +192,7 @@ export function mixFromSitePage(lib: Pick<Library, 'clips'>, site: LibrarySite, 
   const slots: Slot[] = plan.slots.map((s, i) => ({ id: `slot_site_${i}`, type: s.type, clipId: s.clipId, locked: false, keep: { ...DEFAULT_KEEP }, inspiredBy }))
   const built = siteFromSlots(slots, { title: page.title || 'Home' })
   const home: Page = built.pages[0]
-  return { mixName: `${site.name}${page.path === '/' ? '' : ` ${page.title}`} remix`, site: { ...built, pages: [home] }, guide: siteGuide(sourceFromSite(site)), skipped: plan.skipped }
+  return { mixName: `${site.name}${page.path === '/' ? '' : ` ${page.title}`} mix`, site: { ...built, pages: [home] }, guide: siteGuide(sourceFromSite(site)), skipped: plan.skipped }
 }
 
 // ---------------------------------------------------------------------------------------------------------------
