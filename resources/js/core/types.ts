@@ -163,6 +163,8 @@ export interface Slot {
   keep: Keep
   /** The layout it showed before the last change, for "Back to the one you had". */
   prevClipId?: string
+  /** Bloks you added (core/inserts.ts), by clip like `edits`: a button, text, a picture… after a block of that layout. */
+  inserts?: Record<string, Insert[]>
   /** Block-level changes (variants, styles), by clip then block. */
   edits?: SlotEdits
   /** This section's own words, over the shared copy for its type. */
@@ -614,6 +616,22 @@ export type LinkTarget =
   | { to: 'email'; address: string }
   | { to: 'phone'; number: string }
   | { to: 'none' }
+
+/** What you can add to a section, after a block it has. */
+export type InsertKind = 'button' | 'link' | 'text' | 'heading' | 'badge' | 'image' | 'icon'
+
+/** A blok you added: after block `after`, or (with `every`) after that block's counterpart in every item of a list. */
+export interface Insert {
+  /** a1, a2…: fixed, so edits, notes and the selection follow it. */
+  id: string
+  kind: InsertKind
+  after: string
+  /** Its words' field (none for a picture or an icon). In every item, the field is `${key}${n}${rest}`. */
+  field?: string
+  /** A picture's name. */
+  media?: string
+  every?: { list: string; key: string; rest?: string }
+}
 
 /** Edits per clip, then per block id, so swapping clips and back keeps them. */
 export type SlotEdits = Record<string, Record<string, BlockEdit>>

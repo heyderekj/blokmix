@@ -1,4 +1,4 @@
-import type { BlockEdit, Capture, Clip, ClipStyle, Density, Feel, Keep, Library, SlotEdits, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
+import type { BlockEdit, Capture, Clip, ClipStyle, Density, Feel, Insert, Keep, Library, SlotEdits, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
 import { CLIP_STYLES, DENSITIES, FEELS, SECTION_TYPES } from './types'
 import { hexToRgb } from './tokens'
 import { extractFields, parseHtml } from './html/parse'
@@ -225,13 +225,41 @@ export function cycleIds(lib: Library, type: SectionType, mixClips: Iterable<str
  * with" and "Use its own look" belong to captured clips, so they're turned off on the way to a layout (where there'd
  * be no switch to turn them back).
  */
-export function withClip<S extends { clipId: string; keep: Keep; edits?: SlotEdits; prevClipId?: string }>(slot: S, clipId: string, lib: Library): S {
+export function withClip<S extends { clipId: string; keep: Keep; edits?: SlotEdits; prevClipId?: string; inserts?: Record<string, Insert[]> }>(slot: S, clipId: string, lib: Library): S {
   if (slot.clipId === clipId) return slot
   const edits = carryEdits(slot.edits, lib.clips[slot.clipId], lib.clips[clipId])
-  const next = { ...slot, clipId, prevClipId: slot.clipId, ...(edits !== slot.edits ? { edits } : {}) }
+  const inserts = carryInserts(slot.inserts, lib.clips[slot.clipId], lib.clips[clipId])
+  const next = { ...slot, clipId, prevClipId: slot.clipId, ...(edits !== slot.edits ? { edits } : {}), ...(inserts !== slot.inserts ? { inserts } : {}) }
   const toLayout = lib.clips[clipId]?.origin === 'layout'
   if (!toLayout || (!slot.keep.style && !slot.keep.content)) return next
   return { ...next, keep: { ...slot.keep, style: false, content: false } }
+}
+
+/**
+ * Bloks you added come along to the next layout when it has nothing of its own added yet: each goes after the block
+ * holding the same words (the same field), or the same kind of block when its anchor has none; in a list, after that
+ * block in every item. Bloks with no such place stay with the layout they were made in, and come back with it.
+ */
+export function carryInserts(all: Record<string, Insert[]> | undefined, from: Clip | undefined, to: Clip | undefined): Record<string, Insert[]> | undefined {
+  const mine = from && all?.[from.id]
+  if (!from || !mine?.length || !to || all?.[to.id]?.length) return all
+  const moved: Insert[] = []
+  for (const ins of mine) {
+    const anchor = from.blocks.find((b) => b.id === ins.after)
+    if (!anchor) continue
+    const match = to.blocks.find((b) => (anchor.field ? b.field === anchor.field : b.kind === anchor.kind && !b.field))
+    if (!match) continue
+    if (!ins.every) {
+      moved.push({ ...ins, after: match.id })
+      continue
+    }
+    let list: Clip['blocks'][number] | undefined = match
+    while (list && list.kind !== 'list') list = list.parent ? to.blocks.find((b) => b.id === list!.parent) : undefined
+    const key = anchor.field && /^([a-z]+)\d+/i.exec(anchor.field)?.[1]
+    if (!list || !key) continue
+    moved.push({ ...ins, after: match.id, every: { ...ins.every, list: list.id, key } })
+  }
+  return moved.length ? { ...all, [to.id]: moved } : all
 }
 
 const isLogoSpot = (m: string) => /^logo1?$/i.test(m)

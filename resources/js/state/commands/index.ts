@@ -124,6 +124,8 @@ function summary(name: string, input: Record<string, unknown>): string {
       return String(input.block).includes(' · ') ? `changed ${input.block}` : `changed ${input.block}${sec ? ` in${sec}` : ''}`
     case 'set_words':
       return `rewrote${sec}`
+    case 'add_block':
+      return `added a ${String(input.kind) === 'image' ? 'picture' : String(input.kind)}${sec ? ` to${sec}` : ''}`
     case 'set_brand':
       return `renamed the site ${String(input.name)}`
     case 'set_brand_color':

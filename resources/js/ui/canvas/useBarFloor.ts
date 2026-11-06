@@ -2,6 +2,7 @@ import { useLayoutEffect, type DependencyList, type RefObject } from 'react'
 import { create } from 'zustand'
 import { canvasApi, onPaint } from './Canvas'
 import { screenFloor } from './inView'
+import type { Camera } from './geometry'
 
 /**
  * Keep a bar that hangs below something on screen. The bar is anchored in world space (`anchor`, a 0×0 element
@@ -9,63 +10,108 @@ import { screenFloor } from './inView'
  * bottom of the screen), the anchor is nudged up to just above the dock, but never above the row's top. It is also
  * nudged left so it never runs past the row's right edge.
  *
- * Works on every painted camera frame without a React render, the way the camera itself paints: the nudge is a
- * `translate` on the anchor, in world pixels.
+ * Cheap on every frame: the page is measured only when something changes size (the row, the bar, the window), in
+ * world units; each painted camera frame then places the bar with arithmetic and at most one style write, never a
+ * layout read (which would make the browser lay out the whole canvas, every frame, while you pan).
  */
 export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObject<HTMLElement | null>, row: RefObject<HTMLElement | null>, deps: DependencyList, key?: string) {
   useLayoutEffect(() => {
-    let raf = 0
-    let burst = 0
+    // No bar showing in this row (most rows, most of the time): nothing to follow, no work per frame.
+    if (!anchor.current || !bar.current || !row.current) {
+      if (key) setOverhang(key, 0)
+      return
+    }
     let hang = -1
+    let burst = 0
+    let raf = 0
+    // Measured in world (page) pixels, plus the screen's floor, refreshed only when sizes change.
+    let m: { rowX: number; rowY: number; rowW: number; rowH: number; ax: number; ay: number; barW: number; barH: number; floor: number; rootX: number; rootY: number } | null = null
     const report = (px: number) => {
       if (!key || px === hang) return
       hang = px
       setOverhang(key, px)
     }
-    const fit = () => {
+    const measure = () => {
       const a = anchor.current
       const b = bar.current
       const r = row.current
-      if (!a || !b || !r) return report(0)
-      const z = canvasApi.get().z || 1
+      const root = canvasApi.el()
+      if (!a || !b || !r || !root) return void (m = null)
+      const cam = canvasApi.get()
       const rr = r.getBoundingClientRect()
-      // Where the anchor sits without any nudge: its layout offset in the row, scaled to the screen.
-      const ax = rr.left + a.offsetLeft * z
-      const ay = rr.top + a.offsetTop * z
+      const box = root.getBoundingClientRect()
       const br = b.getBoundingClientRect()
-      const floor = screenFloor()
+      // The row's world position from where it is on screen now, so later frames need only the camera.
+      m = {
+        rowX: (rr.left - box.left - cam.x) / cam.z,
+        rowY: (rr.top - box.top - cam.y) / cam.z,
+        rowW: rr.width / cam.z,
+        rowH: rr.height / cam.z,
+        ax: a.offsetLeft,
+        ay: a.offsetTop,
+        // The bar is drawn at screen size (capped): keep its own size, unscaled.
+        barW: br.width / barScale(cam.z),
+        barH: br.height / barScale(cam.z),
+        floor: screenFloor(),
+        rootX: box.left,
+        rootY: box.top,
+      }
+    }
+    const place = (cam: Camera) => {
+      const a = anchor.current
+      if (!a || !m) return
+      const z = cam.z || 1
+      const s = barScale(z)
+      const left = m.rootX + cam.x + m.rowX * z
+      const top = m.rootY + cam.y + m.rowY * z
+      const right = left + m.rowW * z
+      const bottom = top + m.rowH * z
+      const ax = left + m.ax * z
+      const ay = top + m.ay * z
+      const bw = m.barW * s
+      const bh = m.barH * s
       let dy = 0
-      if (ay + br.height > floor) dy = Math.max(floor - br.height - ay, rr.top - ay)
+      if (ay + bh > m.floor) dy = Math.max(m.floor - bh - ay, top - ay)
       let dx = 0
-      if (ax + br.width > rr.right) dx = Math.max(rr.right - br.width - ax, rr.left - ax)
-      a.style.translate = dx || dy ? `${dx / z}px ${dy / z}px` : ''
+      if (ax + bw > right) dx = Math.max(right - bw - ax, left - ax)
+      const t = dx || dy ? `${dx / z}px ${dy / z}px` : ''
+      if (a.style.translate !== t) a.style.translate = t
       // How far the bar hangs below the row, on screen: what sits under the page makes that much room.
-      report(Math.max(0, Math.round(b.getBoundingClientRect().bottom - rr.bottom)))
+      report(Math.max(0, Math.round(ay + dy + bh - bottom)))
     }
-    const soon = () => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(fit)
+    const refit = () => {
+      measure()
+      place(canvasApi.get())
     }
-    // Heights glide (a layout step, a menu opening): follow for a moment after anything changes.
+    // Heights glide (a layout step, a menu opening): re-measure for a moment after anything changes size.
     const follow = () => {
       const until = performance.now() + 320
       const tick = () => {
-        fit()
+        refit()
         if (performance.now() < until) burst = requestAnimationFrame(tick)
       }
       cancelAnimationFrame(burst)
       burst = requestAnimationFrame(tick)
     }
+    refit()
     follow()
-    const off = onPaint(soon)
+    const off = onPaint(place)
     const ro = new ResizeObserver(follow)
-    if (bar.current) ro.observe(bar.current)
-    if (row.current) ro.observe(row.current)
-    window.addEventListener('resize', soon)
+    ro.observe(bar.current)
+    ro.observe(row.current)
+    // The row moves when a section above it changes height (the page grows), and the floor when the dock grows.
+    if (row.current.parentElement) ro.observe(row.current.parentElement)
+    const dock = document.querySelector('[data-dock]')
+    if (dock) ro.observe(dock)
+    const onResize = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(refit)
+    }
+    window.addEventListener('resize', onResize)
     return () => {
       off()
       ro.disconnect()
-      window.removeEventListener('resize', soon)
+      window.removeEventListener('resize', onResize)
       cancelAnimationFrame(raf)
       cancelAnimationFrame(burst)
       if (key) setOverhang(key, 0)
@@ -73,6 +119,9 @@ export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObjec
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)
 }
+
+/** How big a bar is on screen per page pixel: drawn at screen size, never more than 3.4× the page (the bars' CSS). */
+const barScale = (z: number) => Math.min(1 / z, 3.4) * z
 
 /** How far each bar hangs below its section, on screen, by "<slot id>:section" or "<slot id>:block". */
 export const useBarOverhang = create<{ px: Record<string, number> }>()(() => ({ px: {} }))

@@ -1,7 +1,7 @@
 import type { BlockEdit, Clip, ListBinding, ListItemRef, MediaFill, Slot } from './types'
 import { parseHtml } from './html/parse'
 import { outline, type OutlineField, type OutlineList, type OutlineNode } from './outline'
-import { layoutOrder, listMax, sectionClip, type SectionClip } from './lists'
+import { layoutOrder, listMax, sectionClip, type SectionClip, extrasOf } from './lists'
 
 /**
  * Collections: your content as entries with a schema, apart from any section (blog posts, team members, products),
@@ -440,7 +440,7 @@ export function applyBindings(slot: Slot, clip: Clip, ctx: BindContext, targets?
   let lists = { ...slot.lists }
   const words: Record<string, string> = { ...slot.words }
   const forClip: Record<string, BlockEdit> = { ...slot.edits?.[clip.id] }
-  const base = sectionClip(clip, slot.lists)
+  const base = sectionClip(clip, slot.lists, extrasOf(slot, clip.id))
   const tree = outline(parseHtml(base.html))
 
   for (const [key, b] of Object.entries(bind.lists ?? {})) {
@@ -489,7 +489,7 @@ export function applyBindings(slot: Slot, clip: Clip, ctx: BindContext, targets?
       }
     })
     // Pictures and links need the items as they'll be drawn (copied items get new block ids).
-    const drawn = sectionClip(clip, lists)
+    const drawn = sectionClip(clip, lists, extrasOf(slot, clip.id))
     const drawnList = drawn.blocks.find((x) => x.kind === 'list' && x.listKey === key)
     entries.forEach((e, i) => {
       const item = drawn.blocks.find((x) => x.kind === 'item' && x.parent === drawnList?.id && x.n === refs[i].n)
@@ -514,7 +514,7 @@ export function applyBindings(slot: Slot, clip: Clip, ctx: BindContext, targets?
       words[field] = entryValue(c, entry, fk)
       if (!fk.includes('#')) targets?.fields.set(field, { collection, entry: entry.id, field: fk })
     }
-    const drawn = sectionClip(clip, lists)
+    const drawn = sectionClip(clip, lists, extrasOf(slot, clip.id))
     for (const [media, fk] of Object.entries(bind.entry.media ?? {})) {
       const img = drawn.blocks.find((x) => x.kind === 'image' && x.media === media)
       const v = entry.data[fk]
@@ -535,7 +535,7 @@ function descendants(clip: SectionClip, id: string): SectionClip['blocks'] {
 export function boundFields(slot: Slot, clip: Clip): Set<string> {
   const out = new Set<string>()
   if (!slot.bind) return out
-  const base = sectionClip(clip, slot.lists)
+  const base = sectionClip(clip, slot.lists, extrasOf(slot, clip.id))
   const tree = outline(parseHtml(base.html))
   for (const [key, b] of Object.entries(slot.bind.lists ?? {})) {
     const list = findList(tree, key)

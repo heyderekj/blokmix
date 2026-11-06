@@ -11,10 +11,11 @@ import { swapIcons } from './icons'
 import { dataUrlBytes, placeholderSvg, renderMedia, shaderFor, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
 import { BACKDROP_POSTER, shaderElement, standInPoster } from './export/shaders'
 import { resolveFields } from './content'
-import { sectionClip } from './lists'
+import { sectionClip, extrasOf } from './lists'
 import { applyLinks, pageScope, sectionAnchors, sectionLinks, siteScope, type LinkScope } from './links'
 import { allSlots, pageView } from './site'
 import { BANNER_CSS, BANNER_MOTION, bannerMoves } from './banner'
+import { INSERT_CSS } from './inserts'
 import { contentJson, outline, type ContentValue, type OutlineNode } from './outline'
 import { BASE_FONTS, expandTokens, fontsForTokens, varsToCss } from './tokens'
 import { allFonts } from './library'
@@ -198,7 +199,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     // Its type's defaults from the style guide sit underneath what the section chose.
     const slot = withSectionDefaults(bound, libraryClip.type, input.page?.sections, !!libraryClip.motionCss)
     // The clip as this section shows it: its lists in your order, blocks stamped with stable ids.
-    const clip = sectionClip(libraryClip, slot.lists, { banner: slot.banner })
+    const clip = sectionClip(libraryClip, slot.lists, extrasOf(slot, libraryClip.id))
     let component = componentName(clip)
     const n = (used.get(component) ?? 0) + 1
     used.set(component, n)
@@ -399,6 +400,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     css = `${LAYER_ORDER}\n\n@layer clip {\n${indent(css)}\n}${behind ? `\n\n/* Backdrop */\n${behind}` : ''}${blocksCss ? `\n\n/* Blocks you restyled */\n${blocksCss}` : ''}${mediaCss ? `\n\n/* Pictures */\n${mediaCss}` : ''}${mockCss ? `\n\n/* Mockups */\n${mockCss}` : ''}`
     // An added banner brings its own CSS, in tokens; it scrolls unless the section's motion is off.
     if (clip.extras?.banner) css += `\n\n/* Banner you added */\n${BANNER_CSS}`
+    if (clip.extras?.inserts?.length) css += `\n\n/* Bloks you added */\n${INSERT_CSS}`
 
     sections.push({
       slotId: slot.id,

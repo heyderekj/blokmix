@@ -302,6 +302,11 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
       text follows position; an attribute only the first item has (`open`, a wide first tile) belongs to the
       first position (`firstPosition` compares only the items' own attributes). Anything else about an item
       travels with it, so a treatment for "whichever comes first" is better written as `:first-child` in CSS.
+    - Bloks can be added to a section on the canvas (`core/inserts.ts`, `slot.inserts[clipId]`, the block bar's + / A,
+      agents `add_block`): a button, link, text, heading, badge, picture or icon after a block, or after it in every item of
+      a list. A new blok copies the nearest block of its kind (else primitives + `INSERT_CSS`), gets a fixed id (a1, a1f3)
+      and `data-mx-extra`, and is drawn after stamping, so a clip's own ids never shift. Hiding one removes it; hidden
+      blocks come back from the same menu ("Bring back") or the section's Style tab.
     - Pictures (CSS/SVG art standing in for a photo, illustration, screenshot or avatar):
       `data-mx-block="image" data-mx-media="<name>" data-mx-ratio="<w>/<h>"`. Keep the placeholder inside (a bare layout's is the wireframe cross); a real image replaces it later. Media names are unique in the clip.
     - Don't mark the section root, layout wrappers, decoration, or `data-mx-mirror` duplicates
@@ -435,6 +440,10 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
 - Every field's words have options (`slot.options`): your copy, the clip's words, and options you or an
   agent kept. ‹ 2/3 › in the block bar (or `[` `]`) cycles them; Keep, Retire, Put it back and "Another way
   to say it" are Koati's words.
+- Adding items: the pill by an item's grip adds one right after it (`editList` add `after`), duplicates or removes it. A
+  grid whose count changed rebalances (`rebalance`: another per-row count that fills every row, else the last row
+  centred, as `data-mx-span`/`data-mx-start` drawn by `GRID_SPAN_CSS` on wide screens); a copy drops classes that place
+  one item (a bento's `c1`); a new item's title reads "New feature" until you write one.
 - Lists (`slot.lists`, by the key their fields are numbered by) add, duplicate, remove and reorder items on
   the canvas (block bar, ⌘D, ⌥←/→, ⌫) or in the Content view. Frames patch the changed list in place
   (`FrameState.lists`); blocks in a copied item get ids like `b5.f4`, so edits and notes follow items.
