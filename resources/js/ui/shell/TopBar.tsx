@@ -380,14 +380,14 @@ function JevHelp() {
     <div className="flex items-start gap-2.5 rounded-xl px-2.5 py-2">
       <Wand2 size={16} className="mt-0.5 shrink-0 text-zinc-500" />
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-medium text-zinc-800">Let Jev help</div>
+        <div className="text-[13px] font-medium text-zinc-800">Suggestions</div>
         <div className="text-[11.5px] leading-snug text-zinc-500">
           {server === false
             ? 'Off here: this server has no TypeSafe key.'
-            : 'Jev (by TypeSafe) places, picks and checks. It never writes your words.'}
+            : 'Blokmix suggests where your words go, which colors and looks fit, and more. It never writes words for you. Uses TypeSafe.'}
         </div>
       </div>
-      <Switch on={on && server !== false} onChange={() => useStore.getState().setUi({ jev: !on })} label="Let Jev help" />
+      <Switch on={on && server !== false} onChange={() => useStore.getState().setUi({ jev: !on })} label="Suggestions" />
     </div>
   )
 }

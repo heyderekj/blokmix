@@ -98,7 +98,7 @@ describe('pour in your words', () => {
     expect(hero.options?.headline?.map((o) => o.text)).toContain(heroBefore)
     // The unsure line waits in the tray; the whole pour is one undo step.
     expect(out.waiting.map((w) => w.text)).toEqual(['Mill Bakery'])
-    expect(out.message).toMatch(/^Placed 12 lines in 3 sections\. 1 is waiting/)
+    expect(out.message).toMatch(/^Placed 12 lines in 3 sections\. 1 isn’t placed yet/)
     expect(useStore.temporal.getState().pastStates).toHaveLength(1)
   })
 

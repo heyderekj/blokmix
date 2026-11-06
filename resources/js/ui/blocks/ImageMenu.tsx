@@ -478,10 +478,10 @@ function Stock({ block, slot, fill, onHover, onPick }: { block: BlockInfo; slot?
       {(ranking || ranked) && (
         <div className="flex items-center gap-1.5 px-1 pt-2 text-[11.5px] text-zinc-500">
           <Wand2 size={12} className={ranking ? 'animate-pulse' : ''} />
-          {ranking ? 'Finding the best fit for this section…' : jevOrder ? 'Best fit for this section first' : 'Unsplash’s order'}
+          {ranking ? 'Finding the best match for this section…' : jevOrder ? 'Best match for this section first' : 'Unsplash’s order'}
           {ranked && (
             <button type="button" onClick={() => setJevOrder((v) => !v)} className="ml-auto cursor-pointer rounded px-1 font-medium text-zinc-600 hover:bg-zinc-950/5">
-              {jevOrder ? 'Unsplash’s order' : 'Best fit first'}
+              {jevOrder ? 'Unsplash’s order' : 'Best match first'}
             </button>
           )}
         </div>

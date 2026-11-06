@@ -252,7 +252,7 @@ export const VERBS: Verb[] = [
   { id: 'remove', label: 'Remove', intent: 'remove' },
   { id: 'swap', label: 'Try another', intent: 'swap' },
   { id: 'colors', label: 'Change the colors to feel', intent: 'colors' },
-  { id: 'dress', label: 'Dress up', intent: 'dress' },
+  { id: 'dress', label: 'Find backgrounds for', intent: 'dress' },
 ]
 
 /** How a section can change: its band or its width. */
@@ -329,7 +329,7 @@ export function barSentence(picks: Picks, ctx: SayContext): Segment[] {
     case 'colors':
       return [...out, { blank: { id: 'feel', placeholder: 'cozy', options: FEELS } }]
     case 'dress':
-      return [...out, { blank: section() }, { text: 'to feel' }, { blank: { id: 'feel', placeholder: 'premium', options: FEELS } }]
+      return [...out, { blank: section() }, { text: 'that feel' }, { blank: { id: 'feel', placeholder: 'premium', options: FEELS } }]
     default:
       return out
   }

@@ -25,9 +25,9 @@ async function prepare(i: Answers): Promise<Prepared> {
     if (!i.kind) throw new CommandError('Say what kind of site it is (kind), or give the words they typed (text)')
     return { starts: await scoredStarts(answers(i, i.kind)), heard: null }
   }
-  if (!(await jevOn())) throw new CommandError('Starting from text needs Jev: turn on “Let Jev help” in Blokmix’s menu (the server needs a TypeSafe key)')
+  if (!(await jevOn())) throw new CommandError('Starting from text needs suggestions: turn them on in the Blokmix menu (the server needs a TypeSafe key)')
   const heard = await hearStart(i.text, i.kind)
-  if (!heard) throw new CommandError('Jev didn’t answer. Try again, or give a kind instead of text.')
+  if (!heard) throw new CommandError('No answer that time. Try again, or give a kind instead of text.')
   const kind = i.kind ?? heard.kind ?? heard.kinds[0] ?? 'studio'
   return { starts: await startsFromText(answers(i, kind), heard), heard }
 }

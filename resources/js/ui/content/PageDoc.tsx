@@ -295,7 +295,7 @@ function PasteMore() {
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={3}
-        placeholder={'Paste more of your words: notes, an About page, a menu…\nJev puts each line where it belongs. Nothing is reworded.'}
+        placeholder={'Paste more of your text: notes, an About page, a menu…\nEach line goes where it belongs. Nothing is reworded.'}
         className="thin-scroll block w-full resize-y bg-transparent px-1 text-[14px] leading-relaxed text-zinc-900 outline-none placeholder:text-zinc-400"
       />
       {note && <p className="px-1 pt-1 text-[12.5px] text-problem-ink">{note}</p>}
@@ -315,7 +315,7 @@ export function TrayColumn() {
   return (
     <aside className="space-y-2">
       <p className="flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
-        <Type size={12} /> To place · {lines.length}
+        <Type size={12} /> Text not placed yet · {lines.length}
       </p>
       {lines.map((l) => (
         <div key={l.id} className="rounded-xl bg-white p-2.5 shadow-[0_0_0_1px_rgb(0_0_0/0.06)]">

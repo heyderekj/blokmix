@@ -158,20 +158,20 @@ export function StartBox({ box, onBox, onJevOff }: { box: BoxState; onBox: (b: B
 
       <div className="mt-4 min-h-[112px]" aria-live="polite">
         {off && text ? (
-          <p className="rounded-xl bg-white/80 px-4 py-3 text-[14px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">Jev is off here, so it can’t read pasted words. Fill in the sentence instead.</p>
+          <p className="rounded-xl bg-white/80 px-4 py-3 text-[14px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">Suggestions are off (Blokmix menu), so pasted text can’t be read. Fill in the sentence instead.</p>
         ) : busy && !h ? (
           <p className="flex items-center gap-2 text-[14px] text-[#6B5F68]">
             <Sparkles size={15} className="motion-safe:animate-pulse" /> Reading…
           </p>
         ) : h === null && !busy && text ? (
-          <p className="text-[14px] text-[#6B5F68]">Jev didn’t answer that time. Keep typing, or fill in the sentence.</p>
+          <p className="text-[14px] text-[#6B5F68]">No answer that time. Keep typing, or fill in the sentence.</p>
         ) : h ? (
           <div className={`space-y-3 transition-opacity duration-150 ${busy ? 'opacity-60' : ''}`}>
-            <Row label={h.mode === 'paste' || text ? 'Jev hears' : 'Your start'}>
+            <Row label={h.mode === 'paste' || text ? 'From what you wrote' : 'Your start'}>
               <KindChip value={choice.kind} kinds={h.kinds} onPick={(k) => onBox({ ...box, kind: k, sections: null })} />
               {h.mode === 'paste' && (
                 <span className="text-[13.5px] text-[#6B5F68]">
-                  {h.lines} lines: {h.placed} land on the page{h.waiting ? `, ${h.waiting} wait for you to place` : ''}
+                  {h.lines} lines: {h.placed} land on the page{h.waiting ? `, ${h.waiting} not placed yet` : ''}
                 </span>
               )}
             </Row>

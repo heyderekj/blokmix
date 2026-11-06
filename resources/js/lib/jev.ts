@@ -17,7 +17,7 @@ const httpTransport: JevTransport = async (req, signal) => {
     headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...xsrf() },
     body: JSON.stringify({ ...req, model: req.model ?? (needsImages(req) ? 'jev-preview' : 'jev-latest') }),
   })
-  if (!res.ok) throw new Error(`Jev answered ${res.status}`)
+  if (!res.ok) throw new Error(`Suggestions answered ${res.status}`)
   return (await res.json()) as JevResponse
 }
 
@@ -121,4 +121,4 @@ export function askLatest(lane: string, req: JevRequest, opts: Omit<AskOptions, 
 }
 
 /** Thrown by commands that need Jev when it's off. */
-export const JEV_OFF = 'Jev is off on this device: turn on “Let Jev help” in Blokmix’s menu (and the server needs a TypeSafe key).'
+export const JEV_OFF = 'Suggestions are off (Blokmix menu), or this server has no TypeSafe key.'

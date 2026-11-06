@@ -333,7 +333,7 @@ function SkinStep({ start, name, skin, brand, palette, mode, looks, feel, kind, 
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
           <input type="color" value={brand ?? current?.tokens['color.primary'] ?? '#404040'} onChange={(e) => onBrand(e.target.value)} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Brand color" />
-          {palette ? 'Colors by feel' : brand ? 'Your brand color' : 'Have a brand color? Pick it'}
+          {palette ? 'Colors you found' : brand ? 'Your brand color' : 'Have a brand color? Pick it'}
         </label>
         {(brand || palette) && (
           <button type="button" onClick={() => onBrand(null)} className={QUIET}>
@@ -373,7 +373,7 @@ function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPick }: { 
         <span className="flex items-center justify-between gap-2 text-[16px] font-semibold" style={{ fontFamily: guide.base['font.display'] }}>
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate">{skin.name}</span>
-            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Jev’s pick</span>}
+            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Suggested</span>}
           </span>
           {on && <Check size={16} style={{ color: PINK }} />}
         </span>

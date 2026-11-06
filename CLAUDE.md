@@ -150,8 +150,7 @@ becomes the kind's page with sections added or dropped (`sectionsFor`); pasted w
 three arrangements (`lib/startFromText.ts` `wordsCandidates`, the pure `state/jevPage.ts` `wordsPage`, a nav and footer from
 `chromeFor`; lines it wasn't sure of ride along in `content.tray`). What Jev heard shows as chips you can change (kind,
 sections ✕ and +, looks). "Answer three questions" is the old form (what you're making, `KINDS`), and the only way in when
-Jev is off. Then three raw starts in Wireframe to pick a structure, then that page under the skins, Jev's look first ("Jev's
-pick") with an optional brand color (`core/palette.ts` `paletteFrom`, AA on every `CONTRAST_PAIRS`) or colors by feel from
+Jev is off. Then three raw starts in Wireframe to pick a structure, then that page under the skins, the suggested look first ("Suggested") with an optional brand color (`core/palette.ts` `paletteFrom`, AA on every `CONTRAST_PAIRS`) or colors by feel from
 the description (`ui/start/FeelColors.tsx`, `StartInput.palette`). `core/start.ts` `startCandidates` offers matching starter mixes
 (`samples/starters/*.json`, checked by `checkStarters`) first, then fills the kind's `RECIPES` from the library with
 `suggestClip`, built-in layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, with the
@@ -197,21 +196,24 @@ dates: code does those.
   `setJevTransport` swaps in a fake (`tests/helpers/fakeJev.ts`; `npm test` never uses the network).
 - Key: `TYPESAFE_API_KEY`, server only. Hosted: `Api\JevController` (signed in, `throttle:jev` 120/min 3,000/day, checks
   shape and image sizes, passes the body on unchanged). Vite-only dev: `scripts/jev/devProxy.ts` reads `.env.local`. No key
-  means Jev is off. Per device: "Let Jev help" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
+  means Jev is off. Per device: "Suggestions" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
+- On screen there's no "Jev" and no feature names, only plain words: Suggestions (the menu switch, the one place TypeSafe is
+  credited), "From what you wrote", "Suggested", "Suggestions are off (Blokmix menu)", "What do you want to change?" (the
+  bar), "Add your text to this page", "Make a page from your text", "Text not placed yet", "Background ideas", "Find colors",
+  "Is it clear?", "Best match first". Code names (`core/jev`, commands, files) stay.
 - Features (commands first, `core/commands/schema/jev.ts`, `state/commands/jev.ts`): `place_links` (smart links; the
-  checklist's dead-link fix, "Jev suggests" in the link menu), `five_second_test` (the first screen's words to a visitor;
-  "Before you hand it off" card in the packet panel), `find_subject` (`MediaFill.focus` → object-position; the Image
-  menu's pad) and stock photos best fit first, `understand` (Say it, ⌘K: an allow-listed intent plus closed-set
-  arguments from the page → one ordinary command), `pour_words` and `page_from_words` (your words placed verbatim; Words
-  to place tray), `suggest_palettes`/`set_palette` (Colors by feel in the Feel tile; candidates are AA by construction,
-  drawn as swatch cards), `suggest_treatments` (Dress it up in a section's Style panel), and the start box
+  checklist's dead-link fix, "Suggested" in the link menu), `five_second_test` (the first screen's words to a visitor;
+  "Is it clear?" card in the export panel), `find_subject` (`MediaFill.focus` → object-position; the Image
+  menu's pad) and stock photos best match first, `understand` (Say it, ⌘K: an allow-listed intent plus closed-set
+  arguments from the page → one ordinary command), `pour_words` and `page_from_words` (your words placed verbatim; "Text not placed yet"), `suggest_palettes`/`set_palette` (Find colors in the Feel tile; candidates are AA by construction,
+  drawn as swatch cards), `suggest_treatments` (Background ideas in a section's Style panel), and the start box
   (`describe.ts`, `suggest_starts` with `text`; see Guided start).
 - On the board Say it is a bar that's always there above the Dock (`ui/jev/SayBar.tsx`, ⌘K focuses it). Empty and
   focused, it offers a verb-led sentence ("Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]", "Add [a FAQ
   section]", `barSentence`); `fillBar` builds the same action Say it would (`buildAction` on certain answers). It also takes a
-  typed command, or a paste of two or more lines: "Pour into this page" / "Make a new page" hand the words to `WordsSheet`
-  (`useJevTools.auto`), which places them at once. Words to place (`content.tray`, saved and undone with the mix's words;
-  `trayLines`, `setTray`) unfolds from the "n to place" chip beside the bar.
+  typed command, or a paste of two or more lines: "Add to this page" / "Make a new page" hand the words to `WordsSheet`
+  (`useJevTools.auto`), which places them at once. Text not placed yet (`content.tray`, saved and undone with the mix's words;
+  `trayLines`, `setTray`) unfolds from the "n not placed" chip beside the bar.
 - What to make next: `npx vite-node scripts/library/gaps.ts [--all]` reads every library screenshot (type, shape, ~30
   elements and treatments) into `.out/library/gaps.md`; unmet asks from Say it, Pour and Dress it up are counted by name
   only (`jev_wants`, `POST /api/jev/wants`) and shown to owners on `/library/admin`.
@@ -480,7 +482,7 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
   on the canvas. Whose words they are comes from `core/ownWords.ts` (`fieldOwner`, `pageOwnership`): yours (in `slot.words`,
   or `content.mine`: the name, email and one line the start was given) or not yet (a layout's or the start's sample words,
   muted and marked; focusing one selects it). The name and logo sit at the top; the header counts "18 of 31 are yours"; hidden blocks don't count. A paste
-  box at the bottom pours more in; Words to place is a column beside it.
+  box at the bottom pours more in; "Text not placed yet" is a column beside it.
 - Your site's name (`content.brand`, Content → "Your site's name", `set_brand`) changes everywhere it's written when you
   finish typing: fields, each section's words and kept options, whole words only (`renameBrand`), one undo step.
 - Your logo once (`content.logo`, `set_logo`) fills the nav's and footer's logo spot (`isSiteLogo`) wherever it has no

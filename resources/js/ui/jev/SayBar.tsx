@@ -202,14 +202,14 @@ export function SayBar() {
         >
           <Wand2 size={15} className={`shrink-0 ${busy ? 'animate-pulse text-zinc-700' : 'text-zinc-400'}`} />
           {off ? (
-            <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-500">Jev is off: turn on “Let Jev help” in Blokmix’s menu</span>
+            <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-500">Suggestions are off (Blokmix menu)</span>
           ) : pasted ? (
             <>
               <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-700">
                 <span className="font-semibold text-zinc-900">Your words</span>, {pasted.split('\n').filter((l) => l.trim()).length} lines
               </span>
               <button type="submit" className="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-zinc-900 px-3 text-[12.5px] font-semibold text-white transition active:scale-[0.97]">
-                <Type size={13} /> Pour into this page
+                <Type size={13} /> Add to this page
               </button>
               <button type="button" onClick={() => words('page')} className="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-zinc-950/[0.06] px-3 text-[12.5px] font-semibold text-zinc-800 transition hover:bg-zinc-950/[0.1] active:scale-[0.97] max-sm:hidden">
                 <FilePlus2 size={13} /> Make a new page
@@ -228,8 +228,8 @@ export function SayBar() {
                 e.preventDefault()
                 setPasted(t)
               }}
-              placeholder="Say it, or paste your words"
-              aria-label="Say what to change, or paste your words"
+              placeholder="What do you want to change?"
+              aria-label="What do you want to change? Or paste your text"
               className="h-full min-w-0 flex-1 bg-transparent text-[14px] text-zinc-900 outline-none placeholder:text-zinc-500"
             />
           )}
@@ -258,7 +258,7 @@ function TrayChip({ count }: { count: number }) {
       className={`glass-menu flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[12.5px] font-semibold transition active:scale-[0.97] ${open ? 'text-zinc-900' : 'text-zinc-700'}`}
     >
       <Type size={13} className="text-zinc-500" />
-      <span className="tabular-nums">{count}</span> to place
+      <span className="tabular-nums">{count}</span> not placed
     </button>
   )
 }
