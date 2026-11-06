@@ -24,7 +24,7 @@ export function FeelColors({ feel: first, site, mode, picked, onPick }: { feel: 
     setNote(null)
     const r = await suggestPalettes({ feel: words.trim(), mode, site: { site } })
     setBusy(false)
-    if (!r?.length) setNote('Jev didn’t answer this time. Try again.')
+    if (!r?.length) setNote('No suggestions this time. Try again.')
     setPicks(r)
   }
 
@@ -44,7 +44,7 @@ export function FeelColors({ feel: first, site, mode, picked, onPick }: { feel: 
         className="flex flex-wrap items-center gap-2"
       >
         <span className="flex items-center gap-1.5 text-[14px] font-semibold">
-          <Sparkles size={15} className={busy ? 'motion-safe:animate-pulse' : 'text-[#9A8E97]'} /> Colors by feel
+          <Sparkles size={15} className={busy ? 'motion-safe:animate-pulse' : 'text-[#9A8E97]'} /> Find colors
         </span>
         <input
           value={feel}

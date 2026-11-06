@@ -72,7 +72,7 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
         >
           <Wand2 size={13} className="shrink-0 text-zinc-500" />
           <span className="min-w-0 flex-1 truncate text-zinc-600">
-            Jev suggests the <span className="font-semibold text-zinc-900">{jevPick.label}</span>
+            Suggested: the <span className="font-semibold text-zinc-900">{jevPick.label}</span>
           </span>
           <span className="text-[11px] font-medium text-zinc-500">Use it</span>
         </button>

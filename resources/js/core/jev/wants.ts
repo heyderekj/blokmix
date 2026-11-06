@@ -42,7 +42,7 @@ export const WANT_IDS = Object.keys(WANTS)
 /** Counted only when this sure; anything vaguer isn't worth a row. */
 export const WANT_THRESHOLD = 0.5
 
-export type WantFeature = 'say' | 'pour' | 'dress'
+export type WantFeature = 'say' | 'pour' | 'dress' | 'start'
 
 export function wantRequest(texts: string[]): JevRequest {
   const questions: JevRequest['questions'] = {}

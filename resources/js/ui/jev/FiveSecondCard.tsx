@@ -41,7 +41,7 @@ export function FiveSecondCard() {
     <div className="mx-3 mb-3 rounded-xl bg-well px-3 py-2.5 ring-1 ring-zinc-950/5">
       <div className="flex items-center gap-2">
         <Wand2 size={14} className="shrink-0 text-zinc-500" />
-        <span className="text-[12.5px] font-semibold text-zinc-900">Before you hand it off</span>
+        <span className="text-[12.5px] font-semibold text-zinc-900">Is it clear?</span>
         {r && <span className="ml-auto text-[11.5px] tabular-nums text-zinc-500">{r.score.score}/100</span>}
         <button
           type="button"
@@ -55,7 +55,7 @@ export function FiveSecondCard() {
         </button>
       </div>
       <p className="mt-1 text-[12.5px] leading-snug text-zinc-700">
-        {state.busy && !r ? 'Showing your first screen to a visitor…' : (r?.read?.words ?? 'Jev didn’t answer this time.')}
+        {state.busy && !r ? 'What a first-time visitor would think…' : (r?.read?.words ?? 'No answer this time.')}
       </p>
       {checks.length > 0 && (
         <ul className="mt-2 space-y-1">

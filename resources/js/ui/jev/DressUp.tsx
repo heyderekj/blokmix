@@ -72,7 +72,7 @@ export function DressUp({ slot }: { slot: Slot }) {
         <input
           value={feel}
           onChange={(e) => setFeel(e.target.value)}
-          placeholder="Dress it up: more premium, playful…"
+          placeholder="How should it feel?"
           aria-label="How should it feel"
           className="h-7 min-w-0 flex-1 bg-transparent text-[12px] text-zinc-900 outline-none placeholder:text-zinc-500"
         />

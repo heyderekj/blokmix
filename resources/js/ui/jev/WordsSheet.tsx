@@ -66,7 +66,7 @@ export function WordsSheet() {
         <div className="flex items-center gap-2 px-1.5 pb-1.5 pt-0.5">
           <Wand2 size={14} className="text-zinc-500" />
           <span className="text-[13px] font-semibold text-zinc-900">Your words</span>
-          <span className="text-[11.5px] text-zinc-500">Jev (TypeSafe) reads them to decide where they go. Nothing is reworded.</span>
+          <span className="text-[11.5px] text-zinc-500">Each line goes where it belongs. Nothing is reworded.</span>
           <button type="button" onClick={close} aria-label="Close" className="ml-auto grid size-7 cursor-pointer place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-700 active:scale-[0.97]">
             <X size={14} />
           </button>
@@ -106,7 +106,7 @@ export function WordsSheet() {
                 onClick={() => go('pour')}
                 className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold transition active:scale-[0.97] disabled:opacity-40 ${open === 'pour' ? 'bg-zinc-900 text-white' : 'bg-zinc-950/[0.06] text-zinc-800 hover:bg-zinc-950/[0.1]'}`}
               >
-                <Type size={13} className={busy === 'pour' ? 'animate-pulse' : ''} /> {busy === 'pour' ? 'Placing…' : 'Pour into this page'}
+                <Type size={13} className={busy === 'pour' ? 'animate-pulse' : ''} /> {busy === 'pour' ? 'Placing…' : 'Add to this page'}
               </button>
               <button
                 type="button"
@@ -138,7 +138,7 @@ export function WordsTray() {
       <div className="glass-menu rounded-2xl p-1.5">
         <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-left">
           <Type size={13} className="text-zinc-500" />
-          <span className="text-[12.5px] font-semibold text-zinc-900">Words to place</span>
+          <span className="text-[12.5px] font-semibold text-zinc-900">Text not placed yet</span>
           <span className="rounded-full bg-zinc-950/[0.06] px-1.5 text-[11px] font-semibold tabular-nums text-zinc-600">{lines.length}</span>
           <span className="ml-auto text-[11px] text-zinc-500">{open ? 'Hide' : 'Show'}</span>
         </button>

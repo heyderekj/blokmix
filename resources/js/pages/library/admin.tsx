@@ -78,7 +78,7 @@ interface Want {
   from: Partial<Record<'say' | 'pour' | 'dress', number>>
 }
 
-const FROM_WORD = { say: 'Say it', pour: 'Pour', dress: 'Dress it up' } as const
+const FROM_WORD = { say: 'Change something', pour: 'Add your text', dress: 'Background ideas', start: 'Start' } as const
 
 /** The other half of what to make next: what people asked for on the board (scripts/library/gaps.ts reads the sites). */
 function Wants({ wants }: { wants: Want[] }) {
@@ -86,7 +86,7 @@ function Wants({ wants }: { wants: Want[] }) {
   return (
     <section className="mx-6 mb-6 rounded-2xl bg-white p-4 ring-1 ring-zinc-950/6">
       <h2 className="text-[14px] font-semibold text-zinc-900">What people asked for</h2>
-      <p className="mt-0.5 text-[12.5px] text-zinc-500">The last 90 days, named by Jev when Say it, Pour or Dress it up found nothing that fits. Names only, never anyone’s words.</p>
+      <p className="mt-0.5 text-[12.5px] text-zinc-500">The last 90 days: what people asked for that Blokmix had nothing for. Names only, never anyone’s words.</p>
       <ul className="mt-3 grid gap-1 sm:grid-cols-2">
         {wants.map((w) => (
           <li key={w.want} className="flex items-baseline gap-2 text-[13px]">

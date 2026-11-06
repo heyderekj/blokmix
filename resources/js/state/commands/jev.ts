@@ -103,7 +103,7 @@ export const later = {
         message: set.length
           ? `Pointed ${set.length} link${set.length === 1 ? '' : 's'} where ${set.length === 1 ? 'its' : 'their'} words lead.`
           : guesses.length
-            ? 'Jev has ideas but isn’t sure enough to set them; see suggestions.'
+            ? 'There are ideas, but none sure enough to set; see suggestions.'
             : `Every link here already leads somewhere${i.section !== undefined ? ` in ${TYPE_LABEL[findSection(i.section, i.page).type]}` : ''}.`,
       }
     },
@@ -111,7 +111,7 @@ export const later = {
   five_second_test: {
     prepare: (i: CommandInput<'five_second_test'>) => fiveSecondTest(i.page),
     apply: (_i: CommandInput<'five_second_test'>, r: FiveSecond) => ({
-      visitor: r.read?.words ?? 'Jev didn’t answer; try again.',
+      visitor: r.read?.words ?? 'No answer that time; try again.',
       guess: r.read?.kind ?? null,
       torn_between: r.read?.torn ?? null,
       sure: r.read ? Math.round(r.read.p * 100) / 100 : null,
@@ -124,7 +124,7 @@ export const later = {
     prepare: async (i: CommandInput<'pour_words'>) => {
       await needJev()
       const p = await planPour(i.text, pageSlots(i.page))
-      if (!p) throw new CommandError('Jev didn’t answer; nothing was poured. Try again.')
+      if (!p) throw new CommandError('No answer that time; nothing was placed. Try again.')
       return p
     },
     apply: (_i: CommandInput<'pour_words'>, p: Poured) => {
@@ -137,7 +137,7 @@ export const later = {
         placed: done.placed,
         sections: done.sections,
         waiting: tray.map((t) => ({ text: t.text, could_go: t.homes.map((h) => h.label) })),
-        message: `Placed ${done.placed} line${done.placed === 1 ? '' : 's'} in ${done.sections} section${done.sections === 1 ? '' : 's'}.${tray.length ? ` ${tray.length} ${tray.length === 1 ? 'is' : 'are'} waiting in Words to place.` : ''}`,
+        message: `Placed ${done.placed} line${done.placed === 1 ? '' : 's'} in ${done.sections} section${done.sections === 1 ? '' : 's'}.${tray.length ? ` ${tray.length} ${tray.length === 1 ? 'isn’t' : 'aren’t'} placed yet.` : ''}`,
       }
     },
   } satisfies AsyncCommand<Poured>,
@@ -145,7 +145,7 @@ export const later = {
     prepare: async (i: CommandInput<'page_from_words'>) => {
       await needJev()
       const p = await planPage(i.text)
-      if (!p) throw new CommandError('Jev didn’t answer, or there were no words to use. Try again.')
+      if (!p) throw new CommandError('No answer that time, or there was no text to use. Try again.')
       return p
     },
     apply: (i: CommandInput<'page_from_words'>, p: PagePlan) => {
@@ -156,7 +156,7 @@ export const later = {
         placed: b.placed,
         waiting: b.waiting,
         kind: b.kind,
-        message: `A page of ${b.sections.join(', ')}, from your words.${b.waiting ? ` ${b.waiting} line${b.waiting === 1 ? ' is' : 's are'} waiting in Words to place.` : ''}`,
+        message: `Made a page of ${b.sections.join(', ')} from your text.${b.waiting ? ` ${b.waiting} line${b.waiting === 1 ? ' isn’t' : 's aren’t'} placed yet.` : ''}`,
       }
     },
   } satisfies AsyncCommand<PagePlan>,
@@ -172,7 +172,7 @@ export const later = {
         if (!picture) throw new CommandError(`${b.label} shows no photo or upload to match`)
       }
       const r = await suggestPalettes({ feel: i.feel, brand: i.brand, picture, mode: i.mode })
-      if (!r) throw new CommandError('Jev didn’t answer; try again.')
+      if (!r) throw new CommandError('No answer that time; try again.')
       return r
     },
     apply: (_i: CommandInput<'suggest_palettes'>, r: Ranked[]) => r.map((p, n) => ({ pick: n + 1, colors: p.palette, words: p.words, from: p.from, fit: p.score })),
@@ -185,7 +185,7 @@ export const later = {
         return look ? [look] : []
       }
       const r = await dressSection(findSection(i.section).id, i.feel)
-      if (!r) throw new CommandError('Jev didn’t answer; try again.')
+      if (!r) throw new CommandError('No answer that time; try again.')
       return r.ideas
     },
     apply: (_i: CommandInput<'suggest_treatments'>, ideas: DressIdea[]) => ideas.map((d) => ({ does: d.label, command: d.command, input: d.input, needs_pack: d.locked, fit: Math.round(d.fit * 100) / 100 })),
@@ -211,7 +211,7 @@ export const later = {
       return { slotId: slot.id, blockId: b.id, label: b.label, fill, focus: await findFocus(fill) }
     },
     apply: (_i: CommandInput<'find_subject'>, r: { slotId: string; blockId: string; label: string; fill: MediaFill; focus: Awaited<ReturnType<typeof findFocus>> }) => {
-      if (!r.focus) return { block: r.label, focus: null, message: 'No single subject to keep in frame (or Jev wasn’t sure); the crop stays centered.' }
+      if (!r.focus) return { block: r.label, focus: null, message: 'No single subject to keep in frame (or it wasn’t clear); the crop stays centered.' }
       useStore.getState().editBlock(r.slotId, r.blockId, { media: { ...r.fill, focus: { x: r.focus.x, y: r.focus.y } } })
       return { block: r.label, focus: { x: r.focus.x, y: r.focus.y }, subject: r.focus.kind }
     },

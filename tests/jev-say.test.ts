@@ -63,7 +63,7 @@ describe('Say it', () => {
     })
     const h = (await hear('pricing pop'))!
     expect(h.action).toBeNull()
-    expect(h.options.map((o) => o.words)).toEqual(['Pricing → dark band', 'Dress up Pricing'])
+    expect(h.options.map((o) => o.words)).toEqual(['Pricing → dark band', 'Background ideas for Pricing'])
   })
 
   it('finds another layout for “another hero”', async () => {

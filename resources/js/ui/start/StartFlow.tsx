@@ -70,7 +70,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
   const input: StartInput | null =
     via === 'box'
       ? fromBox.kind && box.heard
-        ? { kind: fromBox.kind, name: box.name.trim() || 'Your site', seed, ...(fromBox.sections ? { sections: fromBox.sections } : {}) }
+        ? { kind: fromBox.kind, name: box.name.trim() || 'Your site', seed, ...(fromBox.sections ? { sections: fromBox.sections } : {}), ...(box.button && !box.text.trim() ? { button: box.button } : {}) }
         : null
       : kind
         ? { kind, name: name.trim() || 'Your site', oneLiner, seed }
@@ -144,11 +144,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
             <StartBox
               box={box}
               onBox={setBox}
-              onJevOff={(off) => {
-                setJevOff(off)
-                // Without Jev the box can't read anything: the three questions are the way in.
-                if (off) setStep('what')
-              }}
+              onJevOff={setJevOff}
             />
           )}
 
@@ -227,7 +223,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
               palette={palette}
               mode={mode}
               looks={looks}
-              feel={via === 'box' && box.heard?.mode === 'describe' ? box.text.trim() : ''}
+              feel={via !== 'box' ? '' : box.text.trim() ? (box.heard?.mode === 'describe' ? box.text.trim() : '') : (box.feel ?? '')}
               kind={input?.kind ?? null}
               jev={!jevOff}
               onSkin={(id) => { setSkin(id); setMode(undefined) }}
@@ -240,30 +236,19 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
 
         <footer className="flex items-center justify-between gap-3 border-t border-zinc-950/[0.06] bg-white px-4 py-3 sm:px-5">
           {step === 'box' ? (
-            jevOff ? (
-              <span />
-            ) : (
-              <button type="button" onClick={() => setStep('what')} className={QUIET}>
-                Answer three questions instead
-              </button>
-            )
-          ) : step === 'what' && jevOff ? (
-            <span />
+            <button type="button" onClick={() => setStep('what')} className={QUIET}>
+              Answer three questions instead
+            </button>
           ) : (
             <button type="button" onClick={() => setStep(step === 'skin' ? 'starts' : step === 'starts' ? via : 'box')} className={QUIET}>
               <ArrowLeft size={16} /> Back
             </button>
           )}
-          {step === 'box' &&
-            (jevOff ? (
-              <button type="button" onClick={() => setStep('what')} className={PRIMARY}>
-                Answer three questions <ArrowRight size={16} />
-              </button>
-            ) : (
-              <button type="button" disabled={!input} onClick={() => (setVia('box'), setPicked(null), setStep('starts'))} className={PRIMARY}>
-                Show me three starts <ArrowRight size={16} />
-              </button>
-            ))}
+          {step === 'box' && (
+            <button type="button" disabled={!input} onClick={() => (setVia('box'), setPicked(null), setStep('starts'))} className={PRIMARY}>
+              Show me three starts <ArrowRight size={16} />
+            </button>
+          )}
           {step === 'what' && (
             <span className="flex items-center gap-3">
               {missing && <span className="text-[13px] text-[#6B5F68] max-sm:hidden" aria-live="polite">{!name.trim() ? 'Give it a name first' : 'Pick the closest kind first'}</span>}
@@ -378,7 +363,7 @@ function SkinStep({ start, name, skin, brand, palette, mode, looks, feel, kind, 
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
           <input type="color" value={brand ?? current?.tokens['color.primary'] ?? '#404040'} onChange={(e) => onBrand(e.target.value)} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Brand color" />
-          {palette ? 'Colors by feel' : brand ? 'Your brand color' : 'Have a brand color? Pick it'}
+          {palette ? 'Colors you found' : brand ? 'Your brand color' : 'Have a brand color? Pick it'}
         </label>
         {(brand || palette) && (
           <button type="button" onClick={() => onBrand(null)} className={QUIET}>
@@ -431,7 +416,7 @@ function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPick }: { 
         <span className="flex items-center justify-between gap-2 text-[16px] font-semibold" style={{ fontFamily: guide.base['font.display'] }}>
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate">{skin.name}</span>
-            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Jev’s pick</span>}
+            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Suggested</span>}
           </span>
           {on && <Check size={16} style={{ color: PINK }} />}
         </span>
