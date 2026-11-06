@@ -12,7 +12,7 @@ import { Alternatives } from './Alternatives'
 import { toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
-import { SayBar, SayButton } from '../jev/SayBar'
+import { SayBar } from '../jev/SayBar'
 import { WordsSheet, WordsTray } from '../jev/WordsSheet'
 
 const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
@@ -55,7 +55,6 @@ export function Dock() {
             <ToolSwitcher />
             <Divider />
             <ShuffleButton />
-            <SayButton />
             {section && !focused && (
               <button
                 type="button"

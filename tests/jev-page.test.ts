@@ -4,7 +4,7 @@ import { pageView } from '@/core/site'
 import { runCommand } from '@/state/commands'
 import { chunkLines } from '@/core/jev/pageFromWords'
 import { splitLines } from '@/core/jev/pour'
-import { useWordsTray } from '@/state/jevPour'
+import { setTray } from '@/state/jevPour'
 import { wordsFor } from '@/state/commands/refs'
 import type { JevRequest } from '@/core/jev'
 import { fakeJev, realJev } from './helpers/fakeJev'
@@ -55,7 +55,7 @@ const jevOnMenu = () =>
 beforeEach(() => {
   useStore.getState().resetDemo()
   useStore.temporal.getState().clear()
-  useWordsTray.setState({ lines: [] })
+  setTray(() => [])
 })
 afterEach(() => realJev())
 

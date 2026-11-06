@@ -21,9 +21,12 @@ export interface ColorAsk {
   /** A logo or photo to match: a Blob (a file you picked) or a picture URL. */
   picture?: Blob | string
   mode?: Mode
+  /** What the site is, when it isn't the open mix (the guided start). */
+  site?: Pick<PaletteBrief, 'site' | 'headline'>
 }
 
-function brief(feel?: string): PaletteBrief {
+function brief(feel?: string, site?: ColorAsk['site']): PaletteBrief {
+  if (site) return { feel, ...site }
   const st = useStore.getState()
   const hero = currentSlots(st).find((s) => s.type === 'hero')
   return {
@@ -50,7 +53,7 @@ async function round(b: PaletteBrief, cands: Candidate[], photo?: JevAsset, askT
 export async function suggestPalettes(ask: ColorAsk): Promise<Ranked[] | null> {
   const st = useStore.getState()
   const mode: Mode = ask.mode ?? (toneOfGuide(resolveGuide(st.guide).tokens) === 'dark' ? 'dark' : 'light')
-  const b = brief(ask.feel)
+  const b = brief(ask.feel, ask.site)
   let photo: JevAsset | undefined
   let seeds: string[] = ask.brand ? [ask.brand] : []
   if (ask.picture) {

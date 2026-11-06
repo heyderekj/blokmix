@@ -40,7 +40,7 @@ export const toggleSheet = (s: Sheet) => {
 /** Below this width the three islands don't fit side by side: the bar folds into one (CompactBar). */
 const WIDE_BAR = '(min-width: 1120px)'
 
-function useWideBar() {
+export function useWideBar() {
   const [wide, setWide] = useState(() => typeof window === 'undefined' || window.matchMedia(WIDE_BAR).matches)
   useEffect(() => {
     const mq = window.matchMedia(WIDE_BAR)
@@ -404,7 +404,8 @@ function ToolsIsland() {
   const notes = useStore((s) => s.notes)
   const todo = notes.filter(outstanding).length
   const decisions = openGroups(useResolvedGuide()).length
-  const open = sheet === 'guide' || sheet === 'notes'
+  // Content takes the main area (ContentDoc) instead of growing this island.
+  const open = (sheet === 'guide' && tab !== 'content') || sheet === 'notes'
   const st = useStore.getState
   const at = (which: 'style' | 'content' | 'notes') => (which === 'notes' ? sheet === 'notes' : sheet === 'guide' && tab === which)
   const go = (which: 'style' | 'content' | 'notes') => {

@@ -1,26 +1,49 @@
 import { useEffect, useRef, useState } from 'react'
 import { create } from 'zustand'
-import { CornerDownLeft, Wand2, X } from 'lucide-react'
+import { CornerDownLeft, FilePlus2, Type, Wand2, X } from 'lucide-react'
 import type { SayAction } from '@/core/jev/say'
 import { jevOn } from '@/lib/jev'
-import { doSay, hear, type Heard } from '@/state/jevSay'
+import { doSay, hear, useJevTools, type Heard } from '@/state/jevSay'
+import { trayLines } from '@/state/jevPour'
+import { useStore } from '@/state/store'
 
-/** Whether the Say it bar is open (⌘K). */
+/** Whether the Say it bar has your attention (⌘K focuses it). The bar itself is always there. */
 export const useSay = create<{ open: boolean }>()(() => ({ open: false }))
 export const toggleSay = () => useSay.setState((s) => ({ open: !s.open }))
+/** Whether Words to place is unfolded above the bar. */
+export const useTrayOpen = create<{ open: boolean }>()(() => ({ open: false }))
+
+/** At least this many lines pasted into the bar are your words to place, not something to do. */
+const WORDS_LINES = 2
 
 /**
- * Say it: type what you want and see what it'll do before it does it. Jev picks one of Blokmix's own commands and
- * fills it from this page; Enter runs it as one undo step. When Jev isn't sure, it offers what you might have meant.
+ * Say it: always there above the Dock. Type what you want and see what it'll do before it does it (Jev picks one of
+ * Blokmix's own commands and fills it from this page; Enter runs it as one undo step), or paste your words and pour them
+ * into this page or make a new one. When Jev isn't sure, it offers what you might have meant.
  */
 export function SayBar() {
   const open = useSay((s) => s.open)
+  const sheet = useJevTools((s) => s.open === 'pour' || s.open === 'page')
+  // Content lists the lines waiting for a home itself.
+  const waiting = useStore((s) => (s.ui.sheet === 'guide' && s.ui.guideTab === 'content' ? 0 : trayLines(s).length))
   const [text, setText] = useState('')
+  const [pasted, setPasted] = useState<string | null>(null)
   const [heard, setHeard] = useState<Heard | null>(null)
   const [busy, setBusy] = useState(false)
   const [off, setOff] = useState(false)
   const input = useRef<HTMLInputElement>(null)
 
+  // Checked again whenever "Let Jev help" changes in the menu.
+  const allowed = useStore((s) => s.ui.jev)
+  useEffect(() => {
+    let live = true
+    jevOn().then((v) => live && setOff(!v))
+    return () => {
+      live = false
+    }
+  }, [allowed])
+
+  // ⌘K: focus the bar (and check again whether Jev is on: the menu can turn it on or off).
   useEffect(() => {
     if (!open) return
     input.current?.focus()
@@ -33,10 +56,11 @@ export function SayBar() {
 
   // Ask as you type: a quarter second after the last key, and only the latest words are answered.
   useEffect(() => {
-    if (!open || off) return
+    if (off || pasted) return
     const t = text.trim()
     if (t.length < 2) {
       setHeard(null)
+      setBusy(false)
       return
     }
     setBusy(true)
@@ -48,29 +72,39 @@ export function SayBar() {
       })
     }, 250)
     return () => window.clearTimeout(timer)
-  }, [text, open, off])
+  }, [text, off, pasted])
 
-  if (!open) return null
+  // The words sheet takes the bar's place while it's up.
+  if (sheet) return null
+  const clear = () => {
+    setText('')
+    setPasted(null)
+    setHeard(null)
+  }
   const close = () => {
     useSay.setState({ open: false })
-    setText('')
-    setHeard(null)
+    clear()
+    input.current?.blur()
   }
   const run = async (a: SayAction) => {
     const words = text
     close()
     await doSay(a, words)
   }
+  const words = (mode: 'pour' | 'page') => {
+    const t = pasted
+    close()
+    if (t) useJevTools.setState({ open: mode, text: t, auto: mode })
+  }
   const action = heard?.action
   const options = heard?.options ?? []
+  const showing = !off && !pasted && (action || options.length > 0 || (heard && !busy && text.trim().length > 1))
 
   return (
-    <div className="pointer-events-auto w-[min(560px,calc(100vw-24px))] animate-pop" data-say>
-      {(action || options.length > 0 || (heard && !busy && text.trim().length > 1) || off) && (
-        <div className="glass-menu mb-1.5 rounded-2xl p-1.5 text-[12.5px]">
-          {off ? (
-            <p className="px-2 py-1.5 text-zinc-500">Say it needs Jev: turn on “Let Jev help” in Blokmix’s menu (the server needs a TypeSafe key).</p>
-          ) : action ? (
+    <div className="pointer-events-auto flex w-[min(560px,calc(100vw-24px))] flex-col items-stretch" data-say>
+      {showing && (
+        <div className="glass-menu mb-1.5 animate-pop rounded-2xl p-1.5 text-[12.5px]">
+          {action && (
             <button type="button" onClick={() => run(action)} className="flex w-full cursor-pointer items-center gap-2 rounded-xl bg-zinc-950/[0.05] px-2.5 py-2 text-left transition hover:bg-zinc-950/[0.08] active:scale-[0.99]">
               <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{action.words}</span>
               {heard?.kept && <span className="shrink-0 text-[11px] text-zinc-500" title={heard.kept}>Your contract keeps this</span>}
@@ -78,8 +112,8 @@ export function SayBar() {
                 <CornerDownLeft size={11} />
               </span>
             </button>
-          ) : null}
-          {!off && options.length > 0 && (
+          )}
+          {options.length > 0 && (
             <div className="flex flex-wrap items-center gap-1 px-1.5 pb-0.5 pt-1.5">
               <span className="text-[11.5px] text-zinc-500">{action ? 'Or' : 'Did you mean'}</span>
               {options.map((o) => (
@@ -89,47 +123,78 @@ export function SayBar() {
               ))}
             </div>
           )}
-          {!off && !action && !options.length && heard && !busy && <p className="px-2 py-1.5 text-zinc-500">Not sure what to do with that. Try “roomier”, “make pricing dark” or “add a FAQ”.</p>}
+          {!action && !options.length && <p className="px-2 py-1.5 text-zinc-500">Not sure what to do with that. Try “roomier”, “make pricing dark”, “warmer colors” or “add a FAQ”.</p>}
         </div>
       )}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (action) void run(action)
-        }}
-        className="glass-menu flex h-11 items-center gap-2 rounded-full pl-3.5 pr-1.5"
-      >
-        <Wand2 size={15} className={`shrink-0 ${busy ? 'animate-pulse text-zinc-700' : 'text-zinc-400'}`} />
-        <input
-          ref={input}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Escape' && close()}
-          placeholder="Say what to change: “roomier”, “FAQ above pricing”"
-          aria-label="Say what to change"
-          className="h-full min-w-0 flex-1 bg-transparent text-[14px] text-zinc-900 outline-none placeholder:text-zinc-400"
-        />
-        <button type="button" onClick={close} aria-label="Close" className="grid size-8 cursor-pointer place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-700 active:scale-[0.97]">
-          <X size={14} />
-        </button>
-      </form>
+      <div className="flex items-center gap-1.5">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (pasted) words('pour')
+            else if (action) void run(action)
+          }}
+          className={`glass-menu flex h-11 min-w-0 flex-1 items-center gap-2 rounded-full pl-3.5 pr-1.5 transition-shadow ${open || text || pasted ? 'ring-2 ring-zinc-900/10' : ''}`}
+        >
+          <Wand2 size={15} className={`shrink-0 ${busy ? 'animate-pulse text-zinc-700' : 'text-zinc-400'}`} />
+          {off ? (
+            <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-500">Jev is off: turn on “Let Jev help” in Blokmix’s menu</span>
+          ) : pasted ? (
+            <>
+              <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-700">
+                <span className="font-semibold text-zinc-900">Your words</span>, {pasted.split('\n').filter((l) => l.trim()).length} lines
+              </span>
+              <button type="submit" className="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-zinc-900 px-3 text-[12.5px] font-semibold text-white transition active:scale-[0.97]">
+                <Type size={13} /> Pour into this page
+              </button>
+              <button type="button" onClick={() => words('page')} className="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-zinc-950/[0.06] px-3 text-[12.5px] font-semibold text-zinc-800 transition hover:bg-zinc-950/[0.1] active:scale-[0.97] max-sm:hidden">
+                <FilePlus2 size={13} /> Make a new page
+              </button>
+            </>
+          ) : (
+            <input
+              ref={input}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onFocus={() => useSay.setState({ open: true })}
+              onBlur={() => !text && useSay.setState({ open: false })}
+              onKeyDown={(e) => e.key === 'Escape' && close()}
+              onPaste={(e) => {
+                const t = e.clipboardData.getData('text/plain')
+                if (t.split('\n').filter((l) => l.trim()).length < WORDS_LINES) return
+                e.preventDefault()
+                setPasted(t)
+              }}
+              placeholder="Say it, or paste your words"
+              aria-label="Say what to change, or paste your words"
+              className="h-full min-w-0 flex-1 bg-transparent text-[14px] text-zinc-900 outline-none placeholder:text-zinc-500"
+            />
+          )}
+          {!off && !text && !pasted && <span className="kbd shrink-0 max-sm:hidden">⌘K</span>}
+          {(text || pasted) && (
+            <button type="button" onClick={close} aria-label="Clear" className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-700 active:scale-[0.97]">
+              <X size={14} />
+            </button>
+          )}
+        </form>
+        {waiting > 0 && <TrayChip count={waiting} />}
+      </div>
     </div>
   )
 }
 
-/** The Dock's button for Say it. */
-export function SayButton() {
-  const open = useSay((s) => s.open)
+/** Lines waiting for a home, beside the bar: a click unfolds them above it. */
+function TrayChip({ count }: { count: number }) {
+  const open = useTrayOpen((s) => s.open)
   return (
     <button
       type="button"
-      onClick={toggleSay}
-      title="Say what to change (⌘K)"
-      aria-label="Say what to change"
+      onClick={() => useTrayOpen.setState({ open: !open })}
       aria-expanded={open}
-      className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${open ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
+      title="Lines of your words waiting for a home"
+      className={`glass-menu flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[12.5px] font-semibold transition active:scale-[0.97] ${open ? 'text-zinc-900' : 'text-zinc-700'}`}
     >
-      <Wand2 size={16} />
+      <Type size={13} className="text-zinc-500" />
+      <span className="tabular-nums">{count}</span> to place
     </button>
   )
 }

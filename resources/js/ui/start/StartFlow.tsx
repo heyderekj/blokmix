@@ -10,7 +10,11 @@ import type { PageScore } from '@/core/score'
 import { library } from '@/data/library'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { scoredStarts, scoreStart, type ScoredStart } from '@/lib/start'
+import { startsFromText } from '@/lib/startFromText'
+import type { Palette as Colors } from '@/core/palette'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
+import { boxChoice, emptyBox, StartBox, type BoxState } from './StartBox'
+import { FeelColors } from './FeelColors'
 
 /** Whether the guided start is showing over the board (the browser-only mix opens on it the first time). */
 export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
@@ -25,25 +29,28 @@ const ON = 'shadow-[0_0_0_2px_#FF69B4,0_16px_32px_-20px_rgb(255_105_180/0.6)]'
 const PRIMARY = `btn-lit flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold disabled:pointer-events-none disabled:opacity-45 ${PRESS}`
 const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-medium text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`
 
-type Step = 'what' | 'starts' | 'skin'
+type Step = 'box' | 'what' | 'starts' | 'skin'
 
 /**
- * The guided start: what you're making, three raw starts to pick a structure from, then
- * that page under the skins, to pick a look. No design words; the starts are measured
- * before you see them, so each says plainly how its first screen holds up on a laptop
+ * The guided start: one box (a sentence about the site, or the words you already have), three raw starts to pick a
+ * structure from, then that page under the skins, to pick a look. Three questions stand in when Jev is off. No design
+ * words; the starts are measured before you see them, so each says plainly how its first screen holds up on a laptop
  * and a phone, and the skin you pick is measured again since its fonts move things.
  */
-export function StartFlow({ onDone, onBlank, onWords, onClose, busy }: {
+export function StartFlow({ onDone, onBlank, onClose, busy }: {
   /** The answers, every start (best first), and the one picked. */
   onDone: (input: StartInput, starts: ScoredStart[], chosen: string) => void
   onBlank: () => void
-  /** Start from words you already have (a page made from them, on the board). Shown when given. */
-  onWords?: (name: string) => void
   onClose?: () => void
   /** Saving the new mix (hosted): the buttons wait. */
   busy?: boolean
 }) {
-  const [step, setStep] = useState<Step>('what')
+  const [step, setStep] = useState<Step>('box')
+  // Which way you came: the box, or the three questions.
+  const [via, setVia] = useState<'box' | 'what'>('box')
+  const [box, setBox] = useState<BoxState>(emptyBox)
+  const [jevOff, setJevOff] = useState(false)
+  const [palette, setPalette] = useState<Colors | null>(null)
   const [kind, setKind] = useState<Kind | null>(null)
   const [name, setName] = useState('')
   const [oneLiner, setOneLiner] = useState('')
@@ -56,7 +63,17 @@ export function StartFlow({ onDone, onBlank, onWords, onClose, busy }: {
   const [problem, setProblem] = useState<string | null>(null)
 
   // The starts themselves are always raw; the skin goes on at the last step.
-  const input: StartInput | null = kind ? { kind, name: name.trim() || 'Your site', oneLiner, seed } : null
+  const fromBox = boxChoice(box)
+  const input: StartInput | null =
+    via === 'box'
+      ? fromBox.kind && box.heard
+        ? { kind: fromBox.kind, name: box.name.trim() || 'Your site', seed, ...(fromBox.sections ? { sections: fromBox.sections } : {}) }
+        : null
+      : kind
+        ? { kind, name: name.trim() || 'Your site', oneLiner, seed }
+        : null
+  const siteName = (via === 'box' ? box.name : name).trim() || 'Your site'
+  const looks = via === 'box' ? (box.heard?.looks ?? []) : []
   const pick = starts?.find((s) => s.id === picked) ?? null
   useSkinFonts()
 
@@ -67,14 +84,14 @@ export function StartFlow({ onDone, onBlank, onWords, onClose, busy }: {
     let live = true
     setStarts(null)
     setProblem(null)
-    scoredStarts(input)
+    ;(via === 'box' && box.heard ? startsFromText(input, box.heard) : scoredStarts(input))
       .then((s) => live && setStarts(s))
       .catch((e) => live && setProblem(e instanceof Error ? e.message : String(e)))
     return () => {
       live = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, key])
+  }, [step, key, via])
 
   // Each step starts at the top.
   const scroller = useRef<HTMLElement>(null)
@@ -85,8 +102,8 @@ export function StartFlow({ onDone, onBlank, onWords, onClose, busy }: {
   /** Every start under the skin you picked, so A, B and C stay comparable as versions. */
   const finish = () => {
     if (!input || !starts || !pick) return
-    const guide = guideFor({ skin, brand, mode })
-    onDone({ ...input, skin, brand, mode }, starts.map((s) => ({ ...s, guide })), pick.id)
+    const guide = guideFor({ skin, brand, mode, palette })
+    onDone({ ...input, skin, brand, mode, palette }, starts.map((s) => ({ ...s, guide })), pick.id)
   }
 
   return (
@@ -118,6 +135,18 @@ export function StartFlow({ onDone, onBlank, onWords, onClose, busy }: {
         className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-7"
         style={{ backgroundImage: 'radial-gradient(#E4D9DF 1.1px, transparent 1.2px)', backgroundSize: '22px 22px' }}
       >
+          {step === 'box' && (
+            <StartBox
+              box={box}
+              onBox={setBox}
+              onJevOff={(off) => {
+                setJevOff(off)
+                // Without Jev the box can't read anything: the three questions are the way in.
+                if (off) setStep('what')
+              }}
+            />
+          )}
+
           {step === 'what' && (
           <section>
             <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">What are you making?</h1>
@@ -157,7 +186,21 @@ export function StartFlow({ onDone, onBlank, onWords, onClose, busy }: {
               {problem && <p className="mt-6 rounded-xl bg-white p-4 text-[14px] text-red-700 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">{problem}</p>}
               <div className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-3">
                 {starts
-                  ? starts.map((s, i) => <StartCard key={s.id} start={s} letter={String.fromCharCode(65 + i)} best={i === 0} busy={busy} onPick={() => { setPicked(s.id); setStep('skin') }} />)
+                  ? starts.map((s, i) => (
+                      <StartCard
+                        key={s.id}
+                        start={s}
+                        letter={String.fromCharCode(65 + i)}
+                        best={i === 0}
+                        busy={busy}
+                        onPick={() => {
+                          setPicked(s.id)
+                          // Jev's look goes on first; the others are a click away.
+                          if (looks[0] && skin === WIREFRAME) setSkin(looks[0])
+                          setStep('skin')
+                        }}
+                      />
+                    ))
                   : [0, 1, 2].map((i) => (
                       <div key={i} className="grid h-[330px] place-items-center rounded-[16px] bg-white/70 text-[13.5px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)] motion-safe:animate-pulse">
                         {i === 1 ? 'Laying out three starts…' : ''}
@@ -170,33 +213,51 @@ export function StartFlow({ onDone, onBlank, onWords, onClose, busy }: {
           {step === 'skin' && pick && (
             <SkinStep
               start={pick}
-              name={name.trim() || 'Your site'}
+              name={siteName}
               skin={skin}
               brand={brand}
+              palette={palette}
               mode={mode}
+              looks={looks}
+              feel={via === 'box' && box.heard?.mode === 'describe' ? box.text.trim() : ''}
+              kind={input?.kind ?? null}
+              jev={!jevOff}
               onSkin={(id) => { setSkin(id); setMode(undefined) }}
-              onBrand={setBrand}
-              onMode={setMode}
+              onBrand={(b) => { setBrand(b); setPalette(null) }}
+              onPalette={(p, b) => { setPalette(p); setBrand(b) }}
+              onMode={(m) => { setMode(m); setPalette(null) }}
             />
           )}
         </main>
 
         <footer className="flex items-center justify-between gap-3 border-t border-zinc-950/[0.06] bg-white px-4 py-3 sm:px-5">
-          {step === 'what' ? (
-            onWords ? (
-              <button type="button" onClick={() => onWords(name.trim())} disabled={busy} className={QUIET}>
-                Already have words? Start from them
-              </button>
-            ) : (
+          {step === 'box' ? (
+            jevOff ? (
               <span />
+            ) : (
+              <button type="button" onClick={() => setStep('what')} className={QUIET}>
+                Answer three questions instead
+              </button>
             )
+          ) : step === 'what' && jevOff ? (
+            <span />
           ) : (
-            <button type="button" onClick={() => setStep(step === 'skin' ? 'starts' : 'what')} className={QUIET}>
+            <button type="button" onClick={() => setStep(step === 'skin' ? 'starts' : step === 'starts' ? via : 'box')} className={QUIET}>
               <ArrowLeft size={16} /> Back
             </button>
           )}
+          {step === 'box' &&
+            (jevOff ? (
+              <button type="button" onClick={() => setStep('what')} className={PRIMARY}>
+                Answer three questions <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button type="button" disabled={!input} onClick={() => (setVia('box'), setPicked(null), setStep('starts'))} className={PRIMARY}>
+                Show me three starts <ArrowRight size={16} />
+              </button>
+            ))}
           {step === 'what' && (
-            <button type="button" disabled={!kind || !name.trim()} onClick={() => setStep('starts')} className={PRIMARY}>
+            <button type="button" disabled={!kind || !name.trim()} onClick={() => (setVia('what'), setPicked(null), setStep('starts'))} className={PRIMARY}>
               Show me three structures <ArrowRight size={16} />
             </button>
           )}
@@ -217,7 +278,7 @@ function Steps({ step }: { step: Step }) {
     ['starts', 'Structure'],
     ['skin', 'Skin'],
   ]
-  const at = all.findIndex(([s]) => s === step)
+  const at = step === 'box' ? 0 : all.findIndex(([s]) => s === step)
   return (
     <ol className="flex items-center gap-2 text-[12.5px] font-semibold" aria-label="Steps">
       {all.map(([s, label], i) => (
@@ -248,17 +309,26 @@ function Field({ label, hint, value, onChange, placeholder }: { label: string; h
 }
 
 /** The last step: the page you picked under each skin this plan opens, your brand color on top if you have one. */
-function SkinStep({ start, name, skin, brand, mode, onSkin, onBrand, onMode }: {
+function SkinStep({ start, name, skin, brand, palette, mode, looks, feel, kind, jev, onSkin, onBrand, onPalette, onMode }: {
   start: ScoredStart
   name: string
   skin: string
   brand: string | null
+  palette: Colors | null
   mode: 'light' | 'dark' | undefined
+  /** Jev's picks for the look, best first: shown first and marked. */
+  looks: string[]
+  /** The sentence you described the site in, to start colors by feel from. */
+  feel: string
+  kind: Kind | null
+  jev: boolean
   onSkin: (id: string) => void
   onBrand: (brand: string | null) => void
+  onPalette: (palette: Colors, brand: string) => void
   onMode: (mode: 'light' | 'dark') => void
 }) {
-  const skins = skinList().filter((x) => skinOpen(library, x))
+  const open = skinList().filter((x) => skinOpen(library, x))
+  const skins = [...looks.flatMap((id) => open.filter((x) => x.id === id)), ...open.filter((x) => !looks.includes(x.id))]
   const current = skins.find((x) => x.id === skin) ?? skins[0]
   const shownMode = mode ?? current?.mode ?? 'light'
   // Fonts move things around, so the skin you pick gets measured too.
@@ -266,11 +336,11 @@ function SkinStep({ start, name, skin, brand, mode, onSkin, onBrand, onMode }: {
   useEffect(() => {
     let live = true
     setScore(null)
-    scoreStart({ ...start, guide: guideFor({ skin, brand, mode }) }).then((s) => live && setScore(s))
+    scoreStart({ ...start, guide: guideFor({ skin, brand, mode, palette }) }).then((s) => live && setScore(s))
     return () => {
       live = false
     }
-  }, [start, skin, brand, mode])
+  }, [start, skin, brand, mode, palette])
   return (
     <section>
       <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Pick a skin</h1>
@@ -278,9 +348,9 @@ function SkinStep({ start, name, skin, brand, mode, onSkin, onBrand, onMode }: {
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
           <input type="color" value={brand ?? current?.tokens['color.primary'] ?? '#404040'} onChange={(e) => onBrand(e.target.value)} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Brand color" />
-          {brand ? 'Your brand color' : 'Have a brand color? Pick it'}
+          {palette ? 'Colors by feel' : brand ? 'Your brand color' : 'Have a brand color? Pick it'}
         </label>
-        {brand && (
+        {(brand || palette) && (
           <button type="button" onClick={() => onBrand(null)} className={QUIET}>
             Use the skin’s own
           </button>
@@ -293,9 +363,10 @@ function SkinStep({ start, name, skin, brand, mode, onSkin, onBrand, onMode }: {
           ))}
         </div>
       </div>
+      {jev && <FeelColors feel={feel} site={kind ? `${name}, ${KIND_LABEL[kind].name.toLowerCase()}` : name} mode={mode} picked={palette} onPick={onPalette} />}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {skins.map((x) => (
-          <SkinCard key={x.id} skin={x} on={x.id === skin} start={start} brand={brand} mode={x.id === skin ? mode : undefined} onPick={() => onSkin(x.id)} />
+          <SkinCard key={x.id} skin={x} on={x.id === skin} start={start} brand={brand} palette={x.id === skin ? palette : null} mode={x.id === skin ? mode : undefined} jevPick={looks.includes(x.id)} onPick={() => onSkin(x.id)} />
         ))}
       </div>
       <p className="mt-5 min-h-5 text-[13.5px] text-[#6B5F68]" aria-live="polite">
@@ -306,8 +377,8 @@ function SkinStep({ start, name, skin, brand, mode, onSkin, onBrand, onMode }: {
 }
 
 /** A skin, drawn as your actual page in it. */
-function SkinCard({ skin, on, start, brand, mode, onPick }: { skin: Skin; on: boolean; start: ScoredStart; brand: string | null; mode: 'light' | 'dark' | undefined; onPick: () => void }) {
-  const guide = useMemo(() => guideFor({ skin: skin.id, brand, mode }), [skin.id, brand, mode])
+function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPick }: { skin: Skin; on: boolean; start: ScoredStart; brand: string | null; palette: Colors | null; mode: 'light' | 'dark' | undefined; jevPick: boolean; onPick: () => void }) {
+  const guide = useMemo(() => guideFor({ skin: skin.id, brand, mode, palette }), [skin.id, brand, mode, palette])
   return (
     <button type="button" onClick={onPick} aria-pressed={on} className={`${CARD} overflow-hidden ${on ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
       <span className="block border-b border-zinc-950/5">
@@ -315,7 +386,10 @@ function SkinCard({ skin, on, start, brand, mode, onPick }: { skin: Skin; on: bo
       </span>
       <span className="block p-4">
         <span className="flex items-center justify-between gap-2 text-[16px] font-semibold" style={{ fontFamily: guide.base['font.display'] }}>
-          {skin.name}
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="truncate">{skin.name}</span>
+            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Jev’s pick</span>}
+          </span>
           {on && <Check size={16} style={{ color: PINK }} />}
         </span>
         <span className="mt-1 block text-[13px] leading-snug text-[#6B5F68]">{skin.words}</span>
@@ -355,7 +429,7 @@ function StartCard({ start, letter, best, busy, onPick }: { start: ScoredStart; 
           <span className="min-w-0">
             <span className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#9A8E97]">
               <span className="grid size-[18px] place-items-center rounded-full bg-[#17121A] text-[10px] tracking-normal text-white">{letter}</span>
-              {start.from === 'starter' ? 'Starter' : 'Put together for you'}
+              {start.from === 'starter' ? 'Starter' : start.from === 'words' ? 'From your words' : 'Put together for you'}
             </span>
             <span className="mt-1 block truncate text-[14.5px] font-semibold leading-tight">{name}</span>
           </span>

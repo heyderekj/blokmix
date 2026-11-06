@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, FilePlus2, Type, Wand2, X } from 'lucide-react'
 import { runCommand } from '@/state/commands'
 import { useJevTools } from '@/state/jevSay'
-import { useWordsTray, placeFromTray } from '@/state/jevPour'
+import { placeFromTray, setTray, trayLines } from '@/state/jevPour'
 import { useStore } from '@/state/store'
+import { useTrayOpen } from './SayBar'
 
 /**
  * Your words, two ways: pour them into this page (each line lands where it belongs), or make a new page from them
@@ -13,6 +14,7 @@ export function WordsSheet() {
   const open = useJevTools((s) => s.open)
   const preset = useJevTools((s) => s.text)
   const firstInto = useJevTools((s) => s.into) ?? 'new_page'
+  const auto = useJevTools((s) => s.auto)
   const [text, setText] = useState('')
   const [busy, setBusy] = useState<'pour' | 'page' | null>(null)
   const [note, setNote] = useState<string | null>(null)
@@ -23,16 +25,22 @@ export function WordsSheet() {
   useEffect(() => {
     if (!showing) return
     // Words Say it was given ("make a page from this: …") or pasted on the board come along.
-    setText(preset && preset.split('\n').length > 1 ? preset : '')
+    const words = preset && preset.split('\n').length > 1 ? preset : ''
+    setText(words)
     setNote(null)
     setMade(null)
-    requestAnimationFrame(() => area.current?.focus())
+    // Pasted into the Say it bar: place them now; the sheet shows how it went (and the other arrangements).
+    if (auto && words) {
+      useJevTools.setState({ auto: undefined })
+      void go(auto, 1, firstInto, words)
+    } else requestAnimationFrame(() => area.current?.focus())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showing, preset])
 
   if (!showing) return null
-  const close = () => useJevTools.setState({ open: null, text: undefined, into: undefined })
-  const go = async (mode: 'pour' | 'page', arrangement: 1 | 2 | 3 = 1, into: 'new_page' | 'this_page' = 'new_page') => {
-    const words = mode === 'page' && made ? made.text : text
+  const close = () => useJevTools.setState({ open: null, text: undefined, into: undefined, auto: undefined })
+  const go = async (mode: 'pour' | 'page', arrangement: 1 | 2 | 3 = 1, into: 'new_page' | 'this_page' = 'new_page', given?: string) => {
+    const words = given ?? (mode === 'page' && made ? made.text : text)
     if (!words.trim()) return
     setBusy(mode)
     setNote(null)
@@ -40,10 +48,13 @@ export function WordsSheet() {
       const out = (await runCommand(mode === 'pour' ? 'pour_words' : 'page_from_words', mode === 'pour' ? { text: words } : { text: words, into, arrangement }, 'you')) as { message: string }
       setNote(out.message)
       useStore.getState().showFlash(out.message, { undo: true })
+      // Lines it wasn't sure of show at once, beside the bar.
+      if (trayLines(useStore.getState()).length) useTrayOpen.setState({ open: true })
       if (mode === 'page') setMade({ text: words, arrangement })
       else close()
     } catch (e) {
       setNote(e instanceof Error ? e.message : String(e))
+      if (given) setText(given)
     } finally {
       setBusy(null)
     }
@@ -115,10 +126,13 @@ export function WordsSheet() {
 
 /** Lines a pour wasn't sure of, each with its two best homes. */
 export function WordsTray() {
-  const lines = useWordsTray((s) => s.lines)
-  const [open, setOpen] = useState(true)
-  if (!lines.length) return null
-  const drop = (id: string) => useWordsTray.setState((s) => ({ lines: s.lines.filter((x) => x.id !== id) }))
+  const lines = useStore(trayLines)
+  const open = useTrayOpen((s) => s.open)
+  const setOpen = (v: boolean | ((v: boolean) => boolean)) => useTrayOpen.setState((s) => ({ open: typeof v === 'function' ? v(s.open) : v }))
+  // Content shows them in its own column.
+  const inContent = useStore((s) => s.ui.sheet === 'guide' && s.ui.guideTab === 'content')
+  if (!lines.length || !open || inContent) return null
+  const drop = (id: string) => setTray((all) => all.filter((x) => x.id !== id))
   return (
     <div className="pointer-events-auto w-[min(440px,calc(100vw-24px))] animate-pop" data-words-tray>
       <div className="glass-menu rounded-2xl p-1.5">

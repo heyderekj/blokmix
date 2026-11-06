@@ -294,6 +294,20 @@ export interface ProjectContent {
   /** What the site is for, as answered in the guided start (the five-second test compares a visitor's guess with it). */
   kind?: Kind
   fields: Partial<Record<SectionType, Record<string, string>>>
+  /**
+   * Fields (`type.field`) whose words came from you even though they live here, not on a section: the name and email
+   * the guided start filled in, the headline you gave it. Everything else in `fields` is filler until you change it.
+   */
+  mine?: string[]
+  /** Lines of your words that a pour or a page from your words wasn't sure where to put: Words to place. */
+  tray?: TrayLine[]
+}
+
+/** A line of your words waiting for a home, with the best two guesses (a section and the role it'd play there). */
+export interface TrayLine {
+  id: string
+  text: string
+  homes: { slotId: string; role: string; label: string }[]
 }
 
 /** ReviseMy's mark kinds, so marks can move between the sibling apps. */

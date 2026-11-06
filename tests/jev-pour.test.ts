@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { currentSlots, useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
 import { splitLines, roleOfField } from '@/core/jev/pour'
-import { placeFromTray, useWordsTray } from '@/state/jevPour'
+import { placeFromTray, setTray, trayLines } from '@/state/jevPour'
 import { wordsFor } from '@/state/commands/refs'
 import type { JevRequest } from '@/core/jev'
 import { fakeJev, realJev } from './helpers/fakeJev'
@@ -49,7 +49,7 @@ const lineText = (_name: string, _req: JevRequest, q?: { instructions: unknown }
 beforeEach(() => {
   useStore.getState().resetDemo()
   useStore.temporal.getState().clear()
-  useWordsTray.setState({ lines: [] })
+  setTray(() => [])
 })
 afterEach(() => realJev())
 
@@ -111,10 +111,10 @@ describe('pour in your words', () => {
       return undefined
     })
     await runCommand('pour_words', { text: 'Simple prices' }, 'you')
-    const [line] = useWordsTray.getState().lines
+    const [line] = trayLines(useStore.getState())
     expect(line.homes[0]).toMatchObject({ slotId: sid('pricing'), role: 'heading', label: 'Pricing · Heading' })
     expect(placeFromTray(line, line.homes[0])).toBe(true)
     expect(wordsFor(currentSlots(useStore.getState()).find((s) => s.type === 'pricing')!).heading).toBe('Simple prices')
-    expect(useWordsTray.getState().lines).toHaveLength(0)
+    expect(trayLines(useStore.getState())).toHaveLength(0)
   })
 })

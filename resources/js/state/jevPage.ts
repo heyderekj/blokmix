@@ -2,7 +2,7 @@
 // so the other arrangements come instantly), code builds the sections from built-in
 // layouts that fit, and Pour places every line word for word.
 
-import { DEFAULT_KEEP, type Slot } from '@/core/types'
+import { DEFAULT_KEEP, type ProjectContent, type SectionType, type Slot, type TrayLine } from '@/core/types'
 import { setPageSlots } from '@/core/site'
 import { sectionClip, listContext } from '@/core/lists'
 import { outline } from '@/core/outline'
@@ -12,8 +12,8 @@ import { chunkLines, chooseLayouts, pageRequest, pageSections, readPage, readsFo
 import { library, slotClip } from '@/data/library'
 import { askJev } from '@/lib/jev'
 import { uid } from './uid'
-import { currentSlots, useStore } from './store'
-import { applyPour, pourTargets, trayFrom, useWordsTray } from './jevPour'
+import { useStore } from './store'
+import { pourSlot, setTray, trayFrom } from './jevPour'
 import { findPage } from './commands/refs'
 
 export interface PagePlan {
@@ -45,6 +45,48 @@ function capacity(clipId: string, lead: Role | null): number {
   return Math.max(0, ...spots.filter((s) => s.role === lead && s.list).map((s) => s.list!.max))
 }
 
+/** A page made from your words, off the board: its sections with your words in them, and the lines left over. */
+export interface WordsPage {
+  slots: Slot[]
+  /** Lines it wasn't sure of, with their homes in these sections. */
+  tray: TrayLine[]
+  placed: number
+  /** The section types, top to bottom ("Hero · Menu · FAQ"). */
+  types: SectionType[]
+}
+
+/**
+ * Build it, off the board: the `arrangement`th layouts that fit (1–3), every line poured in, and anything the text
+ * didn't fill (an eyebrow, a second button, a note) hidden, never left saying the layout's sample words. Pictures stay.
+ * `ids` names the sections (the board's uid, or fixed ids for the guided start's candidates).
+ */
+export function wordsPage(plan: PagePlan, arrangement: 1 | 2 | 3, content: ProjectContent, ids: (i: number) => string = () => uid('slot')): WordsPage {
+  const sections = pageSections(plan.read)
+  const clipIds = chooseLayouts(sections, plan.read, library, capacity, arrangement - 1)
+  let slots: Slot[] = sections.map((s, i) => ({ id: ids(i), type: s.type, clipId: clipIds[i], locked: false, keep: { ...DEFAULT_KEEP } }))
+  const spots = slots.flatMap((s) => {
+    const clip = slotClip(s)
+    return spotsOf(s.id, s.type, outline(parseHtml(clip.html)), (listId) => listContext(clip, s, listId)?.max ?? 0)
+  })
+  const reads = readsFor(plan.read, sections, slots.map((s) => s.id))
+  const groupList = new Map(plan.read.chunks.flatMap((c) => c.lines.map((l) => [l.group, c.isList] as const)))
+  const poured = composePour(reads, spots, (g) => groupList.get(g) ?? null)
+  slots = slots.map((s) => hideUnfilled(pourSlot(s, poured, content)))
+  return { slots, tray: trayFrom(poured, slots), placed: poured.placed.length, types: sections.map((s) => s.type) }
+}
+
+/** Only your words: every small block whose field your text didn't fill is hidden (show it again from its section). */
+function hideUnfilled(s: Slot): Slot {
+  const clip = slotClip(s)
+  const own = { ...(s.edits?.[s.clipId] ?? {}) }
+  for (const b of clip.blocks) {
+    if (b.kind === 'image' || b.kind === 'list' || b.kind === 'item' || b.kind === 'card') continue
+    const field = b.field ?? clip.blocks.find((x) => x.parent === b.id && x.field)?.field
+    if (field && !s.words?.[field]) own[b.id] = { ...own[b.id], hidden: true }
+  }
+  return { ...s, edits: { ...s.edits, [s.clipId]: own } }
+}
+
 export interface BuiltPage {
   pageId: string
   sections: string[]
@@ -53,43 +95,20 @@ export interface BuiltPage {
   kind: PageRead['kind']
 }
 
-/**
- * Build it: a new page (or the open page's own sections replaced) from the `arrangement`th layouts that fit (1–3),
- * then every line poured in. Call inside one undo step.
- */
+/** Build it on the board: a new page, or the open page's own sections replaced. Call inside one undo step. */
 export function buildPage(plan: PagePlan, arrangement: 1 | 2 | 3, into: 'new_page' | 'this_page', pageRef?: string): BuiltPage {
   const st = useStore.getState()
-  const sections = pageSections(plan.read)
-  const clipIds = chooseLayouts(sections, plan.read, library, capacity, arrangement - 1)
-  const slots: Slot[] = sections.map((s, i) => ({ id: uid('slot'), type: s.type, clipId: clipIds[i], locked: false, keep: { ...DEFAULT_KEEP } }))
+  const made = wordsPage(plan, arrangement, st.content)
   let pageId: string
   if (into === 'new_page') {
-    pageId = st.addPage({ path: '/your-words', title: 'From your words', slots })
+    pageId = st.addPage({ path: '/your-words', title: 'From your words', slots: made.slots })
   } else {
     const page = findPage(pageRef)
     pageId = page.id
-    useStore.setState((x) => ({ site: setPageSlots(x.site, page.id, slots), ui: { ...x.ui, pageId: page.id, focusedSlotId: null, selectedBlockId: null } }))
+    useStore.setState((x) => ({ site: setPageSlots(x.site, page.id, made.slots), ui: { ...x.ui, pageId: page.id, focusedSlotId: null, selectedBlockId: null } }))
   }
   // The site's kind, when the guided start didn't say and Jev is sure.
   if (plan.read.kind && !useStore.getState().content.kind) useStore.setState((x) => ({ content: { ...x.content, kind: plan.read.kind! } }))
-  const fresh = currentSlots(useStore.getState()).filter((s) => slots.some((n) => n.id === s.id))
-  const { spots } = pourTargets(fresh)
-  const reads = readsFor(plan.read, sections, slots.map((s) => s.id))
-  const groupList = new Map(plan.read.chunks.flatMap((c) => c.lines.map((l) => [l.group, c.isList] as const)))
-  const poured = composePour(reads, spots, (g) => groupList.get(g) ?? null)
-  const done = applyPour(poured)
-  // Only your words: anything your text didn't fill (an eyebrow, a second button, a note) is hidden, never left saying
-  // the layout's sample words. Pictures stay; show a hidden block again from its section.
-  const after = currentSlots(useStore.getState()).filter((s) => slots.some((n) => n.id === s.id))
-  for (const s of after) {
-    const clip = slotClip(s)
-    for (const b of clip.blocks) {
-      if (b.kind === 'image' || b.kind === 'list' || b.kind === 'item' || b.kind === 'card') continue
-      const field = b.field ?? clip.blocks.find((x) => x.parent === b.id && x.field)?.field
-      if (field && !s.words?.[field]) useStore.getState().editBlock(s.id, b.id, { hidden: true })
-    }
-  }
-  const tray = trayFrom(poured)
-  useWordsTray.setState((s) => ({ lines: [...s.lines, ...tray] }))
-  return { pageId, sections: describeSections(sections.map((s) => s.type)).split(' · '), placed: done.placed, waiting: tray.length, kind: plan.read.kind }
+  setTray((lines) => [...lines, ...made.tray])
+  return { pageId, sections: describeSections(made.types).split(' · '), placed: made.placed, waiting: made.tray.length, kind: plan.read.kind }
 }

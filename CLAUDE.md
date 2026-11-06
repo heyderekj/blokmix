@@ -134,15 +134,23 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 ## Guided start
 
 The audience is non-designers first (`docs/simple-vision.md`). New mix (and the browser-only mix's first visit, or
-"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx`: what you're making (`KINDS`), three raw starts in Wireframe to
-pick a structure, then that page under the skins with an optional brand color (`core/palette.ts` `paletteFrom`, AA on
-every `CONTRAST_PAIRS`). `core/start.ts` `startCandidates` offers matching starter mixes
+"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx` on one box (`ui/start/StartBox.tsx`): the name, then a
+sentence about the site or the words you already have. Code tells them apart (`core/jev/describe.ts` `textMode`: one or
+two short lines describe). A description goes to Jev (`describeRequest`: the kind, each optional section, the look) and
+becomes the kind's page with sections added or dropped (`sectionsFor`); pasted words become a page from your words in
+three arrangements (`lib/startFromText.ts` `wordsCandidates`, the pure `state/jevPage.ts` `wordsPage`, a nav and footer from
+`chromeFor`; lines it wasn't sure of ride along in `content.tray`). What Jev heard shows as chips you can change (kind,
+sections ✕ and +, looks). "Answer three questions" is the old form (what you're making, `KINDS`), and the only way in when
+Jev is off. Then three raw starts in Wireframe to pick a structure, then that page under the skins, Jev's look first ("Jev's
+pick") with an optional brand color (`core/palette.ts` `paletteFrom`, AA on every `CONTRAST_PAIRS`) or colors by feel from
+the description (`ui/start/FeelColors.tsx`, `StartInput.palette`). `core/start.ts` `startCandidates` offers matching starter mixes
 (`samples/starters/*.json`, checked by `checkStarters`) first, then fills the kind's `RECIPES` from the library with
 `suggestClip`, built-in layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, with the
 name, an email and the year filled in (a test keeps Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone and widths between
 (`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its first screen
 holds up (after Shu Ding's "The Calculus of Interfaces"). The pick becomes the mix; every start is kept as a version
-(A/B/C). Hosted, it posts to `POST /api/mixes`; agents use `suggest_starts` and `apply_start`.
+(A/B/C). Hosted, it posts to `POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, the
+box's words, and `sections`). The flash says how many spots still hold sample words.
 
 ## Skins and the contract
 
@@ -182,7 +190,12 @@ dates: code does those.
   menu's pad) and stock photos best fit first, `understand` (Say it, ⌘K: an allow-listed intent plus closed-set
   arguments from the page → one ordinary command), `pour_words` and `page_from_words` (your words placed verbatim; Words
   to place tray), `suggest_palettes`/`set_palette` (Colors by feel in the Feel tile; candidates are AA by construction,
-  drawn as swatch cards), `suggest_treatments` (Dress it up in a section's Style panel).
+  drawn as swatch cards), `suggest_treatments` (Dress it up in a section's Style panel), and the start box
+  (`describe.ts`, `suggest_starts` with `text`; see Guided start).
+- On the board Say it is a bar that's always there above the Dock (`ui/jev/SayBar.tsx`, ⌘K focuses it). It takes a
+  command, or a paste of two or more lines: "Pour into this page" / "Make a new page" hand the words to `WordsSheet`
+  (`useJevTools.auto`), which places them at once. Words to place (`content.tray`, saved and undone with the mix's words;
+  `trayLines`, `setTray`) unfolds from the "n to place" chip beside the bar.
 - What to make next: `npx vite-node scripts/library/gaps.ts [--all]` reads every library screenshot (type, shape, ~30
   elements and treatments) into `.out/library/gaps.md`; unmet asks from Say it, Pour and Dress it up are counted by name
   only (`jev_wants`, `POST /api/jev/wants`) and shown to owners on `/library/admin`.
@@ -434,6 +447,13 @@ use them in shows the same entries.
 ### Content
 
 Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI calls it Content, never "CMS".
+- Content is a document (`ui/content/PageDoc.tsx`): on a wide window it takes the main area in place of the canvas
+  (`ui/content/ContentDoc.tsx`, Escape goes back), on a narrow one it sits in the top bar's pill (`ContentPanel`). The page's
+  words top to bottom, each at its size on the page (by `roleOfField`), typed into in place; a section's name goes back to it
+  on the canvas. Whose words they are comes from `core/ownWords.ts` (`fieldOwner`, `pageOwnership`): yours (in `slot.words`,
+  or `content.mine`: the name, email and one line the start was given) or not yet (a layout's or the start's sample words,
+  muted and marked; focusing one selects it). The header counts "18 of 31 are yours"; hidden blocks don't count. A paste
+  box at the bottom pours more in; Words to place is a column beside it.
 - Every field's words have options (`slot.options`): your copy, the clip's words, and options you or an
   agent kept. ‹ 2/3 › in the block bar (or `[` `]`) cycles them; Keep, Retire, Put it back and "Another way
   to say it" are Koati's words.

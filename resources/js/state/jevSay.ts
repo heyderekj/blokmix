@@ -19,7 +19,14 @@ import { runCommand } from './commands'
 import { wordsFor } from './commands/refs'
 
 /** Which of Jev's tools Say it (or anything else) asked to open, and on what. */
-export const useJevTools = create<{ open: 'pour' | 'page' | 'colors' | 'dress' | null; slotId?: string; text?: string; into?: 'new_page' | 'this_page' }>()(() => ({ open: null }))
+export const useJevTools = create<{
+  open: 'pour' | 'page' | 'colors' | 'dress' | null
+  slotId?: string
+  text?: string
+  into?: 'new_page' | 'this_page'
+  /** Words handed over to place at once (pasted into the Say it bar), not to look at first. */
+  auto?: 'pour' | 'page'
+}>()(() => ({ open: null }))
 
 export function sayContext(): SayContext {
   const st = useStore.getState()

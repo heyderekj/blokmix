@@ -39,9 +39,12 @@ Optional: publish the current mix to a noindex/nofollow page on blok.page so you
 
 ## Guided start
 
-New mix asks what you're making (a product, a studio, a local business, an event, a portfolio, a newsletter). It then
+New mix opens on one box. Say what you're making in a sentence ("a bakery on Elm Street that takes pre-orders, with our
+menu and hours"), or paste what you already have: an About page, a menu, your old site. Jev reads it and picks: the kind of
+site, the sections, the look, the colors. It never writes; a sentence describes the site and stays off the page, and pasted
+words land as written. What it heard shows as chips you can change. Three plain questions stand in when Jev is off. It then
 shows three raw starts side by side, A/B/C, to pick a structure: matching starter mixes first, then mixes put together
-from the library. That page then goes under the skins, side by side, with one brand color if you have one. Each start is measured before you see it, in plain words: does the headline and button show on a
+from the library (or your words in three arrangements). That page then goes under the skins, side by side, with one brand color if you have one. Each start is measured before you see it, in plain words: does the headline and button show on a
 laptop and a phone without scrolling, does anything spill sideways at any width. The other two starts stay as versions to come back to.
 
 The measuring borrows from Shu Ding's "The Calculus of Interfaces" (a page is a function of a few inputs, so you can
@@ -66,4 +69,4 @@ Blokmix can exist as a small, separate product because the job is different from
 - Friend feedback (software dev who is not strong at websites): useful handoff to existing AI tools/stacks, stands apart from Figma-like apps, do not become Squarespace.
 - Published pages are snapshots for sharing, not production sites.
 
-Last updated: 2026-10-29
+Last updated: 2026-11-06

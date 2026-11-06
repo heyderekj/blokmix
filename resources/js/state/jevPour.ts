@@ -3,24 +3,30 @@
 // Words a pour replaces stay as options (‹ › brings them back); lines Jev isn't sure of
 // wait in the Words to place tray.
 
-import { create } from 'zustand'
-import type { Slot } from '@/core/types'
+import type { ProjectContent, Slot, TrayLine } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { currentWords, keepOption } from '@/core/words'
-import { listContext } from '@/core/lists'
+import { editList, listContext } from '@/core/lists'
 import { composePour, listRunsFrom, pourRequest, readLines, spotsOf, splitLines, type Line, type PourPlan, type PourSection, type Role, type Spot } from '@/core/jev/pour'
 import { slotClip } from '@/data/library'
 import { askJev } from '@/lib/jev'
-import { currentSlots, useStore } from './store'
-import { changeList, findOutlineList, itemsOf, outlineOf, putSlot, wordsFor } from './commands/refs'
+import { currentSlots, useStore, type State } from './store'
+import { findOutlineList, itemsOf, outlineOf, putSlot, wordsFor } from './commands/refs'
 
-/** Lines a pour couldn't place for sure, each with its best two homes. Not undoable state. */
-export interface TrayLine {
-  id: string
-  text: string
-  homes: { slotId: string; role: Role; label: string }[]
+export type { TrayLine }
+
+const NO_LINES: TrayLine[] = []
+/** Words to place: lines a pour couldn't place for sure, each with its best two homes. Saved with the mix's words. */
+export const trayLines = (s: Pick<State, 'content'>) => s.content.tray ?? NO_LINES
+
+/** Change the tray (inside whatever undo step is running). */
+export function setTray(change: (lines: TrayLine[]) => TrayLine[]) {
+  useStore.setState((st) => {
+    const lines = change(st.content.tray ?? [])
+    const { tray: _old, ...rest } = st.content
+    return { content: lines.length ? { ...rest, tray: lines } : rest }
+  })
 }
-export const useWordsTray = create<{ lines: TrayLine[] }>()(() => ({ lines: [] }))
 
 /** The sections a pour may write into: not the shared nav or footer, not locked, not keeping their source's words. */
 export function pourTargets(slots: Slot[]): { sections: PourSection[]; spots: Spot[] } {
@@ -58,50 +64,66 @@ export async function planPour(text: string, slots: Slot[] = currentSlots(useSto
 const sectionOf = (id: string) => currentSlots(useStore.getState()).find((s) => s.id === id)
 
 /** Your words in a field, keeping what it showed before as an option. */
-function write(slot: Slot, field: string, text: string): Slot {
-  const st = useStore.getState()
-  const before = currentWords(slotClip(slot), slot, st.content, field)
+function write(slot: Slot, field: string, text: string, content: ProjectContent): Slot {
+  const before = currentWords(slotClip(slot), slot, content, field)
   const kept = before && before.trim() !== text.trim() ? keepOption(slot, field, before, 'you') : slot
   return { ...kept, words: { ...kept.words, [field]: text } }
 }
 
-/** Write a plan: single fields, then each list grown or trimmed to the items poured and filled. Call inside one step. */
+/**
+ * One section with a plan's words written in: single fields, then each list grown or trimmed to the items poured
+ * and filled. Pure: the board and the guided start both use it.
+ */
+export function pourSlot(slot: Slot, plan: PourPlan, content: ProjectContent): Slot {
+  for (const [field, text] of Object.entries(plan.words[slot.id] ?? {})) slot = write(slot, field, text, content)
+  for (const l of Object.values(plan.lists[slot.id] ?? {})) {
+    if (!l.items.length) continue
+    const want = Math.min(l.items.length, l.max || l.items.length)
+    const change = (op: Parameters<typeof editList>[3]) => {
+      try {
+        slot = editList(slot, slotClip(slot), content, op)
+        return true
+      } catch {
+        return false
+      }
+    }
+    while (itemsOf(slot, l.listId).length < want) if (!change({ op: 'add', listId: l.listId })) break
+    while (itemsOf(slot, l.listId).length > want) {
+      const items = itemsOf(slot, l.listId)
+      if (!change({ op: 'remove', itemId: items[items.length - 1].id })) break
+    }
+    const node = findOutlineList(outlineOf(slot), l.listId)
+    if (!node) continue
+    l.items.slice(0, want).forEach((item, n) => {
+      const fields = node.items[n]?.nodes.filter((x) => x.t === 'field') ?? []
+      for (const [key, text] of Object.entries(item)) {
+        const f = fields.find((x) => x.t === 'field' && x.key === key)
+        if (f && f.t === 'field') slot = write(slot, f.field, text, content)
+      }
+    })
+  }
+  return slot
+}
+
+/** Write a plan onto the board. Call inside one step. */
 export function applyPour(plan: PourPlan): { sections: number; placed: number } {
   const touched = new Set<string>([...Object.keys(plan.words), ...Object.keys(plan.lists)])
+  const content = useStore.getState().content
   for (const slotId of touched) {
-    let slot = sectionOf(slotId)
-    if (!slot) continue
-    for (const [field, text] of Object.entries(plan.words[slotId] ?? {})) slot = write(slot, field, text)
-    for (const l of Object.values(plan.lists[slotId] ?? {})) {
-      if (!l.items.length) continue
-      const want = Math.min(l.items.length, l.max || l.items.length)
-      while (itemsOf(slot, l.listId).length < want) slot = changeList(slot, { op: 'add', listId: l.listId })
-      while (itemsOf(slot, l.listId).length > want) {
-        const items = itemsOf(slot, l.listId)
-        slot = changeList(slot, { op: 'remove', itemId: items[items.length - 1].id })
-      }
-      const node = findOutlineList(outlineOf(slot), l.listId)
-      if (!node) continue
-      l.items.slice(0, want).forEach((item, n) => {
-        const fields = node.items[n]?.nodes.filter((x) => x.t === 'field') ?? []
-        for (const [key, text] of Object.entries(item)) {
-          const f = fields.find((x) => x.t === 'field' && x.key === key)
-          if (f && f.t === 'field') slot = write(slot!, f.field, text)
-        }
-      })
-    }
-    putSlot(slot)
+    const slot = sectionOf(slotId)
+    if (slot) putSlot(pourSlot(slot, plan, content))
   }
   return { sections: touched.size, placed: plan.placed.length }
 }
 
-/** The unsure lines into the tray, with their homes named. */
-export function trayFrom(plan: PourPlan): TrayLine[] {
+/** The unsure lines as tray lines, with their homes named from these sections (the open page's by default). */
+export function trayFrom(plan: PourPlan, slots: Slot[] = currentSlots(useStore.getState())): TrayLine[] {
+  const stamp = Date.now().toString(36)
   return plan.tray.map(({ line, homes }) => ({
-    id: `${Date.now().toString(36)}-${line.i}`,
+    id: `${stamp}-${line.i}`,
     text: line.text,
     homes: homes.map((h) => {
-      const s = sectionOf(h.slotId)
+      const s = slots.find((x) => x.id === h.slotId)
       return { ...h, label: `${s ? TYPE_LABEL[s.type] : 'Section'} · ${roleWord(h.role)}` }
     }),
   }))
@@ -122,7 +144,7 @@ export function placeFromTray(line: TrayLine, home: TrayLine['homes'][number]): 
   const isEmpty = (sp: Spot) => !currentWords(slotClip(slot), slot, st.content, sp.field).trim()
   const spot = spots.filter((s) => s.role === home.role).sort((a, b) => Number(isEmpty(b)) - Number(isEmpty(a)))[0]
   if (!spot) return false
-  putSlot(write(slot, spot.field, line.text))
-  useWordsTray.setState((s) => ({ lines: s.lines.filter((x) => x.id !== line.id) }))
+  putSlot(write(slot, spot.field, line.text, st.content))
+  setTray((lines) => lines.filter((x) => x.id !== line.id))
   return true
 }
