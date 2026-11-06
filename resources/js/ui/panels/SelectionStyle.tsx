@@ -8,6 +8,7 @@ import { BLOCK_LABEL } from '@/core/blocks'
 import { slotClip } from '@/data/library'
 import { useStore, currentSlots } from '@/state/store'
 import { frameBeside } from '../canvas/inView'
+import { setInset } from '../canvas/insets'
 import { StyleTab } from '../frames/SectionPill'
 import { BlockStyleBody } from '../blocks/BlockBar'
 import { setStylePanel, useStylePanel } from './stylePanel'
@@ -32,8 +33,22 @@ export function SelectionStyle() {
   return <Panel slot={slot} block={block} />
 }
 
+/** The panel's width beside the canvas (on phones it's a sheet along the bottom and takes none). */
+const PANEL_INSET = 340
+
 function Panel({ slot, block }: { slot: Slot; block?: BlockInfo }) {
   const panel = useRef<HTMLDivElement>(null)
+  // While docked, the page fits the space left of it.
+  useEffect(() => {
+    const wide = window.matchMedia('(min-width: 640px)')
+    const update = () => setInset('right', wide.matches ? PANEL_INSET : 0)
+    update()
+    wide.addEventListener('change', update)
+    return () => {
+      wide.removeEventListener('change', update)
+      setInset('right', 0)
+    }
+  }, [])
   // Frame the section when you arrive, and again when a change of layout or width changes its shape (after the row
   // settles). Moving between its blocks leaves the canvas alone.
   useEffect(() => {

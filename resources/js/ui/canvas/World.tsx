@@ -89,7 +89,7 @@ function AgentCursor({ placements }: { placements: ReturnType<typeof placeVersio
       className="pointer-events-none absolute left-0 top-0 z-40"
       style={{ transform: `translate(${pos.x}px, ${pos.y}px)`, transition: 'transform 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms', opacity: target ? 1 : 0 }}
     >
-      <div className="origin-top-left" style={{ transform: 'scale(calc(1 / var(--z)))' }}>
+      <div className="origin-top-left" style={{ transform: 'scale(calc(1 / var(--zl)))' }}>
         <MousePointer2 size={22} fill="var(--agent)" color="white" strokeWidth={1.5} className="drop-shadow" />
         <span className="ml-4 inline-block rounded-full rounded-tl-sm bg-agent px-2 py-0.5 text-[12px] font-semibold text-white shadow-md">
           {agent.name}
