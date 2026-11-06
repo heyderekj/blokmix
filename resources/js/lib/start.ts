@@ -41,7 +41,7 @@ export function startedWords(name: string, mix: Pick<MixData, 'site' | 'content'
   const waiting = mix.content.tray?.length ?? 0
   const left = total - yours
   const who = name.trim() || 'your mix'
-  if (waiting) return `Started ${who}. ${waiting} of your lines wait in Words to place; Content shows the rest.`
+  if (waiting) return `Started ${who}. ${waiting} of your lines aren’t placed yet; Content shows them.`
   return left ? `Started ${who}. ${left} spots on Home still hold sample words: Content shows them.` : `Started ${who}. The other starts are kept as drafts.`
 }
 

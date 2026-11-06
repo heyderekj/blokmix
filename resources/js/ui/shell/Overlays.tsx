@@ -90,7 +90,7 @@ const HELP: [string, [string, string][]][] = [
   [
     'Versions',
     [
-      ['⌘K', 'Say what to change (“roomier”, “FAQ above pricing”)'],
+      ['⌘K', 'Change something (“roomier”, “FAQ above pricing”)'],
       ['↵ / ⌘S', 'Save a version'],
       ['U', 'Original ↔ Your style'],
       ['⌘Z / ⇧⌘Z', 'Undo / redo'],

@@ -266,7 +266,7 @@ export function buildAction(intent: IntentId, res: JevResponse, text: string, ct
       const k = arg('skin')
       const skin = k && ctx.skins.find((x) => x.id === k.option)
       if (!k || !skin) return null
-      return done({ command: 'apply_skin', input: { skin: skin.id }, words: `Dress it in ${skin.name}` }, k.p)
+      return done({ command: 'apply_skin', input: { skin: skin.id }, words: `Use the ${skin.name} theme` }, k.p)
     }
     case 'surprise':
       return done({ command: 'surprise_me', input: {}, words: 'Surprise me' })
@@ -280,15 +280,15 @@ export function buildAction(intent: IntentId, res: JevResponse, text: string, ct
     case 'check':
       return done({ command: 'five_second_test', input: {}, words: 'Show the first screen to a visitor' })
     case 'colors':
-      return done({ open: 'colors', words: 'Colors by feel' })
+      return done({ open: 'colors', words: 'Find colors' })
     case 'dress': {
       const s = sectionArg()
-      return done({ open: 'dress', words: s ? `Dress up ${nameOf(ctx, s.id)}` : 'Dress it up', slotId: s?.id }, s?.p ?? 1)
+      return done({ open: 'dress', words: s ? `Background ideas for ${nameOf(ctx, s.id)}` : 'Background ideas', slotId: s?.id }, s?.p ?? 1)
     }
     case 'pour':
-      return done({ open: 'pour', words: 'Pour in your words' })
+      return done({ open: 'pour', words: 'Add your text to this page' })
     case 'page':
-      return done({ open: 'page', words: 'A page from your words' })
+      return done({ open: 'page', words: 'Make a page from your text' })
     case 'none':
       return null
   }

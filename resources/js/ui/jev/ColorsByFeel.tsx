@@ -38,7 +38,7 @@ export function ColorsByFeel() {
     setNote(null)
     const r = await suggestPalettes(ask)
     setBusy(false)
-    if (!r?.length) setNote('No answer this time. Try again.')
+    if (!r?.length) setNote('No suggestions this time. Try again.')
     setPicks(r)
   }
 
@@ -54,7 +54,7 @@ export function ColorsByFeel() {
   return (
     <div className="mt-3 border-t border-zinc-950/6 pt-3">
       <div className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-medium text-zinc-700">
-        <Wand2 size={12} className="text-zinc-500" /> Colors by feel
+        <Wand2 size={12} className="text-zinc-500" /> Find colors
       </div>
       <form
         onSubmit={(e) => {

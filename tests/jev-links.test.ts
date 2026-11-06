@@ -75,6 +75,6 @@ describe('smart links', () => {
 
   it('says suggestions are off instead of guessing', async () => {
     fakeJev(() => undefined, { off: true })
-    await expect(runCommand('place_links', {}) as Promise<unknown>).rejects.toThrow(/Suggestions/)
+    await expect(runCommand('place_links', {}) as Promise<unknown>).rejects.toThrow(/Suggestions (are off|aren’t available)/)
   })
 })

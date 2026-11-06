@@ -18,7 +18,7 @@ const httpTransport: JevTransport = async (req, signal) => {
     headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...xsrf() },
     body: JSON.stringify({ ...req, model: req.model ?? (needsImages(req) ? 'jev-preview' : 'jev-latest') }),
   })
-  if (!res.ok) throw new Error(`/api/jev answered ${res.status}`)
+  if (!res.ok) throw new Error(`Suggestions answered ${res.status}`)
   return (await res.json()) as JevResponse
 }
 
