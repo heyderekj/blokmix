@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\ClipController;
 use App\Http\Controllers\Api\CollectionAssetController;
 use App\Http\Controllers\Api\CollectionController;
+use App\Http\Controllers\Api\JevController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\Api\PublicationController;
@@ -92,6 +93,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/collections/{collection}/assets', [CollectionAssetController::class, 'store'])->whereUlid('collection')->name('collections.assets.store');
         Route::get('/collections/{collection}/assets/{key}', [CollectionAssetController::class, 'show'])->whereUlid('collection')->name('collections.assets.show');
         Route::get('/collections/{collection}/assets/{key}/poster', [CollectionAssetController::class, 'poster'])->whereUlid('collection')->name('collections.assets.poster');
+
+        // Jev (TypeSafe): placing, picking and checking things on the board. Its key stays here.
+        Route::get('/jev/status', [JevController::class, 'status'])->name('jev.status');
+        Route::post('/jev', [JevController::class, 'ask'])->middleware('throttle:jev')->name('jev.ask');
 
         Route::get('/unsplash/search', [UnsplashController::class, 'search'])->middleware('throttle:60,1')->name('unsplash.search');
         Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');

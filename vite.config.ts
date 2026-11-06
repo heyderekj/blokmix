@@ -4,13 +4,15 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import laravel from 'laravel-vite-plugin'
 import { fileURLToPath, URL } from 'node:url'
+import { jevDevProxy } from './scripts/jev/devProxy'
 
 // BLOKMIX_HOST=laravel builds for Laravel (public/build, Inertia pages through resources/views/app.blade.php,
 // dev server on 5174 so it runs beside the Vite-only one). Without it, Vite serves index.html on its own.
 const hosted = process.env.BLOKMIX_HOST === 'laravel'
 
 export default defineConfig({
-  plugins: [...(hosted ? [laravel({ input: ['resources/js/app.tsx'], refresh: true })] : []), react(), tailwindcss()],
+  // Hosted, Laravel answers /api/jev; the Vite-only dev server proxies it itself (the key stays on this machine).
+  plugins: [...(hosted ? [laravel({ input: ['resources/js/app.tsx'], refresh: true })] : [jevDevProxy()]), react(), tailwindcss()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./resources/js', import.meta.url)),

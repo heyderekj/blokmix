@@ -47,6 +47,12 @@ return [
     'unsplash_key' => env('UNSPLASH_ACCESS_KEY'),
 
     /**
+     * TypeSafe's key for Jev (console.typesafe.ai/keys), kept on the server: the board asks through /api/jev. Without
+     * it Jev is off and every feature that uses it falls back to what Blokmix did before.
+     */
+    'jev_key' => env('TYPESAFE_API_KEY'),
+
+    /**
      * Who runs Blokmix: these accounts see the waitlist (/waitlist). Comma-separated emails in BLOKMIX_OWNERS;
      * without it, Derek's account.
      */

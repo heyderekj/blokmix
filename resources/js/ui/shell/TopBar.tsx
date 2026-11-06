@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { confirmAction } from './Confirm'
 import { motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, Globe, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
+import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, Globe, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, Wand2, X } from 'lucide-react'
 import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
 import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
 import { pickFile } from '@/lib/pickFile'
@@ -19,6 +19,7 @@ import { Avatar } from './Avatar'
 import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
 import { useAgentLink } from '@/lib/agentLink'
+import { jevAvailable } from '@/lib/jev'
 import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
 import { canEdit, useAccount } from '@/lib/account'
@@ -313,6 +314,7 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
           <MixName value={mixName} onChange={(v) => st().renameMix(v)} />
         </div>
         <AgentAccess />
+        <JevHelp />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         <MenuItem icon={theme === 'dark' ? Sun : Moon} label={theme === 'dark' ? 'Light mode' : 'Dark mode'} onClick={() => st().setUi({ theme: theme === 'dark' ? 'light' : 'dark' })} />
         <MenuItem
@@ -359,6 +361,33 @@ function AgentAccess() {
         </div>
       </div>
       <Switch on={on} onChange={() => useStore.getState().setUi({ agentAccess: !on })} label="Let agents edit this mix" />
+    </div>
+  )
+}
+
+/** Jev (TypeSafe) places, picks and checks things on the board. On unless you turn it off on this device. */
+function JevHelp() {
+  const on = useStore((s) => s.ui.jev)
+  const [server, setServer] = useState<boolean | null>(null)
+  useEffect(() => {
+    let live = true
+    jevAvailable().then((v) => live && setServer(v))
+    return () => {
+      live = false
+    }
+  }, [])
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl px-2.5 py-2">
+      <Wand2 size={16} className="mt-0.5 shrink-0 text-zinc-500" />
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-medium text-zinc-800">Let Jev help</div>
+        <div className="text-[11.5px] leading-snug text-zinc-500">
+          {server === false
+            ? 'Off here: this server has no TypeSafe key.'
+            : 'Jev, a model by TypeSafe, reads this page’s words (and photos you pick) to decide where things go. It never writes words for you.'}
+        </div>
+      </div>
+      <Switch on={on && server !== false} onChange={() => useStore.getState().setUi({ jev: !on })} label="Let Jev help" />
     </div>
   )
 }
