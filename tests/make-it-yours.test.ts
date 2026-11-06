@@ -71,11 +71,11 @@ describe('trying another layout', () => {
   const linked = (id: string) => library.clips[id].blocks.find((x) => x.field === 'ctaPrimary')
 
   it('keeps your picture and your links', () => {
-    const edits = { [a]: { [pic(a).id]: { media: photo }, ...(linked(a) ? { [linked(a)!.id]: { link: { kind: 'url' as const, url: 'https://fern.example' } } } : {}) } }
+    const edits = { [a]: { [pic(a).id]: { media: photo }, ...(linked(a) ? { [linked(a)!.id]: { link: { to: 'url' as const, url: 'https://fern.example' } } } : {}) } }
     const slot = { id: 's', clipId: a, keep: { ...DEFAULT_KEEP }, edits }
     const next = withClip(slot, b, library)
     expect(next.edits?.[b]?.[pic(b).id]?.media).toEqual(photo)
-    if (linked(a) && linked(b)) expect(next.edits?.[b]?.[linked(b)!.id]?.link).toEqual({ kind: 'url', url: 'https://fern.example' })
+    if (linked(a) && linked(b)) expect(next.edits?.[b]?.[linked(b)!.id]?.link).toEqual({ to: 'url', url: 'https://fern.example' })
     // and back again: the first layout still has its own
     expect(withClip(next, a, library).edits?.[a]).toEqual(edits[a])
   })

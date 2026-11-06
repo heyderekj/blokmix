@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Check, ChevronDown, ChevronRight, ClipboardCopy, Download, FileCode2, FileJson, FileText, Files, Folder, Layers, StickyNote, SwatchBook } from 'lucide-react'
 import type { BuildTarget } from '@/core/types'
 import { openGroups } from '@/core/guide'
 import { agentPrompt, packetFiles, type PacketInput } from '@/core/export/packet'
 import { zipFiles } from '@/core/export/zip'
 import { useAssets } from '@/lib/assets'
+import { useAgentLink } from '@/lib/agentLink'
 import { packetInputFor } from '@/lib/packet'
 import { withBakedPosters } from '@/lib/shaderPosters'
 import { slug } from '@/core/export/astro'
@@ -27,7 +28,10 @@ export function PacketPanel() {
   const sections = useLayout((s) => s.sections)
   const [open, setOpen] = useState<string>('BLOKMIX.md')
   const [copied, setCopied] = useState<string | null>(null)
-  const [tab, setTab] = useState<'files' | 'prompt'>('files')
+  // Open on what to do with it; the files are a tab away for anyone who wants to look inside.
+  const [tab, setTab] = useState<'files' | 'prompt'>('prompt')
+  // Without an agent connected to Blokmix, the prompt leaves out the steps that report back to it.
+  const mcp = useAgentLink((s) => s.status === 'connected')
   const st = useStore.getState
 
   const version = source !== 'mix' ? versions[source] : null
@@ -59,11 +63,11 @@ export function PacketPanel() {
     a.download = `${name}.zip`
     a.click()
     setTimeout(() => URL.revokeObjectURL(a.href), 2000)
-    st().showFlash(`Packet downloaded: ${paths.length} files`)
+    st().showFlash(`Downloaded ${paths.length} files`)
   }
 
   const copyPrompt = async (t: BuildTarget) => {
-    await navigator.clipboard.writeText(agentPrompt(input, t))
+    await navigator.clipboard.writeText(agentPrompt(input, t, undefined, { mcp }))
     flash(`prompt-${t}`)
   }
 
@@ -114,21 +118,24 @@ export function PacketPanel() {
             ))}
           </div>
         </div>
-        <button type="button" onClick={download} className="btn-lit btn-ink cursor-pointer flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold">
-          <Download size={14} /> Download
-        </button>
+        {/* How to build it has its own Download, as step 1 */}
+        {tab === 'files' && (
+          <button type="button" onClick={download} className="btn-lit btn-ink cursor-pointer flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold active:scale-[0.97]">
+            <Download size={14} /> Download
+          </button>
+        )}
       </div>
 
       {/* tier 2: tabs left, targets right */}
       <div className="flex items-end gap-0.5 border-t border-zinc-950/6 px-2 pt-1.5">
-        {(['files', 'prompt'] as const).map((k) => (
+        {(['prompt', 'files'] as const).map((k) => (
           <button
             key={k}
             type="button"
             onClick={() => setTab(k)}
             className={`h-8 rounded-t-lg px-3 text-[12.5px] font-medium transition ${tab === k ? 'bg-well text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
-            {k === 'files' ? 'Files' : 'Agent prompt'}
+            {k === 'files' ? 'Files' : 'How to build it'}
           </button>
         ))}
         <div className="ml-auto pb-1 pr-0.5">
@@ -161,22 +168,51 @@ export function PacketPanel() {
           </>
         ) : (
           <div className="space-y-3">
+            {mcp && (
+              <p className="rounded-xl bg-done/10 px-3 py-2 text-[12px] leading-relaxed text-zinc-700">
+                Your agent is connected. Ask it to build this mix and it shows its progress here.
+              </p>
+            )}
+            <ol className="grid gap-2.5">
+              <Step n={1} title="Download the files" body="Double-click the zip to open it.">
+                <button type="button" onClick={download} className="btn-quiet flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold active:scale-[0.97]">
+                  <Download size={13} /> Download
+                </button>
+              </Step>
+              <Step n={2} title="Open the folder in your AI tool" body="Cursor, Claude Code, or whichever you build with." />
+              {targets.map((t) => (
+                <Step key={t} n={3} title="Paste this prompt" body={`It builds the page in ${t === 'astro' ? 'Astro' : 'Next.js'}. Not sure which to pick? Astro.`}>
+                  <button type="button" onClick={() => copyPrompt(t)} className="btn-lit btn-ink flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold active:scale-[0.97]">
+                    {copied === `prompt-${t}` ? <Check size={13} /> : <ClipboardCopy size={13} />} {copied === `prompt-${t}` ? 'Copied' : 'Copy prompt'}
+                  </button>
+                </Step>
+              ))}
+            </ol>
             {targets.map((t) => (
-              <div key={t}>
-                <div className="mb-1.5 flex items-center justify-between">
-                  <span className="text-[12.5px] font-medium text-zinc-900">{t === 'astro' ? 'Astro' : 'Next.js'}</span>
-                  <CopyBtn copied={copied === `prompt-${t}`} onClick={() => copyPrompt(t)} />
-                </div>
-                <pre className="thin-scroll max-h-48 overflow-auto whitespace-pre-wrap rounded-xl bg-lift p-3 text-[12px] leading-relaxed text-zinc-700 ring-1 ring-zinc-950/5">{agentPrompt(input, t)}</pre>
-              </div>
+              <details key={t} className="group">
+                <summary className="flex cursor-pointer list-none items-center gap-1 text-[11.5px] font-medium text-zinc-500 hover:text-zinc-800">
+                  <ChevronRight size={12} className="transition-transform group-open:rotate-90" /> See the prompt
+                </summary>
+                <pre className="thin-scroll mt-1.5 max-h-48 overflow-auto whitespace-pre-wrap rounded-xl bg-lift p-3 text-[12px] leading-relaxed text-zinc-700 ring-1 ring-zinc-950/5">{agentPrompt(input, t, undefined, { mcp })}</pre>
+              </details>
             ))}
-            <p className="text-[11.5px] leading-relaxed text-zinc-500">
-              Unzip the packet next to your agent and paste the prompt. Once Blokmix’s MCP server exists, agents will pull the packet themselves and post their build back to the canvas.
-            </p>
           </div>
         )}
       </div>
     </div>
+  )
+}
+
+function Step({ n, title, body, children }: { n: number; title: string; body: string; children?: ReactNode }) {
+  return (
+    <li className="flex items-start gap-2.5">
+      <span className="grid size-5 shrink-0 place-items-center rounded-full bg-zinc-900 text-[11px] font-semibold tabular-nums text-white">{n}</span>
+      <span className="grid min-w-0 flex-1 gap-0.5">
+        <span className="text-[12.5px] font-semibold text-zinc-900">{title}</span>
+        <span className="text-[12px] leading-snug text-zinc-500">{body}</span>
+      </span>
+      {children}
+    </li>
   )
 }
 

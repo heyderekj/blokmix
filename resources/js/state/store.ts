@@ -46,7 +46,7 @@ import { suggestClip } from '@/core/suggest'
 import type { FacetFilter } from '@/core/browse'
 import { listOpOnEntries } from './collections'
 import { BASE_TOKENS } from '@/core/tokens'
-import { cleanContract, emptyContract, type Contract } from '@/core/contract'
+import { cleanContract, emptyContract, isKept, type Contract } from '@/core/contract'
 import { NO_BACKDROP } from '@/core/sectionDefaults'
 import { applySkin as applySkinTo, dressSavedMix, OWN_LOOK, skinById, skinList, surpriseMe as remix } from '@/core/skins'
 import type { TextStyleDef, TextStyleEdits, TextStyleId } from '@/core/textStyles'
@@ -232,7 +232,8 @@ export interface State extends MixData {
 
   // versions
   pressVersion: () => string
-  remix: (versionId: string) => void
+  /** Your mix takes on a version; unsaved edits are saved as a version first (returns its letter, if one was made). */
+  remix: (versionId: string) => string | null
   setStatus: (versionId: string, status: Status) => void
   renameVersion: (versionId: string, title: string) => void
   deleteVersion: (versionId: string) => void
@@ -423,7 +424,9 @@ export const useStore = create<State>()(
           shuffle: () => {
             const st = get()
             const view = currentSlots(st)
-            if (view.every((s) => s.locked)) return st.showFlash('Every section is locked')
+            if (view.every((s) => s.locked)) return st.showFlash('Every section is locked. Unlock one to shuffle.')
+            // Layouts set to Keep (Keep or surprise) are hands off, for you as for agents.
+            if (isKept(st.contract, 'layout')) return st.showFlash('Layouts are set to Keep, so Shuffle leaves them alone')
             let picks = new Map<string, string>()
             const mix = mixClipIds(st)
             // Never "shuffle" into the same arrangement.
@@ -432,6 +435,8 @@ export const useStore = create<State>()(
               if (view.some((s) => picks.has(s.id) && picks.get(s.id) !== s.clipId)) break
             }
             set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? withClip(s, picks.get(s.id)!, library) : s)), shuffleSeq: x.shuffleSeq + 1 }))
+            const n = view.filter((s) => picks.has(s.id) && picks.get(s.id) !== s.clipId).length
+            get().showFlash(`Shuffled ${n} section${n === 1 ? '' : 's'}`, { undo: true })
           },
           // Locked means hands off, including the structure: an agent can't treat its layout as a mere reference.
           toggleLock: (slotId) => updateSlot(slotId, (s) => ({ ...s, locked: !s.locked, keep: s.locked ? s.keep : { ...s.keep, layout: true } })),

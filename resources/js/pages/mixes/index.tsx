@@ -7,6 +7,7 @@ import { pickFile } from '@/lib/pickFile'
 import type { GuideState, SectionType, Site, Slot, Status, VersionNode } from '@/core/types'
 import { STORAGE_KEY } from '@/state/store'
 import { api, type ServerMix } from '@/lib/mixSync'
+import { saveLocalMix } from '@/lib/localMix'
 import { confirmAction } from '@/ui/shell/Confirm'
 import { listGuides, type SavedGuide } from '@/lib/styleGuides'
 import { Wordmark } from '@/ui/brand/Wordmark'
@@ -178,13 +179,10 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     setProblem(null)
     if (full) return setProblem(MIX_FULL)
     setMoving(true)
-    const { mixName, versions, ui: _ui, camera: _camera, ...data } = local.state
-    void _ui
-    void _camera
-    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: mixName ?? local.name, data, versions: versions ?? {} })
+    const out = await saveLocalMix(local.state, local.name)
     setMoving(false)
-    if (res.status === 201) router.visit(`/${res.body.short}`)
-    else setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
+    if ('short' in out) router.visit(`/${out.short}`)
+    else setProblem(out.problem)
   }
 
   // New mix opens the guided start; the start you pick becomes the mix, the others its versions.

@@ -161,6 +161,8 @@ export interface Slot {
   clipId: string
   locked: boolean
   keep: Keep
+  /** The layout it showed before the last change, for "Back to the one you had". */
+  prevClipId?: string
   /** Block-level changes (variants, styles), by clip then block. */
   edits?: SlotEdits
   /** This section's own words, over the shared copy for its type. */

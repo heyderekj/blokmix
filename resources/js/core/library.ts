@@ -225,10 +225,10 @@ export function cycleIds(lib: Library, type: SectionType, mixClips: Iterable<str
  * with" and "Use its own look" belong to captured clips, so they're turned off on the way to a layout (where there'd
  * be no switch to turn them back).
  */
-export function withClip<S extends { clipId: string; keep: Keep; edits?: SlotEdits }>(slot: S, clipId: string, lib: Library): S {
+export function withClip<S extends { clipId: string; keep: Keep; edits?: SlotEdits; prevClipId?: string }>(slot: S, clipId: string, lib: Library): S {
   if (slot.clipId === clipId) return slot
   const edits = carryEdits(slot.edits, lib.clips[slot.clipId], lib.clips[clipId])
-  const next = { ...slot, clipId, ...(edits !== slot.edits ? { edits } : {}) }
+  const next = { ...slot, clipId, prevClipId: slot.clipId, ...(edits !== slot.edits ? { edits } : {}) }
   const toLayout = lib.clips[clipId]?.origin === 'layout'
   if (!toLayout || (!slot.keep.style && !slot.keep.content)) return next
   return { ...next, keep: { ...slot.keep, style: false, content: false } }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpRight, ChevronLeft, ChevronRight, GripVertical, Link2, Lock, LockOpen, Palette, Plus, Sparkles, Trash2, Type } from 'lucide-react'
+import { ArrowUpRight, ChevronLeft, ChevronRight, GripVertical, Link2, Lock, LockOpen, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
 import type { Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -145,7 +145,7 @@ export function SectionPill({
                 </span>
               ) : null}
             </div>
-            {total > 1 && <LayoutStepper slotId={slot.id} pos={pos} total={total} captured={clip.origin !== 'layout'} />}
+            {total > 1 && <LayoutStepper slotId={slot.id} pos={pos} total={total} captured={clip.origin !== 'layout'} prev={slot.prevClipId && slot.prevClipId !== slot.clipId && library.clips[slot.prevClipId]?.type === slot.type ? slot.prevClipId : undefined} />}
             {focused && (
               <>
                 <span className="mx-1 h-5 w-px bg-zinc-950/10" />
@@ -623,7 +623,7 @@ function Util({ label, onClick, disabled, danger, children }: { label: string; o
  * The section's other layouts and this mix's clips, a step at a time (← → do the same), like the block bar's ‹ Look ›.
  * The label opens them all in the dock.
  */
-function LayoutStepper({ slotId, pos, total, captured }: { slotId: string; pos: number; total: number; captured: boolean }) {
+function LayoutStepper({ slotId, pos, total, captured, prev }: { slotId: string; pos: number; total: number; captured: boolean; prev?: string }) {
   const st = useStore.getState
   const open = useDockLayouts((s) => s.slotId === slotId)
   const step = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]'
@@ -648,6 +648,18 @@ function LayoutStepper({ slotId, pos, total, captured }: { slotId: string; pos: 
       <button type="button" title="Next layout (→)" aria-label="Next layout" onClick={() => st().cycle(slotId, 1)} className={`${step} rounded-r-full`}>
         <ChevronRight size={15} />
       </button>
+      {prev && (
+        // Flip back to the layout it had before (again flips forward): handy after a Shuffle or a pick from the dock.
+        <button
+          type="button"
+          title={`Back to the one you had: ${library.clips[prev].title}`}
+          aria-label="Back to the layout you had"
+          onClick={() => st().setClip(slotId, prev)}
+          className="ml-0.5 grid h-8 w-7 cursor-pointer place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]"
+        >
+          <Undo2 size={14} />
+        </button>
+      )}
     </div>
   )
 }
