@@ -159,7 +159,7 @@ function Row({ mark }: { mark: Note }) {
     const s = useStore.getState()
     const slot = onSection(a)
     if (a.kind === 'preview') {
-      const p = placeVersions(s.versions, s.ui.viewport, s.framePos).find((x) => x.id === a.versionId)
+      const p = placeVersions(s).find((x) => x.id === a.versionId)
       const h = useLayout.getState().frameHeights[a.versionId] ?? 2400
       const y = a.y >= 0 ? p && p.y + a.y * h : p?.y
       if (p && y !== undefined) canvasApi.focusRect({ x: p.x - 40, y: y - 300, w: p.w + 80, h: 700 }, 0.8)

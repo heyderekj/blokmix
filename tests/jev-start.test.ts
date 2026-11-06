@@ -201,7 +201,7 @@ describe('the start box', () => {
     const mix = mixFromStart({ name: 'Mill Bakery' }, starts, starts[0].id)
     useStore.getState().openMixData(mix)
     expect(trayLines(useStore.getState()).length).toBe(starts[0].content.tray?.length ?? 0)
-    expect(Object.keys(mix.versions)).toHaveLength(starts.length)
+    expect(Object.keys(mix.drafts)).toHaveLength(starts.length)
     expect(startedWords('Mill Bakery', mix)).toMatch(/^Started Mill Bakery\./)
   })
 

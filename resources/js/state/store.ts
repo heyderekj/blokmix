@@ -59,6 +59,8 @@ import { allSlots, freePath, mapSlots, pageOf, pageOfSlot, pageView, setPageSlot
 import { onSection } from '@/core/notes'
 import { uid } from './uid'
 import { versionActions } from './slices/versions'
+import { draftActions } from './slices/drafts'
+import { draftsFromLegacy, draftSites, type Draft } from '@/core/drafts'
 import { noteActions } from './slices/notes'
 import { contentFor } from '@/core/start'
 import type { FeelWord } from '@/core/feel'
@@ -66,7 +68,7 @@ import type { FeelWord } from '@/core/feel'
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
 /** The one surface that can be open at a time; each grows out of the control that summons it. */
-export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'looks' | 'menu' | 'more' | 'notes' | 'pages' | 'share' | 'publish'
+export type Sheet = 'none' | 'guide' | 'packet' | 'crate' | 'looks' | 'menu' | 'more' | 'notes' | 'pages' | 'drafts' | 'share' | 'publish'
 export type Tool = 'select' | 'hand' | 'sticky' | 'note'
 
 export interface Camera {
@@ -104,6 +106,8 @@ export interface UiState {
   focusedSlotId: string | null
   selectedFrameId: string | null
   previewFrameId: string | null
+  /** Saved versions shown on the canvas as frames (this device); otherwise they live in their draft's history. */
+  pinnedVersions: string[]
   packetSource: string // 'mix' or a version id
   packetTargets: BuildTarget[]
   hintDismissed: boolean
@@ -131,8 +135,13 @@ export interface MixData {
   contract?: Contract
   versions: Record<string, VersionNode>
   notes: Note[]
+  /** Retired by drafts: where the mix was branched from (kept so older saves read). New code leaves it null. */
   branchFrom: string | null
+  /** The open draft's head: the version last saved or restored in it. */
   head: string | null
+  /** The mix's drafts (core/drafts.ts): the open one's body is this mix's site, guide, content and contract. */
+  drafts: Record<string, Draft>
+  draftId: string
   framePos: Record<string, { x: number; y: number }>
   /**
    * This mix's own clips (ids): its shelf and Crate show them first, and clips added while it's open join it. The
@@ -256,6 +265,17 @@ export interface State extends MixData {
   setAgent: (agent: Partial<AgentState>) => void
   moveFrame: (frameId: string, x: number, y: number) => void
 
+  // drafts
+  /** Open another draft (one undo step): the open one keeps its own copy. */
+  switchDraft: (id: string) => boolean
+  /** A new draft from a draft (the open one by default) or a saved version; null at the limit. Opens it unless told not to. */
+  addDraft: (from?: { draft?: string; version?: string }, opts?: { name?: string; open?: boolean }) => string | null
+  updateDraft: (id: string, patch: { name?: string; status?: Status }) => void
+  /** Delete a draft and its history (not the last one); deleting the open one opens its neighbour. */
+  deleteDraft: (id: string) => boolean
+  /** The open draft takes on a saved version (in that version's draft); unsaved edits are saved first. */
+  restoreVersion: (versionId: string) => string | null
+
   // notes
   addNote: (anchor: NoteAnchor, color?: NoteColor) => string
   updateNote: (id: string, patch: Partial<Pick<Note, 'text' | 'color' | 'anchor' | 'kind' | 'suggestedCopy'>>) => void
@@ -296,6 +316,7 @@ const DEFAULT_UI: UiState = {
   focusedSlotId: null,
   selectedFrameId: null,
   previewFrameId: null,
+  pinnedVersions: [],
   packetSource: 'mix',
   packetTargets: ['astro'],
   hintDismissed: false,
@@ -858,6 +879,7 @@ export const useStore = create<State>()(
             }),
 
           ...versionActions(set, get),
+          ...draftActions(set, get),
           ...noteActions(set),
 
           setUi: (patch) => set((st) => ({ ui: { ...st.ui, ...patch } })),
@@ -873,9 +895,9 @@ export const useStore = create<State>()(
       },
       {
         limit: 100,
-        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, contract: s.contract, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head, clips: s.clips }),
+        partialize: (s) => ({ site: s.site, guide: s.guide, content: s.content, contract: s.contract, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head, clips: s.clips, drafts: s.drafts, draftId: s.draftId }),
         equality: (a, b) =>
-          a.site === b.site && a.guide === b.guide && a.content === b.content && a.contract === b.contract && a.versions === b.versions && a.notes === b.notes && a.clips === b.clips,
+          a.site === b.site && a.guide === b.guide && a.content === b.content && a.contract === b.contract && a.versions === b.versions && a.notes === b.notes && a.clips === b.clips && a.drafts === b.drafts && a.draftId === b.draftId,
         handleSet: (handleSet) => leading(handleSet, 400),
       },
     ),
@@ -893,6 +915,8 @@ export const useStore = create<State>()(
         notes: s.notes,
         branchFrom: s.branchFrom,
         head: s.head,
+        drafts: s.drafts,
+        draftId: s.draftId,
         framePos: s.framePos,
         clips: s.clips,
         ui: { ...s.ui, previewFrameId: null, editingNoteId: null, sheet: 'none' as const },
@@ -900,6 +924,8 @@ export const useStore = create<State>()(
       }),
       merge: (persisted, current) => {
         const p = siteState(renamedState(persisted)) as Partial<State>
+        // Saved before drafts: one draft holding every version.
+        if (!p.drafts || !p.draftId || !p.drafts[p.draftId]) Object.assign(p, draftsFromLegacy(p), { branchFrom: null })
         const merged = { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } } as State
         merged.contract = cleanContract(p.contract)
         // Tokens added since the mix was saved (e.g. line weight) start at their defaults.
@@ -929,6 +955,15 @@ export const useStore = create<State>()(
         if ((merged.ui.guideTab as string) === 'copy') merged.ui.guideTab = 'content'
         // One framework per hand-off.
         merged.ui.packetTargets = (merged.ui.packetTargets ?? ['astro']).slice(0, 1)
+        // The other drafts' bodies get what the open one did: missing clips dropped, a look if saved before skins.
+        merged.drafts = Object.fromEntries(
+          Object.entries(merged.drafts).map(([id, d]) => {
+            if (!d.body) return [id, d]
+            const site = mapSlots(d.body.site, (s) => (library.clips[s.clipId] ? s : null))
+            const guide = d.body.guide?.base ? { ...d.body.guide, base: { ...BASE_TOKENS, ...d.body.guide.base } } : d.body.guide
+            return [id, { ...d, body: { ...d.body, ...dressSavedMix({ ...d.body, site, guide }, library, skinList()), site } }]
+          }),
+        )
         for (const [id, v] of Object.entries(merged.versions ?? {})) {
           // A reference build dies with the tab; an agent's build goes on without it, so it stays open.
           if (v.build && !v.build.done && v.build.by !== 'agent') merged.versions[id] = { ...v, status: 'changes', build: { ...v.build, done: true } }
@@ -952,7 +987,8 @@ export const pauseHistory = () => useStore.temporal.getState().pause()
 export const resumeHistory = () => useStore.temporal.getState().resume()
 
 /** This mix's clips: its own set, plus any of your clips used on its pages (shared nav and footer included). */
-export function mixClipIds(s: Pick<MixData, 'clips' | 'site'>): string[] {
-  const used = allSlots(s.site).map((slot) => slot.clipId).filter((id) => library.clips[id]?.origin === 'clip')
+export function mixClipIds(s: Pick<MixData, 'clips' | 'site'> & Partial<Pick<MixData, 'drafts' | 'draftId'>>): string[] {
+  const sites = s.drafts && s.draftId ? draftSites({ site: s.site, drafts: s.drafts, draftId: s.draftId }) : [s.site]
+  const used = sites.flatMap((site) => allSlots(site)).map((slot) => slot.clipId).filter((id) => library.clips[id]?.origin === 'clip')
   return [...new Set([...(s.clips ?? []), ...used])]
 }

@@ -56,7 +56,7 @@ export function anchorAt(wx: number, wy: number): NoteAnchor {
       if (r && wy >= r.top && wy <= r.top + r.height) return { kind: 'slot', slotId: slot.id, dx: wx, dy: wy - r.top }
     }
   }
-  for (const p of placeVersions(st.versions, st.ui.viewport, st.framePos)) {
+  for (const p of placeVersions(st)) {
     const h = lay.frameHeights[p.id] ?? 1200
     if (wx >= p.x && wx <= p.x + p.w && wy >= p.y && wy <= p.y + h) return { kind: 'frame', frameId: p.id, dx: wx - p.x, dy: wy - p.y }
   }
@@ -181,7 +181,7 @@ export function Canvas({ children }: { children: ReactNode }) {
       let y1 = m.y
       let x2 = m.w + 120
       let y2 = m.y + m.h
-      for (const p of placeVersions(st.versions, st.ui.viewport, st.framePos)) {
+      for (const p of placeVersions(st)) {
         x1 = Math.min(x1, p.x)
         y1 = Math.min(y1, p.y - 80)
         x2 = Math.max(x2, p.x + p.w)

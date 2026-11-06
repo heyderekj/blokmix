@@ -1,3 +1,4 @@
+import { draftsFromLegacy } from '@/core/drafts'
 import type { Library, SectionType, VersionNode } from '@/core/types'
 import { allSlots, siteFromSlots } from '@/core/site'
 import { emptyGuide } from '@/core/guide'
@@ -57,10 +58,9 @@ export function buildSeed(lib: Library): MixData {
     site,
     guide,
     content,
-    versions: { [versionA.id]: versionA },
+    ...draftsFromLegacy({ versions: { [versionA.id]: versionA }, head: versionA.id, createdAt: 1 }),
     notes: [],
     branchFrom: null,
-    head: versionA.id,
     framePos: {},
     clips: [],
   }
@@ -75,10 +75,9 @@ export function blankMix(name = 'Untitled mix'): MixData {
     // New and blank: raw until you dress it.
     guide: wireframe ? applySkin(emptyGuide(), wireframe) : emptyGuide(),
     content: contentFor({ kind: 'product', name: '' }),
-    versions: {},
+    ...draftsFromLegacy({}),
     notes: [],
     branchFrom: null,
-    head: null,
     framePos: {},
     clips: [],
   }

@@ -23,7 +23,7 @@ export async function runReferenceBuild(versionId: string, target: BuildTarget) 
   // Follow the agent to its new frame.
   setTimeout(() => {
     const s = useStore.getState()
-    const p = placeVersions(s.versions, s.ui.viewport, s.framePos).find((x) => x.id === buildId)
+    const p = placeVersions(s).find((x) => x.id === buildId)
     const h = useLayout.getState().frameHeights[versionId] ?? 3000
     if (p) canvasApi.focusRect({ x: p.x - p.w * 1.2, y: p.y - 200, w: p.w * 2.4, h: Math.min(h, 2400) + 200 }, 0.35)
   }, 120)

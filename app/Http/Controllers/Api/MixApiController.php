@@ -25,7 +25,7 @@ class MixApiController extends Controller
     {
         abort_unless($mix->roleOf($request->user()), 404);
 
-        return $this->withLock(response()->json($mix->load('versions')->toBoard()), $mix->lock_version);
+        return $this->withLock(response()->json($mix->load('versions', 'drafts')->toBoard()), $mix->lock_version);
     }
 
     public function store(Request $request): JsonResponse
@@ -40,9 +40,12 @@ class MixApiController extends Controller
             'versions' => ['nullable', 'array'],
             'versions.*' => ['array'],
             'versions.*.letter' => ['required', 'string', 'max:20'],
+            'drafts' => ['nullable', 'array', 'max:'.Mix::MAX_DRAFTS],
+            'drafts.*' => ['array'],
+            'drafts.*.letter' => ['required', 'string', 'max:8'],
         ]);
         // The payload as sent: validate() would keep only the keys that have rules (a version's letter).
-        $input = $request->only(['name', 'data', 'versions']);
+        $input = $request->only(['name', 'data', 'versions', 'drafts']);
 
         $mix = DB::transaction(function () use ($input, $request) {
             $mix = Mix::create(['name' => $input['name'], 'data' => $input['data'] ?? null]);
@@ -50,11 +53,14 @@ class MixApiController extends Controller
             foreach ($input['versions'] ?? [] as $key => $node) {
                 $mix->versions()->create(['key' => (string) $key, 'letter' => $node['letter'], 'node' => $node]);
             }
+            foreach ($input['drafts'] ?? [] as $key => $node) {
+                $mix->drafts()->create(['key' => (string) $key, 'letter' => $node['letter'], 'node' => $node]);
+            }
 
             return $mix;
         });
 
-        return $this->withLock(response()->json($mix->load('versions')->toBoard(), 201), $mix->lock_version);
+        return $this->withLock(response()->json($mix->load('versions', 'drafts')->toBoard(), 201), $mix->lock_version);
     }
 
     public function update(Request $request, Mix $mix): JsonResponse
@@ -74,13 +80,26 @@ class MixApiController extends Controller
             'versions.put.*.letter' => ['required', 'string', 'max:20'],
             'versions.remove' => ['sometimes', 'array'],
             'versions.remove.*' => ['string'],
+            'drafts' => ['sometimes', 'array'],
+            'drafts.put' => ['sometimes', 'array'],
+            'drafts.put.*' => ['array'],
+            'drafts.put.*.letter' => ['required', 'string', 'max:8'],
+            'drafts.remove' => ['sometimes', 'array'],
+            'drafts.remove.*' => ['string'],
         ]);
-        $input = $request->only(['name', 'data', 'versions']);
+        $input = $request->only(['name', 'data', 'versions', 'drafts']);
         if (! $mix->changeableBy($role)) {
             // Viewers (and everyone, on an archived mix) leave marks and change nothing else: keep only their notes, on top of the mix as saved.
             $input = array_key_exists('data', $input) && is_array($input['data'])
                 ? ['data' => [...($mix->data ?? []), 'notes' => $input['data']['notes'] ?? ($mix->data['notes'] ?? [])]]
                 : [];
+        }
+
+        // A mix holds a few drafts: more than that is refused before anything is saved.
+        if (! empty($input['drafts']['put'])) {
+            $keys = $mix->drafts()->pluck('key')->merge(array_map('strval', array_keys($input['drafts']['put'])))->unique()
+                ->diff($input['drafts']['remove'] ?? []);
+            abort_if($keys->count() > Mix::MAX_DRAFTS, 422, 'A mix holds up to '.Mix::MAX_DRAFTS.' drafts.');
         }
 
         $saved = DB::transaction(function () use ($mix, $lock, $input) {
@@ -101,11 +120,17 @@ class MixApiController extends Controller
             if (! empty($input['versions']['remove'])) {
                 $mix->versions()->whereIn('key', $input['versions']['remove'])->delete();
             }
+            foreach ($input['drafts']['put'] ?? [] as $key => $node) {
+                $mix->drafts()->updateOrCreate(['key' => (string) $key], ['letter' => $node['letter'], 'node' => $node]);
+            }
+            if (! empty($input['drafts']['remove'])) {
+                $mix->drafts()->whereIn('key', $input['drafts']['remove'])->delete();
+            }
 
             return true;
         });
 
-        $mix->refresh()->load('versions');
+        $mix->refresh()->load('versions', 'drafts');
         if (! $saved) {
             return $this->withLock(response()->json(['message' => 'This mix changed since you last read it.', 'mix' => $mix->toBoard()], 412), $mix->lock_version);
         }
@@ -146,6 +171,9 @@ class MixApiController extends Controller
             foreach ($mix->versions as $v) {
                 $copy->versions()->create(['key' => $v->key, 'letter' => $v->letter, 'node' => $v->node]);
             }
+            foreach ($mix->drafts as $d) {
+                $copy->drafts()->create(['key' => $d->key, 'letter' => $d->letter, 'node' => $d->node]);
+            }
             // Uploads are copied on the disk too, so deleting either mix leaves the other's intact.
             $copyFile = function (?string $path) use ($disk, $copy): ?string {
                 if ($path === null) {
@@ -165,7 +193,7 @@ class MixApiController extends Controller
             return $copy;
         });
 
-        return $this->withLock(response()->json($copy->load('versions')->toBoard(), 201), $copy->lock_version);
+        return $this->withLock(response()->json($copy->load('versions', 'drafts')->toBoard(), 201), $copy->lock_version);
     }
 
     /** Archive a mix: it stays, read-only, and stops taking one of its owner's mixes. */

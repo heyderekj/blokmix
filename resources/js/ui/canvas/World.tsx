@@ -4,18 +4,30 @@ import { useStore } from '@/state/store'
 import { MixFrame } from '../frames/MixFrame'
 import { VersionFrame } from '../frames/VersionFrame'
 import { NotesLayer } from '../notes/NotesLayer'
-import { MIX_ID, placeVersions, VIEW_W } from './geometry'
+import { MIX_ID, placeDrafts, placeVersions } from './geometry'
+import { DraftFrame } from '../frames/DraftFrame'
 
 /** Everything that lives in canvas space. */
 export function World() {
   const versions = useStore((s) => s.versions)
   const viewport = useStore((s) => s.ui.viewport)
   const framePos = useStore((s) => s.framePos)
-  const placements = useMemo(() => placeVersions(versions, viewport, framePos), [versions, viewport, framePos])
+  const drafts = useStore((s) => s.drafts)
+  const draftId = useStore((s) => s.draftId)
+  const notes = useStore((s) => s.notes)
+  const pinned = useStore((s) => s.ui.pinnedVersions)
+  const placements = useMemo(
+    () => placeVersions({ versions, framePos, drafts, draftId, notes, ui: { viewport, pinnedVersions: pinned } }),
+    [versions, viewport, framePos, drafts, draftId, notes, pinned],
+  )
+  const draftsPlaced = useMemo(() => placeDrafts({ versions, framePos, drafts, draftId, ui: { viewport } }), [versions, framePos, drafts, draftId, viewport])
   return (
     <>
       <Connectors placements={placements} />
       <MixFrame />
+      {draftsPlaced.map((p) => (
+        <DraftFrame key={p.id} p={p} />
+      ))}
       {placements.map((p) => (
         <VersionFrame key={p.id} p={p} />
       ))}
@@ -26,9 +38,6 @@ export function World() {
 }
 
 function Connectors({ placements }: { placements: ReturnType<typeof placeVersions> }) {
-  const viewport = useStore((s) => s.ui.viewport)
-  const branchFrom = useStore((s) => s.branchFrom)
-  const W = VIEW_W[viewport]
   const byId = new Map(placements.map((p) => [p.id, p]))
   const paths: { d: string; key: string; dashed?: boolean; color?: string }[] = []
   const curve = (x1: number, y1: number, x2: number, y2: number) => {
@@ -40,8 +49,6 @@ function Connectors({ placements }: { placements: ReturnType<typeof placeVersion
     if (!parent) continue
     paths.push({ key: p.id, d: curve(parent.x + parent.w, parent.y - 30, p.x, p.y - 30), color: p.node.kind === 'build' ? 'var(--agent)' : undefined })
   }
-  const base = branchFrom ? byId.get(branchFrom) : null
-  if (base) paths.push({ key: 'mix', d: curve(base.x, base.y - 30, W, -30).replace(/^M/, 'M'), dashed: true, color: 'var(--color-key)' })
   return (
     <svg className="pointer-events-none absolute left-0 top-0 overflow-visible" width="1" height="1">
       {paths.map((p) => (

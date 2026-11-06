@@ -1,5 +1,6 @@
 import type { VersionNode } from '@/core/types'
 import { autoTitle, descendants, nextLetter, snapshotKey } from '@/core/versions'
+import { nextVersionLetter } from '@/core/drafts'
 import { emptyContract } from '@/core/contract'
 import { library } from '@/data/library'
 import { allSlots, mapSlots, pageOf } from '@/core/site'
@@ -16,11 +17,14 @@ export function versionActions(set: Set, get: Get): Pick<State, 'pressVersion' |
     pressVersion: () => {
       const st = get()
       const id = uid('v')
-      const parentId = st.branchFrom && st.versions[st.branchFrom] ? st.branchFrom : null
+      // A saved moment of the open draft, in its history (A1, A2…); it follows the one before it.
+      const draft = st.drafts[st.draftId]
+      const parentId = st.head && st.versions[st.head] ? st.head : null
       const node: VersionNode = {
         id,
-        letter: nextLetter(st.versions, parentId),
+        letter: draft ? nextVersionLetter(st.versions, draft) : nextLetter(st.versions, parentId),
         parentId,
+        ...(draft ? { draftId: draft.id } : {}),
         title: autoTitle(allSlots(st.site), library),
         status: 'in-progress',
         createdAt: Date.now(),
@@ -45,7 +49,7 @@ export function versionActions(set: Set, get: Get): Pick<State, 'pressVersion' |
         guide: snap.guide,
         content: snap.content,
         contract: snap.contract ?? emptyContract(),
-        branchFrom: v.kind === 'build' ? v.parentId : v.id,
+        branchFrom: null,
         head: v.kind === 'build' ? v.parentId : v.id,
         // Stay on the same page if the version has it.
         ui: { ...st.ui, selectedFrameId: 'mix', focusedSlotId: null, pageId: pageOf(site, st.ui.pageId).id, mode: 'unified' },
@@ -80,6 +84,7 @@ export function versionActions(set: Set, get: Get): Pick<State, 'pressVersion' |
         status: 'in-progress',
         createdAt: Date.now(),
         kind: 'build',
+        ...(parent.draftId ? { draftId: parent.draftId } : {}),
         snapshot: structuredClone(parent.snapshot),
         build: { by: 'reference', agentName, target, steps: [], done: false },
       }

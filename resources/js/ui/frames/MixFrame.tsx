@@ -25,7 +25,8 @@ export function MixFrame() {
   const selected = useStore((s) => s.ui.selectedFrameId === MIX_ID)
   const previewing = useStore((s) => s.ui.previewFrameId === MIX_ID)
   const head = useStore((s) => (s.head ? s.versions[s.head] : null))
-  const branchFrom = useStore((s) => (s.branchFrom ? s.versions[s.branchFrom] : null))
+  const draft = useStore((s) => s.drafts[s.draftId])
+  const many = useStore((s) => Object.keys(s.drafts).length > 1)
   const guide = useResolvedGuide()
   const W = VIEW_W[viewport]
   const guideState = useStore((s) => s.guide)
@@ -45,7 +46,8 @@ export function MixFrame() {
   // A bar hanging below the last section (its section bar, or a block's bar and menus): what sits under the page makes
   // exactly that much room, on screen.
   const room = useBarOverhang((s) => (previewing ? 0 : barRoomBelow(s, slots.at(-1)?.id)))
-  const label = branchFrom ? `From ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
+  const label = head ? (dirty ? `edited since ${head.letter}` : `saved as ${head.letter}`) : 'not saved yet'
+  const name = draft?.name ?? 'Your mix'
 
   return (
     <div
@@ -60,8 +62,8 @@ export function MixFrame() {
           <MixMark types={slots.map((s) => s.type)} active={markAt} edited={dirty} />
         </span>
         <HeaderTitle
-          title={site.pages.length > 1 ? `Your mix · ${page.title}` : 'Your mix'}
-          meta={`${site.pages.length > 1 ? `${page.path} · ` : ''}${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} sections`}
+          title={site.pages.length > 1 ? `${name} · ${page.title}` : name}
+          meta={`${many ? 'You’re working here · ' : ''}${site.pages.length > 1 ? `${page.path} · ` : ''}${label} · ${slots.length} sections`}
         />
         {page.template && <EntrySwitcher pageId={page.id} collection={page.template.collection} />}
         <span className="@max-[220px]:hidden">

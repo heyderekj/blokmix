@@ -431,6 +431,8 @@ export interface VersionNode {
   status: Status
   createdAt: number
   kind: 'snapshot' | 'build'
+  /** The draft whose history it's in (core/drafts.ts); builds are in their version's draft. */
+  draftId?: string
   snapshot: MixSnapshot // builds keep a copy of the snapshot they were built from
   build?: {
     by: 'reference' | 'agent'

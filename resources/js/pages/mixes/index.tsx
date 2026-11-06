@@ -208,9 +208,9 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     post({ name: name === 'Your site' ? starter.name : name, site, guide })
   }
   const saveStart: Parameters<typeof StartGuide>[0]['onDone'] = async (input, starts, chosen) => {
-    const { mixName, versions, ...data } = mixFromStart(input, starts, chosen)
+    const { mixName, versions, drafts, ...data } = mixFromStart(input, starts, chosen)
     setMoving(true)
-    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: mixName, data, versions })
+    const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: mixName, data, versions, drafts })
     if (res.status === 201) return router.visit(`/${res.body.short}`)
     setMoving(false)
     setGuided(false)
@@ -227,7 +227,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         setMoving(true)
         // Its captured clips join your account first, so the mix opens with every section.
         await importClips(file.clips ?? [])
-        const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions })
+        const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions, ...(file.drafts ? { drafts: file.drafts } : {}) })
         setMoving(false)
         if (res.status === 201) router.visit(`/${res.body.short}`)
         else setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')

@@ -198,7 +198,7 @@ export function buildNotes(i: PacketInput): string {
   const { page, guide, library } = i
   const v = i.version
   const lines: string[] = []
-  lines.push(`# ${i.mixName}${v ? ` · Version ${v.letter}` : ' · Working mix'}`)
+  lines.push(`# ${i.mixName}${v ? (v.id.startsWith('draft:') ? ` · ${v.title}` : ` · Version ${v.letter}`) : ''}`)
   lines.push('')
   lines.push('> Build notes for an agent. Build this page in ' + i.targets.map((t) => (t === 'astro' ? 'Astro' : 'Next.js')).join(' or ') + ' from the reference build in this packet.')
   lines.push('')

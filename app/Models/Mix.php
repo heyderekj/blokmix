@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Mix extends Model
 {
+    /** A mix holds at most this many drafts. */
+    public const MAX_DRAFTS = 6;
+
     use HasUlids;
 
     /** Short addresses: lowercase letters and digits without look-alikes (no i, l, o, 0, 1). */
@@ -59,6 +62,12 @@ class Mix extends Model
     public function versions(): HasMany
     {
         return $this->hasMany(MixVersion::class);
+    }
+
+    /** Its drafts, side by side on the board; the open one's body is `data`. */
+    public function drafts(): HasMany
+    {
+        return $this->hasMany(MixDraft::class);
     }
 
     public function members(): BelongsToMany
@@ -127,6 +136,7 @@ class Mix extends Model
             'name' => $this->name,
             'data' => $this->data,
             'versions' => $this->versions->mapWithKeys(fn (MixVersion $v) => [$v->key => $v->node])->all(),
+            'drafts' => $this->drafts->mapWithKeys(fn (MixDraft $d) => [$d->key => $d->node])->all(),
             'lock' => $this->lock_version,
             'schema' => $this->schema,
             'archived' => $this->isArchived(),

@@ -4,8 +4,7 @@ import { scorePage, SCREENS, SWEEP, type PageMeasure, type PageScore } from '@/c
 import { allSlots, pageView } from '@/core/site'
 import { pageOwnership } from '@/core/ownWords'
 import { autoTitle } from '@/core/versions'
-import type { VersionNode } from '@/core/types'
-import { snapshotOf } from '@/state/snapshot'
+import { DRAFT_WORD, type Draft } from '@/core/drafts'
 import type { MixData } from '@/state/store'
 import { measureFirstScreen } from './measure'
 
@@ -43,7 +42,7 @@ export function startedWords(name: string, mix: Pick<MixData, 'site' | 'content'
   const left = total - yours
   const who = name.trim() || 'your mix'
   if (waiting) return `Started ${who}. ${waiting} of your lines wait in Words to place; Content shows the rest.`
-  return left ? `Started ${who}. ${left} spots on Home still hold sample words: Content shows them.` : `Started ${who}. The other starts are kept as versions.`
+  return left ? `Started ${who}. ${left} spots on Home still hold sample words: Content shows them.` : `Started ${who}. The other starts are kept as drafts.`
 }
 
 /** A start's name as a version: the starter's, else its hero's ("Photo backdrop"). */
@@ -54,37 +53,38 @@ function titleOf(s: StartCandidate): string {
 }
 
 /**
- * A new mix from the guided start: the start you picked is the board, and every
- * start (yours included) is kept as a version, A, B, C, to come back to.
+ * A new mix from the guided start: the start you picked is the open draft, and the other starts come along as drafts
+ * beside it (B and C), each yours to open and change. No versions yet: saving one starts a draft's history.
  */
 export function mixFromStart(input: Pick<StartInput, 'name'>, starts: StartCandidate[], chosen: string): MixData {
   const pick = starts.find((s) => s.id === chosen) ?? starts[0]
-  const versions: Record<string, VersionNode> = {}
-  let head: string | null = null
-  starts.forEach((s, i) => {
-    const id = `v_start${String.fromCharCode(65 + i)}`
+  // The one you picked is Draft A; the others follow in the order they were offered.
+  const order = [pick, ...starts.filter((s) => s !== pick)]
+  const drafts: Record<string, Draft> = {}
+  order.forEach((s, i) => {
     const letter = String.fromCharCode(65 + i)
-    versions[id] = {
+    const id = `draft_start${letter}`
+    drafts[id] = {
       id,
       letter,
-      parentId: null,
-      title: titleOf(s),
-      status: 'in-progress',
+      name: i === 0 ? `${DRAFT_WORD} ${letter}` : `${DRAFT_WORD} ${letter}: ${titleOf(s)}`,
       createdAt: Date.now() + i,
-      kind: 'snapshot',
-      snapshot: snapshotOf({ site: s.site, guide: s.guide, content: s.content, notes: [] }),
+      status: 'in-progress',
+      head: null,
+      body: i === 0 ? null : { site: s.site, guide: s.guide, content: s.content },
     }
-    if (s === pick) head = id
   })
   return {
     mixName: input.name.trim() || 'Untitled mix',
     site: pick.site,
     guide: pick.guide,
     content: pick.content,
-    versions,
+    versions: {},
+    drafts,
+    draftId: 'draft_startA',
     notes: [],
     branchFrom: null,
-    head,
+    head: null,
     framePos: {},
     clips: [],
   }

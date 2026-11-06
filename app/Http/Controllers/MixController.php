@@ -26,13 +26,16 @@ class MixController extends Controller
         $mixes = $request->user()->mixes()->withCount('versions')->latest('updated_at')
             ->get(['mixes.id', 'mixes.short', 'mixes.name', 'mixes.created_at', 'mixes.updated_at', 'mixes.archived_at', 'mixes.data']);
         $ids = $mixes->pluck('id');
+        // A card's rings are its drafts (A, B, C); a mix from before drafts shows its versions.
+        $drafts = DB::table('mix_drafts')->whereIn('mix_id', $ids)->orderBy('letter')
+            ->get(['mix_id', 'letter', 'node->status as status'])->groupBy('mix_id');
         $heads = DB::table('mix_versions')->whereIn('mix_id', $ids)->orderBy('letter')
             ->get(['mix_id', 'letter', 'node->status as status'])->groupBy('mix_id');
         $owners = DB::table('mix_members')->join('users', 'users.id', '=', 'mix_members.user_id')
             ->whereIn('mix_id', $ids)->where('role', MixRole::Owner->value)->pluck('users.name', 'mix_id');
 
         return Inertia::render('mixes/index', [
-            'mixes' => $mixes->map(function (Mix $m) use ($heads, $owners) {
+            'mixes' => $mixes->map(function (Mix $m) use ($heads, $drafts, $owners) {
                 $site = $m->data['site'] ?? null;
                 $page = $site['pages'][0] ?? null;
                 $slots = collect($page['slots'] ?? []);
@@ -62,7 +65,8 @@ class MixController extends Controller
                     'pages' => count($site['pages'] ?? []),
                     'sections' => $sections->filter()->values(),
                     'guide' => $m->data['guide'] ?? null,
-                    'heads' => ($heads[$m->id] ?? collect())->map(fn ($v) => ['letter' => $v->letter, 'status' => $v->status ?? 'in-progress'])->values(),
+                    'drafts' => count($drafts[$m->id] ?? []),
+                    'heads' => ($drafts[$m->id] ?? $heads[$m->id] ?? collect())->map(fn ($v) => ['letter' => $v->letter, 'status' => trim((string) ($v->status ?? ''), '"') ?: 'in-progress'])->values(),
                     'marks' => collect($m->data['notes'] ?? [])->filter(fn ($n) => in_array($n['status'] ?? 'open', ['open', 'in_progress'], true))->count(),
                 ];
             }),
@@ -79,7 +83,7 @@ class MixController extends Controller
         $role = $mix->roleOf($request->user());
         abort_unless($role, 404);
 
-        return Inertia::render('mixes/show', ['mix' => $mix->load('versions')->toBoard(), 'role' => $role->value]);
+        return Inertia::render('mixes/show', ['mix' => $mix->load('versions', 'drafts')->toBoard(), 'role' => $role->value]);
     }
 
     /** An old /mixes/{ulid} address: forward to the mix's short one (members only, like the board). */

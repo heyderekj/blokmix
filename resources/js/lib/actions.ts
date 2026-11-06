@@ -9,18 +9,19 @@ import { useLayout } from '@/state/layout'
 export function pressVersionAndFly() {
   const st = useStore.getState()
   const head = st.head ? st.versions[st.head] : null
-  if (head && snapshotKey(head.snapshot) === snapshotKey(st) && head.parentId === (st.branchFrom ?? head.parentId)) {
+  if (head && snapshotKey(head.snapshot) === snapshotKey(st)) {
     st.showFlash(`Nothing new since ${head.letter}: change something first`)
     return
   }
   const id = st.pressVersion()
   const v = useStore.getState().versions[id]
-  st.showFlash(`Saved version ${v.letter}. ⇧1 shows them all`)
+  const draft = st.drafts[st.draftId]
+  st.showFlash(`Saved ${v.letter}${draft ? ` in ${draft.name}` : ''}. Its history is under ${draft?.letter ?? 'the draft'} ▾ in the top bar.`)
 }
 
 export function focusFrame(id: string) {
   const st = useStore.getState()
-  const p = placeVersions(st.versions, st.ui.viewport, st.framePos).find((x) => x.id === id)
+  const p = placeVersions(st).find((x) => x.id === id)
   if (!p) return
   const h = useLayout.getState().frameHeights[id] ?? 3000
   canvasApi.focusRect({ x: p.x - 80, y: p.y - 120, w: p.w + 160, h: Math.min(h, 2600) + 160 }, 0.6)

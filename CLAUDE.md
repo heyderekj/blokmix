@@ -24,8 +24,8 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `resources/js/pages/` instead of the bare board.
 - `npm run build:laravel` writes `public/build`; `npm run build` still writes the Vite-only `dist/`.
 - `php artisan test` runs the PHP feature tests (`tests/Feature`); Vitest only picks up `tests/**/*.test.ts`.
-- Mixes are saved in the database (`mixes`: name + `data` json with site, guide, content, notes, heads;
-  `mix_versions`: one row per version node). `/{short}` hands the board the mix as props, and
+- Mixes are saved in the database (`mixes`: name + `data` json with site, guide, content, notes, heads, draftId;
+  `mix_versions`: one row per version node; `mix_drafts`: one row per draft, at most `Mix::MAX_DRAFTS`). `/{short}` hands the board the mix as props, and
   `lib/mixSync.ts` `openMix` points the store's persist at it: saves go out 800ms after a change, one at a
   time, with only what changed (`PUT /api/mixes/{id}`, `If-Match: "<lock>"`; a stale lock gets 412 and the
   mix as it is now, which replaces what's on screen). The store's `merge` migrations run on server data too.
@@ -55,6 +55,18 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Captured clips (`clips`, `ClipController`, `lib/userClips.ts`): the extension's zip, added from the Crate, linted
   in the browser, saved to your account. You get yours and those of people you share mixes with; they join the
   library (`core/library.ts` `extendLibrary`) before the board opens a mix.
+- Drafts (`core/drafts.ts`, `state/slices/drafts.ts`): a mix holds a few, side by side, each one you can work on. "Mix"
+  on screen means only the project. The open draft's body is the mix's top-level site, guide, content and contract, so
+  every action edits it; the others keep a `body` until opened (`switchDraft`, one undo step; the site's name, logo and
+  brief are shared and follow you). A guided start makes three (A, B, C; `mixFromStart`); a mix saved before drafts opens
+  as one, "Draft A", holding every version (`draftsFromLegacy`, run by the store's `merge`). Saved versions belong to a
+  draft (`VersionNode.draftId`, letters A1, A2…): its history, in the Drafts panel under the top bar's
+  "Mix / Draft A ▾ / Page" (`ui/drafts/DraftsPanel.tsx`: open, new draft from this, rename, delete; history: go back to
+  this, new draft, export, show on canvas). On the canvas the other drafts are columns beside the open one
+  (`placeDrafts`, `ui/frames/DraftFrame.tsx`, a click opens one); version frames are only builds, versions you chose to
+  show (`ui.pinnedVersions`) and versions with notes (`placeVersions`). Sync sends drafts one by one like versions. Free has
+  3 drafts in a mix, a pack 6 (`FREE_DRAFTS`, `MAX_DRAFTS`). Export and Publish can pick another draft (`draft:<id>`,
+  `lib/packet.ts` `sourceVersion`). Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
   drops one, and sections it uses always count. A section's arrows (‹ Layout n of m ›, ← →, Shuffle, `get_options`)
   step through the built-in layouts plus this mix's clips only (`core/library.ts` `cycleIds`), never another mix's or a

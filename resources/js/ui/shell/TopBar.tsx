@@ -25,6 +25,7 @@ import { isHosted } from '@/lib/host'
 import { canEdit, useAccount } from '@/lib/account'
 import { api, flushMix, openMixId } from '@/lib/mixSync'
 import { useStartFlow } from '../start/StartGuide'
+import { DraftSwitch, DraftsPanel } from '../drafts/DraftsPanel'
 import { SharePanel } from '../panels/SharePanel'
 import { PublishPanel } from '../panels/PublishPanel'
 import { PagesPanel, PageSwitch } from './PagesMenu'
@@ -79,13 +80,13 @@ export function TopBar({ onHelp }: { onHelp: () => void }) {
 /** Logo + mix name; grows into the small app menu. */
 function BrandIsland({ onHelp }: { onHelp: () => void }) {
   const sheet = useStore((s) => s.ui.sheet)
-  const open = sheet === 'menu' || sheet === 'pages'
+  const open = sheet === 'menu' || sheet === 'pages' || sheet === 'drafts'
   const mixName = useStore((s) => s.mixName)
   const st = useStore.getState
   return (
     <Island
       open={open}
-      width={sheet === 'pages' ? 340 : 300}
+      width={sheet === 'pages' ? 340 : sheet === 'drafts' ? 380 : 300}
       onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       bar={
         <>
@@ -107,12 +108,14 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
             <MixName value={mixName} onChange={(v) => st().renameMix(v)} />
           </span>
           <span className="px-0.5 text-zinc-300 max-md:hidden">/</span>
+          <DraftSwitch />
+          <span className="px-0.5 text-zinc-300">/</span>
           <PageSwitch />
           <SaveState />
         </>
       }
     >
-      {sheet === 'pages' ? <PagesPanel /> : <AppMenu onHelp={onHelp} />}
+      {sheet === 'pages' ? <PagesPanel /> : sheet === 'drafts' ? <DraftsPanel /> : <AppMenu onHelp={onHelp} />}
     </Island>
   )
 }
@@ -159,7 +162,7 @@ function SaveButton({ short }: { short?: boolean }) {
   )
 }
 
-const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'more', 'guide', 'notes', 'packet', 'share', 'publish']
+const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'drafts', 'more', 'guide', 'notes', 'packet', 'share', 'publish']
 
 /**
  * The top bar on narrower windows and phones: one pill with the logo menu, the page, ⋯ and Save. ⋯ lists Look,
@@ -173,7 +176,7 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
   const decisions = openGroups(useResolvedGuide()).length
   const st = useStore.getState
   const open = COMPACT_SHEETS.includes(sheet)
-  const inTool = sheet === 'guide' || sheet === 'notes' || sheet === 'packet' || sheet === 'share'
+  const inTool = sheet === 'guide' || sheet === 'notes' || sheet === 'packet' || sheet === 'share' || sheet === 'publish'
   const attention = decisions > 0 || todo > 0 || mode === 'captured'
   const row = (Icon: typeof Sun, label: string, onClick: () => void, extra?: ReactNode) => (
     <button
@@ -215,6 +218,7 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
           >
             <BrandIcon size={28} />
           </button>
+          <DraftSwitch />
           <PageSwitch />
           <SaveState />
           <button
@@ -238,6 +242,8 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
         <AppMenu onHelp={onHelp} showName />
       ) : sheet === 'pages' ? (
         <PagesPanel />
+      ) : sheet === 'drafts' ? (
+        <DraftsPanel />
       ) : sheet === 'more' ? (
         <div className="p-1.5">
           {mode === 'captured' && (
