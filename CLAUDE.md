@@ -172,7 +172,7 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
 pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) mixes
-skins: areas come whole from other skins; on screen it's "A mix", drawn before it lands.
+skins: areas come whole from other skins; on screen it's "Mashup" (so "mix" only ever means the project), drawn before it lands.
 Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers: How should it feel?
 (`core/feel.ts` `FEEL_WORDS`, a skin's `feel` in its JSON, `ui.feelWords`) brings up three themes that fit (`themesFor`), or with
 "Something different" two that match none of the words plus a mix (the same `surpriseMe` roll, drawn first); every theme is a card in
@@ -199,7 +199,10 @@ dates: code does those.
   `setJevTransport` swaps in a fake (`tests/helpers/fakeJev.ts`; `npm test` never uses the network).
 - Key: `TYPESAFE_API_KEY`, server only. Hosted: `Api\JevController` (signed in, `throttle:jev` 120/min 3,000/day, checks
   shape and image sizes, passes the body on unchanged). Vite-only dev: `scripts/jev/devProxy.ts` reads `.env.local`. No key
-  means Jev is off. Per device: "Let Jev help" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
+  means Jev is off. Per device: "Suggestions" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
+- On screen Jev is "Suggestions": its name shows only in the menu's credit ("Suggestions by Jev (TypeSafe)"); every
+  other string says what happened ("Best fit", "No answer this time"), checked by `tests/jev-name.test.ts`. Without a
+  server key the Say bar isn't drawn (`useJevServer`, `checkJevServer` in `lib/jev.ts`); command errors come from `jevOffMessage`.
 - Features (commands first, `core/commands/schema/jev.ts`, `state/commands/jev.ts`): `place_links` (smart links; the
   checklist's dead-link fix, "Jev suggests" in the link menu), `five_second_test` (the first screen's words to a visitor;
   "Before you hand it off" card in the packet panel), `find_subject` (`MediaFill.focus` → object-position; the Image

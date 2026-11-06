@@ -19,7 +19,7 @@ import { Avatar } from './Avatar'
 import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
 import { useAgentLink } from '@/lib/agentLink'
-import { jevAvailable } from '@/lib/jev'
+import { checkJevServer, useJevServer } from '@/lib/jev'
 import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
 import { canEdit, useAccount } from '@/lib/account'
@@ -365,29 +365,21 @@ function AgentAccess() {
   )
 }
 
-/** Jev (TypeSafe) places, picks and checks things on the board. On unless you turn it off on this device. */
+/** Suggestions (Jev, by TypeSafe) place, pick and check things on the board. On unless you turn it off on this device. The one place its name shows. */
 function JevHelp() {
   const on = useStore((s) => s.ui.jev)
-  const [server, setServer] = useState<boolean | null>(null)
-  useEffect(() => {
-    let live = true
-    jevAvailable().then((v) => live && setServer(v))
-    return () => {
-      live = false
-    }
-  }, [])
+  const server = useJevServer((s) => s.ready)
+  useEffect(checkJevServer, [])
   return (
     <div className="flex items-start gap-2.5 rounded-xl px-2.5 py-2">
       <Wand2 size={16} className="mt-0.5 shrink-0 text-zinc-500" />
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-medium text-zinc-800">Let Jev help</div>
+        <div className="text-[13px] font-medium text-zinc-800">Suggestions</div>
         <div className="text-[11.5px] leading-snug text-zinc-500">
-          {server === false
-            ? 'Off here: this server has no TypeSafe key.'
-            : 'Jev (by TypeSafe) places, picks and checks. It never writes your words.'}
+          {server === false ? 'Not available here.' : 'Suggestions by Jev (TypeSafe). It places and picks; it never writes your words.'}
         </div>
       </div>
-      <Switch on={on && server !== false} onChange={() => useStore.getState().setUi({ jev: !on })} label="Let Jev help" />
+      {server !== false && <Switch on={on} onChange={() => useStore.getState().setUi({ jev: !on })} label="Suggestions" />}
     </div>
   )
 }

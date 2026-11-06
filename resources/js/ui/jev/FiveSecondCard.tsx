@@ -55,7 +55,7 @@ export function FiveSecondCard() {
         </button>
       </div>
       <p className="mt-1 text-[12.5px] leading-snug text-zinc-700">
-        {state.busy && !r ? 'Showing your first screen to a visitor…' : (r?.read?.words ?? 'Jev didn’t answer this time.')}
+        {state.busy && !r ? 'Showing your first screen to a visitor…' : (r?.read?.words ?? 'No answer this time.')}
       </p>
       {checks.length > 0 && (
         <ul className="mt-2 space-y-1">

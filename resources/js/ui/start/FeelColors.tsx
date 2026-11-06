@@ -24,7 +24,7 @@ export function FeelColors({ feel: first, site, mode, picked, onPick }: { feel: 
     setNote(null)
     const r = await suggestPalettes({ feel: words.trim(), mode, site: { site } })
     setBusy(false)
-    if (!r?.length) setNote('Jev didn’t answer this time. Try again.')
+    if (!r?.length) setNote('No answer this time. Try again.')
     setPicks(r)
   }
 

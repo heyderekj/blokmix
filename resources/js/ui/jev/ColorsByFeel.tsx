@@ -38,7 +38,7 @@ export function ColorsByFeel() {
     setNote(null)
     const r = await suggestPalettes(ask)
     setBusy(false)
-    if (!r?.length) setNote('Jev didn’t answer this time. Try again.')
+    if (!r?.length) setNote('No answer this time. Try again.')
     setPicks(r)
   }
 

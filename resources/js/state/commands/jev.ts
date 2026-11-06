@@ -10,7 +10,7 @@ import { linkWords } from '@/core/links'
 import { scorePage, SCREENS, type PageMeasure, type PageScore } from '@/core/score'
 import { slotClip } from '@/data/library'
 import { measureFirstScreen } from '@/lib/measure'
-import { askJev, JEV_OFF, jevOn, setJevAllowed } from '@/lib/jev'
+import { askJev, jevOffMessage, jevOn, setJevAllowed } from '@/lib/jev'
 import { useStore } from '../store'
 import { deadLinks, guessLinks } from '../jevLinks'
 import { findFocus } from '../jevPhotos'
@@ -31,7 +31,7 @@ import type { AsyncCommand } from './index'
 setJevAllowed(() => useStore.getState().ui.jev !== false)
 
 async function needJev() {
-  if (!(await jevOn())) throw new CommandError(JEV_OFF)
+  if (!(await jevOn())) throw new CommandError(await jevOffMessage())
 }
 
 /** The open page's sections (or another page's), the shared nav and footer included. */
@@ -103,7 +103,7 @@ export const later = {
         message: set.length
           ? `Pointed ${set.length} link${set.length === 1 ? '' : 's'} where ${set.length === 1 ? 'its' : 'their'} words lead.`
           : guesses.length
-            ? 'Jev has ideas but isn’t sure enough to set them; see suggestions.'
+            ? 'Some aren’t sure enough to set; see suggestions.'
             : `Every link here already leads somewhere${i.section !== undefined ? ` in ${TYPE_LABEL[findSection(i.section, i.page).type]}` : ''}.`,
       }
     },
@@ -111,7 +111,7 @@ export const later = {
   five_second_test: {
     prepare: (i: CommandInput<'five_second_test'>) => fiveSecondTest(i.page),
     apply: (_i: CommandInput<'five_second_test'>, r: FiveSecond) => ({
-      visitor: r.read?.words ?? 'Jev didn’t answer; try again.',
+      visitor: r.read?.words ?? 'No answer this time. Try again.',
       guess: r.read?.kind ?? null,
       torn_between: r.read?.torn ?? null,
       sure: r.read ? Math.round(r.read.p * 100) / 100 : null,
@@ -124,7 +124,7 @@ export const later = {
     prepare: async (i: CommandInput<'pour_words'>) => {
       await needJev()
       const p = await planPour(i.text, pageSlots(i.page))
-      if (!p) throw new CommandError('Jev didn’t answer; nothing was poured. Try again.')
+      if (!p) throw new CommandError('No answer this time, so nothing was placed. Try again.')
       return p
     },
     apply: (_i: CommandInput<'pour_words'>, p: Poured) => {
@@ -145,7 +145,7 @@ export const later = {
     prepare: async (i: CommandInput<'page_from_words'>) => {
       await needJev()
       const p = await planPage(i.text)
-      if (!p) throw new CommandError('Jev didn’t answer, or there were no words to use. Try again.')
+      if (!p) throw new CommandError('No answer this time, or there were no words to use. Try again.')
       return p
     },
     apply: (i: CommandInput<'page_from_words'>, p: PagePlan) => {
@@ -172,7 +172,7 @@ export const later = {
         if (!picture) throw new CommandError(`${b.label} shows no photo or upload to match`)
       }
       const r = await suggestPalettes({ feel: i.feel, brand: i.brand, picture, mode: i.mode })
-      if (!r) throw new CommandError('Jev didn’t answer; try again.')
+      if (!r) throw new CommandError('No answer this time. Try again.')
       return r
     },
     apply: (_i: CommandInput<'suggest_palettes'>, r: Ranked[]) => r.map((p, n) => ({ pick: n + 1, colors: p.palette, words: p.words, from: p.from, fit: p.score })),
@@ -185,7 +185,7 @@ export const later = {
         return look ? [look] : []
       }
       const r = await dressSection(findSection(i.section).id, i.feel)
-      if (!r) throw new CommandError('Jev didn’t answer; try again.')
+      if (!r) throw new CommandError('No answer this time. Try again.')
       return r.ideas
     },
     apply: (_i: CommandInput<'suggest_treatments'>, ideas: DressIdea[]) => ideas.map((d) => ({ does: d.label, command: d.command, input: d.input, needs_pack: d.locked, fit: Math.round(d.fit * 100) / 100 })),
@@ -211,7 +211,7 @@ export const later = {
       return { slotId: slot.id, blockId: b.id, label: b.label, fill, focus: await findFocus(fill) }
     },
     apply: (_i: CommandInput<'find_subject'>, r: { slotId: string; blockId: string; label: string; fill: MediaFill; focus: Awaited<ReturnType<typeof findFocus>> }) => {
-      if (!r.focus) return { block: r.label, focus: null, message: 'No single subject to keep in frame (or Jev wasn’t sure); the crop stays centered.' }
+      if (!r.focus) return { block: r.label, focus: null, message: 'No single subject to keep in frame; the crop stays centered.' }
       useStore.getState().editBlock(r.slotId, r.blockId, { media: { ...r.fill, focus: { x: r.focus.x, y: r.focus.y } } })
       return { block: r.label, focus: { x: r.focus.x, y: r.focus.y }, subject: r.focus.kind }
     },

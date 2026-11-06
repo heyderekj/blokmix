@@ -431,7 +431,7 @@ function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPick }: { 
         <span className="flex items-center justify-between gap-2 text-[16px] font-semibold" style={{ fontFamily: guide.base['font.display'] }}>
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate">{skin.name}</span>
-            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Jev’s pick</span>}
+            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Best fit</span>}
           </span>
           {on && <Check size={16} style={{ color: PINK }} />}
         </span>

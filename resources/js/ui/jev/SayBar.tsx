@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { create } from 'zustand'
 import { CornerDownLeft, FilePlus2, Type, Wand2, X } from 'lucide-react'
 import type { SayAction } from '@/core/jev/say'
-import { jevOn } from '@/lib/jev'
+import { checkJevServer, jevOn, useJevServer } from '@/lib/jev'
 import { doSay, hear, useJevTools, type Heard } from '@/state/jevSay'
 import { trayLines } from '@/state/jevPour'
 import { useStore } from '@/state/store'
@@ -32,6 +32,9 @@ export function SayBar() {
   const [busy, setBusy] = useState(false)
   const [off, setOff] = useState(false)
   const input = useRef<HTMLInputElement>(null)
+  // No key on this server: the bar isn't drawn at all (only lines waiting for a home, if any).
+  const server = useJevServer((s) => s.ready)
+  useEffect(checkJevServer, [])
 
   // Checked again whenever "Let Jev help" changes in the menu.
   const allowed = useStore((s) => s.ui.jev)
@@ -98,6 +101,7 @@ export function SayBar() {
   }
   const action = heard?.action
   const options = heard?.options ?? []
+  if (server === false) return waiting > 0 ? <div className="pointer-events-auto flex justify-center" data-say><TrayChip count={waiting} /></div> : null
   const showing = !off && !pasted && (action || options.length > 0 || (heard && !busy && text.trim().length > 1))
 
   return (
@@ -107,7 +111,7 @@ export function SayBar() {
           {action && (
             <button type="button" onClick={() => run(action)} className="flex w-full cursor-pointer items-center gap-2 rounded-xl bg-zinc-950/[0.05] px-2.5 py-2 text-left transition hover:bg-zinc-950/[0.08] active:scale-[0.99]">
               <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{action.words}</span>
-              {heard?.kept && <span className="shrink-0 text-[11px] text-zinc-500" title={heard.kept}>Your contract keeps this</span>}
+              {heard?.kept && <span className="shrink-0 text-[11px] text-zinc-500" title={heard.kept}>Your rules keep this as it is</span>}
               <span className="kbd flex items-center gap-1">
                 <CornerDownLeft size={11} />
               </span>
@@ -137,7 +141,7 @@ export function SayBar() {
         >
           <Wand2 size={15} className={`shrink-0 ${busy ? 'animate-pulse text-zinc-700' : 'text-zinc-400'}`} />
           {off ? (
-            <span className="min-w-0 truncate text-[12.5px] text-zinc-500">Jev is off: turn on “Let Jev help” in Blokmix’s menu</span>
+            <span className="min-w-0 truncate text-[12.5px] text-zinc-500">Suggestions are off. Turn them on in the menu.</span>
           ) : pasted ? (
             <>
               <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-700">
@@ -164,7 +168,7 @@ export function SayBar() {
                 e.preventDefault()
                 setPasted(t)
               }}
-              placeholder="Say it, or paste your words"
+              placeholder="Ask for a change (“roomier”, “add a FAQ”) or paste your words"
               aria-label="Say what to change, or paste your words"
               className="h-full min-w-0 flex-1 bg-transparent text-[14px] text-zinc-900 outline-none placeholder:text-zinc-500"
             />

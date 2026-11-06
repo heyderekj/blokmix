@@ -295,7 +295,7 @@ function PasteMore() {
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={3}
-        placeholder={'Paste more of your words: notes, an About page, a menu…\nJev puts each line where it belongs. Nothing is reworded.'}
+        placeholder={'Paste more of your words: notes, an About page, a menu…\nEach line goes where it fits. Nothing is reworded.'}
         className="thin-scroll block w-full resize-y bg-transparent px-1 text-[14px] leading-relaxed text-zinc-900 outline-none placeholder:text-zinc-400"
       />
       {note && <p className="px-1 pt-1 text-[12.5px] text-problem-ink">{note}</p>}

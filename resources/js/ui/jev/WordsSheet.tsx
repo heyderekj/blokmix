@@ -66,7 +66,7 @@ export function WordsSheet() {
         <div className="flex items-center gap-2 px-1.5 pb-1.5 pt-0.5">
           <Wand2 size={14} className="text-zinc-500" />
           <span className="text-[13px] font-semibold text-zinc-900">Your words</span>
-          <span className="text-[11.5px] text-zinc-500">Jev (TypeSafe) reads them to decide where they go. Nothing is reworded.</span>
+          <span className="text-[11.5px] text-zinc-500">Each line goes where it fits. Nothing is reworded.</span>
           <button type="button" onClick={close} aria-label="Close" className="ml-auto grid size-7 cursor-pointer place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-700 active:scale-[0.97]">
             <X size={14} />
           </button>

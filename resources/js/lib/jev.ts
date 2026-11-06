@@ -3,6 +3,7 @@
 // reaches the browser. Every answer is optional: when Jev is off, slow or wrong-footed,
 // `askJev` returns null and the caller does what Blokmix did before Jev.
 
+import { create } from 'zustand'
 import { cacheKey, needsImages, type JevRequest, type JevResponse } from '@/core/jev'
 import { xsrf } from './http'
 
@@ -17,7 +18,7 @@ const httpTransport: JevTransport = async (req, signal) => {
     headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...xsrf() },
     body: JSON.stringify({ ...req, model: req.model ?? (needsImages(req) ? 'jev-preview' : 'jev-latest') }),
   })
-  if (!res.ok) throw new Error(`Jev answered ${res.status}`)
+  if (!res.ok) throw new Error(`/api/jev answered ${res.status}`)
   return (await res.json()) as JevResponse
 }
 
@@ -42,6 +43,8 @@ export function setJevTransport(t: JevTransport | null, s?: JevStatus | null): v
   transport = t ?? httpTransport
   status = s ?? (t ? async () => true : httpStatus)
   available = null
+  asked = false
+  useJevServer.setState({ ready: null })
   cache.clear()
 }
 
@@ -120,5 +123,22 @@ export function askLatest(lane: string, req: JevRequest, opts: Omit<AskOptions, 
   return askJev(req, { ...opts, signal: ctrl.signal }).then((res) => (ctrl.signal.aborted ? null : res))
 }
 
-/** Thrown by commands that need Jev when it's off. */
-export const JEV_OFF = 'Jev is off on this device: turn on “Let Jev help” in Blokmix’s menu (and the server needs a TypeSafe key).'
+/** Thrown by commands that need Jev when this device turned suggestions off. */
+export const JEV_OFF = 'Suggestions are off on this device. Turn them on in Blokmix’s menu.'
+/** Thrown by commands that need Jev when the server has no key. */
+export const JEV_MISSING = 'Suggestions aren’t available here.'
+
+/** The message for why Jev can't help right now. */
+export async function jevOffMessage(): Promise<string> {
+  return (await jevAvailable()) ? JEV_OFF : JEV_MISSING
+}
+
+/** Whether the server has a key, for components: null until asked. */
+export const useJevServer = create<{ ready: boolean | null }>(() => ({ ready: null }))
+let asked = false
+/** Ask once and keep the answer in `useJevServer`. */
+export function checkJevServer(): void {
+  if (asked) return
+  asked = true
+  void jevAvailable().then((ready) => useJevServer.setState({ ready }))
+}

@@ -91,7 +91,7 @@ export function StartBox({ box, onBox, onJevOff }: { box: BoxState; onBox: (b: B
     <section>
       <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">What are you making?</h1>
       <p className="mt-2 max-w-2xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">
-        Say it in a sentence, or paste what you already have: an About page, a menu, your old site. Jev reads it and picks the sections and the look. Your words are never rewritten.
+        Say it in a sentence, or paste what you already have: an About page, a menu, your old site. We’ll pick the sections and the look from it. Your words are never rewritten.
       </p>
       <label className="mt-6 grid max-w-sm gap-1.5">
         <span className="text-[14px] font-semibold">What’s it called?</span>
@@ -115,16 +115,16 @@ export function StartBox({ box, onBox, onJevOff }: { box: BoxState; onBox: (b: B
 
       <div className="mt-4 min-h-[112px]" aria-live="polite">
         {off ? (
-          <p className="rounded-xl bg-white/80 px-4 py-3 text-[14px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">Jev is off here, so it can’t read this. Answer three questions instead, below.</p>
+          <p className="rounded-xl bg-white/80 px-4 py-3 text-[14px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">Suggestions are off here, so this can’t be read. Answer three questions instead, below.</p>
         ) : !text ? null : busy && !h ? (
           <p className="flex items-center gap-2 text-[14px] text-[#6B5F68]">
             <Sparkles size={15} className="motion-safe:animate-pulse" /> Reading…
           </p>
         ) : h === null && !busy ? (
-          <p className="text-[14px] text-[#6B5F68]">Jev didn’t answer that time. Keep typing, or answer three questions instead.</p>
+          <p className="text-[14px] text-[#6B5F68]">No answer that time. Keep typing, or answer three questions instead.</p>
         ) : h ? (
           <div className={`space-y-3 transition-opacity duration-150 ${busy ? 'opacity-60' : ''}`}>
-            <Row label="Jev hears">
+            <Row label="Sounds like">
               <KindChip value={choice.kind} kinds={h.kinds} onPick={(k) => onBox({ ...box, kind: k, sections: null })} />
               {h.mode === 'paste' && (
                 <span className="text-[13.5px] text-[#6B5F68]">
