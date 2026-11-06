@@ -680,12 +680,13 @@ export function SectionRail({ slot, index, focused }: { slot: Slot; index: numbe
         pressSection(slot.id, e)
       }}
       data-chrome
-      title={sectionMovable(slot.id) ? `${TYPE_LABEL[slot.type]}: click to select, drag to move` : `${TYPE_LABEL[slot.type]}: click to select`}
+      title={`${TYPE_LABEL[slot.type]}${slot.locked ? ' (locked)' : ''}: ${sectionMovable(slot.id) ? 'click to select, drag to move' : 'click to select'}`}
     >
       {/* the rail's line, drawn in page space so it spans the whole section */}
       <div
-        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${focused ? 'bg-key' : 'bg-zinc-300 group-hover/row:bg-key/70 group-hover/rail:bg-key/70'}`}
-        style={{ width: 'calc(2px / var(--z))' }}
+        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${focused ? 'bg-key' : slot.locked ? 'bg-key/60' : 'bg-zinc-300 group-hover/row:bg-key/70 group-hover/rail:bg-key/70'}`}
+        // Locked, the rail is a touch heavier and pink: the lock lives here, beside the design, never on it.
+        style={{ width: slot.locked ? 'calc(3px / var(--z))' : 'calc(2px / var(--z))' }}
       />
       {/* The label, at screen size, in exactly the height its section has on screen. A column that wraps into a clipped
           second column drops what doesn't fit whole, so a short section shows its number, then only its line. */}

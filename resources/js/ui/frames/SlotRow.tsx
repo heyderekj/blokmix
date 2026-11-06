@@ -23,7 +23,7 @@ import { ClipFrame } from '@/frame/ClipFrame'
 import { VIEW_W } from '../canvas/geometry'
 import { useBarFloor } from '../canvas/useBarFloor'
 import { SectionPill, SectionRail } from './SectionPill'
-import { LockCorners } from './LockGlyph'
+import { useLockMoment } from './LockGlyph'
 import { edgePan, panBy } from '../canvas/dragPan'
 
 const SPIN_STEP = 90
@@ -88,6 +88,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, pSlider, sorting, content])
   // What the arrows step through: the layouts and this mix's own clips (never your other mixes').
   const mixKey = useStore((s) => mixClipIds(s).join(' '))
+  const lockMoment = useLockMoment(slot.locked)
   const ids = useMemo(() => cycleIds(library, slot.type, mixKey.split(' '), slot.clipId), [slot.type, mixKey, slot.clipId])
   const W = VIEW_W[viewport]
 
@@ -354,7 +355,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
     >
       {/* the clips side by side, clipped to the current clip's height */}
       {/* slides happen inside the page: only the current clip is ever visible */}
-      <div className={`absolute inset-0 overflow-hidden ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''}`}>
+      {/* Locking presses the section in and lets it settle; unlocking lifts it and lets go. */}
+      <div className={`absolute inset-0 overflow-hidden ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''} ${lockMoment === 'lock' ? 'lock-press' : lockMoment === 'unlock' ? 'lock-lift' : ''}`}>
         {ids.map((clipId, i) => {
           const n = ids.length
           let rel = (((i - shownIndex) % n) + n) % n
@@ -461,8 +463,6 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
 
       <SectionMarks slot={slot} width={W} height={frameH} rects={rects} drawing={drawing} />
 
-      {/* Locked: corner brackets clamp the section (and stay while it's locked). */}
-      <LockCorners locked={slot.locked} />
       <SectionRail slot={slot} index={index} focused={focused} />
       {focused && !block && <SectionPill slot={slot} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} bottom={height} row={rowRef} />}
     </div>
