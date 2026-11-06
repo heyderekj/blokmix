@@ -3,6 +3,7 @@
   "words": "Soft and floaty: lavender whites, violet to peach, big round corners.",
   "tier": "pack",
   "mode": "light",
+  "feel": ["playful", "calm", "modern"],
   "tokens": {
     "color.bg": "#fdfcff",
     "color.surface": "#f3effe",

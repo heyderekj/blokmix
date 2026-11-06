@@ -70,7 +70,7 @@ export function Dials() {
  * One brand color: a whole palette that reads (AA) is made from it, and trying another theme keeps it. The color
  * lands once you close the picker, as one undo step.
  */
-function BrandColor({ fallback }: { fallback: string }) {
+export function BrandColor({ fallback }: { fallback: string }) {
   const brand = useStore((s) => s.guide.brand?.color)
   const [draft, setDraft] = useState(brand ?? fallback)
   useEffect(() => setDraft(brand ?? fallback), [brand, fallback])

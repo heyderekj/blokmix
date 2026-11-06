@@ -60,6 +60,7 @@ import { uid } from './uid'
 import { versionActions } from './slices/versions'
 import { noteActions } from './slices/notes'
 import { contentFor } from '@/core/start'
+import type { FeelWord } from '@/core/feel'
 
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
@@ -84,6 +85,10 @@ export interface UiState {
   viewport: Viewport
   sheet: Sheet
   guideTab: 'style' | 'content'
+  /** The Look panel, or the full style guide behind it. */
+  guideView: 'look' | 'guide'
+  /** How the site should feel, in the Look panel's words: which themes come up first. */
+  feelWords: FeelWord[]
   crateFilter: SectionType | 'all' | 'auto'
   /** Searching and filtering the Crate (`core/browse.ts`). */
   crateQuery: string
@@ -275,6 +280,8 @@ const DEFAULT_UI: UiState = {
   viewport: 'desktop',
   sheet: 'none',
   guideTab: 'style',
+  guideView: 'look',
+  feelWords: [],
   crateFilter: 'auto',
   crateQuery: '',
   crateFacets: {},

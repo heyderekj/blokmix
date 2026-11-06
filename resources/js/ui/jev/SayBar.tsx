@@ -149,7 +149,7 @@ export function SayBar() {
   const match = async (b: Blank, words: string) => (off ? null : readMatch(await askJev(matchRequest(b, words, said))))
 
   return (
-    <div ref={box} className="pointer-events-auto flex w-[min(560px,calc(100vw-24px))] flex-col items-stretch" data-say>
+    <div ref={box} className={`pointer-events-auto flex flex-col items-stretch ${off ? 'w-max max-w-[calc(100vw-24px)] self-center' : 'w-[min(560px,calc(100vw-24px))]'}`} data-say>
       {building && (
         <div className="glass-menu mb-1.5 animate-pop rounded-2xl p-3">
           <Sentence segments={segments} picks={picks} onPicks={setPicks} order={order} match={match} size="sm" />
@@ -198,11 +198,11 @@ export function SayBar() {
             else if (action) void run(action)
             else if (!text.trim() && built.action) runBuilt()
           }}
-          className={`glass-menu flex h-11 min-w-0 flex-1 items-center gap-2 rounded-full pl-3.5 pr-1.5 transition-shadow ${open || text || pasted ? 'ring-2 ring-zinc-900/10' : ''}`}
+          className={`glass-menu flex min-w-0 flex-1 items-center gap-2 rounded-full pl-3.5 transition-shadow ${off ? 'h-9 pr-4' : 'h-11 pr-1.5'} ${open || text || pasted ? 'ring-2 ring-zinc-900/10' : ''}`}
         >
           <Wand2 size={15} className={`shrink-0 ${busy ? 'animate-pulse text-zinc-700' : 'text-zinc-400'}`} />
           {off ? (
-            <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-500">Suggestions are off (Blokmix menu)</span>
+            <span className="min-w-0 truncate text-[12.5px] text-zinc-500">Suggestions are off (Blokmix menu)</span>
           ) : pasted ? (
             <>
               <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-700">

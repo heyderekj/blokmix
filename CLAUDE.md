@@ -162,8 +162,8 @@ box's words, and `sections`). The flash says how many spots still hold sample wo
 
 ## Skins and the contract
 
-On screen (`docs/simple-vision.md`, the brand guide's B3): Your mix (not working mix), Themes (skins), Keep or surprise
-(the contract), Options (candidates), Crate (the clips drawer), Original / Your style, Export (code) vs Download a copy
+On screen (`docs/simple-vision.md`, the brand guide's B3): Your mix (not working mix), Look (the panel), Themes (skins),
+Rules for your agent (the contract), Style guide (every value, behind Look), Options (candidates), Crate (the clips drawer), Original / Your style, Export (code) vs Download a copy
 (the mix file), Notes (not marks). Word tags read Your words · Placeholder · Original · Saved. No "packet", "tokens" or
 "slot" in anything a person reads.
 
@@ -176,14 +176,21 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
 pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) mixes
-skins: areas come whole from other skins.
+skins: areas come whole from other skins; on screen it's "A mix", drawn before it lands.
+Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers: How should it feel?
+(`core/feel.ts` `FEEL_WORDS`, a skin's `feel` in its JSON, `ui.feelWords`) brings up three themes that fit (`themesFor`), or with
+"Something different" two that match none of the words plus a mix (the same `surpriseMe` roll, drawn first); every theme is a card in
+its own look (`ui/skins/SkinSpecimen.tsx`, drawn as `applySkin` would leave this mix, so kept parts and your brand color show).
+Nudge it (`NUDGES`, `nudgeTokens`: Bolder, Rounder, Darker…) turns Feel dials a step, one undo step each. Your color is the brand
+color. The Style guide door opens everything else (`GuideBoard`: Feel, the group tiles, text styles, effects, contrast, Rules for
+your agent, Copy for your agent).
 A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the closest skin (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
 The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus
 your own lines. Swaps and Surprise me leave Keep alone; agent commands that write to a kept area are refused
 (`areasOfCommand`, `contractRefusal`); your own controls aren't. Exports write `CONTRACT.md`, and `agentRules` opens or closes
-the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: the Theme and Keep or surprise tiles atop the Style
-guide (on screen a skin is a Theme and the contract is Keep or surprise; code keeps `skin` and `contract`); a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
-moves the canvas so the section shows beside it. Agents: `list_skins`, `apply_skin`, `surprise_me`, `get_contract`, `set_contract`.
+the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: themes in Look, the contract as Rules for your agent in the Style
+guide behind it (on screen a skin is a Theme and the contract is Rules for your agent; code keeps `skin` and `contract`); a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
+moves the canvas so the section shows beside it. Agents: `list_skins`, `suggest_themes`, `apply_skin`, `nudge_look`, `surprise_me`, `get_contract`, `set_contract`.
 
 ## Jev (TypeSafe)
 
@@ -397,7 +404,7 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
 - Starter mixes (`samples/starters/<id>.json`, `core/starters.ts` `buildStarter`): pages of layout ids plus `tokens`,
   a sample style guide that lands as your own values. The demo seed (layouts, neutral guide) is built the same way. New mix
   offers them; agents use `list_starters` and `start_from_starter` (replaces pages and guide, one undo step).
-- Dials (`core/dials.ts`, the Feel tile atop the Style guide): spacing, type size, roundness, weight and width (the content
+- Dials (`core/dials.ts`, the Feel tile atop the Style guide; Look's nudges turn them in words): spacing, type size, roundness, weight and width (the content
   and reading columns together) each move a few tokens at once (`chooseTokens`, one undo step); Light/Dark (`setTone`) swaps background and text, re-mixes
   surface, border and muted, and lifts a primary that would vanish. Agents use `set_dial` and `set_tone`; `get_page`
   reports `dials` and `tone`. The Type dial stops at a 1.333 ratio (bigger ones outgrow phones; the knob has them).

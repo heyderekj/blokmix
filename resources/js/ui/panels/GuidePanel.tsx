@@ -13,13 +13,16 @@ import { CONTRAST_PAIRS, contrastRatio, expandTokens, GROUP_LABEL, keysInGroup, 
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useResolvedGuide } from '@/state/derived'
+import { Look } from './guide/Look'
 import { GuideBoard } from './guide/GuideBoard'
 import { FontField } from './FontPicker'
 import { PanelSection } from './parts'
 
 /** The style guide panel: a board of tiles, one per group, that open into their choices and knobs. */
+/** Look first; the full style guide sits behind it. */
 export function GuidePanel() {
-  return <GuideBoard />
+  const view = useStore((s) => s.ui.guideView)
+  return view === 'guide' ? <GuideBoard /> : <Look />
 }
 
 export function sourceOf(candidateId: string) {

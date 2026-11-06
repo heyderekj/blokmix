@@ -1,55 +1,94 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Lock, Shuffle, X } from 'lucide-react'
+import { Check, Lock, X } from 'lucide-react'
+import type { GuideState, TokenSet } from '@/core/types'
 import { applySkin, skinList, skinOpen, type Skin } from '@/core/skins'
 import { emptyContract } from '@/core/contract'
+import { resolveGuide } from '@/core/guide'
 import { pageOf } from '@/core/site'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
+import { SkinSpecimen } from '@/ui/skins/SkinSpecimen'
+import { FontLinks } from './shared'
 
 const PRESS = 'cursor-pointer transition-[background-color,box-shadow,scale] duration-150 active:scale-[0.97]'
 
-/** A whole look in one click, over the same layouts. The contract says what a swap leaves alone; ⌘Z takes it back. */
-export function Skins() {
-  const on = useStore((s) => s.guide.skin)
-  const [comparing, setComparing] = useState(false)
-  const put = (skin: Skin) => {
-    const st = useStore.getState()
-    if (st.applySkin(skin.id)) st.showFlash(`${skin.name} is on`, { undo: true })
-  }
-  const surprise = () => {
-    const st = useStore.getState()
-    const words = st.surpriseMe()
-    st.showFlash(words ?? 'Nothing to surprise you with: the contract keeps every area', words ? { undo: true } : undefined)
-  }
+export interface SkinLook {
+  skin: Skin
+  tokens: TokenSet
+  components: GuideState['components']
+}
+
+/** Every theme as a swap would leave this mix: what you keep (your brand color, kept areas) shows on every card. */
+export function useSkinLooks(): SkinLook[] {
+  const guide = useStore((s) => s.guide)
+  const contract = useStore((s) => s.contract)
+  return useMemo(
+    () =>
+      skinList().map((skin) => {
+        const g = applySkin(guide, skin, contract ?? emptyContract())
+        return { skin, tokens: resolveGuide(g).tokens, components: g.components }
+      }),
+    [guide, contract],
+  )
+}
+
+/** Put a theme on, as one undo step. */
+export function putSkin(skin: Skin) {
+  const st = useStore.getState()
+  if (st.applySkin(skin.id)) st.showFlash(`${skin.name} is on`, { undo: true })
+}
+
+/** A theme drawn in its own look, with its name under it. Also used for a mix, which has no skin of its own. */
+export function SkinCard({ label, words, tokens, components, here, locked, onPick }: { label: string; words: string; tokens: TokenSet; components?: GuideState['components']; here: boolean; locked: boolean; onPick: () => void }) {
+  const brand = useStore((s) => s.content.brand)
   return (
-    <div className="col-span-2 rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)]">
-      <div className="mb-2.5 flex items-center justify-between gap-2">
-        <span className="min-w-0 truncate text-[12.5px] font-semibold text-zinc-900">Theme{on ? `: ${on.name}` : ''}</span>
-        <button type="button" onClick={surprise} className={`flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-chip px-2.5 text-[11.5px] font-semibold text-zinc-700 ${PRESS}`}>
-          <Shuffle size={12} /> Surprise me
-        </button>
+    <button
+      type="button"
+      onClick={onPick}
+      aria-pressed={here}
+      aria-label={`${label}: ${words}`}
+      title={words}
+      className="group/skin grid min-w-0 cursor-pointer gap-1 rounded-[13px] text-left transition-[scale] duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent,#ff69b4)]"
+    >
+      <span className={`block rounded-[12px] transition-[box-shadow] duration-150 ${here ? 'shadow-[0_0_0_2px_var(--color-accent,#ff69b4)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.06)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/skin:shadow-[0_0_0_1px_rgb(0_0_0/0.18)]'}`}>
+        <SkinSpecimen tokens={tokens} components={components} name={brand?.trim() || 'Your site'} />
+      </span>
+      <span className="flex items-center justify-between gap-1 px-1 text-[11.5px] font-semibold text-zinc-800">
+        <span className="truncate">{label}</span>
+        {here ? <Check size={12} className="shrink-0" /> : locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="Mix pack" />}
+      </span>
+    </button>
+  )
+}
+
+/** Theme cards in a grid, with every theme's fonts loaded. */
+export function SkinGrid({ looks, cols = 2 }: { looks: SkinLook[]; cols?: 2 | 3 }) {
+  const on = useStore((s) => s.guide.skin)
+  return (
+    <>
+      <FontLinks tokens={looks.map((l) => l.tokens)} />
+      <div className={`grid gap-x-2 gap-y-2.5 ${cols === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        {looks.map(({ skin, tokens, components }) => (
+          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={on?.id === skin.id} locked={!skinOpen(library, skin)} onPick={() => putSkin(skin)} />
+        ))}
       </div>
-      <div className="grid grid-cols-2 gap-1.5">
-        {skinList().map((skin) => {
-          const here = on?.id === skin.id
-          return (
-            <button key={skin.id} type="button" onClick={() => put(skin)} aria-pressed={here} title={skin.words} className={`flex h-9 items-center gap-2 rounded-xl bg-white px-2 text-left text-[11.5px] font-medium text-zinc-800 ${PRESS} ${here ? 'shadow-[0_0_0_2px_var(--color-accent,#ff69b4)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.08)]'}`}>
-              <span className="flex shrink-0 overflow-hidden rounded-full shadow-[0_0_0_1px_rgb(0_0_0/0.1)]" aria-hidden>
-                <span className="size-3" style={{ background: skin.tokens['color.bg'] }} />
-                <span className="size-3" style={{ background: skin.tokens['color.primary'] }} />
-              </span>
-              <span className="min-w-0 flex-1 truncate">{skin.name}</span>
-              {here ? <Check size={12} className="shrink-0" /> : !skinOpen(library, skin) && <Lock size={11} className="shrink-0 text-zinc-400" />}
-            </button>
-          )
-        })}
-      </div>
-      <button type="button" onClick={() => setComparing(true)} className={`mt-2 h-8 w-full rounded-full text-[11.5px] font-semibold text-zinc-600 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5 ${PRESS}`}>
+    </>
+  )
+}
+
+/** Every theme, and a way to see this page under each of them side by side. */
+export function AllThemes() {
+  const looks = useSkinLooks()
+  const [comparing, setComparing] = useState(false)
+  return (
+    <div className="grid gap-2">
+      <SkinGrid looks={looks} />
+      <button type="button" onClick={() => setComparing(true)} className={`h-8 w-full rounded-full text-[11.5px] font-semibold text-zinc-600 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5 ${PRESS}`}>
         Compare on this page
       </button>
-      {comparing && <Compare onClose={() => setComparing(false)} onPick={(s) => { put(s); setComparing(false) }} />}
+      {comparing && <Compare onClose={() => setComparing(false)} onPick={(s) => { putSkin(s); setComparing(false) }} />}
     </div>
   )
 }

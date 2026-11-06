@@ -4,6 +4,7 @@
 
 import type { TokenGroup, TokenKey } from './types'
 import { TOKEN_GROUP_OF } from './tokens'
+import { NUDGE_AREAS, type Nudge } from './feel'
 
 export const CONTRACT_AREAS = ['color', 'type', 'shape', 'space', 'motion', 'looks', 'sections', 'pictures', 'layout', 'words'] as const
 export type ContractArea = (typeof CONTRACT_AREAS)[number]
@@ -73,6 +74,8 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'set_brand_color':
     case 'set_tone':
       return ['color']
+    case 'nudge_look':
+      return NUDGE_AREAS[input.nudge as Nudge] ?? []
     case 'set_dial': {
       // Each dial moves a few tokens: spacing and width are space, type and weight are type, roundness is shape.
       const dial = String(input.dial)

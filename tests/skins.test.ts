@@ -22,7 +22,7 @@ import { BASE_TOKENS, contrastRatio } from '@/core/tokens'
 import { runCommand } from '@/state/commands'
 import { useStore } from '@/state/store'
 
-const skin = (over: Partial<Skin> = {}): Skin => ({ id: 'test', name: 'Test', words: '', tier: 'free', mode: 'light', tokens: { 'color.primary': '#112233', 'radius.base': '3px', 'font.display': "'Fraunces', serif" }, ...over })
+const skin = (over: Partial<Skin> = {}): Skin => ({ id: 'test', name: 'Test', words: '', tier: 'free', mode: 'light', feel: [], tokens: { 'color.primary': '#112233', 'radius.base': '3px', 'font.display': "'Fraunces', serif" }, ...over })
 const contract = (areas: Contract['areas'], more: Partial<Contract> = {}): Contract => ({ ...emptyContract(), areas, ...more })
 const withCandidate = (): GuideState => ({
   ...emptyGuide(),
