@@ -73,12 +73,12 @@ export const PAGE_COMMANDS = {
   },
   edit_list: {
     description:
-      'Change a list’s items (features, questions, plans, logos…): add one (it copies the first item’s structure), duplicate, remove or move an item, swap two items (they trade places, nothing else moves), or reset to the layout’s own items.',
+      'Change a list’s items (features, questions, plans, logos…): add one (it copies the first item’s structure; with item, right after that one), duplicate, remove or move an item, swap two items (they trade places, nothing else moves), or reset to the layout’s own items.',
     input: z.object({
       section,
       list: z.string().describe('The list: its block id, label or name ("questions") from get_content'),
       op: z.enum(['add', 'duplicate', 'remove', 'move', 'swap', 'reset']),
-      item: z.number().int().min(1).optional().describe('Which item, 1 = first (duplicate, remove, move, swap)'),
+      item: z.number().int().min(1).optional().describe('Which item, 1 = first (duplicate, remove, move, swap; add puts the new one after it)'),
       to: z.number().int().min(1).optional().describe('Move: the new position; swap: the other item’s position (1 = first)'),
     }),
     write: true,

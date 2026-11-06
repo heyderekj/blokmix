@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { create } from 'zustand'
-import { Link2, LayoutTemplate, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, MoreHorizontal, Palette, Plus, RotateCcw, Type, Users, MessageSquarePlus, Image as ImageIcon, Smile, Database } from 'lucide-react'
+import { Link2, LayoutTemplate, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, MoreHorizontal, Palette, Plus, RotateCcw, Type, Users, MessageSquarePlus, Image as ImageIcon, Smile, Database, ListPlus } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
 import { defaultFor, effectiveEdit } from '@/core/blocks/style'
@@ -113,7 +113,8 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   const current = variants.find((v) => v.id === edit?.variant)
   // The Style panel measures the page for its suggestions; while it's closed, the bar does, for the dot on Style.
   const advice = useAdvice(slot, block, rect, !styling)
-  const list = listContext(slotClip(slot), slot, block.id)
+  // The list you're in: the list itself, an item, or anything inside an item (its title, its picture).
+  const list = listContext(slotClip(slot), slot, block.id, { within: true })
 
   return (
     <div ref={ref} className="flex w-max flex-col items-start gap-1.5" data-chrome onPointerDown={(e) => e.stopPropagation()}>
@@ -457,15 +458,24 @@ function ListControls({ slotId, ctx }: { slotId: string; ctx: NonNullable<Return
   const st = useStore.getState
   const full = ctx.count >= ctx.max
   const select = (r: { itemId: string | null } | null) => r?.itemId && st().selectBlock(r.itemId)
-  if (!ctx.item)
-    return (
-      <BarButton icon={Plus} title={full ? `This layout holds up to ${ctx.max} items` : 'Add an item (it copies the first one)'} onClick={() => select(st().editList(slotId, { op: 'add', listId: ctx.list.id }))}>
-        Add item
-      </BarButton>
-    )
+  const noun = (ctx.item?.label.split(' · ').at(-1) ?? 'item').replace(/\s*\d+$/, '').toLowerCase() || 'item'
+  // Add: right after the item you're on (or at the end, on the list itself). Full: it says so, and does nothing.
+  const add = (
+    <button
+      type="button"
+      title={full ? `This layout holds up to ${ctx.max} items` : ctx.item ? `Add a ${noun} after this one` : `Add a ${noun}`}
+      aria-disabled={full || undefined}
+      onClick={() => !full && select(st().editList(slotId, { op: 'add', listId: ctx.list.id, ...(ctx.item ? { after: ctx.item.id } : {}) }))}
+      className={`${BAR_BUTTON} px-3 ${full ? 'cursor-default text-zinc-400' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+    >
+      <ListPlus size={15} className={full ? 'text-zinc-300' : 'text-zinc-500'} /> Add {noun}
+    </button>
+  )
+  if (!ctx.item) return add
   const item = ctx.item.id
   return (
     <div className="flex items-center">
+      {add}
       <IconButton icon={Copy} title={full ? `This layout holds up to ${ctx.max} items` : 'Duplicate (⌘D)'} disabled={full} onClick={() => select(st().editList(slotId, { op: 'duplicate', itemId: item }))} />
       <IconButton
         icon={Minus}

@@ -44,14 +44,19 @@ export const write = {
       return hit.id
     }
     const change: ListOp =
-      i.op === 'add' || i.op === 'reset'
-        ? { op: i.op, listId: list.id }
+      i.op === 'add'
+        ? { op: 'add', listId: list.id, ...(i.item != null ? { after: item() } : {}) }
+        : i.op === 'reset'
+        ? { op: 'reset', listId: list.id }
         : i.op === 'move'
           ? { op: 'move', itemId: item(), to: (i.to ?? 1) - 1 }
           : i.op === 'swap'
             ? { op: 'swap', itemId: item(), withId: items[(i.to ?? 0) - 1]?.id ?? '' }
             : { op: i.op, itemId: item() }
-    putSlot(changeList(slot, change))
+    // A list showing a collection changes its entries, as on the canvas.
+    if (list.listKey && slot.bind?.lists?.[list.listKey]) {
+      if (!useStore.getState().editList(slot.id, change)) throw new CommandError('That change didn’t work on this list.')
+    } else putSlot(changeList(slot, change))
     const live = findSection(slot.id)
     return { list: list.label, items: itemsOf(live, list.id).map((b, n) => ({ position: n + 1, block: b.id, label: b.label })), content: contentJson(outlineOf(live), wordsFor(live)) }
   },

@@ -125,20 +125,39 @@ function setOwnRadio(el: HEl, on: boolean): HEl {
   return visit(el)
 }
 
-/** A copy of an item as item `to`: fields renumbered, block ids suffixed, ids kept unique. */
-function cloneItem(el: HEl, key: string, from: number, to: number): HEl {
+/**
+ * A copy of an item as item `to`: fields renumbered, block ids suffixed, ids kept unique, its picture names numbered
+ * for the new item ("feature1" → "feature7"). `placed` are the item's own class names that only it has (a bento's
+ * `c1`): they put it in one spot of the grid, so a copy leaves them behind and flows into the next free place.
+ */
+function cloneItem(el: HEl, key: string, from: number, to: number, placed: Set<string> = new Set()): HEl {
   const re = renumberRe(key, from)
   const tag = `${key}${to}`
-  return mapTree([el], (e) => ({
+  const media = (v: string) => (/\d+$/.test(v) ? v.replace(/\d+$/, (d) => (Number(d) === from ? String(to) : `${d}-${tag}`)) : `${v}-${tag}`)
+  const out = mapTree([el], (e) => ({
     ...e,
     // A copy never opens itself: which tab is open belongs to the first position.
     attrs: (isRadio(e) ? e.attrs.filter(([k]) => k !== 'checked') : e.attrs).map(([k, v]): [string, string] => {
       if (k === 'data-mx-field' || k === 'data-mx-mirror') return [k, v.replace(re, tag)]
       if (k === 'data-mx-b') return [k, `${v}.${tag}`]
+      if (k === 'data-mx-media') return [k, media(v)]
       if (k === 'id' || k === 'for') return [k, `${v}-${tag}`]
       return [k, v]
     }),
   }))[0] as HEl
+  if (!placed.size) return out
+  const cls = (attr(out, 'class') ?? '').split(/\s+/).filter((c) => c && !placed.has(c)).join(' ')
+  return { ...out, attrs: out.attrs.map(([k, v]): [string, string] => (k === 'class' ? [k, cls] : [k, v])) }
+}
+
+/** Class names only one item has (a bento's c1…c6): they place that item, they aren't its look. */
+function placementClasses(items: HEl[]): Set<string> {
+  if (items.length < 3) return new Set()
+  const count = new Map<string, number>()
+  for (const it of items) for (const c of new Set((attr(it, 'class') ?? '').split(/\s+/).filter(Boolean))) count.set(c, (count.get(c) ?? 0) + 1)
+  const once = [...count].filter(([, n]) => n === 1).map(([c]) => c)
+  // Only when every item has one of its own (a pattern), not one odd item.
+  return items.every((it) => (attr(it, 'class') ?? '').split(/\s+/).some((c) => once.includes(c))) ? new Set(once) : new Set()
 }
 
 /** An item with its words, ids and number taken out: items that match are built the same way. */
@@ -203,6 +222,7 @@ function reorder(el: HEl, isItem: (n: HNode) => n is HEl, num: (e: HEl) => numbe
   // New items copy the most common item, not a first item that's special.
   const special = isItem(items[0]) && attr(items[0], 'data-mx-block') === 'item' ? firstPosition(items) : null
   const plainN = special ? num(items[1])! : firstN
+  const placed = isItem(items[0]) && attr(items[0], 'data-mx-block') === 'item' ? placementClasses(items) : new Set<string>()
   const seen = new Set<number>()
   const next: HEl[] = []
   for (const r of refs) {
@@ -212,7 +232,7 @@ function reorder(el: HEl, isItem: (n: HNode) => n is HEl, num: (e: HEl) => numbe
     if (own) next.push(own)
     else {
       const from = r.from != null && byN.has(r.from) ? r.from : plainN
-      next.push(cloneItem(byN.get(from)!, key, from, r.n))
+      next.push(cloneItem(byN.get(from)!, key, from, r.n, placed))
     }
   }
   // What only the first item had goes to whichever item is first now.
@@ -329,7 +349,9 @@ export function applyLists(tree: HNode[], lists: Record<string, ListItemRef[]> |
         const key = listKeyOf(el)
         const refs = key && !shared.has(key) ? lists[key] : undefined
         if (key && refs?.length) {
+          const was = itemsOf(el).length
           el = reorder(el, (k): k is HEl => isKind(k, 'item'), (it) => numberOf(it, key), key, refs)
+          if (itemsOf(el).length !== was) el = rebalance(el)
           changed.set(attr(el, 'data-mx-b')!, { key, refs })
         }
       }
@@ -343,6 +365,39 @@ export function applyLists(tree: HNode[], lists: Record<string, ListItemRef[]> |
     if (!c) return el
     return reorder(el, isMirror, (m) => splits(attr(m, 'data-mx-mirror')!).find((s) => s.key === c.key)?.n, c.key, c.refs)
   })
+}
+
+/**
+ * A grid list whose count changed, so its rows stay full: items that all span the same N of 12 get another per-row
+ * count when that fills every row (3-up with 4 items becomes 4-up), or keep theirs with the last row centred. Written
+ * as `data-mx-span` / `data-mx-start`, which the base CSS (GRID_SPAN_CSS) applies on wide screens only. Lists that
+ * aren't on the 12-column grid, or that place items themselves, are left alone.
+ */
+export function rebalance(list: HEl): HEl {
+  const items = itemsOf(list)
+  const classes = (el: HEl) => (attr(el, 'class') ?? '').split(/\s+/).filter(Boolean)
+  if (!classes(list).includes('grid') || items.length < 2) return list
+  const spans = items.map((it) => classes(it).find((c) => /^col-\d+$/.test(c)))
+  if (spans.some((s) => s !== spans[0]) || !spans[0] || items.some((it) => classes(it).some((c) => c.startsWith('start-')))) return list
+  const span = Number(spans[0].slice(4))
+  if (12 % span) return list
+  const perRow = 12 / span
+  const count = items.length
+  const clean = (it: HEl) => ({ ...it, attrs: it.attrs.filter(([k]) => k !== 'data-mx-span' && k !== 'data-mx-start') })
+  const set = (it: HEl, extra: [string, string][]) => ({ ...clean(it), attrs: [...clean(it).attrs, ...extra] })
+  let layout: (it: HEl, i: number) => HEl = clean
+  if (count % perRow) {
+    const other = [perRow + 1, perRow - 1].find((c) => c >= 2 && c <= 6 && 12 % c === 0 && count % c === 0)
+    if (other) layout = (it) => set(it, [['data-mx-span', String(12 / other)]])
+    else {
+      const rest = count % perRow
+      const first = count - rest
+      const start = (12 - rest * span) / 2 + 1
+      layout = (it, i) => (i === first && Number.isInteger(start) && start > 1 ? set(it, [['data-mx-span', String(span)], ['data-mx-start', String(start)]]) : clean(it))
+    }
+  }
+  let i = 0
+  return { ...list, kids: list.kids.map((k) => (isKind(k, 'item') ? layout(k, i++) : k)) }
 }
 
 /** Elements a frame can swap in place: list blocks and mirror sets. */
@@ -466,7 +521,8 @@ export function listMax(name: string | undefined, key: string, layoutCount: numb
 /* ---------- editing a section's lists ---------- */
 
 export type ListOp =
-  | { op: 'add'; listId: string }
+  /** A new item, at the end or right after `after` (an item of the list). */
+  | { op: 'add'; listId: string; after?: string }
   | { op: 'duplicate'; itemId: string }
   | { op: 'remove'; itemId: string }
   | { op: 'move'; itemId: string; to: number }
@@ -512,8 +568,21 @@ export function editList(slot: Slot, clip: SectionClip, content: ProjectContent,
     if (refs.length >= max) throw new ListError(`This list holds up to ${max} items in this layout.`)
     const wordNumbers = Object.keys(slot.words ?? {}).flatMap((f) => splits(f).filter((s) => s.key === key).map((s) => s.n))
     const n = nextNumber(clip, key, [...order, ...own, ...wordNumbers])
-    if (change.op === 'add') refs.push({ n })
-    else {
+    if (change.op === 'add') {
+      // Right after the item you're on, when there is one; else at the end.
+      const prev = change.after ? clip.blocks.find((b) => b.id === change.after) : undefined
+      const i = prev?.n != null && prev.parent === list.id ? order.indexOf(prev.n) : -1
+      if (i >= 0) refs.splice(i + 1, 0, { n })
+      else refs.push({ n })
+      // It says it's new rather than repeating the item it was built from: its title reads "New feature" until you
+      // write one (your copy's words for that number win, when you have them).
+      const tmpl = order[0]
+      const itemBlock = clip.blocks.find((b) => b.parent === list.id && b.kind === 'item')
+      const noun = (itemBlock?.label.split(' · ').at(-1) ?? 'item').replace(/\s*\d+$/, '').toLowerCase() || 'item'
+      const title = tmpl != null ? itemFields(Object.keys(clip.fields), key, tmpl).find((f) => /^(title|name|q|heading|label|question)$/i.test(f.replace(renumberRe(key, tmpl), ''))) : undefined
+      const field = title && renumberField(title, key, tmpl!, n)
+      if (field && !content.fields[clip.type]?.[field] && !slot.words?.[field]) words = { ...slot.words, [field]: `New ${noun}` }
+    } else {
       if (at < 0) throw new ListError('Pick an item in the list to duplicate.')
       const src = refs[at]
       refs.splice(at + 1, 0, { n, from: src.from ?? src.n })
@@ -546,11 +615,19 @@ export function editList(slot: Slot, clip: SectionClip, content: ProjectContent,
   return done(words)
 }
 
-/** The editable list a block is (or is an item of): where the item sits and how many fit. */
-export function listContext(clip: SectionClip, slot: Pick<Slot, 'lists'>, blockId: string) {
-  const b = clip.blocks.find((x) => x.id === blockId)
+/**
+ * The editable list a block is (or is an item of): where the item sits and how many fit. With `within`, a block
+ * inside an item (its title, its picture) counts as that item, so the item's controls show wherever you click in it.
+ */
+export function listContext(clip: SectionClip, slot: Pick<Slot, 'lists'>, blockId: string, opts: { within?: boolean } = {}) {
+  let b = clip.blocks.find((x) => x.id === blockId)
   if (!b) return null
-  const list = b.kind === 'list' ? b : b.kind === 'item' ? clip.blocks.find((x) => x.id === b.parent) : undefined
+  if (opts.within) {
+    let up: BlockInfo | undefined = b
+    while (up && up.kind !== 'item' && up.kind !== 'list') up = up.parent ? clip.blocks.find((x) => x.id === up!.parent) : undefined
+    if (up?.kind === 'item') b = up
+  }
+  const list = b.kind === 'list' ? b : b.kind === 'item' ? clip.blocks.find((x) => x.id === b!.parent) : undefined
   if (!list?.listKey) return null
   const order = listOrder(clip, list.id)
   const max = listMax(list.list, list.listKey, layoutOrder(clip, slot, list.id, list.listKey).length)
