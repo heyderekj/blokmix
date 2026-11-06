@@ -12,6 +12,7 @@ import { Alternatives } from './Alternatives'
 import { toggleSheet } from './TopBar'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
+import { SayBar, SayButton } from '../jev/SayBar'
 
 const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
   { id: 'select', icon: MousePointer2, label: 'Select', key: 'V' },
@@ -38,6 +39,7 @@ export function Dock() {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3" data-dock>
       <FirstRunTip />
+      <SayBar />
       <Island
         open={open || !!focused}
         width={open || focused ? Math.min(760, window.innerWidth - 24) : undefined}
@@ -50,6 +52,7 @@ export function Dock() {
             <ToolSwitcher />
             <Divider />
             <ShuffleButton />
+            <SayButton />
             {section && !focused && (
               <button
                 type="button"

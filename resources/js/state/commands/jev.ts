@@ -14,6 +14,7 @@ import { askJev, JEV_OFF, jevOn, setJevAllowed } from '@/lib/jev'
 import { useStore } from '../store'
 import { deadLinks, guessLinks } from '../jevLinks'
 import { findFocus } from '../jevPhotos'
+import { hear, type Heard } from '../jevSay'
 import { CommandError, findBlock, findPage, findSection, placeOf, wordsFor } from './refs'
 import type { AsyncCommand } from './index'
 
@@ -102,6 +103,16 @@ export const later = {
       checks: r.score.checks.map((c) => `${c.ok ? '✓' : c.weight ? '✗' : '·'} ${c.words}`),
     }),
   } satisfies AsyncCommand<FiveSecond>,
+  understand: {
+    prepare: async (i: CommandInput<'understand'>) => {
+      await needJev()
+      return hear(i.text)
+    },
+    apply: (_i: CommandInput<'understand'>, h: Heard | null) => {
+      const show = (a: NonNullable<Heard['action']>) => ({ does: a.words, command: a.command ?? null, input: a.input ?? null, opens: a.open ?? null, sure: Math.round(a.sure * 100) / 100 })
+      return { action: h?.action ? show(h.action) : null, options: (h?.options ?? []).map(show), contract: h?.kept ?? null }
+    },
+  },
   find_subject: {
     prepare: async (i: CommandInput<'find_subject'>) => {
       await needJev()

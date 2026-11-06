@@ -23,6 +23,12 @@ export const JEV_COMMANDS = {
     input: z.object({ page: z.string().optional().describe('A page path or id; default the open page') }),
     write: false,
   },
+  understand: {
+    description:
+      'What Say it would do with these words ("roomier", "make pricing dark", "FAQ above pricing", "add a team section"): Jev picks one of Blokmix’s own commands and fills its arguments from this page’s real sections, dials and skins. Returns the command and input it would run (action, when sure) and what else the words might mean (options). Changes nothing: run the action yourself if it’s right.',
+    input: z.object({ text: z.string().trim().min(1).max(200) }),
+    write: false,
+  },
   find_subject: {
     description:
       'Find the subject of a photo or upload in an image block (a person, a product, a dish) with Jev, and set the crop to keep it in frame at every width and on phones (the fill’s focus). A person’s focus sits near their face. Does nothing for placeholders, mockups or moving media, or when the photo has no single subject. One undo step.',

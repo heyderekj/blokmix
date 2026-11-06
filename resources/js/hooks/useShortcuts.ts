@@ -9,6 +9,7 @@ import { tileNeighbor, listContext } from '@/core/lists'
 import { wordChoices, currentWords } from '@/core/words'
 import { TYPE_LABEL } from '@/core/content'
 import { stepLook } from '@/ui/blocks/LooksPicker'
+import { toggleSay } from '@/ui/jev/SayBar'
 
 const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
 
@@ -27,6 +28,12 @@ export function useShortcuts(onHelp: () => void) {
       const focused = currentSlots(st).find((s) => s.id === st.ui.focusedSlotId)
       const k = e.key
 
+      // ⌘K: say what to change (Jev).
+      if (mod && k.toLowerCase() === 'k') {
+        e.preventDefault()
+        toggleSay()
+        return
+      }
       if (mod && k.toLowerCase() === 'z') {
         e.preventDefault()
         if (e.shiftKey) redo()
