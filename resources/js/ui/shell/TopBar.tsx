@@ -354,10 +354,10 @@ function AgentAccess() {
         <div className="text-[13px] font-medium text-zinc-800">Let agents edit this mix</div>
         <div className="text-[11.5px] leading-snug text-zinc-500">
           {!on
-            ? 'Claude Code and other MCP agents can use every tool you can.'
+            ? 'Claude Code, Cursor, Codex or any MCP agent can do what you can.'
             : status === 'connected'
               ? `Connected${last ? ` · last: ${last.replace(/_/g, ' ')}` : ''}`
-              : 'Waiting for the bridge: run npm run mcp, or add it to Claude Code.'}
+              : 'Waiting for the bridge: run npm run mcp, or add it to your agent.'}
         </div>
       </div>
       <Switch on={on} onChange={() => useStore.getState().setUi({ agentAccess: !on })} label="Let agents edit this mix" />
@@ -384,7 +384,7 @@ function JevHelp() {
         <div className="text-[11.5px] leading-snug text-zinc-500">
           {server === false
             ? 'Off here: this server has no TypeSafe key.'
-            : 'Jev, a model by TypeSafe, reads this page’s words (and photos you pick) to decide where things go. It never writes words for you. Blokmix counts what people ask for that it can’t do yet, never your words.'}
+            : 'Jev (by TypeSafe) places, picks and checks. It never writes your words.'}
         </div>
       </div>
       <Switch on={on && server !== false} onChange={() => useStore.getState().setUi({ jev: !on })} label="Let Jev help" />
