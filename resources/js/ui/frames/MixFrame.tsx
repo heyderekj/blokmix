@@ -41,7 +41,10 @@ export function MixFrame() {
   const [addAt, setAddAt] = useState<number | null>(null)
   const closeAdd = useCallback(() => setAddAt(null), [])
   const st = useStore.getState
-  const label = branchFrom ? `Remixing ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
+  // The last section's bar hangs below the page: what sits under the page makes room for it.
+  const blockPicked = useStore((s) => !!s.ui.selectedBlockId)
+  const barBelowLast = !previewing && !blockPicked && focusedAt >= 0 && focusedAt === slots.length - 1
+  const label = branchFrom ? `Working from ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
 
   return (
     <div
@@ -86,8 +89,8 @@ export function MixFrame() {
             focused={focused === slot.id}
           />
         ))}
-        {!previewing && site.shared.footer && !page.show.footer && <HiddenShared kind="footer" pageId={page.id} />}
-        {!previewing && !site.shared.footer && slots.length > 0 && <MissingShared kind="footer" />}
+        {!previewing && site.shared.footer && !page.show.footer && <HiddenShared kind="footer" pageId={page.id} below={barBelowLast} />}
+        {!previewing && !site.shared.footer && slots.length > 0 && <MissingShared kind="footer" below={barBelowLast} />}
         {!slots.length && (
           <div className="grid place-items-center py-40 text-center" style={{ fontSize: 'calc(16px / var(--z))' }}>
             <p className="text-zinc-400">Nothing here yet. Add a section to start mixing.</p>
@@ -98,7 +101,7 @@ export function MixFrame() {
       {!previewing && <Seams onAdd={setAddAt} />}
       <SectionDropLine />
       {addAt !== null && <AddAt at={addAt} onClose={closeAdd} />}
-      <AddSection width={W} onAdd={() => setAddAt(slots.length)} />
+      <AddSection width={W} onAdd={() => setAddAt(slots.length)} below={barBelowLast && !!site.shared.footer && page.show.footer} />
     </div>
   )
 }
@@ -160,11 +163,14 @@ function AddAt({ at, onClose }: { at: number; onClose: () => void }) {
   )
 }
 
-function AddSection({ width, onAdd }: { width: number; onAdd: () => void }) {
+/** The section bar's height on screen, with its gap: what sits right under the last section moves down by this. */
+const BAR_ROOM = 60
+
+function AddSection({ width, onAdd, below }: { width: number; onAdd: () => void; below: boolean }) {
   return (
     <div
-      className="@container absolute left-0 top-full origin-top-left pt-3"
-      style={{ width: `max(calc(${width}px * var(--z)), 48px)`, transform: 'scale(calc(1 / var(--z)))' }}
+      className="@container absolute left-0 top-full origin-top-left transition-[padding] duration-200"
+      style={{ width: `max(calc(${width}px * var(--z)), 48px)`, transform: 'scale(calc(1 / var(--z)))', paddingTop: below ? BAR_ROOM + 12 : 12 }}
       data-chrome
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -183,9 +189,9 @@ function AddSection({ width, onAdd }: { width: number; onAdd: () => void }) {
 }
 
 /** Where the nav or footer would be when the site has none yet: every page needs both, so offer the one that fits. */
-function MissingShared({ kind }: { kind: 'nav' | 'footer' }) {
+function MissingShared({ kind, below }: { kind: 'nav' | 'footer'; below?: boolean }) {
   return (
-    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))' }} data-chrome>
+    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))', marginTop: below ? `calc(${BAR_ROOM}px / var(--z))` : 0 }} data-chrome>
       <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
         <span className="text-[12.5px]">No {kind} yet</span>
         <button
@@ -205,9 +211,9 @@ function MissingShared({ kind }: { kind: 'nav' | 'footer' }) {
 }
 
 /** Where the shared nav or footer would be on a page that hides it, with a way to show it again. */
-function HiddenShared({ kind, pageId }: { kind: 'nav' | 'footer'; pageId: string }) {
+function HiddenShared({ kind, pageId, below }: { kind: 'nav' | 'footer'; pageId: string; below?: boolean }) {
   return (
-    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))' }} data-chrome>
+    <div className="flex items-center justify-center border-y border-dashed border-zinc-950/10 bg-zinc-950/[0.02]" style={{ height: 'calc(44px / var(--z))', marginTop: below ? `calc(${BAR_ROOM}px / var(--z))` : 0 }} data-chrome>
       <div className="flex items-center gap-2 text-zinc-500" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
         <span className="text-[12.5px]">No {kind} on this page</span>
         <span className="text-zinc-300">·</span>

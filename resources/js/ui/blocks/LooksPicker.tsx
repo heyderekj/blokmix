@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import type { BlockInfo, Slot } from '@/core/types'
 import { BLOCK_LABEL } from '@/core/blocks'
-import { defaultFor, effectiveEdit } from '@/core/blocks/style'
+import { defaultFor, effectiveEdit, ORIGINAL } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
 import { suggestedVariants } from '@/core/advise'
 import { resolveFields } from '@/core/content'
@@ -20,8 +20,10 @@ export function stepLook(slotId: string, blockId: string, d: 1 | -1) {
   if (!slot || !block) return false
   const variants = variantsFor(block.kind)
   if (!variants.length) return false
-  const edit = effectiveEdit(slot.edits?.[slot.clipId]?.[block.id], defaultFor(st.guide.components, block))
-  const order = [undefined, ...variants.map((v) => v.id)]
+  const def = defaultFor(st.guide.components, block)
+  const edit = effectiveEdit(slot.edits?.[slot.clipId]?.[block.id], def)
+  // Over a skin's default look, Original has to be said outright (ORIGINAL), or it falls back to the default.
+  const order = [def?.variant ? ORIGINAL : undefined, ...variants.map((v) => v.id)]
   const i = order.indexOf(edit?.variant)
   useBlockPreview.getState().clear()
   st.editBlock(slot.id, block.id, { variant: order[(i + d + order.length) % order.length] })
@@ -39,8 +41,10 @@ export function LooksPicker({ slot, block }: { slot: Slot; block: BlockInfo }) {
   const preview = useBlockPreview()
   const clip = slotClip(slot)
   const variants = variantsFor(block.kind)
-  const edit = effectiveEdit(slot.edits?.[slot.clipId]?.[block.id], defaultFor(components, block))
+  const def = defaultFor(components, block)
+  const edit = effectiveEdit(slot.edits?.[slot.clipId]?.[block.id], def)
   const current = edit?.variant
+  const original = def?.variant ? ORIGINAL : undefined
   const fields = useMemo(() => resolveFields(clip.type, clip.fields, content, slot.keep.content, slot.words).fields, [clip, slot, content])
   const suggested = useMemo(() => suggestedVariants(block, { blocks: clip.blocks, fields }), [block, clip, fields])
   const text = useMemo(() => {
@@ -52,8 +56,8 @@ export function LooksPicker({ slot, block }: { slot: Slot; block: BlockInfo }) {
   const order: (string | undefined)[] = useMemo(() => {
     const sug = suggested.filter((id) => variants.some((v) => v.id === id))
     const rest = variants.map((v) => v.id).filter((id) => !sug.includes(id))
-    return [undefined, ...sug, ...(show === 'all' || !sug.length ? rest : [])]
-  }, [variants, suggested, show])
+    return [original, ...sug, ...(show === 'all' || !sug.length ? rest : [])]
+  }, [variants, suggested, show, original])
 
   const apply = (look: string | undefined) => {
     preview.clear()
@@ -62,8 +66,8 @@ export function LooksPicker({ slot, block }: { slot: Slot; block: BlockInfo }) {
   useEffect(() => () => preview.clear(), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!variants.length) return <p className="px-4 py-6 text-[12.5px] text-zinc-500">{BLOCK_LABEL[block.kind]} blocks have no other looks.</p>
-  const label = (look: string | undefined) => (look ? (variants.find((v) => v.id === look)?.label ?? look) : 'Original')
-  const hint = (look: string | undefined) => (look ? variants.find((v) => v.id === look)?.hint : 'As clipped')
+  const label = (look: string | undefined) => (look && look !== ORIGINAL ? (variants.find((v) => v.id === look)?.label ?? look) : 'Original')
+  const hint = (look: string | undefined) => (look && look !== ORIGINAL ? variants.find((v) => v.id === look)?.hint : 'As clipped')
   // Words show their look as a type specimen, "Aa"; buttons, badges and links keep a word or two of their own.
   const SPECIMEN = ['heading', 'text', 'card', 'item', 'banner']
   const two = text.split(/\s+/).slice(0, 2).join(' ')

@@ -49,7 +49,7 @@ The distinctive value is the reference-to-styled-first-draft step. Adding true h
 
 If we want to help designers who currently push clients toward Squarespace because custom work is slow:
 
-- Keep the canvas and remix model simple and designer-oriented
+- Keep the canvas and mixing model simple and designer-oriented
 - Make the export path smoother: one-click or guided deploy of the Astro output to Cloudflare Pages, Vercel, or Netlify (we already use Cloudflare). This gives designers (and more technical clients) a live site without us running a full hosting business
 - Optionally add a very lightweight “publish” mode that uses the user’s own AI agent with strong scaffolding, rather than building an in-product AI or editor for non-designers
 - Leave forms, CMS depth, e-commerce, and ongoing content editing to the exported site or to tools the designer already uses

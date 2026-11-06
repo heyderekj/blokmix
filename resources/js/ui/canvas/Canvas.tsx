@@ -31,6 +31,15 @@ export const canvasApi: Api = {
   el: () => null,
 }
 
+/** Everything that sits in world space but sizes itself to the screen (the bars) listens to each painted frame. */
+const painted = new Set<(c: Camera) => void>()
+export function onPaint(fn: (c: Camera) => void) {
+  painted.add(fn)
+  return () => {
+    painted.delete(fn)
+  }
+}
+
 export function chromeInsets() {
   return CHROME
 }
@@ -77,6 +86,7 @@ export function Canvas({ children }: { children: ReactNode }) {
     r.style.backgroundImage = g.image
     r.style.backgroundSize = g.size
     r.style.backgroundPosition = g.position
+    for (const fn of painted) fn(c)
   }, [])
 
   const apply = useCallback(

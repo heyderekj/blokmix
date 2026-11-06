@@ -1,4 +1,4 @@
-import type { Capture, Clip, ClipStyle, Density, Feel, Library, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
+import type { Capture, Clip, ClipStyle, Density, Feel, Keep, Library, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
 import { CLIP_STYLES, DENSITIES, FEELS, SECTION_TYPES } from './types'
 import { hexToRgb } from './tokens'
 import { extractFields, parseHtml } from './html/parse'
@@ -155,7 +155,7 @@ export function allFonts(lib: Library) {
 
 /**
  * Add clips to a library that's already in use (an account's captured clips, loaded
- * after the built-in samples). Its own clips come before the layouts, as in
+ * after the built-in samples). The layouts come first, then captured clips by id, as in
  * buildLibrary. Returns the ids added; clips already there are left alone.
  */
 export function extendLibrary(lib: Library, sources: Source[], raws: RawClip[]): string[] {
@@ -196,11 +196,41 @@ export const starterOpen = (lib: Library, starter: { pages: { sections: string[]
   starter.pages.every((p) => p.sections.every((id) => !lib.clips[id] || layoutOpen(lib, id)))
 
 /**
- * The clips you can pick for a section: your clips, then the layouts. Draft layouts wait for review. On Free, layouts
- * in a mix pack are left out unless `locked` asks for them too (the Crate shows them with a lock).
+ * The clips you can pick for a section, from the whole account: the layouts, then captured clips. Draft layouts wait
+ * for review. On Free, layouts in a mix pack are left out unless `locked` asks for them too (the Crate shows them with
+ * a lock).
  */
 export const pickable = (lib: Library, type: SectionType, opts: { locked?: boolean } = {}): string[] =>
   lib.byType[type].filter((id) => !isSample(lib, id) && !lib.clips[id]?.status && (opts.locked || layoutOpen(lib, id)))
+
+/**
+ * What a section's ‹ › arrows (and ← →, Shuffle) step through: the built-in layouts plus this mix's own clips, never
+ * clips that belong to your other mixes or to people you share with (those are a Crate shelf away). The section's
+ * current clip is always in the list, so it never reads "0 of n".
+ */
+export function cycleIds(lib: Library, type: SectionType, mixClips: Iterable<string>, current?: string): string[] {
+  const mine = new Set(mixClips)
+  const ids = pickable(lib, type).filter((id) => lib.clips[id]?.origin === 'layout' || mine.has(id))
+  if (current && lib.clips[current]?.type === type && !ids.includes(current)) {
+    // Where it would sit in the account's order, so stepping away and back lands in the same place.
+    const order = lib.byType[type]
+    const at = ids.findIndex((id) => order.indexOf(id) > order.indexOf(current))
+    ids.splice(at < 0 ? ids.length : at, 0, current)
+  }
+  return ids
+}
+
+/**
+ * Put another clip in a section. A built-in layout always shows your words and your style: "Use the words it came
+ * with" and "Use its own look" belong to captured clips, so they're turned off on the way to a layout (where there'd
+ * be no switch to turn them back).
+ */
+export function withClip<S extends { clipId: string; keep: Keep }>(slot: S, clipId: string, lib: Library): S {
+  if (slot.clipId === clipId) return slot
+  const toLayout = lib.clips[clipId]?.origin === 'layout'
+  if (!toLayout || (!slot.keep.style && !slot.keep.content)) return { ...slot, clipId }
+  return { ...slot, clipId, keep: { ...slot.keep, style: false, content: false } }
+}
 
 /** The library's two shelves: Blokmix's plain layouts, and sections captured from real sites. */
 export type Shelf = 'plain' | 'real'

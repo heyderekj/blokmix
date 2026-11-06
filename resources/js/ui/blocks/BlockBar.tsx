@@ -23,7 +23,7 @@ import { IconMenu } from './IconMenu'
 import { blockIconName } from '@/core/icons'
 import { listContext } from '@/core/lists'
 import { sectionLinks } from '@/core/links'
-import { WordsCycler, WordsMenu } from './WordsMenu'
+import { WordsButton, WordsMenu } from './WordsMenu'
 import { LinkLabel, LinkMenu } from './LinkMenu'
 import { CollectionMenu } from './CollectionMenu'
 import { TextMenu } from './TextMenu'
@@ -146,11 +146,14 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         )}
         <Sep />
         {block.field && (
-          <BarButton onClick={() => preview.requestEditText(block.id)} icon={Type} title="Edit the words (double-click or ↵)">
-            Edit
-          </BarButton>
+          <WordsButton
+            slot={slot}
+            field={block.field}
+            open={menu === 'words'}
+            onEdit={() => preview.requestEditText(block.id)}
+            onOpen={() => setMenu(menu === 'words' ? null : 'words')}
+          />
         )}
-        {block.field && <WordsCycler slot={slot} field={block.field} open={menu === 'words'} onOpen={() => setMenu(menu === 'words' ? null : 'words')} />}
         {block.kind === 'image' && (
           <BarButton active={menu === 'image'} onClick={() => setMenu(menu === 'image' ? null : 'image')} icon={ImageIcon} title="Picture or video">
             Picture

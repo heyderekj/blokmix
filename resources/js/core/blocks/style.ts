@@ -59,12 +59,20 @@ export function defaultFor(components: Partial<Record<BlockKind, ComponentDefaul
   return b.secondary && def?.secondary ? def.secondary : def
 }
 
+/**
+ * A block that chose its own drawing over the skin's look for its kind: no variant, and none of the default's style.
+ * Without it, "Original" would fall back to the default and could never be picked.
+ */
+export const ORIGINAL = 'original'
+
 /** The block's edit with any page-wide default for its kind underneath. */
 export function effectiveEdit(edit: BlockEdit | undefined, def: ComponentDefault | undefined): BlockEdit | undefined {
   if (!edit && !def) return undefined
+  const own = edit?.variant === ORIGINAL
+  const base = own ? undefined : def?.style
   return {
     variant: edit?.variant ?? def?.variant,
-    style: def?.style || edit?.style ? { ...def?.style, ...edit?.style } : undefined,
+    style: base || edit?.style ? { ...base, ...edit?.style } : undefined,
     motion: edit?.motion,
     media: edit?.media,
     icon: edit?.icon,

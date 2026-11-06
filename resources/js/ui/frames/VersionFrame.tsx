@@ -105,14 +105,14 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
         {v.kind === 'snapshot' ? (
           <SendToAgent v={v} disabled={agentBusy} onReference={(t) => runReferenceBuild(v.id, t)} />
         ) : (
-          <button type="button" onClick={() => remix(v)} title="Remix" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2 @max-[220px]:hidden">
-            <Shuffle size={13} /> <span className="@max-[340px]:hidden">Remix</span>
+          <button type="button" onClick={() => remix(v)} title="Work from this version: load it into the working mix" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2 @max-[220px]:hidden">
+            <Shuffle size={13} /> <span className="@max-[340px]:hidden">Work from this</span>
           </button>
         )}
         <OverflowMenu
           items={[
             { icon: Eye, label: previewing ? 'Stop interacting' : 'Interact with the page', onClick: () => st().setUi({ previewFrameId: previewing ? null : v.id }) },
-            ...(v.kind === 'snapshot' ? [{ icon: Shuffle, label: 'Remix into the working mix', onClick: () => remix(v) }] : []),
+            ...(v.kind === 'snapshot' ? [{ icon: Shuffle, label: 'Work from this in the working mix', onClick: () => remix(v) }] : []),
             { icon: Package, label: 'Export this version', onClick: () => st().setUi({ packetSource: v.id, sheet: 'packet' }) },
             ...(v.kind === 'build' ? [{ icon: Link2, label: v.build?.previewUrl ? 'Change preview URL' : 'Attach the agent’s preview URL', onClick: () => setAttaching(true) }] : []),
             {

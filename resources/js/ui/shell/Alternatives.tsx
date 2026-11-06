@@ -3,7 +3,7 @@ import { Library, Lock } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { library } from '@/data/library'
-import { layoutOpen, pickable } from '@/core/library'
+import { cycleIds, layoutOpen, pickable } from '@/core/library'
 import { useAccount } from '@/lib/account'
 import { useStore, currentSlots, mixClipIds } from '@/state/store'
 import { CARD_H, CARD_W, Preview } from './Preview'
@@ -22,8 +22,6 @@ export function LayoutTag() {
  * onto the page.
  */
 export function Alternatives({ slot }: { slot: Slot }) {
-  const ids = pickable(library, slot.type)
-  const pos = ids.indexOf(slot.clipId) + 1
   const slots = useStore(currentSlots)
   const index = slots.findIndex((s) => s.id === slot.id)
   // Each shelf is ordered by how well its clips sit between this section's neighbours.
@@ -32,6 +30,9 @@ export function Alternatives({ slot }: { slot: Slot }) {
   const site = useStore((s) => s.site)
   const own = useStore((s) => s.clips)
   const mix = useMemo(() => new Set(mixClipIds({ site, clips: own })), [site, own])
+  // "n of m" counts what the arrows step through: the layouts and this mix's clips.
+  const ids = cycleIds(library, slot.type, mix, slot.clipId)
+  const pos = ids.indexOf(slot.clipId) + 1
   const by: Record<Shelf, typeof ranked> = { mix: [], yours: [], layouts: [] }
   for (const r of ranked) for (const k of ['mix', 'yours', 'layouts'] as const) if (isOn(r.clipId, k, mix)) by[k].push(r)
   // On Free, the layouts in a mix pack follow the ones you can use, with a lock.

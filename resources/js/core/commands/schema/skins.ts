@@ -14,7 +14,7 @@ export const SKIN_COMMANDS = {
     write: true,
   },
   surprise_me: {
-    description: 'Remix the look: each area the contract marks Surprise (or, with none marked, each one not kept) comes whole from another skin. One undo step; says what came from where.',
+    description: 'Mix up the look: each area the contract marks Surprise (or, with none marked, each one not kept) comes whole from another skin. One undo step; says what came from where.',
     input: z.object({ seed: z.number().int().min(0).optional().describe('Change it for different picks') }),
     write: true,
   },

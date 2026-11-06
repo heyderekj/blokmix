@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Archive, ChevronLeft, ChevronRight, Bookmark, PenLine, Undo2 } from 'lucide-react'
+import { Archive, ChevronDown, ChevronRight, Bookmark, PenLine, Type, Undo2 } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { currentWords, wordChoices, type WordChoice } from '@/core/words'
 import { slotClip } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useBlockPreview } from './preview'
 
-const TAG: Record<WordChoice['kind'], string> = { copy: 'Your copy', source: 'Clip’s words', kept: 'Kept' }
+// A layout's own words are sample text; a captured clip's are the words it came with.
+const tag = (kind: WordChoice['kind'], layout: boolean) => (kind === 'copy' ? 'Your words' : kind === 'kept' ? 'Kept' : layout ? 'Sample' : 'As clipped')
 
 /** A field's choices and which one shows now (-1: words you wrote that aren't kept yet). */
 export function useWordChoices(slot: Slot, field: string) {
@@ -14,28 +15,36 @@ export function useWordChoices(slot: Slot, field: string) {
   const clip = slotClip(slot)
   const choices = wordChoices(clip, slot, content, field)
   const now = currentWords(clip, slot, content, field)
-  return { choices, now, at: choices.findIndex((c) => c.text.trim() === now.trim()) }
+  return { choices, now, at: choices.findIndex((c) => c.text.trim() === now.trim()), layout: clip.origin === 'layout' }
 }
 
-/** ‹ 2/3 ›: step through a field's options right on the page. */
-export function WordsCycler({ slot, field, open, onOpen }: { slot: Slot; field: string; open: boolean; onOpen: () => void }) {
+/**
+ * Edit, with the field's other wordings one click away (▾): a list you read and pick from, never a second ‹ › beside
+ * the look's, which read as one control. A small count says when there are other ways to say it; [ ] still step them.
+ */
+export function WordsButton({ slot, field, open, onEdit, onOpen }: { slot: Slot; field: string; open: boolean; onEdit: () => void; onOpen: () => void }) {
   const { choices, at } = useWordChoices(slot, field)
-  const n = choices.length + (at < 0 ? 1 : 0)
-  if (n < 2) return null
-  const step = (d: 1 | -1) => {
-    const i = at < 0 ? (d > 0 ? 0 : choices.length - 1) : (at + d + choices.length) % choices.length
-    useStore.getState().chooseWords(slot.id, field, choices[i].text)
-  }
+  const others = choices.length - (at < 0 ? 0 : 1)
   return (
-    <div className={`flex h-8 shrink-0 items-center rounded-[10px] transition ${open ? 'bg-zinc-900 text-white' : 'text-zinc-700'}`}>
-      <button type="button" title="Previous wording ([)" onClick={() => step(-1)} className={`grid h-8 w-6 place-items-center rounded-l-[10px] transition active:scale-[0.94] ${open ? 'hover:bg-white/10' : 'hover:bg-zinc-950/5'}`}>
-        <ChevronLeft size={14} />
+    <div className="flex h-8 shrink-0 items-center rounded-full text-zinc-700">
+      <button
+        type="button"
+        title="Edit the words (double-click or ↵)"
+        onClick={onEdit}
+        className="flex h-8 cursor-pointer items-center gap-1.5 rounded-l-full pl-3 pr-2 font-medium transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
+      >
+        <Type size={15} /> Edit
       </button>
-      <button type="button" title="Ways to say it" onClick={onOpen} className={`h-8 px-0.5 text-[12px] font-semibold tabular-nums transition ${open ? '' : 'hover:bg-zinc-950/5'}`}>
-        {at < 0 ? 'New' : `${at + 1}/${choices.length}`}
-      </button>
-      <button type="button" title="Next wording (])" onClick={() => step(1)} className={`grid h-8 w-6 place-items-center rounded-r-[10px] transition active:scale-[0.94] ${open ? 'hover:bg-white/10' : 'hover:bg-zinc-950/5'}`}>
-        <ChevronRight size={14} />
+      <button
+        type="button"
+        aria-expanded={open}
+        title={others > 0 ? `${others} other way${others > 1 ? 's' : ''} to say it ([ ])` : 'Other ways to say it'}
+        aria-label="Other ways to say it"
+        onClick={onOpen}
+        className={`flex h-8 cursor-pointer items-center gap-0.5 rounded-r-full pl-1 pr-2 text-[11.5px] font-semibold tabular-nums transition-[background-color,color,scale] active:scale-[0.97] ${open ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+      >
+        {others > 0 && <span>{others + 1}</span>}
+        <ChevronDown size={13} />
       </button>
     </div>
   )
@@ -47,7 +56,7 @@ export function WordsCycler({ slot, field, open, onOpen }: { slot: Slot; field: 
  * Keep, Retire, Put it back, "Another way to say it".
  */
 export function WordsMenu({ slot, field, blockId, onClose }: { slot: Slot; field: string; blockId: string; onClose: () => void }) {
-  const { choices, now, at } = useWordChoices(slot, field)
+  const { choices, now, at, layout } = useWordChoices(slot, field)
   const retired = (slot.options?.[field] ?? []).filter((o) => o.retiredAt)
   const [showRetired, setShowRetired] = useState(false)
   const st = useStore.getState
@@ -64,7 +73,7 @@ export function WordsMenu({ slot, field, blockId, onClose }: { slot: Slot; field
         <Row
           key={c.text}
           text={c.text}
-          tag={c.option?.by === 'agent' ? 'Agent' : TAG[c.kind]}
+          tag={c.option?.by === 'agent' ? 'Agent' : tag(c.kind, layout)}
           on={i === at}
           onHover={() => hover(c.text)}
           onPick={() => {

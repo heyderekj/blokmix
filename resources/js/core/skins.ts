@@ -172,7 +172,7 @@ export function surpriseMe(guide: GuideState, contract: Contract, seed: number, 
   }
   const remix: Skin = {
     id: 'remix',
-    name: `Remix of ${[...new Set(picks.map((p) => p.skin.name))].join(', ')}`,
+    name: `Mix of ${[...new Set(picks.map((p) => p.skin.name))].join(', ')}`,
     words: '',
     tier: 'pack',
     mode: 'light',

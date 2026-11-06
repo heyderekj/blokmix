@@ -33,7 +33,7 @@ import type {
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, SOURCE_PREFIX } from '@/core/guide'
 import { library, slotClip } from '@/data/library'
-import { layoutOpen, pickable } from '@/core/library'
+import { cycleIds, layoutOpen, withClip } from '@/core/library'
 import { blockEditNeedsPack, FREE_TOKENS } from '@/core/plan'
 import { needsPack } from './plan'
 import { BANNER_ID } from '@/core/banner'
@@ -54,7 +54,7 @@ import { onSection } from '@/core/notes'
 import { uid } from './uid'
 import { versionActions } from './slices/versions'
 import { noteActions } from './slices/notes'
-import { DEFAULT_CONTENT } from '@/core/content'
+import { contentFor } from '@/core/start'
 
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
@@ -392,28 +392,38 @@ export const useStore = create<State>()(
           shuffleSeq: 0,
           flash: null,
 
-          cycle: (slotId, dir) =>
+          // The arrows step through the layouts and this mix's own clips (cycleIds), never your other mixes'.
+          cycle: (slotId, dir) => {
+            const mix = mixClipIds(get())
             updateSlot(slotId, (s) => {
-              const ids = pickable(library, s.type)
+              const ids = cycleIds(library, s.type, mix, s.clipId)
               if (ids.length < 2) return s
               const i = ids.indexOf(s.clipId)
-              return { ...s, clipId: ids[(i + dir + ids.length) % ids.length] }
-            }),
+              return withClip(s, ids[(i + dir + ids.length) % ids.length], library)
+            })
+          },
+          // Picking a clip from another shelf (All your clips) brings it into this mix, and so into its arrows.
           setClip: (slotId, clipId) => {
             if (!layoutOpen(library, clipId) && needsPack('That layout')) return
-            updateSlot(slotId, (s) => (library.clips[clipId]?.type === s.type ? { ...s, clipId } : s))
+            const clip = library.clips[clipId]
+            const have = get().clips ?? []
+            set((st) => ({
+              site: updateSlotIn(st.site, slotId, (s) => (clip?.type === s.type ? withClip(s, clipId, library) : s)),
+              ...(clip?.origin === 'clip' && !have.includes(clipId) ? { clips: [...have, clipId] } : {}),
+            }))
           },
           shuffle: () => {
             const st = get()
             const view = currentSlots(st)
             if (view.every((s) => s.locked)) return st.showFlash('Every section is locked')
             let picks = new Map<string, string>()
+            const mix = mixClipIds(st)
             // Never "shuffle" into the same arrangement.
             for (let tries = 0; tries < 8; tries++) {
-              picks = new Map(view.filter((s) => !s.locked).map((s) => [s.id, pickDifferent(pickable(library, s.type), s.clipId)]))
+              picks = new Map(view.filter((s) => !s.locked).map((s) => [s.id, pickDifferent(cycleIds(library, s.type, mix, s.clipId), s.clipId)]))
               if (view.some((s) => picks.has(s.id) && picks.get(s.id) !== s.clipId)) break
             }
-            set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? { ...s, clipId: picks.get(s.id)! } : s)), shuffleSeq: x.shuffleSeq + 1 }))
+            set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? withClip(s, picks.get(s.id)!, library) : s)), shuffleSeq: x.shuffleSeq + 1 }))
           },
           // Locked means hands off, including the structure: an agent can't treat its layout as a mere reference.
           toggleLock: (slotId) => updateSlot(slotId, (s) => ({ ...s, locked: !s.locked, keep: s.locked ? s.keep : { ...s.keep, layout: true } })),
@@ -472,13 +482,14 @@ export const useStore = create<State>()(
               return { ...s, edits: { ...s.edits, [s.clipId]: forClip } }
             })
           },
-          setWord: (slotId, field, value) =>
+          setWord: (slotId, field, value) => {
             updateSlot(slotId, (s) => {
               const words = { ...s.words }
               if (value === null) delete words[field]
               else words[field] = value
               return { ...s, words }
-            }),
+            })
+          },
           editList: (slotId, change) => {
             const slot = allSlots(get().site).find((s) => s.id === slotId)
             if (!slot) return null
@@ -819,16 +830,21 @@ export const useStore = create<State>()(
         merged.contract = cleanContract(p.contract)
         // Tokens added since the mix was saved (e.g. line weight) start at their defaults.
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
-        // Drop anything that points at clips that no longer exist in the sample library.
-        merged.site = mapSlots(merged.site, (s) => (library.clips[s.clipId] ? s : null))
+        // Drop anything that points at clips that no longer exist in the sample library. A built-in layout shows your
+        // words and style: switches only captured clips have, left on from one, are turned off (withClip does this now).
+        merged.site = mapSlots(merged.site, (s) =>
+          !library.clips[s.clipId] ? null : library.clips[s.clipId].origin === 'layout' && (s.keep?.style || s.keep?.content) ? { ...s, keep: { ...s.keep, style: false, content: false } } : s,
+        )
         // A mix saved before mixes had their own clips starts with the clips it uses (never another mix's set).
         merged.clips = (Array.isArray(p.clips) ? p.clips : mixClipIds({ ...merged, clips: [] })).filter((id) => library.clips[id]?.origin === 'clip')
         // Mixes saved before skins: their layouts went bare, so they take the closest skin's looks, keeping their own values.
         if (merged.guide && merged.site) Object.assign(merged, dressSavedMix(merged, library, skinList()))
-        // Copy fields added since the mix was saved (a nav banner's messages) start from the defaults.
+        // Copy fields added since the mix was saved (a nav banner's messages) start from plain starter words, never
+        // Blokmix's own demo copy.
         if (merged.content?.fields) {
           const fields = { ...merged.content.fields }
-          for (const [type, defaults] of Object.entries(DEFAULT_CONTENT.fields) as [SectionType, Record<string, string>][]) {
+          const starter = contentFor({ kind: 'product', name: merged.content.brand ?? '' }).fields
+          for (const [type, defaults] of Object.entries(starter) as [SectionType, Record<string, string>][]) {
             const mine = fields[type] ?? {}
             const missing = Object.fromEntries(Object.entries(defaults).filter(([k]) => !(k in mine)))
             if (Object.keys(missing).length) fields[type] = { ...mine, ...missing }

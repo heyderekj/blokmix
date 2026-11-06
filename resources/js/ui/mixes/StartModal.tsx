@@ -70,7 +70,7 @@ export function StartModal({
     { id: 'guide', icon: Palette, title: 'From a style guide', note: 'One you saved, or another mix’s' },
   ]
   const from = (c: StartChoice) => (c.kind === 'starter' ? c.starter.name : c.kind === 'site' ? c.site.name : c.kind === 'guide' ? c.name : '')
-  const suggested = (c: StartChoice) => (c.kind === 'starter' ? c.starter.name : c.kind === 'site' ? `${c.site.name} remix` : 'Untitled mix')
+  const suggested = (c: StartChoice) => (c.kind === 'starter' ? c.starter.name : c.kind === 'site' ? `${c.site.name} mix` : 'Untitled mix')
   const toName = (c: StartChoice) => (setChoice(c), setName(suggested(c)), setStep(2))
   const next = () => {
     if (step === 0) {

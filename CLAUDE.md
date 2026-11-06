@@ -1,8 +1,9 @@
 # Blokmix
 
-Canvas prototype for clipping website sections, remixing them like a sliding-tile
-puzzle, resolving one style guide, and handing a packet to an agent that builds
-Astro or Next.js. Frontend only for now; the layout (`resources/js`, `@/` alias,
+Start a website from layouts, skins and palettes that already work (built in, or clipped from sites you like),
+mix them into something that's yours under one style guide, and hand a packet to an agent that builds Astro or
+Next.js. What comes back (captures, an agent's changes) should only add options, never change your picks
+(`docs/simple-vision.md`). Frontend only for now; the layout (`resources/js`, `@/` alias,
 `pages/`) mirrors the Laravel React starter kit so it can move into Laravel +
 Inertia on Laravel Cloud later.
 
@@ -55,7 +56,10 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   in the browser, saved to your account. You get yours and those of people you share mixes with; they join the
   library (`core/library.ts` `extendLibrary`) before the board opens a mix.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
-  drops one, and sections it uses always count. The Crate and Alternatives show This mix / All your clips / Layouts (a focused section opens nothing by itself: the dock's Layouts button grows its alternatives);
+  drops one, and sections it uses always count. A section's arrows (‹ Layout n of m ›, ← →, Shuffle, `get_options`)
+  step through the built-in layouts plus this mix's clips only (`core/library.ts` `cycleIds`), never another mix's or a
+  collaborator's; picking one from All your clips (`setClip`) adds it to the mix. Stepping onto a built-in layout turns
+  off a captured clip's own words and look (`withClip`), so layouts always show your words and style. The Crate and Alternatives show This mix / All your clips / Layouts (a focused section opens nothing by itself: the dock's Layouts button grows its alternatives);
   agents use `list_mix_clips`, `add_clips_to_mix`, `remove_clip_from_mix`.
 - Site library (Landbook-style, `lib/siteLibrary.ts`, `ui/library/SiteLibrary.tsx`): real sites captured offline, each page's
   sections matched to built-in layouts (`GET /api/library`, `GET /api/library/sites/{slug}`; Vite-only dev uses the made-up
@@ -154,8 +158,8 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 (`core/sectionDefaults.ts`, used by both `composePage` and `frameStateFor`), so a swap never rewrites a slot. Words stay readable
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
-pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) is a
-remix: areas come whole from other skins.
+pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) mixes
+skins: areas come whole from other skins.
 A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the closest skin (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
 The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus
 your own lines. Swaps and Surprise me leave Keep alone; agent commands that write to a kept area are refused
@@ -353,10 +357,13 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
 - Section widths (`slot.width`, `widthTokens`): narrow, standard, wide or full, against the guide's content width, from
   the width picks in the section bar or `set_section_width`. `sectionTokens` applies surface then width.
 - Selecting: one click picks the smallest block under the pointer, in any section (focusing it on the way); a click on a
-  section's empty space, its rail or Escape selects the section. The block bar is slim like the section bar (name with its
+  section's empty space, its rail or Escape selects the section. Both bars hang below what they belong to, so it stays in
+  view; the section bar holds still while you point at it (‹ › don't slide away as the height changes), and on anything
+  taller than the screen both stop just above the dock (`ui/canvas/useBarFloor.ts`). The block bar is slim like the section bar (name with its
   parents, ‹ Look ›, words, picture, link, item add/duplicate/remove, Style, note, ⋯); everything about how a block or a
   section looks is in one Style panel at the window's side that follows the selection (`ui/panels/SelectionStyle.tsx`).
-  ← → step the selected block's looks, else the section's layouts (the section bar's ‹ Layout n of m ›).
+  ← → step the selected block's looks, else the section's layouts (the section bar's ‹ Layout n of m ›). Over a skin's
+  default look, Original is stored as `variant: 'original'` (`ORIGINAL`), so it can be picked.
 - List items move by dragging: selecting anything in an item shows one grip on its corner; drag it, or press on the item
   and move (the frame posts `dragItem`/`dragMove`/`dragEnd`). The list reflows live in the frame (a preview `move`), the
   nearest item counts, the canvas pans near the window's edges and with the wheel, Escape cancels, letting go commits one
