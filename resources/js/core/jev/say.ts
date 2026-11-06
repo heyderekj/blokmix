@@ -108,17 +108,17 @@ export function sayRequest(text: string, ctx: SayContext): JevRequest {
       ...shuffled('intent', choice(`What does ${said} ask Blokmix to do to this page?`, Object.fromEntries(Object.entries(INTENTS).map(([k, v]) => [k, v.criterion])))),
       section: choice(`Which section is ${said} mainly about (the one to change, move, remove or show)?`, { ...sections, none: { what: 'No particular section, or the whole page' } }),
       other: choice(`If ${said} moves a section next to another one, which is that other one?`, { ...sections, top_of_page: { what: 'The top of the page' }, bottom_of_page: { what: 'The bottom of the page' }, none: { what: 'Not a move' } }),
-      above_below: choice(`Should it go above (before) or below (after) it?`, { above: { what: 'Above, before, up, higher' }, below: { what: 'Below, after, down, lower' } }),
+      above_below: choice(`Does ${said} want the section to go above (before) or below (after) the other one?`, { above: { what: 'Above, before, up, higher' }, below: { what: 'Below, after, down, lower' } }),
       dial: choice(`Which part of the page’s feel does ${said} change?`, DIAL_CRITERIA),
-      more_less: choice(`More or less of it?`, { more: { what: 'More: roomier, bigger, rounder, bolder, wider' }, less: { what: 'Less: tighter, smaller, sharper, lighter, narrower' } }),
-      tone: choice(`Dark or light?`, { dark: { what: 'Dark: light text on a dark page' }, light: { what: 'Light: dark text on a light page' } }),
-      surface: choice(`What band should the section sit on?`, {
+      more_less: choice(`Does ${said} want more of it or less?`, { more: { what: 'More: roomier, bigger, rounder, bolder, wider' }, less: { what: 'Less: tighter, smaller, sharper, lighter, narrower' } }),
+      tone: choice(`Does ${said} want the page dark or light?`, { dark: { what: 'Dark: light text on a dark page' }, light: { what: 'Light: dark text on a light page' } }),
+      surface: choice(`What background band does ${said} want behind the section?`, {
         inverse: { what: 'Dark, flipped, inverted, contrasting', examples: ['make it dark', 'black background'] },
         brand: { what: 'The brand color', examples: ['in our color', 'pink band', 'colored'] },
         soft: { what: 'A soft, slightly tinted band', examples: ['subtle background', 'grey band', 'softer'] },
         page: { what: 'Plain again, like the rest of the page', examples: ['no background', 'reset it', 'plain'] },
       }),
-      section_width: choice(`How wide should the section’s content run?`, {
+      section_width: choice(`How wide does ${said} want the section’s content to run?`, {
         narrow: { what: 'Narrow, pulled in' },
         standard: { what: 'The usual width' },
         wide: { what: 'Wider' },
@@ -212,8 +212,13 @@ export function buildAction(intent: IntentId, res: JevResponse, text: string, ct
     }
     case 'move': {
       const s = sectionArg()
-      const o = arg('other')
-      const ab = arg('above_below')
+      // "Up top", "to the bottom": code reads the page's ends, as it reads section numbers.
+      const edge = /\b(up top|to the top|at the top|top of the page|first)\b/i.test(text) ? 'top_of_page' : /\b(bottom|at the end|to the end|last)\b/i.test(text) ? 'bottom_of_page' : null
+      const asked = arg('other')
+      const o = edge ? { option: edge, p: 1 } : asked
+      // "Above", "before", "below", "after": the words themselves say which side.
+      const side = /\b(above|before|over)\b/i.test(text) ? 'above' : /\b(below|after|under|beneath)\b/i.test(text) ? 'below' : null
+      const ab = side ? { option: side, p: 1 } : arg('above_below')
       if (!s || !o || o.option === 'none' || !unlocked(s.id)) return null
       const order = ctx.sections.filter((x) => x.type !== 'nav' && x.type !== 'footer')
       const from = order.findIndex((x) => x.id === s.id)
@@ -297,7 +302,9 @@ export function understand(res: JevResponse | null, text: string, ctx: SayContex
   const intents = ranked(m).filter((x) => x.option in INTENTS && x.option !== 'none' && x.p >= T.offer)
   const built = intents.map((x) => buildAction(x.option as IntentId, res, text, ctx, x.p)).filter((a): a is SayAction => !!a)
   const [first] = built
-  const argsSure = first ? first.sure / (m.probabilities[first.intent] ?? 1) : 0
+  // Each argument at `arg` on average (geometric mean): a move's three answers at 0.85 each read as 0.85, not 0.61.
+  const nArgs = first ? Math.max(1, INTENTS[first.intent].args.length) : 1
+  const argsSure = first ? (first.sure / (m.probabilities[first.intent] ?? 1)) ** (1 / nArgs) : 0
   const sure = !!first && m.agree && first.intent === m.choice && (m.probabilities[first.intent] ?? 0) >= T.act && argsSure >= T.arg
   return sure ? { action: first, options: built.slice(1, 3) } : { action: null, options: built.slice(0, 3) }
 }

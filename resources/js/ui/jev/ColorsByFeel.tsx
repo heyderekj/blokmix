@@ -102,7 +102,7 @@ export function ColorsByFeel() {
               className="cursor-pointer overflow-hidden rounded-lg text-left ring-1 ring-zinc-950/10 transition hover:ring-zinc-400 active:scale-[0.97]"
             >
               <img src={svgDataUri(swatchSvg(p.palette))} alt="" className="block aspect-[7/4] w-full" />
-              <span className="block truncate px-1.5 py-1 text-[10.5px] text-zinc-600">{p.words.split(',')[0]}</span>
+              <span className="block truncate px-1.5 py-1 text-[10.5px] text-zinc-600">{p.words.split(', ')[2]?.replace(/ buttons$/, '') ?? p.words}</span>
             </button>
           ))}
         </div>

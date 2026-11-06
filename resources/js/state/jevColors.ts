@@ -1,11 +1,12 @@
 // Colors by feel, on the board: draw each candidate palette, show them to Jev with your
 // brief (and a picture, when you give one), and keep the three it rates best.
 
-import type { Mode, Palette } from '@/core/palette'
+import type { Mode } from '@/core/palette'
 import { toneOfGuide } from '@/core/dials'
 import { resolveGuide } from '@/core/guide'
 import { imageRef, type JevAsset } from '@/core/jev'
-import { hueCandidates, paletteRequest, rankPalettes, variantCandidates, type Candidate, type PaletteBrief, type Ranked } from '@/core/jev/palettes'
+import { distinct, hueCandidates, paletteRequest, rankPalettes, variantCandidates, type Candidate, type PaletteBrief, type Ranked } from '@/core/jev/palettes'
+import { yes } from '@/core/jev'
 import { swatchSvg, SWATCH } from '@/core/jev/swatch'
 import { KIND_WORDS } from '@/core/jev/vocab'
 import { askJev } from '@/lib/jev'
@@ -32,7 +33,7 @@ function brief(feel?: string): PaletteBrief {
   }
 }
 
-async function round(b: PaletteBrief, cands: Candidate[], photo?: JevAsset): Promise<Ranked[] | null> {
+async function round(b: PaletteBrief, cands: Candidate[], photo?: JevAsset, askTone = false): Promise<{ ranked: Ranked[]; dark: number | null } | null> {
   const drawn = await Promise.all(cands.map((c) => svgToJpeg(swatchSvg(c.palette), SWATCH.w, SWATCH.h)))
   const keep = cands.filter((_, i) => drawn[i])
   const refs = keep.map((_, i) => imageRef(`pal${i}`))
@@ -40,11 +41,10 @@ async function round(b: PaletteBrief, cands: Candidate[], photo?: JevAsset): Pro
   const photoRef = photo ? imageRef('photo') : undefined
   if (photo && photoRef) assets[photoRef] = photo
   if (!keep.length) return null
-  const res = await askJev(paletteRequest(b, keep, refs, assets, photoRef), { timeoutMs: 10000 })
-  return res ? rankPalettes(res, keep, !!photo) : null
+  const res = await askJev(paletteRequest(b, keep, refs, assets, photoRef, askTone), { timeoutMs: 10000 })
+  return res ? { ranked: rankPalettes(res, keep, !!photo), dark: yes(res, 'dark') } : null
 }
 
-const sameAs = (a: Palette, b: Palette) => JSON.stringify(a) === JSON.stringify(b)
 
 /** Three palettes for a feel, a brand color or a picture, best first; null when Jev is off or didn't answer. */
 export async function suggestPalettes(ask: ColorAsk): Promise<Ranked[] | null> {
@@ -62,17 +62,16 @@ export async function suggestPalettes(ask: ColorAsk): Promise<Ranked[] | null> {
   if (seeds.length) {
     // Variations on the colors you have.
     const cands = seeds.flatMap((s, i) => variantCandidates(s, mode, `v${i}`).slice(0, seeds.length > 1 ? 4 : 6))
-    ranked = await round(b, cands.slice(0, 18), photo)
+    ranked = (await round(b, cands.slice(0, 18), photo))?.ranked ?? null
   } else {
-    // Hues first, then variations on the two best.
-    const first = await round(b, hueCandidates(mode, 18), photo)
+    // Hues first (and whether the feel wants a dark page), then variations on the three best hues in that tone.
+    const first = await round(b, hueCandidates(mode, 18), photo, !ask.mode && !!ask.feel)
     if (!first) return null
-    const [a, c] = first
-    const second = await round(b, [a, c, ...variantCandidates(a.brand, mode, 'a').slice(1), ...variantCandidates(c.brand, mode, 'c').slice(1)].slice(0, 14), photo)
-    ranked = second ?? first
+    const tone: Mode = !ask.mode && first.dark !== null ? (first.dark >= 0.6 ? 'dark' : first.dark <= 0.4 ? 'light' : mode) : mode
+    const best = distinct(first.ranked, 3)
+    const cands = best.flatMap((x, k) => variantCandidates(x.brand, tone, `r${k}`).slice(0, 4))
+    ranked = (await round(b, cands.slice(0, 14), photo))?.ranked ?? first.ranked
   }
   if (!ranked) return null
-  const out: Ranked[] = []
-  for (const r of ranked) if (!out.some((o) => sameAs(o.palette, r.palette))) out.push(r)
-  return out.slice(0, 3)
+  return distinct(ranked, 3)
 }

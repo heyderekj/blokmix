@@ -75,8 +75,10 @@ export interface PaletteBrief {
 }
 
 /** One request: per palette, how well it suits the brief and whether its colors belong together (and go with the photo). */
-export function paletteRequest(brief: PaletteBrief, cands: Candidate[], refs: string[], assets: Record<string, JevAsset>, photoRef?: string): JevRequest {
+export function paletteRequest(brief: PaletteBrief, cands: Candidate[], refs: string[], assets: Record<string, JevAsset>, photoRef?: string, askTone = false): JevRequest {
   const questions: JevRequest['questions'] = {}
+  // Whether the feel wants a dark page (a jazz bar, a night club) or a light one: asked once, in the first round.
+  if (askTone) questions.dark = noul(`Does ${at('brief')} call for a dark page (light words on a dark background)?`)
   // Each question carries its own picture and colors in words: pointing at palettes[i] makes Jev count.
   cands.forEach((c, i) => {
     const picture = refs[i]
@@ -98,6 +100,14 @@ export function paletteRequest(brief: PaletteBrief, cands: Candidate[], refs: st
 export interface Ranked extends Candidate {
   score: number
   words: string
+}
+
+/** Three picks that differ: the best, then the best of another hue, then the best of a third (or another variation). */
+export function distinct(ranked: Ranked[], n = 3): Ranked[] {
+  const out: Ranked[] = []
+  for (const r of ranked) if (out.length < n && !out.some((o) => o.brand === r.brand)) out.push(r)
+  for (const r of ranked) if (out.length < n && !out.includes(r) && !out.some((o) => JSON.stringify(o.palette) === JSON.stringify(r.palette))) out.push(r)
+  return out
 }
 
 /** Palettes best first: fit to the brief most, then harmony, then (with a photo) whether they go with it. */
