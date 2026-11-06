@@ -5,6 +5,7 @@ import { World } from '@/ui/canvas/World'
 import { TopBar } from '@/ui/shell/TopBar'
 import { Lightbox } from '@/ui/shell/Lightbox'
 import { Dock } from '@/ui/shell/Dock'
+import { SelectionStyle } from '@/ui/panels/SelectionStyle'
 import { SiteLibrary } from '@/ui/library/SiteLibrary'
 import { Flash, HelpOverlay } from '@/ui/shell/Overlays'
 import { useShortcuts } from '@/hooks/useShortcuts'
@@ -33,6 +34,7 @@ export default function Board() {
       </Canvas>
       <TopBar onHelp={toggleHelp} />
       <Dock />
+      <SelectionStyle />
       <Lightbox />
       <SiteLibrary />
       <Flash />

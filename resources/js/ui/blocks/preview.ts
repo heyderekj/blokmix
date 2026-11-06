@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { BlockEdit, SliderChoice, Slot } from '@/core/types'
 import type { TreatmentValue } from '@/core/treatments'
+import type { FrameRect } from '@/frame/bridge'
 
 /**
  * A look you're hovering in a picker, shown on the page before you commit it.
@@ -30,6 +31,9 @@ interface BlockPreview {
   /** Bumped to play entrances again on the focused section. */
   replays: number
   replay: () => void
+  /** The selected block's box in its section (and its type size), for panels outside the section. */
+  selRect: FrameRect | null
+  setSelRect: (r: FrameRect | null) => void
 }
 
 export const useBlockPreview = create<BlockPreview>()((set) => ({
@@ -50,6 +54,8 @@ export const useBlockPreview = create<BlockPreview>()((set) => ({
   showSlider: (slider) => set({ slider }),
   replays: 0,
   replay: () => set((s) => ({ replays: s.replays + 1 })),
+  selRect: null,
+  setSelRect: (selRect) => set({ selRect }),
 }))
 
 /** The slot as it would look with the hovered preview applied. */

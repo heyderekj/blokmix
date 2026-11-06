@@ -93,7 +93,7 @@ export function LookSample({ kind, look, text }: { kind: BlockKind; look?: strin
       )
     default:
       return (
-        <span className={cls} style={{ fontSize: 14, lineHeight: 1.4 }}>
+        <span className={cls} style={{ fontSize: 14, lineHeight: 1.4, whiteSpace: 'nowrap' }}>
           {words}
         </span>
       )

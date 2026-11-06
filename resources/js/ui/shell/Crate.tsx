@@ -364,8 +364,13 @@ function ClipCard({ clip, used, inMix, own, scroller }: { clip: Clip; used: bool
         draggable
         onDragStart={(e) => {
           e.dataTransfer.setData('application/x-blokmix-clip', clip.id)
+          // Its type travels as a type of its own: a section can say whether a drop replaces it before the drop.
+          e.dataTransfer.setData(`application/x-blokmix-type-${clip.type}`, '')
           e.dataTransfer.effectAllowed = 'copy'
+          // Frames let the drag through, so even the section you're in can take it.
+          document.documentElement.setAttribute('data-dragging-clip', '')
         }}
+        onDragEnd={() => document.documentElement.removeAttribute('data-dragging-clip')}
         onClick={place}
         title={layout ? clip.title : `${source?.name}: ${clip.title}`}
         className="group block w-full cursor-pointer text-left focus-visible:outline-none active:scale-[0.97] transition-[scale] duration-150"

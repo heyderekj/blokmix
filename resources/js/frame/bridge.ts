@@ -25,7 +25,8 @@ export interface BlockEvent {
   selRect?: FrameRect | null
   word?: { field: string; value: string }
   editing?: boolean
-  key?: { key: string; code: string; meta: boolean; ctrl: boolean; shift: boolean; alt: boolean }
+  /** A key pressed (or, with `up`, let go of) while the frame had focus. */
+  key?: { key: string; code: string; meta: boolean; ctrl: boolean; shift: boolean; alt: boolean; up?: boolean }
   /** Note mode: a block clicked (with the point), or an area being drawn / drawn. */
   notePick?: string | null
   rect?: FrameRect | null
@@ -37,6 +38,10 @@ export interface BlockEvent {
   /** Someone opened a lightbox in an interactive frame. */
   lightbox?: LightboxPayload
   asset?: string | null
+  /** An item picked up by pressing on it and moving (frame px), then where the pointer goes, then let go. */
+  dragItem?: { id: string; x: number; y: number }
+  dragMove?: { x: number; y: number }
+  dragEnd?: boolean
   /** Rects of the blocks the parent asked to track (for pins). */
   rects?: Record<string, FrameRect>
 }

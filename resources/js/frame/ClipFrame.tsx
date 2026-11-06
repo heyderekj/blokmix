@@ -64,17 +64,23 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     [clip.id, clip.hash, width],
   )
 
+  // A frame moved in the page (a section dragged to another place) reloads as a new window: count loads, so it's
+  // listened to again and sent everything it had.
+  const [loads, setLoads] = useState(0)
+  const ready = (win: Window) => {
+    sent.current = ''
+    blobsSent.current = new Set()
+    push()
+    const e = editRef.current
+    if (e) postState(win, { edit: e.active, select: e.active ? e.selected : null, noteMode: e.active && !!e.noteMode, track: e.track ?? [] })
+  }
   useEffect(() => {
     const win = ref.current?.contentWindow
     if (!win) return
+    // Its "ready" went out before this listened: catch up now.
+    if (loads) ready(win)
     return registerFrame(win, (d) => {
-      if (d.ready) {
-        sent.current = ''
-        blobsSent.current = new Set()
-        push()
-        const e = editRef.current
-        if (e) postState(win, { edit: e.active, select: e.active ? e.selected : null, noteMode: e.active && !!e.noteMode, track: e.track ?? [] })
-      }
+      if (d.ready) ready(win)
       if (typeof d.height === 'number' && d.height > 0) {
         setHeight(d.height)
         onHeightRef.current?.(d.height)
@@ -87,10 +93,10 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
       if (d.goto) revealSection(d.goto)
       if (d.open && /^(https?:|mailto:|tel:)/.test(d.open)) window.open(d.open, '_blank', 'noopener')
       else if (d.open?.startsWith('/')) openPagePath(d.open)
-      if ('hover' in d || 'pick' in d || 'selRect' in d || d.word || 'editing' in d || d.key || 'notePick' in d || 'drag' in d || d.area || d.rects || d.words) editRef.current?.onEvent(d)
+      if ('hover' in d || 'pick' in d || 'selRect' in d || d.word || 'editing' in d || d.key || 'notePick' in d || 'drag' in d || d.area || d.rects || d.words || d.dragItem || d.dragMove || d.dragEnd) editRef.current?.onEvent(d)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [srcdoc])
+  }, [srcdoc, loads])
 
   // Uploaded videos and Lotties travel as files: a sandboxed frame can't read this page's blob URLs,
   // but it can make its own from a Blob it's sent.
@@ -123,15 +129,15 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
   const selected = edit?.selected ?? null
   useEffect(() => {
     postState(ref.current?.contentWindow, { edit: editing, select: editing ? selected : null })
-  }, [editing, selected, srcdoc])
+  }, [editing, selected, srcdoc, loads])
   const noteMode = editing && !!edit?.noteMode
   useEffect(() => {
     postState(ref.current?.contentWindow, { noteMode })
-  }, [noteMode, srcdoc])
+  }, [noteMode, srcdoc, loads])
   const trackKey = (edit?.track ?? []).join(',')
   useEffect(() => {
     if (trackKey) postState(ref.current?.contentWindow, { track: trackKey.split(',') })
-  }, [trackKey, srcdoc])
+  }, [trackKey, srcdoc, loads])
   const editText = edit?.editText
   useEffect(() => {
     if (editText) postState(ref.current?.contentWindow, { editText: editText.id })
@@ -147,6 +153,7 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
       title={clip.title}
       sandbox="allow-scripts"
       srcDoc={srcdoc}
+      onLoad={() => setLoads((n) => n + 1)}
       className={className}
       style={{ width, height, border: 0, display: 'block', pointerEvents: interactive || edit?.active ? 'auto' : 'none', background: 'transparent' }}
     />

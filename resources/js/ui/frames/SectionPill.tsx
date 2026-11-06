@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { create } from 'zustand'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowDown, ArrowUp, ArrowUpRight, Link2, Lock, LockOpen, Palette, Plus, Sparkles, Trash2, Type, X } from 'lucide-react'
+import { ArrowUpRight, ChevronLeft, ChevronRight, GripVertical, Link2, Lock, LockOpen, Palette, Plus, Sparkles, Trash2, Type } from 'lucide-react'
 import type { Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -22,16 +20,12 @@ import { bandTokens, SURFACES, SURFACE_LABEL, surfaceTokens, SECTION_WIDTHS, SEC
 import { isBackdropId, readBackdrop } from '@/core/treatments'
 import { runCommand } from '@/state/commands'
 import { siteLibraryAvailable } from '@/lib/siteLibrary'
-import { frameBeside, leaveBeside } from '../canvas/inView'
+import { setStylePanel, useStylePanel } from '../panels/stylePanel'
+import { PanelGroup } from '../blocks/BlockBar'
+import { useDockLayouts } from '../shell/Dock'
+import { pressSection, sectionMovable } from './SectionDrag'
 
 type Tab = 'style' | 'source'
-
-/** The Style panel stays open as you move between sections, so it lives outside any one section's bar. */
-const useStylePanel = create<{ open: boolean }>()(() => ({ open: false }))
-const setStylePanel = (open: boolean) => {
-  useStylePanel.setState({ open })
-  if (!open) leaveBeside()
-}
 
 const TABS: { id: Tab; label: string; icon: typeof Type }[] = [
   { id: 'style', label: 'Style', icon: Palette },
@@ -59,51 +53,58 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
   // One open surface at a time: losing focus or opening a sheet folds the tabs.
   useEffect(() => {
     if (!focused || sheet !== 'none') setTab(null)
-    if (sheet !== 'none' && useStylePanel.getState().open) setStylePanel(false)
   }, [focused, sheet])
-
-  // Leaving every section closes the Style panel; moving to another keeps it.
-  useEffect(
-    () => () => {
-      window.setTimeout(() => {
-        if (useStylePanel.getState().open && !useStore.getState().ui.focusedSlotId) setStylePanel(false)
-      }, 0)
-    },
-    [],
-  )
 
   if (!clip) return null
 
   return (
-    // Just below the section, like the block bar below a block: the section stays in view while you change it.
-    <div className="absolute left-0 top-full z-30 origin-top-left" style={{ transform: 'scale(calc(1 / var(--z)))' }} data-chrome>
+    // A tab on the section's top edge, where you clicked into it even on a tall section (just inside on the first one,
+    // clear of the frame's header).
+    <div className="absolute left-0 top-0 z-30 origin-top-left" style={{ transform: 'scale(calc(1 / var(--z)))' }} data-chrome>
       <motion.div
         layout
         transition={MORPH}
         // The bottom toolbar's size and corners, solid and lifted so it reads over any section.
-        style={{ borderRadius: 16, backgroundColor: 'var(--lift)', boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 12px 28px -12px rgb(0 0 0 / 0.35)' }}
-        className={`glass-panel ml-3 mt-2.5 w-max overflow-hidden transition-opacity ${focused ? 'opacity-100' : 'opacity-75 group-hover/row:opacity-100'}`}
+        style={{
+          borderRadius: 16,
+          backgroundColor: 'var(--lift)',
+          boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 12px 28px -12px rgb(0 0 0 / 0.35)',
+        }}
+        className={`glass-panel ml-3 w-max overflow-hidden ${index === 0 ? 'mt-2.5' : '-mt-[22px]'}`}
         onPointerDown={(e) => {
           e.stopPropagation()
           st().focusSlot(slot.id)
         }}
       >
         {/* one slim row: what it is, its tabs, its utilities, the one strong action */}
-        <motion.div layout="position" transition={MORPH} className="flex h-11 items-center gap-1 pl-3.5 pr-1.5">
-          <div
-            className="mr-1 flex shrink-0 items-baseline gap-1.5 whitespace-nowrap"
-            title={source?.name ?? ''}
-          >
-            <span className="text-[14px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
-            <span className="text-[12px] tabular-nums text-zinc-500">
-              {pos}/{total}
+        <motion.div layout="position" transition={MORPH} className={`flex h-11 items-center gap-1 pr-1.5 ${sectionMovable(slot.id) ? 'pl-1.5' : 'pl-3.5'}`}>
+          {sectionMovable(slot.id) && (
+            <span
+              role="button"
+              tabIndex={-1}
+              title="Drag to move this section (or ⌥↑ ⌥↓)"
+              aria-label="Drag to move this section"
+              onPointerDown={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                st().focusSlot(slot.id)
+                pressSection(slot.id, e)
+              }}
+              className="grid h-8 w-6 cursor-grab place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-700"
+              style={{ touchAction: 'none' }}
+            >
+              <GripVertical size={15} />
             </span>
+          )}
+          <div className="mr-1 flex shrink-0 items-baseline gap-1.5 whitespace-nowrap" title={source?.name ?? ''}>
+            <span className="text-[14px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
             {sharedOn > 0 && multi ? (
               <span className="rounded-full bg-key-soft px-1.5 py-px text-[10.5px] font-semibold text-key-ink" title="Edits here show on every page that shows it">
                 Shared · {sharedOn}
               </span>
             ) : null}
           </div>
+          {total > 1 && <LayoutStepper slotId={slot.id} pos={pos} total={total} />}
           {focused && (
             <>
               <span className="mx-1 h-5 w-px bg-zinc-950/10" />
@@ -144,12 +145,6 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
                 {slot.locked ? <Lock size={15} strokeWidth={2.4} /> : <LockOpen size={15} />} {slot.locked ? 'Locked' : 'Lock'}
               </button>
               <span className="mx-1 h-5 w-px bg-zinc-950/10" />
-              <Util label="Move up (⌥↑)" disabled={index === 0} onClick={() => st().moveSlot(slot.id, index - 1)}>
-                <ArrowUp size={16} />
-              </Util>
-              <Util label="Move down (⌥↓)" disabled={index === count - 1} onClick={() => st().moveSlot(slot.id, index + 1)}>
-                <ArrowDown size={16} />
-              </Util>
               <Util
                 label="Remove section (⌫)"
                 disabled={count <= 1}
@@ -163,7 +158,6 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
               </Util>
             </>
           )}
-          {!focused && slot.locked && <Lock size={13} strokeWidth={2.4} className="ml-1 shrink-0 text-key-ink" aria-label="Locked" />}
         </motion.div>
 
         <AnimatePresence initial={false} mode="popLayout">
@@ -172,7 +166,10 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
               key={tab}
               layout="position"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { delay: 0.05, duration: 0.14 } }}
+              animate={{
+                opacity: 1,
+                transition: { delay: 0.05, duration: 0.14 },
+              }}
               exit={{ opacity: 0, transition: { duration: 0.06 } }}
               className="bg-well p-3"
             >
@@ -181,93 +178,49 @@ export function SectionPill({ slot, index, count, focused, pos, total }: { slot:
           )}
         </AnimatePresence>
       </motion.div>
-      {focused && styling && sheet === 'none' && <StylePanel slot={slot} />}
     </div>
   )
 }
 
-/**
- * A section's style options, docked to the side of the window and scrolling on their own. The canvas moves the section
- * into the space beside it, so every change shows live without zooming or panning by hand.
- */
-function StylePanel({ slot }: { slot: Slot }) {
-  const panel = useRef<HTMLDivElement>(null)
-  // Frame it when you arrive, and again when a change of layout or width changes its shape (after the row settles).
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const row = document.querySelector(`[data-slot="${CSS.escape(slot.id)}"]`)
-      if (!row || !panel.current) return
-      frameBeside(row, panel.current)
-    }, 280)
-    return () => window.clearTimeout(timer)
-  }, [slot.id, slot.clipId, slot.width, slot.slider])
-  return createPortal(
-    <motion.div
-      ref={panel}
-      data-chrome
-      initial={{ opacity: 0, x: 12 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
-      style={{ backgroundColor: 'var(--lift)', boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 16px 40px -16px rgb(0 0 0 / 0.35)' }}
-      className="fixed right-3 top-3 z-40 flex max-h-[calc(100dvh-24px)] w-[340px] flex-col overflow-hidden rounded-2xl max-sm:inset-x-3 max-sm:bottom-3 max-sm:top-auto max-sm:max-h-[46vh] max-sm:w-auto"
-      onPointerDown={(e) => e.stopPropagation()}
-      onPointerUp={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
-      onDoubleClick={(e) => e.stopPropagation()}
-      onWheel={(e) => e.stopPropagation()}
-      role="dialog"
-      aria-label={`${TYPE_LABEL[slot.type]} style`}
-    >
-      <header className="flex h-11 shrink-0 items-center justify-between border-b border-zinc-950/6 pl-3.5 pr-1.5">
-        <span className="text-[14px] font-semibold text-zinc-900">
-          {TYPE_LABEL[slot.type]} <span className="font-medium text-zinc-500">style</span>
-        </span>
-        <button type="button" aria-label="Close" onClick={() => setStylePanel(false)} className="grid size-8 cursor-pointer place-items-center rounded-full text-zinc-600 transition active:scale-[0.97] hover:bg-zinc-950/5">
-          <X size={16} />
-        </button>
-      </header>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
-        <StyleTab slot={slot} />
-      </div>
-    </motion.div>,
-    document.body,
-  )
-}
-
-const Heading = ({ children }: { children: React.ReactNode }) => <div className="mb-2 text-[11px] font-semibold text-zinc-400">{children}</div>
-
 /** This section's look: its band and width in words, then backdrop, spacing and motion. A captured section also offers its own look to the style guide. */
-function StyleTab({ slot }: { slot: Slot }) {
+export function StyleTab({ slot }: { slot: Slot }) {
   const clip = library.clips[slot.clipId]
   const resolved = useResolvedGuide().tokens
   const t = clip.tokens
   return (
-    <div>
-      {clip.origin !== 'layout' && (
-        <div className="mb-1.5 flex min-h-8 items-center justify-between gap-3 text-[12px] font-medium text-zinc-600">
-          Use its own look
-          <Switch on={slot.keep.style} onChange={() => useStore.getState().toggleKeep(slot.id, 'style')} label="Use this section’s own captured look instead of the style guide" />
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <PanelGroup title="Background">
+        {clip.origin !== 'layout' && (
+          <div className="mb-1.5 flex min-h-8 items-center justify-between gap-3 text-[12px] font-medium text-zinc-600">
+            Use its own look
+            <Switch
+              on={slot.keep.style}
+              onChange={() => useStore.getState().toggleKeep(slot.id, 'style')}
+              label="Use this section’s own captured look instead of the style guide"
+            />
+          </div>
+        )}
+        <div className="grid gap-1.5">
+          {!slot.keep.style && <SurfacePicks slot={slot} />}
+          <WidthPicks slot={slot} />
         </div>
-      )}
-      <div className="grid gap-1.5">
-        {!slot.keep.style && <SurfacePicks slot={slot} />}
-        <WidthPicks slot={slot} />
-      </div>
-      {slot.type === 'nav' && <BannerRow slot={slot} />}
-      {clip.slider && <SliderPicker slot={slot} options={clip.slider} />}
-      <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
-        <BackdropPicker slot={slot} tokens={slot.keep.style ? t : surfaceTokens(resolved, slot.surface)} />
-        <BackdropNote slot={slot} />
-      </div>
-      <SpacingGroup slot={slot} />
-      <div className="mt-3 border-t border-zinc-950/6 pt-3">
-        <SectionMotionRows slot={slot} />
-      </div>
+        {slot.type === 'nav' && <BannerRow slot={slot} />}
+        {clip.slider && <SliderPicker slot={slot} options={clip.slider} />}
+        <div className="mt-2.5">
+          <BackdropPicker slot={slot} tokens={slot.keep.style ? t : surfaceTokens(resolved, slot.surface)} />
+          <BackdropNote slot={slot} />
+        </div>
+      </PanelGroup>
+      <PanelGroup title="Spacing">
+        <SpacingGroup slot={slot} />
+      </PanelGroup>
+      <PanelGroup title="Motion">
+        <SectionMotionRows slot={slot} untitled />
+      </PanelGroup>
       {clip.origin !== 'layout' && (
-        <div className="mt-3 border-t border-zinc-950/6 pt-3">
-          <Heading>This section’s own look</Heading>
+        <PanelGroup title="This section’s own look">
           <CapturedLook slot={slot} />
-        </div>
+        </PanelGroup>
       )}
     </div>
   )
@@ -298,7 +251,14 @@ function CapturedLook({ slot }: { slot: Slot }) {
     <div>
       <div className="mb-3 flex items-center gap-3">
         <span className="grid h-12 w-14 shrink-0 place-items-center rounded-lg ring-1 ring-zinc-950/10" style={{ background: t['color.bg'] }}>
-          <span style={{ fontFamily: t['font.display'], color: t['color.text'], fontWeight: Number(t['type.displayWeight']) }} className="text-[18px]">
+          <span
+            style={{
+              fontFamily: t['font.display'],
+              color: t['color.text'],
+              fontWeight: Number(t['type.displayWeight']),
+            }}
+            className="text-[18px]"
+          >
             Aa
           </span>
         </span>
@@ -339,7 +299,9 @@ function CapturedLook({ slot }: { slot: Slot }) {
           onClick={(e) => {
             e.stopPropagation()
             st().promoteClip(clip.id, groups)
-            st().showFlash(`${source.name} is now a candidate for ${names}`, { undo: true })
+            st().showFlash(`${source.name} is now a candidate for ${names}`, {
+              undo: true,
+            })
           }}
           className="btn-quiet flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full text-[12.5px] font-medium"
         >
@@ -351,7 +313,9 @@ function CapturedLook({ slot }: { slot: Slot }) {
           onClick={(e) => {
             e.stopPropagation()
             st().adoptClipDesign(clip.id, groups)
-            st().showFlash(`Style guide now uses ${source.name} for ${names}`, { undo: true })
+            st().showFlash(`Style guide now uses ${source.name} for ${names}`, {
+              undo: true,
+            })
           }}
           className="btn-quiet flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full text-[12.5px] font-semibold"
         >
@@ -383,9 +347,8 @@ function SpacingGroup({ slot }: { slot: Slot }) {
       }),
     }))
   return (
-    <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
-      <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-zinc-400">
-        Spacing
+    <div>
+      <div className="mb-1 flex justify-end">
         <DeviceSwitch value={device} onChange={setDevice} />
       </div>
       <SectionSpacingRows slot={slot} device={device} />
@@ -425,10 +388,11 @@ function BannerRow({ slot }: { slot: Slot }) {
         label="Announcement banner"
         onChange={() => {
           st().setBanner(slot.id, !on)
-          if (!on) setTimeout(() => {
-            const b = slotClip(currentSlots(useStore.getState()).find((s) => s.id === slot.id)!).blocks.find((x) => x.kind === 'banner')
-            if (b) st().selectBlock(b.id)
-          })
+          if (!on)
+            setTimeout(() => {
+              const b = slotClip(currentSlots(useStore.getState()).find((s) => s.id === slot.id)!).blocks.find((x) => x.kind === 'banner')
+              if (b) st().selectBlock(b.id)
+            })
         }}
       />
     </div>
@@ -448,7 +412,12 @@ function SourceTab({ slot }: { slot: Slot }) {
       <div className="mt-2 flex flex-wrap gap-1 text-[11px]">
         <span className="rounded-md bg-lift px-1.5 py-0.5 font-mono text-zinc-600">{clip.layoutPattern}</span>
         <span className="rounded-md bg-lift px-1.5 py-0.5 text-zinc-600">
-          Clipped {new Date(clip.capture.capturedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at {clip.capture.viewport.width}px
+          Clipped{' '}
+          {new Date(clip.capture.capturedAt).toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+          })}{' '}
+          at {clip.capture.viewport.width}px
         </span>
       </div>
       {clip.motionNotes && <p className="mt-2 leading-relaxed text-zinc-500">{clip.motionNotes}</p>}
@@ -511,7 +480,12 @@ function SurfacePicks({ slot }: { slot: Slot }) {
   )
 }
 
-const WIDTH_SHARE: Record<(typeof SECTION_WIDTHS)[number], number> = { narrow: 46, standard: 64, wide: 82, full: 100 }
+const WIDTH_SHARE: Record<(typeof SECTION_WIDTHS)[number], number> = {
+  narrow: 46,
+  standard: 64,
+  wide: 82,
+  full: 100,
+}
 
 /**
  * How far the section's content runs: a tiny page with the content inside it, as wide as it would be. Drag its edge or
@@ -558,10 +532,17 @@ function WidthPicks({ slot }: { slot: Slot }) {
         className="relative h-9 cursor-ew-resize touch-none select-none rounded-lg bg-zinc-950/[0.05] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
       >
         {/* The four stops, as faint marks on the page either side of the middle. */}
-        {SECTION_WIDTHS.filter((w) => w !== 'full').flatMap((w) => [50 - WIDTH_SHARE[w] / 2, 50 + WIDTH_SHARE[w] / 2].map((x) => <span key={`${w}${x}`} className="absolute top-1/2 h-2 w-px -translate-y-1/2 bg-zinc-950/20" style={{ left: `${x}%` }} aria-hidden />))}
+        {SECTION_WIDTHS.filter((w) => w !== 'full').flatMap((w) =>
+          [50 - WIDTH_SHARE[w] / 2, 50 + WIDTH_SHARE[w] / 2].map((x) => (
+            <span key={`${w}${x}`} className="absolute top-1/2 h-2 w-px -translate-y-1/2 bg-zinc-950/20" style={{ left: `${x}%` }} aria-hidden />
+          )),
+        )}
         <span
           className="absolute inset-y-1 flex items-center justify-between overflow-hidden rounded-md bg-lift px-1 text-[11.5px] font-medium text-zinc-900 shadow-[0_0_0_1px_rgb(0_0_0/0.1),0_1px_2px_rgb(0_0_0/0.1)] transition-[left,width] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
-          style={{ left: `calc(${50 - WIDTH_SHARE[on] / 2}% + ${on === 'full' ? 4 : 0}px)`, width: `calc(${WIDTH_SHARE[on]}% - ${on === 'full' ? 8 : 0}px)` }}
+          style={{
+            left: `calc(${50 - WIDTH_SHARE[on] / 2}% + ${on === 'full' ? 4 : 0}px)`,
+            width: `calc(${WIDTH_SHARE[on]}% - ${on === 'full' ? 8 : 0}px)`,
+          }}
         >
           <span className="h-3 w-0.5 shrink-0 rounded-full bg-zinc-300" aria-hidden />
           <span className="min-w-0 truncate">{SECTION_WIDTH_LABEL[on]}</span>
@@ -596,31 +577,66 @@ function Util({ label, onClick, disabled, danger, children }: { label: string; o
  * A section's label at rest lives off the page, in the gutter on its left: a
  * quiet rail with the number and name, so the design itself is never covered.
  */
+/**
+ * The section's other layouts, a step at a time (← → do the same), like the block bar's ‹ Look ›. The label opens them
+ * all in the dock.
+ */
+function LayoutStepper({ slotId, pos, total }: { slotId: string; pos: number; total: number }) {
+  const st = useStore.getState
+  const open = useDockLayouts((s) => s.slotId === slotId)
+  const step = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]'
+  return (
+    <div className="ml-1 flex items-center rounded-full">
+      <button type="button" title="Previous layout (←)" aria-label="Previous layout" onClick={() => st().cycle(slotId, -1)} className={`${step} rounded-l-full`}>
+        <ChevronLeft size={15} />
+      </button>
+      <button
+        type="button"
+        title="See every layout for this section"
+        aria-expanded={open}
+        onClick={() => {
+          st().setUi({ sheet: 'none' })
+          useDockLayouts.setState({ slotId: open ? null : slotId })
+        }}
+        className={`flex h-8 cursor-pointer items-center whitespace-nowrap px-1.5 text-[12.5px] font-medium tabular-nums transition active:scale-[0.97] ${open ? 'text-zinc-900' : 'text-zinc-600 hover:text-zinc-900'}`}
+      >
+        Layout {pos} of {total}
+      </button>
+      <button type="button" title="Next layout (→)" aria-label="Next layout" onClick={() => st().cycle(slotId, 1)} className={`${step} rounded-r-full`}>
+        <ChevronRight size={15} />
+      </button>
+    </div>
+  )
+}
+
 export function SectionRail({ slot, index, focused }: { slot: Slot; index: number; focused: boolean }) {
   const st = useStore.getState
   return (
     <div
-      className="group/rail absolute inset-y-0 right-full cursor-pointer"
+      className={`group/rail absolute inset-y-0 right-full ${sectionMovable(slot.id) ? 'cursor-grab' : 'cursor-pointer'}`}
       style={{ width: 'calc(40px / var(--z))' }}
       onPointerDown={(e) => {
         e.stopPropagation()
         st().focusSlot(slot.id)
+        st().selectBlock(null)
+        pressSection(slot.id, e)
       }}
       data-chrome
-      title={`${TYPE_LABEL[slot.type]}: click to work on this section`}
+      title={sectionMovable(slot.id) ? `${TYPE_LABEL[slot.type]}: click to select, drag to move` : `${TYPE_LABEL[slot.type]}: click to select`}
     >
       {/* the rail's line, drawn in page space so it spans the whole section */}
       <div
-        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${
-          focused ? 'bg-key' : 'bg-zinc-300 group-hover/row:bg-key/70 group-hover/rail:bg-key/70'
-        }`}
+        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${focused ? 'bg-key' : 'bg-zinc-300 group-hover/row:bg-key/70 group-hover/rail:bg-key/70'}`}
         style={{ width: 'calc(2px / var(--z))' }}
       />
       {/* The label, at screen size, in exactly the height its section has on screen. A column that wraps into a clipped
           second column drops what doesn't fit whole, so a short section shows its number, then only its line. */}
       <div
         className="section-rail-label absolute right-[calc(14px/var(--z))] top-0 w-5 origin-top-right"
-        style={{ height: 'calc(100% * var(--z))', transform: 'scale(calc(1 / var(--z)))' }}
+        style={{
+          height: 'calc(100% * var(--z))',
+          transform: 'scale(calc(1 / var(--z)))',
+        }}
       >
         <div className="flex h-full w-5 flex-col flex-wrap content-start items-center gap-1.5 overflow-hidden pb-1 pt-3.5">
           <span className={`text-[11px] font-bold tabular-nums ${focused ? 'text-zinc-900' : 'text-zinc-400 group-hover/row:text-zinc-700'}`}>

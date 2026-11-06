@@ -56,20 +56,10 @@ const BRIDGE = `(function () {
     post({ rects: out });
   }
 
-  /* Figma-style depth: click selects the outermost block, then one level deeper each click. ⌘-click goes straight to
-     the smallest block under the pointer. */
-  function target(node, deep) {
-    var start = node && node.closest ? node.closest('[data-mx-block]') : null;
-    if (!start) return null;
-    if (noteMode || deep) return start; /* feedback snaps to the smallest block under the pointer */
-    var chain = [];
-    for (var n = start; n; n = up(n)) chain.unshift(n);
-    var s = byId(sel);
-    for (var ctx = s; ctx; ctx = up(ctx)) {
-      var k = chain.indexOf(ctx);
-      if (k >= 0) return chain[Math.min(k + 1, chain.length - 1)];
-    }
-    return chain[0];
+  /* A click picks what you clicked: the smallest block under the pointer. Its parents are a click on their own padding,
+     the bar's breadcrumb or Escape away. */
+  function target(node) {
+    return node && node.closest ? node.closest('[data-mx-block]') : null;
   }
   function fieldEl(el) {
     if (!el) return null;
@@ -82,14 +72,43 @@ const BRIDGE = `(function () {
   function reportSel() { var el = byId(sel), r = rect(el); if (r && el) r.font = parseFloat(getComputedStyle(el).fontSize); post({ selRect: r }); }
 
   document.addEventListener('pointermove', function (e) {
-    if (!editMode || editing || drag) return;
-    var t = target(e.target, e.metaKey || e.ctrlKey);
+    if (!editMode || editing || drag || carrying) return;
+    var t = target(e.target);
     var id = t ? t.getAttribute('data-mx-b') : null;
     if (id !== hoverId) { hoverId = id; post({ hover: id ? { id: id, rect: rect(t) } : null }); }
   });
   /* A slider's track scrolling moves what's selected: keep the outlines on it. */
   document.addEventListener('scroll', function () { requestAnimationFrame(function () { if (sel) reportSel(); reportTracked(); }); }, true);
   document.addEventListener('pointerleave', function () { if (hoverId) { hoverId = null; post({ hover: null }); } });
+  /* Press on the selected item (or anything in it) and move: the item is picked up. The parent draws the drag; the
+     frame keeps the pointer until it's let go (it pressed here), so it passes the moves along. */
+  var press = null, carrying = false, swallow = false;
+  function itemOf(el) { for (var n = el; n; n = up(n)) if (n.getAttribute('data-mx-block') === 'item') return n; return null; }
+  document.addEventListener('pointerdown', function (e) {
+    if (!editMode || noteMode || editing || e.button !== 0) return;
+    var it = itemOf(target(e.target)), s = byId(sel);
+    press = it && s && it.contains(s) ? { id: it.getAttribute('data-mx-b'), x: e.clientX, y: e.clientY } : null;
+  }, true);
+  document.addEventListener('pointermove', function (e) {
+    if (!press) return;
+    if (!carrying) {
+      if (Math.abs(e.clientX - press.x) + Math.abs(e.clientY - press.y) < 5) return;
+      carrying = true; swallow = true;
+      document.documentElement.style.userSelect = 'none';
+      var ws = getSelection(); if (ws) ws.removeAllRanges();
+      if (hoverId) { hoverId = null; post({ hover: null }); }
+      post({ dragItem: { id: press.id, x: press.x, y: press.y } });
+    }
+    e.preventDefault();
+    post({ dragMove: { x: e.clientX, y: e.clientY } });
+  }, true);
+  function letGo() {
+    if (carrying) { post({ dragEnd: true }); document.documentElement.style.userSelect = ''; }
+    press = null; carrying = false;
+  }
+  document.addEventListener('pointerup', letGo, true);
+  document.addEventListener('pointercancel', letGo, true);
+
   /* Note mode: click marks a block, drag marks an area. */
   document.addEventListener('pointerdown', function (e) {
     if (!editMode || !noteMode || e.button !== 0) return;
@@ -134,20 +153,23 @@ const BRIDGE = `(function () {
     }, 0);
   }, true);
   document.addEventListener('click', function (e) {
+    /* The click that ends carrying an item is not a click. */
+    if (swallow) { swallow = false; e.preventDefault(); e.stopPropagation(); return; }
     if (!editMode) return;
     if (noteMode) { e.preventDefault(); e.stopPropagation(); return; }
-    if (editing && editing.contains(e.target)) return;
+    /* Words being edited inside a tab's label: keep the click from switching the tab (which would end the edit). */
+    if (editing && editing.contains(e.target)) { if (e.target.closest && e.target.closest('label')) e.preventDefault(); return; }
     /* Dots, tabs, toggles and accordions still work while editing: the click switches them, and selects as usual. */
     if (e.target.matches && e.target.matches('input[type=radio], input[type=checkbox]')) return;
     if (e.target.closest && e.target.closest('[data-slider-prev], [data-slider-next], [data-slider-dot]')) return;
     if (e.target.closest && e.target.closest('label, summary')) {
-      var hit = target(e.target, e.metaKey || e.ctrlKey);
+      var hit = target(e.target);
       post({ pick: hit ? hit.getAttribute('data-mx-b') : null });
       return;
     }
     e.preventDefault(); e.stopPropagation();
     /* A click only ever selects: words are edited with a double-click, ↵ or the bar's Edit text. */
-    var t = target(e.target, e.metaKey || e.ctrlKey);
+    var t = target(e.target);
     post({ pick: t ? t.getAttribute('data-mx-b') : null });
   }, true);
   document.addEventListener('dblclick', function (e) {
@@ -205,6 +227,38 @@ const BRIDGE = `(function () {
     post({ key: { key: e.key, code: e.code, meta: e.metaKey, ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey } });
     if (e.key === ' ' || e.key === 'Tab' || e.key.indexOf('Arrow') === 0 || ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D'))) e.preventDefault();
   });
+  /* …and their release, so a key held down out here (Space pans) is let go of too. */
+  document.addEventListener('keyup', function (e) {
+    if (editing) return;
+    post({ key: { key: e.key, code: e.code, meta: e.metaKey, ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, up: true } });
+  });
+  /* A tab, toggle or accordion switched: what's selected and tracked may have moved, and the height changed. */
+  function remeasure() { requestAnimationFrame(function () { report(); if (sel) reportSel(); reportTracked(); }); }
+  document.addEventListener('change', remeasure, true);
+  document.addEventListener('toggle', remeasure, true);
+  /* Selecting something that's out of sight (in a closed tab or answer, or a slide out of view) brings it into view. */
+  function reveal(el) {
+    if (!el) return;
+    if (el.getClientRects().length) {
+      var tr = el.closest('[data-slider-track]');
+      if (tr) {
+        var slide = el; while (slide && slide.parentElement !== tr) slide = slide.parentElement;
+        var r = slide && rect(slide), t = rect(tr);
+        if (r && t && (r.x < t.x || r.x + r.w > t.x + t.w)) tr.scrollBy({ left: r.x - t.x, behavior: 'smooth' });
+      }
+      return;
+    }
+    for (var n = el; n && n !== document.body; n = n.parentElement) {
+      if (n.tagName === 'DETAILS' && !n.open) { var sm = n.querySelector(':scope > summary'); if (!sm || !sm.contains(el)) n.open = true; }
+      if (n.getAttribute && n.getAttribute('data-mx-block') === 'item') {
+        var radios = n.querySelectorAll('input[type=radio]');
+        for (var i = 0; i < radios.length; i++) {
+          var it = radios[i].closest('[data-mx-block="item"]');
+          if (it === n && !radios[i].checked) { radios[i].checked = true; radios[i].dispatchEvent(new Event('change', { bubbles: true })); break; }
+        }
+      }
+    }
+  }
 
   /* ---- pictures and moving media in image blocks (same elements the exports write) ---- */
   var blobUrls = {}, lastMedia = null;
@@ -454,7 +508,7 @@ const BRIDGE = `(function () {
     if (d.select !== undefined) {
       sel = d.select;
       document.querySelectorAll('[data-mx-sel]').forEach(function (x) { x.removeAttribute('data-mx-sel'); });
-      var se = byId(sel); if (se) se.setAttribute('data-mx-sel', '');
+      var se = byId(sel); if (se) { se.setAttribute('data-mx-sel', ''); reveal(se); }
       reportSel();
     }
     if (d.clearSelection) { var cs = getSelection(); if (cs) cs.removeAllRanges(); }
