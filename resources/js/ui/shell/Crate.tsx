@@ -12,10 +12,8 @@ import { SECTION_TYPES } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { library } from '@/data/library'
 import { useStore, currentSlots, mixClipIds } from '@/state/store'
-import { frameStateFor, usePageStyle, useResolvedGuide } from '@/state/derived'
-import { ClipFrame } from '@/frame/ClipFrame'
-import { DEFAULT_KEEP } from '@/core/types'
 import { LayoutTag } from './Alternatives'
+import { CARD_H, CARD_W, Preview } from './Preview'
 import { activeFacetCount, FACET_GROUPS, facetCounts, facetLabel, searchClips, type FacetFilter, type FacetGroup } from '@/core/browse'
 
 /**
@@ -268,71 +266,6 @@ function FilterPopover({ ids, facets, anchor, onClose }: { ids: string[]; facets
   )
 }
 
-const CARD_W = 232
-const CARD_H = 140
-const PAGE_W = 1280
-const PAD = 10
-
-/**
- * A clip on the canvas's dot grid, drawn as a small page in your style: the whole section fit inside the card, so its
- * shape reads at a glance (a nav is a thin strip, a hero a block).
- */
-function CratePreview({ clip }: { clip: Clip }) {
-  const mode = useStore((s) => s.ui.mode)
-  const content = useStore((s) => s.content)
-  const guide = useResolvedGuide()
-  const pageStyle = usePageStyle()
-  const state = useMemo(() => frameStateFor(clip, { keep: DEFAULT_KEEP }, mode, guide.tokens, content, 'desktop', pageStyle), [clip, mode, guide.tokens, content, pageStyle])
-  const [h, setH] = useState(0)
-  const fitW = (CARD_W - PAD * 2) / PAGE_W
-  const scale = h ? Math.min(fitW, (CARD_H - PAD * 2) / h) : fitW
-  const pageW = PAGE_W * scale
-  const pageH = Math.min((h || 400) * scale, CARD_H - PAD * 2)
-  const bg = mode === 'unified' ? guide.tokens['color.bg'] : clip.tokens['color.bg']
-  return (
-    <div
-      className="relative overflow-hidden"
-      style={{
-        width: CARD_W,
-        height: CARD_H,
-        background: 'var(--canvas-bg)',
-        backgroundImage: 'radial-gradient(circle, var(--canvas-dot) 1px, transparent 1.35px)',
-        backgroundSize: '12px 12px',
-        backgroundPosition: '6px 6px',
-      }}
-    >
-      <div
-        className="absolute overflow-hidden rounded-[5px] shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_4px_12px_-4px_rgb(0_0_0/0.25)]"
-        style={{
-          left: (CARD_W - pageW) / 2,
-          top: (CARD_H - pageH) / 2,
-          width: pageW,
-          height: pageH,
-          background: bg,
-        }}
-      >
-        {/* the page shows in its color at once; the section fades in once it has measured itself */}
-        <div className="pointer-events-none origin-top-left transition-opacity duration-300" style={{ width: PAGE_W, transform: `scale(${scale})`, opacity: h ? 1 : 0 }}>
-          <ClipFrame clip={clip} width={PAGE_W} state={state} onHeight={setH} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/** True once the element has come near the scroller's view: previews are live frames, so only those in reach load. */
-function useNear(scroller: React.RefObject<HTMLDivElement | null>) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [near, setNear] = useState(false)
-  useEffect(() => {
-    if (near || !ref.current) return
-    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setNear(true), { root: scroller.current, rootMargin: '0px 480px' })
-    io.observe(ref.current)
-    return () => io.disconnect()
-  }, [near, scroller])
-  return [ref, near] as const
-}
-
 /**
  * A clip in the crate: a live preview in your style (as it would look on the page), its name and how it feels.
  * Click or drag to use it. One of your clips also has a toggle to keep it in this mix's own set (a clip a section
@@ -340,7 +273,6 @@ function useNear(scroller: React.RefObject<HTMLDivElement | null>) {
  */
 function ClipCard({ clip, used, inMix, own, scroller }: { clip: Clip; used: boolean; inMix: boolean; own: boolean; scroller: React.RefObject<HTMLDivElement | null> }) {
   const source = library.sources[clip.sourceId]
-  const [ref, near] = useNear(scroller)
   const layout = clip.origin === 'layout'
   const locked = !layoutOpen(library, clip.id)
 
@@ -358,7 +290,7 @@ function ClipCard({ clip, used, inMix, own, scroller }: { clip: Clip; used: bool
   const st = useStore.getState
   const feel = [TYPE_LABEL[clip.type], clip.style && facetLabel(clip.style), clip.density && facetLabel(clip.density)].filter(Boolean).join(' · ')
   return (
-    <div ref={ref} className="group/card relative shrink-0" style={{ width: CARD_W }}>
+    <div className="group/card relative shrink-0" style={{ width: CARD_W }}>
       <button
         type="button"
         draggable
@@ -381,7 +313,7 @@ function ClipCard({ clip, used, inMix, own, scroller }: { clip: Clip; used: bool
           }`}
           style={{ width: CARD_W, height: CARD_H }}
         >
-          {near ? <CratePreview clip={clip} /> : <div className="size-full bg-[var(--canvas-bg)]" />}
+          <Preview clip={clip} width={CARD_W} height={CARD_H} scroller={scroller} />
         </div>
         <div className="mt-1.5 flex items-center gap-1.5 px-0.5">
           <span className={`truncate text-[12px] ${used ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-700'}`}>{layout ? clip.title : source?.name}</span>
