@@ -2,7 +2,7 @@ import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, 
 import { applyBindings, findList, sortedEntries, type BindContext, type Collection } from './collections'
 import { bandTokens, sectionTokens, widthTokens } from './surface'
 import { blockTextStyle } from './textStyles'
-import { applyFields, attr, mapTree, parseHtml, type HEl, type HNode } from './html/parse'
+import { applyFields, attr, mapTree, parseHtml, walk, type HEl, type HNode } from './html/parse'
 import { blockCss, defaultFor, effectiveEdit, sectionSpacingCss, slug } from './blocks/style'
 import { pictureFor, withSectionDefaults } from './sectionDefaults'
 import { LAYER_ORDER } from './export/base-css'
@@ -315,7 +315,9 @@ export function composePage(input: ComposeInput): ComposedPage {
     // Which icon each named icon shows, in a plain attribute that outlives the data-mx-* strip, so a clip can style
     // by it (a comparison cell's check in a filled circle, its dash quiet).
     const source = mapTree(swapped, (el) => (el.tag === 'svg' && attr(el, 'data-mx-icon') ? { ...el, attrs: [...el.attrs.filter(([k]) => k !== 'data-icon'), ['data-icon', attr(el, 'data-mx-icon')!]] } : el))
-    const marked = mapTree(source, (el) => {
+    // One radio group (and one set of label targets) per section, so two copies of a layout on a page switch on their own.
+    const scoped = scopeIds(source, `${key}${position + 1}`)
+    const marked = mapTree(scoped, (el) => {
       if (attr(el, 'data-mx-section') !== undefined) {
         // Every section has an anchor, so links can lead to it (#pricing), and is a size container (base CSS).
         const root = addClass(spaced ? addClass(el, `mx-${key}${position + 1}`) : el, 'mx-section')
@@ -330,7 +332,8 @@ export function composePage(input: ComposeInput): ComposedPage {
       if (!m) return withClass
       const [w, h] = sizeForRatio(clip.blocks.find((x) => x.id === id)?.ratio, 1600)
       const block = m.lightbox ? { ...withClass, attrs: [...withClass.attrs, ['data-lightbox', ''] as [string, string]] } : withClass
-      return { ...block, kids: [...block.kids, ...mediaElements(m, w, h)] }
+      // A filled picture says what it shows: the placeholder's aria-hidden goes with the placeholder.
+      return { ...block, attrs: block.attrs.filter(([k]) => k !== 'aria-hidden'), kids: [...block.kids, ...mediaElements(m, w, h)] }
     })
     // Where its links lead: what you set, else what their words name.
     const links = sectionLinks(clip.blocks, edits, fields, scope, slot.id)
@@ -556,6 +559,28 @@ function extFor(kind: MediaRender['kind'], mime: string | undefined): string {
   if (mime?.includes('webm')) return 'webm'
   if (mime?.includes('quicktime')) return 'mov'
   return 'mp4'
+}
+
+/**
+ * Radio names and the ids labels point at, suffixed with the section's key: a clip writes them once, but a page
+ * (or a preview of several) can show the same layout twice. Other ids (an SVG gradient's) stay as they are.
+ */
+export function scopeIds(tree: HNode[], suffix: string): HNode[] {
+  const targets = new Set<string>()
+  walk(tree, (n) => {
+    const f = n.t === 'el' && n.tag === 'label' ? attr(n, 'for') : undefined
+    if (f) targets.add(f)
+  })
+  return mapTree(tree, (e) => {
+    const radio = e.tag === 'input' && attr(e, 'type') === 'radio'
+    if (!radio && !targets.size) return e
+    return {
+      ...e,
+      attrs: e.attrs.map(([k, v]): [string, string] =>
+        (k === 'name' && radio) || (k === 'for' && e.tag === 'label') || (k === 'id' && targets.has(v)) ? [k, `${v}-${suffix}`] : [k, v],
+      ),
+    }
+  })
 }
 
 const el = (tag: string, attrs: [string, string][], kids: HNode[] = []): HEl => ({ t: 'el', tag, ns: 'html', attrs, kids })

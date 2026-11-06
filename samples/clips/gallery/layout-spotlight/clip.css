@@ -57,24 +57,32 @@
   & .num text { font-family: var(--mx-font-mono); font-size: 16px; fill: var(--mx-color-muted); }
 
   /* The reel reserves a 16:9 stage on top; the checked picture leaves its thumbnail slot and fills it.
-     Each thumbnail is a label around a radio, so the picker works without script and reads as a set of choices. */
-  & .reel {
+     Each thumbnail is a label around a radio, so the picker works without script and reads as a set of choices.
+     The stage is placed against .spot, not the reel, so the reel can scroll on phones while the stage stays put. */
+  & .spot {
     container-type: inline-size;
     position: relative;
+    margin-top: var(--mx-space-9);
+  }
+  & .reel {
     display: flex;
     gap: var(--mx-space-4);
-    margin-top: var(--mx-space-9);
-    padding-top: calc(100% * 9 / 16 + var(--mx-space-5));
+    padding-top: calc(100cqw * 9 / 16 + var(--mx-space-5));
   }
-  & .item { flex: 1 1 0; min-width: 0; aspect-ratio: 16 / 9; }
+  /* An item steps aside (display: contents) so its pick is the thumbnail: an entrance that moves an item can't
+     hold the stage picture inside it. */
+  & .item { display: contents; }
   & .pick {
     display: block;
-    height: 100%;
+    flex: 1 1 0;
+    min-width: 0;
+    aspect-ratio: 16 / 9;
     border-radius: var(--mx-radius);
     cursor: pointer;
     transition: scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  & .pick:active { scale: 0.97; }
+  /* Only a thumbnail you can still pick presses in: scaling the checked one would make it the stage picture's containing block. */
+  & .item:not(:has(:checked)) .pick:active { scale: 0.97; }
   & .pick input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); opacity: 0; }
   & .media { height: 100%; aspect-ratio: auto; border-radius: var(--mx-radius); }
   & .item:not(:has(:checked)) .media { transition: border-color var(--mx-motion-duration) var(--mx-motion-ease); }
@@ -82,8 +90,7 @@
 
   /* The checked one: its picture moves up to the stage, its caption sits on the stage's lower corner,
      and its empty slot keeps an outline so you can see which one is showing. */
-  & .item:has(:checked) {
-    border-radius: var(--mx-radius);
+  & .item:has(:checked) .pick {
     box-shadow: inset 0 0 0 calc(var(--mx-stroke) * 2) var(--mx-color-text);
   }
   & .item:has(:checked) .media {
@@ -122,8 +129,17 @@
   }
   @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
-    & .reel { gap: var(--mx-space-2); margin-top: var(--mx-space-8); padding-top: calc(100% * 9 / 16 + var(--mx-space-3)); }
-    & .item { aspect-ratio: 1; }
+    & .spot { margin-top: var(--mx-space-8); }
+    /* Thumbnails share the row down to 44px each, then the row scrolls. */
+    & .reel {
+      gap: var(--mx-space-2);
+      padding-top: calc(100cqw * 9 / 16 + var(--mx-space-3));
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+    }
+    & .pick { flex: 1 0 44px; aspect-ratio: 1; scroll-snap-align: start; }
     & .item:has(:checked) .caption {
       top: calc(100cqw * 9 / 16 - var(--mx-space-3));
       left: var(--mx-space-3);

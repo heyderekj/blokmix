@@ -201,3 +201,33 @@ describe('mobile editing', () => {
     expect(html).not.toContain('data-mx-field=')
   })
 })
+
+describe('radio groups', () => {
+  const slot = (id: string, clipId: string, extra: Partial<Slot> = {}): Slot => ({ id, type: library.clips[clipId].type, clipId, locked: false, keep: { ...DEFAULT_KEEP }, ...extra })
+  const html = (tree: unknown) => serialize(tree as Parameters<typeof serialize>[0], 'html')
+
+  it('gives every section its own radio group and label targets, so two copies switch on their own', () => {
+    const page = pageFor([slot('a', 'pricing.layout-toggle'), slot('b', 'pricing.layout-toggle'), slot('c', 'features.layout-tabs'), slot('d', 'contact.layout-split'), slot('e', 'contact.layout-split')])
+    const names = page.sections.map((s) => [...new Set([...html(s.tree).matchAll(/<input[^>]*type="radio"[^>]*name="([^"]+)"/g)].map((m) => m[1]))])
+    expect(names[0]).toHaveLength(1)
+    expect(names[1]).toHaveLength(1)
+    expect(names[0][0]).not.toBe(names[1][0])
+    expect(names[2]).toEqual(['mx-features-layout-tabs-step-s3'])
+    // Labels still point at their own inputs, and those ids differ between the two forms.
+    const [d, e] = [html(page.sections[3].tree), html(page.sections[4].tree)]
+    for (const h of [d, e]) for (const m of h.matchAll(/for="([^"]+)"/g)) expect(h).toContain(`id="${m[1]}"`)
+    const ids = (h: string) => [...h.matchAll(/<(?:input|textarea)[^>]* id="([^"]+)"/g)].map((m) => m[1])
+    expect(ids(d).length).toBeGreaterThan(0)
+    expect(ids(d).filter((x) => ids(e).includes(x))).toEqual([])
+  })
+
+  it('lets a filled picture be read: its block drops the placeholder’s aria-hidden', () => {
+    const clip = library.clips['features.layout-tabs']
+    const [first, second] = clip.blocks.filter((b) => b.kind === 'image')
+    const page = pageFor([slot('a', clip.id, { edits: { [clip.id]: { [first.id]: { media: { source: 'placeholder', style: 'portrait', seed: 2, alt: 'A call' } } } } })])
+    const blocks = [...html(page.sections[0].tree).matchAll(/<div class="media[^"]*"[^>]*>/g)].map((m) => m[0])
+    expect(blocks[0]).not.toContain('aria-hidden')
+    expect(blocks[1]).toContain('aria-hidden')
+    expect(second).toBeTruthy()
+  })
+})
