@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Coffee, Feather, FileText, Moon, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Coffee, Feather, FileText, Laptop, Moon, MoveHorizontal, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
 import { create } from 'zustand'
 import type { Kind } from '@/core/types'
 import { KINDS } from '@/core/types'
@@ -153,11 +153,11 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
                 </button>
               </div>
               {problem && <p className="mt-6 rounded-xl bg-white p-4 text-[14px] text-red-700 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">{problem}</p>}
-              <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-3">
                 {starts
                   ? starts.map((s, i) => <StartCard key={s.id} start={s} letter={String.fromCharCode(65 + i)} best={i === 0} busy={busy} onPick={() => { setPicked(s.id); setStep('skin') }} />)
                   : [0, 1, 2].map((i) => (
-                      <div key={i} className="grid h-[420px] place-items-center rounded-[18px] bg-white/70 text-[13.5px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">
+                      <div key={i} className="grid h-[330px] place-items-center rounded-[16px] bg-white/70 text-[13.5px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)] motion-safe:animate-pulse">
                         {i === 1 ? 'Laying out three starts…' : ''}
                       </div>
                     ))}
@@ -316,42 +316,66 @@ function SkinCard({ skin, on, start, brand, mode, onPick }: { skin: Skin; on: bo
   )
 }
 
-/** One start: its first screen on a laptop, where it came from, and how it measured up. */
+/** The checks a card draws as chips, by what they measure. */
+const CHIPS: { id: string; icon: LucideIcon; name: string }[] = [
+  { id: 'first-laptop', icon: Laptop, name: 'Laptop' },
+  { id: 'first-phone', icon: Smartphone, name: 'Phone' },
+  { id: 'no-spill', icon: MoveHorizontal, name: 'Widths' },
+]
+
+/** One start: its page on a laptop (hover pans down it), where it came from, and how it measured up. The card is the pick. */
 function StartCard({ start, letter, best, busy, onPick }: { start: ScoredStart; letter: string; best: boolean; busy?: boolean; onPick: () => void }) {
+  const { checks, phoneScreens, score } = start.score
+  const byId = new Map(checks.map((c) => [c.id, c]))
+  const misses = checks.filter((c) => !c.ok).sort((a, b) => b.weight - a.weight)
+  const name = start.from === 'starter' ? start.label.replace(/^Starter: /, '') : start.label
   return (
-    <article className="flex flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_24px_48px_-28px_rgb(23_18_26/0.3)]">
-      <div className="border-b border-zinc-950/5">
-        <SkinPreview site={start.site} guide={start.guide} content={start.content} title={`Start ${letter}`} height={300} />
-      </div>
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[#17121A] text-[11.5px] font-bold text-white">{letter}</span>
-              {best && <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: 'rgb(255 105 180 / 0.12)', color: '#C2286F' }}>Holds up best</span>}
-            </div>
-            <div className="mt-2 truncate text-[14.5px] font-semibold">{start.label}</div>
-          </div>
-          <Score value={start.score.score} />
-        </div>
-        <ul className="grid gap-1.5 text-[12.5px] leading-snug">
-          {start.score.checks
-            .filter((c) => c.weight >= 2 || !c.ok)
-            .map((c) => (
-              <li key={c.id} className="flex gap-2">
-                <span className={c.ok ? 'text-emerald-600' : 'text-amber-600'} aria-hidden>
-                  {c.ok ? '✓' : '!'}
-                </span>
-                <span className={c.ok ? 'text-[#6B5F68]' : 'text-[#17121A]'}>{c.words}</span>
-              </li>
-            ))}
-          {start.score.phoneScreens !== null && <li className="pl-5 text-[#6B5F68]">About {Math.max(1, Math.round(start.score.phoneScreens))} screens long on a phone</li>}
-        </ul>
-        <button type="button" onClick={onPick} disabled={busy} className={`${PRIMARY} btn-ink mt-auto w-full justify-center`}>
-          Dress {letter} <ArrowRight size={15} />
-        </button>
-      </div>
-    </article>
+    <button
+      type="button"
+      onClick={onPick}
+      disabled={busy}
+      aria-label={`Dress start ${letter}: ${name}, ${score} out of 100`}
+      className={`group flex flex-col overflow-hidden rounded-[16px] bg-white text-left shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_18px_36px_-26px_rgb(23_18_26/0.35)] ${PRESS} disabled:pointer-events-none disabled:opacity-60 ${HOVER}shadow-[0_0_0_2px_#FF69B4,0_18px_36px_-22px_rgb(255_105_180/0.55)]`}
+    >
+      <span className="relative block border-b border-zinc-950/5">
+        <SkinPreview site={start.site} guide={start.guide} content={start.content} title={`Start ${letter}`} height={196} peek />
+        <span className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white to-transparent" />
+        {best && <span className="absolute bottom-2 left-3 rounded-full bg-[#FF69B4] px-2 py-0.5 text-[10.5px] font-semibold text-white shadow-[0_2px_6px_-2px_rgb(194_40_111/0.6)]">Holds up best</span>}
+      </span>
+      <span className="flex flex-1 flex-col gap-2.5 px-3.5 pb-3.5 pt-3">
+        <span className="flex items-center justify-between gap-2">
+          <span className="min-w-0">
+            <span className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#9A8E97]">
+              <span className="grid size-[18px] place-items-center rounded-full bg-[#17121A] text-[10px] tracking-normal text-white">{letter}</span>
+              {start.from === 'starter' ? 'Starter' : 'Put together for you'}
+            </span>
+            <span className="mt-1 block truncate text-[14.5px] font-semibold leading-tight">{name}</span>
+          </span>
+          <Score value={score} />
+        </span>
+        <span className="flex flex-wrap items-center gap-1">
+          {CHIPS.map(({ id, icon: Icon, name: label }) => {
+            const c = byId.get(id)
+            if (!c) return null
+            return (
+              <span key={id} title={c.words} className={`inline-flex h-[22px] items-center gap-1 rounded-full px-1.5 text-[11px] font-medium ${c.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}`}>
+                <Icon size={12} strokeWidth={2.2} aria-hidden />
+                {label}
+                <span className="sr-only">: {c.words}</span>
+                {!c.ok && <span aria-hidden>!</span>}
+              </span>
+            )
+          })}
+        </span>
+        {misses.length > 0 && <span className="line-clamp-2 text-[12px] leading-snug text-[#6B5F68] [text-wrap:pretty]">{misses[0].words}</span>}
+        <span className="mt-auto flex items-center justify-between gap-2 border-t border-zinc-950/[0.06] pt-2.5">
+          <span className="text-[11.5px] text-[#9A8E97]">{phoneScreens !== null && `${Math.max(1, Math.round(phoneScreens))} screens on a phone`}</span>
+          <span className="flex items-center gap-1 text-[12.5px] font-semibold text-[#17121A] opacity-75 transition-opacity duration-150 group-hover:opacity-100">
+            Dress {letter} <ArrowRight size={14} className="transition-[translate] duration-150 ease-out group-hover:translate-x-0.5" />
+          </span>
+        </span>
+      </span>
+    </button>
   )
 }
 
@@ -359,12 +383,12 @@ function Score({ value }: { value: number }) {
   const r = 16
   const c = 2 * Math.PI * r
   return (
-    <span className="relative grid size-11 shrink-0 place-items-center" title={`${value} out of 100`}>
+    <span className="relative grid size-9 shrink-0 place-items-center" title={`${value} out of 100`}>
       <svg viewBox="0 0 40 40" className="absolute inset-0 -rotate-90" aria-hidden>
         <circle cx="20" cy="20" r={r} fill="none" stroke="#F1E9EE" strokeWidth="4" />
         <circle cx="20" cy="20" r={r} fill="none" stroke={value >= 80 ? '#10b981' : value >= 50 ? '#f59e0b' : '#ef4444'} strokeWidth="4" strokeDasharray={`${(value / 100) * c} ${c}`} strokeLinecap="round" />
       </svg>
-      <span className="text-[12px] font-bold">{value}</span>
+      <span className="text-[11px] font-bold tabular-nums">{value}</span>
     </span>
   )
 }
