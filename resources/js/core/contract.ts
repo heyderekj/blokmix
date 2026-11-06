@@ -93,6 +93,7 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'set_section_motion':
       return ['sections']
     case 'set_slider':
+    case 'add_block':
     case 'add_section':
     case 'swap_section':
     case 'edit_list':

@@ -76,3 +76,20 @@ describe('taking a blok away', () => {
     expect(removeInsert(gone, insertOf(b.blockId)!).inserts).toBeUndefined()
   })
 })
+
+describe('agents adding a blok', () => {
+  it('add_block puts a button after the hero’s lead, with its words, as one undo step', async () => {
+    const { useStore } = await import('@/state/store')
+    const { runCommand } = await import('@/state/commands')
+    useStore.getState().resetDemo()
+    useStore.temporal.getState().clear()
+    const page = runCommand('get_page', { section: 'hero' }) as { sections: { blocks: { id: string; kind: string; label: string }[] }[] }
+    const lead = page.sections[0].blocks.find((b) => b.kind === 'text')!
+    const out = runCommand('add_block', { section: 'hero', kind: 'badge', after: lead.id, text: 'Now open' }) as { block: string; words: Record<string, string>; field: string }
+    expect(out.block).toMatch(/^a\d+/)
+    expect(out.words[out.field]).toBe('Now open')
+    useStore.temporal.getState().undo()
+    const after = runCommand('get_page', { section: 'hero' }) as typeof page
+    expect(after.sections[0].blocks.some((b) => b.id === out.block)).toBe(false)
+  })
+})

@@ -24,6 +24,8 @@ import { blockIconName } from '@/core/icons'
 import { listContext } from '@/core/lists'
 import { sectionLinks } from '@/core/links'
 import { WordsButton, WordsMenu } from './WordsMenu'
+import { AddBlockMenu } from './AddBlockMenu'
+import { BANNER_ID } from '@/core/banner'
 import { useEscape } from '../shell/keys'
 import { BAR_BUTTON, BAR_SURFACE } from '../frames/bar'
 import { LinkLabel, LinkMenu } from './LinkMenu'
@@ -36,7 +38,7 @@ import { setStylePanel, useStylePanel } from '../panels/stylePanel'
 /** Icons that read as included or not. */
 const MARK_ON = ['check', 'check-circle']
 const MARK_OFF = ['minus', 'x']
-type Menu = 'crumbs' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'collection' | null
+type Menu = 'crumbs' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'collection' | 'add' | null
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -81,6 +83,13 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   }, [menu])
   // Esc closes the open menu and nothing else.
   useEscape(!!menu, () => setMenu(null))
+  // A opens Add a blok (useShortcuts asks).
+  const canAdd = block.id !== BANNER_ID && !blocks.some((b) => b.kind === 'banner' && isInside(blocks, block.id, b.id))
+  useEffect(() => {
+    const open = () => canAdd && setMenu('add')
+    window.addEventListener('blokmix:add-blok', open)
+    return () => window.removeEventListener('blokmix:add-blok', open)
+  }, [canAdd])
   useEffect(() => {
     if (!menu) return
     const down = (e: PointerEvent) => {
@@ -181,7 +190,13 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             <LinkLabel slot={slot} block={block} />
           </BarButton>
         )}
-        {list && <ListControls slotId={slot.id} ctx={list} />}
+        {/* Adding: a blok after this one, or (on the list itself) an item. An item's own Add / Duplicate / Remove sit
+            with its grip, on the item. */}
+        {(canAdd || (list && !list.item)) && <Sep />}
+        {canAdd && (
+          <BarButton active={menu === 'add'} expands onClick={() => setMenu(menu === 'add' ? null : 'add')} icon={Plus} title="Add a blok (A)" />
+        )}
+        {list && !list.item && <ListControls slotId={slot.id} ctx={list} />}
 
         <Sep />
         <button
@@ -240,6 +255,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
       )}
       {menu === 'link' && <LinkMenu slot={slot} block={block} />}
       {menu === 'collection' && list && <CollectionMenu slot={slot} list={list.list} onClose={() => setMenu(null)} />}
+      {menu === 'add' && <AddBlockMenu slot={slot} block={block} onClose={() => setMenu(null)} />}
       {menu === 'words' && block.field && <WordsMenu slot={slot} field={block.field} blockId={block.id} onClose={() => setMenu(null)} />}
       {menu === 'more' && (
         <Popover width={248}>
@@ -466,9 +482,12 @@ function ListControls({ slotId, ctx }: { slotId: string; ctx: NonNullable<Return
       title={full ? `This layout holds up to ${ctx.max} items` : ctx.item ? `Add a ${noun} after this one` : `Add a ${noun}`}
       aria-disabled={full || undefined}
       onClick={() => !full && select(st().editList(slotId, { op: 'add', listId: ctx.list.id, ...(ctx.item ? { after: ctx.item.id } : {}) }))}
-      className={`${BAR_BUTTON} px-3 ${full ? 'cursor-default text-zinc-400' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+      aria-label={ctx.item ? `Add a ${noun} after this one` : `Add a ${noun}`}
+      className={`${BAR_BUTTON} ${ctx.item ? 'w-8' : 'px-3'} ${full ? 'cursor-default text-zinc-400' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
     >
-      <ListPlus size={15} className={full ? 'text-zinc-300' : 'text-zinc-500'} /> Add {noun}
+      <ListPlus size={15} className={full ? 'text-zinc-300' : 'text-zinc-500'} />
+      {/* On the list itself it says what it adds; on an item it sits with Duplicate and Remove as an icon. */}
+      {!ctx.item && <>Add {noun}</>}
     </button>
   )
   if (!ctx.item) return add
@@ -507,8 +526,9 @@ function IconButton({ icon: Icon, title, onClick, disabled }: { icon: typeof Typ
   )
 }
 
+/** A subtle divider between the bar's groups: what it is, its content, adding, its style. */
 function Sep() {
-  return <div className="mx-1 h-5 w-px shrink-0 bg-zinc-950/10" />
+  return <div className="mx-1 h-4 w-px shrink-0 bg-zinc-950/[0.08]" aria-hidden />
 }
 
 function BarButton({
@@ -837,3 +857,10 @@ function useAdvice(slot: Slot, block: BlockInfo, rect: { w: number; h: number } 
     })
   }, [slot, block.id, rect, guide.tokens, swatches, components, content, slots, linkScope, measured, viewport])
 }
+
+/** Whether a block sits inside another (by its parents). */
+function isInside(blocks: BlockInfo[], id: string, outer: string): boolean {
+  for (let b = blocks.find((x) => x.id === id); b; b = b.parent ? blocks.find((x) => x.id === b!.parent) : undefined) if (b.id === outer) return true
+  return false
+}
+

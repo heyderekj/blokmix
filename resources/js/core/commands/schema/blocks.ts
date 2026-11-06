@@ -145,6 +145,17 @@ export const BLOCK_COMMANDS = {
     input: z.object({ section, slide: z.string().optional(), show: z.number().int().min(1).max(8).optional(), intro: z.string().optional() }),
     write: true,
   },
+  add_block: {
+    description:
+      'Add a blok to a section, right after one of its blocks: a button (a quieter action), a link, text, a heading, a badge, a picture (a placeholder to fill with set_image) or an icon. It copies the nearest block of its kind, so it matches the layout. After a block inside a list item, it goes in every item of that list (each with its own words). Optional text sets its words. Remove one with set_block hidden: true. A block the section hid comes back with set_block hidden: false (get_page lists hidden blocks).',
+    input: z.object({
+      section,
+      kind: z.enum(['button', 'link', 'text', 'heading', 'badge', 'image', 'icon']),
+      after: block.describe('The block it goes after'),
+      text: z.string().optional().describe('Its words (not for a picture or an icon)'),
+    }),
+    write: true,
+  },
   set_banner: {
     description: 'Navs only: show an announcement banner above the nav (a strip of short messages, a ticker by default) or remove it. Its messages are the notices list (edit_list / set_list); its looks are Inverted, Quiet, Accent and Still (set_block on the banner).',
     input: z.object({ section, on: z.boolean() }),

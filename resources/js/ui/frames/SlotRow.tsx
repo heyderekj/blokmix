@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, Plus, Copy, Minus } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
 import { cycleIds } from '@/core/library'
@@ -71,13 +71,14 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   const pWords = useBlockPreview((s) => s.words)
   const pBackdrop = useBlockPreview((s) => s.backdrop)
   const pSlider = useBlockPreview((s) => s.slider)
+  const pInserts = useBlockPreview((s) => s.inserts)
   const editText = useBlockPreview((s) => s.editText)
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
   // While an item is dragged, the section shows the list as it would be with the item dropped where it is now.
   const [sorting, setSorting] = useState<{ itemId: string; from: number; to: number } | null>(null)
   const live = useMemo(() => {
-    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop, slider: pSlider })
+    let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop, slider: pSlider, inserts: pInserts })
     if (sorting && sorting.to !== sorting.from)
       try {
         s = applyListEdit(s, slotClip(s), content, { op: 'move', itemId: sorting.itemId, to: sorting.to })
@@ -85,7 +86,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         /* not movable after all: show it as it is */
       }
     return s
-  }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, pSlider, sorting, content])
+  }, [slot, pSlot, pBlock, pPatch, pWords, pBackdrop, pSlider, pInserts, sorting, content])
   // What the arrows step through: the layouts and this mix's own clips (never your other mixes').
   const mixKey = useStore((s) => mixClipIds(s).join(' '))
   const lockMoment = useLockMoment(slot.locked)
@@ -166,8 +167,9 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   // The block bar hangs below the block; on a tall block, or one near the screen's edge, it stays on screen.
   const blockAnchor = useRef<HTMLDivElement>(null)
   const blockBar = useRef<HTMLDivElement>(null)
-  useBarFloor(blockAnchor, blockBar, rowRef, [barAt?.x, barAt?.y, barAt?.h, selectedBlock], `${slot.id}:block`)
   const [typing, setTyping] = useState(false)
+  // Re-measured whenever the bar comes back (after typing, a sort) as well as when the block moves.
+  useBarFloor(blockAnchor, blockBar, rowRef, [barAt?.x, barAt?.y, barAt?.h, selectedBlock, typing, !!sorting], `${slot.id}:block`)
   const dragHandle = useRef<ItemDragHandle | null>(null)
   const [rects, setRects] = useState<Record<string, FrameRect>>({})
   const [drawing, setDrawing] = useState<FrameRect | null>(null)
@@ -653,6 +655,8 @@ function ItemDrag({
         >
           <GripVertical size={14} />
         </button>
+        {/* The item's own actions sit with its grip, on the item: add one after it, duplicate it, remove it. */}
+        {!dragging && <ItemActions slotId={slotId} itemId={items.item.id} />}
       </div>
       {dragging &&
         createPortal(
@@ -672,6 +676,50 @@ function ItemDrag({
           document.body,
         )}
     </>
+  )
+}
+
+/** Add after, duplicate, remove: a small pill beside an item's grip, so the block bar keeps to the block. */
+function ItemActions({ slotId, itemId }: { slotId: string; itemId: string }) {
+  const slot = useStore((s) => currentSlots(s).find((x) => x.id === slotId))
+  if (!slot) return null
+  const ctx = listContext(slotClip(slot), slot, itemId)
+  if (!ctx?.item) return null
+  const st = useStore.getState
+  const full = ctx.count >= ctx.max
+  const noun = (ctx.item.label.split(' · ').at(-1) ?? 'item').replace(/\s*\d+$/, '').toLowerCase() || 'item'
+  const pick = (r: { itemId: string | null } | null) => r?.itemId && st().selectBlock(r.itemId)
+  const btn = (label: string, Icon: typeof Plus, onClick: () => void, off?: string) => (
+    <button
+      type="button"
+      title={off ?? label}
+      aria-label={label}
+      aria-disabled={!!off || undefined}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation()
+        if (!off) onClick()
+      }}
+      className={`grid size-7 place-items-center rounded-full transition-[background-color,color,scale] active:scale-[0.97] pointer-coarse:size-10 ${off ? 'cursor-default text-zinc-300' : 'cursor-pointer text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+    >
+      <Icon size={14} />
+    </button>
+  )
+  const max = `This layout holds up to ${ctx.max}`
+  return (
+    <div
+      className="absolute left-0 top-0 flex origin-left items-center rounded-full p-0.5"
+      style={{ transform: 'translate(16px, -50%) scale(min(calc(1 / var(--z)), 3.4))', transformOrigin: '-16px 50%', backgroundColor: 'var(--lift)', boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 6px 16px -8px rgb(0 0 0 / 0.35)' }}
+      data-chrome
+    >
+      {btn(`Add a ${noun} after this one`, Plus, () => pick(st().editList(slotId, { op: 'add', listId: ctx.list.id, after: itemId })), full ? max : undefined)}
+      {btn(`Duplicate this ${noun} (⌘D)`, Copy, () => pick(st().editList(slotId, { op: 'duplicate', itemId })), full ? max : undefined)}
+      {btn(`Remove this ${noun} (⌫)`, Minus, () => {
+        if (!st().editList(slotId, { op: 'remove', itemId })) return
+        st().selectBlock(ctx.list.id)
+        st().showFlash(`Removed the ${noun}`, { undo: true })
+      }, ctx.count <= 1 ? 'A list keeps at least one item' : undefined)}
+    </div>
   )
 }
 

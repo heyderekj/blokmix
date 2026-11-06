@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Link2, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, Eye, ChevronLeft, ChevronRight, GripVertical, Link2, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
 import type { Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -149,7 +149,7 @@ export function SectionPill({
             {total > 1 && <LayoutStepper slotId={slot.id} pos={pos} total={total} captured={clip.origin !== 'layout'} prev={slot.prevClipId && slot.prevClipId !== slot.clipId && library.clips[slot.prevClipId]?.type === slot.type ? slot.prevClipId : undefined} />}
             {focused && (
               <>
-                <span className="mx-1 h-5 w-px bg-zinc-950/10" />
+                <span className="mx-1 h-4 w-px shrink-0 bg-zinc-950/[0.08]" aria-hidden />
                 {TABS.filter((t) => t.id !== 'source' || clip.origin !== 'layout' || !!(slot.inspiredBy ?? clip.inspiredBy)).map((t) => (
                   <button
                     key={t.id}
@@ -186,7 +186,7 @@ export function SectionPill({
                 >
                   <LockGlyph locked={slot.locked} strokeWidth={slot.locked ? 2.4 : 2} /> {slot.locked ? 'Locked' : 'Lock'}
                 </button>
-                <span className="mx-1 h-5 w-px bg-zinc-950/10" />
+                <span className="mx-1 h-4 w-px shrink-0 bg-zinc-950/[0.08]" aria-hidden />
                 <Util
                   label={count <= 1 ? 'A page keeps at least one section' : 'Remove section (⌫)'}
                   disabled={count <= 1}
@@ -248,6 +248,7 @@ export function StyleTab({ slot }: { slot: Slot }) {
           <WidthPicks slot={slot} />
         </div>
         {slot.type === 'nav' && <BannerRow slot={slot} />}
+        <HiddenHere slot={slot} />
         {clip.slider && <SliderPicker slot={slot} options={clip.slider} />}
         <div className="mt-2.5">
           <BackdropPicker slot={slot} tokens={slot.keep.style ? t : surfaceTokens(resolved, slot.surface)} />
@@ -416,6 +417,36 @@ function SpacingGroup({ slot }: { slot: Slot }) {
 }
 
 /** An announcement strip above the nav: the clip's own ticker, or one added to any nav. */
+/** Blocks hidden in this section, each a click from coming back (Add a blok in the block bar has them too). */
+function HiddenHere({ slot }: { slot: Slot }) {
+  const clip = slotClip(slot)
+  const hidden = Object.entries(slot.edits?.[slot.clipId] ?? {}).flatMap(([id, e]) => (e.hidden ? clip.blocks.filter((b) => b.id === id && b.kind !== 'banner') : []))
+  if (!hidden.length) return null
+  const st = useStore.getState
+  return (
+    <div className="mt-3.5 border-t border-zinc-950/6 pt-3">
+      <div className="mb-1.5 text-[12.5px] font-medium text-zinc-800">Hidden here</div>
+      <div className="flex flex-wrap gap-1.5">
+        {hidden.map((b) => (
+          <button
+            key={b.id}
+            type="button"
+            title="Show it again"
+            onClick={(e) => {
+              e.stopPropagation()
+              st().editBlock(slot.id, b.id, { hidden: false })
+              st().selectBlock(b.id)
+            }}
+            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-full bg-lift px-2.5 text-[12px] font-medium text-zinc-700 shadow-[0_0_0_1px_rgb(0_0_0/0.08)] transition-[background-color,scale] hover:text-zinc-900 active:scale-[0.97]"
+          >
+            <Eye size={13} className="text-zinc-400" /> {b.label.split(' · ').at(-1)}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function BannerRow({ slot }: { slot: Slot }) {
   const banner = slotClip(slot).blocks.find((b) => b.kind === 'banner')
   const on = !!banner && !slot.edits?.[slot.clipId]?.[banner.id]?.hidden

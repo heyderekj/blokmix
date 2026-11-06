@@ -146,6 +146,14 @@ export function useShortcuts(onHelp: () => void) {
             st.showFlash(`Style guide now follows ${library.sources[clip.sourceId]?.name}`, { undo: true })
           }
           return
+        case 'a':
+        case 'A':
+          // Add a blok after the selected one (the block bar opens its menu).
+          if (focused && st.ui.selectedBlockId && !mod) {
+            e.preventDefault()
+            window.dispatchEvent(new Event('blokmix:add-blok'))
+          }
+          return
         case 'u':
         case 'U':
           st.setUi({ mode: st.ui.mode === 'unified' ? 'captured' : 'unified' })

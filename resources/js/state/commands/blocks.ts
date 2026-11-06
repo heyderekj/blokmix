@@ -207,6 +207,21 @@ export const write = {
     useStore.getState().setSlider(slot.id, { ...(i.slide ? { slide: i.slide } : {}), ...(i.show ? { show: i.show } : {}), ...(i.intro ? { intro: i.intro } : {}) })
     return { slider: findSection(slot.id).slider ?? {}, options }
   },
+  add_block: (i: CommandInput<'add_block'>) => {
+    const slot = findSection(i.section)
+    const after = findBlock(slot, i.after)
+    const id = useStore.getState().addBlock(slot.id, i.kind, after.id)
+    if (!id) throw new CommandError('That blok can’t go there. Try after a block outside a list, or after one inside an item.')
+    const live = findSection(slot.id)
+    const added = slotClip(live).blocks.find((b) => b.id === id)
+    if (i.text && added?.field && i.kind !== 'image' && i.kind !== 'icon') {
+      // In every item, the words go in each item's own field.
+      for (const f of Object.keys(slotClip(live).fields).filter((f) => f === added.field || (added.field && f.replace(/\d+/, '#') === added.field.replace(/\d+/, '#'))))
+        useStore.getState().setWord(slot.id, f, i.text)
+    }
+    const now = slotClip(findSection(slot.id))
+    return { block: id, label: now.blocks.find((b) => b.id === id)?.label ?? id, field: added?.field ?? null, words: wordsFor(findSection(slot.id)) }
+  },
   set_banner: (i: CommandInput<'set_banner'>) => {
     const slot = findSection(i.section)
     if (slot.type !== 'nav') throw new CommandError('Banners go on navs. Pick the nav section.')
