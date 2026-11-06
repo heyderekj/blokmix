@@ -364,7 +364,10 @@ body:has([data-board]) { overflow: hidden; }
     --btn-ink: var(--background);
     --btn-text-shadow: none;
   }
-  .btn-lit:hover { --btn-sheen: 26%; translate: 0 -1px; }
+  /* Hover lifts only where there's a pointer to hover with: a tapped button doesn't stay lifted. */
+  @media (hover: hover) and (pointer: fine) {
+    .btn-lit:hover { --btn-sheen: 26%; translate: 0 -1px; }
+  }
   .btn-quiet {
     color: var(--foreground);
     background-color: var(--raised);
@@ -375,7 +378,9 @@ body:has([data-board]) { overflow: hidden; }
   .dark .btn-quiet {
     --tw-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.06), inset 0 -2px 0 hsl(0 0% 0% / 0.2), 0 1px 1px hsl(0 0% 0% / 0.4), 0 4px 10px -4px hsl(0 0% 0% / 0.5);
   }
-  .btn-quiet:hover { translate: 0 -1px; border-color: color-mix(in srgb, var(--border), var(--foreground) 18%); }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-quiet:hover { translate: 0 -1px; border-color: color-mix(in srgb, var(--border), var(--foreground) 18%); }
+  }
   /* The brand's block button, for sign-in, sign-up and the website (the app uses btn-lit): the logo's pink block as a key. A glossy face with the icon's highlight band,
      a rose side, and a shadow falling down and right from a top-left light. Hover lifts it off the board
      (the guide's 240 ms with a small overshoot); press pushes it home. White text on the pink. */

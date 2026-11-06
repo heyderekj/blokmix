@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { create } from 'zustand'
-import { ChevronDown, Dices, Disc3, Hand, LayoutTemplate, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus } from 'lucide-react'
+import { useEscape } from './keys'
+import { openHelp } from './Overlays'
+import { ChevronDown, Dices, Disc3, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard } from 'lucide-react'
 import { useStore, type Tool, currentSlots } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi } from '../canvas/Canvas'
@@ -50,17 +52,7 @@ export function Dock() {
             <ToolSwitcher />
             <Divider />
             <ShuffleButton />
-            {section && !focused && (
-              <button
-                type="button"
-                onClick={() => setAsked(section.id)}
-                title="Other layouts for this section"
-                aria-label="Other layouts for this section"
-                className="grid size-8 place-items-center rounded-full text-zinc-600 transition active:scale-[0.97] hover:bg-zinc-950/5"
-              >
-                <LayoutTemplate size={16} />
-              </button>
-            )}
+            {/* A section's other layouts open from its bar's "Layout n of m ▾", not from here too. */}
             <button
               type="button"
               onClick={() => toggleSheet('crate')}
@@ -88,7 +80,7 @@ function ShuffleButton() {
   useEffect(() => {
     if (!seq) return
     setSpin(true)
-    const t = window.setTimeout(() => setSpin(false), 500)
+    const t = window.setTimeout(() => setSpin(false), 300)
     return () => window.clearTimeout(t)
   }, [seq])
   return (
@@ -99,7 +91,7 @@ function ShuffleButton() {
       aria-label="Shuffle"
       className="grid size-8 place-items-center rounded-full text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.97]"
     >
-      <Dices size={16} className={`transition-transform duration-500 ${spin ? 'rotate-[360deg]' : ''}`} style={{ transitionTimingFunction: 'var(--ease-spring)' }} />
+      <Dices size={16} className={`transition-transform duration-300 ${spin ? 'rotate-[360deg]' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }} />
     </button>
   )
 }
@@ -169,6 +161,8 @@ function ViewMenu() {
             {row(Minus, 'Zoom out', '−', () => canvasApi.zoomBy(1 / 1.3), true)}
             {row(Disc3, 'Back to the mix', '⇧0', () => canvasApi.fitMix())}
             {row(Maximize, 'Fit everything', '⇧1', () => canvasApi.fitAll())}
+            <div className="my-1 border-t border-zinc-950/6" />
+            {row(Keyboard, 'Keyboard shortcuts', '?', () => openHelp())}
       </DockMenu>
       <button
         type="button"
@@ -326,6 +320,8 @@ function ToolSwitcher() {
 }
 
 function useOutsideClose(open: boolean, ref: React.RefObject<HTMLElement | null>, close: () => void) {
+  // Esc closes the menu, and only the menu.
+  useEscape(open, close)
   useEffect(() => {
     if (!open) return
     const onDown = (e: PointerEvent) => {

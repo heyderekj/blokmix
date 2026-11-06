@@ -1,4 +1,5 @@
 import { useLayoutEffect, type DependencyList, type RefObject } from 'react'
+import { create } from 'zustand'
 import { canvasApi, onPaint } from './Canvas'
 import { screenFloor } from './inView'
 
@@ -11,15 +12,21 @@ import { screenFloor } from './inView'
  * Works on every painted camera frame without a React render, the way the camera itself paints: the nudge is a
  * `translate` on the anchor, in world pixels.
  */
-export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObject<HTMLElement | null>, row: RefObject<HTMLElement | null>, deps: DependencyList) {
+export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObject<HTMLElement | null>, row: RefObject<HTMLElement | null>, deps: DependencyList, key?: string) {
   useLayoutEffect(() => {
     let raf = 0
     let burst = 0
+    let hang = -1
+    const report = (px: number) => {
+      if (!key || px === hang) return
+      hang = px
+      setOverhang(key, px)
+    }
     const fit = () => {
       const a = anchor.current
       const b = bar.current
       const r = row.current
-      if (!a || !b || !r) return
+      if (!a || !b || !r) return report(0)
       const z = canvasApi.get().z || 1
       const rr = r.getBoundingClientRect()
       // Where the anchor sits without any nudge: its layout offset in the row, scaled to the screen.
@@ -32,6 +39,8 @@ export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObjec
       let dx = 0
       if (ax + br.width > rr.right) dx = Math.max(rr.right - br.width - ax, rr.left - ax)
       a.style.translate = dx || dy ? `${dx / z}px ${dy / z}px` : ''
+      // How far the bar hangs below the row, on screen: what sits under the page makes that much room.
+      report(Math.max(0, Math.round(b.getBoundingClientRect().bottom - rr.bottom)))
     }
     const soon = () => {
       cancelAnimationFrame(raf)
@@ -59,7 +68,17 @@ export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObjec
       window.removeEventListener('resize', soon)
       cancelAnimationFrame(raf)
       cancelAnimationFrame(burst)
+      if (key) setOverhang(key, 0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)
 }
+
+/** How far each bar hangs below its section, on screen, by "<slot id>:section" or "<slot id>:block". */
+export const useBarOverhang = create<{ px: Record<string, number> }>()(() => ({ px: {} }))
+const setOverhang = (key: string, px: number) =>
+  useBarOverhang.setState((s) => ((s.px[key] ?? 0) === px ? s : { px: { ...s.px, [key]: px } }))
+
+/** The room a section's bars need below it right now (0 when none hangs over). */
+export const barRoomBelow = (s: { px: Record<string, number> }, slotId: string | undefined) =>
+  slotId ? Math.max(s.px[`${slotId}:section`] ?? 0, s.px[`${slotId}:block`] ?? 0) : 0

@@ -164,7 +164,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   // The block bar hangs below the block; on a tall block, or one near the screen's edge, it stays on screen.
   const blockAnchor = useRef<HTMLDivElement>(null)
   const blockBar = useRef<HTMLDivElement>(null)
-  useBarFloor(blockAnchor, blockBar, rowRef, [barAt?.x, barAt?.y, barAt?.h, selectedBlock])
+  useBarFloor(blockAnchor, blockBar, rowRef, [barAt?.x, barAt?.y, barAt?.h, selectedBlock], `${slot.id}:block`)
   const [typing, setTyping] = useState(false)
   const dragHandle = useRef<ItemDragHandle | null>(null)
   const [rects, setRects] = useState<Record<string, FrameRect>>({})
@@ -446,7 +446,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
           {!typing && (
             // Below the block, menus opening downwards, so the block stays in view while you preview looks on it.
             <div ref={blockAnchor} className="absolute z-30" style={{ left: barAt!.x, top: barAt!.y + barAt!.h, width: 0, height: 0 }}>
-              <div ref={blockBar} className="absolute left-0 top-0 w-max origin-top-left pt-3.5" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+              <div ref={blockBar} className="absolute left-0 top-0 w-max origin-top-left pt-2.5" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
                 <BlockBar slot={slot} block={block} rect={selRect} />
               </div>
             </div>

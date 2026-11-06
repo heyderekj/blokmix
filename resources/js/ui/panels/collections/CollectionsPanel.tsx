@@ -405,7 +405,7 @@ function IconBtn({ label, onClick, disabled, children }: { label: string; onClic
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.95] disabled:pointer-events-none disabled:opacity-30"
+      className="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full text-zinc-400 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-30"
     >
       {children}
     </button>

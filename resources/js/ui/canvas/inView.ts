@@ -8,7 +8,11 @@ import { clampZ, type Camera } from './geometry'
 /** The lowest a menu or bar can sit on screen: just above the dock. */
 export function screenFloor() {
   const dock = [...document.querySelectorAll('[data-dock] .glass-panel')].at(-1)
-  return (dock?.getBoundingClientRect().top ?? window.innerHeight - CHROME.bottom) - 12
+  let floor = dock?.getBoundingClientRect().top ?? window.innerHeight - CHROME.bottom
+  // On a phone the Style panel is a sheet along the bottom: the floor is its top.
+  const sheet = document.querySelector('[data-style-sheet]')?.getBoundingClientRect()
+  if (sheet && sheet.left < window.innerWidth / 2) floor = Math.min(floor, sheet.top)
+  return floor - 12
 }
 
 export function keepInView(el: Element | null) {

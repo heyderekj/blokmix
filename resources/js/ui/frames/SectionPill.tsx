@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpRight, ChevronLeft, ChevronRight, GripVertical, Link2, Lock, LockOpen, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Link2, Lock, LockOpen, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
 import type { Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -25,6 +25,8 @@ import { PanelGroup } from '../blocks/BlockBar'
 import { useDockLayouts } from '../shell/Dock'
 import { pressSection, sectionMovable } from './SectionDrag'
 import { useBarFloor } from '../canvas/useBarFloor'
+import { useEscape } from '../shell/keys'
+import { BAR_GAP, BAR_SURFACE } from './bar'
 
 type Tab = 'style' | 'source'
 
@@ -75,7 +77,9 @@ export function SectionPill({
   const top = heldAt ?? bottom
   const anchor = useRef<HTMLDivElement>(null)
   const bar = useRef<HTMLDivElement>(null)
-  useBarFloor(anchor, bar, row, [top, tab, focused])
+  useBarFloor(anchor, bar, row, [top, tab, focused], `${slot.id}:section`)
+  // Esc folds the open tab first.
+  useEscape(focused && !!tab, () => setTab(null))
 
   // One open surface at a time: losing focus or opening a sheet folds the tabs.
   useEffect(() => {
@@ -101,16 +105,12 @@ export function SectionPill({
         release.current = window.setTimeout(() => setHeldAt(null), 150)
       }}
     >
-      <div ref={bar} className="absolute left-0 top-0 w-max origin-top-left pt-2.5" style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
+      <div ref={bar} className={`absolute left-0 top-0 w-max origin-top-left ${BAR_GAP}`} style={{ transform: 'scale(min(calc(1 / var(--z)), 3.4))' }}>
         <motion.div
           layout
           transition={MORPH}
           // The bottom toolbar's size and corners, solid and lifted so it reads over any section.
-          style={{
-            borderRadius: 16,
-            backgroundColor: 'var(--lift)',
-            boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 12px 28px -12px rgb(0 0 0 / 0.35)',
-          }}
+          style={BAR_SURFACE}
           className="glass-panel ml-3 w-max overflow-hidden"
           onPointerDown={(e) => {
             e.stopPropagation()
@@ -187,7 +187,7 @@ export function SectionPill({
                 </button>
                 <span className="mx-1 h-5 w-px bg-zinc-950/10" />
                 <Util
-                  label="Remove section (⌫)"
+                  label={count <= 1 ? 'A page keeps at least one section' : 'Remove section (⌫)'}
                   disabled={count <= 1}
                   danger
                   onClick={() => {
@@ -601,13 +601,14 @@ function Util({ label, onClick, disabled, danger, children }: { label: string; o
       type="button"
       title={label}
       aria-label={label}
-      disabled={disabled}
+      // A disabled button keeps its tooltip, which says why.
+      aria-disabled={disabled || undefined}
       onClick={(e) => {
         e.stopPropagation()
-        onClick()
+        if (!disabled) onClick()
       }}
-      className={`grid size-8 cursor-pointer place-items-center rounded-full text-zinc-600 transition active:scale-[0.97] disabled:pointer-events-none disabled:opacity-25 ${
-        danger ? 'hover:bg-problem-soft hover:text-problem-ink' : 'hover:bg-zinc-950/5 hover:text-zinc-900'
+      className={`grid size-8 cursor-pointer place-items-center rounded-full text-zinc-600 transition-[background-color,color,scale] active:scale-[0.97] pointer-coarse:size-11 ${
+        disabled ? 'cursor-default opacity-25' : danger ? 'hover:bg-problem-soft hover:text-problem-ink' : 'hover:bg-zinc-950/5 hover:text-zinc-900'
       }`}
     >
       {children}
@@ -626,10 +627,10 @@ function Util({ label, onClick, disabled, danger, children }: { label: string; o
 function LayoutStepper({ slotId, pos, total, captured, prev }: { slotId: string; pos: number; total: number; captured: boolean; prev?: string }) {
   const st = useStore.getState
   const open = useDockLayouts((s) => s.slotId === slotId)
-  const step = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]'
+  const step = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]'
   return (
     <div className="ml-1 flex items-center rounded-full">
-      <button type="button" title="Previous layout (←)" aria-label="Previous layout" onClick={() => st().cycle(slotId, -1)} className={`${step} rounded-l-full`}>
+      <button type="button" title="Previous (←)" aria-label="Previous layout" onClick={() => st().cycle(slotId, -1)} className={`${step} rounded-l-full`}>
         <ChevronLeft size={15} />
       </button>
       <button
@@ -640,12 +641,13 @@ function LayoutStepper({ slotId, pos, total, captured, prev }: { slotId: string;
           st().setUi({ sheet: 'none' })
           useDockLayouts.setState({ slotId: open ? null : slotId })
         }}
-        className={`flex h-8 cursor-pointer items-center whitespace-nowrap px-1.5 text-[12.5px] font-medium tabular-nums transition active:scale-[0.97] ${open ? 'text-zinc-900' : 'text-zinc-600 hover:text-zinc-900'}`}
-      >
-        {/* the layouts and this mix's own clips; a clip you captured says so */}
+        className={`flex h-8 cursor-pointer items-center gap-0.5 whitespace-nowrap rounded-full px-2 text-[12.5px] font-medium tabular-nums transition-[background-color,color,scale] active:scale-[0.97] ${open ? 'bg-zinc-950/[0.06] text-zinc-900' : 'text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+        >
+        {/* the layouts and this mix's own clips; a clip you captured says so. ▾: see them all */}
         {captured ? 'Clip' : 'Layout'} {pos} of {total}
-      </button>
-      <button type="button" title="Next layout (→)" aria-label="Next layout" onClick={() => st().cycle(slotId, 1)} className={`${step} rounded-r-full`}>
+        <ChevronDown size={13} className="text-zinc-400" />
+        </button>
+      <button type="button" title="Next (→)" aria-label="Next layout" onClick={() => st().cycle(slotId, 1)} className={`${step} rounded-r-full`}>
         <ChevronRight size={15} />
       </button>
       {prev && (
@@ -655,7 +657,7 @@ function LayoutStepper({ slotId, pos, total, captured, prev }: { slotId: string;
           title={`Back to the one you had: ${library.clips[prev].title}`}
           aria-label="Back to the layout you had"
           onClick={() => st().setClip(slotId, prev)}
-          className="ml-0.5 grid h-8 w-7 cursor-pointer place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]"
+          className="ml-0.5 grid h-8 w-7 cursor-pointer place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
         >
           <Undo2 size={14} />
         </button>

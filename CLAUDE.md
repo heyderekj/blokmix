@@ -359,7 +359,10 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
 - Selecting: one click picks the smallest block under the pointer, in any section (focusing it on the way); a click on a
   section's empty space, its rail or Escape selects the section. Both bars hang below what they belong to, so it stays in
   view; the section bar holds still while you point at it (‹ › don't slide away as the height changes), and on anything
-  taller than the screen both stop just above the dock (`ui/canvas/useBarFloor.ts`). The block bar is slim like the section bar (name with its
+  taller than the screen both stop just above the dock (`ui/canvas/useBarFloor.ts`, which also reports how far a bar
+  hangs below the last section so Add a section makes that much room). Both share one look (`ui/frames/bar.ts`). Esc
+  closes the thing on top first (`useEscape` in `ui/shell/keys.ts`: a menu, a tab, the shortcuts sheet) and stops there;
+  Enter and Space press a focused button instead of saving or shuffling (`pressable`). The block bar is slim like the section bar (name with its
   parents, ‹ Look ›, words, picture, link, item add/duplicate/remove, Style, note, ⋯); everything about how a block or a
   section looks is in one Style panel at the window's side that follows the selection (`ui/panels/SelectionStyle.tsx`).
   ← → step the selected block's looks, else the section's layouts (the section bar's ‹ Layout n of m ›). Over a skin's

@@ -336,7 +336,7 @@ function ListBox({ list, slot, clip, fields }: { list: OutlineList; slot: Slot; 
 
 function Mini({ icon: Icon, label, onClick, disabled }: { icon: typeof Plus; label: string; onClick: () => void; disabled?: boolean }) {
   return (
-    <button type="button" title={label} aria-label={label} disabled={disabled} onClick={onClick} className="grid size-6 place-items-center rounded-md text-zinc-500 transition hover:bg-white hover:text-zinc-900 active:scale-[0.94] disabled:pointer-events-none disabled:opacity-30">
+    <button type="button" title={label} aria-label={label} disabled={disabled} onClick={onClick} className="grid size-6 place-items-center rounded-md text-zinc-500 transition hover:bg-white hover:text-zinc-900 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-30">
       <Icon size={12} />
     </button>
   )

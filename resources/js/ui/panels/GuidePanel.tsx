@@ -233,7 +233,7 @@ export function GroupDecision({ group, open }: { group: TokenGroup; open: boolea
               key={c.id}
               type="button"
               onClick={() => useStore.getState().chooseGroup(c.id)}
-              className={`flex items-center gap-2 rounded-lg border p-1.5 text-left transition active:scale-95 ${
+              className={`flex items-center gap-2 rounded-lg border p-1.5 text-left transition active:scale-[0.97] ${
                 active ? 'border-zinc-900 bg-white shadow-sm' : 'border-zinc-950/10 bg-white/70 hover:border-zinc-950/30'
               }`}
             >
@@ -308,7 +308,7 @@ export function TokenRow({ k, value, provenance, conflict, chosen }: { k: TokenK
                 type="button"
                 title={`${o.value} from ${o.candidateIds.map((id) => sourceOf(id)?.name).join(', ')}`}
                 onClick={() => st().chooseToken(k, { kind: 'candidate', candidateId: o.candidateIds[0] })}
-                className={`flex h-7 items-center gap-1.5 rounded-full border pl-1 pr-2.5 text-[11.5px] transition active:scale-95 ${
+                className={`flex h-7 items-center gap-1.5 rounded-full border pl-1 pr-2.5 text-[11.5px] transition active:scale-[0.97] ${
                   active ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-zinc-950/10 bg-white text-zinc-600 hover:border-zinc-950/30'
                 }`}
               >

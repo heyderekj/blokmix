@@ -3,7 +3,7 @@ import { Library, Lock } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { library } from '@/data/library'
-import { cycleIds, layoutOpen, pickable } from '@/core/library'
+import { layoutOpen, pickable } from '@/core/library'
 import { useAccount } from '@/lib/account'
 import { useStore, currentSlots, mixClipIds } from '@/state/store'
 import { CARD_H, CARD_W, Preview } from './Preview'
@@ -30,9 +30,6 @@ export function Alternatives({ slot }: { slot: Slot }) {
   const site = useStore((s) => s.site)
   const own = useStore((s) => s.clips)
   const mix = useMemo(() => new Set(mixClipIds({ site, clips: own })), [site, own])
-  // "n of m" counts what the arrows step through: the layouts and this mix's clips.
-  const ids = cycleIds(library, slot.type, mix, slot.clipId)
-  const pos = ids.indexOf(slot.clipId) + 1
   const by: Record<Shelf, typeof ranked> = { mix: [], yours: [], layouts: [] }
   for (const r of ranked) for (const k of ['mix', 'yours', 'layouts'] as const) if (isOn(r.clipId, k, mix)) by[k].push(r)
   // On Free, the layouts in a mix pack follow the ones you can use, with a lock.
@@ -53,14 +50,8 @@ export function Alternatives({ slot }: { slot: Slot }) {
   return (
     <div className="pb-2 pt-2.5">
       <div className="mb-1 flex items-center gap-2 px-3.5">
-        <span className="text-[13px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
-        <span className="text-[12px] tabular-nums text-zinc-500">
-          {pos} of {ids.length}
-        </span>
-        <span className="flex items-center gap-1 text-[11.5px] text-zinc-400">
-          <span className="kbd">←</span>
-          <span className="kbd">→</span>
-        </span>
+        {/* The bar above already says "Layout n of m" and has the arrows: here, just what these are. */}
+        <span className="text-[13px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]} layouts</span>
         <div className="ml-2 flex rounded-full bg-chip p-0.5" role="tablist">
           {shelves.map((k) => (
             <button
@@ -92,10 +83,16 @@ export function Alternatives({ slot }: { slot: Slot }) {
         ))}
         {!list.length && (
           <div className="flex items-center gap-2 px-1 text-[13px] text-zinc-500" style={{ height: CARD_H }}>
-            No {TYPE_LABEL[slot.type]} clips yet.
-            <button type="button" onClick={() => setShelf('layouts')} className="rounded-full px-2 py-0.5 font-semibold text-zinc-800 hover:bg-zinc-950/5">
-              Browse layouts
-            </button>
+            {shelf === 'layouts' ? (
+              `No other ${TYPE_LABEL[slot.type].toLowerCase()} layouts yet.`
+            ) : (
+              <>
+                No {TYPE_LABEL[slot.type].toLowerCase()} clips yet. Clip one from a site you like, or
+                <button type="button" onClick={() => setShelf('layouts')} className="cursor-pointer rounded-full px-2 py-0.5 font-semibold text-zinc-800 transition-[background-color,scale] hover:bg-zinc-950/5 active:scale-[0.97]">
+                  see the layouts
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

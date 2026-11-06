@@ -244,13 +244,14 @@ function SendToAgent({ v, disabled, onReference }: { v: VersionNode; disabled: b
     <div ref={ref} className="relative @max-[220px]:hidden">
       <button
         type="button"
-        disabled={disabled}
-        title={disabled ? 'The agent is busy' : 'Build this version'}
+        // While the agent builds another one this waits, and its tooltip says so.
+        aria-disabled={disabled || undefined}
+        title={disabled ? 'Your agent is busy with another build' : 'Build this version'}
         onClick={(e) => {
           e.stopPropagation()
-          setOpen((o) => !o)
+          if (!disabled) setOpen((o) => !o)
         }}
-        className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2"
+        className={`btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2 ${disabled ? 'cursor-default opacity-50' : 'active:scale-[0.97]'}`}
       >
         <Bot size={14} /> <span className="@max-[340px]:hidden">Build</span>
       </button>

@@ -29,7 +29,7 @@ export function DeviceSwitch({ value, onChange }: { value: Device; onChange: (d:
               e.stopPropagation()
               onChange(d)
             }}
-            className={`grid size-6 cursor-pointer place-items-center rounded-md transition-[background-color,color,scale] active:scale-[0.94] ${value === d ? 'bg-zinc-950/[0.08] text-zinc-900' : 'text-zinc-400 hover:text-zinc-700'}`}
+            className={`grid size-6 cursor-pointer place-items-center rounded-md transition-[background-color,color,scale] active:scale-[0.97] ${value === d ? 'bg-zinc-950/[0.08] text-zinc-900' : 'text-zinc-400 hover:text-zinc-700'}`}
           >
             <Icon size={13} />
           </button>

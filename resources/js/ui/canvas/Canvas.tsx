@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import type { NoteAnchor } from '@/core/types'
+import { pressable, typing } from '../shell/keys'
 import { clampZ, fitRect, MIX_ID, placeVersions, VIEW_W, zoomAt, type Camera } from './geometry'
 
 /** Insets of the floating chrome, so "fit" lands in the visible middle. */
@@ -227,12 +228,9 @@ export function Canvas({ children }: { children: ReactNode }) {
   // Space: tap shuffles, hold + drag pans.
   const spaceState = useRef({ down: false, moved: false })
   useEffect(() => {
-    const typing = (t: EventTarget | null) => {
-      const el = t as HTMLElement | null
-      return !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
-    }
     const down = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || typing(e.target)) return
+      // Space on a focused button presses it; it doesn't shuffle the page.
+      if (e.code !== 'Space' || typing(e.target) || pressable(e.target)) return
       e.preventDefault()
       if (e.repeat || spaceState.current.down) return
       spaceState.current = { down: true, moved: false }

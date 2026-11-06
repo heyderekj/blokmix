@@ -253,7 +253,7 @@ export function SectionMotionRows({ slot, untitled }: { slot: Slot; untitled?: b
                 e.stopPropagation()
                 row.current?.scrollBy({ left: dir * 208, behavior: 'smooth' })
               }}
-              className="grid size-6 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.92]"
+              className="grid size-6 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
             >
               {dir < 0 ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
             </button>
