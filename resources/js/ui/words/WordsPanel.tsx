@@ -38,7 +38,7 @@ export function WordsPanel() {
   useScrollSync(scroller)
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <header className="flex items-center gap-2 border-b border-zinc-950/[0.06] px-3 py-2">
         <div className="flex rounded-full bg-zinc-950/[0.05] p-0.5" role="tablist">
           {(['words', 'collections'] as const).map((v) => (

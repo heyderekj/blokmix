@@ -55,17 +55,18 @@ export function LeftPanel() {
         (wide ? (
           <aside
             className="glass-menu pointer-events-auto absolute z-30 flex animate-pop flex-col overflow-hidden rounded-2xl"
-            style={{ left: RAIL_X + RAIL_W + GAP, top: 72, bottom: 12, width: PANEL_W }}
+            // As tall as what's in it, up to the bottom of the window; it scrolls only when it's full.
+            style={{ left: RAIL_X + RAIL_W + GAP, top: 72, maxHeight: 'calc(100% - 84px)', width: PANEL_W }}
             aria-label={LABEL[which]}
             data-left-panel
           >
             <PanelHead title={LABEL[which]} onClose={close} />
-            <div className="min-h-0 flex-1">{body}</div>
+            <div className="flex min-h-0 flex-col">{body}</div>
           </aside>
         ) : (
-          <aside className="glass-menu pointer-events-auto fixed inset-x-0 bottom-0 z-40 flex h-[62vh] animate-pop flex-col overflow-hidden rounded-t-2xl" aria-label={LABEL[which]} data-left-panel>
+          <aside className="glass-menu pointer-events-auto fixed inset-x-0 bottom-0 z-40 flex max-h-[62vh] animate-pop flex-col overflow-hidden rounded-t-2xl" aria-label={LABEL[which]} data-left-panel>
             <PanelHead title={LABEL[which]} onClose={close} />
-            <div className="min-h-0 flex-1">{body}</div>
+            <div className="flex min-h-0 flex-col">{body}</div>
           </aside>
         ))}
     </>
@@ -87,7 +88,7 @@ function PanelHead({ title, onClose }: { title: string; onClose: () => void }) {
 
 function Scroll({ children }: { children: ReactNode }) {
   return (
-    <div className="thin-scroll h-full overflow-y-auto" data-scroll-ok>
+    <div className="thin-scroll min-h-0 overflow-y-auto" data-scroll-ok>
       {children}
     </div>
   )
