@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { isHosted } from '@/lib/host'
 import { xsrf } from '@/lib/http'
-import { ImagePlus, Search, Shuffle, Trash2, Upload } from 'lucide-react'
-import type { BlockInfo, MediaFill, MediaPlay, PlaceholderStyle, StockPhoto, TokenSet } from '@/core/types'
+import { ImagePlus, Search, Shuffle, Trash2, Upload, Wand2 } from 'lucide-react'
+import type { BlockInfo, MediaFill, MediaPlay, PlaceholderStyle, Slot, StockPhoto, TokenSet } from '@/core/types'
+import { jevOn } from '@/lib/jev'
+import { findFocus, photoBrief, rankPhotos } from '@/state/jevPhotos'
 import { PLACEHOLDER_STYLES } from '@/core/types'
 import { PLACEHOLDER_LABEL, detectLink, embedPoster, parseUnsplash, placeholderSvg, shaderFor, svgDataUri, unsplashSearchUrl } from '@/core/media'
 import { MOCK_BASE_CSS, SHADERS, SHADER_IDS, isFillId, mockRender, mockSources, treatmentInfo, type ShaderId, type TreatmentValue } from '@/core/treatments'
@@ -29,11 +31,14 @@ const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY as string | undefi
 export function ImageMenu({
   block,
   fill,
+  slot,
   onHover,
   onPick,
 }: {
   block: BlockInfo
   fill?: MediaFill
+  /** The section, so Jev can judge stock photos against its words. */
+  slot?: Slot
   onHover: (m: MediaFill | null) => void
   onPick: (m: MediaFill | null) => void
 }) {
@@ -61,7 +66,7 @@ export function ImageMenu({
       {tab === 'mock' && <Mockups block={block} fill={fill} onHover={onHover} onPick={onPick} />}
       {tab === 'upload' && <Uploads fill={fill} onHover={onHover} onPick={onPick} />}
       {tab === 'link' && <LinkTab fill={fill} onPick={onPick} />}
-      {tab === 'stock' && <Stock block={block} fill={fill} onHover={onHover} onPick={onPick} />}
+      {tab === 'stock' && <Stock block={block} slot={slot} fill={fill} onHover={onHover} onPick={onPick} />}
       {fill && (fill.source === 'video' || fill.source === 'lottie' || fill.source === 'embed') && <Playback fill={fill} set={set} />}
       {fill && fill.source !== 'video' && fill.source !== 'lottie' && fill.source !== 'embed' && fill.source !== 'mock' && (
         <div className="mt-2 flex items-center justify-between px-1 text-[12px] text-zinc-600">
@@ -99,6 +104,7 @@ export function ImageMenu({
               <Trash2 size={13} />
             </button>
           </div>
+          {(fill.source === 'upload' || fill.source === 'stock') && (fill.fit ?? 'cover') === 'cover' && <KeepInFrame fill={fill} set={set} />}
         </div>
       )}
     </div>
@@ -347,9 +353,76 @@ function Uploads({ fill, onHover, onPick }: { fill?: MediaFill; onHover: (m: Med
   )
 }
 
-function Stock({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: MediaFill; onHover: (m: MediaFill | null) => void; onPick: (m: MediaFill) => void }) {
+/**
+ * Where the subject sits, so the crop keeps it in frame at every width and on phones: a 3×3 pad, or Jev finding it.
+ */
+function KeepInFrame({ fill, set }: { fill: MediaFill; set: (m: Partial<MediaFill>) => void }) {
+  const [busy, setBusy] = useState(false)
+  const [note, setNote] = useState<string | null>(null)
+  const [jev, setJev] = useState(false)
+  useEffect(() => {
+    let live = true
+    jevOn().then((v) => live && setJev(v))
+    return () => {
+      live = false
+    }
+  }, [])
+  const at = fill.focus ?? { x: 0.5, y: 0.5 }
+  const spots = [1 / 6, 1 / 2, 5 / 6]
+  const near = (a: number, b: number) => Math.abs(a - b) < 1 / 6
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="text-[11px] font-semibold text-zinc-400">Keep in frame</span>
+      <div className="relative grid size-[54px] shrink-0 grid-cols-3 grid-rows-3 gap-px overflow-hidden rounded-md bg-zinc-950/10 ring-1 ring-zinc-950/10" role="group" aria-label="Where the subject is">
+        {spots.flatMap((y) =>
+          spots.map((x) => {
+            const on = !!fill.focus && near(at.x, x) && near(at.y, y)
+            return (
+              <button
+                key={`${x}${y}`}
+                type="button"
+                aria-label={`Subject ${y < 0.4 ? 'top' : y > 0.6 ? 'bottom' : 'middle'} ${x < 0.4 ? 'left' : x > 0.6 ? 'right' : 'center'}`}
+                onClick={() => set({ focus: x === 0.5 && y === 0.5 ? undefined : { x, y } })}
+                className={`cursor-pointer transition active:scale-[0.97] ${on ? 'bg-zinc-900' : 'bg-white hover:bg-zinc-100'}`}
+              />
+            )
+          }),
+        )}
+      </div>
+      <div className="min-w-0 flex-1 text-[11.5px] leading-snug text-zinc-500">
+        {jev ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              setNote(null)
+              const f = await findFocus(fill)
+              setBusy(false)
+              if (f) set({ focus: { x: f.x, y: f.y } })
+              else setNote('No single subject here; the crop stays centered.')
+            }}
+            className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 font-medium text-zinc-700 transition hover:bg-zinc-950/5 active:scale-[0.97] disabled:opacity-50"
+          >
+            <Wand2 size={12} className={busy ? 'animate-pulse' : ''} /> {busy ? 'Looking…' : 'Find the subject'}
+          </button>
+        ) : (
+          'Pick where the subject is.'
+        )}
+        {note && <div className="px-1.5">{note}</div>}
+        {!note && fill.focus && <div className="px-1.5">{Math.round(fill.focus.x * 100)}% across, {Math.round(fill.focus.y * 100)}% down</div>}
+      </div>
+    </div>
+  )
+}
+
+function Stock({ block, slot, fill, onHover, onPick }: { block: BlockInfo; slot?: Slot; fill?: MediaFill; onHover: (m: MediaFill | null) => void; onPick: (m: MediaFill) => void }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<(StockPhoto & { track: string })[]>([])
+  // Jev's order (best fit for this section first) and Unsplash's own, to switch between.
+  const [ranked, setRanked] = useState<(StockPhoto & { track: string })[] | null>(null)
+  const [jevOrder, setJevOrder] = useState(true)
+  const [ranking, setRanking] = useState(false)
   const [state, setState] = useState<'idle' | 'loading' | 'error' | 'nokey'>('idle')
   // Served by Laravel, Unsplash goes through the server (its key stays there); on its own, the Vite key.
   const viaServer = isHosted()
@@ -373,8 +446,17 @@ function Stock({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: Medi
         : await fetch(direct, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}`, 'Accept-Version': 'v1' } })
       if (res.status === 503) throw new Error('nokey')
       if (!res.ok) throw new Error(String(res.status))
-      setResults(parseUnsplash(await res.json()))
+      const found = parseUnsplash(await res.json())
+      setResults(found)
+      setRanked(null)
       setState('idle')
+      // Best fit first: Jev rates each photo against this section's words (Unsplash's order when it's off or slow).
+      if (slot && found.length > 1 && (await jevOn())) {
+        setRanking(true)
+        const r = await rankPhotos(found, photoBrief(slot, q.trim()))
+        setRanking(false)
+        if (r.ranked) setRanked(r.photos)
+      }
     } catch (e) {
       setState(e instanceof Error && e.message === 'nokey' ? 'nokey' : 'error')
     }
@@ -393,8 +475,19 @@ function Stock({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: Medi
       </form>
       {state === 'error' && <p className="px-1 pt-2 text-[12px] text-problem-ink">Unsplash didn’t answer. Try again in a moment.</p>}
       {state === 'nokey' && <p className="px-1 pt-2 text-[12px] text-problem-ink">Stock photos need an Unsplash key on the server (UNSPLASH_ACCESS_KEY).</p>}
+      {(ranking || ranked) && (
+        <div className="flex items-center gap-1.5 px-1 pt-2 text-[11.5px] text-zinc-500">
+          <Wand2 size={12} className={ranking ? 'animate-pulse' : ''} />
+          {ranking ? 'Finding the best fit for this section…' : jevOrder ? 'Best fit for this section first' : 'Unsplash’s order'}
+          {ranked && (
+            <button type="button" onClick={() => setJevOrder((v) => !v)} className="ml-auto cursor-pointer rounded px-1 font-medium text-zinc-600 hover:bg-zinc-950/5">
+              {jevOrder ? 'Unsplash’s order' : 'Best fit first'}
+            </button>
+          )}
+        </div>
+      )}
       <div className="mt-2 grid max-h-52 grid-cols-3 gap-1.5 overflow-y-auto thin-scroll" onMouseLeave={() => onHover(null)}>
-        {results.map((p) => {
+        {(ranked && jevOrder ? ranked : results).map((p) => {
           const m: MediaFill = { source: 'stock', stock: p, fit: fill?.fit }
           const on = fill?.source === 'stock' && fill.stock?.id === p.id
           return (

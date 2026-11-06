@@ -575,6 +575,11 @@ export interface MediaFill {
   link?: MediaLink
   alt?: string
   fit?: 'cover' | 'contain'
+  /**
+   * Where the subject is, as fractions across and down (0–1): cropped pictures keep it in frame at every ratio and on
+   * phones (object-position). Set by hand on the Image menu's pad, or by Jev finding the subject.
+   */
+  focus?: { x: number; y: number }
   /** Moving media: when it plays, whether it loops, and whether a click opens it large. */
   play?: MediaPlay
   loop?: boolean

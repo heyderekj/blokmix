@@ -350,6 +350,8 @@ const BRIDGE = `(function () {
         img.onload = report;
         el.appendChild(img);
       }
+      // Where the subject is: the crop keeps it in frame (MediaFill.focus).
+      if (m.focus) el.querySelectorAll(':scope > img.mx-media, :scope > video.mx-media').forEach(function (x) { x.style.objectPosition = Math.round(m.focus.x * 100) + '% ' + Math.round(m.focus.y * 100) + '%'; });
       if (window.mxMedia) window.mxMedia.wire(el);
     });
   }

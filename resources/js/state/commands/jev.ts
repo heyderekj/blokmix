@@ -1,6 +1,7 @@
 // Jev's commands: each asks first (async prepare), then lands as one undo step (apply).
 
 import type { CommandInput } from '@/core/commands/schema'
+import type { MediaFill } from '@/core/types'
 import { allSlots, pageView } from '@/core/site'
 import { TYPE_LABEL } from '@/core/content'
 import type { LinkGuess } from '@/core/jev/links'
@@ -12,6 +13,7 @@ import { measureFirstScreen } from '@/lib/measure'
 import { askJev, JEV_OFF, jevOn, setJevAllowed } from '@/lib/jev'
 import { useStore } from '../store'
 import { deadLinks, guessLinks } from '../jevLinks'
+import { findFocus } from '../jevPhotos'
 import { CommandError, findBlock, findPage, findSection, placeOf, wordsFor } from './refs'
 import type { AsyncCommand } from './index'
 
@@ -100,4 +102,20 @@ export const later = {
       checks: r.score.checks.map((c) => `${c.ok ? '✓' : c.weight ? '✗' : '·'} ${c.words}`),
     }),
   } satisfies AsyncCommand<FiveSecond>,
+  find_subject: {
+    prepare: async (i: CommandInput<'find_subject'>) => {
+      await needJev()
+      const slot = findSection(i.section)
+      const b = findBlock(slot, i.block)
+      if (b.kind !== 'image') throw new CommandError(`${b.label} isn’t an image block`)
+      const fill = slot.edits?.[slot.clipId]?.[b.id]?.media
+      if (!fill || (fill.source !== 'upload' && fill.source !== 'stock')) throw new CommandError(`${b.label} shows no photo; set_image or an upload first`)
+      return { slotId: slot.id, blockId: b.id, label: b.label, fill, focus: await findFocus(fill) }
+    },
+    apply: (_i: CommandInput<'find_subject'>, r: { slotId: string; blockId: string; label: string; fill: MediaFill; focus: Awaited<ReturnType<typeof findFocus>> }) => {
+      if (!r.focus) return { block: r.label, focus: null, message: 'No single subject to keep in frame (or Jev wasn’t sure); the crop stays centered.' }
+      useStore.getState().editBlock(r.slotId, r.blockId, { media: { ...r.fill, focus: { x: r.focus.x, y: r.focus.y } } })
+      return { block: r.label, focus: { x: r.focus.x, y: r.focus.y }, subject: r.focus.kind }
+    },
+  },
 }

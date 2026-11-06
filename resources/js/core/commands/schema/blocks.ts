@@ -91,6 +91,11 @@ export const BLOCK_COMMANDS = {
       params: z.record(z.string(), z.any()).optional().describe('Generative placeholders and shaders: dials by name (list_treatments); colors are palette roles or hex'),
       alt: z.string().optional(),
       fit: z.enum(['cover', 'contain']).optional(),
+      focus: z
+        .object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) })
+        .nullable()
+        .optional()
+        .describe('Where the subject is in a photo or upload, as fractions across and down (0.5, 0.3 = centered, a third down): the crop keeps it in frame at every width. null puts it back to the center. find_subject sets it for you'),
       remove: z.boolean().optional(),
     }),
     write: true,

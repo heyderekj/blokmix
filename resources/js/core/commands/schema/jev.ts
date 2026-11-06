@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { section } from './shared'
+import { block, section } from './shared'
 
 /**
  * What Jev (TypeSafe's System One model) does on the board: it places, picks and checks real things (your words,
@@ -22,5 +22,11 @@ export const JEV_COMMANDS = {
       'Show the first screen (what a laptop shows before scrolling) to Jev as a visitor who has never seen the site, and hear what it would say the site is for and how sure it is, whether the headline says what’s offered, whether the first button says what happens next, and whether it says who it’s for. Also measures the first screen at a laptop and a phone, so the answer comes with the page score’s checks. Changes nothing.',
     input: z.object({ page: z.string().optional().describe('A page path or id; default the open page') }),
     write: false,
+  },
+  find_subject: {
+    description:
+      'Find the subject of a photo or upload in an image block (a person, a product, a dish) with Jev, and set the crop to keep it in frame at every width and on phones (the fill’s focus). A person’s focus sits near their face. Does nothing for placeholders, mockups or moving media, or when the photo has no single subject. One undo step.',
+    input: z.object({ section, block }),
+    write: true,
   },
 } as const

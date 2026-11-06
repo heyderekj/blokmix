@@ -104,6 +104,7 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'set_mock':
     case 'set_image':
     case 'set_media':
+    case 'find_subject':
       return ['pictures']
     case 'use_site_style':
       return [...STYLE_AREAS]

@@ -24,6 +24,7 @@ import { blockIconName } from '@/core/icons'
 import { listContext } from '@/core/lists'
 import { linkWords, sectionLinks } from '@/core/links'
 import { deadLinks, guessFor, guessLinks, useJevLinks } from '@/state/jevLinks'
+import { autoFocus } from '@/state/jevPhotos'
 import { WordsCycler, WordsMenu } from './WordsMenu'
 import { LinkLabel, LinkMenu } from './LinkMenu'
 import { CollectionMenu } from './CollectionMenu'
@@ -233,7 +234,17 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         />
       )}
       {menu === 'image' && (
-        <ImageMenu block={block} fill={own?.media} onHover={(m) => hover(m ? { media: m } : null)} onPick={(m) => apply({ media: m ?? undefined })} />
+        <ImageMenu
+          block={block}
+          slot={slot}
+          fill={own?.media}
+          onHover={(m) => hover(m ? { media: m } : null)}
+          onPick={(m) => {
+            apply({ media: m ?? undefined })
+            // A new photo: Jev finds its subject and keeps it in frame (same undo step; nothing when Jev is off).
+            if (m && (m.source === 'upload' || m.source === 'stock') && !m.focus) void autoFocus(slot.id, block.id)
+          }}
+        />
       )}
       {menu === 'link' && <LinkMenu slot={slot} block={block} />}
       {menu === 'collection' && list && <CollectionMenu slot={slot} list={list.list} onClose={() => setMenu(null)} />}

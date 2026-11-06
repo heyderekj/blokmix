@@ -114,7 +114,7 @@ export const write = {
     const next: MediaFill = i.placeholder
       ? { source: 'placeholder', style: i.placeholder, seed: i.seed ?? 1, params, alt: i.alt ?? cur?.alt, fit: i.fit ?? cur?.fit }
       : cur
-        ? { ...cur, ...(i.alt !== undefined ? { alt: i.alt || undefined } : {}), ...(i.fit ? { fit: i.fit } : {}), ...(i.seed !== undefined && (cur.source === 'placeholder' || cur.source === 'mock') ? { seed: i.seed } : {}), ...(i.params ? { params } : {}) }
+        ? { ...cur, ...(i.alt !== undefined ? { alt: i.alt || undefined } : {}), ...(i.fit ? { fit: i.fit } : {}), ...(i.seed !== undefined && (cur.source === 'placeholder' || cur.source === 'mock') ? { seed: i.seed } : {}), ...(i.params ? { params } : {}), ...(i.focus !== undefined ? { focus: i.focus ?? undefined } : {}) }
         : (() => {
             throw new CommandError('Give a placeholder style, or set a picture first')
           })()
