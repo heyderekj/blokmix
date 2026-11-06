@@ -40,7 +40,7 @@
   }
 
   & .top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--mx-space-6); }
-  & .top + .row { margin-top: var(--mx-space-9); }
+  & .top + .slider { margin-top: var(--mx-space-9); }
 
   /* The row: two cards in view and the third peeking, snapping card by card. */
   & .row {
@@ -97,7 +97,7 @@
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
-    & .top + .row { margin-top: var(--mx-space-8); }
+    & .top + .slider { margin-top: var(--mx-space-8); }
     & .row { grid-auto-columns: 84%; gap: var(--mx-space-3); }
     & .row .card { padding: var(--mx-space-6); gap: var(--mx-space-6); }
     & .quote p { font-size: var(--mx-text-lg); }

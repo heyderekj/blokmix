@@ -79,3 +79,13 @@ describe('bento and mosaic', () => {
     expect(last.some((c) => /^c\d$/.test(c))).toBe(false)
   })
 })
+
+describe('slider layouts', () => {
+  // A slider wraps its list, so a rule spacing the head from the list ("+ .row") misses it: the heading then sits on
+  // the cards. Every layout with a slider spaces whatever follows its head, or the slider itself.
+  const sliders = Object.values(library.clips).filter((c) => c.origin === 'layout' && /data-slider[\s>]/.test(c.html) && /class="[^"]*\b(head|top)\b/.test(c.html))
+  it.each(sliders.map((c) => c.id))('%s leaves room between its head and its slider', (id) => {
+    const css = library.clips[id].css
+    expect(/\.head \+ \*\s*\{[^}]*margin-top|\+ \.slider\s*\{[^}]*margin-top/.test(css) || /\.container\s*\{[^}]*display:\s*grid[^}]*gap/.test(css)).toBe(true)
+  })
+})
