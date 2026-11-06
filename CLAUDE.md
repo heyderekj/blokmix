@@ -151,10 +151,15 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 
 The audience is non-designers first (`docs/simple-vision.md`). New mix (the gallery's tile, the browser-only mix's first
 visit, or "Start a new mix" in its menu) opens `ui/start/StartGuide.tsx`: plain questions one at a time on the left, the
-page they add up to on the right (`startCandidates`' first, drawn at once; measuring waits for the end). Answered
+page they add up to on the right (`startCandidates`' first, drawn at once; measuring waits for the end). The first screen is
+a sentence to fill in, "I'm making a site for [a bakery] called [Fern & Co]. It should feel [cozy] and help people [order
+ahead]. Show [our menu]…" (`core/jev/sentence.ts` `startSentence`, `fillStart`; `ui/jev/Sentence.tsx`: each blank a row of
+options Jev puts in order, `rankRequest`, or your own words, matched to the nearest, `matchRequest`), with a box under it
+to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
+those questions and folds them (`answersFromSentence`, `heardFromSentence`, `SENTENCE_GOAL`, `SENTENCE_FEEL`). Answered
 questions fold into one line each with Change; "Skip, show me pages" takes every suggestion. The questions
 (`core/startFlow.ts`, pure: `QUESTIONS`, `nextQuestion`, `folded`, `skipToPages`, `briefFrom`, `sectionsFrom`):
-1. What's it called? 2. What is it? (a sentence, or the words you already have; `textMode` tells them apart) 3. The kind
+1–2. The sentence (its name, what it is), or the words you already have (`textMode` tells a paste apart) 3. The kind
 of site and industry, folded when the first sentence settled both 4. What should it do for you? (goals, something else,
 who it's for) 5. What should the main button say? (`actionChoices`, or your own words) 6. What goes on the page? (section
 chips, ✕ and +; folded for pasted words) 7. How should it feel? (feel words from the industry and kind, three themes,

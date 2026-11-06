@@ -8,11 +8,14 @@ import { FEEL_WORDS, themesFor, type FeelWord } from '@/core/feel'
 import { skinById, skinList, skinOpen, WIREFRAME, type Skin } from '@/core/skins'
 import { actionChoices, FORMAT_LABEL, FORMATS, GOAL_LABEL, GOALS, INDUSTRIES, INDUSTRY_LABEL, patchBrief, type Brief, type Goal } from '@/core/brief'
 import { OPTIONAL, placeSection, textMode } from '@/core/jev/describe'
-import { answer, briefFrom, emptyAnswers, feelFrom, folded, kindFrom, nextQuestion, QUESTIONS, reopen, sectionsFrom, skipToPages, type Answers, type Question } from '@/core/startFlow'
+import { answer, answersFromSentence, briefFrom, emptyAnswers, heardFromSentence, feelFrom, folded, kindFrom, nextQuestion, QUESTIONS, reopen, sectionsFrom, skipToPages, type Answers, type Question } from '@/core/startFlow'
 import type { Palette as Colors } from '@/core/palette'
 import type { Starter } from '@/core/starters'
 import { library, starters } from '@/data/library'
-import { jevOn } from '@/lib/jev'
+import { askJev, askLatest, jevOn } from '@/lib/jev'
+import { noteWants } from '@/lib/jevWants'
+import { fillStart, matchRequest, openBlanks, rankRequest, readMatch, readRank, startSentence, type Blank, type Picks } from '@/core/jev/sentence'
+import { Sentence } from '@/ui/jev/Sentence'
 import { scoredStarts, type ScoredStart } from '@/lib/start'
 import { guessHeard, hearStart, startsFromText, wordsCandidates, type Heard } from '@/lib/startFromText'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
@@ -73,19 +76,30 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
     }
   }, [])
 
+  // The first screen: the start sentence ("I'm making a site for [a bakery] called [Fern & Co]…"), and a box to paste into.
+  const [picks, setPicks] = useState<Picks>({})
+  const [pasted, setPasted] = useState('')
+  const [order, setOrder] = useState<Record<string, string[]>>({})
+  const segments = useMemo(() => startSentence(picks), [picks])
+  const fill = useMemo(() => fillStart(picks), [picks])
   const q = nextQuestion(a, heard)
   const skip = folded(a, heard)
-  const brief = briefFrom(a, heard)
-  const kind = kindFrom(a, heard)
-  const sections = sectionsFrom(a, heard)
-  const feel = feelFrom(a, heard)
-  const name = a.name.trim() || 'Your site'
+  // While the sentence is being filled in, the page on the right already follows it.
+  const filling = !a.done.includes('what') && Object.values(picks).some((ps) => ps.some((p) => p.words.trim()))
+  const sh = filling ? heardFromSentence(fill, picks) : null
+  const va: Answers = filling ? { ...answersFromSentence(a, fill, picks), done: a.done } : a
+  const vh: Heard | null = filling ? (sh ? { ...sh, kinds: sh.kind ? [sh.kind] : [] } : heard) : heard
+  const brief = briefFrom(va, vh)
+  const kind = kindFrom(va, vh)
+  const sections = sectionsFrom(va, vh)
+  const feel = feelFrom(va, vh)
+  const name = va.name.trim() || 'Your site'
   const open = useMemo(() => skinList().filter((x) => skinOpen(library, x) && x.id !== WIREFRAME), [])
   // The look on show: yours, else the best fit (the read's, then the feel's), never the grey sketch.
   const themes = useMemo(() => {
-    const read = (heard?.looks ?? []).flatMap((id) => open.filter((x) => x.id === id))
+    const read = (vh?.looks ?? []).flatMap((id) => open.filter((x) => x.id === id))
     return [...new Set([...read, ...themesFor(feel, open, { count: 3 })])].slice(0, 3)
-  }, [heard?.looks, feel, open])
+  }, [vh?.looks, feel, open])
   const theme = skin ?? themes[0]?.id ?? WIREFRAME
   const paste = heard?.mode === 'paste' && !!heard.plan
   const input: StartInput = { kind, name, seed, skin: theme, brand, palette, mode, brief, ...(paste ? {} : { sections }) }
@@ -127,6 +141,42 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   }
 
   const go = (question: Question, patch: Partial<Answers> = {}) => setA((x) => answer(x, question, patch))
+
+  // The open blanks' options, in the order that fits what's filled so far.
+  useEffect(() => {
+    if (!jev) return
+    const open = openBlanks(segments, picks)
+    if (!open.some((b) => !b.ownOnly)) return
+    let live = true
+    askLatest('start-sentence', rankRequest(fill.text, open)).then((res) => live && res && setOrder((o) => ({ ...o, ...readRank(res, open) })))
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fill.text, jev])
+  const match = async (b: Blank, words: string) => readMatch(await askJev(matchRequest(b, words, fill.text)))
+  /** Next on the first screen: pasted words take the paste path; the sentence answers what it can and folds those questions. */
+  const startNext = () => {
+    const words = pasted.trim()
+    if (words) {
+      setA((x) => answer(answer({ ...x, name: fill.name.trim() || x.name.trim() || 'Your site' }, 'name'), 'what', { text: words }))
+      hear(words)
+      return
+    }
+    const sure = heardFromSentence(fill, picks)
+    setHeard(sure ? { ...sure, kinds: sure.kind ? [sure.kind] : [] } : null)
+    setA((x) => answersFromSentence(x, fill, picks))
+    if (fill.wants.length && jev) void noteWants(fill.wants, 'start', undefined, fill.kind ?? undefined)
+    // A business in your own words: let the whole sentence be read, for the kind of site and what it's for.
+    const business = picks.business?.[0]
+    if (jev && business?.words.trim() && !business.id) {
+      setHearing(true)
+      hearStart(fill.text).then((h) => {
+        setHearing(false)
+        if (h) setHeard(h)
+      })
+    }
+  }
   const setBrief = (patch: Partial<Brief>) => setA((x) => ({ ...x, brief: patchBrief(x.brief, patch) }))
   const pick = (s: ScoredStart) => onDone({ ...input }, starts!, s.id)
 
@@ -183,29 +233,25 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
             </div>
 
             <div ref={asking} className={answered.length ? 'mt-5' : ''}>
-              {q === 'name' && (
-                <Ask title="What’s it called?" onNext={() => go('name', { name: a.name.trim() || 'Your site' })}>
-                  <input autoFocus value={a.name} onChange={(e) => setA((x) => ({ ...x, name: e.target.value }))} onKeyDown={(e) => e.key === 'Enter' && go('name')} placeholder="Fern & Co" maxLength={80} className={`${INPUT} h-12`} />
-                </Ask>
-              )}
-
-              {q === 'what' && (
+              {(q === 'name' || q === 'what') && (
                 <Ask
-                  title="What is it?"
-                  lead="Say it in a sentence, or paste what you already have: an About page, a menu, your old site. Your words are never rewritten."
-                  onNext={() => (hear(a.text), go('what'))}
-                  onSkip={() => go('what', { text: '' })}
+                  title="What are you making?"
+                  lead="Fill in the blanks: pick from the list or type your own words. Or paste what you already have below; your words are never rewritten."
+                  busy={hearing}
+                  onNext={startNext}
                 >
+                  <div className="min-w-0">
+                    <Sentence segments={segments} picks={picks} onPicks={setPicks} order={order} kind={fill.kind} match={jev ? match : undefined} />
+                  </div>
                   <textarea
-                    autoFocus
-                    value={a.text}
-                    onChange={(e) => setA((x) => ({ ...x, text: e.target.value }))}
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && textMode(a.text) === 'describe' && (e.preventDefault(), hear(a.text), go('what'))}
-                    placeholder="A bakery on Elm Street that takes pre-orders"
-                    rows={a.text.split('\n').length > 2 ? 8 : 3}
-                    className={`${INPUT} resize-none py-3 leading-relaxed`}
+                    value={pasted}
+                    onChange={(e) => setPasted(e.target.value)}
+                    placeholder="Or paste what you already have: an About page, a menu, your old site"
+                    rows={pasted.split('\n').length > 2 ? 8 : 2}
+                    aria-label="Or paste what you already have"
+                    className={`${INPUT} resize-none py-3 text-[14.5px] leading-relaxed`}
                   />
-                  {a.text.trim() && textMode(a.text) === 'paste' && <p className="text-[13px] text-[#6B5F68]">Your words go on the page as written. Lines that don’t fit wait for you to place.</p>}
+                  {pasted.trim() && textMode(pasted) === 'paste' && <p className="text-[13px] text-[#6B5F68]">Your words go on the page as written. Lines that don’t fit wait for you to place.</p>}
                 </Ask>
               )}
 
@@ -379,7 +425,7 @@ function Answered({ label, value, onChange }: { label: string; value: string; on
 /** The question being asked: a heading, a line under it, the answers, and Next. */
 function Ask({ title, lead, busy, onNext, onSkip, children }: { title: string; lead?: string; busy?: boolean; onNext: () => void; onSkip?: () => void; children: ReactNode }) {
   return (
-    <section className="grid gap-4">
+    <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <div>
         <h2 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">{title}</h2>
         {lead && <p className="mt-1.5 min-h-[2lh] text-[15px] text-[#6B5F68] [text-wrap:pretty]">{lead}</p>}

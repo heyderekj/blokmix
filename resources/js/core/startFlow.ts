@@ -2,9 +2,10 @@
 // away because the first sentence already answered it; Jev only ranks the answers on offer (it never writes a word).
 // Pure, so the screen, the agent commands and the tests walk it alike.
 
-import { actionChoices, briefFeel, FORMAT_LABEL, goalsOf, guessBrief, INDUSTRY_LABEL, kindOf, patchBrief, type Brief, type Format, type Goal, type Industry } from './brief'
+import { actionChoices, briefFeel, briefFromKind, FORMAT_LABEL, goalsOf, guessBrief, INDUSTRY_LABEL, kindOf, patchBrief, type Brief, type Format, type Goal, type Industry } from './brief'
+import type { Picks, StartFill } from './jev/sentence'
 import { KIND_FEEL, type FeelWord } from './feel'
-import { recipeFor } from './start'
+import { recipeFor, RECIPES } from './start'
 import type { Kind, SectionType } from './types'
 
 export const QUESTIONS = ['name', 'what', 'confirm', 'goals', 'action', 'sections', 'look', 'drafts'] as const
@@ -124,3 +125,85 @@ export const reopen = (a: Answers, q: Question): Answers => ({
   done: a.done.filter((x) => QUESTIONS.indexOf(x) < QUESTIONS.indexOf(q)),
   opened: [...new Set([...(a.opened ?? []), q])],
 })
+
+// ---- The start sentence ("I'm making a site for [a bakery] called [Fern & Co]…") as answers ----
+
+/** The sentence's goals (core/jev/sentence.ts) as the brief's. */
+export const SENTENCE_GOAL: Record<string, Goal> = {
+  order: 'orders',
+  'book-table': 'bookings',
+  book: 'bookings',
+  visit: 'visit',
+  call: 'calls',
+  touch: 'calls',
+  quote: 'calls',
+  hire: 'hire',
+  work: 'showWork',
+  'sign-up': 'signups',
+  try: 'signups',
+  buy: 'sell',
+  download: 'signups',
+  waitlist: 'waitlist',
+  tickets: 'tickets',
+  rsvp: 'tickets',
+  subscribe: 'subscribers',
+  read: 'subscribers',
+  donate: 'donate',
+  listen: 'subscribers',
+}
+
+/** The sentence's feels as the Look panel's feel words. */
+export const SENTENCE_FEEL: Record<string, FeelWord> = {
+  cozy: 'warm', warm: 'warm', earthy: 'warm', soft: 'warm',
+  friendly: 'playful', playful: 'playful', fun: 'playful', dreamy: 'playful',
+  calm: 'calm', clean: 'calm', minimal: 'calm', simple: 'calm', trustworthy: 'calm',
+  bold: 'bold', loud: 'bold', confident: 'bold', industrial: 'bold', raw: 'bold', retro: 'bold',
+  premium: 'classic', elegant: 'classic', classic: 'classic', editorial: 'classic', bookish: 'classic',
+  techy: 'modern', precise: 'modern', nerdy: 'modern',
+  dark: 'dark',
+}
+
+/** What the sentence says, read like a description: certain where a blank came from Blokmix's own lists. */
+export function heardFromSentence(fill: StartFill, picks: Picks): HeardBrief | null {
+  if (!fill.kind && !fill.text.trim()) return null
+  const guess = guessBrief(fill.text)
+  const byKind = briefFromKind(fill.kind ?? undefined)
+  const goalId = picks.goal?.[0]?.id
+  const goals = goalId && SENTENCE_GOAL[goalId] ? [SENTENCE_GOAL[goalId]] : (guess.goals ?? [])
+  const format = guess.format ?? byKind.format ?? null
+  const industry = guess.industry ?? byKind.industry ?? null
+  return {
+    mode: 'describe',
+    jev: true,
+    kind: fill.kind,
+    format,
+    formats: format ? [format] : [],
+    industry,
+    industries: industry ? [industry] : [],
+    goals,
+    sections: fill.sections ?? (fill.kind ? RECIPES[fill.kind].home : []),
+    want: {},
+    looks: fill.looks,
+  }
+}
+
+/**
+ * The answers the sentence gives: its name, what it is, the main button, how it should feel and what to show. The
+ * questions it answered fold away (the look and the three layouts are still yours to pick).
+ */
+export function answersFromSentence(a: Answers, fill: StartFill, picks: Picks): Answers {
+  const goal = picks.goal?.[0]
+  const typed = !!goal && !goal.id && !!goal.words.trim()
+  const feel = (picks.feel ?? []).flatMap((p) => (p.id && SENTENCE_FEEL[p.id] ? [SENTENCE_FEEL[p.id]] : []))
+  const shows = (picks.show ?? []).some((p) => p.words.trim())
+  const done: Question[] = ['name', 'what', ...(goal?.id && SENTENCE_GOAL[goal.id] ? (['goals'] as const) : []), ...(fill.button ? (['action'] as const) : []), ...(shows && fill.sections ? (['sections'] as const) : [])]
+  return {
+    ...a,
+    name: fill.name.trim() || a.name.trim() || 'Your site',
+    text: fill.text,
+    brief: patchBrief(a.brief, { ...(fill.button ? { mainAction: fill.button, mainActionTyped: typed } : {}), ...(goal?.id && SENTENCE_GOAL[goal.id] ? { goals: [SENTENCE_GOAL[goal.id]] } : {}) }),
+    feel: feel.length ? [...new Set(feel)] : a.feel,
+    sections: shows && fill.sections ? fill.sections : a.sections,
+    done: [...new Set([...a.done, ...done])],
+  }
+}

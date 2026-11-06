@@ -96,3 +96,28 @@ describe('what the first sentence tells', () => {
     expect(Object.keys(fake.requests[0].questions).length).toBeLessThanOrEqual(200)
   })
 })
+
+describe('the start sentence', () => {
+  it('answers what it fills and folds those questions', async () => {
+    const { fillStart } = await import('@/core/jev/sentence')
+    const { answersFromSentence, heardFromSentence } = await import('@/core/startFlow')
+    const picks = {
+      business: [{ id: 'bakery', words: 'a bakery' }],
+      name: [{ words: 'Fern & Co' }],
+      feel: [{ id: 'cozy', words: 'cozy' }],
+      goal: [{ id: 'order', words: 'order ahead' }],
+      show: [{ id: 'menu', words: 'our menu' }],
+    }
+    const fill = fillStart(picks)
+    const heard = heardFromSentence(fill, picks)!
+    expect(heard.kind).toBe('local')
+    expect(heard.goals).toEqual(['orders'])
+    const a = answersFromSentence(emptyAnswers(), fill, picks)
+    expect(a.name).toBe('Fern & Co')
+    expect(a.brief.mainAction).toBe('Order ahead')
+    expect(a.feel).toEqual(['warm'])
+    expect(a.sections).toContain('pricing')
+    // Name, what, goals, button and sections are answered; the kind of site folds when it's sure; the look is still asked.
+    expect(nextQuestion(a, heard)).toBe('look')
+  })
+})
