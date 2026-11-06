@@ -30,7 +30,7 @@ Optional: publish the current mix to a noindex/nofollow page on blok.page so you
 - Not a forced multi-step process.
 - Not a team inbox or project board (that is Koati).
 - Not the place the final site lives.
-- No AI of its own; your agent builds from the notes and export.
+- No AI that writes for you: Jev only places, picks and checks your own words, sections and pictures; your agent builds from the notes and export.
 
 ## Domains
 

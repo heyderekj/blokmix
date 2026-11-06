@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Api\JevController;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
@@ -103,5 +104,20 @@ class JevTest extends TestCase
         }
         $this->actingAs($me)->postJson('/api/jev', $this->ask(['questions' => $many]))->assertStatus(422);
         Http::assertNothingSent();
+    }
+
+    public function test_wants_are_counted_by_name_only_and_owners_see_them(): void
+    {
+        $me = User::factory()->create();
+        $this->actingAs($me)->postJson('/api/jev/wants', ['want' => 'menu', 'feature' => 'pour', 'kind' => 'local'])->assertNoContent();
+        $this->actingAs($me)->postJson('/api/jev/wants', ['want' => 'menu', 'feature' => 'say'])->assertNoContent();
+        $this->actingAs($me)->postJson('/api/jev/wants', ['want' => 'countdown', 'feature' => 'say', 'section_type' => 'hero'])->assertNoContent();
+        // Words never fit the shape of a want.
+        $this->actingAs($me)->postJson('/api/jev/wants', ['want' => 'A menu for my bakery please', 'feature' => 'say'])->assertStatus(422);
+        $this->actingAs($me)->postJson('/api/jev/wants', ['want' => 'menu', 'feature' => 'email'])->assertStatus(422);
+
+        $this->assertSame(['menu', 'countdown'], array_column(JevController::wantCounts(), 'want'));
+        $this->assertSame(['want' => 'menu', 'count' => 2, 'from' => ['pour' => 1, 'say' => 1]], JevController::wantCounts()[0]);
+        $this->assertDatabaseMissing('jev_wants', ['want' => 'A menu for my bakery please']);
     }
 }

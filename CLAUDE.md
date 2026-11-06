@@ -164,6 +164,31 @@ the packet's rules to match. A section's `slot.keep` is more specific and wins. 
 guide; a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
 moves the canvas so the section shows beside it. Agents: `list_skins`, `apply_skin`, `surprise_me`, `get_contract`, `set_contract`.
 
+## Jev (TypeSafe)
+
+Jev, TypeSafe's System One model (docs.typesafe.ai), places, picks and checks real things; it never writes words. Typed
+questions (choice, score, noul, box) about a JSON state, ~100ms, near free. Weak at counting, maths, hex colors and
+dates: code does those.
+- Layer: `core/jev/` (pure: question builders, `shuffled`/`merged` ask a choice in both orders to cancel its first-option
+  lean, `vocab.ts` section types and kinds in words, one file per feature with its QUESTIONS and THRESHOLDS on top).
+  `lib/jev.ts` `askJev` posts to `/api/jev` and returns null when off, slow or failing, so every caller falls back;
+  `setJevTransport` swaps in a fake (`tests/helpers/fakeJev.ts`; `npm test` never uses the network).
+- Key: `TYPESAFE_API_KEY`, server only. Hosted: `Api\JevController` (signed in, `throttle:jev` 120/min 3,000/day, checks
+  shape and image sizes, passes the body on unchanged). Vite-only dev: `scripts/jev/devProxy.ts` reads `.env.local`. No key
+  means Jev is off. Per device: "Let Jev help" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
+- Features (commands first, `core/commands/schema/jev.ts`, `state/commands/jev.ts`): `place_links` (smart links; the
+  checklist's dead-link fix, "Jev suggests" in the link menu), `five_second_test` (the first screen's words to a visitor;
+  "Before you hand it off" card in the packet panel), `find_subject` (`MediaFill.focus` → object-position; the Image
+  menu's pad) and stock photos best fit first, `understand` (Say it, ⌘K: an allow-listed intent plus closed-set
+  arguments from the page → one ordinary command), `pour_words` and `page_from_words` (your words placed verbatim; Words
+  to place tray), `suggest_palettes`/`set_palette` (Colors by feel in the Feel tile; candidates are AA by construction,
+  drawn as swatch cards), `suggest_treatments` (Dress it up in a section's Style panel).
+- What to make next: `npx vite-node scripts/library/gaps.ts [--all]` reads every library screenshot (type, shape, ~30
+  elements and treatments) into `.out/library/gaps.md`; unmet asks from Say it, Pour and Dress it up are counted by name
+  only (`jev_wants`, `POST /api/jev/wants`) and shown to owners on `/library/admin`.
+- Bench: `npx vite-node scripts/jev/bench.ts [suite] [--runs 3]` (accuracy against today's rule, coverage at thresholds,
+  calibration, option-order flips, latency, cost). Change thresholds only on its numbers.
+
 ## Agents
 
 Everything you can do on the canvas is a command in `resources/js/core/commands/schema/` (zod schemas →

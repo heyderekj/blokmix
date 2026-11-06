@@ -384,7 +384,7 @@ function JevHelp() {
         <div className="text-[11.5px] leading-snug text-zinc-500">
           {server === false
             ? 'Off here: this server has no TypeSafe key.'
-            : 'Jev, a model by TypeSafe, reads this page’s words (and photos you pick) to decide where things go. It never writes words for you.'}
+            : 'Jev, a model by TypeSafe, reads this page’s words (and photos you pick) to decide where things go. It never writes words for you. Blokmix counts what people ask for that it can’t do yet, never your words.'}
         </div>
       </div>
       <Switch on={on && server !== false} onChange={() => useStore.getState().setUi({ jev: !on })} label="Let Jev help" />

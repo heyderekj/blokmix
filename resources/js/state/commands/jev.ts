@@ -19,6 +19,7 @@ import { applyPour, planPour, trayFrom, useWordsTray, type Poured } from '../jev
 import { buildPage, planPage, type PagePlan } from '../jevPage'
 import { suggestPalettes } from '../jevColors'
 import { dressPage, dressSection, type DressIdea } from '../jevDress'
+import { noteWants } from '@/lib/jevWants'
 import type { Ranked } from '@/core/jev/palettes'
 import { jevPhotoUrl } from '@/core/jev/photos'
 import { assetUrl } from '@/lib/assets'
@@ -130,6 +131,8 @@ export const later = {
       const done = applyPour(p.plan)
       const tray = trayFrom(p.plan)
       useWordsTray.setState((s) => ({ lines: [...s.lines, ...tray] }))
+      // Lines with nowhere to go on this page: count what they wanted (a menu, opening hours…), never the words.
+      void noteWants(tray.filter((t) => !t.homes.length).map((t) => t.text), 'pour', undefined, useStore.getState().content.kind)
       return {
         placed: done.placed,
         sections: done.sections,

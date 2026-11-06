@@ -8,6 +8,7 @@ import { useJevTools } from '@/state/jevSay'
 import { runCommand } from '@/state/commands'
 import { useStore } from '@/state/store'
 import { useBlockPreview } from '../blocks/preview'
+import { noteWants } from '@/lib/jevWants'
 
 /** A backdrop idea as the value the preview draws. */
 function backdropValue(idea: DressIdea): TreatmentValue | null {
@@ -45,6 +46,7 @@ export function DressUp({ slot }: { slot: Slot }) {
     const r = await dressSection(slot.id, f)
     setBusy(false)
     setIdeas(r?.ideas ?? [])
+    if (r && !r.ideas.length && f) void noteWants([f], 'dress', slot.type)
   }
 
   // Asked in Say it ("make the hero pop"): look right away, with those words as the feel.

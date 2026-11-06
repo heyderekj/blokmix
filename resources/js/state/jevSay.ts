@@ -13,6 +13,7 @@ import { TYPE_LABEL } from '@/core/content'
 import { sayRequest, understand, type SayAction, type SayContext, type Understood } from '@/core/jev/say'
 import { library, slotClip } from '@/data/library'
 import { askLatest } from '@/lib/jev'
+import { noteWants } from '@/lib/jevWants'
 import { currentSlots, useStore } from './store'
 import { runCommand } from './commands'
 import { wordsFor } from './commands/refs'
@@ -49,6 +50,12 @@ export interface Heard extends Understood {
   kept?: string | null
 }
 
+let wantTimer: ReturnType<typeof setTimeout> | undefined
+function wantLater(text: string) {
+  clearTimeout(wantTimer)
+  wantTimer = setTimeout(() => void noteWants([text], 'say', undefined, useStore.getState().content.kind), 2500)
+}
+
 /** What these words would do, or null when Jev is off or newer words came in. */
 export async function hear(text: string): Promise<Heard | null> {
   const t = text.trim()
@@ -59,6 +66,8 @@ export async function hear(text: string): Promise<Heard | null> {
   const u = understand(res, t, ctx)
   const action = u.action ? withLayout(u.action) : null
   const options = u.options.map(withLayout).filter((x): x is SayAction => !!x)
+  // Nothing Blokmix can do: count what was wanted (its name only), after a pause so half-typed words don't count.
+  if (!action && !options.length) wantLater(t)
   const kept = action?.command ? contractRefusal(useStore.getState().contract, action.command, action.input ?? {}) : null
   return { action, options, kept }
 }

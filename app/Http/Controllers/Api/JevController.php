@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use App\Models\LibrarySection;
 
 /**
  * Jev (TypeSafe's System One model) through the server, so its key never reaches the browser. The board builds the
@@ -31,6 +34,34 @@ class JevController extends Controller
     public const MODELS = ['jev-latest', 'jev-preview'];
 
     public const QUESTION_TYPES = ['choice', 'score', 'noul', 'box'];
+
+    /**
+     * Count something people asked for that Blokmix can't do yet, by its name only (a menu, opening hours…). The board
+     * names it with Jev from a closed list; nothing else about the ask is kept.
+     */
+    public function want(Request $request): Response
+    {
+        $input = $request->validate([
+            'want' => ['required', 'string', 'regex:/^[a-z0-9-]{2,32}$/'],
+            'feature' => ['required', Rule::in(['say', 'pour', 'dress'])],
+            'section_type' => ['nullable', Rule::in(LibrarySection::TYPES)],
+            'kind' => ['nullable', Rule::in(['product', 'studio', 'local', 'event', 'personal', 'writing'])],
+        ]);
+        DB::table('jev_wants')->insert([...$input, 'created_at' => now()]);
+
+        return response()->noContent();
+    }
+
+    /** What people asked for in the last 90 days, most first, with where they asked (for /library/admin). */
+    public static function wantCounts(int $days = 90): array
+    {
+        $rows = DB::table('jev_wants')->where('created_at', '>=', now()->subDays($days))
+            ->select('want', 'feature', DB::raw('count(*) as n'))->groupBy('want', 'feature')->get();
+
+        return $rows->groupBy('want')
+            ->map(fn ($g, $want) => ['want' => $want, 'count' => (int) $g->sum('n'), 'from' => $g->mapWithKeys(fn ($r) => [$r->feature => (int) $r->n])->all()])
+            ->sortByDesc('count')->values()->take(40)->all();
+    }
 
     public function status(): JsonResponse
     {

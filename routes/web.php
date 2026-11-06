@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
         // Jev (TypeSafe): placing, picking and checking things on the board. Its key stays here.
         Route::get('/jev/status', [JevController::class, 'status'])->name('jev.status');
         Route::post('/jev', [JevController::class, 'ask'])->middleware('throttle:jev')->name('jev.ask');
+        Route::post('/jev/wants', [JevController::class, 'want'])->middleware('throttle:30,1')->name('jev.wants');
 
         Route::get('/unsplash/search', [UnsplashController::class, 'search'])->middleware('throttle:60,1')->name('unsplash.search');
         Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');
