@@ -23,6 +23,7 @@ import { ClipFrame } from '@/frame/ClipFrame'
 import { VIEW_W } from '../canvas/geometry'
 import { useBarFloor } from '../canvas/useBarFloor'
 import { SectionPill, SectionRail } from './SectionPill'
+import { LockCorners } from './LockGlyph'
 import { edgePan, panBy } from '../canvas/dragPan'
 
 const SPIN_STEP = 90
@@ -460,6 +461,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
 
       <SectionMarks slot={slot} width={W} height={frameH} rects={rects} drawing={drawing} />
 
+      {/* Locked: corner brackets clamp the section (and stay while it's locked). */}
+      <LockCorners locked={slot.locked} />
       <SectionRail slot={slot} index={index} focused={focused} />
       {focused && !block && <SectionPill slot={slot} count={count} focused={focused} pos={shownIndex + 1} total={ids.length} bottom={height} row={rowRef} />}
     </div>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Link2, Lock, LockOpen, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Link2, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
 import type { Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -25,6 +25,7 @@ import { PanelGroup } from '../blocks/BlockBar'
 import { useDockLayouts } from '../shell/Dock'
 import { pressSection, sectionMovable } from './SectionDrag'
 import { useBarFloor } from '../canvas/useBarFloor'
+import { LockGlyph } from './LockGlyph'
 import { useEscape } from '../shell/keys'
 import { BAR_GAP, BAR_SURFACE } from './bar'
 
@@ -183,7 +184,7 @@ export function SectionPill({
                   }}
                   className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${slot.locked ? 'bg-key-soft font-semibold text-key-ink' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
                 >
-                  {slot.locked ? <Lock size={15} strokeWidth={2.4} /> : <LockOpen size={15} />} {slot.locked ? 'Locked' : 'Lock'}
+                  <LockGlyph locked={slot.locked} strokeWidth={slot.locked ? 2.4 : 2} /> {slot.locked ? 'Locked' : 'Lock'}
                 </button>
                 <span className="mx-1 h-5 w-px bg-zinc-950/10" />
                 <Util
@@ -705,7 +706,7 @@ export function SectionRail({ slot, index, focused }: { slot: Slot; index: numbe
           >
             {TYPE_LABEL[slot.type]}
           </span>
-          {slot.locked && <Lock size={11} strokeWidth={2.4} className="text-key-ink" />}
+          {slot.locked && <LockGlyph locked size={11} strokeWidth={2.4} className="text-key-ink" />}
         </div>
       </div>
     </div>
