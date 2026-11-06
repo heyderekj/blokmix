@@ -43,7 +43,8 @@ const ROLE: Record<string, string> = {
 const SECTION: Record<string, string> = { headline: 'hero', lead: 'hero', heading: 'features', title: 'features', body: 'features', quote: 'testimonials', name: 'testimonials', role: 'testimonials', other: 'hero' }
 
 const sid = (type: string) => currentSlots(useStore.getState()).find((s) => s.type === type)!.id
-const lineText = (name: string, req: JevRequest) => (req.state as { lines: { text: string }[] }).lines[Number(name.split('_')[1])]?.text
+/** The line a question carries (each question holds its own words). */
+const lineText = (_name: string, _req: JevRequest, q?: { instructions: unknown }) => (q?.instructions as { line: string } | undefined)?.line ?? ''
 
 beforeEach(() => {
   useStore.getState().resetDemo()
@@ -71,8 +72,8 @@ describe('pour in your words', () => {
   })
 
   it('places every line word for word, grows lists to fit, and keeps what it replaced', async () => {
-    fakeJev((name, _q, req) => {
-      const text = lineText(name, req)
+    fakeJev((name, q, req) => {
+      const text = lineText(name, req, q)
       if (name.startsWith('role_')) return text === 'Mill Bakery' ? { option: 'other', p: 0.3 } : { option: ROLE[text], p: 0.92 }
       if (name.startsWith('section_')) return { option: `s_${sid(SECTION[ROLE[text]])}`, p: text === 'Mill Bakery' ? 0.4 : 0.9 }
       if (name.startsWith('list_')) return 0.9
@@ -102,8 +103,8 @@ describe('pour in your words', () => {
   })
 
   it('puts a tray line where you pick', async () => {
-    fakeJev((name, _q, req) => {
-      const text = lineText(name, req)
+    fakeJev((name, q, req) => {
+      const text = lineText(name, req, q)
       if (name.startsWith('role_')) return { option: 'heading', p: 0.4 }
       if (name.startsWith('section_')) return { option: `s_${sid('pricing')}`, p: 0.5 }
       void text

@@ -6,7 +6,7 @@
 import type { LinkTarget, SectionType } from '../types'
 import { TYPE_LABEL } from '../content'
 import type { LinkScope } from '../links'
-import { choice, at } from './ask'
+import { choice } from './ask'
 import { clip } from './state'
 import { shuffled, merged } from './shuffle'
 import { route, type Route } from './read'
@@ -53,10 +53,10 @@ export function linkRequest(asks: LinkAsk[], dests: (a: LinkAsk) => Destination[
   const questions = Object.assign(
     {},
     ...asks.map((a, i) =>
-      shuffled(qName(i), choice(`Where should a visitor land after pressing ${at(`links[${i}].words`)}?`, Object.fromEntries(dests(a).map((d) => [d.key, d.criterion])))),
+      shuffled(qName(i), choice({ question: 'Where should a visitor land after pressing this button or link?', words: clip(a.words, 120), in_section: TYPE_LABEL[a.sectionType] }, Object.fromEntries(dests(a).map((d) => [d.key, d.criterion])))),
     ),
   )
-  return { state: { links: asks.map((a) => ({ words: clip(a.words, 120), in_section: TYPE_LABEL[a.sectionType] })) }, questions }
+  return { state: { page: 'A web page; each question names one of its buttons or links' }, questions }
 }
 
 export interface LinkGuess extends LinkAsk {

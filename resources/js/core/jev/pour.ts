@@ -11,10 +11,11 @@ import { choice, noul, at } from './ask'
 import { clip } from './state'
 import { choiceOf, ranked, yes } from './read'
 import type { Criterion, JevRequest, JevResponse } from './types'
+import { SECTION_CRITERIA } from './vocab'
 
 export const POUR_THRESHOLDS = {
   /** Place a line when (its role's probability) × (its section's) reaches this; else it waits in the tray. */
-  place: 0.5,
+  place: 0.4,
   /** A guess worth showing on a tray line. */
   suggest: 0.15,
   /** Lines in a run read as separate items of one kind. */
@@ -26,18 +27,18 @@ export const POUR_THRESHOLDS = {
 /** What a line of your text can be. */
 export const ROLES = {
   headline: { what: 'The page’s main headline: what this is, in one line', examples: ['Bread worth getting up for'] },
-  heading: { what: 'A heading that opens a section', examples: ['What we bake', 'Questions', 'Our team'] },
+  heading: { what: 'A heading that opens a whole section', not_for: 'The name of one item, plan or product in a list', examples: ['What we bake', 'Questions', 'Our team'] },
   eyebrow: { what: 'A short label above a heading, two or three words', examples: ['New', 'How it works', 'Since 1998'] },
   lead: { what: 'One or two sentences introducing a section or the page', examples: ['Small batches, baked at 4am, gone by noon.'] },
   paragraph: { what: 'A paragraph of prose telling a story or explaining something', not_for: 'A short description of one item in a list' },
-  button: { what: 'A short action people press: a verb and an object', examples: ['Book a table', 'Start free', 'See the menu'] },
-  title: { what: 'The name or title of one item in a list: a feature, a plan, a dish, a post, a step', examples: ['Sourdough', 'Pro plan', 'Fast setup'] },
-  body: { what: 'A sentence describing one item in a list', examples: ['Naturally leavened, 36 hours start to finish.'] },
+  button: { what: 'A short command to press, starting with a verb', not_for: 'A sentence that describes a thing, a plan or a service', examples: ['Book a table', 'Start free', 'See the menu'] },
+  title: { what: 'The name of one item in a list: a feature, a plan, a product, a dish, a post, a step', not_for: 'A heading over a whole section', examples: ['Sourdough', 'Pro plan', 'Coffee club', 'Fast setup'] },
+  body: { what: 'A sentence describing one item, plan or product', not_for: 'A command to press', examples: ['Naturally leavened, 36 hours start to finish.', 'Two bags of coffee a month, delivered.'] },
   question: { what: 'A question a visitor might ask', examples: ['Do you deliver?'] },
   answer: { what: 'The answer to the question before it' },
   quote: { what: 'Something a customer said, a testimonial', examples: ['“Best croissant in town.”'] },
   name: { what: 'A person’s name', examples: ['Ana Ruiz'] },
-  role: { what: 'A person’s job or role', examples: ['Head baker', 'Founder, Mill & Co'] },
+  role: { what: 'Who a person is: their job, title, company, or how they know you', not_for: 'Their name', examples: ['Head baker', 'Founder, Mill & Co', 'Customer since 2019'] },
   price: { what: 'A price', examples: ['$12', '4.50', '$29/mo'] },
   stat: { what: 'A big number with what it counts', examples: ['12,000 loaves a year'] },
   contact: { what: 'An email, phone number, address or opening hours' },
@@ -155,18 +156,23 @@ const sectionKey = (id: string) => `s_${id}`
 
 /** One request: each line's role and section, and whether each run of lines is a list. */
 export function pourRequest(lines: Line[], sections: PourSection[]): JevRequest {
-  const sectionOptions: Record<string, Criterion> = Object.fromEntries(sections.map((s) => [sectionKey(s.slotId), { what: `${TYPE_LABEL[s.type]}${s.heading ? `: “${clip(s.heading, 60)}”` : ''}` }]))
-  sectionOptions.none = { what: 'None of these sections' }
+  // Sections are described by the kind of words they hold, not their current words: those are often placeholders,
+  // and Jev reads literally (a bakery's line "belongs" in no section about something else).
+  const sectionOptions: Record<string, Criterion> = Object.fromEntries(
+    sections.map((s, i) => [sectionKey(s.slotId), { what: `${TYPE_LABEL[s.type]} (section ${i + 1} of ${sections.length}): ${SECTION_CRITERIA[s.type].what}` }]),
+  )
   const questions: JevRequest['questions'] = {}
   for (const l of lines) {
-    if (!l.sure) questions[`role_${l.i}`] = choice(`What is ${at(`lines[${l.i}].text`)} on a website? Read it with the lines around it.`, ROLES)
-    questions[`section_${l.i}`] = choice(`Which section of this page does ${at(`lines[${l.i}].text`)} belong in?`, sectionOptions)
+    // Only the line itself: given its neighbours too, Jev tends to answer for the next line (indirection).
+    // Each question carries its own line: pointing at lines[i] makes Jev count, and it drifts onto a neighbour.
+    const line = clip(l.text, 400)
+    if (!l.sure) questions[`role_${l.i}`] = choice({ question: 'What is this line on a website?', line }, ROLES)
+    questions[`section_${l.i}`] = choice({ question: 'Which of this page’s sections is the best home for this line, going by the kind of words each section holds?', line }, sectionOptions)
   }
   const groups = [...new Set(lines.map((l) => l.group))].filter((g) => lines.filter((l) => l.group === g).length >= 3)
   for (const g of groups) questions[`list_${g}`] = noul(`Are the lines of ${at(`runs.g${g}`)} separate items of the same kind (features, plans, questions, people), rather than one piece of writing?`)
   return {
     state: {
-      lines: lines.map((l) => ({ text: clip(l.text, 400), ...(l.heading ? { marked_heading: true } : {}) })),
       runs: Object.fromEntries(groups.map((g) => [`g${g}`, lines.filter((l) => l.group === g).map((l) => clip(l.text, 120))])),
     },
     questions,
@@ -185,11 +191,26 @@ export interface Read {
 }
 
 /** Jev's answers per line. */
+/**
+ * What code can rule out on its face: a price has a digit, a button is a short command (no full stop, six words at
+ * most), a name or a title is short. Jev reads literally; these keep an obvious slip from landing.
+ */
+export function plausible(role: string, text: string): boolean {
+  const words = text.trim().split(/\s+/).length
+  if (role === 'price' || role === 'stat') return /\d/.test(text)
+  if (role === 'button') return words <= 6 && !/[.!?]$/.test(text.trim())
+  if (role === 'name') return words <= 5 && !/[.!?]$/.test(text.trim())
+  if (role === 'title' || role === 'eyebrow') return words <= 10
+  if (role === 'contact') return /@|\d/.test(text)
+  return true
+}
+
 export function readLines(res: JevResponse | null, lines: Line[]): Read[] {
   return lines.map((line) => {
     const r = line.sure ? null : choiceOf(res, `role_${line.i}`)
     const s = choiceOf(res, `section_${line.i}`)
-    const roles = r ? ranked(r) : line.sure ? [{ option: line.sure, p: 1 }] : [{ option: 'other', p: 0 }]
+    const roles = r ? ranked(r).filter((x) => plausible(x.option, line.text)) : line.sure ? [{ option: line.sure, p: 1 }] : []
+    if (!roles.length) roles.push({ option: 'other', p: 0 })
     const sections = s ? ranked(s) : []
     const top = sections[0]
     return {
@@ -235,18 +256,33 @@ export function composePour(reads: Read[], spots: Spot[], listRuns: (group: numb
   }
   // Items being built per section and list.
   const building = new Map<string, { listId: string; items: Record<string, string>[]; max: number; roles: Set<Role> }>()
+  const sure = (r: Read) => r.pRole * r.pSection >= T.place && !!r.slotId
+  // Single fields (one headline, one intro) go to the likeliest line when several want the same one.
+  const claim = new Map<number, string>()
+  const byField = new Map<string, Read>()
+  for (const r of [...reads].filter(sure).sort((a, b) => b.pRole * b.pSection - a.pRole * a.pSection)) {
+    const contactField = /@/.test(r.line.text) ? 'email' : /^\+?[\d\s().-]{7,}$/.test(r.line.text) ? 'phone' : 'address'
+    const free = spots.find((s) => s.slotId === r.slotId && s.role === r.role && (r.role !== 'contact' || s.field === contactField) && !s.list && !byField.has(`${s.slotId}:${s.field}`))
+    if (free) {
+      byField.set(`${free.slotId}:${free.field}`, r)
+      claim.set(r.line.i, free.field)
+    }
+  }
   for (const r of reads) {
-    const sure = r.pRole * r.pSection >= T.place && !!r.slotId
-    if (!sure) {
+    if (!sure(r)) {
       toTray(r)
       continue
     }
-    const mine = spots.filter((s) => s.slotId === r.slotId && s.role === r.role)
-    // A run Jev called prose doesn't build items, even if a line reads like a title.
+    // Contact details go where their shape says: an email to email, a phone number to phone, the rest to the address.
+    const contactField = /@/.test(r.line.text) ? 'email' : /^\+?[\d\s().-]{7,}$/.test(r.line.text) ? 'phone' : 'address'
+    const mine = spots.filter((s) => s.slotId === r.slotId && s.role === r.role && (r.role !== 'contact' || s.field === contactField))
     const inList = mine.filter((s) => s.list)
-    const single = mine.filter((s) => !s.list && !taken.has(`${s.slotId}:${s.field}`))
-    const asItem = inList.length > 0 && (LEADS.includes(r.role) || ['body', 'answer', 'role', 'price', 'button'].includes(r.role)) && listRuns(r.line.group) !== false
-    if (single.length && !(asItem && r.role !== 'button')) {
+    const single = mine.filter((s) => !s.list && claim.get(r.line.i) === s.field)
+    const listy = inList.length > 0 && (LEADS.includes(r.role) || ['body', 'answer', 'role', 'price', 'button'].includes(r.role))
+    // A single field wins when nothing in a list fits, for buttons, and when Jev called the run prose rather than a list.
+    const preferSingle = single.length > 0 && (!listy || r.role === 'button' || listRuns(r.line.group) === false)
+    const asItem = listy && !preferSingle
+    if (preferSingle) {
       const s = single[0]
       taken.add(`${s.slotId}:${s.field}`)
       ;(plan.words[s.slotId] ??= {})[s.field] = r.line.text

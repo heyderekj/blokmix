@@ -9,7 +9,7 @@ import type { ChoiceQuestion, JevRequest } from '@/core/jev'
 import { fakeJev, realJev } from './helpers/fakeJev'
 
 /** Which link a question is about, from its name (to_3 / to_3__r) and the state. */
-const linkOf = (name: string, req: JevRequest) => (req.state as { links: { words: string }[] }).links[Number(name.match(/^to_(\d+)/)![1])]
+const linkOf = (name: string, req: JevRequest) => (req.questions[name].instructions as { words: string })
 
 /** The option key for a section of this type on the open page. */
 const sectionKey = (q: ChoiceQuestion, type: string) => {

@@ -4,12 +4,12 @@
 
 import { DEFAULT_KEEP, type Slot } from '@/core/types'
 import { setPageSlots } from '@/core/site'
-import { sectionClip, listMax } from '@/core/lists'
+import { sectionClip, listContext } from '@/core/lists'
 import { outline } from '@/core/outline'
 import { parseHtml } from '@/core/html/parse'
-import { splitLines, composePour, type Line } from '@/core/jev/pour'
+import { splitLines, composePour, spotsOf, type Line, type Role } from '@/core/jev/pour'
 import { chunkLines, chooseLayouts, pageRequest, pageSections, readPage, readsFor, describeSections, type Chunk, type PageRead } from '@/core/jev/pageFromWords'
-import { library } from '@/data/library'
+import { library, slotClip } from '@/data/library'
 import { askJev } from '@/lib/jev'
 import { uid } from './uid'
 import { currentSlots, useStore } from './store'
@@ -32,17 +32,17 @@ export async function planPage(text: string): Promise<PagePlan | null> {
   return read ? { lines, chunks, read } : null
 }
 
-/** The most items a layout's lists hold (its own count or the list's max), so a run's items fit. */
-function capacity(clipId: string): number {
+/**
+ * How many items of this kind (plans by their names, questions, people…) a layout holds: only lists whose items take
+ * that role count, so a one-plan band whose plan lists eight features doesn't pass for eight plans.
+ */
+function capacity(clipId: string, lead: Role | null): number {
   const c = library.clips[clipId]
-  if (!c) return 0
+  if (!c || !lead) return c ? Infinity : 0
+  // The stamped section (block ids on its lists), as the board reads it: the raw html's lists have none.
   const sc = sectionClip(c)
-  let most = 0
-  const visit = (nodes: ReturnType<typeof outline>) => {
-    for (const n of nodes) if (n.t === 'list') most = Math.max(most, listMax(sc.blocks.find((b) => b.id === n.id)?.list, n.listKey, n.items.length))
-  }
-  visit(outline(parseHtml(c.html)))
-  return most
+  const spots = spotsOf('x', c.type, outline(parseHtml(sc.html)), (listId) => listContext(sc, {}, listId)?.max ?? 0)
+  return Math.max(0, ...spots.filter((s) => s.role === lead && s.list).map((s) => s.list!.max))
 }
 
 export interface BuiltPage {
@@ -78,6 +78,17 @@ export function buildPage(plan: PagePlan, arrangement: 1 | 2 | 3, into: 'new_pag
   const groupList = new Map(plan.read.chunks.flatMap((c) => c.lines.map((l) => [l.group, c.isList] as const)))
   const poured = composePour(reads, spots, (g) => groupList.get(g) ?? null)
   const done = applyPour(poured)
+  // Only your words: anything your text didn't fill (an eyebrow, a second button, a note) is hidden, never left saying
+  // the layout's sample words. Pictures stay; show a hidden block again from its section.
+  const after = currentSlots(useStore.getState()).filter((s) => slots.some((n) => n.id === s.id))
+  for (const s of after) {
+    const clip = slotClip(s)
+    for (const b of clip.blocks) {
+      if (b.kind === 'image' || b.kind === 'list' || b.kind === 'item' || b.kind === 'card') continue
+      const field = b.field ?? clip.blocks.find((x) => x.parent === b.id && x.field)?.field
+      if (field && !s.words?.[field]) useStore.getState().editBlock(s.id, b.id, { hidden: true })
+    }
+  }
   const tray = trayFrom(poured)
   useWordsTray.setState((s) => ({ lines: [...s.lines, ...tray] }))
   return { pageId, sections: describeSections(sections.map((s) => s.type)).split(' · '), placed: done.placed, waiting: tray.length, kind: plan.read.kind }

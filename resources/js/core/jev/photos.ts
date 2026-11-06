@@ -105,12 +105,11 @@ export interface PhotoBrief {
 /** One Score per photo against the same brief, all in one request. */
 export function rankRequest(brief: PhotoBrief, refs: string[], assets: Record<string, JevAsset>): JevRequest {
   const questions = Object.fromEntries(
-    refs.map((_ref, i) => [`fit_${i}`, score(`How well would ${at(`photos[${i}]`)} illustrate ${at('section')}?`, FIT_LEVELS)]),
+    refs.map((ref, i) => [`fit_${i}`, score({ question: `How well would this photo illustrate ${at('section')}?`, photo: ref }, FIT_LEVELS)]),
   )
   return {
     state: {
       section: { words: clip(brief.words, 400), site: brief.site ?? null, look: brief.look ?? null, searched_for: brief.query ?? null },
-      photos: refs,
     },
     questions,
     assets,

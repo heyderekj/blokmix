@@ -96,7 +96,7 @@ export function ColorsByFeel() {
               onClick={() => {
                 preview(null)
                 runCommand('set_palette', { colors: p.palette }, 'you')
-                useStore.getState().showFlash(`Colors: ${p.words}`, { undo: true })
+                useStore.getState().showFlash(`New colors: ${p.words}`, { undo: true })
               }}
               title={p.words}
               className="cursor-pointer overflow-hidden rounded-lg text-left ring-1 ring-zinc-950/10 transition hover:ring-zinc-400 active:scale-[0.97]"

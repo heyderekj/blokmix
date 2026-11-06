@@ -4,7 +4,7 @@
 // never the words. Together with the gap finder, it says what to make next.
 
 import { ELEMENTS } from './gaps'
-import { choice, at } from './ask'
+import { choice } from './ask'
 import { clip } from './state'
 import { choiceOf, top } from './read'
 import type { Criterion, JevRequest, JevResponse } from './types'
@@ -46,10 +46,10 @@ export type WantFeature = 'say' | 'pour' | 'dress'
 
 export function wantRequest(texts: string[]): JevRequest {
   const questions: JevRequest['questions'] = {}
-  texts.forEach((_t, i) => {
-    questions[`want_${i}`] = choice(`What is someone building a website asking for in ${at(`asks[${i}]`)}?`, WANTS)
+  texts.forEach((t, i) => {
+    questions[`want_${i}`] = choice({ question: 'What is someone building a website asking for here?', ask: clip(t, 200) }, WANTS)
   })
-  return { state: { asks: texts.map((t) => clip(t, 200)) }, questions }
+  return { state: 'Someone building a website asked Blokmix for something it couldn’t do.', questions }
 }
 
 /** The wants worth counting: named, not "other", and sure enough. */

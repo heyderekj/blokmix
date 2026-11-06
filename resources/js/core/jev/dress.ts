@@ -66,7 +66,7 @@ export interface DressBrief {
 export function dressRequest(b: DressBrief, cands: DressCandidate[]): JevRequest {
   const questions: JevRequest['questions'] = {}
   cands.forEach((_c, i) => {
-    questions[`fit_${i}`] = score(`As the background of ${at('section')}, how well does ${at(`backgrounds[${i}]`)} suit it and the feel asked for?`, DRESS_FIT)
+    questions[`fit_${i}`] = score({ question: `As the background of ${at('section')}, how well does this background suit it and the feel asked for?`, background: _c.what }, DRESS_FIT)
   })
   if (b.mocks?.length) {
     const opts: Record<string, Criterion> = Object.fromEntries(b.mocks.map((m) => [m.id, { what: `${m.label}: ${m.hint}` }]))
@@ -82,7 +82,6 @@ export function dressRequest(b: DressBrief, cands: DressCandidate[]): JevRequest
       site: b.site ?? null,
       look: b.look ?? null,
       feel: b.feel ? clip(b.feel, 160) : null,
-      backgrounds: cands.map((c) => c.what),
     },
     questions,
   }

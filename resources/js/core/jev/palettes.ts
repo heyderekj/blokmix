@@ -77,15 +77,17 @@ export interface PaletteBrief {
 /** One request: per palette, how well it suits the brief and whether its colors belong together (and go with the photo). */
 export function paletteRequest(brief: PaletteBrief, cands: Candidate[], refs: string[], assets: Record<string, JevAsset>, photoRef?: string): JevRequest {
   const questions: JevRequest['questions'] = {}
-  cands.forEach((_c, i) => {
-    questions[`fit_${i}`] = score(`How well do the colors of ${at(`palettes[${i}].picture`)} suit ${at('brief')}?`, PALETTE_FIT)
-    questions[`harmony_${i}`] = noul(`Do the colors of ${at(`palettes[${i}].picture`)} look good together?`)
-    if (photoRef) questions[`goes_${i}`] = noul(`Would the colors of ${at(`palettes[${i}].picture`)} look right beside ${at('photo')}?`)
+  // Each question carries its own picture and colors in words: pointing at palettes[i] makes Jev count.
+  cands.forEach((c, i) => {
+    const picture = refs[i]
+    const colors = describePalette(c.palette)
+    questions[`fit_${i}`] = score({ question: `How well do the colors of this little page suit ${at('brief')}?`, picture, colors }, PALETTE_FIT)
+    questions[`harmony_${i}`] = noul({ question: 'Do the colors of this little page look good together?', picture, colors })
+    if (photoRef) questions[`goes_${i}`] = noul({ question: `Would the colors of this little page look right beside ${at('photo')}?`, picture })
   })
   return {
     state: {
       brief: { feel: brief.feel ? clip(brief.feel, 200) : null, site: brief.site ?? null, headline: brief.headline ? clip(brief.headline, 160) : null },
-      palettes: cands.map((c, i) => ({ picture: refs[i], colors: describePalette(c.palette) })),
       ...(photoRef ? { photo: photoRef } : {}),
     },
     questions,

@@ -61,15 +61,15 @@ export function pageRequest(lines: Line[], chunks: Chunk[]): JevRequest {
     ...shuffled('kind', choice(`What kind of website is ${at('text')} for?`, KIND_CRITERIA)),
   }
   for (const ch of chunks) {
-    Object.assign(questions, shuffled(`type_${ch.c}`, choice(`What kind of website section should ${at(`runs[${ch.c}]`)} become?`, TYPE_OPTIONS)))
-    if (ch.lines.length >= 3) questions[`list_${ch.c}`] = noul(`Are the lines of ${at(`runs[${ch.c}]`)} after its first line separate items of the same kind (features, plans, questions, people)?`)
+    // Each question carries its own lines: pointing at runs[i] makes Jev count, and it drifts onto a neighbour.
+    const run = ch.lines.map((l) => clip(l.text, 200))
+    Object.assign(questions, shuffled(`type_${ch.c}`, choice({ question: 'What kind of website section should these lines become?', lines: run }, TYPE_OPTIONS)))
+    if (ch.lines.length >= 3) questions[`list_${ch.c}`] = noul({ question: 'After the first line, are these lines separate items of the same kind (features, plans, questions, people)?', lines: run })
   }
-  for (const l of lines) if (!l.sure) questions[`role_${l.i}`] = choice(`What is ${at(`lines[${l.i}]`)} on a website? Read it with the lines around it.`, ROLES)
+  for (const l of lines) if (!l.sure) questions[`role_${l.i}`] = choice({ question: 'What is this line on a website?', line: clip(l.text, 400) }, ROLES)
   return {
     state: {
       text: chunks.map((ch) => ch.lines.map((l) => clip(l.text, 160)).join('\n')).join('\n\n').slice(0, 6000),
-      runs: chunks.map((ch) => ch.lines.map((l) => clip(l.text, 200))),
-      lines: lines.map((l) => clip(l.text, 400)),
     },
     questions,
   }
@@ -125,29 +125,30 @@ export function pageSections(read: PageRead): { type: SectionType; chunk: TypedC
   return out
 }
 
-/** How many items a run brings to its section's main list: one per item-opening line. */
-export function itemCount(chunk: TypedChunk | null, read: PageRead): number {
-  if (!chunk) return 0
+/** How many items a run brings, and of what: one per item-opening line (titles, questions, quotes, names, numbers). */
+export function itemCount(chunk: TypedChunk | null, read: PageRead): { need: number; lead: Role | null } {
+  if (!chunk) return { need: 0, lead: null }
   const opens: Role[] = ['title', 'question', 'quote', 'name', 'stat']
   const counts = new Map<Role, number>()
   for (const l of chunk.lines) {
     const r = read.roles[l.i]?.role
     if (r && opens.includes(r)) counts.set(r, (counts.get(r) ?? 0) + 1)
   }
-  return Math.max(0, ...counts.values())
+  const [lead, need] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] ?? [null, 0]
+  return { need, lead }
 }
 
 /**
  * Built-in layouts for each section, the `pick`th that fits (0, 1, 2 give the three arrangements): one whose main list
  * holds the run's items, ordered the way suggestions are (contrasting rhythm with the section above).
  */
-export function chooseLayouts(sections: ReturnType<typeof pageSections>, read: PageRead, library: Library, capacity: (clipId: string) => number, pick: number): string[] {
+export function chooseLayouts(sections: ReturnType<typeof pageSections>, read: PageRead, library: Library, capacity: (clipId: string, lead: Role | null) => number, pick: number): string[] {
   const placed: { type: SectionType; clipId: string; id: string }[] = []
   return sections.map((s, i) => {
-    const need = itemCount(s.chunk, read)
+    const { need, lead } = itemCount(s.chunk, read)
     const all = suggestClip(s.type, placed, i, library).map((x) => x.clipId)
     const builtIn = all.filter((id) => library.clips[id]?.sourceId === 'layout')
-    const pool = (builtIn.length ? builtIn : all).filter((id) => capacity(id) >= need)
+    const pool = (builtIn.length ? builtIn : all).filter((id) => capacity(id, lead) >= need)
     const options = pool.length ? pool : builtIn.length ? builtIn : all
     const clipId = options[pick % Math.max(1, options.length)] ?? options[0]
     placed.push({ type: s.type, clipId, id: `p${i}` })

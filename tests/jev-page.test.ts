@@ -43,12 +43,12 @@ const ROLE: Record<string, string> = {
 }
 
 const jevOnMenu = () =>
-  fakeJev((name, _q, req) => {
-    const st = req.state as { lines: string[] }
+  fakeJev((name, q, req) => {
+    void req
     if (name.startsWith('kind')) return { option: 'local', p: 0.9 }
     if (name.startsWith('type_')) return { option: TYPE[name.match(/^type_(\d+)/)![1]], p: 0.88 }
     if (name.startsWith('list_')) return 0.9
-    if (name.startsWith('role_')) return { option: ROLE[st.lines[Number(name.slice(5))]] ?? 'other', p: 0.9 }
+    if (name.startsWith('role_')) return { option: ROLE[(q.instructions as { line: string }).line] ?? 'other', p: 0.9 }
     return undefined
   })
 

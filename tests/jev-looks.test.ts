@@ -51,12 +51,10 @@ describe('colors by feel', () => {
   })
 
   it('finds three palettes in two rounds, best first, and puts one on as one step', async () => {
-    const fake = fakeJev((name, q, req) => {
-      const st = req.state as { palettes: { colors: string }[] }
-      const i = Number(name.split('_')[1])
-      if (name.startsWith('fit_')) return { level: /orange|amber|brown|cream/.test(st.palettes[i].colors) ? 4 : 1 }
+    const fake = fakeJev((name, q) => {
+      const colors = (q.instructions as { colors?: string }).colors ?? ''
+      if (name.startsWith('fit_')) return { level: /orange|amber|brown|cream/.test(colors) ? 4 : 1 }
       if (name.startsWith('harmony_')) return 0.8
-      void q
       return undefined
     })
     const out = (await runCommand('suggest_palettes', { feel: 'a cozy bakery' })) as { colors: Record<string, string>; words: string; fit: number }[]
@@ -86,9 +84,8 @@ describe('dress it up', () => {
   })
 
   it('hands back ordinary commands that pass their schema', async () => {
-    fakeJev((name, _q, req) => {
-      const st = req.state as { backgrounds: string[] }
-      if (name.startsWith('fit_')) return { level: /grain|mesh|gradient/i.test(st.backgrounds[Number(name.slice(4))]) ? 4 : 1 }
+    fakeJev((name, q) => {
+      if (name.startsWith('fit_')) return { level: /grain|mesh|gradient/i.test((q.instructions as { background: string }).background) ? 4 : 1 }
       if (name === 'mock') return { option: 'dashboard', p: 0.8 }
       return undefined
     })
