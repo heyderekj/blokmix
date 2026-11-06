@@ -9,7 +9,7 @@
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { gapMarkdown, gapReport, gapRequest, readSection, type SectionRead } from '../../resources/js/core/jev/gaps'
+import { gapMarkdown, gapReport, gapRequest, placeWords, readSection, type SectionRead } from '../../resources/js/core/jev/gaps'
 import { imageRef } from '../../resources/js/core/jev'
 import type { SectionType } from '../../resources/js/core/types'
 import { library } from '../../resources/js/data/library'
@@ -39,10 +39,13 @@ if (!jevKey()) {
 interface UploadSection { order: number; type: SectionType; layoutId?: string; status?: string; screenshot?: string }
 interface Upload { slug: string; pages: { path: string; sections: UploadSection[] }[] }
 
-const jobs: { site: string; page: string; s: UploadSection; file: string }[] = []
+const jobs: { site: string; page: string; s: UploadSection; file: string; place: string }[] = []
 for (const slug of slugs) {
   const up = JSON.parse(readFileSync(join(ROOT, slug, 'upload.json'), 'utf8')) as Upload
-  for (const page of up.pages) for (const s of page.sections) if (s.screenshot && existsSync(join(ROOT, slug, s.screenshot))) jobs.push({ site: slug, page: page.path, s, file: join(ROOT, slug, s.screenshot) })
+  for (const page of up.pages)
+    page.sections.forEach((s, k) => {
+      if (s.screenshot && existsSync(join(ROOT, slug, s.screenshot))) jobs.push({ site: slug, page: page.path, s, file: join(ROOT, slug, s.screenshot), place: placeWords(k, page.sections.length) })
+    })
 }
 const todo = jobs.slice(0, limit)
 console.log(`Reading ${todo.length} sections from ${slugs.length} sites…`)
@@ -66,7 +69,7 @@ const reads = await pool(todo, 6, async (j, i): Promise<SectionRead | null> => {
   const img = converted[i]
   if (!img) return null
   const ref = imageRef(`s${i}`)
-  const { res, ms, error } = await ask(gapRequest(ref, img.asset))
+  const { res, ms, error } = await ask(gapRequest(ref, img.asset, j.place))
   if (error) errors.push(`${j.site}/${j.s.screenshot}: ${error}`)
   times.push(ms)
   tokens += res?.usage.input_tokens ?? 0

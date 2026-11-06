@@ -61,7 +61,7 @@ export const ELEMENTS: GapElement[] = [
   { id: 'form', label: 'Form', kind: 'element', question: 'Is there a form with fields to fill in (beyond one email box)?', have: ['contact.layout-form', 'hero.layout-form'] },
   { id: 'newsletter', label: 'Email sign-up', kind: 'element', question: 'Is there a single email field with a sign-up button?', have: ['cta.layout-newsletter', 'footer.layout-newsletter'] },
   { id: 'sticker', label: 'Sticker or stamp', kind: 'element', question: 'Is there a tilted sticker, stamp or round badge stuck on the design?', have: ['cta.layout-sticker'] },
-  { id: 'ui-screenshot', label: 'Product screenshot', kind: 'element', question: 'Does it show a screenshot of an app or website UI?', have: ['mock:dashboard', 'mock:analytics'] },
+  { id: 'ui-screenshot', label: 'Product screenshot', kind: 'element', question: 'This whole picture is a screenshot of a website. Inside it, is there a smaller picture of a different app’s or product’s screen (a dashboard, a phone app, a product UI) shown as an image?', have: ['mock:dashboard', 'mock:analytics'] },
   // Visual treatments
   { id: 'grain', label: 'Grain or noise', kind: 'visual', question: 'Is there a visible grain or noise texture over the colors?', have: ['effect:grain', 'backdrop:grain'] },
   { id: 'glass', label: 'Frosted glass', kind: 'visual', question: 'Are there frosted-glass panels you can blurrily see through?', have: ['effect:glass'] },
@@ -85,16 +85,20 @@ const TYPES_PLUS: Record<string, Criterion> = { ...SECTION_CRITERIA, none_of_the
 /** The questions for one section's screenshot (`section` in the state is the picture's reference). */
 export function gapQuestions(): Record<string, Question> {
   const q: Record<string, Question> = {
-    type: choice(`What kind of website section is ${at('section')}?`, TYPES_PLUS),
+    type: choice(`What kind of website section is ${at('section')}? ${at('place')} says where it sits on its page.`, TYPES_PLUS),
     archetype: choice(`How is ${at('section')} laid out?`, ARCHETYPES),
   }
   for (const e of ELEMENTS) q[`el_${e.id.replace(/-/g, '_')}`] = noul(`${e.question} Look at ${at('section')}.`)
   return q
 }
 
-/** The request for one section's screenshot. */
-export function gapRequest(ref: string, asset: NonNullable<JevRequest['assets']>[string]): JevRequest {
-  return { model: 'jev-latest', state: { section: ref }, questions: gapQuestions(), assets: { [ref]: asset } }
+/** Where a section sits, in words: a screenshot alone makes any big heading look like the top of a page. */
+export const placeWords = (order: number, count: number) =>
+  order === 0 ? `The first section at the top of the page (1 of ${count})` : order === count - 1 ? `The last section at the bottom of the page (${count} of ${count})` : `Section ${order + 1} of ${count}, partway down the page, not the top`
+
+/** The request for one section's screenshot, with where it sits on its page. */
+export function gapRequest(ref: string, asset: NonNullable<JevRequest['assets']>[string], place?: string): JevRequest {
+  return { model: 'jev-latest', state: { section: ref, ...(place ? { place } : {}) }, questions: gapQuestions(), assets: { [ref]: asset } }
 }
 
 /** One section, as Jev read it. */
