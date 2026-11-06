@@ -1,4 +1,5 @@
 import type { BlockEdit, MediaFill, TokenKey } from './types'
+import { ORIGINAL } from './blocks/style'
 import { FILL_IDS } from './treatments/fills'
 
 /**
@@ -27,7 +28,7 @@ export function fillNeedsPack(fill: Pick<MediaFill, 'source' | 'style'> | null |
 /** What part of a block change needs a mix pack, in words ("A block look"), or null when Free has it. */
 export function blockEditNeedsPack(patch: Partial<BlockEdit> | null): string | null {
   if (!patch) return null
-  if (patch.variant) return 'A block look'
+  if (patch.variant && patch.variant !== ORIGINAL) return 'A block look'
   if (fillNeedsPack(patch.media)) return patch.media!.source === 'mock' ? 'A UI mockup' : patch.media!.source === 'shader' ? 'A live shader' : 'A generative picture'
   return null
 }

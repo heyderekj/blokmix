@@ -396,7 +396,12 @@ export function buildNotes(i: PacketInput): string {
 }
 
 /** What a coding agent should do with this packet, ending in the review loop. `run` names the build when Blokmix started one. */
-export function agentPrompt(i: PacketInput, target: BuildTarget, run?: { build: string; dir: string }): string {
+/**
+ * The prompt that goes with the files. The steps that report back to Blokmix (and the ReviseMy review loop) need an
+ * agent connected to Blokmix: they're left out when `mcp` is false, so a plain copy-and-paste prompt has none.
+ */
+export function agentPrompt(i: PacketInput, target: BuildTarget, run?: { build: string; dir: string }, opts: { mcp?: boolean } = {}): string {
+  const mcp = !!run || opts.mcp !== false
   const t = target === 'astro' ? 'Astro' : 'Next.js (App Router)'
   const dir = target === 'astro' ? 'astro/' : 'next/'
   const build = run ? `"${run.build}"` : 'the build letter prepare_build returned'
@@ -407,7 +412,10 @@ export function agentPrompt(i: PacketInput, target: BuildTarget, run?: { build: 
 3. Follow the per-section instructions (layout, style, copy, motion) and the rules at the end of BLOKMIX.md, especially: use only the tokens in tokens.css.
 4. Replace any copy listed as retained source copy, and any logos or imagery, with project-appropriate content. Words live in the content folder's JSON files; edit them there.
 5. Run the dev server, compare against reference.html, and fix any visual drift at 1440px and 390px.
+${mcp ? AGENT_STEPS(build, run, target) : ''}`
+}
 
+const AGENT_STEPS = (build: string, run: { build: string; dir: string } | undefined, target: BuildTarget) => `
 ## Report back to Blokmix
 
 With the blokmix MCP server connected${run ? '' : ' (start with prepare_build, which writes this packet to disk and opens the build on the canvas)'}:
@@ -425,7 +433,6 @@ If the ReviseMy MCP server is connected, have the page reviewed and bring the ma
 5. For each fix, call ReviseMy resolve_marks {id: review id, marks: [{id: mark id, status: "resolved", note}]} and Blokmix update_note {note, status: "resolved", resolution}. list_notes shows each mark's ReviseMy ids under external. Answer questions with reply_to_marks and reply_note. Only a person verifies.
 6. After changes are requested, open the next pass with create_review {parent_id} and repeat.
 `
-}
 
 export function packetFiles(i: PacketInput): FileMap {
   const files: FileMap = {

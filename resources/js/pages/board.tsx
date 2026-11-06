@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useStore } from '@/state/store'
 import { Canvas } from '@/ui/canvas/Canvas'
 import { World } from '@/ui/canvas/World'
@@ -7,7 +7,7 @@ import { Lightbox } from '@/ui/shell/Lightbox'
 import { Dock } from '@/ui/shell/Dock'
 import { SelectionStyle } from '@/ui/panels/SelectionStyle'
 import { SiteLibrary } from '@/ui/library/SiteLibrary'
-import { Flash, HelpOverlay } from '@/ui/shell/Overlays'
+import { Flash, HelpOverlay, toggleHelp } from '@/ui/shell/Overlays'
 import { useShortcuts } from '@/hooks/useShortcuts'
 import { StartOverlay } from '@/ui/start/StartOverlay'
 import { BuySheet } from '@/ui/shell/BuySheet'
@@ -19,8 +19,6 @@ import { BuySheet } from '@/ui/shell/BuySheet'
  */
 export default function Board() {
   const theme = useStore((s) => s.ui.theme)
-  const [help, setHelp] = useState(false)
-  const toggleHelp = useCallback(() => setHelp((h) => !h), [])
   useShortcuts(toggleHelp)
 
   useEffect(() => {
@@ -38,7 +36,7 @@ export default function Board() {
       <Lightbox />
       <SiteLibrary />
       <Flash />
-      <HelpOverlay open={help} onClose={() => setHelp(false)} />
+      <HelpOverlay />
       <StartOverlay />
       <BuySheet />
     </div>

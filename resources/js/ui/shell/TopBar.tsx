@@ -142,7 +142,7 @@ function SaveButton({ short }: { short?: boolean }) {
     )
   if (!canEdit(role))
     return (
-      <span className="ml-0.5 flex h-8 items-center gap-1.5 rounded-full bg-zinc-950/5 px-3 text-[12.5px] font-semibold text-zinc-600" title="You can look and leave marks">
+      <span className="ml-0.5 flex h-8 items-center gap-1.5 rounded-full bg-zinc-950/5 px-3 text-[12.5px] font-semibold text-zinc-600" title="You can look and leave notes">
         <Eye size={14} /> {short ? 'View' : 'View only'}
       </span>
     )
@@ -150,7 +150,7 @@ function SaveButton({ short }: { short?: boolean }) {
     <button
       type="button"
       onClick={() => pressVersionAndFly()}
-      title="Save the working mix as a new version (⌘S)"
+      title="Save a version (⌘S)"
       className="btn-lit ml-0.5 flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
     >
       {short ? 'Save' : 'Save version'}
@@ -254,7 +254,7 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
           <div className="mx-3 my-1 h-px bg-zinc-950/6" />
           {isHosted() && row(Users, 'Share', () => st().setUi({ sheet: 'share' }), <Presence size={22} inline />)}
           {isHosted() && row(Globe, 'Publish to blok.page', () => st().setUi({ sheet: 'publish' }))}
-          {row(Package, 'Export for your agent', () => st().setUi({ sheet: 'packet' }))}
+          {row(Package, 'Export', () => st().setUi({ sheet: 'packet' }))}
         </div>
       ) : (
         <>
@@ -281,7 +281,7 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
             <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
           </>
         )}
-        <MenuItem icon={Download} label="Export mix as a file" onClick={() => (st().setUi({ sheet: 'none' }), downloadMix())} />
+        <MenuItem icon={Download} label="Download a copy of this mix" onClick={() => (st().setUi({ sheet: 'none' }), downloadMix())} />
         {!isHosted() && (
           <MenuItem
             icon={Upload}
@@ -409,11 +409,11 @@ function ToolsIsland() {
             <button
               type="button"
               onClick={() => st().setUi({ mode: 'unified' })}
-              title="The canvas shows every section as it was clipped. Back to your style (U)"
-              aria-label="Showing sections as clipped. Back to your style"
+              title="Showing originals. Back to your style (U)"
+              aria-label="Showing originals. Back to your style"
               className="mr-0.5 flex h-8 cursor-pointer items-center gap-1 rounded-full bg-attention-soft pl-3 pr-2 text-[12.5px] font-semibold text-attention-ink transition-[scale] active:scale-[0.97]"
             >
-              As clipped <X size={13} strokeWidth={2.4} />
+              Original <X size={13} strokeWidth={2.4} />
             </button>
           )}
           {tool('style', SwatchBook, 'Style guide', decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide (G)', decisions > 0 ? <span className="size-2 rounded-full bg-attention" aria-label={`${decisions} to decide`} /> : undefined)}

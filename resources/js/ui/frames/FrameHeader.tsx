@@ -56,7 +56,7 @@ export function HeaderButton({
         e.stopPropagation()
         onClick?.(e)
       }}
-      className={`grid size-7 shrink-0 place-items-center rounded-lg text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-90 disabled:opacity-30 ${
+      className={`grid size-7 shrink-0 place-items-center rounded-lg text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97] disabled:opacity-30 ${
         active ? 'bg-zinc-950/5 text-zinc-900' : ''
       }`}
     >

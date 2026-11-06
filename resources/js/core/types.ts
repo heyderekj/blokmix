@@ -161,6 +161,8 @@ export interface Slot {
   clipId: string
   locked: boolean
   keep: Keep
+  /** The layout it showed before the last change, for "Back to the one you had". */
+  prevClipId?: string
   /** Block-level changes (variants, styles), by clip then block. */
   edits?: SlotEdits
   /** This section's own words, over the shared copy for its type. */
@@ -253,6 +255,8 @@ export interface GuideState {
   picture?: PictureDefault
   /** The skin this guide came from (core/skins.ts), so the board and the packet can name it. */
   skin?: { id: string; name: string }
+  /** Your brand color: the palette is made from it, and trying another theme keeps it (unless color is set to Surprise). */
+  brand?: { color: string }
 }
 
 /** A type of section's look across the page. */
@@ -291,6 +295,8 @@ export interface ResolvedGuide {
 
 export interface ProjectContent {
   brand: string
+  /** Your logo, once: it fills the nav's and footer's logo wherever they don't have a picture of their own. */
+  logo?: MediaFill
   fields: Partial<Record<SectionType, Record<string, string>>>
 }
 

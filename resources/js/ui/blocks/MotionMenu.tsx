@@ -228,7 +228,7 @@ export function SectionMotionRows({ slot, untitled }: { slot: Slot; untitled?: b
   const on = m.mode === 'preset' ? (m.enter ?? 'rise') : m.mode === 'captured' && !asComes ? 'none' : m.mode
   const tiles: { id: string; label: string; hint: string }[] = [
     { id: 'none', label: 'None', hint: 'Still' },
-    ...(!asComes ? [] : layout ? [{ id: 'captured', label: 'From skin', hint: `What ${skinName ?? 'the skin'} does: ${ENTER_INFO.find((e) => e.id === skinEnter)?.label ?? 'Rise'}` }] : [{ id: 'captured', label: 'As clipped', hint: 'The motion it came with' }]),
+    ...(!asComes ? [] : layout ? [{ id: 'captured', label: 'From the theme', hint: `What ${skinName ?? 'the theme'} does: ${ENTER_INFO.find((e) => e.id === skinEnter)?.label ?? 'Rise'}` }] : [{ id: 'captured', label: 'Original', hint: 'The motion it came with' }]),
     ...ENTER_INFO,
   ]
   const pick = (id: string) => {
@@ -253,7 +253,7 @@ export function SectionMotionRows({ slot, untitled }: { slot: Slot; untitled?: b
                 e.stopPropagation()
                 row.current?.scrollBy({ left: dir * 208, behavior: 'smooth' })
               }}
-              className="grid size-6 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.92]"
+              className="grid size-6 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
             >
               {dir < 0 ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
             </button>

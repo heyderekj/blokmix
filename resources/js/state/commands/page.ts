@@ -7,7 +7,7 @@ import { findLibraryFont, fontStack } from '@/core/fonts'
 import { editedTextStyles, resolveTextStyles, TEXT_STYLE_LABEL, TEXT_STYLES } from '@/core/textStyles'
 import { useStore } from '../store'
 import { allSlots } from '@/core/site'
-import { CommandError, findPage, findSection, describeSection, clean, positionOf } from './refs'
+import { CommandError, findPage, findSection, findBlock, describeSection, clean, positionOf } from './refs'
 
 /** The page as a whole: its sections, what each keeps, and the style guide tokens. */
 export const write = {
@@ -79,6 +79,28 @@ export const write = {
     const choice: Choice | null = value === null ? null : { kind: 'custom', value }
     useStore.getState().chooseToken(i.key as TokenKey, choice)
     return { key: i.key, value: resolveGuide(useStore.getState().guide).tokens[i.key as TokenKey] }
+  },
+  set_brand: (i: CommandInput<'set_brand'>) => {
+    const changed = useStore.getState().setBrand(i.name)
+    return { name: useStore.getState().content.brand, changed }
+  },
+  set_brand_color: (i: CommandInput<'set_brand_color'>) => {
+    useStore.getState().setBrandColor(i.color)
+    const t = resolveGuide(useStore.getState().guide).tokens
+    return { brand: i.color, primary: t['color.primary'], onPrimary: t['color.onPrimary'], text: t['color.text'], bg: t['color.bg'] }
+  },
+  set_logo: (i: CommandInput<'set_logo'>) => {
+    if (i.remove) {
+      useStore.getState().setLogo(null)
+      return { logo: null }
+    }
+    if (i.section === undefined || !i.block) throw new CommandError('Give the section and block of a picture to use as the logo, or remove: true')
+    const slot = findSection(i.section)
+    const b = findBlock(slot, i.block)
+    const media = slot.edits?.[slot.clipId]?.[b.id]?.media
+    if (b.kind !== 'image' || !media) throw new CommandError(`${b.label} has no picture of its own to use as the logo`)
+    useStore.getState().setLogo(media)
+    return { logo: media }
   },
   add_brand_colour: (i: CommandInput<'add_brand_colour'>) => {
     useStore.getState().addSwatch(i.name, i.value)

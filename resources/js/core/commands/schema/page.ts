@@ -142,6 +142,24 @@ export const PAGE_COMMANDS = {
     input: z.object({ tone: z.enum(['light', 'dark']) }),
     write: true,
   },
+  set_brand: {
+    description:
+      'Change the site’s name everywhere it’s written: the nav and footer, headlines, the copyright line, each section’s own words and kept word options (whole words only). One undo step; says how many places changed.',
+    input: z.object({ name: z.string().trim().min(1).max(80) }),
+    write: true,
+  },
+  set_brand_color: {
+    description:
+      'Set the brand color: a whole readable palette is made from it (text, muted, borders, buttons and the text on them all pass AA), and trying another skin keeps it unless the contract sets color to Surprise. null forgets it (the colors stay as they are).',
+    input: z.object({ color: z.string().regex(/^#[0-9a-f]{3,8}$/i).nullable() }),
+    write: true,
+  },
+  set_logo: {
+    description:
+      'Use one picture as the site’s logo: it fills the nav’s and footer’s logo wherever they have no picture of their own. Give the section and block of a picture already on the page (one you or the person put there), or remove to go back to the logo as words.',
+    input: z.object({ section: section.optional(), block: block.optional(), remove: z.boolean().optional() }),
+    write: true,
+  },
   add_brand_colour: {
     description: 'Add a named brand color to the palette; use it as "x:<name>" in styles.',
     input: z.object({ name: z.string().min(1), value: z.string().regex(/^#[0-9a-f]{3,8}$/i) }),

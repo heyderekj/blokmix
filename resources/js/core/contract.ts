@@ -69,6 +69,7 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
       return group ? [group] : []
     }
     case 'add_brand_colour':
+    case 'set_brand_color':
     case 'set_tone':
       return ['color']
     case 'set_dial': {
@@ -99,9 +100,11 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'clip_from_site':
       return ['layout']
     case 'set_words':
+    case 'set_brand':
     case 'word_options':
       return ['words']
     case 'set_mock':
+    case 'set_logo':
     case 'set_image':
     case 'set_media':
       return ['pictures']

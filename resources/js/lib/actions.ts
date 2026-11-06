@@ -10,7 +10,7 @@ export function pressVersionAndFly() {
   const st = useStore.getState()
   const head = st.head ? st.versions[st.head] : null
   if (head && snapshotKey(head.snapshot) === snapshotKey(st) && head.parentId === (st.branchFrom ?? head.parentId)) {
-    st.showFlash(`Nothing new since ${head.letter}: slide something first`)
+    st.showFlash(`Nothing new since ${head.letter}: change something first`)
     return
   }
   const id = st.pressVersion()

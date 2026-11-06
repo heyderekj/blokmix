@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { bandTokens, sectionTokens, widthTokens } from '@/core/surface'
 import { create } from 'zustand'
-import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
+import type { TokenKey, BlockEdit, BlockInfo, Clip, GuideState, MediaFill, ProjectContent, ResolvedGuide, SectionMotion, SectionSpacing, Slot, Swatch, TokenSet } from '@/core/types'
 import { backdropCss, backdropShaderId, effectsVars, isBackdropId, readBackdrop, type EffectsState, type ShaderSpec, type TreatmentValue } from '@/core/treatments'
 import { blockCss, defaultFor, effectiveEdit, sectionSpacingCss, slug } from '@/core/blocks/style'
 import { pictureFor, withSectionDefaults } from '@/core/sectionDefaults'
@@ -25,7 +25,7 @@ export const FONT_CATALOG = [...allFonts(library), ...BASE_FONTS]
 export const VIEWPORT_VH: Record<Viewport, string> = { desktop: '9px', mobile: '8.44px' }
 
 /** Page-wide block defaults, extra colors and effects, for frameStateFor; and where links can lead from this page and from the shared nav and footer. */
-export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles' | 'sections' | 'picture'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] } }
+export type PageStyle = Pick<GuideState, 'swatches' | 'components' | 'effects' | 'textStyles' | 'sections' | 'picture'> & { link?: { page: LinkScope; shared: LinkScope; sharedIds: string[] }; logo?: MediaFill }
 
 /** Effects you're dialing, shown on every section before you let go. Not undoable state. */
 export const useEffectPreview = create<{ effects: EffectsState | null; set: (effects: EffectsState | null) => void }>()((set) => ({
@@ -41,6 +41,7 @@ export function usePageStyle(): PageStyle {
   const saved = useStore((s) => s.guide.effects)
   const sections = useStore((s) => s.guide.sections)
   const picture = useStore((s) => s.guide.picture)
+  const logo = useStore((s) => s.content.logo)
   const dialing = useEffectPreview((s) => s.effects)
   const effects = dialing ?? saved
   // Only the site's shape matters to links (pages, paths, which sections where), not every edit.
@@ -53,9 +54,9 @@ export function usePageStyle(): PageStyle {
     const { site, ui } = useStore.getState()
     const here = site.pages.find((p) => p.id === ui.pageId) ?? site.pages[0]
     const sharedIds = [site.shared.nav?.id, site.shared.footer?.id].filter((x): x is string => !!x)
-    return { swatches, components, textStyles, effects, sections, picture, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
+    return { swatches, components, textStyles, effects, sections, picture, logo, link: { page: siteScope(site, here.id), shared: siteScope(site, null), sharedIds } }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swatches, components, textStyles, effects, sections, picture, shape])
+  }, [swatches, components, textStyles, effects, sections, picture, logo, shape])
 }
 
 /** Where one section's links can lead: from its page, or from everywhere for the shared nav and footer. */
@@ -130,7 +131,7 @@ export function frameStateFor(
     outline: !slot.keep.layout,
     slider: slot.slider ?? NO_SLIDER,
     blocks: withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, backdrop, band, page?.textStyles, !!reading?.ink), clip.extras?.banner ? bannerMoves(slot) : null),
-    media: mediaFor(clip, slot.edits?.[clip.id], tokens, page?.picture, slot.keep.style),
+    media: mediaFor(clip, slot.edits?.[clip.id], tokens, page?.picture, slot.keep.style, page?.logo),
     backdrop: backdropShader(backdrop, band),
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? iconsFor(clip, slot.edits?.[clip.id], library.sources[clip.sourceId]?.tokens['icon.set'] ?? guide['icon.set'], true) : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
@@ -188,11 +189,11 @@ function iconsFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, set:
 
 const mediaCache = new Map<string, FrameState['media'][string]>()
 /** Pictures for image blocks; placeholders are redrawn from the current palette. */
-function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet, picture: PageStyle['picture'], keepsStyle: boolean): FrameState['media'] {
-  if (!edits && !picture) return NO_MEDIA
+function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet, picture: PageStyle['picture'], keepsStyle: boolean, logo?: MediaFill): FrameState['media'] {
+  if (!edits && !picture && !logo) return NO_MEDIA
   const out: FrameState['media'] = {}
   for (const b of clip.blocks) {
-    const fill = pictureFor(edits?.[b.id]?.media, b, picture, clip.origin, keepsStyle)
+    const fill = pictureFor(edits?.[b.id]?.media, b, picture, clip.origin, keepsStyle, { type: clip.type, logo })
     if (!fill || b.kind !== 'image') continue
     const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' || fill.source === 'mock' || fill.source === 'shader' ? tokens : null])
     let m = mediaCache.get(key)

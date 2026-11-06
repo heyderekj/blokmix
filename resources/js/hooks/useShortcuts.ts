@@ -9,19 +9,17 @@ import { tileNeighbor, listContext } from '@/core/lists'
 import { wordChoices, currentWords } from '@/core/words'
 import { TYPE_LABEL } from '@/core/content'
 import { stepLook } from '@/ui/blocks/LooksPicker'
+import { pressable, typing } from '@/ui/shell/keys'
 
 const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
-
-function typing(t: EventTarget | null) {
-  const el = t as HTMLElement | null
-  return !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
-}
 
 /** Keyboard-first: everything in the core loop has a key. */
 export function useShortcuts(onHelp: () => void) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (typing(e.target) || e.defaultPrevented) return
+      // Enter on a focused button presses it; it doesn't save a version.
+      if (e.key === 'Enter' && pressable(e.target)) return
       const st = useStore.getState()
       const mod = e.metaKey || e.ctrlKey
       const focused = currentSlots(st).find((s) => s.id === st.ui.focusedSlotId)

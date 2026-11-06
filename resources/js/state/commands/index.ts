@@ -5,6 +5,8 @@ import { canEdit, useAccount } from '@/lib/account'
 import { CommandError, findSection } from './refs'
 import { PackRefusal, strictly } from '../plan'
 import { contractRefusal } from '@/core/contract'
+import { TYPE_LABEL } from '@/core/content'
+import type { SectionType } from '@/core/types'
 import * as read from './read'
 import * as review from './review'
 import * as notes from './notes'
@@ -122,14 +124,20 @@ function summary(name: string, input: Record<string, unknown>): string {
       return String(input.block).includes(' · ') ? `changed ${input.block}` : `changed ${input.block}${sec ? ` in${sec}` : ''}`
     case 'set_words':
       return `rewrote${sec}`
+    case 'set_brand':
+      return `renamed the site ${String(input.name)}`
+    case 'set_brand_color':
+      return input.color ? 'changed the brand color' : 'forgot the brand color'
+    case 'set_logo':
+      return input.remove ? 'took the logo away' : 'set the logo'
     case 'add_section':
-      return `added a ${input.type}`
+      return `added a ${TYPE_LABEL[input.type as SectionType]?.toLowerCase() ?? 'section'}`
     case 'add_page':
       return `added ${input.path}`
     case 'add_note':
       return `left a ${String(input.kind).replace('-', ' ')} note${sec ? ` on${sec}` : ''}`
     case 'update_note':
-      return `marked N${String(input.note).replace(/^n/i, '')} ${String(input.status).replace('_', ' ')}`
+      return `marked note ${String(input.note).replace(/^n/i, '')} ${String(input.status).replace('_', ' ')}`
     case 'prepare_build':
       return `started building ${input.version}`
     case 'publish':
@@ -147,8 +155,8 @@ function summary(name: string, input: Record<string, unknown>): string {
     case 'apply_start':
       return `started over from a ${input.skin ?? 'wireframe'} start`
     case 'reply_note':
-      return `replied on N${String(input.note).replace(/^n/i, '')}`
+      return `replied on note ${String(input.note).replace(/^n/i, '')}`
     default:
-      return `${name.replace(/_/g, ' ')}${sec}`
+      return 'changed the mix'
   }
 }

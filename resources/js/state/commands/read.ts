@@ -6,13 +6,14 @@ import { suggestClip, suggestTypes } from '@/core/suggest'
 import { resolveGuide, openGroups } from '@/core/guide'
 import { readDials, toneOfGuide } from '@/core/dials'
 import { library, slotClip } from '@/data/library'
+import { cycleIds } from '@/core/library'
 import { PROVIDER_LABEL, PROVIDER_LICENSE, searchFonts } from '@/core/fonts'
 import { listContext } from '@/core/lists'
 import { contentJson, type OutlineNode } from '@/core/outline'
 import { wordChoices } from '@/core/words'
 import { pageView } from '@/core/site'
 import { revealSection } from '@/lib/actions'
-import { useStore } from '../store'
+import { useStore, mixClipIds } from '../store'
 import { findPage, findSection, findBlock, wordsFor, describeSection, outlineOf, adviceFor, positionOf, shownSlot } from './refs'
 
 /** Reads about the page: its sections, words, fonts and options, and focusing one. */
@@ -108,7 +109,9 @@ export const read = {
     if (i.section !== undefined) {
       const slot = findSection(i.section, page.id)
       const at = Math.max(0, view.indexOf(slot))
-      return { section: slot.id, options: suggestClip(slot.type, view, at, library, true).map((o) => ({ ...o, title: library.clips[o.clipId].title, origin: library.clips[o.clipId].origin })) }
+      // The same choices as the section's arrows: the layouts and this mix's clips.
+      const pool = cycleIds(library, slot.type, mixClipIds(st), slot.clipId)
+      return { section: slot.id, options: suggestClip(slot.type, view, at, library, true, pool).map((o) => ({ ...o, title: library.clips[o.clipId].title, origin: library.clips[o.clipId].origin })) }
     }
     const at = i.at ?? view.length
     return { page: page.path, at, types: suggestTypes(view, at).map((t) => ({ ...t, available: library.byType[t.type].length > 0 })) }

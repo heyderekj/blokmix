@@ -22,7 +22,7 @@ export function Strip({ label, title, top, watch, children }: { label: string; t
           type="button"
           aria-label={dir < 0 ? 'Earlier' : 'More'}
           onClick={() => row.current?.scrollBy({ left: dir * 216, behavior: 'smooth' })}
-          className={`pointer-events-auto grid size-6 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.92] ${floating ? 'bg-[var(--lift)] shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_2px_6px_-2px_rgb(0_0_0/0.25)]' : ''}`}
+          className={`pointer-events-auto grid size-6 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97] ${floating ? 'bg-[var(--lift)] shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_2px_6px_-2px_rgb(0_0_0/0.25)]' : ''}`}
         >
           {dir < 0 ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
         </button>

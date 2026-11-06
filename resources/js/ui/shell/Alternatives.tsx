@@ -22,8 +22,6 @@ export function LayoutTag() {
  * onto the page.
  */
 export function Alternatives({ slot }: { slot: Slot }) {
-  const ids = pickable(library, slot.type)
-  const pos = ids.indexOf(slot.clipId) + 1
   const slots = useStore(currentSlots)
   const index = slots.findIndex((s) => s.id === slot.id)
   // Each shelf is ordered by how well its clips sit between this section's neighbours.
@@ -52,14 +50,8 @@ export function Alternatives({ slot }: { slot: Slot }) {
   return (
     <div className="pb-2 pt-2.5">
       <div className="mb-1 flex items-center gap-2 px-3.5">
-        <span className="text-[13px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]}</span>
-        <span className="text-[12px] tabular-nums text-zinc-500">
-          {pos} of {ids.length}
-        </span>
-        <span className="flex items-center gap-1 text-[11.5px] text-zinc-400">
-          <span className="kbd">←</span>
-          <span className="kbd">→</span>
-        </span>
+        {/* The bar above already says "Layout n of m" and has the arrows: here, just what these are. */}
+        <span className="text-[13px] font-semibold text-zinc-900">{TYPE_LABEL[slot.type]} layouts</span>
         <div className="ml-2 flex rounded-full bg-chip p-0.5" role="tablist">
           {shelves.map((k) => (
             <button
@@ -82,7 +74,7 @@ export function Alternatives({ slot }: { slot: Slot }) {
           onClick={() => st().setUi({ sheet: 'crate', crateFilter: 'all' })}
           className="ml-auto flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium text-zinc-600 transition hover:bg-zinc-950/5 hover:text-zinc-900"
         >
-          <Library size={13} /> All clips
+          <Library size={13} /> Open the crate
         </button>
       </div>
       <div ref={scroller} className="thin-scroll fade-x flex items-start gap-2.5 overflow-x-auto scroll-px-3 px-3 pb-1.5 pt-1">
@@ -91,10 +83,16 @@ export function Alternatives({ slot }: { slot: Slot }) {
         ))}
         {!list.length && (
           <div className="flex items-center gap-2 px-1 text-[13px] text-zinc-500" style={{ height: CARD_H }}>
-            No {TYPE_LABEL[slot.type]} clips yet.
-            <button type="button" onClick={() => setShelf('layouts')} className="rounded-full px-2 py-0.5 font-semibold text-zinc-800 hover:bg-zinc-950/5">
-              Browse layouts
-            </button>
+            {shelf === 'layouts' ? (
+              `No other ${TYPE_LABEL[slot.type].toLowerCase()} layouts yet.`
+            ) : (
+              <>
+                No {TYPE_LABEL[slot.type].toLowerCase()} clips yet. Clip one from a site you like, or
+                <button type="button" onClick={() => setShelf('layouts')} className="cursor-pointer rounded-full px-2 py-0.5 font-semibold text-zinc-800 transition-[background-color,scale] hover:bg-zinc-950/5 active:scale-[0.97]">
+                  see the layouts
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

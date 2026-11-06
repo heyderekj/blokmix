@@ -57,7 +57,7 @@ export function BackdropPicker({ slot, tokens }: { slot: Slot; tokens: TokenSet 
           e.stopPropagation()
           pick(v)
         }}
-        className={`cursor-pointer rounded-lg transition-[scale] duration-150 active:scale-[0.96] ${cur?.id === id ? 'ring-2 ring-zinc-900 ring-offset-1' : ''}`}
+        className={`cursor-pointer rounded-lg transition-[scale] duration-150 active:scale-[0.97] ${cur?.id === id ? 'ring-2 ring-zinc-900 ring-offset-1' : ''}`}
       >
         <BackdropSwatch value={v} tokens={tokens} className="aspect-square w-full" />
       </button>
@@ -93,7 +93,7 @@ export function BackdropPicker({ slot, tokens }: { slot: Slot; tokens: TokenSet 
             e.stopPropagation()
             pick(null)
           }}
-          className={`grid aspect-square cursor-pointer place-items-center rounded-lg text-zinc-400 transition-[scale] duration-150 active:scale-[0.96] ${!cur ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/10 hover:text-zinc-700'}`}
+          className={`grid aspect-square cursor-pointer place-items-center rounded-lg text-zinc-400 transition-[scale] duration-150 active:scale-[0.97] ${!cur ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/10 hover:text-zinc-700'}`}
         >
           <Ban size={14} />
         </button>
@@ -158,7 +158,7 @@ function Placement({ value, onPreview, onCommit }: { value: TreatmentValue; onPr
               e.stopPropagation()
               onCommit(at({ anchor: a }))
             }}
-            className="group/spot grid cursor-pointer place-items-center rounded-md transition-[background-color,scale] hover:bg-zinc-950/5 active:scale-[0.92]"
+            className="group/spot grid cursor-pointer place-items-center rounded-md transition-[background-color,scale] hover:bg-zinc-950/5 active:scale-[0.97]"
           >
             <span className={`rounded-full transition-[width,height,background-color] duration-150 ${anchor === a ? 'size-3 bg-zinc-900' : 'size-1.5 bg-zinc-400 group-hover/spot:bg-zinc-700'}`} />
           </button>

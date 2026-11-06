@@ -1,6 +1,6 @@
 # Blokmix
 
-Clip sections from any site, remix them like a sliding-tile puzzle, resolve one style guide, and hand a packet to your agent to build in Astro or Next.js.
+Start a website from layouts, skins and palettes that already work, mix them into something that's yours, and hand a packet to your agent to build in Astro or Next.js.
 
 This is the clickable prototype: the core loop runs end to end on 18 sample clips from four fictional sites. The capture extension, backend and MCP server come later (see the plan below).
 
@@ -13,10 +13,10 @@ Open http://localhost:5173.
 
 ## The loop
 
-1. **Slide.** Each section of the working mix cycles through every clip of its type (← →); its alternatives show in a strip above the dock. Space shuffles unlocked sections; L locks one.
+1. **Try layouts.** Each section of the working mix steps through the built-in layouts of its type and this mix's own clips (← →, or ‹ › in the bar below the section), always in your words and your style. Space shuffles unlocked sections; L locks one.
 2. **Keep.** Per section: layout, own style, source copy, motion (1–4).
 3. **Resolve.** Promote a clip's design (P, or "Use design") and settle contradictions per group in the Style guide. Flip **Original / Your style** (U) to see the difference.
-4. **Save version.** Enter (or ⌘S) snapshots the mix as a lettered version (A, B…). Remix any version to branch (B.1, B.2).
+4. **Save version.** Enter (or ⌘S) snapshots the mix as a lettered version (A, B…). Work from any version to branch (B.1, B.2).
 5. **Export.** Send a version to the agent with Build, or open Export: `blokmix.json`, `BLOKMIX.md` build notes, tokens (CSS + W3C DTCG), and runnable `astro/` and `next/` projects.
 
 Sticky notes (S) dropped on a section or a version become instructions in the packet. Version frames carry review statuses (in progress → ready for review → changes requested / approved).

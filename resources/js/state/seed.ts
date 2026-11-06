@@ -4,6 +4,7 @@ import { emptyGuide } from '@/core/guide'
 import { applySkin, skinById, WIREFRAME } from '@/core/skins'
 import { buildStarter } from '@/core/starters'
 import { DEFAULT_CONTENT } from '@/core/content'
+import { contentFor } from '@/core/start'
 import { autoTitle } from '@/core/versions'
 import type { MixData } from './store'
 import { snapshotOf } from './snapshot'
@@ -65,7 +66,7 @@ export function buildSeed(lib: Library): MixData {
   }
 }
 
-/** A new mix: one empty Home page, no style guide yet, the default words. */
+/** A new mix: one empty Home page, no style guide yet, plain starter words (never Blokmix's own demo copy). */
 export function blankMix(name = 'Untitled mix'): MixData {
   const wireframe = skinById(WIREFRAME)
   return {
@@ -73,7 +74,7 @@ export function blankMix(name = 'Untitled mix'): MixData {
     site: siteFromSlots([]),
     // New and blank: raw until you dress it.
     guide: wireframe ? applySkin(emptyGuide(), wireframe) : emptyGuide(),
-    content: structuredClone(DEFAULT_CONTENT),
+    content: contentFor({ kind: 'product', name: '' }),
     versions: {},
     notes: [],
     branchFrom: null,

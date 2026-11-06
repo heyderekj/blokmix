@@ -22,8 +22,8 @@ export function Switch({ on, onChange, label }: { on: boolean; onChange: () => v
       className={`relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors duration-200 ${on ? 'bg-zinc-900' : 'bg-zinc-200'}`}
     >
       <span
-        className={`absolute top-[3px] size-4 rounded-full shadow-sm transition-all duration-300 ${on ? 'left-[19px] bg-white' : 'left-[3px] bg-white'}`}
-        style={{ transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)' }}
+        className={`absolute left-[3px] top-[3px] size-4 rounded-full bg-white shadow-sm transition-[translate] duration-200 ${on ? 'translate-x-4' : 'translate-x-0'}`}
+        style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
       />
     </button>
   )

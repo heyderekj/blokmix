@@ -10,6 +10,7 @@ import { PLACEHOLDER_STYLES, SECTION_TYPES, TOKEN_KEYS } from './types'
 import { resolveGuide } from './guide'
 import { BASE_TOKENS, CONTRAST_PAIRS, contrastRatio, hexToRgb, primaryFamily, TOKEN_GROUP_OF } from './tokens'
 import { toneOfGuide } from './dials'
+import { paletteFrom } from './palette'
 import { cleanTreatment, EFFECT_IDS, isBackdropId, shadowToken, type EffectId, type EffectsState } from './treatments'
 import type { TextStyleEdits } from './textStyles'
 import { emptyContract, isKept, settingOf, STYLE_AREAS, type Contract, type StyleArea } from './contract'
@@ -130,6 +131,15 @@ export function applySkin(guide: GuideState, skin: Skin, contract: Contract = em
     picture: isKept(contract, 'pictures') ? guide.picture : skin.picture,
     skin: { id: skin.id, name: skin.name },
   }
+  // Your brand color comes along: the theme's palette is remade from it, unless color is Kept (it stays as it is) or
+  // set to Surprise (the theme's own colors win).
+  if (guide.brand && settingOf(contract, 'color') === 'tweak') {
+    const colors = paletteFrom(guide.brand.color, skin.mode)
+    for (const [k, v] of Object.entries(colors) as [TokenKey, string][]) {
+      out.base[k] = v
+      if (out.choices[k]) out.choices[k] = { kind: 'custom', value: v }
+    }
+  }
   // Unset fields stay out of the saved mix.
   for (const k of ['effects', 'textStyles', 'components', 'sections', 'picture'] as const) if (out[k] === undefined) delete out[k]
   return out
@@ -172,7 +182,7 @@ export function surpriseMe(guide: GuideState, contract: Contract, seed: number, 
   }
   const remix: Skin = {
     id: 'remix',
-    name: `Remix of ${[...new Set(picks.map((p) => p.skin.name))].join(', ')}`,
+    name: `Mix of ${[...new Set(picks.map((p) => p.skin.name))].join(', ')}`,
     words: '',
     tier: 'pack',
     mode: 'light',

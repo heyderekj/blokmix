@@ -91,13 +91,14 @@ export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => voi
                 type="button"
                 role="option"
                 aria-selected={on}
-                disabled={!s.allowed || !usable(s.type)}
-                title={s.allowed ? undefined : s.reason}
+                // Not here: it keeps its tooltip, which says why.
+                aria-disabled={!s.allowed || !usable(s.type) || undefined}
+                title={!s.allowed ? s.reason : !usable(s.type) ? `No ${TYPE_LABEL[s.type].toLowerCase()} layouts you can use yet` : undefined}
                 onMouseEnter={() => setActive(s.type)}
                 onFocus={() => setActive(s.type)}
-                onClick={() => add(s.type)}
-                className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12.5px] font-medium transition focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35 ${
-                  on ? 'bg-zinc-950/6 text-zinc-900' : 'text-zinc-700'
+                onClick={() => s.allowed && usable(s.type) && add(s.type)}
+                className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12.5px] font-medium transition focus-visible:outline-none ${
+                  !s.allowed || !usable(s.type) ? 'cursor-default opacity-35' : on ? 'cursor-pointer bg-zinc-950/6 text-zinc-900' : 'cursor-pointer text-zinc-700'
                 }`}
               >
                 <Icon size={14} className={`shrink-0 ${on ? 'text-zinc-700' : 'text-zinc-400'}`} />
@@ -131,7 +132,7 @@ export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => voi
             </div>
           </>
         ) : (
-          <div className="grid flex-1 place-items-center text-[12.5px] text-zinc-400">Nothing fits here.</div>
+          <div className="grid flex-1 place-items-center px-4 text-center text-[12.5px] text-zinc-400">Point at a type on the left to see it here.</div>
         )}
       </div>
     </div>

@@ -102,17 +102,15 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
         <span className="@max-[420px]:hidden">
           <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [me]} />
         </span>
-        {v.kind === 'snapshot' ? (
-          <SendToAgent v={v} disabled={agentBusy} onReference={(t) => runReferenceBuild(v.id, t)} />
-        ) : (
-          <button type="button" onClick={() => remix(v)} title="Remix" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2 @max-[220px]:hidden">
-            <Shuffle size={13} /> <span className="@max-[340px]:hidden">Remix</span>
-          </button>
-        )}
+        {/* Make your mix match this version (your unsaved edits are saved first) */}
+        <button type="button" onClick={() => remix(v)} title="Make your mix match this version" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold active:scale-[0.97] @max-[420px]:hidden">
+          <Shuffle size={13} /> Start from this
+        </button>
+        {v.kind === 'snapshot' && <SendToAgent v={v} disabled={agentBusy} onReference={(t) => runReferenceBuild(v.id, t)} />}
         <OverflowMenu
           items={[
             { icon: Eye, label: previewing ? 'Stop interacting' : 'Interact with the page', onClick: () => st().setUi({ previewFrameId: previewing ? null : v.id }) },
-            ...(v.kind === 'snapshot' ? [{ icon: Shuffle, label: 'Remix into the working mix', onClick: () => remix(v) }] : []),
+            { icon: Shuffle, label: 'Start from this', onClick: () => remix(v) },
             { icon: Package, label: 'Export this version', onClick: () => st().setUi({ packetSource: v.id, sheet: 'packet' }) },
             ...(v.kind === 'build' ? [{ icon: Link2, label: v.build?.previewUrl ? 'Change preview URL' : 'Attach the agent’s preview URL', onClick: () => setAttaching(true) }] : []),
             {
@@ -173,8 +171,8 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
 
 function remix(v: VersionNode) {
   const st = useStore.getState()
-  st.remix(v.id)
-  st.showFlash(`Loaded ${v.letter} into the mix: your next version branches from it`)
+  const saved = st.remix(v.id)
+  st.showFlash(saved ? `Your mix now matches ${v.letter}. Your edits are kept as ${saved}.` : `Your mix now matches ${v.letter}.`, { undo: true })
 }
 
 function Title({ v }: { v: VersionNode }) {
@@ -221,10 +219,13 @@ function SendToAgent({ v, disabled, onReference }: { v: VersionNode; disabled: b
   const name = (t: BuildTarget) => (t === 'astro' ? 'Astro' : 'Next.js')
   const ask = (t: BuildTarget) => {
     setOpen(false)
+    const st0 = useStore.getState()
+    // No agent connected to Blokmix: the files and a prompt to paste are the way (Export, opened on this version).
+    if (link !== 'connected') return st0.setUi({ packetSource: v.id, packetTargets: [t], sheet: 'packet' })
     const prompt = `Use blokmix to build version ${v.letter} in ${name(t)}`
     const st = useStore.getState()
     void navigator.clipboard?.writeText(prompt).catch(() => {})
-    st.showFlash(link === 'connected' ? `Copied “${prompt}”: paste it to your agent` : `Copied “${prompt}”. Turn on “Let agents edit this mix” so your agent can reach Blokmix`)
+    st.showFlash(`Copied “${prompt}”: paste it to your agent`)
   }
   const Row = ({ t, onClick, icon }: { t: BuildTarget; onClick: () => void; icon?: React.ReactNode }) => (
     <button
@@ -243,13 +244,14 @@ function SendToAgent({ v, disabled, onReference }: { v: VersionNode; disabled: b
     <div ref={ref} className="relative @max-[220px]:hidden">
       <button
         type="button"
-        disabled={disabled}
-        title={disabled ? 'The agent is busy' : 'Build this version'}
+        // While the agent builds another one this waits, and its tooltip says so.
+        aria-disabled={disabled || undefined}
+        title={disabled ? 'Your agent is busy with another build' : 'Build this version'}
         onClick={(e) => {
           e.stopPropagation()
-          setOpen((o) => !o)
+          if (!disabled) setOpen((o) => !o)
         }}
-        className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2"
+        className={`btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2 ${disabled ? 'cursor-default opacity-50' : 'active:scale-[0.97]'}`}
       >
         <Bot size={14} /> <span className="@max-[340px]:hidden">Build</span>
       </button>
@@ -257,15 +259,16 @@ function SendToAgent({ v, disabled, onReference }: { v: VersionNode; disabled: b
         <div className="glass-menu absolute right-0 top-full z-50 mt-2 w-72 animate-pop rounded-2xl p-2">
           <div className="px-2 pb-1 pt-1 text-[12.5px] font-semibold text-zinc-900">Build with your agent</div>
           <p className="px-2 pb-1.5 text-[12px] leading-snug text-zinc-500">
-            Copies a prompt for Claude Code with the blokmix MCP. It writes the packet, builds it, and puts the preview here
-            {link === 'connected' ? '.' : '. Turn on “Let agents edit this mix” first.'}
+            {link === 'connected'
+              ? 'Copies a prompt for your agent. It builds this version and shows it here.'
+              : 'Get the files and a prompt to paste into your AI tool.'}
           </p>
           {(['astro', 'next'] as const).map((t) => (
-            <Row key={t} t={t} onClick={() => ask(t)} icon={<Copy size={13} />} />
+            <Row key={t} t={t} onClick={() => ask(t)} icon={link === 'connected' ? <Copy size={13} /> : undefined} />
           ))}
           <div className="mx-2 my-1.5 border-t border-zinc-950/5" />
-          <div className="px-2 pb-1 pt-0.5 text-[12.5px] font-semibold text-zinc-900">Reference build</div>
-          <p className="px-2 pb-1.5 text-[12px] leading-snug text-zinc-500">Renders what the exporter writes, right here, without an agent.</p>
+          <div className="px-2 pb-1 pt-0.5 text-[12.5px] font-semibold text-zinc-900">Preview the code</div>
+          <p className="px-2 pb-1.5 text-[12px] leading-snug text-zinc-500">See the exported site right here, no agent needed.</p>
           {(['astro', 'next'] as const).map((t) => (
             <Row
               key={t}
@@ -315,6 +318,13 @@ function AttachUrl({ v, onClose }: { v: VersionNode; onClose: () => void }) {
 
 function BuildProgress({ v }: { v: VersionNode }) {
   const steps = v.build?.steps ?? []
+  // An agent can go quiet: after a minute without word, offer a way out.
+  const [quiet, setQuiet] = useState(false)
+  useEffect(() => {
+    setQuiet(false)
+    const t = window.setTimeout(() => setQuiet(true), 60_000)
+    return () => window.clearTimeout(t)
+  }, [steps.length])
   return (
     <div className="relative h-[1400px] overflow-hidden bg-zinc-50">
       <div className="absolute inset-0 animate-pulse bg-[linear-gradient(110deg,transparent_30%,rgb(0_0_0/0.04)_50%,transparent_70%)]" />
@@ -331,8 +341,23 @@ function BuildProgress({ v }: { v: VersionNode }) {
                 {s}
               </motion.li>
             ))}
-            {!steps.length && <li className="text-zinc-400">Picking up the packet…</li>}
+            {!steps.length && <li className="text-zinc-400">Getting started…</li>}
           </ul>
+          {quiet && (
+            <div className="mt-3 flex items-center justify-between gap-2 border-t border-zinc-950/6 pt-3 text-[12px] text-zinc-500">
+              No word for a minute.
+              <button
+                type="button"
+                onClick={() => {
+                  useStore.getState().updateBuild(v.id, { done: true }, 'changes')
+                  useStore.getState().showFlash(`Stopped waiting for ${v.build?.agentName ?? 'the agent'}`, { undo: true })
+                }}
+                className="btn-quiet flex h-7 cursor-pointer items-center rounded-full px-2.5 text-[12px] font-semibold active:scale-[0.97]"
+              >
+                Stop waiting
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

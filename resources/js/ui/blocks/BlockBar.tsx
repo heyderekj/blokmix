@@ -23,7 +23,9 @@ import { IconMenu } from './IconMenu'
 import { blockIconName } from '@/core/icons'
 import { listContext } from '@/core/lists'
 import { sectionLinks } from '@/core/links'
-import { WordsCycler, WordsMenu } from './WordsMenu'
+import { WordsButton, WordsMenu } from './WordsMenu'
+import { useEscape } from '../shell/keys'
+import { BAR_BUTTON, BAR_SURFACE } from '../frames/bar'
 import { LinkLabel, LinkMenu } from './LinkMenu'
 import { CollectionMenu } from './CollectionMenu'
 import { TextMenu } from './TextMenu'
@@ -77,6 +79,8 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   useLayoutEffect(() => {
     if (menu) keepInView(ref.current)
   }, [menu])
+  // Esc closes the open menu and nothing else.
+  useEscape(!!menu, () => setMenu(null))
   useEffect(() => {
     if (!menu) return
     const down = (e: PointerEvent) => {
@@ -113,7 +117,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
 
   return (
     <div ref={ref} className="flex w-max flex-col items-start gap-1.5" data-chrome onPointerDown={(e) => e.stopPropagation()}>
-      <div className="glass-panel flex h-11 items-center gap-1 whitespace-nowrap rounded-2xl pl-1.5 pr-1.5 text-[13px]">
+      <div className="glass-panel flex h-11 items-center gap-1 whitespace-nowrap pl-1.5 pr-1.5 text-[13px]" style={BAR_SURFACE}>
         {/* what it is; its parents (up to the section) are a click away */}
         <button
           type="button"
@@ -146,11 +150,14 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         )}
         <Sep />
         {block.field && (
-          <BarButton onClick={() => preview.requestEditText(block.id)} icon={Type} title="Edit the words (double-click or ↵)">
-            Edit
-          </BarButton>
+          <WordsButton
+            slot={slot}
+            field={block.field}
+            open={menu === 'words'}
+            onEdit={() => preview.requestEditText(block.id)}
+            onOpen={() => setMenu(menu === 'words' ? null : 'words')}
+          />
         )}
-        {block.field && <WordsCycler slot={slot} field={block.field} open={menu === 'words'} onOpen={() => setMenu(menu === 'words' ? null : 'words')} />}
         {block.kind === 'image' && (
           <BarButton active={menu === 'image'} onClick={() => setMenu(menu === 'image' ? null : 'image')} icon={ImageIcon} title="Picture or video">
             Picture
@@ -174,11 +181,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
           </BarButton>
         )}
         {list && <ListControls slotId={slot.id} ctx={list} />}
-        {list && (
-          <BarButton active={menu === 'collection'} onClick={() => setMenu(menu === 'collection' ? null : 'collection')} icon={Database} title="Collection: show your content here">
-            {slot.bind?.lists?.[list.list.listKey ?? ''] ? <span className="size-1.5 rounded-full bg-key" /> : null}
-          </BarButton>
-        )}
+
         <Sep />
         <button
           type="button"
@@ -200,14 +203,14 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             if (d) useMarkDraft.getState().open(d)
           }}
           icon={MessageSquarePlus}
-          title="Leave a note on this block (N)"
+          title="Leave a note on this block"
         />
-        <BarButton active={menu === 'more'} onClick={() => setMenu(menu === 'more' ? null : 'more')} icon={MoreHorizontal} title="More" />
+        <BarButton active={menu === 'more'} expands onClick={() => setMenu(menu === 'more' ? null : 'more')} icon={MoreHorizontal} title="More" />
       </div>
 
       {menu === 'crumbs' && (
         <Popover width={220}>
-          <MenuItem icon={LayoutTemplate} onClick={() => st().selectBlock(null)} kbd="esc">
+          <MenuItem icon={LayoutTemplate} onClick={() => st().selectBlock(null)}>
             {TYPE_LABEL[slot.type]} section
           </MenuItem>
           {crumbs.map((b, i) => (
@@ -239,6 +242,11 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
       {menu === 'words' && block.field && <WordsMenu slot={slot} field={block.field} blockId={block.id} onClose={() => setMenu(null)} />}
       {menu === 'more' && (
         <Popover width={248}>
+          {list && (
+            <MenuItem icon={Database} onClick={() => setMenu('collection')}>
+              {slot.bind?.lists?.[list.list.listKey ?? ''] ? 'Collection shown here…' : 'Show a collection here…'}
+            </MenuItem>
+          )}
           {list?.changed && (
             <MenuItem
               icon={ListRestart}
@@ -282,7 +290,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
               st().selectBlock(null)
               st().showFlash('Block hidden', { undo: true })
             }}
-            kbd="⌫"
+            kbd={list?.item?.id === block.id ? undefined : '⌫'}
           >
             Hide everywhere
           </MenuItem>
@@ -292,7 +300,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   )
 }
 
-const STEP = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.94]'
+const STEP = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]'
 
 /**
  * How the selected block looks, in the Style panel: suggestions, its looks, its text, its color and shape, its motion,
@@ -475,15 +483,16 @@ function ListControls({ slotId, ctx }: { slotId: string; ctx: NonNullable<Return
 
 function IconButton({ icon: Icon, title, onClick, disabled }: { icon: typeof Type; title: string; onClick: () => void; disabled?: boolean }) {
   return (
+    // A disabled button keeps its tooltip, which says why.
     <button
       type="button"
       title={title}
       aria-label={title}
-      disabled={disabled}
-      onClick={onClick}
-      className="grid size-8 shrink-0 place-items-center rounded-[10px] text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.94] disabled:pointer-events-none disabled:opacity-35"
+      aria-disabled={disabled || undefined}
+      onClick={() => !disabled && onClick()}
+      className={`${BAR_BUTTON} w-8 text-zinc-600 ${disabled ? 'cursor-default opacity-35' : 'hover:bg-zinc-950/5 hover:text-zinc-900'}`}
     >
-      <Icon size={14} />
+      <Icon size={15} />
     </button>
   )
 }
@@ -496,12 +505,15 @@ function BarButton({
   icon: Icon,
   children,
   active,
+  expands,
   title,
   onClick,
 }: {
   icon: typeof Type
   children?: ReactNode
   active?: boolean
+  /** It opens a menu (says so to screen readers). */
+  expands?: boolean
   title: string
   onClick: () => void
 }) {
@@ -509,10 +521,12 @@ function BarButton({
     <button
       type="button"
       title={title}
+      aria-label={children ? undefined : title}
+      aria-expanded={expands || active !== undefined ? !!active : undefined}
       onClick={onClick}
-      className={`flex h-8 shrink-0 items-center gap-1.5 rounded-[10px] px-2 font-medium transition ${active ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5'}`}
+      className={`${BAR_BUTTON} ${children ? 'px-3' : 'w-8'} ${active ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
     >
-      <Icon size={14} className={active ? 'text-white' : 'text-zinc-500'} />
+      <Icon size={15} className={active ? 'text-white' : 'text-zinc-500'} />
       {children}
     </button>
   )
@@ -532,7 +546,7 @@ function MenuItem({ icon: Icon, children, onClick, disabled, kbd }: { icon: type
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-zinc-700 transition hover:bg-zinc-950/5 disabled:pointer-events-none disabled:opacity-40"
+      className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-zinc-700 transition-[background-color,scale] hover:bg-zinc-950/5 active:scale-[0.97] disabled:cursor-default disabled:opacity-40"
     >
       <Icon size={14} className="shrink-0 text-zinc-400" />
       <span className="flex-1">{children}</span>
