@@ -67,7 +67,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
   const input: StartInput | null =
     via === 'box'
       ? fromBox.kind && box.heard
-        ? { kind: fromBox.kind, name: box.name.trim() || 'Your site', seed, ...(fromBox.sections ? { sections: fromBox.sections } : {}) }
+        ? { kind: fromBox.kind, name: box.name.trim() || 'Your site', seed, ...(fromBox.sections ? { sections: fromBox.sections } : {}), ...(box.button && !box.text.trim() ? { button: box.button } : {}) }
         : null
       : kind
         ? { kind, name: name.trim() || 'Your site', oneLiner, seed }
@@ -139,11 +139,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
             <StartBox
               box={box}
               onBox={setBox}
-              onJevOff={(off) => {
-                setJevOff(off)
-                // Without Jev the box can't read anything: the three questions are the way in.
-                if (off) setStep('what')
-              }}
+              onJevOff={setJevOff}
             />
           )}
 
@@ -219,7 +215,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
               palette={palette}
               mode={mode}
               looks={looks}
-              feel={via === 'box' && box.heard?.mode === 'describe' ? box.text.trim() : ''}
+              feel={via !== 'box' ? '' : box.text.trim() ? (box.heard?.mode === 'describe' ? box.text.trim() : '') : (box.feel ?? '')}
               kind={input?.kind ?? null}
               jev={!jevOff}
               onSkin={(id) => { setSkin(id); setMode(undefined) }}
@@ -232,30 +228,19 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
 
         <footer className="flex items-center justify-between gap-3 border-t border-zinc-950/[0.06] bg-white px-4 py-3 sm:px-5">
           {step === 'box' ? (
-            jevOff ? (
-              <span />
-            ) : (
-              <button type="button" onClick={() => setStep('what')} className={QUIET}>
-                Answer three questions instead
-              </button>
-            )
-          ) : step === 'what' && jevOff ? (
-            <span />
+            <button type="button" onClick={() => setStep('what')} className={QUIET}>
+              Answer three questions instead
+            </button>
           ) : (
             <button type="button" onClick={() => setStep(step === 'skin' ? 'starts' : step === 'starts' ? via : 'box')} className={QUIET}>
               <ArrowLeft size={16} /> Back
             </button>
           )}
-          {step === 'box' &&
-            (jevOff ? (
-              <button type="button" onClick={() => setStep('what')} className={PRIMARY}>
-                Answer three questions <ArrowRight size={16} />
-              </button>
-            ) : (
-              <button type="button" disabled={!input} onClick={() => (setVia('box'), setPicked(null), setStep('starts'))} className={PRIMARY}>
-                Show me three starts <ArrowRight size={16} />
-              </button>
-            ))}
+          {step === 'box' && (
+            <button type="button" disabled={!input} onClick={() => (setVia('box'), setPicked(null), setStep('starts'))} className={PRIMARY}>
+              Show me three starts <ArrowRight size={16} />
+            </button>
+          )}
           {step === 'what' && (
             <button type="button" disabled={!kind || !name.trim()} onClick={() => (setVia('what'), setPicked(null), setStep('starts'))} className={PRIMARY}>
               Show me three structures <ArrowRight size={16} />

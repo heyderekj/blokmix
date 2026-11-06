@@ -138,8 +138,13 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 ## Guided start
 
 The audience is non-designers first (`docs/simple-vision.md`). New mix (and the browser-only mix's first visit, or
-"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx` on one box (`ui/start/StartBox.tsx`): the name, then a
-sentence about the site or the words you already have. Code tells them apart (`core/jev/describe.ts` `textMode`: one or
+"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx` on one box (`ui/start/StartBox.tsx`): a sentence to fill in, "I'm making a site for
+[a bakery] called [Fern & Co]. It should feel [cozy] and help people [order ahead]. Show [our menu], [opening hours] and
+[+ more]." (`core/jev/sentence.ts`: `BUSINESSES` → kind, `FEELS` → skins, `GOALS` → the main button and sections, `SHOWS` →
+sections, or a want when there's none; `fillStart`). Each blank opens a row of options (`ui/jev/Sentence.tsx`, after the
+motion menu) and takes your own words; Jev ranks the open blanks' options from the sentence so far (`rankRequest`, a
+kind-led `defaultOrder` when it's off) and maps your words to the nearest option (`matchRequest`, both orders). Below it,
+paste the words you already have, or describe the site in a line or two. Code tells them apart (`core/jev/describe.ts` `textMode`: one or
 two short lines describe). A description goes to Jev (`describeRequest`: the kind, each optional section, the look) and
 becomes the kind's page with sections added or dropped (`sectionsFor`); pasted words become a page from your words in
 three arrangements (`lib/startFromText.ts` `wordsCandidates`, the pure `state/jevPage.ts` `wordsPage`, a nav and footer from
@@ -201,8 +206,10 @@ dates: code does those.
   to place tray), `suggest_palettes`/`set_palette` (Colors by feel in the Feel tile; candidates are AA by construction,
   drawn as swatch cards), `suggest_treatments` (Dress it up in a section's Style panel), and the start box
   (`describe.ts`, `suggest_starts` with `text`; see Guided start).
-- On the board Say it is a bar that's always there above the Dock (`ui/jev/SayBar.tsx`, ⌘K focuses it). It takes a
-  command, or a paste of two or more lines: "Pour into this page" / "Make a new page" hand the words to `WordsSheet`
+- On the board Say it is a bar that's always there above the Dock (`ui/jev/SayBar.tsx`, ⌘K focuses it). Empty and
+  focused, it offers a verb-led sentence ("Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]", "Add [a FAQ
+  section]", `barSentence`); `fillBar` builds the same action Say it would (`buildAction` on certain answers). It also takes a
+  typed command, or a paste of two or more lines: "Pour into this page" / "Make a new page" hand the words to `WordsSheet`
   (`useJevTools.auto`), which places them at once. Words to place (`content.tray`, saved and undone with the mix's words;
   `trayLines`, `setTray`) unfolds from the "n to place" chip beside the bar.
 - What to make next: `npx vite-node scripts/library/gaps.ts [--all]` reads every library screenshot (type, shape, ~30

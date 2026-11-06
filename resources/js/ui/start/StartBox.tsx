@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Sparkles, X } from 'lucide-react'
 import type { Kind, SectionType } from '@/core/types'
 import { KINDS } from '@/core/types'
@@ -6,8 +6,11 @@ import { TYPE_LABEL } from '@/core/content'
 import { KIND_LABEL } from '@/core/start'
 import { OPTIONAL, placeSection, textMode } from '@/core/jev/describe'
 import { skinById } from '@/core/skins'
-import { jevOn } from '@/lib/jev'
-import { hearStart, sectionsForKind, type Heard } from '@/lib/startFromText'
+import { askJev, askLatest, jevOn } from '@/lib/jev'
+import { noteWants } from '@/lib/jevWants'
+import { hearStart, looksOnOffer, sectionsForKind, type Heard } from '@/lib/startFromText'
+import { fillStart, matchRequest, openBlanks, rankRequest, readMatch, readRank, startSentence, type Blank, type Picks, type StartFill } from '@/core/jev/sentence'
+import { Sentence } from '@/ui/jev/Sentence'
 
 const HOVER = '[@media(hover:hover)_and_(pointer:fine)]:hover:'
 const PRESS = 'cursor-pointer transition-[background-color,box-shadow,scale,color] duration-150 active:scale-[0.97]'
@@ -18,15 +21,22 @@ const FIXED: SectionType[] = ['nav', 'hero', 'footer']
 /** What the box holds, and what Jev made of it. The flow keeps it so Back comes back to it. */
 export interface BoxState {
   name: string
+  /** Words pasted (or typed) below the sentence: they take the paste path, or describe the site. */
   text: string
+  /** The sentence's blanks as you filled them. */
+  picks: Picks
   heard: Heard | null
   /** The kind you picked on the chip, over Jev's. */
   kind: Kind | null
   /** Sections after your ✕ and +, over Jev's. */
   sections: SectionType[] | null
+  /** The main button's words, from what the site should help people do. */
+  button?: string
+  /** "cozy bakery": the feel and the business, for colors by feel. */
+  feel?: string
 }
 
-export const emptyBox: BoxState = { name: '', text: '', heard: null, kind: null, sections: null }
+export const emptyBox: BoxState = { name: '', text: '', picks: {}, heard: null, kind: null, sections: null }
 
 /** The kind and sections a box will start with: yours where you changed them, else Jev's. */
 export function boxChoice(box: BoxState): { kind: Kind | null; sections: SectionType[] | null } {
@@ -37,19 +47,27 @@ export function boxChoice(box: BoxState): { kind: Kind | null; sections: Section
   return { kind, sections: box.sections ?? sectionsForKind(kind, h) }
 }
 
+/** What the sentence says, as Jev would have heard it: certain, since every blank came from Blokmix's own lists. */
+function heardFrom(f: StartFill): Heard | null {
+  if (!f.kind || !f.sections) return null
+  const open = new Set(looksOnOffer().map((l) => l.id))
+  return { mode: 'describe', kind: f.kind, kinds: [f.kind], sections: f.sections, looks: f.looks.filter((id) => open.has(id)).slice(0, 2) }
+}
+
 /**
- * The start's first step: one box. A sentence describes the site and Jev picks the kind, sections and looks; pasted
- * copy is placed word for word. As you type, what Jev heard shows underneath, every part of it yours to change.
+ * The start's first step: a sentence to fill in ("I'm making a site for [a bakery] called [Fern & Co]…"), each blank a row
+ * of options Jev puts in order from what you've said so far, and your own words welcome in any of them. Or paste what you
+ * already have below it, and it's placed word for word. What it adds up to shows underneath, yours to change.
  */
 export function StartBox({ box, onBox, onJevOff }: { box: BoxState; onBox: (b: BoxState) => void; onJevOff: (off: boolean) => void }) {
   const [busy, setBusy] = useState(false)
   const [off, setOff] = useState(false)
-  const area = useRef<HTMLTextAreaElement>(null)
+  const [order, setOrder] = useState<Record<string, string[]>>({})
   // The latest box, for answers that come back after more typing.
   const latest = useRef(box)
   latest.current = box
   // The words the answer on show was for, so coming Back doesn't ask again.
-  const heardFor = useRef<string | null>(box.heard ? box.text.trim() : null)
+  const heardFor = useRef<string | null>(box.heard ? box.text.trim() || fillStart(box.picks).text : null)
 
   useEffect(() => {
     let live = true
@@ -58,14 +76,13 @@ export function StartBox({ box, onBox, onJevOff }: { box: BoxState; onBox: (b: B
       setOff(!v)
       onJevOff(!v)
     })
-    area.current?.focus()
     return () => {
       live = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Ask a quarter second after the last key; only the latest words are answered.
+  // Pasted (or typed) words below the sentence: asked a quarter second after the last key; only the latest are answered.
   const text = box.text.trim()
   useEffect(() => {
     if (off || text.length < 3) return
@@ -83,48 +100,74 @@ export function StartBox({ box, onBox, onJevOff }: { box: BoxState; onBox: (b: B
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, off])
 
+  // The sentence: what's filled decides the start at once; Jev puts the open blanks' options in order.
+  const segments = useMemo(() => startSentence(box.picks), [box.picks])
+  const fill = useMemo(() => fillStart(box.picks), [box.picks])
+  const said = fill.text
+  useEffect(() => {
+    if (off) return
+    const open = openBlanks(segments, box.picks)
+    if (!open.some((b) => !b.ownOnly)) return
+    let live = true
+    askLatest('start-sentence', rankRequest(said, open)).then((res) => live && res && setOrder((o) => ({ ...o, ...readRank(res, open) })))
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [said, off])
+
+  const onPicks = (picks: Picks) => {
+    const f = fillStart(picks)
+    const sure = heardFrom(f)
+    const next: BoxState = { ...latest.current, picks, name: f.name, button: f.button, feel: f.feel, sections: null }
+    if (!latest.current.text.trim()) next.heard = sure
+    onBox(next)
+    if (f.wants.length && !off) void noteWants(f.wants, 'start', undefined, f.kind ?? undefined)
+    // A business in your own words that Jev couldn't place: let it read the whole sentence.
+    const business = picks.business?.[0]
+    if (!sure && business?.words.trim() && !business.id && !off && !latest.current.text.trim()) {
+      setBusy(true)
+      hearStart(f.text).then((h) => {
+        setBusy(false)
+        if (fillStart(latest.current.picks).text !== f.text || latest.current.text.trim()) return
+        heardFor.current = f.text
+        onBox({ ...latest.current, heard: h })
+      })
+    }
+  }
+  const match = async (b: Blank, words: string) => (off ? null : readMatch(await askJev(matchRequest(b, words, said))))
+
   const mode = text ? textMode(text) : null
   const choice = boxChoice(box)
   const h = box.heard
 
   return (
     <section>
-      <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">What are you making?</h1>
-      <p className="mt-2 max-w-2xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">
-        Say it in a sentence, or paste what you already have: an About page, a menu, your old site. Jev reads it and picks the sections and the look. Your words are never rewritten.
-      </p>
-      <label className="mt-6 grid max-w-sm gap-1.5">
-        <span className="text-[14px] font-semibold">What’s it called?</span>
-        <input
-          value={box.name}
-          onChange={(e) => onBox({ ...box, name: e.target.value })}
-          placeholder="Fern & Co"
-          maxLength={80}
-          className="h-11 rounded-xl bg-white px-4 text-[15px] shadow-[0_0_0_1px_rgb(23_18_26/0.1)] outline-none transition-shadow placeholder:text-zinc-400 focus:shadow-[0_0_0_2px_#FF69B4]"
-        />
-      </label>
+      <h1 className="text-[15px] font-semibold text-[#6B5F68]">What are you making?</h1>
+      <div className="mt-3 max-w-[860px]">
+        <Sentence segments={segments} picks={box.picks} onPicks={onPicks} order={order} kind={fill.kind} match={off ? undefined : match} />
+      </div>
       <textarea
-        ref={area}
         value={box.text}
-        onChange={(e) => onBox({ ...box, text: e.target.value })}
-        rows={mode === 'paste' ? 9 : 4}
-        aria-label="What you’re making, or what you already have"
-        placeholder={'A bakery on Elm Street that takes pre-orders, with our menu and opening hours\n\nOr paste what you already have…'}
-        className="thin-scroll mt-4 block w-full resize-y rounded-2xl bg-white px-4 py-3.5 text-[16px] leading-relaxed shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_16px_32px_-24px_rgb(23_18_26/0.35)] outline-none transition-shadow placeholder:text-zinc-400 focus:shadow-[0_0_0_2px_#FF69B4,0_16px_32px_-24px_rgb(255_105_180/0.5)]"
+        onChange={(e) => onBox({ ...box, text: e.target.value, ...(e.target.value.trim() ? {} : { heard: heardFrom(fillStart(box.picks)) }) })}
+        rows={mode === 'paste' ? 8 : 2}
+        aria-label="Or paste what you already have"
+        placeholder="Or paste what you already have: an About page, a menu, your old site. Nothing is reworded."
+        className="thin-scroll mt-6 block w-full resize-y rounded-2xl bg-white/80 px-4 py-3 text-[15px] leading-relaxed shadow-[0_0_0_1px_rgb(23_18_26/0.08)] outline-none transition-shadow placeholder:text-zinc-400 focus:bg-white focus:shadow-[0_0_0_2px_#FF69B4]"
       />
 
       <div className="mt-4 min-h-[112px]" aria-live="polite">
-        {off ? (
-          <p className="rounded-xl bg-white/80 px-4 py-3 text-[14px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">Jev is off here, so it can’t read this. Answer three questions instead, below.</p>
-        ) : !text ? null : busy && !h ? (
+        {off && text ? (
+          <p className="rounded-xl bg-white/80 px-4 py-3 text-[14px] text-[#6B5F68] shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">Jev is off here, so it can’t read pasted words. Fill in the sentence instead.</p>
+        ) : busy && !h ? (
           <p className="flex items-center gap-2 text-[14px] text-[#6B5F68]">
             <Sparkles size={15} className="motion-safe:animate-pulse" /> Reading…
           </p>
-        ) : h === null && !busy ? (
-          <p className="text-[14px] text-[#6B5F68]">Jev didn’t answer that time. Keep typing, or answer three questions instead.</p>
+        ) : h === null && !busy && text ? (
+          <p className="text-[14px] text-[#6B5F68]">Jev didn’t answer that time. Keep typing, or fill in the sentence.</p>
         ) : h ? (
           <div className={`space-y-3 transition-opacity duration-150 ${busy ? 'opacity-60' : ''}`}>
-            <Row label="Jev hears">
+            <Row label={h.mode === 'paste' || text ? 'Jev hears' : 'Your start'}>
               <KindChip value={choice.kind} kinds={h.kinds} onPick={(k) => onBox({ ...box, kind: k, sections: null })} />
               {h.mode === 'paste' && (
                 <span className="text-[13.5px] text-[#6B5F68]">

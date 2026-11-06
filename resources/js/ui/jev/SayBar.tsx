@@ -1,9 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { create } from 'zustand'
 import { CornerDownLeft, FilePlus2, Type, Wand2, X } from 'lucide-react'
 import type { SayAction } from '@/core/jev/say'
 import { jevOn } from '@/lib/jev'
-import { doSay, hear, useJevTools, type Heard } from '@/state/jevSay'
+import { doSay, hear, sayContext, useJevTools, type Heard } from '@/state/jevSay'
+import { barSentence, fillBar, matchRequest, openBlanks, rankRequest, readMatch, readRank, sentenceText, type Blank, type Picks } from '@/core/jev/sentence'
+import { askJev, askLatest } from '@/lib/jev'
+import { currentSlots } from '@/state/store'
+import { Sentence } from './Sentence'
 import { trayLines } from '@/state/jevPour'
 import { useStore } from '@/state/store'
 
@@ -32,6 +36,40 @@ export function SayBar() {
   const [busy, setBusy] = useState(false)
   const [off, setOff] = useState(false)
   const input = useRef<HTMLInputElement>(null)
+  const box = useRef<HTMLDivElement>(null)
+  // The sentence you build from the blanks ("Make [Pricing] [darker]"), while nothing is typed.
+  const [picks, setPicks] = useState<Picks>({})
+  const [order, setOrder] = useState<Record<string, string[]>>({})
+  const slots = useStore(currentSlots)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const ctx = useMemo(() => sayContext(), [slots, open])
+  const segments = useMemo(() => barSentence(picks, ctx), [picks, ctx])
+  const said = sentenceText(segments, picks)
+  const built = useMemo(() => fillBar(picks, ctx), [picks, ctx])
+
+  // Jev puts the open blanks' options in order from the sentence so far (once there's a verb).
+  useEffect(() => {
+    if (off || !open || !picks.verb?.length) return
+    const blanks = openBlanks(segments, picks)
+    if (!blanks.length) return
+    let live = true
+    askLatest('bar-sentence', rankRequest(said, blanks)).then((res) => live && res && setOrder((o) => ({ ...o, ...readRank(res, blanks) })))
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [said, off, open])
+
+  // The bar stays open while you work in it; a click anywhere else lets it go (unless something's typed).
+  useEffect(() => {
+    if (!open) return
+    const down = (e: MouseEvent) => {
+      if (box.current?.contains(e.target as Node)) return
+      if (!input.current?.value) useSay.setState({ open: false })
+    }
+    window.addEventListener('mousedown', down)
+    return () => window.removeEventListener('mousedown', down)
+  }, [open])
 
   // Checked again whenever "Let Jev help" changes in the menu.
   const allowed = useStore((s) => s.ui.jev)
@@ -80,6 +118,7 @@ export function SayBar() {
     setText('')
     setPasted(null)
     setHeard(null)
+    setPicks({})
   }
   const close = () => {
     useSay.setState({ open: false })
@@ -99,9 +138,34 @@ export function SayBar() {
   const action = heard?.action
   const options = heard?.options ?? []
   const showing = !off && !pasted && (action || options.length > 0 || (heard && !busy && text.trim().length > 1))
+  const building = open && !off && !pasted && !text.trim()
+  const runBuilt = () => {
+    const a = built.action
+    if (!a) return
+    const hand = built.text
+    close()
+    void doSay(a, hand)
+  }
+  const match = async (b: Blank, words: string) => (off ? null : readMatch(await askJev(matchRequest(b, words, said))))
 
   return (
-    <div className="pointer-events-auto flex w-[min(560px,calc(100vw-24px))] flex-col items-stretch" data-say>
+    <div ref={box} className="pointer-events-auto flex w-[min(560px,calc(100vw-24px))] flex-col items-stretch" data-say>
+      {building && (
+        <div className="glass-menu mb-1.5 animate-pop rounded-2xl p-3">
+          <Sentence segments={segments} picks={picks} onPicks={setPicks} order={order} match={match} size="sm" />
+          {built.action ? (
+            <button type="button" onClick={runBuilt} className="mt-2.5 flex w-full cursor-pointer items-center gap-2 rounded-xl bg-zinc-950/[0.05] px-2.5 py-2 text-left text-[12.5px] transition hover:bg-zinc-950/[0.08] active:scale-[0.99]">
+              <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{built.action.words}</span>
+              <span className="kbd flex items-center gap-1">
+                <CornerDownLeft size={11} />
+              </span>
+            </button>
+          ) : (
+            !!picks.verb?.length && !openBlanks(segments, picks).length && <p className="mt-2 text-[12px] text-zinc-500">That’s already how it is.</p>
+          )}
+          {!picks.verb?.length && <p className="mt-2 text-[11.5px] text-zinc-500">Or just type what you want.</p>}
+        </div>
+      )}
       {showing && (
         <div className="glass-menu mb-1.5 animate-pop rounded-2xl p-1.5 text-[12.5px]">
           {action && (
@@ -132,6 +196,7 @@ export function SayBar() {
             e.preventDefault()
             if (pasted) words('pour')
             else if (action) void run(action)
+            else if (!text.trim() && built.action) runBuilt()
           }}
           className={`glass-menu flex h-11 min-w-0 flex-1 items-center gap-2 rounded-full pl-3.5 pr-1.5 transition-shadow ${open || text || pasted ? 'ring-2 ring-zinc-900/10' : ''}`}
         >
@@ -156,7 +221,6 @@ export function SayBar() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               onFocus={() => useSay.setState({ open: true })}
-              onBlur={() => !text && useSay.setState({ open: false })}
               onKeyDown={(e) => e.key === 'Escape' && close()}
               onPaste={(e) => {
                 const t = e.clipboardData.getData('text/plain')

@@ -35,6 +35,8 @@ export interface StartInput {
   seed?: number
   /** Home's sections top to bottom, in place of the kind's usual page (a description, or chips you changed). */
   sections?: SectionType[]
+  /** The main button's words ("Order ahead"), from what the site should help people do. */
+  button?: string
 }
 
 export interface StartCandidate {
@@ -88,7 +90,7 @@ const emailFor = (name: string) => `hello@${name.toLowerCase().normalize('NFKD')
  * The words for a start: every section's starter words for your kind of site
  * (`core/startWords.ts`), with your name in them and your line as the headline.
  */
-export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner'>, year = new Date().getFullYear()): ProjectContent {
+export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner' | 'button'>, year = new Date().getFullYear()): ProjectContent {
   const name = input.name.trim() || 'Your site'
   const fill = (s: string) => s.replaceAll('{name}', name).replaceAll('{email}', emailFor(name)).replaceAll('{year}', String(year))
   const fields: ProjectContent['fields'] = {}
@@ -101,6 +103,14 @@ export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner'>
     // Just the name or the email (a nav's brand, a contact address), and the footer's legal line: yours as given.
     if (input.name.trim()) for (const [k, v] of Object.entries(words)) if (/^\{(name|email)\}$/.test(v.trim()) || (type === 'footer' && k === 'legal')) mine.push(mineKey(type, k))
   }
+  // The main button, on the hero and the closing push.
+  const button = input.button?.trim()
+  if (button)
+    for (const t of ['hero', 'cta'] as const)
+      if (fields[t]) {
+        fields[t] = { ...fields[t], ctaPrimary: button }
+        mine.push(mineKey(t, 'ctaPrimary'))
+      }
   const line = input.oneLiner?.trim()
   if (line && fields.hero) {
     fields.hero = { ...fields.hero, headline: line }

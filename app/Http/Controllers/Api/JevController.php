@@ -43,7 +43,7 @@ class JevController extends Controller
     {
         $input = $request->validate([
             'want' => ['required', 'string', 'regex:/^[a-z0-9-]{2,32}$/'],
-            'feature' => ['required', Rule::in(['say', 'pour', 'dress'])],
+            'feature' => ['required', Rule::in(['say', 'pour', 'dress', 'start'])],
             'section_type' => ['nullable', Rule::in(LibrarySection::TYPES)],
             'kind' => ['nullable', Rule::in(['product', 'studio', 'local', 'event', 'personal', 'writing'])],
         ]);
