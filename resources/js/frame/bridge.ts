@@ -89,7 +89,7 @@ export interface FrameState {
   /** `only`: redraw just the overridden icons (the section keeps its clipped look). */
   icons: { set: string; glyphs: Record<string, string>; overrides: Record<string, string>; only?: boolean } | null
   /** Lists you changed: elements to swap in place (everything else re-applies on top). */
-  lists: { sel: string; html: string; before?: boolean }[]
+  lists: { sel: string; html: string; before?: boolean; after?: boolean }[]
   /** Where each link block leads: its href, and the section for links within the page. */
   links: Record<string, { href: string; slot?: string; newTab?: boolean }>
 }

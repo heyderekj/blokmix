@@ -10,6 +10,7 @@ import type {
   Choice,
   GuideState,
   Keep,
+  InsertKind,
   MediaFill,
   Note,
   NoteAnchor,
@@ -40,6 +41,7 @@ import { cycleIds, layoutOpen, withClip } from '@/core/library'
 import { blockEditNeedsPack, FREE_TOKENS } from '@/core/plan'
 import { needsPack } from './plan'
 import { BANNER_ID } from '@/core/banner'
+import { addInsert, insertOf, InsertError, removeInsert } from '@/core/inserts'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
 import { keepOption, putBackOption, renameBrand, retireOption, showWords } from '@/core/words'
 import { suggestClip } from '@/core/suggest'
@@ -167,6 +169,8 @@ export interface State extends MixData {
   setWord: (slotId: string, field: string, value: string | null) => void
   /** Navs: show or remove an announcement banner (the clip's own, or one added above it). */
   setBanner: (slotId: string, on: boolean) => void
+  /** Add a blok after a block (in every item when it's inside a list's item); returns the new block's id. */
+  addBlock: (slotId: string, kind: InsertKind, afterId: string) => string | null
   /** Add, duplicate, remove or move a list's items. Returns the item to select (a new one), or null if it couldn't. */
   editList: (slotId: string, change: ListOp) => { itemId: string | null } | null
   /** Keep words as an option for a field ("Keep as an option"). */
@@ -461,12 +465,29 @@ export const useStore = create<State>()(
             if (own) get().editBlock(slotId, own.id, { hidden: on ? undefined : true })
             else updateSlot(slotId, (s) => ({ ...s, banner: on || undefined }))
           },
+          addBlock: (slotId, kind, afterId) => {
+            const slot = allSlots(get().site).find((s) => s.id === slotId)
+            if (!slot) return null
+            try {
+              const out = addInsert(slot, slotClip(slot), kind, afterId)
+              updateSlot(slotId, () => out.slot)
+              return out.blockId
+            } catch (e) {
+              if (e instanceof InsertError) {
+                get().showFlash(e.message)
+                return null
+              }
+              throw e
+            }
+          },
           editBlock: (slotId, blockId, patch) => {
             const locked = blockEditNeedsPack(patch)
             if (locked && needsPack(locked)) return
             updateSlot(slotId, (s) => {
-              // Hiding an added banner removes it.
+              // Hiding an added banner removes it; so does hiding a blok you added.
               if (blockId === BANNER_ID && patch?.hidden) return { ...s, banner: undefined }
+              const added = insertOf(blockId)
+              if (added && patch?.hidden && (s.inserts?.[s.clipId] ?? []).some((i) => i.id === added)) return removeInsert(s, added)
               const forClip = { ...(s.edits?.[s.clipId] ?? {}) }
               if (patch === null) delete forClip[blockId]
               else {

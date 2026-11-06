@@ -4,7 +4,7 @@ import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
 import { cycleIds } from '@/core/library'
 import { currentWords } from '@/core/words'
-import { editList as applyListEdit, listContext, listOrder, sectionClip } from '@/core/lists'
+import { editList as applyListEdit, extrasOf, listContext, listOrder, sectionClip } from '@/core/lists'
 import { useTiles } from './tiles'
 import { applyBindings, emptyTargets } from '@/core/collections'
 import { entryPathFor, templateEntry, useCollections } from '@/state/collections'
@@ -190,7 +190,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
     const s = useStore.getState()
     if (s.ui.focusedSlotId === own.id && s.ui.selectedBlockId) s.selectBlock(null)
   }, [own.clipId, own.id])
-  const sectioned = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists, { banner: slot.banner }) : null
+  const sectioned = library.clips[shown] ? sectionClip(library.clips[shown], slot.lists, extrasOf(slot, shown)) : null
   const blocks = sectioned?.blocks ?? []
   const block = selectedBlock ? blocks.find((b) => b.id === selectedBlock) : undefined
   // List items can be dragged among their siblings: selecting anything inside an item shows its grip. The frame reports

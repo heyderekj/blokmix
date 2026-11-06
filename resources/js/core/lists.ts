@@ -9,7 +9,8 @@
 // item it belongs to ("b5.f4"), so edits, notes and selection follow items
 // wherever they move.
 
-import type { BlockInfo, Clip, ListItemRef, ProjectContent, Slot } from './types'
+import type { BlockInfo, Clip, Insert, ListItemRef, ProjectContent, Slot } from './types'
+import { applyInserts } from './inserts'
 import { DEFAULT_CONTENT, resolveFields } from './content'
 import { bannerTree } from './banner'
 import { attr, extractFields, mapTree, parseHtml, walk, type HEl, type HNode } from './html/parse'
@@ -22,11 +23,20 @@ export interface ListPatch {
   html: string
   /** Insert the html just before `sel` instead of replacing it (an added banner). */
   before?: boolean
+  /** Insert it just after `sel` (a blok you added). */
+  after?: boolean
 }
 
-/** Things a section adds to its clip (a banner above a nav). */
+/** Things a section adds to its clip (a banner above a nav, bloks you added). */
 export interface SectionExtras {
   banner?: boolean
+  inserts?: Insert[]
+}
+
+/** What a section adds to a clip: its banner, and the bloks it added to that clip (the one it shows, by default). */
+export const extrasOf = (slot: Pick<Slot, 'banner' | 'inserts'> & { clipId?: string }, clipId = slot.clipId ?? ''): SectionExtras | undefined => {
+  const inserts = slot.inserts?.[clipId]
+  return slot.banner || inserts?.length ? { ...(slot.banner ? { banner: true } : {}), ...(inserts?.length ? { inserts } : {}) } : undefined
 }
 
 /** A clip as one section shows it: its lists applied, blocks stamped and indexed. */
@@ -433,6 +443,25 @@ function patchesFor(before: HNode[], after: HNode[]): ListPatch[] {
   return out
 }
 
+/** Patches for the bloks you added that sit outside every list: each goes in right after the element before it. */
+function insertPatches(tree: HNode[]): ListPatch[] {
+  const out: ListPatch[] = []
+  const visit = (nodes: HNode[], inList: boolean) => {
+    let prev: HEl | null = null
+    for (const n of nodes) {
+      if (!isEl(n)) continue
+      if (attr(n, 'data-mx-extra') === 'add' && !inList && prev) {
+        const b = attr(prev, 'data-mx-b')
+        // After a blok added just before it, chain on that one (it's on the page by then).
+        if (b) out.push({ sel: `[data-mx-b="${b}"]`, html: serialize([n], 'html'), after: true })
+      } else visit(n.kids, inList || isKind(n, 'list'))
+      prev = attr(n, 'data-mx-extra') === 'add' && !attr(n, 'data-mx-b') ? n.kids.filter(isEl).at(-1) ?? n : n
+    }
+  }
+  visit(tree, false)
+  return out
+}
+
 /** Mark list blocks with the key you can edit them by, and items with their number. */
 function annotate(blocks: BlockInfo[], tree: HNode[]): BlockInfo[] {
   const shared = sharedKeys(tree)
@@ -464,13 +493,19 @@ export function sectionClip(clip: Clip, lists?: Record<string, ListItemRef[]>, e
   const banner = !!extras?.banner && clip.type === 'nav' && !base.some(function has(n): boolean {
     return n.t === 'el' && (attr(n, 'data-mx-block') === 'banner' || n.kids.some(has))
   })
-  const k = `${clip.id}@${clip.hash}:${relevant ? JSON.stringify(relevant) : ''}:${banner ? 'b' : ''}`
+  const inserts = extras?.inserts?.length ? extras.inserts : undefined
+  const k = `${clip.id}@${clip.hash}:${relevant ? JSON.stringify(relevant) : ''}:${banner ? 'b' : ''}:${inserts ? JSON.stringify(inserts) : ''}`
   let hit = cache.get(k)
   if (hit) return hit
   const withExtras: HNode[] = banner ? [bannerTree((f) => DEFAULT_CONTENT.fields.nav?.[f] ?? ''), { t: 'text', v: '\n' }, ...base] : base
-  const tree = applyLists(withExtras, relevant)
-  const patches = relevant ? patchesFor(base, tree) : []
+  // Bloks you added go in after the clip's own blocks are stamped (their ids never shift), and before the lists are
+  // changed, so a blok in every item is copied along with a new item.
+  const added = inserts ? applyInserts(withExtras, inserts, clip.type) : withExtras
+  const tree = applyLists(added, relevant)
+  const patches = relevant || inserts ? patchesFor(base, tree) : []
   if (banner) patches.unshift({ sel: '[data-mx-section]', html: serialize([tree[0]], 'html'), before: true })
+  // A blok outside any list arrives in a frame on its own, right after its anchor (a list's own patch carries those in it).
+  if (inserts) patches.push(...insertPatches(tree))
   hit = {
     ...clip,
     html: serialize(tree, 'html'),
@@ -478,7 +513,7 @@ export function sectionClip(clip: Clip, lists?: Record<string, ListItemRef[]>, e
     blocks: annotate(indexBlocks(tree, clip.type), tree),
     patches,
     source: clip,
-    extras: banner ? { banner } : undefined,
+    extras: banner || inserts ? { ...(banner ? { banner } : {}), ...(inserts ? { inserts } : {}) } : undefined,
   }
   if (cache.size > 400) cache.clear()
   cache.set(k, hit)

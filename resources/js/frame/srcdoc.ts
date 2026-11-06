@@ -406,6 +406,7 @@ const BRIDGE = `(function () {
       var next = t.content.firstElementChild;
       if (!next) return;
       if (p.before) cur.before(next);
+      else if (p.after) cur.after(next);
       else {
         if (!listOrig[p.sel]) listOrig[p.sel] = cur.cloneNode(true);
         cur.replaceWith(next);
