@@ -10,6 +10,7 @@ import { wordChoices, currentWords } from '@/core/words'
 import { TYPE_LABEL } from '@/core/content'
 import { stepLook } from '@/ui/blocks/LooksPicker'
 import { toggleSay } from '@/ui/jev/SayBar'
+import { useJevTools } from '@/state/jevSay'
 
 const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
 
@@ -21,6 +22,15 @@ function typing(t: EventTarget | null) {
 /** Keyboard-first: everything in the core loop has a key. */
 export function useShortcuts(onHelp: () => void) {
   useEffect(() => {
+    // Long text pasted on the board (not into a field): offer to pour it in, or make a page from it.
+    const onPaste = (e: ClipboardEvent) => {
+      if (typing(e.target) || e.defaultPrevented) return
+      const text = e.clipboardData?.getData('text/plain') ?? ''
+      if (text.trim().length < 80 || text.trim().split('\n').length < 2) return
+      e.preventDefault()
+      useJevTools.setState({ open: currentSlots(useStore.getState()).length > 2 ? 'pour' : 'page', text })
+    }
+    window.addEventListener('paste', onPaste)
     const onKey = (e: KeyboardEvent) => {
       if (typing(e.target) || e.defaultPrevented) return
       const st = useStore.getState()
@@ -220,6 +230,9 @@ export function useShortcuts(onHelp: () => void) {
       }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('paste', onPaste)
+    }
   }, [onHelp])
 }

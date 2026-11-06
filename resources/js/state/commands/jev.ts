@@ -15,6 +15,8 @@ import { useStore } from '../store'
 import { deadLinks, guessLinks } from '../jevLinks'
 import { findFocus } from '../jevPhotos'
 import { hear, type Heard } from '../jevSay'
+import { applyPour, planPour, trayFrom, useWordsTray, type Poured } from '../jevPour'
+import { buildPage, planPage, type PagePlan } from '../jevPage'
 import { CommandError, findBlock, findPage, findSection, placeOf, wordsFor } from './refs'
 import type { AsyncCommand } from './index'
 
@@ -103,6 +105,44 @@ export const later = {
       checks: r.score.checks.map((c) => `${c.ok ? '✓' : c.weight ? '✗' : '·'} ${c.words}`),
     }),
   } satisfies AsyncCommand<FiveSecond>,
+  pour_words: {
+    prepare: async (i: CommandInput<'pour_words'>) => {
+      await needJev()
+      const p = await planPour(i.text, pageSlots(i.page))
+      if (!p) throw new CommandError('Jev didn’t answer; nothing was poured. Try again.')
+      return p
+    },
+    apply: (_i: CommandInput<'pour_words'>, p: Poured) => {
+      const done = applyPour(p.plan)
+      const tray = trayFrom(p.plan)
+      useWordsTray.setState((s) => ({ lines: [...s.lines, ...tray] }))
+      return {
+        placed: done.placed,
+        sections: done.sections,
+        waiting: tray.map((t) => ({ text: t.text, could_go: t.homes.map((h) => h.label) })),
+        message: `Placed ${done.placed} line${done.placed === 1 ? '' : 's'} in ${done.sections} section${done.sections === 1 ? '' : 's'}.${tray.length ? ` ${tray.length} ${tray.length === 1 ? 'is' : 'are'} waiting in Words to place.` : ''}`,
+      }
+    },
+  } satisfies AsyncCommand<Poured>,
+  page_from_words: {
+    prepare: async (i: CommandInput<'page_from_words'>) => {
+      await needJev()
+      const p = await planPage(i.text)
+      if (!p) throw new CommandError('Jev didn’t answer, or there were no words to use. Try again.')
+      return p
+    },
+    apply: (i: CommandInput<'page_from_words'>, p: PagePlan) => {
+      const b = buildPage(p, i.arrangement, i.into, i.page)
+      return {
+        page: b.pageId,
+        sections: b.sections,
+        placed: b.placed,
+        waiting: b.waiting,
+        kind: b.kind,
+        message: `A page of ${b.sections.join(', ')}, from your words.${b.waiting ? ` ${b.waiting} line${b.waiting === 1 ? ' is' : 's are'} waiting in Words to place.` : ''}`,
+      }
+    },
+  } satisfies AsyncCommand<PagePlan>,
   understand: {
     prepare: async (i: CommandInput<'understand'>) => {
       await needJev()

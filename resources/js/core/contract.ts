@@ -100,6 +100,7 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
       return ['layout']
     case 'set_words':
     case 'word_options':
+    case 'pour_words':
       return ['words']
     case 'set_mock':
     case 'set_image':
@@ -111,6 +112,8 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'start_from_starter':
     case 'apply_start':
       return [...STYLE_AREAS, 'layout']
+    case 'page_from_words':
+      return ['layout', 'words']
     default:
       return []
   }

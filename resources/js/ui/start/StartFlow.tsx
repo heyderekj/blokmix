@@ -33,10 +33,12 @@ type Step = 'what' | 'starts' | 'skin'
  * before you see them, so each says plainly how its first screen holds up on a laptop
  * and a phone, and the skin you pick is measured again since its fonts move things.
  */
-export function StartFlow({ onDone, onBlank, onClose, busy }: {
+export function StartFlow({ onDone, onBlank, onWords, onClose, busy }: {
   /** The answers, every start (best first), and the one picked. */
   onDone: (input: StartInput, starts: ScoredStart[], chosen: string) => void
   onBlank: () => void
+  /** Start from words you already have (a page made from them, on the board). Shown when given. */
+  onWords?: (name: string) => void
   onClose?: () => void
   /** Saving the new mix (hosted): the buttons wait. */
   busy?: boolean
@@ -181,7 +183,13 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
 
         <footer className="flex items-center justify-between gap-3 border-t border-zinc-950/[0.06] bg-white px-4 py-3 sm:px-5">
           {step === 'what' ? (
-            <span />
+            onWords ? (
+              <button type="button" onClick={() => onWords(name.trim())} disabled={busy} className={QUIET}>
+                Already have words? Start from them
+              </button>
+            ) : (
+              <span />
+            )
           ) : (
             <button type="button" onClick={() => setStep(step === 'skin' ? 'starts' : 'what')} className={QUIET}>
               <ArrowLeft size={16} /> Back

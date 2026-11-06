@@ -18,7 +18,7 @@ import { runCommand } from './commands'
 import { wordsFor } from './commands/refs'
 
 /** Which of Jev's tools Say it (or anything else) asked to open, and on what. */
-export const useJevTools = create<{ open: 'pour' | 'page' | 'colors' | 'dress' | null; slotId?: string; text?: string }>()(() => ({ open: null }))
+export const useJevTools = create<{ open: 'pour' | 'page' | 'colors' | 'dress' | null; slotId?: string; text?: string; into?: 'new_page' | 'this_page' }>()(() => ({ open: null }))
 
 export function sayContext(): SayContext {
   const st = useStore.getState()

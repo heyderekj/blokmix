@@ -1,6 +1,6 @@
 import { Switch } from './parts'
 import { useMemo, useState, type ReactNode } from 'react'
-import { ArrowDown, ArrowUp, Bookmark, Copy, Minus, Plus, Undo2, Archive } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bookmark, Copy, Minus, Plus, Undo2, Archive, Wand2 } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
 import { parseHtml } from '@/core/html/parse'
@@ -11,6 +11,7 @@ import { slotClip } from '@/data/library'
 import { useStore, currentSlots } from '@/state/store'
 import { PanelSection } from './parts'
 import { CollectionsPanel } from './collections/CollectionsPanel'
+import { useJevTools } from '@/state/jevSay'
 
 const WORD: Record<string, string> = {
   q: 'Question',
@@ -72,6 +73,22 @@ function PageWords() {
   return (
     <div>
       <p className="px-4 pt-3.5 text-[12px] leading-relaxed text-zinc-500">Every word on the page, by section. Edit here or right on the page; the export writes these to content files your site reads.</p>
+      <div className="flex gap-1.5 px-4 pt-2.5">
+        <button
+          type="button"
+          onClick={() => useJevTools.setState({ open: 'pour', text: undefined })}
+          className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-zinc-950/[0.06] px-3 text-[12px] font-semibold text-zinc-800 transition hover:bg-zinc-950/[0.1] active:scale-[0.97]"
+        >
+          <Wand2 size={13} /> Pour in your words
+        </button>
+        <button
+          type="button"
+          onClick={() => useJevTools.setState({ open: 'page', text: undefined })}
+          className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12px] font-medium text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.97]"
+        >
+          A page from your words
+        </button>
+      </div>
       <PanelSection title="Brand">
         <input value={brand} onChange={(e) => st().setBrand(e.target.value)} className={`${inputCls} h-8`} />
       </PanelSection>

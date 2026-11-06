@@ -23,6 +23,23 @@ export const JEV_COMMANDS = {
     input: z.object({ page: z.string().optional().describe('A page path or id; default the open page') }),
     write: false,
   },
+  pour_words: {
+    description:
+      'Pour your own words into the open page: paste notes, an About page or an old site’s copy, and Jev says what each line is (a headline, a question and its answer, a plan’s price, a person’s name…) and which section it belongs in; code places each line word for word, growing or trimming lists to fit. Nothing is reworded. Words it replaces stay as options; lines it isn’t sure of wait in the Words to place tray. Skips the shared nav and footer, locked sections and sections keeping their source’s words. One undo step.',
+    input: z.object({ text: z.string().min(1).max(20_000), page: z.string().optional() }),
+    write: true,
+  },
+  page_from_words: {
+    description:
+      'Make a page from anything pasted (an old site’s copy, a menu, a CV, event notes): Jev says what kind of section each run of lines is (questions and answers → FAQ, names with roles → team, prices → pricing) and what each line is; built-in layouts that hold each run’s items are picked, a hero leads with the most headline-like line, and every line is placed word for word. arrangement 1–3 gives the same words in contrasting layouts (the reading is cached, so 2 and 3 come at once). into new_page adds a page; this_page replaces the open page’s own sections. One undo step.',
+    input: z.object({
+      text: z.string().min(1).max(20_000),
+      into: z.enum(['new_page', 'this_page']).default('new_page'),
+      arrangement: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(1),
+      page: z.string().optional().describe('With this_page: which page (default the open one)'),
+    }),
+    write: true,
+  },
   understand: {
     description:
       'What Say it would do with these words ("roomier", "make pricing dark", "FAQ above pricing", "add a team section"): Jev picks one of Blokmix’s own commands and fills its arguments from this page’s real sections, dials and skins. Returns the command and input it would run (action, when sure) and what else the words might mean (options). Changes nothing: run the action yourself if it’s right.',
