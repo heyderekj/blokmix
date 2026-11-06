@@ -68,6 +68,15 @@ export async function doSay(a: SayAction, text: string): Promise<string | null> 
   const st = useStore.getState()
   if (a.open) {
     useJevTools.setState({ open: a.open, slotId: a.slotId, text })
+    // Bring the tool into view: colors live in the Style guide's Feel tile, dressing up in the section's Style panel.
+    if (a.open === 'colors') st.setUi({ sheet: 'guide', guideTab: 'style' })
+    if (a.open === 'dress') {
+      const target = a.slotId ?? currentSlots(st).find((s) => s.type === 'hero')?.id
+      if (target) {
+        st.setUi({ focusedSlotId: target, selectedBlockId: null })
+        useJevTools.setState({ slotId: target })
+      }
+    }
     return null
   }
   if (!a.command) return null

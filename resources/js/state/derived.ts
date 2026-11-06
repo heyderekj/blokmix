@@ -65,18 +65,28 @@ export function useLinkScope(slotId: string): LinkScope {
 }
 
 /** A token value you're hovering in a picker (a font), shown on the page before you choose it. Not undoable state. */
-export const useTokenPreview = create<{ preview: { key: TokenKey; value: string } | null; set: (p: { key: TokenKey; value: string } | null) => void }>()((set) => ({
+export const useTokenPreview = create<{
+  preview: { key: TokenKey; value: string } | null
+  /** Several tokens at once (a whole palette you're hovering). */
+  patch: Partial<Record<TokenKey, string>> | null
+  set: (p: { key: TokenKey; value: string } | null) => void
+  setPatch: (p: Partial<Record<TokenKey, string>> | null) => void
+}>()((set) => ({
   preview: null,
+  patch: null,
   set: (preview) => set({ preview }),
+  setPatch: (patch) => set({ patch }),
 }))
 
 export function useResolvedGuide(): ResolvedGuide {
   const guide = useStore((s) => s.guide)
   const preview = useTokenPreview((s) => s.preview)
+  const patch = useTokenPreview((s) => s.patch)
   return useMemo(() => {
     const r = resolveGuide(guide)
-    return preview ? { ...r, tokens: { ...r.tokens, [preview.key]: preview.value } } : r
-  }, [guide, preview])
+    if (!preview && !patch) return r
+    return { ...r, tokens: { ...r.tokens, ...(patch ?? {}), ...(preview ? { [preview.key]: preview.value } : {}) } }
+  }, [guide, preview, patch])
 }
 
 const cssCache = new Map<string, string>()

@@ -17,6 +17,12 @@ import { findFocus } from '../jevPhotos'
 import { hear, type Heard } from '../jevSay'
 import { applyPour, planPour, trayFrom, useWordsTray, type Poured } from '../jevPour'
 import { buildPage, planPage, type PagePlan } from '../jevPage'
+import { suggestPalettes } from '../jevColors'
+import { dressPage, dressSection, type DressIdea } from '../jevDress'
+import type { Ranked } from '@/core/jev/palettes'
+import { jevPhotoUrl } from '@/core/jev/photos'
+import { assetUrl } from '@/lib/assets'
+import type { TokenKey } from '@/core/types'
 import { CommandError, findBlock, findPage, findSection, placeOf, wordsFor } from './refs'
 import type { AsyncCommand } from './index'
 
@@ -68,6 +74,14 @@ export async function fiveSecondTest(page?: string): Promise<FiveSecond> {
   const res = await askJev(fiveSecondRequest(words))
   const read = readFiveSecond(res, words, useStore.getState().content.kind)
   return { read, score: scorePage(byWidth, read?.checks ?? []), words }
+}
+
+/** A whole palette at once, as one undo step (the Feel tile's way: colors are free, like the dials). */
+export const write = {
+  set_palette: (i: CommandInput<'set_palette'>) => {
+    useStore.getState().chooseTokens(i.colors as Partial<Record<TokenKey, string>>)
+    return { colors: i.colors }
+  },
 }
 
 export const later = {
@@ -143,6 +157,36 @@ export const later = {
       }
     },
   } satisfies AsyncCommand<PagePlan>,
+  suggest_palettes: {
+    prepare: async (i: CommandInput<'suggest_palettes'>) => {
+      await needJev()
+      let picture: string | undefined
+      if (i.picture) {
+        const slot = findSection(i.picture.section)
+        const b = findBlock(slot, i.picture.block)
+        const fill = slot.edits?.[slot.clipId]?.[b.id]?.media
+        picture = fill?.source === 'upload' && fill.asset ? assetUrl(fill.asset) : fill?.source === 'stock' && fill.stock ? jevPhotoUrl(fill.stock) : undefined
+        if (!picture) throw new CommandError(`${b.label} shows no photo or upload to match`)
+      }
+      const r = await suggestPalettes({ feel: i.feel, brand: i.brand, picture, mode: i.mode })
+      if (!r) throw new CommandError('Jev didn’t answer; try again.')
+      return r
+    },
+    apply: (_i: CommandInput<'suggest_palettes'>, r: Ranked[]) => r.map((p, n) => ({ pick: n + 1, colors: p.palette, words: p.words, from: p.from, fit: p.score })),
+  } satisfies AsyncCommand<Ranked[]>,
+  suggest_treatments: {
+    prepare: async (i: CommandInput<'suggest_treatments'>): Promise<DressIdea[]> => {
+      await needJev()
+      if (i.section === undefined) {
+        const look = await dressPage(i.feel)
+        return look ? [look] : []
+      }
+      const r = await dressSection(findSection(i.section).id, i.feel)
+      if (!r) throw new CommandError('Jev didn’t answer; try again.')
+      return r.ideas
+    },
+    apply: (_i: CommandInput<'suggest_treatments'>, ideas: DressIdea[]) => ideas.map((d) => ({ does: d.label, command: d.command, input: d.input, needs_pack: d.locked, fit: Math.round(d.fit * 100) / 100 })),
+  } satisfies AsyncCommand<DressIdea[]>,
   understand: {
     prepare: async (i: CommandInput<'understand'>) => {
       await needJev()

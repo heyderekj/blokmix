@@ -78,15 +78,23 @@ function inkOn(fill: string, h: number): string {
   return (contrastRatio(dark, fill) ?? 0) >= (contrastRatio(light, fill) ?? 0) ? dark : light
 }
 
+/** Other ways to build a palette from the same brand: where the accent sits, and how much of the hue the greys carry. */
+export interface PaletteVariant {
+  /** Degrees round the wheel from the brand (default 120: a third of the way). */
+  accentTurn?: number
+  /** How much of the brand's hue the greys carry, as a multiple (default 1; 0.3 near-neutral, 1.8 richly tinted). */
+  tint?: number
+}
+
 /**
  * The eight colors from one brand color. The brand stays the primary (nudged only
  * if a label can't read on it), greys carry a trace of its hue, and the accent sits
- * a third of the way round the wheel.
+ * a third of the way round the wheel (or wherever `variant` says).
  */
-export function paletteFrom(brand: string, mode: Mode = 'light'): Palette {
+export function paletteFrom(brand: string, mode: Mode = 'light', variant: PaletteVariant = {}): Palette {
   const lch = hexToOklch(brand) ?? [0.55, 0.15, 260]
   const [, C, h] = lch
-  const tint = Math.min(C, 0.12) // how much of the hue the greys carry
+  const tint = Math.min(C, 0.12) * (variant.tint ?? 1) // how much of the hue the greys carry
   const dark = mode === 'dark'
 
   const bg = dark ? oklchToHex(0.17, tint * 0.12, h) : oklchToHex(0.992, tint * 0.05, h)
@@ -108,7 +116,7 @@ export function paletteFrom(brand: string, mode: Mode = 'light'): Palette {
     onPrimary = inkOn(primary, h)
   }
 
-  const accent = oklchToHex(dark ? 0.74 : 0.62, Math.max(0.1, Math.min(C, 0.18)), (h + 120) % 360)
+  const accent = oklchToHex(dark ? 0.74 : 0.62, Math.max(0.1, Math.min(C, 0.18)), (h + (variant.accentTurn ?? 120) + 360) % 360)
 
   return {
     'color.bg': bg,

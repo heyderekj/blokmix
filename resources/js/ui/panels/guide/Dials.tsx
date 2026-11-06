@@ -2,6 +2,7 @@ import { Moon, Sun } from 'lucide-react'
 import { DIAL_NAMES, DIALS, readDials, setTone, toneOfGuide } from '@/core/dials'
 import { useStore } from '@/state/store'
 import { useGuideData } from './shared'
+import { ColorsByFeel } from '../../jev/ColorsByFeel'
 
 /**
  * Feel: a few dials that move several tokens at once (spacing, type size, roundness, weight) and a light/dark switch,
@@ -58,6 +59,7 @@ export function Dials() {
           )
         })}
       </div>
+      <ColorsByFeel />
     </div>
   )
 }

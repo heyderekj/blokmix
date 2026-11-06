@@ -40,6 +40,28 @@ export const JEV_COMMANDS = {
     }),
     write: true,
   },
+  suggest_palettes: {
+    description:
+      'Colors by feel: three palettes for a feel in words ("a cozy bakery", "late-night jazz"), a brand color, or a picture in an image block (its logo or photo colors). Blokmix makes the candidates, every one passing AA for text, muted text and button labels; Jev looks at each drawn as a little page and rates how well it suits the brief and whether its colors belong together. Returns each palette’s colors (color.* tokens) and its colors in words. Changes nothing: set_palette uses one.',
+    input: z.object({
+      feel: z.string().trim().max(200).optional(),
+      brand: z.string().regex(/^#[0-9a-f]{6}$/i).optional().describe('A brand color to build around, as #rrggbb'),
+      picture: z.object({ section, block }).optional().describe('An image block whose photo or upload to match'),
+      mode: z.enum(['light', 'dark']).optional().describe('Default: the guide’s own'),
+    }),
+    write: false,
+  },
+  set_palette: {
+    description: 'Put a whole palette on the style guide in one undo step (color.bg, color.surface, color.text, color.muted, color.border, color.primary, color.onPrimary, color.accent), as suggest_palettes returns them. Your own swatches stay.',
+    input: z.object({ colors: z.record(z.enum(['color.bg', 'color.surface', 'color.text', 'color.muted', 'color.border', 'color.primary', 'color.onPrimary', 'color.accent']), z.string().regex(/^#[0-9a-f]{6}$/i)) }),
+    write: true,
+  },
+  suggest_treatments: {
+    description:
+      'Dress it up: backgrounds that suit a section (from Blokmix’s own backdrops and presets, a live shader only if no other section runs one), a product screen for its empty picture, and with no section the set of effects that suits the whole page. Jev reads each treatment’s name and description against the section’s words, the skin’s mood and the feel you give. Returns ready commands (set_section_backdrop, set_mock, apply_look) and whether each needs a mix pack. Changes nothing.',
+    input: z.object({ section: section.optional(), feel: z.string().trim().max(160).optional() }),
+    write: false,
+  },
   understand: {
     description:
       'What Say it would do with these words ("roomier", "make pricing dark", "FAQ above pricing", "add a team section"): Jev picks one of Blokmix’s own commands and fills its arguments from this page’s real sections, dials and skins. Returns the command and input it would run (action, when sure) and what else the words might mean (options). Changes nothing: run the action yourself if it’s right.',
