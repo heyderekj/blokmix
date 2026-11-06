@@ -13,6 +13,7 @@ import { contentJson, type OutlineNode } from '@/core/outline'
 import { wordChoices } from '@/core/words'
 import { pageView } from '@/core/site'
 import { revealSection } from '@/lib/actions'
+import { briefOut } from './page'
 import { useStore, mixClipIds } from '../store'
 import { findPage, findSection, findBlock, wordsFor, describeSection, outlineOf, adviceFor, positionOf, shownSlot } from './refs'
 
@@ -25,6 +26,7 @@ export const read = {
     const sections = i.section !== undefined ? [findSection(i.section, page.id)] : pageView(st.site, page.id)
     return {
       mix: st.mixName,
+      brief: briefOut(),
       page: { path: page.path, title: page.title, nav: page.show.nav, footer: page.show.footer },
       pages: st.site.pages.map((p) => p.path),
       mode: st.ui.mode === 'unified' ? 'your style' : 'original',
@@ -41,6 +43,7 @@ export const read = {
       selectedBlock: st.ui.selectedBlockId,
     }
   },
+  get_brief: () => briefOut(),
   get_content: (i: CommandInput<'get_content'>) => {
     const st = useStore.getState()
     const page = findPage(i.page)
@@ -114,7 +117,7 @@ export const read = {
       return { section: slot.id, options: suggestClip(slot.type, view, at, library, true, pool).map((o) => ({ ...o, title: library.clips[o.clipId].title, origin: library.clips[o.clipId].origin })) }
     }
     const at = i.at ?? view.length
-    return { page: page.path, at, types: suggestTypes(view, at).map((t) => ({ ...t, available: library.byType[t.type].length > 0 })) }
+    return { page: page.path, at, types: suggestTypes(view, at, useStore.getState().content.brief).map((t) => ({ ...t, available: library.byType[t.type].length > 0 })) }
   },
   show: (i: CommandInput<'show'>) => {
     const st = useStore.getState()

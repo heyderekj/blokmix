@@ -50,5 +50,12 @@
         "faq.layout-band"
       ]
     }
+  ],
+  "industries": [
+    "saas",
+    "fintech"
+  ],
+  "formats": [
+    "landing"
   ]
 }

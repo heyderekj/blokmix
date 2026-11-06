@@ -26,7 +26,8 @@ export function insertSection(type: SectionType, at: number) {
  */
 export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => void }) {
   const slots = useStore(currentSlots)
-  const ranked = useMemo(() => suggestTypes(slots, at), [slots, at])
+  const brief = useStore((s) => s.content.brief)
+  const ranked = useMemo(() => suggestTypes(slots, at, brief), [slots, at, brief])
   const usable = (t: SectionType) => library.byType[t].length > 0
   const suggested = ranked.filter((s) => s.allowed && s.score > 0 && usable(s.type)).slice(0, 3)
   const rest = ranked.filter((s) => !suggested.includes(s)).sort((a, b) => SECTION_TYPES.indexOf(a.type) - SECTION_TYPES.indexOf(b.type))

@@ -474,6 +474,18 @@ use them in shows the same entries.
 - Not yet: the account sync on the server (`collections` tables, API, access, plan limits) and rendering a whole
   rich-text body as HTML in a section (template pages show its first paragraphs).
 
+### The brief
+
+What the site is for (`core/brief.ts`, `content.brief`): a format (landing page, small business site, portfolio, blog,
+event page), an industry (the site library's ids plus services and other), goals (take bookings, get sign-ups…), who
+it's for and what it is in the owner's words, and the main button's words. Context, never copy: nothing composes from
+it, except the main button's words, which `contentFor` puts in the hero, nav, cta and footer buttons (yours only when
+typed). `content.kind` stays and follows it (`kindOf`); a mix without one reads one from its kind (`briefOf`). It steers
+Jev's requests (`briefContext` is the one sentence they get), Add section (goal sections first, "Suggested for…"),
+starters (`industries`/`formats` in their JSON), the photo search's first words (`INDUSTRY_PHOTO`), and goes to the agent
+as "What this site is for" in BLOKMIX.md and `brief` in blokmix.json. Store: `setBrief` (one undo step). Agents:
+`get_brief`, `set_brief`; `get_page` includes it.
+
 ### Content
 
 Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI calls it Content, never "CMS".

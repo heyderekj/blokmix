@@ -16,5 +16,8 @@
         "footer.layout-minimal"
       ]
     }
+  ],
+  "formats": [
+    "portfolio"
   ]
 }

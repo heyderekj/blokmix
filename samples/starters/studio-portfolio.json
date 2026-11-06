@@ -57,5 +57,13 @@
         "contact.layout-details"
       ]
     }
+  ],
+  "industries": [
+    "agency",
+    "architecture"
+  ],
+  "formats": [
+    "portfolio",
+    "business"
   ]
 }

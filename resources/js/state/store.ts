@@ -1,3 +1,4 @@
+import { briefOf, kindOf, patchBrief, type Brief } from '@/core/brief'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { temporal } from 'zundo'
@@ -238,6 +239,8 @@ export interface State extends MixData {
   setBrand: (brand: string) => number
   /** Your logo once, for the nav's and footer's logo (null takes it away). */
   setLogo: (logo: MediaFill | null) => void
+  /** What the site is for (core/brief.ts), patched in one undo step; the kind follows it. */
+  setBrief: (patch: Partial<Brief>) => void
   /** One brand color: a whole palette made from it, kept when you try other themes (null forgets it). */
   setBrandColor: (color: string | null) => void
 
@@ -831,6 +834,13 @@ export const useStore = create<State>()(
             set({ content: out.content, site: out.site })
             return out.count
           },
+          setBrief: (patch) =>
+            set((st) => {
+              const brief = patchBrief(briefOf(st.content), patch)
+              const { brief: _, ...rest } = st.content
+              const known = brief.format || brief.industry
+              return { content: { ...rest, ...(Object.keys(brief).length ? { brief } : {}), ...(known ? { kind: kindOf(brief, st.content.kind) } : {}) } }
+            }),
           setLogo: (logo) =>
             set((st) => {
               const { logo: _, ...rest } = st.content

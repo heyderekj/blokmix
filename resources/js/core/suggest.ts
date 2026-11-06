@@ -3,6 +3,7 @@
 // neighbours. Every suggestion carries a short reason, so it's explainable
 // (and an agent can take this over later).
 
+import { GOAL_LABEL, goalSections, goalsOf, type Brief } from './brief'
 import type { Library, Rhythm, SectionType, Slot } from './types'
 import { pickable } from './library'
 import { SECTION_TYPES } from './types'
@@ -72,7 +73,10 @@ export function isInnerPage(slots: PageSlot[]): boolean {
 }
 
 /** Rank every section type for a new section inserted at `insertAt` (0 = top). */
-export function suggestTypes(slots: PageSlot[], insertAt: number): TypeSuggestion[] {
+export function suggestTypes(slots: PageSlot[], insertAt: number, brief?: Brief): TypeSuggestion[] {
+  // What the site should do (the brief's goals) leans on a few sections: those not on the page yet rank higher.
+  const wanted = brief ? goalSections(brief) : []
+  const goal = brief && goalsOf(brief)[0]
   const above = slots[insertAt - 1]?.type
   const below = slots[insertAt]?.type
   const count = (t: SectionType) => slots.filter((s) => s.type === t).length
@@ -135,6 +139,10 @@ export function suggestTypes(slots: PageSlot[], insertAt: number): TypeSuggestio
     if (type === 'cta' && below === 'footer' && !has('cta')) add(2, 'No call to action before the footer yet')
     if (type === 'features' && has('hero') && !has('features') && !inner) add(1, 'The page doesn’t say what it does yet')
     if (type === 'faq' && has('pricing') && !has('faq') && slots.findIndex((s) => s.type === 'pricing') < insertAt) add(1, 'Pricing usually raises a few questions')
+
+    // What the site is for.
+    const w = wanted.indexOf(type)
+    if (w >= 0 && !has(type) && allowed) add(2 - w * 0.3, `Suggested for ${GOAL_LABEL[goal!].replace(/^./, (c) => c.toLowerCase())}`)
 
     // Variety.
     if (type === above || type === below) add(-3, `Same as the section ${type === above ? 'above' : 'below'}`)

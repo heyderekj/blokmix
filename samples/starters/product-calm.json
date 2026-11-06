@@ -19,5 +19,12 @@
         "footer.layout-columns"
       ]
     }
+  ],
+  "industries": [
+    "saas",
+    "fintech"
+  ],
+  "formats": [
+    "landing"
   ]
 }

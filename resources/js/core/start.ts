@@ -17,6 +17,7 @@ import { setTone } from './dials'
 import { paletteFrom, type Mode, type Palette } from './palette'
 import { resolveGuide } from './guide'
 import { mineKey } from './ownWords'
+import { FORMATS, INDUSTRIES, MAIN_ACTION_FIELDS, type Brief } from './brief'
 
 export interface StartInput {
   kind: Kind
@@ -35,6 +36,8 @@ export interface StartInput {
   seed?: number
   /** Home's sections top to bottom, in place of the kind's usual page (a description, or chips you changed). */
   sections?: SectionType[]
+  /** What the site is for (core/brief.ts): kept with the words, and its main button fills the page's buttons. */
+  brief?: Brief
 }
 
 export interface StartCandidate {
@@ -88,7 +91,7 @@ const emailFor = (name: string) => `hello@${name.toLowerCase().normalize('NFKD')
  * The words for a start: every section's starter words for your kind of site
  * (`core/startWords.ts`), with your name in them and your line as the headline.
  */
-export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner'>, year = new Date().getFullYear()): ProjectContent {
+export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner' | 'brief'>, year = new Date().getFullYear()): ProjectContent {
   const name = input.name.trim() || 'Your site'
   const fill = (s: string) => s.replaceAll('{name}', name).replaceAll('{email}', emailFor(name)).replaceAll('{year}', String(year))
   const fields: ProjectContent['fields'] = {}
@@ -106,7 +109,16 @@ export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner'>
     fields.hero = { ...fields.hero, headline: line }
     mine.push(mineKey('hero', 'headline'))
   }
-  return { brand: name, kind: input.kind, fields, ...(mine.length ? { mine } : {}) }
+  // The main button's words, wherever the page has one: yours when you typed them, picked ones are still filler.
+  const action = input.brief?.mainAction?.trim()
+  if (action)
+    for (const [type, field] of MAIN_ACTION_FIELDS)
+      if (fields[type] && field in fields[type]!) {
+        fields[type] = { ...fields[type], [field]: action }
+        if (input.brief?.mainActionTyped) mine.push(mineKey(type, field))
+      }
+  const brief = input.brief && Object.keys(input.brief).length ? { brief: input.brief } : {}
+  return { brand: name, kind: input.kind, fields, ...(mine.length ? { mine } : {}), ...brief }
 }
 
 const slotFor = (id: string, type: SectionType, clipId: string): Slot => ({ id, type, clipId, locked: false, keep: { ...DEFAULT_KEEP } })
@@ -173,8 +185,9 @@ const countShelves = (lib: Library, site: Site) => {
 const signature = (site: Site) => [site.shared.nav, ...site.pages.flatMap((p) => p.slots), site.shared.footer].map((s) => s?.clipId ?? '').join(',')
 
 /** Starter mixes for a kind of site this mix can use. */
-export function startersFor(lib: Library, kind: Kind): Starter[] {
-  return lib.starters.filter((s) => s.kind === kind && starterOpen(lib, s))
+export function startersFor(lib: Library, kind: Kind, brief?: Brief): Starter[] {
+  const fits = (s: Starter) => (brief?.industry && s.industries?.includes(brief.industry) ? 2 : 0) + (brief?.format && s.formats?.includes(brief.format) ? 1 : 0)
+  return lib.starters.filter((s) => s.kind === kind && starterOpen(lib, s)).sort((a, b) => fits(b) - fits(a))
 }
 
 /**
@@ -197,7 +210,7 @@ export function startCandidates(input: StartInput, lib: Library, n = 3): StartCa
 
   // Your own list of sections wins over starter mixes, which come with theirs.
   const own = !!input.sections?.length && input.sections.join() !== RECIPES[input.kind].home.join()
-  const starters = own ? [] : startersFor(lib, input.kind)
+  const starters = own ? [] : startersFor(lib, input.kind, input.brief)
   const offset = starters.length ? seed % starters.length : 0
   for (const s of [...starters.slice(offset), ...starters.slice(0, offset)].slice(0, Math.min(2, n - 1))) {
     push({ label: `Starter: ${s.name}`, from: 'starter', starterId: s.id, site: siteFromPages(lib, s.pages, `${s.id}_`), guide, content })
@@ -229,6 +242,8 @@ export function checkStarters(lib: Library): string[] {
   const problems: string[] = []
   for (const s of lib.starters) {
     if (!s.pages.length) problems.push(`${s.id}: no pages`)
+    for (const i of s.industries ?? []) if (!(INDUSTRIES as readonly string[]).includes(i)) problems.push(`${s.id}: unknown industry ${i}`)
+    for (const f of s.formats ?? []) if (!(FORMATS as readonly string[]).includes(f)) problems.push(`${s.id}: unknown format ${f}`)
     for (const [p, page] of s.pages.entries()) {
       const types: SectionType[] = []
       for (const id of page.sections) {

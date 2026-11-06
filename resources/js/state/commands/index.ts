@@ -155,6 +155,8 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return `rewrote the words${inSec}`
       case 'add_block':
         return `added a ${String(input.kind) === 'image' ? 'picture' : String(input.kind)}${inSec}`
+      case 'set_brief':
+        return 'changed what the site is for'
       case 'set_brand':
         return `renamed the site ${String(input.name)}`
       case 'set_brand_color':

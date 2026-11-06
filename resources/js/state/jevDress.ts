@@ -8,7 +8,7 @@ import { skinById } from '@/core/skins'
 import { toneOfGuide } from '@/core/dials'
 import { resolveGuide } from '@/core/guide'
 import { backdropCandidates, dressRequest, readDress, type DressBrief, type Dressed } from '@/core/jev/dress'
-import { KIND_WORDS } from '@/core/jev/vocab'
+import { briefContext } from '@/core/brief'
 import { slotClip } from '@/data/library'
 import { askJev } from '@/lib/jev'
 import { currentSlots, useStore } from './store'
@@ -44,7 +44,7 @@ export async function dressSection(slotId: string, feel?: string): Promise<{ ide
   const brief: DressBrief = {
     type: slot.type,
     words: text,
-    site: st.content.kind ? `${st.content.brand}, ${KIND_WORDS[st.content.kind]}` : st.content.brand,
+    site: briefContext(st.content),
     look: skin?.words,
     tone: toneOfGuide(resolveGuide(st.guide).tokens) === 'dark' ? 'dark' : 'light',
     feel,
@@ -68,7 +68,7 @@ export async function dressPage(feel?: string): Promise<DressIdea | null> {
   const brief: DressBrief = {
     type: 'hero',
     words: hero ? Object.values(wordsFor(hero)).slice(0, 3).join(' · ') : '',
-    site: st.content.kind ? `${st.content.brand}, ${KIND_WORDS[st.content.kind]}` : st.content.brand,
+    site: briefContext(st.content),
     tone: toneOfGuide(resolveGuide(st.guide).tokens) === 'dark' ? 'dark' : 'light',
     feel,
     looks,

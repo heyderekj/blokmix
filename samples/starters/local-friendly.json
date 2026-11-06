@@ -17,5 +17,13 @@
         "footer.layout-centered"
       ]
     }
+  ],
+  "industries": [
+    "food",
+    "health",
+    "services"
+  ],
+  "formats": [
+    "business"
   ]
 }

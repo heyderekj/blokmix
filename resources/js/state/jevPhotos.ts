@@ -4,7 +4,7 @@
 import type { MediaFill, Slot, StockPhoto } from '@/core/types'
 import { imageRef } from '@/core/jev'
 import { focusFrom, jevPhotoUrl, jevThumbUrl, rankRequest, rankedOrder, subjectRequest, type PhotoBrief } from '@/core/jev/photos'
-import { KIND_WORDS } from '@/core/jev/vocab'
+import { briefContext } from '@/core/brief'
 import { skinById } from '@/core/skins'
 import { slotClip } from '@/data/library'
 import { askJev } from '@/lib/jev'
@@ -70,7 +70,7 @@ export function photoBrief(slot: Slot, query?: string): PhotoBrief {
     .slice(0, 4)
     .join(' · ')
   const skin = st.guide.skin?.id ? skinById(st.guide.skin.id) : null
-  return { words: text, site: st.content.kind ? `${st.content.brand}, ${KIND_WORDS[st.content.kind]}` : st.content.brand, look: skin?.words, query }
+  return { words: text, site: briefContext(st.content), look: skin?.words, query }
 }
 
 /** Stock results with the best fit for this section first (Unsplash's order when Jev is off or slow). */

@@ -1,3 +1,4 @@
+import { briefContext, briefOf, type Brief } from '@/core/brief'
 import type { Choice, Keep, TokenKey } from '@/core/types'
 import { type CommandInput } from '@/core/commands/schema'
 import { resolveGuide } from '@/core/guide'
@@ -84,6 +85,19 @@ export const write = {
     const changed = useStore.getState().setBrand(i.name)
     return { name: useStore.getState().content.brand, changed }
   },
+  set_brief: (i: CommandInput<'set_brief'>) => {
+    const patch: Partial<Brief> = {}
+    if (i.format !== undefined) patch.format = i.format
+    if (i.industry !== undefined) patch.industry = i.industry
+    if (i.industry_words !== undefined) patch.industryWords = i.industry_words
+    if (i.goals !== undefined) patch.goals = i.goals
+    if (i.goals_other !== undefined) patch.goalsOther = i.goals_other
+    if (i.who !== undefined) patch.who = i.who
+    if (i.what !== undefined) patch.what = i.what
+    if (i.main_action !== undefined) patch.mainAction = i.main_action
+    useStore.getState().setBrief(patch)
+    return briefOut()
+  },
   set_brand_color: (i: CommandInput<'set_brand_color'>) => {
     useStore.getState().setBrandColor(i.color)
     const t = resolveGuide(useStore.getState().guide).tokens
@@ -115,4 +129,22 @@ export const textStyleRead = {
     const edited = editedTextStyles(edits)
     return { styles: TEXT_STYLES.map((id) => ({ id, label: TEXT_STYLE_LABEL[id], edited: edited.has(id), ...all[id] })) }
   },
+}
+
+/** The brief as agents read it. */
+export function briefOut() {
+  const c = useStore.getState().content
+  const b = briefOf(c)
+  return {
+    format: b.format ?? null,
+    industry: b.industry ?? null,
+    industry_words: b.industryWords ?? null,
+    goals: b.goals ?? [],
+    goals_other: b.goalsOther ?? null,
+    who: b.who ?? null,
+    what: b.what ?? null,
+    main_action: b.mainAction ?? null,
+    kind: c.kind ?? null,
+    in_a_sentence: briefContext(c),
+  }
 }
