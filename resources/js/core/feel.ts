@@ -1,13 +1,23 @@
 // The Look panel's plain words: how a site should feel (warm, calm, bold…), which themes fit those words, and nudges
 // ("Bolder", "Rounder") that each move a few dials at once. Pure, so the panel and the agent commands answer alike.
 
-import type { TokenKey, TokenSet } from './types'
+import type { Kind, TokenKey, TokenSet } from './types'
 import { DIALS, readDials, setTone, toneOfGuide, type DialName } from './dials'
 import type { Skin } from './skins'
 
 export const FEEL_WORDS = ['warm', 'calm', 'bold', 'playful', 'serious', 'classic', 'modern', 'dark'] as const
 export type FeelWord = (typeof FEEL_WORDS)[number]
 export const isFeelWord = (w: string): w is FeelWord => (FEEL_WORDS as readonly string[]).includes(w)
+
+/** Where a new site starts before you say: the words that suit its kind, so the first theme on offer fits. */
+export const KIND_FEEL: Record<Kind, FeelWord[]> = {
+  product: ['modern', 'calm'],
+  studio: ['modern', 'classic'],
+  local: ['warm', 'playful'],
+  event: ['bold', 'playful'],
+  personal: ['calm', 'warm'],
+  writing: ['classic', 'serious'],
+}
 
 /** How many of these words a theme answers to. */
 const fit = (skin: Pick<Skin, 'feel'>, words: readonly string[]) => (skin.feel ?? []).filter((w) => words.includes(w)).length
