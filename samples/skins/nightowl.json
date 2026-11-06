@@ -3,6 +3,7 @@
   "words": "A terminal after midnight: near-black, neon green, glowing edges.",
   "tier": "pack",
   "mode": "dark",
+  "feel": ["dark", "modern", "bold"],
   "tokens": {
     "color.bg": "#0b0d0e",
     "color.surface": "#14181a",

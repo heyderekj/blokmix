@@ -13,6 +13,7 @@ import { toneOfGuide } from './dials'
 import { paletteFrom } from './palette'
 import { cleanTreatment, EFFECT_IDS, isBackdropId, shadowToken, type EffectId, type EffectsState } from './treatments'
 import type { TextStyleEdits } from './textStyles'
+import { FEEL_WORDS, type FeelWord } from './feel'
 import { emptyContract, isKept, settingOf, STYLE_AREAS, type Contract, type StyleArea } from './contract'
 
 export interface Skin {
@@ -23,6 +24,8 @@ export interface Skin {
   /** Free skins work on any plan; the rest come with a mix pack. */
   tier: 'free' | 'pack'
   mode: 'light' | 'dark'
+  /** How it feels, in the Look panel's words (`core/feel.ts`): what “warm” or “serious” brings up. */
+  feel: FeelWord[]
   tokens: Partial<TokenSet>
   effects?: EffectsState
   textStyles?: TextStyleEdits
@@ -39,6 +42,7 @@ const shape = z.object({
   words: z.string().default(''),
   tier: z.enum(['free', 'pack']).default('pack'),
   mode: z.enum(['light', 'dark']).default('light'),
+  feel: z.array(z.enum(FEEL_WORDS)).default([]),
   tokens: z.record(z.string(), z.string()).default({}),
   effects: z.record(z.string(), z.object({ id: z.string().optional(), preset: z.string().optional(), params: z.record(z.string(), z.any()).optional(), seed: z.number().optional() })).optional(),
   textStyles: z.record(z.string(), z.any()).optional(),
@@ -71,6 +75,7 @@ export function parseSkin(id: string, json: unknown): Skin {
     words: r.words,
     tier: r.tier,
     mode: r.mode,
+    feel: r.feel,
     tokens: r.tokens as Partial<TokenSet>,
     ...(Object.keys(effects).length ? { effects } : {}),
     ...(r.textStyles ? { textStyles: r.textStyles as TextStyleEdits } : {}),
@@ -186,6 +191,7 @@ export function surpriseMe(guide: GuideState, contract: Contract, seed: number, 
     words: '',
     tier: 'pack',
     mode: 'light',
+    feel: [],
     tokens,
     effects: pickFor('looks') ? pickFor('looks')!.effects : guide.effects,
     textStyles: pickFor('looks') ? pickFor('looks')!.textStyles : guide.textStyles,

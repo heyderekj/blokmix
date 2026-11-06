@@ -3,6 +3,7 @@
   "words": "Warm paper and oxblood ink, for reading slowly.",
   "tier": "pack",
   "mode": "light",
+  "feel": ["warm", "classic", "calm"],
   "tokens": {
     "color.bg": "#f6f1e7",
     "color.surface": "#ece4d3",

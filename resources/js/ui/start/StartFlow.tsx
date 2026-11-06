@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Coffee, Feather, FileText, Laptop, Moon, MoveHorizontal, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, Coffee, Feather, FileText, Moon, Palette, Shuffle, Smartphone, Sun, User, X, type LucideIcon } from 'lucide-react'
 import { create } from 'zustand'
-import type { Kind } from '@/core/types'
+import type { Kind, SectionType } from '@/core/types'
 import { KINDS } from '@/core/types'
-import { guideFor, KIND_LABEL, type StartInput } from '@/core/start'
+import { guideFor, KIND_LABEL, RECIPES, type StartInput } from '@/core/start'
+import { FEEL_WORDS, KIND_FEEL, themesFor, type FeelWord } from '@/core/feel'
 import { skinList, skinOpen, WIREFRAME, type Skin } from '@/core/skins'
 import { resolveGuide } from '@/core/guide'
 import type { PageScore } from '@/core/score'
@@ -61,6 +62,8 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
   const [seed, setSeed] = useState(0)
   const [starts, setStarts] = useState<ScoredStart[] | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
+  // Pressed Next before naming it or picking a kind: say which.
+  const [missing, setMissing] = useState(false)
 
   // The starts themselves are always raw; the skin goes on at the last step.
   const fromBox = boxChoice(box)
@@ -75,6 +78,8 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
   const siteName = (via === 'box' ? box.name : name).trim() || 'Your site'
   const looks = via === 'box' ? (box.heard?.looks ?? []) : []
   const pick = starts?.find((s) => s.id === picked) ?? null
+  // When all three hold the same sections, say so once instead of three times.
+  const sameSections = !!starts && new Set(starts.map((x) => sectionWords(firstPage(x)))).size === 1
   useSkinFonts()
 
   // Lay the three starts out whenever the answers change on the last step.
@@ -165,6 +170,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
                   <span>
                     <span className="block text-[15px] font-semibold">{KIND_LABEL[k].name}</span>
                     <span className="mt-0.5 block text-[13px] leading-snug text-[#6B5F68]">{KIND_LABEL[k].words}</span>
+                    <span className="mt-2 block text-[12px] leading-snug text-[#9A8E97]">Starts with {sectionWords(RECIPES[k].home, 4)}</span>
                   </span>
                 </button>
               ))}
@@ -183,6 +189,7 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
                   <Shuffle size={15} /> Shuffle
                 </button>
               </div>
+              {starts && sameSections && <p className="mt-3 text-[13.5px] text-[#6B5F68] [text-wrap:pretty]">Each has {sectionWords(firstPage(starts[0]))}, laid out its own way.</p>}
               {problem && <p className="mt-6 rounded-xl bg-white p-4 text-[14px] text-red-700 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">{problem}</p>}
               <div className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-3">
                 {starts
@@ -191,12 +198,13 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
                         key={s.id}
                         start={s}
                         letter={String.fromCharCode(65 + i)}
-                        best={i === 0}
+                        best={i === 0 && starts.some((o) => o.score.score < s.score.score)}
+                        sections={!sameSections}
                         busy={busy}
                         onPick={() => {
                           setPicked(s.id)
-                          // Jev's look goes on first; the others are a click away.
-                          if (looks[0] && skin === WIREFRAME) setSkin(looks[0])
+                          // A real look goes on first (Jev's, else the best fit for this kind), not the grey sketch.
+                          if (skin === WIREFRAME) setSkin(firstTheme(looks, input.kind))
                           setStep('skin')
                         }}
                       />
@@ -257,9 +265,12 @@ export function StartFlow({ onDone, onBlank, onClose, busy }: {
               </button>
             ))}
           {step === 'what' && (
-            <button type="button" disabled={!kind || !name.trim()} onClick={() => (setVia('what'), setPicked(null), setStep('starts'))} className={PRIMARY}>
-              Show me three structures <ArrowRight size={16} />
-            </button>
+            <span className="flex items-center gap-3">
+              {missing && <span className="text-[13px] text-[#6B5F68] max-sm:hidden" aria-live="polite">{!name.trim() ? 'Give it a name first' : 'Pick the closest kind first'}</span>}
+              <button type="button" onClick={() => (!kind || !name.trim() ? setMissing(true) : (setVia('what'), setPicked(null), setStep('starts')))} className={PRIMARY}>
+                Show me three structures <ArrowRight size={16} />
+              </button>
+            </span>
           )}
           {step === 'skin' && (
             <button type="button" disabled={busy} onClick={finish} className={PRIMARY}>
@@ -330,6 +341,12 @@ function SkinStep({ start, name, skin, brand, palette, mode, looks, feel, kind, 
   const open = skinList().filter((x) => skinOpen(library, x))
   const skins = [...looks.flatMap((id) => open.filter((x) => x.id === id)), ...open.filter((x) => !looks.includes(x.id))]
   const current = skins.find((x) => x.id === skin) ?? skins[0]
+  // How it should feel, in the Look panel's words: Jev's picks first, then the three themes that fit best.
+  const [words, setWords] = useState<FeelWord[]>(() => (kind ? KIND_FEEL[kind] : []))
+  const fits = [...new Set([...looks.filter((id) => open.some((x) => x.id === id)), ...themesFor(words, open, { count: 3 }).map((x) => x.id)])].slice(0, 3)
+  const rest = skins.filter((x) => !fits.includes(x.id))
+  const [all, setAll] = useState(false)
+  const showAll = all || !fits.includes(skin)
   const shownMode = mode ?? current?.mode ?? 'light'
   // Fonts move things around, so the skin you pick gets measured too.
   const [score, setScore] = useState<PageScore | null>(null)
@@ -343,8 +360,21 @@ function SkinStep({ start, name, skin, brand, palette, mode, looks, feel, kind, 
   }, [start, skin, brand, mode, palette])
   return (
     <section>
-      <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Pick a skin</h1>
-      <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">The same page for {name}, in different clothes. Pick by eye; you can swap it, or tweak any of it, at any time.</p>
+      <h1 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Pick a theme</h1>
+      <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">The same page for {name}, in a few different looks. Pick by eye; you can change it, or any part of it, any time.</p>
+      <div className="mt-5 grid gap-2">
+        <span className="text-[14px] font-semibold">How should it feel?</span>
+        <div className="flex flex-wrap gap-1.5">
+          {FEEL_WORDS.map((w) => {
+            const on = words.includes(w)
+            return (
+              <button key={w} type="button" aria-pressed={on} onClick={() => setWords((ws) => (on ? ws.filter((x) => x !== w) : [...ws, w]))} className={`h-9 rounded-full px-3.5 text-[13px] font-semibold capitalize ${PRESS} ${on ? 'bg-[#17121A] text-white' : `bg-white text-[#3F363D] shadow-[0_0_0_1px_rgb(23_18_26/0.1)] ${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.22)]`}`}>
+                {w}
+              </button>
+            )
+          })}
+        </div>
+      </div>
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
           <input type="color" value={brand ?? current?.tokens['color.primary'] ?? '#404040'} onChange={(e) => onBrand(e.target.value)} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Brand color" />
@@ -352,7 +382,7 @@ function SkinStep({ start, name, skin, brand, palette, mode, looks, feel, kind, 
         </label>
         {(brand || palette) && (
           <button type="button" onClick={() => onBrand(null)} className={QUIET}>
-            Use the skin’s own
+            Use the theme’s own
           </button>
         )}
         <div className="flex rounded-full bg-white p-1 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]" role="radiogroup" aria-label="Light or dark">
@@ -365,10 +395,23 @@ function SkinStep({ start, name, skin, brand, palette, mode, looks, feel, kind, 
       </div>
       {jev && <FeelColors feel={feel} site={kind ? `${name}, ${KIND_LABEL[kind].name.toLowerCase()}` : name} mode={mode} picked={palette} onPick={onPalette} />}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {skins.map((x) => (
+        {fits.map((id) => skins.find((x) => x.id === id)).filter((x): x is Skin => !!x).map((x) => (
           <SkinCard key={x.id} skin={x} on={x.id === skin} start={start} brand={brand} palette={x.id === skin ? palette : null} mode={x.id === skin ? mode : undefined} jevPick={looks.includes(x.id)} onPick={() => onSkin(x.id)} />
         ))}
       </div>
+      {rest.length > 0 && fits.includes(skin) && (
+        <button type="button" onClick={() => setAll((a) => !a)} aria-expanded={showAll} className={`mt-4 ${QUIET} -ml-4`}>
+          <ChevronDown size={16} className={`transition-[rotate] duration-200 ${showAll ? 'rotate-180' : ''}`} />
+          {showAll ? 'Fewer themes' : `See all ${skins.length} themes`}
+        </button>
+      )}
+      {showAll && (
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {rest.map((x) => (
+            <SkinCard key={x.id} skin={x} on={x.id === skin} start={start} brand={brand} palette={x.id === skin ? palette : null} mode={x.id === skin ? mode : undefined} jevPick={looks.includes(x.id)} onPick={() => onSkin(x.id)} />
+          ))}
+        </div>
+      )}
       <p className="mt-5 min-h-5 text-[13.5px] text-[#6B5F68]" aria-live="polite">
         {score ? (score.checks.filter((c) => !c.ok).map((c) => c.words).join(' ') || 'Its first screen holds up on a laptop and a phone.') : 'Measuring this theme on a laptop and a phone…'}
       </p>
@@ -398,25 +441,18 @@ function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPick }: { 
   )
 }
 
-/** The checks a card draws as chips, by what they measure. */
-const CHIPS: { id: string; icon: LucideIcon; name: string }[] = [
-  { id: 'first-laptop', icon: Laptop, name: 'Laptop' },
-  { id: 'first-phone', icon: Smartphone, name: 'Phone' },
-  { id: 'no-spill', icon: MoveHorizontal, name: 'Widths' },
-]
-
-/** One start: its page on a laptop (hover pans down it), where it came from, and how it measured up. The card is the pick. */
-function StartCard({ start, letter, best, busy, onPick }: { start: ScoredStart; letter: string; best: boolean; busy?: boolean; onPick: () => void }) {
+/** One start: its page on a laptop (hover pans down it), what's in it, and only what needs a look. The card is the pick. */
+function StartCard({ start, letter, best, busy, sections, onPick }: { start: ScoredStart; letter: string; best: boolean; busy?: boolean; sections: boolean; onPick: () => void }) {
   const { checks, phoneScreens, score } = start.score
-  const byId = new Map(checks.map((c) => [c.id, c]))
   const misses = checks.filter((c) => !c.ok).sort((a, b) => b.weight - a.weight)
   const name = start.from === 'starter' ? start.label.replace(/^Starter: /, '') : start.label
+  const types = firstPage(start)
   return (
     <button
       type="button"
       onClick={onPick}
       disabled={busy}
-      aria-label={`Dress start ${letter}: ${name}, ${score} out of 100`}
+      aria-label={`Use start ${letter}: ${name}${misses.length ? `. ${misses[0].words}` : ''}`}
       className={`group flex flex-col overflow-hidden rounded-[16px] bg-white text-left shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_18px_36px_-26px_rgb(23_18_26/0.35)] ${PRESS} disabled:pointer-events-none disabled:opacity-60 ${HOVER}shadow-[0_0_0_2px_#FF69B4,0_18px_36px_-22px_rgb(255_105_180/0.55)]`}
     >
       <span className="relative block border-b border-zinc-950/5">
@@ -424,41 +460,56 @@ function StartCard({ start, letter, best, busy, onPick }: { start: ScoredStart; 
         <span className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white to-transparent" />
         {best && <span className="absolute bottom-2 left-3 rounded-full bg-[#FF69B4] px-2 py-0.5 text-[10.5px] font-semibold text-white shadow-[0_2px_6px_-2px_rgb(194_40_111/0.6)]">Holds up best</span>}
       </span>
-      <span className="flex flex-1 flex-col gap-2.5 px-3.5 pb-3.5 pt-3">
-        <span className="flex items-center justify-between gap-2">
-          <span className="min-w-0">
-            <span className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#9A8E97]">
-              <span className="grid size-[18px] place-items-center rounded-full bg-[#17121A] text-[10px] tracking-normal text-white">{letter}</span>
-              {start.from === 'starter' ? 'Starter' : start.from === 'words' ? 'From your words' : 'Put together for you'}
-            </span>
-            <span className="mt-1 block truncate text-[14.5px] font-semibold leading-tight">{name}</span>
-          </span>
-          <Score value={score} />
+      <span className="flex flex-1 flex-col gap-2 px-3.5 pb-3.5 pt-3">
+        <span className="flex items-center gap-2">
+          <span className="grid size-[20px] shrink-0 place-items-center rounded-full bg-[#17121A] text-[10.5px] font-semibold text-white">{letter}</span>
+          <span className="min-w-0 truncate text-[14.5px] font-semibold leading-tight">{name}</span>
+          {misses.length > 0 && <Score value={score} />}
         </span>
-        <span className="flex flex-wrap items-center gap-1">
-          {CHIPS.map(({ id, icon: Icon, name: label }) => {
-            const c = byId.get(id)
-            if (!c) return null
-            return (
-              <span key={id} title={c.words} className={`inline-flex h-[22px] items-center gap-1 rounded-full px-1.5 text-[11px] font-medium ${c.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}`}>
-                <Icon size={12} strokeWidth={2.2} aria-hidden />
-                {label}
-                <span className="sr-only">: {c.words}</span>
-                {!c.ok && <span aria-hidden>!</span>}
-              </span>
-            )
-          })}
-        </span>
-        {misses.length > 0 && <span className="line-clamp-2 text-[12px] leading-snug text-[#6B5F68] [text-wrap:pretty]">{misses[0].words}</span>}
+        {sections && <span className="text-[12.5px] leading-snug text-[#6B5F68] [text-wrap:pretty]">{sectionWords(types).replace(/^./, (c) => c.toUpperCase())}</span>}
+        {misses.length > 0 && <span className="line-clamp-2 rounded-lg bg-amber-50 px-2 py-1.5 text-[12px] leading-snug text-amber-900 [text-wrap:pretty]">{misses[0].words}</span>}
         <span className="mt-auto flex items-center justify-between gap-2 border-t border-zinc-950/[0.06] pt-2.5">
           <span className="text-[11.5px] text-[#9A8E97]">{phoneScreens !== null && `${Math.max(1, Math.round(phoneScreens))} screens on a phone`}</span>
           <span className="flex items-center gap-1 text-[12.5px] font-semibold text-[#17121A] opacity-75 transition-opacity duration-150 group-hover:opacity-100">
-            Dress {letter} <ArrowRight size={14} className="transition-[translate] duration-150 ease-out group-hover:translate-x-0.5" />
+            Use {letter} <ArrowRight size={14} className="transition-[translate] duration-150 ease-out group-hover:translate-x-0.5" />
           </span>
         </span>
       </span>
     </button>
   )
+}
+
+/** A page's sections in plain words, nav and footer left out: "a big opener, what you offer, questions". */
+const SECTION_WORDS: Record<SectionType, string> = {
+  nav: 'a menu',
+  header: 'a page title',
+  hero: 'a big opener',
+  logos: 'who uses it',
+  features: 'what you offer',
+  stats: 'numbers',
+  content: 'your story',
+  gallery: 'pictures',
+  team: 'the team',
+  testimonials: 'what people say',
+  blog: 'posts',
+  faq: 'questions',
+  contact: 'how to reach you',
+  cta: 'a last nudge',
+  pricing: 'prices',
+  footer: 'a footer',
+}
+function sectionWords(types: SectionType[], max = 5): string {
+  const all = [...new Set(types.filter((t) => t !== 'nav' && t !== 'footer').map((t) => SECTION_WORDS[t]))]
+  const said = all.length > max ? [...all.slice(0, max - 1), 'more'] : all
+  return said.length > 1 ? `${said.slice(0, -1).join(', ')} and ${said[said.length - 1]}` : (said[0] ?? 'a blank page')
+}
+
+const firstPage = (start: ScoredStart): SectionType[] => (start.site.pages[0]?.slots ?? []).map((x) => x.type)
+
+/** The look a new start opens in: Jev's pick, else the theme that fits this kind best, never the grey sketch. */
+function firstTheme(looks: string[], kind: Kind): string {
+  const open = skinList().filter((x) => skinOpen(library, x))
+  return looks.find((id) => open.some((x) => x.id === id)) ?? themesFor(KIND_FEEL[kind], open, { count: 1 })[0]?.id ?? WIREFRAME
 }
 
 function Score({ value }: { value: number }) {

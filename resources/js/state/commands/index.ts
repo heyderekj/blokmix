@@ -206,6 +206,8 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return 'put a new skin on'
       case 'surprise_me':
         return 'mixed up the look'
+      case 'nudge_look':
+        return `made it ${String(input.nudge)}`
       case 'place_links':
         return 'pointed buttons where their words lead'
       case 'pour_words':

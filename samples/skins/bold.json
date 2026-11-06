@@ -3,6 +3,7 @@
   "words": "Loud and confident. Heavy type, hard edges, one bright color.",
   "tier": "free",
   "mode": "light",
+  "feel": ["bold", "playful"],
   "tokens": {
     "font.display": "'Archivo Black', 'Arial Black', sans-serif",
     "font.body": "'Inter', system-ui, sans-serif",
