@@ -5,7 +5,7 @@
 import type { Plugin } from 'vite'
 import { loadEnv } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { requestProblem } from '../../resources/js/core/jev/limits'
+import { requestProblem } from '../../resources/js/core/jev/limits.ts'
 
 const API = 'https://api.typesafe.ai/v1/systemone'
 

@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import laravel from 'laravel-vite-plugin'
 import { fileURLToPath, URL } from 'node:url'
-import { jevDevProxy } from './scripts/jev/devProxy'
+import { jevDevProxy } from './scripts/jev/devProxy.ts'
 
 // BLOKMIX_HOST=laravel builds for Laravel (public/build, Inertia pages through resources/views/app.blade.php,
 // dev server on 5174 so it runs beside the Vite-only one). Without it, Vite serves index.html on its own.
