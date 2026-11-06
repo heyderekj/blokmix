@@ -15,7 +15,7 @@ import { isBackdropId, readBackdrop } from './treatments'
 export type Surface = NonNullable<Slot['surface']>
 export const SURFACES: readonly Surface[] = ['page', 'soft', 'inverse', 'brand']
 
-export const SURFACE_LABEL: Record<Surface, string> = { page: 'Page', soft: 'Soft', inverse: 'Flipped', brand: 'Brand' }
+export const SURFACE_LABEL: Record<Surface, string> = { page: 'Page', soft: 'Soft', inverse: 'Inverted', brand: 'Brand' }
 
 /** Muted text a step closer to the text color until it reads on everything behind it, and a button label that reads. */
 function keepReadable(t: TokenSet, behind: string[] = [t['color.bg']]): TokenSet {

@@ -97,7 +97,7 @@ export function PacketPanel() {
               className="w-full max-w-full cursor-pointer appearance-none truncate rounded-md bg-transparent py-0.5 pl-1.5 pr-6 text-[15px] font-semibold text-zinc-900 outline-none transition hover:bg-zinc-950/5"
               aria-label="Which version to export"
             >
-              <option value="mix">Working mix</option>
+              <option value="mix">Your mix, as it is now</option>
               {dfsOrder(versions).map(({ node }) => (
                 <option key={node.id} value={node.id}>
                   {node.letter} · {node.title}

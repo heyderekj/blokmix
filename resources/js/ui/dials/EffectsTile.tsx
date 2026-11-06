@@ -85,7 +85,7 @@ export function EffectsPanel({ tokens }: { tokens: TokenSet }) {
                 <button type="button" onClick={() => setOpen(expanded ? null : id)} className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 text-left">
                   <ChevronDown size={13} className={`shrink-0 text-zinc-400 transition-transform duration-200 ${expanded ? '' : '-rotate-90'}`} />
                   <span className="text-[12.5px] font-semibold text-zinc-900">{info.label}</span>
-                  <span className="truncate text-[11px] text-zinc-500">{v ? (v.preset ? info.presets.find((p) => p.id === v.preset)?.label : 'Custom') : 'From your tokens'}</span>
+                  <span className="truncate text-[11px] text-zinc-500">{v ? (v.preset ? info.presets.find((p) => p.id === v.preset)?.label : 'Custom') : 'From your style guide'}</span>
                 </button>
                 <Switch
                   on={!!v}

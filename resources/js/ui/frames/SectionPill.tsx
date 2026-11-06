@@ -329,7 +329,7 @@ function CapturedLook({ slot }: { slot: Slot }) {
               className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium transition active:scale-[0.97] ${on ? 'bg-zinc-900 text-white' : 'bg-lift text-zinc-600 hover:text-zinc-900'}`}
             >
               {GROUP_LABEL[g]}
-              {promoted.has(g) && <span className="size-1.5 rounded-full bg-key" title="Already a candidate" />}
+              {promoted.has(g) && <span className="size-1.5 rounded-full bg-key" title="Already an option" />}
             </button>
           )
         })}
@@ -341,13 +341,13 @@ function CapturedLook({ slot }: { slot: Slot }) {
           onClick={(e) => {
             e.stopPropagation()
             st().promoteClip(clip.id, groups)
-            st().showFlash(`${source.name} is now a candidate for ${names}`, {
+            st().showFlash(`${source.name}’s ${names} are now options in your style guide`, {
               undo: true,
             })
           }}
           className="btn-quiet flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full text-[12.5px] font-medium"
         >
-          <Plus size={14} /> Add as candidate
+          <Plus size={14} /> Add as an option
         </button>
         <button
           type="button"

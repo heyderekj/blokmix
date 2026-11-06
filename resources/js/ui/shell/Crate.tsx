@@ -335,7 +335,7 @@ function ClipCard({ clip, used, inMix, own, scroller }: { clip: Clip; used: bool
       {clip.origin === 'clip' && !used && (
         <button
           type="button"
-          title={own ? 'Take out of this mix (it stays in your library)' : 'Keep in this mix'}
+          title={own ? 'Take out of this mix (it stays in your crate)' : 'Add to this mix'}
           aria-label={own ? `Take ${clip.title} out of this mix` : `Keep ${clip.title} in this mix`}
           onClick={() => (own ? st().removeMixClip(clip.id) : st().addMixClips([clip.id]))}
           className={`absolute right-1.5 top-1.5 grid size-6 cursor-pointer place-items-center rounded-full text-[11px] transition active:scale-[0.97] ${

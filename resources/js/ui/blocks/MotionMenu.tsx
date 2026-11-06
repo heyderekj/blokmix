@@ -228,7 +228,7 @@ export function SectionMotionRows({ slot, untitled }: { slot: Slot; untitled?: b
   const on = m.mode === 'preset' ? (m.enter ?? 'rise') : m.mode === 'captured' && !asComes ? 'none' : m.mode
   const tiles: { id: string; label: string; hint: string }[] = [
     { id: 'none', label: 'None', hint: 'Still' },
-    ...(!asComes ? [] : layout ? [{ id: 'captured', label: 'From skin', hint: `What ${skinName ?? 'the skin'} does: ${ENTER_INFO.find((e) => e.id === skinEnter)?.label ?? 'Rise'}` }] : [{ id: 'captured', label: 'As clipped', hint: 'The motion it came with' }]),
+    ...(!asComes ? [] : layout ? [{ id: 'captured', label: 'From the theme', hint: `What ${skinName ?? 'the theme'} does: ${ENTER_INFO.find((e) => e.id === skinEnter)?.label ?? 'Rise'}` }] : [{ id: 'captured', label: 'Original', hint: 'The motion it came with' }]),
     ...ENTER_INFO,
   ]
   const pick = (id: string) => {

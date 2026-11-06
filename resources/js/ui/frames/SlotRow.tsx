@@ -410,7 +410,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
         <div className="absolute right-0 top-0 origin-top-right" style={{ transform: 'scale(calc(1 / var(--z)))' }} data-chrome>
           <button
             type="button"
-            title="An agent may restructure this section. Click to have it reproduce this layout"
+            title="Your agent may rearrange this section. Click to keep this layout."
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
@@ -418,7 +418,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
             }}
             className="m-2 inline-block cursor-pointer rounded-md bg-zinc-900/80 px-2 py-1 text-[11px] font-medium text-white"
           >
-            Layout: reference only ×
+            Layout may change ×
           </button>
         </div>
       )}

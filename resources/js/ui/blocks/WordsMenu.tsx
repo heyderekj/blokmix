@@ -6,8 +6,8 @@ import { slotClip } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useBlockPreview } from './preview'
 
-// A layout's own words are sample text; a captured clip's are the words it came with.
-const tag = (kind: WordChoice['kind'], layout: boolean) => (kind === 'copy' ? 'Your words' : kind === 'kept' ? 'Kept' : layout ? 'Sample' : 'As clipped')
+// A layout's own words are placeholders; a captured clip's are the words it came with (Original).
+const tag = (kind: WordChoice['kind'], layout: boolean) => (kind === 'copy' ? 'Your words' : kind === 'kept' ? 'Saved' : layout ? 'Placeholder' : 'Original')
 
 /** A field's choices and which one shows now (-1: words you wrote that aren't kept yet). */
 export function useWordChoices(slot: Slot, field: string) {

@@ -150,6 +150,11 @@ holds up (after Shu Ding's "The Calculus of Interfaces"). The pick becomes the m
 
 ## Skins and the contract
 
+On screen (`docs/simple-vision.md`, the brand guide's B3): Your mix (not working mix), Themes (skins), Keep or surprise
+(the contract), Options (candidates), Crate (the clips drawer), Original / Your style, Export (code) vs Download a copy
+(the mix file), Notes (not marks). Word tags read Your words · Placeholder · Original · Saved. No "packet", "tokens" or
+"slot" in anything a person reads.
+
 Layouts are the bones; a skin is the whole look over them (`core/skins.ts`, `samples/skins/<id>.json`, `data/skins.ts`): tokens,
 effects, text styles, block looks (`components`), section defaults per type (`guide.sections`: surface, backdrop, motion,
 spacing) and a picture style for empty pictures in built-in layouts (`guide.picture`; never a logo). A skin's button look keeps
@@ -164,8 +169,8 @@ A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the s
 The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus
 your own lines. Swaps and Surprise me leave Keep alone; agent commands that write to a kept area are refused
 (`areasOfCommand`, `contractRefusal`); your own controls aren't. Exports write `CONTRACT.md`, and `agentRules` opens or closes
-the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: the Skin and Contract tiles atop the Style
-guide; a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
+the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: the Theme and Keep or surprise tiles atop the Style
+guide (on screen a skin is a Theme and the contract is Keep or surprise; code keeps `skin` and `contract`); a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
 moves the canvas so the section shows beside it. Agents: `list_skins`, `apply_skin`, `surprise_me`, `get_contract`, `set_contract`.
 
 ## Agents

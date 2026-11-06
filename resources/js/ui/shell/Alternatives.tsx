@@ -74,7 +74,7 @@ export function Alternatives({ slot }: { slot: Slot }) {
           onClick={() => st().setUi({ sheet: 'crate', crateFilter: 'all' })}
           className="ml-auto flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium text-zinc-600 transition hover:bg-zinc-950/5 hover:text-zinc-900"
         >
-          <Library size={13} /> All clips
+          <Library size={13} /> Open the crate
         </button>
       </div>
       <div ref={scroller} className="thin-scroll fade-x flex items-start gap-2.5 overflow-x-auto scroll-px-3 px-3 pb-1.5 pt-1">

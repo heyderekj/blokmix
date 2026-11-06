@@ -485,7 +485,7 @@ function MixCard({ mix: m, onDelete, onDuplicate, onArchive }: { mix: SavedMix; 
         </span>
       )}
       {m.marks > 0 && (
-        <span className="ml-auto flex items-center gap-1 text-[12px] font-semibold text-[#6B5F68]" title={`${plural(m.marks, 'open mark')}`}>
+        <span className="ml-auto flex items-center gap-1 text-[12px] font-semibold text-[#6B5F68]" title={`${plural(m.marks, 'open note')}`}>
           <MessageSquare size={13} /> {m.marks}
         </span>
       )}

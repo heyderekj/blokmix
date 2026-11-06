@@ -81,7 +81,7 @@ export function TextMenu({
         )}
       </div>
       <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
-      {row({ id: 'Keep the clip’s type', note: '', on: picked === 'none', value: 'none' })}
+      {row({ id: 'Original font and size', note: '', on: picked === 'none', value: 'none' })}
       <div className="mt-1 flex items-center gap-2 rounded-lg px-2.5 py-1.5">
         <span className="flex-1 text-[12px] font-semibold text-zinc-500">Size</span>
         <button

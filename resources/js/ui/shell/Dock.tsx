@@ -56,8 +56,8 @@ export function Dock() {
             <button
               type="button"
               onClick={() => toggleSheet('crate')}
-              title={`Clips: ${Object.keys(library.clips).length} sections (C)`}
-              aria-label="Clips"
+              title={`Crate: ${Object.keys(library.clips).length} sections (C)`}
+              aria-label="Crate"
               aria-expanded={sheet === 'crate'}
               className={`grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${sheet === 'crate' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
             >
@@ -149,11 +149,11 @@ function ViewMenu() {
                   type="button"
                   role="radio"
                   aria-checked={mode === m}
-                  title={m === 'unified' ? 'Your style guide and copy on every section (U)' : 'Every section exactly as it was clipped (U)'}
+                  title={m === 'unified' ? 'Your style and words on every section (U)' : 'Every section as it came (U)'}
                   onClick={() => useStore.getState().setUi({ mode: m })}
                   className={`flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md text-[12px] font-medium transition ${mode === m ? 'bg-lift text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
                 >
-                  {m === 'unified' ? 'In your style' : 'As clipped'}
+                  {m === 'unified' ? 'Your style' : 'Original'}
                 </button>
               ))}
             </div>

@@ -244,7 +244,7 @@ function FieldRow({ slot, clip, field, label, value, extra, onLabel }: { slot: S
               <button type="button" onClick={() => st().chooseWords(slot.id, field, c.text)} className="min-w-0 flex-1 text-left text-[12px] leading-snug text-zinc-700" title="Use these words">
                 {c.text}
               </button>
-              <span className="shrink-0 text-[10.5px] font-semibold text-zinc-400">{c.kind === 'kept' ? (c.option?.by === 'agent' ? 'Agent' : 'Kept') : c.kind === 'copy' ? 'Your words' : clip.origin === 'layout' ? 'Sample' : 'As clipped'}</span>
+              <span className="shrink-0 text-[10.5px] font-semibold text-zinc-400">{c.kind === 'kept' ? (c.option?.by === 'agent' ? 'Agent' : 'Saved') : c.kind === 'copy' ? 'Your words' : clip.origin === 'layout' ? 'Placeholder' : 'Original'}</span>
               {c.kind === 'kept' && (
                 <button type="button" title="Retire" aria-label="Retire" onClick={() => st().retireWords(slot.id, field, c.text)} className="text-zinc-400 hover:text-zinc-900">
                   <Archive size={12} />

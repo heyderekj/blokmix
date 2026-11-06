@@ -620,7 +620,7 @@ export const useStore = create<State>()(
                 set((x) => ({ site: updatePageIn(x.site, page.id, { show: { ...page.show, [chrome]: true } }) }))
                 return st.showFlash(`Showing the site ${chrome} on this page`, { undo: true })
               }
-              return st.showFlash(`The site already has a ${chrome}. Swap its clip instead.`)
+              return st.showFlash(`The site already has a ${chrome}. Change its layout instead.`)
             }
             if (clipId && !layoutOpen(library, clipId) && needsPack('That layout')) return
             // With no clip named, take the one that suits this spot best.

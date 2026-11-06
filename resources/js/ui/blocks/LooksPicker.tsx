@@ -67,7 +67,7 @@ export function LooksPicker({ slot, block }: { slot: Slot; block: BlockInfo }) {
 
   if (!variants.length) return <p className="px-4 py-6 text-[12.5px] text-zinc-500">{BLOCK_LABEL[block.kind]} blocks have no other looks.</p>
   const label = (look: string | undefined) => (look && look !== ORIGINAL ? (variants.find((v) => v.id === look)?.label ?? look) : 'Original')
-  const hint = (look: string | undefined) => (look && look !== ORIGINAL ? variants.find((v) => v.id === look)?.hint : 'As clipped')
+  const hint = (look: string | undefined) => (look && look !== ORIGINAL ? variants.find((v) => v.id === look)?.hint : 'The look it came with')
   // Words show their look as a type specimen, "Aa"; buttons, badges and links keep a word or two of their own.
   const SPECIMEN = ['heading', 'text', 'card', 'item', 'banner']
   const two = text.split(/\s+/).slice(0, 2).join(' ')

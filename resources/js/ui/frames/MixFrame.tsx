@@ -45,7 +45,7 @@ export function MixFrame() {
   // A bar hanging below the last section (its section bar, or a block's bar and menus): what sits under the page makes
   // exactly that much room, on screen.
   const room = useBarOverhang((s) => (previewing ? 0 : barRoomBelow(s, slots.at(-1)?.id)))
-  const label = branchFrom ? `Working from ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
+  const label = branchFrom ? `From ${branchFrom.letter}` : head ? `From ${head.letter}` : 'New mix'
 
   return (
     <div
@@ -60,7 +60,7 @@ export function MixFrame() {
           <MixMark types={slots.map((s) => s.type)} active={markAt} edited={dirty} />
         </span>
         <HeaderTitle
-          title={site.pages.length > 1 ? `Working mix · ${page.title}` : 'Working mix'}
+          title={site.pages.length > 1 ? `Your mix · ${page.title}` : 'Your mix'}
           meta={`${site.pages.length > 1 ? `${page.path} · ` : ''}${label} · ${dirty ? 'edited' : 'saved'} · ${slots.length} sections`}
         />
         {page.template && <EntrySwitcher pageId={page.id} collection={page.template.collection} />}
@@ -94,7 +94,7 @@ export function MixFrame() {
         {!previewing && !site.shared.footer && slots.length > 0 && <MissingShared kind="footer" room={room} />}
         {!slots.length && (
           <div className="grid place-items-center py-40 text-center" style={{ fontSize: 'calc(16px / var(--z))' }}>
-            <p className="text-zinc-400">Nothing here yet. Add a section to start mixing.</p>
+            <p className="text-zinc-400">This page is empty. Add a section to start.</p>
           </div>
         )}
       </div>
