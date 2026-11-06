@@ -1,6 +1,9 @@
 import type { CommandInput } from '@/core/commands/schema'
 import { contractMarkdown, emptyContract } from '@/core/contract'
 import { skinById, skinList } from '@/core/skins'
+import { NUDGE_LABEL, nudgeTokens, themesFor } from '@/core/feel'
+import { resolveGuide } from '@/core/guide'
+import { readDials, toneOfGuide } from '@/core/dials'
 import { useStore } from '../store'
 import { CommandError } from './refs'
 
@@ -19,6 +22,10 @@ export const read = {
     }
   },
   get_contract: () => contractNow(),
+  suggest_themes: (i: CommandInput<'suggest_themes'>) => {
+    const on = useStore.getState().guide.skin
+    return { themes: themesFor(i.words, skinList(), { different: i.different, count: i.count }).map((s) => ({ id: s.id, name: s.name, words: s.words, feel: s.feel, tier: s.tier, on: on?.id === s.id })) }
+  },
 }
 
 export const write = {
@@ -26,6 +33,14 @@ export const write = {
     if (!skinById(i.skin)) throw new CommandError(`No skin called "${i.skin}". Skins: ${skinList().map((s) => s.id).join(', ')}`)
     useStore.getState().applySkin(i.skin)
     return { skin: useStore.getState().guide.skin ?? null, contract: useStore.getState().contract?.areas ?? {} }
+  },
+  nudge_look: (i: CommandInput<'nudge_look'>) => {
+    const st = useStore.getState()
+    const values = nudgeTokens(resolveGuide(st.guide).tokens, i.nudge)
+    if (!values) throw new CommandError(`Can’t go any ${NUDGE_LABEL[i.nudge].toLowerCase()}: it’s already as far as it goes.`)
+    st.chooseTokens(values)
+    const tokens = resolveGuide(useStore.getState().guide).tokens
+    return { nudge: i.nudge, dials: readDials(tokens), tone: toneOfGuide(tokens) }
   },
   surprise_me: (i: CommandInput<'surprise_me'>) => {
     const words = useStore.getState().surpriseMe(i.seed)

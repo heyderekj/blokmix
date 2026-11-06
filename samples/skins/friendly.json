@@ -3,6 +3,7 @@
   "words": "Round, warm and a little playful.",
   "tier": "free",
   "mode": "light",
+  "feel": ["warm", "playful"],
   "tokens": {
     "font.display": "'Plus Jakarta Sans', system-ui, sans-serif",
     "font.body": "'Plus Jakarta Sans', system-ui, sans-serif",

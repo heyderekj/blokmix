@@ -3,6 +3,7 @@
   "words": "Plain grey boxes, to decide the layout before the look.",
   "tier": "free",
   "mode": "light",
+  "feel": [],
   "tokens": {
     "font.display": "'Inter', system-ui, sans-serif",
     "font.body": "'Inter', system-ui, sans-serif",

@@ -162,7 +162,7 @@ function SaveButton({ short }: { short?: boolean }) {
 const COMPACT_SHEETS: Sheet[] = ['menu', 'pages', 'more', 'guide', 'notes', 'packet', 'share', 'publish']
 
 /**
- * The top bar on narrower windows and phones: one pill with the logo menu, the page, ⋯ and Save. ⋯ lists Style guide,
+ * The top bar on narrower windows and phones: one pill with the logo menu, the page, ⋯ and Save. ⋯ lists Look,
  * Content, Notes, Share and Export; each opens in the same pill, with a way back to the list.
  */
 function CompactBar({ onHelp }: { onHelp: () => void }) {
@@ -220,7 +220,7 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
           <button
             type="button"
             onClick={() => toggleSheet('more')}
-            title="Style guide, content, notes, share and export"
+            title="Look, content, notes, share and export"
             aria-label="Tools"
             aria-expanded={sheet === 'more' || inTool}
             className={`relative ml-1 grid size-8 cursor-pointer place-items-center rounded-full transition-[background-color,color,scale] duration-150 active:scale-[0.97] ${
@@ -249,7 +249,7 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
               <X size={16} /> Showing as clipped: back to your style
             </button>
           )}
-          {row(SwatchBook, 'Style guide', () => st().setUi({ sheet: 'guide', guideTab: 'style' }), decisions > 0 ? <span className="text-[12px] font-semibold text-attention-ink">{decisions} to decide</span> : undefined)}
+          {row(SwatchBook, 'Look', () => st().setUi({ sheet: 'guide', guideTab: 'style' }), decisions > 0 ? <span className="text-[12px] font-semibold text-attention-ink">{decisions} to decide</span> : undefined)}
           {row(FileText, 'Content', () => st().setUi({ sheet: 'guide', guideTab: 'content' }))}
           {row(MessageSquare, 'Notes', () => st().setUi({ sheet: 'notes' }), todo > 0 ? <span className="min-w-5 rounded-full bg-problem px-1.5 text-center text-[11px] font-bold tabular-nums text-white">{todo}</span> : undefined)}
           <div className="mx-3 my-1 h-px bg-zinc-950/6" />
@@ -259,7 +259,7 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
         </div>
       ) : (
         <>
-          {back(sheet === 'guide' ? (tab === 'style' ? 'Style guide' : 'Content') : sheet === 'notes' ? 'Notes' : sheet === 'share' ? 'Share' : sheet === 'publish' ? 'Publish' : 'Export')}
+          {back(sheet === 'guide' ? (tab === 'style' ? 'Look' : 'Content') : sheet === 'notes' ? 'Notes' : sheet === 'share' ? 'Share' : sheet === 'publish' ? 'Publish' : 'Export')}
           {sheet === 'notes' ? <NotesPanel /> : sheet === 'share' ? <SharePanel /> : sheet === 'publish' ? <PublishPanel /> : sheet === 'packet' ? <PacketPanel /> : tab === 'style' ? <GuidePanel /> : <ContentPanel />}
         </>
       )}
@@ -446,7 +446,7 @@ function ToolsIsland() {
               Original <X size={13} strokeWidth={2.4} />
             </button>
           )}
-          {tool('style', SwatchBook, 'Style guide', decisions ? `Style guide: ${decisions} choice${decisions > 1 ? 's' : ''} to make (G)` : 'Style guide (G)', decisions > 0 ? <span className="size-2 rounded-full bg-attention" aria-label={`${decisions} to decide`} /> : undefined)}
+          {tool('style', SwatchBook, 'Look', decisions ? `Look: ${decisions} choice${decisions > 1 ? 's' : ''} to make in the style guide (G)` : 'Look: themes, feel and the style guide (G)', decisions > 0 ? <span className="size-2 rounded-full bg-attention" aria-label={`${decisions} to decide`} /> : undefined)}
           {tool('content', FileText, 'Content', 'The page’s words and your collections')}
           {tool(
             'notes',

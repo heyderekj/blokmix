@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react'
+import { ChevronLeft } from 'lucide-react'
 import type { TokenGroup, TokenKey } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { GROUP_LABEL, primaryFamily } from '@/core/tokens'
@@ -6,7 +7,6 @@ import { BrandColours, Candidates, Components, CopyFooter, GroupDecision, GroupT
 import { FontLinks, sourceName, useGuideData, withCandidate } from './shared'
 import { SavedGuides } from './SavedGuides'
 import { Dials } from './Dials'
-import { Skins } from './Skins'
 import { ContractTile } from './ContractTile'
 import { isHosted } from '@/lib/host'
 import { useStore } from '@/state/store'
@@ -14,8 +14,8 @@ import { EffectsArt, EffectsPanel } from '../../dials/EffectsTile'
 import { TextStylesArt, TextStylesPanel } from './TextStyles'
 
 /**
- * C · Board. A tile per group that shows the value rather than naming it; the open
- * decisions carry a flag. A tile opens across the board into its choices and knobs.
+ * The style guide: every value, behind the Look panel. A tile per group that shows the value rather than naming it;
+ * the open decisions carry a flag. A tile opens across the board into its choices and knobs.
  */
 export function GuideBoard() {
   const { tokens, open, candidates, winner } = useGuideData()
@@ -25,8 +25,20 @@ export function GuideBoard() {
     <div>
       <FontLinks tokens={[tokens, ...TOKEN_GROUPS.flatMap((g) => candidates(g).map((c) => withCandidate(tokens, c)))]} />
       <div className="grid grid-cols-2 gap-2 p-3">
-        <Skins />
-        <ContractTile />
+        <div className="col-span-2 flex items-start gap-1 pb-1">
+          <button
+            type="button"
+            onClick={() => useStore.getState().setUi({ guideView: 'look' })}
+            aria-label="Back to Look"
+            className="-ml-1 grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5 [@media(hover:hover)_and_(pointer:fine)]:hover:text-zinc-900"
+          >
+            <ChevronLeft size={17} />
+          </button>
+          <span className="grid gap-0.5 pt-1">
+            <span className="text-[13.5px] font-semibold text-zinc-900">Style guide</span>
+            <span className="text-[11.5px] leading-snug text-zinc-500">Every value your page uses, and what your agent builds from.</span>
+          </span>
+        </div>
         <Dials />
         {TOKEN_GROUPS.flatMap((g) => (g === 'type' ? [g, 'text' as const] : [g])).map((g) =>
           g === 'text' ? (
@@ -82,6 +94,7 @@ export function GuideBoard() {
           </button>
         )}
         <ContrastTile />
+        <ContractTile />
         {isHosted() && <SavedGuides />}
         <div className="col-span-2 overflow-hidden rounded-2xl bg-[var(--lift)] shadow-[0_0_0_1px_rgb(0_0_0/0.06)]">
           <BrandColours />

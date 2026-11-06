@@ -8,8 +8,8 @@ export function ContractTile() {
   const set = (area: ContractArea, value: ContractSetting) => useStore.getState().setContract({ areas: { ...contract.areas, [area]: value } })
   return (
     <div className="col-span-2 rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)]">
-      <div className="text-[12.5px] font-semibold text-zinc-900">Keep or surprise</div>
-      <p className="mb-2.5 mt-0.5 text-[11.5px] leading-snug text-zinc-500">Choose what stays and what can change. Themes, Surprise me and your agent follow it.</p>
+      <div className="text-[12.5px] font-semibold text-zinc-900">Rules for your agent</div>
+      <p className="mb-2.5 mt-0.5 text-[11.5px] leading-snug text-zinc-500">Keep: never change it. Tweak: refine it within this style guide. Surprise: bring an idea. Themes and mixes follow it too.</p>
       <div className="grid gap-1.5">
         {CONTRACT_AREAS.map((area) => (
           <div key={area} className="flex items-center justify-between gap-2" title={AREA_LABEL[area].words}>

@@ -3,6 +3,7 @@
   "words": "A brutalist hardware store: black rules, hi-vis yellow, no corners.",
   "tier": "pack",
   "mode": "light",
+  "feel": ["bold", "playful"],
   "tokens": {
     "color.bg": "#ffffff",
     "color.surface": "#f2f2ee",

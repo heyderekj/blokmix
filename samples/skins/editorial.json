@@ -3,6 +3,7 @@
   "words": "Like a good magazine. Big serif headlines, fine lines.",
   "tier": "pack",
   "mode": "light",
+  "feel": ["classic", "serious", "calm"],
   "tokens": {
     "font.display": "'Fraunces', Georgia, serif",
     "font.body": "'Newsreader', Georgia, serif",

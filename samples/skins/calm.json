@@ -3,6 +3,7 @@
   "words": "Clean and quiet. Lots of room, one soft accent.",
   "tier": "free",
   "mode": "light",
+  "feel": ["calm", "modern", "serious"],
   "tokens": {
     "font.display": "'Inter', system-ui, sans-serif",
     "font.body": "'Inter', system-ui, sans-serif",

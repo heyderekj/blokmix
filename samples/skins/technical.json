@@ -3,6 +3,7 @@
   "words": "Dark, precise and calm under pressure, like a good dev tool.",
   "tier": "pack",
   "mode": "dark",
+  "feel": ["dark", "modern", "serious"],
   "tokens": {
     "font.display": "'Geist', system-ui, sans-serif",
     "font.body": "'Geist', system-ui, sans-serif",
