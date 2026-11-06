@@ -100,13 +100,39 @@ export function numberOf(el: HEl, key: string): number | undefined {
 
 const renumberRe = (key: string, from: number) => new RegExp(`^${key}${from}(?=[A-Z]|$)`)
 
+const isRadio = (e: HEl) => e.tag === 'input' && attr(e, 'type') === 'radio'
+
+/** Whether an item's own radio (a tab's, not one inside a nested list) is checked. */
+function ownRadioChecked(el: HEl): boolean {
+  let hit = false
+  const visit = (n: HEl) => {
+    if (isRadio(n) && attr(n, 'checked') !== undefined) hit = true
+    for (const k of n.kids) if (isEl(k) && !isKind(k, 'list')) visit(k)
+  }
+  visit(el)
+  return hit
+}
+
+/** An item with its own radio checked or not. */
+function setOwnRadio(el: HEl, on: boolean): HEl {
+  const visit = (n: HEl): HEl => {
+    if (isRadio(n)) {
+      const attrs = n.attrs.filter(([k]) => k !== 'checked')
+      return { ...n, attrs: on ? [...attrs, ['checked', '']] : attrs }
+    }
+    return { ...n, kids: n.kids.map((k) => (isEl(k) && !isKind(k, 'list') ? visit(k) : k)) }
+  }
+  return visit(el)
+}
+
 /** A copy of an item as item `to`: fields renumbered, block ids suffixed, ids kept unique. */
 function cloneItem(el: HEl, key: string, from: number, to: number): HEl {
   const re = renumberRe(key, from)
   const tag = `${key}${to}`
   return mapTree([el], (e) => ({
     ...e,
-    attrs: e.attrs.map(([k, v]): [string, string] => {
+    // A copy never opens itself: which tab is open belongs to the first position.
+    attrs: (isRadio(e) ? e.attrs.filter(([k]) => k !== 'checked') : e.attrs).map(([k, v]): [string, string] => {
       if (k === 'data-mx-field' || k === 'data-mx-mirror') return [k, v.replace(re, tag)]
       if (k === 'data-mx-b') return [k, `${v}.${tag}`]
       if (k === 'id' || k === 'for') return [k, `${v}-${tag}`]
@@ -191,6 +217,9 @@ function reorder(el: HEl, isItem: (n: HNode) => n is HEl, num: (e: HEl) => numbe
   }
   // What only the first item had goes to whichever item is first now.
   if (special) next.forEach((it, i) => (next[i] = withRoot(it, i === 0 ? special.first : special.rest)))
+  // The open tab is the first position's too: whichever item is first is checked, no other.
+  if (isItem(items[0]) && attr(items[0], 'data-mx-block') === 'item' && items.some(ownRadioChecked))
+    next.forEach((it, i) => (next[i] = setOwnRadio(it, i === 0)))
   // Numbers that count the items (01, 02…) stay in order wherever the items go.
   const width = counterWidth(items)
   if (width != null)

@@ -48,8 +48,11 @@
     min-height: 520px;
     padding-right: 58%;
   }
-  & .tab { border-left: calc(var(--mx-stroke) * 2) solid var(--mx-color-border); }
-  & .tab:has(:checked) { border-left-color: var(--mx-color-text); }
+  /* A tab steps aside (display: contents), so an entrance that moves it can't hold the picture inside it;
+     its rule runs down its pick and its open panel. */
+  & .tab { display: contents; }
+  & .pick, & .panel { border-left: calc(var(--mx-stroke) * 2) solid var(--mx-color-border); }
+  & .tab:has(:checked) :is(.pick, .panel) { border-left-color: var(--mx-color-text); }
   & .pick {
     position: relative;
     display: flex;

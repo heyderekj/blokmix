@@ -63,13 +63,13 @@
     gap: var(--mx-space-6) var(--mx-space-4);
     margin-top: var(--mx-space-9);
   }
-  & .t1 { grid-row: span 2; }
+  & .tile:first-child { grid-row: span 2; }
   & .figure { display: flex; flex-direction: column; gap: var(--mx-space-3); height: 100%; }
   & .media { flex: none; }
-  & .t1 .media { flex: 1 1 auto; aspect-ratio: auto; min-height: 0; }
+  & .tile:first-child .media { flex: 1 1 auto; aspect-ratio: auto; min-height: 0; }
 
   & .link { display: block; font-size: var(--mx-text-sm); font-weight: 600; line-height: 1.35; text-wrap: pretty; cursor: pointer; }
-  & .t1 .link { font-size: var(--mx-text-base); }
+  & .tile:first-child .link { font-size: var(--mx-text-base); }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.secondary:hover { background: var(--mx-color-surface); }
@@ -87,9 +87,9 @@
       gap: var(--mx-space-6) var(--mx-space-3);
       margin-top: var(--mx-space-8);
     }
-    & .t1 { grid-row: auto; grid-column: span 2; }
+    & .tile:first-child { grid-row: auto; grid-column: span 2; }
     & .figure { height: auto; }
     & .media { aspect-ratio: 1; }
-    & .t1 .media { flex: none; aspect-ratio: 4 / 3; }
+    & .tile:first-child .media { flex: none; aspect-ratio: 4 / 3; }
   }
 }

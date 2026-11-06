@@ -17,7 +17,7 @@ describe('motion presets', () => {
   it('staggers a section’s blocks with ease-out, inside no-preference, with a fade for reduced motion', () => {
     const css = motionCss({ ...base, edits: () => undefined, section: { mode: 'preset', enter: 'rise', stagger: true } })
     expect(css).toContain('@media (prefers-reduced-motion: no-preference)')
-    expect(css).toContain('cubic-bezier(0.23, 1, 0.32, 1) 120ms both')
+    expect(css).toContain('cubic-bezier(0.23, 1, 0.32, 1) 120ms backwards')
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
     expect(css).not.toMatch(/ease-in[^-]/)
     expect(css).not.toMatch(/scale: 0[;\s]/)

@@ -2,6 +2,8 @@
 // to check layouts at desktop and phone widths without the app.
 //   npx vite-node scripts/render-clips.ts hero.layout-split features   (clip ids, or a type for all its layouts)
 //   … --sources layout --widths 1440,390 --copy yours --variants base,min,max,dark --skins calm,bold (or all)
+//   … --click "li:nth-child(2) label"   clicks the first match before the shot (a second tab, a yearly price),
+//   written as <clip>@<source>-<width>-clicked.png
 // Variants stress a source's tokens with the Feel dials (core/dials.ts): min = every dial at 0 (tight, small,
 // square, light), max = every dial at 100, dark = Light/Dark flipped; each dial alone is <dial>0 / <dial>100.
 // Writes .out/renders/clips/<clip>@<source>-<width>.png and prints the paths.
@@ -25,13 +27,14 @@ const opt = (name: string, fallback: string) => {
   const i = args.indexOf(name)
   return i >= 0 ? args[i + 1] : fallback
 }
-const flagged = new Set(['--sources', '--widths', '--copy', '--variants', '--skins'].flatMap((f) => [f, opt(f, '')]))
+const flagged = new Set(['--sources', '--widths', '--copy', '--variants', '--skins', '--click'].flatMap((f) => [f, opt(f, '')]))
 const wanted = args.filter((a) => !flagged.has(a))
 const sources = opt('--sources', 'layout').split(',')
 const widths = opt('--widths', '1440,390').split(',').map(Number)
 const yourCopy = opt('--copy', 'clip') === 'yours'
 const variants = opt('--variants', 'base').split(',')
 const skinIds = opt('--skins', '')
+const click = opt('--click', '')
 
 function variantTokens(t: TokenSet, v: string): TokenSet {
   const all = (n: number) => Object.assign({}, ...DIAL_NAMES.map((d) => DIALS[d].write(n)))
@@ -78,7 +81,17 @@ for (const { tag, state } of runs) {
       await tab.setContent(html, { waitUntil: 'networkidle' }).catch(() => tab.setContent(html))
       // Let entrance motion finish so the shot shows the at-rest state.
       await tab.waitForTimeout(1600)
-      const file = join(out, `${id}@${tag}-${width}.png`)
+      let missed = false
+      if (click) {
+        const target = tab.locator(click).first()
+        missed = !(await target.count())
+        if (!missed) {
+          await target.click({ timeout: 3000 })
+          // Let the click's transition settle.
+          await tab.waitForTimeout(400)
+        }
+      }
+      const file = join(out, `${id}@${tag}-${width}${click ? '-clicked' : ''}.png`)
       await tab.screenshot({ path: file, fullPage: true })
       // Page overflow, and elements poking past the section's content box even when something clips them
       // (intentional scrollers, like a scroll-snap row, and absolutely placed art are left out).
@@ -109,6 +122,7 @@ for (const { tag, state } of runs) {
         return { page: document.documentElement.scrollWidth - window.innerWidth, spill: [...new Set(spill)].slice(0, 4), cut: cut.slice(0, 4) }
       })
       const notes = [
+        missed ? `nothing matches --click ${click}` : '',
         overflow > 0 ? `${overflow}px horizontal overflow` : '',
         spill.length ? `past the gutter: ${spill.join(', ')}` : '',
         cut.length ? `text cut off: ${cut.join(', ')}` : '',
