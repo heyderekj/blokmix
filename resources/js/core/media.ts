@@ -121,6 +121,8 @@ export interface MediaRender {
   src: string
   alt: string
   fit: 'cover' | 'contain'
+  /** Where the subject is (0–1 across and down): the crop keeps it in frame. */
+  focus?: { x: number; y: number }
   /** Uploaded video or Lottie: the asset id whose bytes the frame receives. */
   asset?: string
   mime?: string
@@ -145,6 +147,13 @@ export function shaderFor(id: ShaderId, params: ParamValues | undefined, seed: n
   return shaderSpec(id, params, seed, tokens, (style) => svgDataUri(placeholderSvg(style, seed, tokens, ratio)))
 }
 
+/** A focal point as CSS object-position ("62% 30%"), so a cover crop keeps the subject in frame. */
+export function objectPosition(focus: { x: number; y: number } | undefined): string | null {
+  if (!focus || !Number.isFinite(focus.x) || !Number.isFinite(focus.y)) return null
+  const pc = (v: number) => `${Math.round(Math.max(0, Math.min(1, v)) * 100)}%`
+  return `${pc(focus.x)} ${pc(focus.y)}`
+}
+
 /** Resolve a fill to what's drawn. */
 export function renderMedia(fill: MediaFill, tokens: TokenSet, ratio: string | undefined, uploads: (id: string) => UploadData | undefined): MediaRender | null {
   const alt = fill.alt ?? ''
@@ -157,17 +166,18 @@ export function renderMedia(fill: MediaFill, tokens: TokenSet, ratio: string | u
     return m ? { kind: 'mock', src: '', alt, fit, html: m.html, css: m.css } : null
   }
   if (fill.source === 'shader') return fill.shader && isShaderId(fill.shader) ? { kind: 'shader', src: '', alt, fit, shader: shaderFor(fill.shader, fill.params, fill.seed ?? 1, tokens, ratio) } : null
-  if (fill.source === 'stock' && fill.stock) return { kind: 'image', src: stockUrl(fill.stock, 1600), alt: alt || fill.stock.description || '', fit, lightbox: !!fill.lightbox }
+  const focus = fill.focus && fit === 'cover' ? { focus: fill.focus } : {}
+  if (fill.source === 'stock' && fill.stock) return { kind: 'image', src: stockUrl(fill.stock, 1600), alt: alt || fill.stock.description || '', fit, lightbox: !!fill.lightbox, ...focus }
   if (fill.source === 'upload' && fill.asset) {
     const src = uploads(fill.asset)?.dataUrl
-    return src ? { kind: 'image', src, alt, fit, lightbox: !!fill.lightbox } : null
+    return src ? { kind: 'image', src, alt, fit, lightbox: !!fill.lightbox, ...focus } : null
   }
   if (fill.source === 'video' || fill.source === 'lottie') {
     const kind = fill.source
     if (fill.asset) {
       const a = uploads(fill.asset)
       if (!a) return null
-      return { kind, src: '', asset: fill.asset, mime: a.mime, alt, fit, poster: posterOf(fill.poster) ?? a.poster, ...moving }
+      return { kind, src: '', asset: fill.asset, mime: a.mime, alt, fit, poster: posterOf(fill.poster) ?? a.poster, ...moving, ...focus }
     }
     if (fill.link) return { kind, src: fill.link.url, alt, fit, poster: posterOf(fill.poster), ...moving }
     return null

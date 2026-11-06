@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AtSign, Check, ExternalLink, FileText, Hash, Phone, RotateCcw, Unlink } from 'lucide-react'
+import { AtSign, Check, ExternalLink, FileText, Hash, Phone, RotateCcw, Unlink, Wand2 } from 'lucide-react'
 import type { BlockInfo, LinkTarget, Slot } from '@/core/types'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
 import { describeLink, linkWords, resolveLink, suggestLink } from '@/core/links'
@@ -7,6 +7,7 @@ import { slotClip } from '@/data/library'
 import { useStore } from '@/state/store'
 import { useLinkScope } from '@/state/derived'
 import { Switch } from '../panels/parts'
+import { useJevLinks } from '@/state/jevLinks'
 
 type Tab = 'section' | 'page' | 'url' | 'email' | 'phone'
 
@@ -46,7 +47,10 @@ export function LinkLabel({ slot, block }: { slot: Slot; block: BlockInfo }) {
  * otherwise.
  */
 export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
-  const { set, resolved, suggestion, scope } = useLink(slot, block)
+  const { set, resolved, suggestion, scope, words } = useLink(slot, block)
+  // Jev's pick for words the keyword rule can't place ("See plans", "Book a table").
+  const jev = useJevLinks((s) => s.guesses[`${slot.id}:${block.id}`])
+  const jevPick = !set && !resolved.target && jev && jev.words === words.trim() && jev.target && jev.route !== 'none' ? jev : null
   const slots = scope.slots
   const current = resolved.target
   const [tab, setTab] = useState<Tab>(current && current.to !== 'none' ? current.to : 'section')
@@ -60,6 +64,19 @@ export function LinkMenu({ slot, block }: { slot: Slot; block: BlockInfo }) {
         <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{describeLink(current, scope)}</span>
         {resolved.auto && <span className="rounded-md bg-zinc-950/[0.05] px-1.5 py-0.5 text-[10.5px] font-semibold text-zinc-500" title="From its words; set one to change it">Auto</span>}
       </div>
+      {jevPick && (
+        <button
+          type="button"
+          onClick={() => apply(jevPick.target!)}
+          className="mb-1.5 flex w-full items-center gap-2 rounded-xl bg-zinc-950/[0.04] px-2.5 py-2 text-left text-[12px] transition hover:bg-zinc-950/[0.07]"
+        >
+          <Wand2 size={13} className="shrink-0 text-zinc-500" />
+          <span className="min-w-0 flex-1 truncate text-zinc-600">
+            Jev suggests the <span className="font-semibold text-zinc-900">{jevPick.label}</span>
+          </span>
+          <span className="text-[11px] font-medium text-zinc-500">Use it</span>
+        </button>
+      )}
       <div className="mb-1.5 flex gap-0.5 rounded-xl bg-zinc-950/[0.04] p-0.5">
         {TABS.map((t) => (
           <button

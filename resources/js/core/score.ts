@@ -18,6 +18,8 @@ export interface PageMeasure {
   headline?: { top: number; bottom: number; lines: number }
   /** The opening section's first button. */
   button?: { top: number; bottom: number }
+  /** Every block that starts above the fold, top to bottom: what a visitor sees before scrolling. */
+  shown?: { slot: string; block: string }[]
 }
 
 export interface ScoreCheck {
@@ -46,8 +48,11 @@ export const SWEEP = [360, 768, 1024, 1440] as const
 
 const above = (b: { bottom: number } | undefined, fold: number) => !!b && b.bottom <= fold
 
-/** Read the measurements at each width into checks and a score. `byWidth` is keyed by width. */
-export function scorePage(byWidth: Record<number, PageMeasure>): PageScore {
+/**
+ * Read the measurements at each width into checks and a score. `byWidth` is keyed by width; `extra` adds checks
+ * read some other way (the five-second test: what a visitor would make of the first screen's words).
+ */
+export function scorePage(byWidth: Record<number, PageMeasure>, extra: ScoreCheck[] = []): PageScore {
   const checks: ScoreCheck[] = []
   const laptop = byWidth[SCREENS.laptop.width]
   const phone = byWidth[SCREENS.phone.width]
@@ -105,6 +110,7 @@ export function scorePage(byWidth: Record<number, PageMeasure>): PageScore {
     })
   }
 
+  checks.push(...extra)
   const total = checks.reduce((n, c) => n + c.weight, 0)
   const got = checks.reduce((n, c) => n + (c.ok ? c.weight : 0), 0)
   return {

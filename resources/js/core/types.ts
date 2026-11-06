@@ -297,9 +297,25 @@ export interface ResolvedGuide {
 
 export interface ProjectContent {
   brand: string
+  /** What the site is for, as answered in the guided start (the five-second test compares a visitor's guess with it). */
+  kind?: Kind
   /** Your logo, once: it fills the nav's and footer's logo wherever they don't have a picture of their own. */
   logo?: MediaFill
   fields: Partial<Record<SectionType, Record<string, string>>>
+  /**
+   * Fields (`type.field`) whose words came from you even though they live here, not on a section: the name and email
+   * the guided start filled in, the headline you gave it. Everything else in `fields` is filler until you change it.
+   */
+  mine?: string[]
+  /** Lines of your words that a pour or a page from your words wasn't sure where to put: Words to place. */
+  tray?: TrayLine[]
+}
+
+/** A line of your words waiting for a home, with the best two guesses (a section and the role it'd play there). */
+export interface TrayLine {
+  id: string
+  text: string
+  homes: { slotId: string; role: string; label: string }[]
 }
 
 /** ReviseMy's mark kinds, so marks can move between the sibling apps. */
@@ -581,6 +597,11 @@ export interface MediaFill {
   link?: MediaLink
   alt?: string
   fit?: 'cover' | 'contain'
+  /**
+   * Where the subject is, as fractions across and down (0–1): cropped pictures keep it in frame at every ratio and on
+   * phones (object-position). Set by hand on the Image menu's pad, or by Jev finding the subject.
+   */
+  focus?: { x: number; y: number }
   /** Moving media: when it plays, whether it loops, and whether a click opens it large. */
   play?: MediaPlay
   loop?: boolean

@@ -3,6 +3,7 @@ import { useStore } from '@/state/store'
 import { Canvas } from '@/ui/canvas/Canvas'
 import { World } from '@/ui/canvas/World'
 import { TopBar } from '@/ui/shell/TopBar'
+import { ContentDoc } from '@/ui/content/ContentDoc'
 import { Lightbox } from '@/ui/shell/Lightbox'
 import { Dock } from '@/ui/shell/Dock'
 import { SelectionStyle } from '@/ui/panels/SelectionStyle'
@@ -30,6 +31,7 @@ export default function Board() {
       <Canvas>
         <World />
       </Canvas>
+      <ContentDoc />
       <TopBar onHelp={toggleHelp} />
       <Dock />
       <SelectionStyle />

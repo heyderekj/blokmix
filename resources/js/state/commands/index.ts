@@ -2,11 +2,10 @@ import { COMMANDS, toolDefinitions, type CommandName } from '@/core/commands/sch
 import { useCollections } from '../collections'
 import { useStore } from '../store'
 import { canEdit, useAccount } from '@/lib/account'
-import { CommandError, findSection } from './refs'
+import { CommandError, findBlock, findSection } from './refs'
+import { TYPE_LABEL } from '@/core/content'
 import { PackRefusal, strictly } from '../plan'
 import { contractRefusal } from '@/core/contract'
-import { TYPE_LABEL } from '@/core/content'
-import type { SectionType } from '@/core/types'
 import * as read from './read'
 import * as review from './review'
 import * as notes from './notes'
@@ -20,11 +19,12 @@ import * as collectionCmds from './collections'
 import * as libraryCmds from './library'
 import * as start from './start'
 import * as skins from './skins'
+import * as jev from './jev'
 
 export { CommandError, describeNote } from './refs'
 
 const READ = { ...read.read, ...pageCmds.textStyleRead, ...siteCmds.read, ...treatments.read, ...notes.read, ...versions.read, ...collectionCmds.read, ...skins.read }
-const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write, ...collectionCmds.write, ...skins.write }
+const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write, ...collectionCmds.write, ...skins.write, ...jev.write }
 
 /**
  * Runs the commands in core/commands/schema.ts against the live mix. Every
@@ -44,7 +44,7 @@ export interface AsyncCommand<P = unknown> {
   apply: (input: never, prepared: P) => unknown
 }
 // Modules export `later` maps of async commands; merge them here.
-const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later, ...libraryCmds.later, ...start.later } as Record<string, AsyncCommand>
+const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later, ...libraryCmds.later, ...start.later, ...jev.later } as Record<string, AsyncCommand>
 
 /** What a viewer can still do: leave and answer marks. */
 const MARKS = new Set(['add_note', 'update_note', 'reply_note'])
@@ -100,6 +100,8 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
   const s = useStore.getState()
   const collectionsBefore = useCollections.getState().bySlug
   const before = { site: s.site, guide: s.guide, content: s.content, contract: s.contract, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }
+  // Worded before it runs, so a removed section can still be named.
+  const toast = by === 'agent' ? summary(name, input) : ''
   t.pause()
   let result: unknown
   try {
@@ -110,55 +112,125 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
   const after = useStore.getState()
   if (after.site !== before.site || after.guide !== before.guide || after.content !== before.content || after.contract !== before.contract || after.versions !== before.versions || after.notes !== before.notes) {
     useStore.temporal.setState((x) => ({ pastStates: [...x.pastStates, before].slice(-100), futureStates: [] }))
-    if (by === 'agent') after.showFlash(`Agent: ${summary(name, input)}`, { undo: true })
-  } else if (by === 'agent' && useCollections.getState().bySlug !== collectionsBefore) after.showFlash(`Agent: ${summary(name, input)}`, { undo: 'collections' })
+    if (by === 'agent') after.showFlash(toast, { undo: true })
+  } else if (by === 'agent' && useCollections.getState().bySlug !== collectionsBefore) after.showFlash(toast, { undo: 'collections' })
   return result
 }
 
 export const tools = toolDefinitions
 
-function summary(name: string, input: Record<string, unknown>): string {
-  const sec = input.section !== undefined ? ` ${input.section}` : ''
-  switch (name) {
-    case 'set_block':
-      return String(input.block).includes(' · ') ? `changed ${input.block}` : `changed ${input.block}${sec ? ` in${sec}` : ''}`
-    case 'set_words':
-      return `rewrote${sec}`
-    case 'add_block':
-      return `added a ${String(input.kind) === 'image' ? 'picture' : String(input.kind)}${sec ? ` to${sec}` : ''}`
-    case 'set_brand':
-      return `renamed the site ${String(input.name)}`
-    case 'set_brand_color':
-      return input.color ? 'changed the brand color' : 'forgot the brand color'
-    case 'set_logo':
-      return input.remove ? 'took the logo away' : 'set the logo'
-    case 'add_section':
-      return `added a ${TYPE_LABEL[input.type as SectionType]?.toLowerCase() ?? 'section'}`
-    case 'add_page':
-      return `added ${input.path}`
-    case 'add_note':
-      return `left a ${String(input.kind).replace('-', ' ')} note${sec ? ` on${sec}` : ''}`
-    case 'update_note':
-      return `marked note ${String(input.note).replace(/^n/i, '')} ${String(input.status).replace('_', ' ')}`
-    case 'prepare_build':
-      return `started building ${input.version}`
-    case 'publish':
-      return 'published to blok.page'
-    case 'unpublish':
-      return 'unpublished from blok.page'
-    case 'report_build':
-      return input.done ? `finished ${input.build}` : input.preview_url ? `put ${input.build}’s preview up` : `${input.build}: ${input.step ?? 'updated'}`
-    case 'import_review_marks':
-      return `brought back ${(input.marks as unknown[]).length} review marks`
-    case 'clip_from_site':
-      return `clipped ${input.all ? 'a page' : 'sections'} from ${input.site}`
-    case 'use_site_style':
-      return `added ${input.site}’s look to the style guide`
-    case 'apply_start':
-      return `started over from a ${input.skin ?? 'wireframe'} start`
-    case 'reply_note':
-      return `replied on note ${String(input.note).replace(/^n/i, '')}`
-    default:
-      return 'changed the mix'
+/** A section in words for a toast ("Pricing", "the About page’s Team"), or null when it can't be found. */
+function sectionWord(ref: unknown): string | null {
+  if (ref === undefined) return null
+  try {
+    return TYPE_LABEL[findSection(ref as string | number).type]
+  } catch {
+    return null
   }
+}
+
+/** A block in words ("the button", "the headline"): the last part of its label, lowercased. */
+function blockWord(sectionRef: unknown, ref: unknown): string {
+  try {
+    const label = findBlock(findSection(sectionRef as string | number), String(ref)).label
+    return `the ${label.split(' · ').pop()!.toLowerCase()}`
+  } catch {
+    return 'a block'
+  }
+}
+
+/**
+ * What an agent just did, as a plain sentence with its name: "Claude moved Pricing up", "Claude added a FAQ
+ * section", "Claude put your words on the page". Never ids or command names.
+ */
+export function summary(name: string, input: Record<string, unknown>): string {
+  const who = useStore.getState().agent?.name || 'Your agent'
+  const sec = sectionWord(input.section)
+  const inSec = sec ? ` in ${sec}` : ''
+  const said = (() => {
+    switch (name) {
+      case 'set_block':
+        return `restyled ${blockWord(input.section, input.block)}${inSec}`
+      case 'set_words':
+        return `rewrote the words${inSec}`
+      case 'add_block':
+        return `added a ${String(input.kind) === 'image' ? 'picture' : String(input.kind)}${inSec}`
+      case 'set_brand':
+        return `renamed the site ${String(input.name)}`
+      case 'set_brand_color':
+        return input.color ? 'changed the brand color' : 'forgot the brand color'
+      case 'set_logo':
+        return input.remove ? 'took the logo away' : 'set the logo'
+      case 'word_options':
+        return `suggested other words${inSec}`
+      case 'add_section':
+        return `added a ${TYPE_LABEL[input.type as keyof typeof TYPE_LABEL] ?? 'new'} section`
+      case 'remove_section':
+        return `removed ${sec ?? 'a section'}`
+      case 'move_section':
+        return `moved ${sec ?? 'a section'}`
+      case 'swap_section':
+        return `tried another ${sec ?? 'section'} layout`
+      case 'add_page':
+        return `added the ${input.path} page`
+      case 'add_note':
+        return `left a note${sec ? ` on ${sec}` : ''}`
+      case 'update_note':
+        return `marked note ${String(input.note).replace(/^n/i, '')} ${String(input.status).replace('_', ' ')}`
+      case 'reply_note':
+        return `replied to note ${String(input.note).replace(/^n/i, '')}`
+      case 'edit_list':
+      case 'set_list':
+        return `changed the list${inSec}`
+      case 'set_image':
+      case 'set_media':
+      case 'set_mock':
+        return `changed a picture${inSec}`
+      case 'find_subject':
+        return `kept the photo’s subject in frame${inSec}`
+      case 'set_section_surface':
+        return `changed the background${inSec}`
+      case 'set_section_backdrop':
+        return `put a backdrop behind ${sec ?? 'a section'}`
+      case 'set_section_width':
+        return `changed how wide ${sec ?? 'a section'} runs`
+      case 'set_dial':
+        return `turned the ${String(input.dial)} dial`
+      case 'set_tone':
+        return `made the page ${input.tone}`
+      case 'set_token':
+        return 'changed the style guide'
+      case 'set_palette':
+        return 'changed the colors'
+      case 'apply_skin':
+        return 'put a new skin on'
+      case 'surprise_me':
+        return 'mixed up the look'
+      case 'place_links':
+        return 'pointed buttons where their words lead'
+      case 'pour_words':
+        return 'put your words on the page'
+      case 'page_from_words':
+        return 'made a page from your words'
+      case 'prepare_build':
+        return `started building ${input.version}`
+      case 'publish':
+        return 'published to blok.page'
+      case 'unpublish':
+        return 'took the page off blok.page'
+      case 'report_build':
+        return input.done ? `finished building ${input.build}` : input.preview_url ? `put up a preview of ${input.build}` : `${input.step ?? 'updated'} (${input.build})`
+      case 'import_review_marks':
+        return `brought back ${(input.marks as unknown[]).length} review notes`
+      case 'clip_from_site':
+        return `clipped ${input.all ? 'a page' : 'sections'} from ${input.site}`
+      case 'use_site_style':
+        return `added ${input.site}’s look to the style guide`
+      case 'apply_start':
+        return 'started the page over'
+      default:
+        return `changed ${sec ?? 'the page'}`
+    }
+  })()
+  return `${who} ${said}`
 }

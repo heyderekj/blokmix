@@ -14,8 +14,9 @@ import { suggestClip, suggestTypes } from './suggest'
 import { pickable, shelfOf, starterOpen } from './library'
 import { applySkin, skinById, skinList, WIREFRAME } from './skins'
 import { setTone } from './dials'
-import { paletteFrom, type Mode } from './palette'
+import { paletteFrom, type Mode, type Palette } from './palette'
 import { resolveGuide } from './guide'
+import { mineKey } from './ownWords'
 
 export interface StartInput {
   kind: Kind
@@ -27,16 +28,21 @@ export interface StartInput {
   skin?: string
   /** One brand color (hex); the skin's own when left out. */
   brand?: string | null
+  /** A whole palette (colors by feel), in place of one made from the brand color. */
+  palette?: Palette | null
   mode?: Mode
   /** Shuffle: a different seed gives different picks. */
   seed?: number
+  /** Home's sections top to bottom, in place of the kind's usual page (a description, or chips you changed). */
+  sections?: SectionType[]
 }
 
 export interface StartCandidate {
   id: string
   /** "Starter: Studio portfolio", or what it's made of. */
   label: string
-  from: 'starter' | 'library'
+  /** A starter mix, put together from the library, or made from words you pasted. */
+  from: 'starter' | 'library' | 'words'
   starterId?: string
   site: Site
   guide: GuideState
@@ -65,12 +71,12 @@ export const RECIPES: Record<Kind, { home: SectionType[]; about?: SectionType[] 
 }
 
 /** The style guide for a start: a skin, with a palette from your brand color, or turned the other way, if you asked. */
-export function guideFor(input: Pick<StartInput, 'skin' | 'brand' | 'mode'>): GuideState {
+export function guideFor(input: Pick<StartInput, 'skin' | 'brand' | 'mode' | 'palette'>): GuideState {
   const skin = skinById(input.skin ?? WIREFRAME) ?? skinList()[0]
   if (!skin) return emptyGuide()
   const guide = applySkin(emptyGuide(), skin)
   const mode = input.mode ?? skin.mode
-  const colors = input.brand ? paletteFrom(input.brand, mode) : mode !== skin.mode ? setTone(resolveGuide(guide).tokens, mode) : null
+  const colors = input.palette ? input.palette : input.brand ? paletteFrom(input.brand, mode) : mode !== skin.mode ? setTone(resolveGuide(guide).tokens, mode) : null
   // A brand color is remembered, so trying another theme later keeps it.
   return colors ? { ...guide, base: { ...guide.base, ...colors }, ...(input.brand ? { brand: { color: input.brand } } : {}) } : guide
 }
@@ -86,14 +92,21 @@ export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner'>
   const name = input.name.trim() || 'Your site'
   const fill = (s: string) => s.replaceAll('{name}', name).replaceAll('{email}', emailFor(name)).replaceAll('{year}', String(year))
   const fields: ProjectContent['fields'] = {}
+  // Words that are yours though they live here: your name and email wherever they're filled in, and your one line.
+  const mine: string[] = []
   for (const type of Object.keys(FIELD_SCHEMA) as SectionType[]) {
     // Every field in the schema gets words: the kind's, then the shared ones, then (only if both lack it) the default.
     const words = { ...DEFAULT_CONTENT.fields[type], ...SHARED_WORDS[type], ...KIND_WORDS[input.kind][type] }
     fields[type] = Object.fromEntries(Object.entries(words).map(([k, v]) => [k, fill(v)]))
+    // Just the name or the email (a nav's brand, a contact address), and the footer's legal line: yours as given.
+    if (input.name.trim()) for (const [k, v] of Object.entries(words)) if (/^\{(name|email)\}$/.test(v.trim()) || (type === 'footer' && k === 'legal')) mine.push(mineKey(type, k))
   }
   const line = input.oneLiner?.trim()
-  if (line && fields.hero) fields.hero = { ...fields.hero, headline: line }
-  return { brand: name, fields }
+  if (line && fields.hero) {
+    fields.hero = { ...fields.hero, headline: line }
+    mine.push(mineKey('hero', 'headline'))
+  }
+  return { brand: name, kind: input.kind, fields, ...(mine.length ? { mine } : {}) }
 }
 
 const slotFor = (id: string, type: SectionType, clipId: string): Slot => ({ id, type, clipId, locked: false, keep: { ...DEFAULT_KEEP } })
@@ -182,13 +195,15 @@ export function startCandidates(input: StartInput, lib: Library, n = 3): StartCa
     out.push({ ...c, id: `start${out.length}`, shelves: countShelves(lib, c.site) })
   }
 
-  const starters = startersFor(lib, input.kind)
+  // Your own list of sections wins over starter mixes, which come with theirs.
+  const own = !!input.sections?.length && input.sections.join() !== RECIPES[input.kind].home.join()
+  const starters = own ? [] : startersFor(lib, input.kind)
   const offset = starters.length ? seed % starters.length : 0
   for (const s of [...starters.slice(offset), ...starters.slice(0, offset)].slice(0, Math.min(2, n - 1))) {
     push({ label: `Starter: ${s.name}`, from: 'starter', starterId: s.id, site: siteFromPages(lib, s.pages, `${s.id}_`), guide, content })
   }
 
-  const recipe = RECIPES[input.kind]
+  const recipe = own ? { ...RECIPES[input.kind], home: input.sections! } : RECIPES[input.kind]
   const usedHeroes = new Set(out.map((c) => c.site.pages[0].slots.find((s) => s.type === 'hero')?.clipId))
   const heroes = heroesFor(lib, seed).filter((id) => !usedHeroes.has(id))
   for (let variant = 0, tries = 0; out.length < n && tries < n * 4; variant++, tries++) {
@@ -201,6 +216,12 @@ export function startCandidates(input: StartInput, lib: Library, n = 3): StartCa
     push({ label, from: 'library', site, guide, content })
   }
   return out
+}
+
+/** A nav and a footer for a page made another way (from your words): built-in layouts, turned by `variant`. */
+export function chromeFor(lib: Library, variant: number, seed = 0): { nav?: string; footer?: string } {
+  const [nav, footer] = fillPage(lib, ['nav', 'footer'], variant, seed)
+  return { nav, footer }
 }
 
 /** Problems with the starter mixes: unknown clips, or sections where a page can't have them. Empty when all is well. */

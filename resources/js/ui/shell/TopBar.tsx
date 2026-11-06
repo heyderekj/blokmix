@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { confirmAction } from './Confirm'
 import { motion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, Globe, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, X } from 'lucide-react'
+import { Archive, Bot, ChevronLeft, ChevronRight, CircleHelp, Download, Eye, FileText, Globe, LayoutGrid, LogOut, MoreHorizontal, Upload, MessageSquare, Moon, Package, Redo2, RotateCcw, Sparkles, Sun, SwatchBook, Undo2, Users, Wand2, X } from 'lucide-react'
 import { useStore, undo, redo, STORAGE_KEY, type Sheet } from '@/state/store'
 import { downloadMix, readMixFile, replaceLocalMix } from '@/lib/mixFile'
 import { pickFile } from '@/lib/pickFile'
@@ -19,6 +19,7 @@ import { Avatar } from './Avatar'
 import { Presence } from './Dock'
 import { useMe } from '@/lib/people'
 import { useAgentLink } from '@/lib/agentLink'
+import { jevAvailable } from '@/lib/jev'
 import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
 import { canEdit, useAccount } from '@/lib/account'
@@ -39,7 +40,7 @@ export const toggleSheet = (s: Sheet) => {
 /** Below this width the three islands don't fit side by side: the bar folds into one (CompactBar). */
 const WIDE_BAR = '(min-width: 1120px)'
 
-function useWideBar() {
+export function useWideBar() {
   const [wide, setWide] = useState(() => typeof window === 'undefined' || window.matchMedia(WIDE_BAR).matches)
   useEffect(() => {
     const mq = window.matchMedia(WIDE_BAR)
@@ -313,6 +314,7 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
           <MixName value={mixName} onChange={(v) => st().renameMix(v)} />
         </div>
         <AgentAccess />
+        <JevHelp />
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         <MenuItem icon={theme === 'dark' ? Sun : Moon} label={theme === 'dark' ? 'Light mode' : 'Dark mode'} onClick={() => st().setUi({ theme: theme === 'dark' ? 'light' : 'dark' })} />
         <MenuItem
@@ -352,13 +354,40 @@ function AgentAccess() {
         <div className="text-[13px] font-medium text-zinc-800">Let agents edit this mix</div>
         <div className="text-[11.5px] leading-snug text-zinc-500">
           {!on
-            ? 'Claude Code and other MCP agents can use every tool you can.'
+            ? 'Claude Code, Cursor, Codex or any MCP agent can do what you can.'
             : status === 'connected'
               ? `Connected${last ? ` · last: ${last.replace(/_/g, ' ')}` : ''}`
-              : 'Waiting for the bridge: run npm run mcp, or add it to Claude Code.'}
+              : 'Waiting for the bridge: run npm run mcp, or add it to your agent.'}
         </div>
       </div>
       <Switch on={on} onChange={() => useStore.getState().setUi({ agentAccess: !on })} label="Let agents edit this mix" />
+    </div>
+  )
+}
+
+/** Jev (TypeSafe) places, picks and checks things on the board. On unless you turn it off on this device. */
+function JevHelp() {
+  const on = useStore((s) => s.ui.jev)
+  const [server, setServer] = useState<boolean | null>(null)
+  useEffect(() => {
+    let live = true
+    jevAvailable().then((v) => live && setServer(v))
+    return () => {
+      live = false
+    }
+  }, [])
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl px-2.5 py-2">
+      <Wand2 size={16} className="mt-0.5 shrink-0 text-zinc-500" />
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-medium text-zinc-800">Let Jev help</div>
+        <div className="text-[11.5px] leading-snug text-zinc-500">
+          {server === false
+            ? 'Off here: this server has no TypeSafe key.'
+            : 'Jev (by TypeSafe) places, picks and checks. It never writes your words.'}
+        </div>
+      </div>
+      <Switch on={on && server !== false} onChange={() => useStore.getState().setUi({ jev: !on })} label="Let Jev help" />
     </div>
   )
 }
@@ -375,7 +404,8 @@ function ToolsIsland() {
   const notes = useStore((s) => s.notes)
   const todo = notes.filter(outstanding).length
   const decisions = openGroups(useResolvedGuide()).length
-  const open = sheet === 'guide' || sheet === 'notes'
+  // Content takes the main area (ContentDoc) instead of growing this island.
+  const open = (sheet === 'guide' && tab !== 'content') || sheet === 'notes'
   const st = useStore.getState
   const at = (which: 'style' | 'content' | 'notes') => (which === 'notes' ? sheet === 'notes' : sheet === 'guide' && tab === which)
   const go = (which: 'style' | 'content' | 'notes') => {

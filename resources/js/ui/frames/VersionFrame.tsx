@@ -110,7 +110,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
         <OverflowMenu
           items={[
             { icon: Eye, label: previewing ? 'Stop interacting' : 'Interact with the page', onClick: () => st().setUi({ previewFrameId: previewing ? null : v.id }) },
-            { icon: Shuffle, label: 'Start from this', onClick: () => remix(v) },
+            { icon: Shuffle, label: 'Work from this version', onClick: () => remix(v) },
             { icon: Package, label: 'Export this version', onClick: () => st().setUi({ packetSource: v.id, sheet: 'packet' }) },
             ...(v.kind === 'build' ? [{ icon: Link2, label: v.build?.previewUrl ? 'Change preview URL' : 'Attach the agent’s preview URL', onClick: () => setAttaching(true) }] : []),
             {
@@ -172,7 +172,8 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
 function remix(v: VersionNode) {
   const st = useStore.getState()
   const saved = st.remix(v.id)
-  st.showFlash(saved ? `Your mix now matches ${v.letter}. Your edits are kept as ${saved}.` : `Your mix now matches ${v.letter}.`, { undo: true })
+  // Your working mix becomes a copy of this version; the next one you save builds on it. Undo brings back what you had.
+  st.showFlash(saved ? `You’re working from ${v.letter} now. Your edits are kept as ${saved}.` : `You’re working from ${v.letter} now. What you save next builds on it.`, { undo: true })
 }
 
 function Title({ v }: { v: VersionNode }) {

@@ -107,6 +107,8 @@ export interface UiState {
   selectedBlockId: string | null
   /** Let a local agent (via the MCP bridge) edit this mix. Off until you turn it on. */
   agentAccess: boolean
+  /** Let Jev (TypeSafe) place, pick and check things on this device. On unless you turn it off. */
+  jev: boolean
   /** The mark whose card is open on the canvas. */
   openNoteId: string | null
   /** The page open on the canvas (null: the first). */
@@ -291,6 +293,7 @@ const DEFAULT_UI: UiState = {
   myName: 'Derek Castelli',
   selectedBlockId: null,
   agentAccess: false,
+  jev: true,
   openNoteId: null,
   pageId: null,
 }

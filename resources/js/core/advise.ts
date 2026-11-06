@@ -2,7 +2,7 @@
 // action, readable contrast, tap targets, readable measure, clear labels), plus
 // a nudge towards consistency. Pure, so it's tested and an agent can run it.
 
-import type { BlockEdit, BlockInfo, BlockKind, ColorRef, ComponentDefault, Swatch, TokenSet } from './types'
+import type { BlockEdit, BlockInfo, BlockKind, ColorRef, ComponentDefault, LinkTarget, Swatch, TokenSet } from './types'
 import { contrastRatio, hexToRgb } from './tokens'
 import { defaultFor, effectiveEdit, MOBILE_MAX } from './blocks/style'
 
@@ -67,6 +67,8 @@ export interface AdviseInput {
   pageStyles?: Partial<Record<BlockKind, string[]>>
   /** Where each link block leads (href "#" = nowhere), when known. */
   links?: Record<string, { href: string }>
+  /** Where Jev thinks links that lead nowhere should go, by block id (core/jev/links.ts). */
+  linkGuesses?: Record<string, { target: LinkTarget; label: string }>
 }
 
 const SOLID = new Set(['solid', 'pill', 'offset'])
@@ -133,12 +135,16 @@ export function advise(i: AdviseInput): Advice[] {
 
     // A button or link that leads nowhere: people press it and nothing happens.
     if (b.linkable && (b.kind === 'button' || b.kind === 'link') && i.links?.[b.id]?.href === '#' && e?.link?.to !== 'none') {
+      const guess = i.linkGuesses?.[b.id]
       out.push({
         blockId: b.id,
         rule: 'dead-link',
         level: 'suggestion',
         lens: 'Laws of UX',
-        message: 'This leads nowhere yet. Point it at a section, a page or a web address, so pressing it does what its words promise.',
+        message: guess
+          ? `This leads nowhere yet. Its words suggest the ${guess.label}.`
+          : 'This leads nowhere yet. Point it at a section, a page or a web address, so pressing it does what its words promise.',
+        ...(guess ? { fix: { label: `Point it at ${guess.label.replace(/ (section|page)$/, '')}`, edit: { link: guess.target } } } : {}),
       })
     }
 

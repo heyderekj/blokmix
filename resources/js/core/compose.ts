@@ -8,7 +8,7 @@ import { pictureFor, withSectionDefaults } from './sectionDefaults'
 import { LAYER_ORDER } from './export/base-css'
 import { motionCss as presetMotionCss } from './motion'
 import { swapIcons } from './icons'
-import { dataUrlBytes, placeholderSvg, renderMedia, shaderFor, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
+import { dataUrlBytes, objectPosition, placeholderSvg, renderMedia, shaderFor, sizeForRatio, stockCredit, type MediaRender, type UploadData } from './media'
 import { BACKDROP_POSTER, shaderElement, standInPoster } from './export/shaders'
 import { resolveFields } from './content'
 import { sectionClip, extrasOf } from './lists'
@@ -358,9 +358,12 @@ export function composePage(input: ComposeInput): ComposedPage {
     const mediaCss = media
       .map((m) => {
         const sel = `.${clip.rootClass} .${blockClass(m.blockId)}`
-        const fit = changed.find((x) => x.b.id === m.blockId)?.edit.media?.fit === 'contain' ? 'contain' : 'cover'
+        const fill = changed.find((x) => x.b.id === m.blockId)?.edit.media
+        const fit = fill?.fit === 'contain' ? 'contain' : 'cover'
+        // The subject stays in frame however the block crops it (core/media.ts objectPosition).
+        const at = fit === 'cover' ? objectPosition(fill?.focus) : null
         // position: relative sits in the clip layer under :where(), so a clip that positions the block keeps winning.
-        return `@layer clip { :where(${sel}) { position: relative; } }\n@layer blocks {\n${sel} { overflow: hidden; }\n${sel} > :not(.mx-media, .mx-play) { visibility: hidden; }\n${sel} > .mx-media { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: ${fit}; display: block; border: 0; border-radius: inherit; }\n}`
+        return `@layer clip { :where(${sel}) { position: relative; } }\n@layer blocks {\n${sel} { overflow: hidden; }\n${sel} > :not(.mx-media, .mx-play) { visibility: hidden; }\n${sel} > .mx-media { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: ${fit};${at ? ` object-position: ${at};` : ''} display: block; border: 0; border-radius: inherit; }\n}`
       })
       .join('\n')
     const rootSel = `.${clip.rootClass}.mx-${key}${position + 1}`

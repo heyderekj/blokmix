@@ -1,7 +1,7 @@
 import { useStore } from '@/state/store'
 import { canvasApi } from '@/ui/canvas/Canvas'
 import { blankMix } from '@/state/seed'
-import { mixFromStart } from '@/lib/start'
+import { mixFromStart, startedWords } from '@/lib/start'
 import { StartFlow, useStartFlow } from './StartFlow'
 
 /** The guided start over the browser-only mix: a start (or a blank page) replaces it, a fresh undo history and all. */
@@ -21,9 +21,10 @@ export function StartOverlay() {
         close()
       }}
       onDone={(input, starts, chosen) => {
-        useStore.getState().openMixData(mixFromStart(input, starts, chosen))
+        const mix = mixFromStart(input, starts, chosen)
+        useStore.getState().openMixData(mix)
         close()
-        useStore.getState().showFlash(`Started ${input.name.trim() || 'your mix'}. The other starts are kept as versions.`)
+        useStore.getState().showFlash(startedWords(input.name, mix))
       }}
     />
   )

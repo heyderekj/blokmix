@@ -4,7 +4,7 @@ export const BRIDGE_PATH = '/blokmix'
 export const BRIDGE_URL = `ws://127.0.0.1:${BRIDGE_PORT}${BRIDGE_PATH}`
 
 /** How long the bridge waits for the tab. Commands that compose or measure a whole page get longer. */
-export const COMMAND_TIMEOUTS: Record<string, number> = { prepare_build: 120_000, publish: 120_000, review: 30_000, suggest_starts: 60_000 }
+export const COMMAND_TIMEOUTS: Record<string, number> = { prepare_build: 120_000, publish: 120_000, review: 30_000, suggest_starts: 60_000, place_links: 20_000, five_second_test: 30_000, find_subject: 30_000, understand: 15_000, pour_words: 30_000, page_from_words: 30_000, suggest_palettes: 45_000, suggest_treatments: 20_000 }
 export const timeoutFor = (name: string) => COMMAND_TIMEOUTS[name] ?? 15_000
 
 /** Blokmix where it's hosted. Exact origins only: these may drive your local agent bridge from your browser. */

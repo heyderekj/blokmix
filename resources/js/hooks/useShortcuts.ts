@@ -9,6 +9,8 @@ import { tileNeighbor, listContext } from '@/core/lists'
 import { wordChoices, currentWords } from '@/core/words'
 import { TYPE_LABEL } from '@/core/content'
 import { stepLook } from '@/ui/blocks/LooksPicker'
+import { toggleSay } from '@/ui/jev/SayBar'
+import { useJevTools } from '@/state/jevSay'
 import { pressable, typing } from '@/ui/shell/keys'
 
 const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
@@ -16,6 +18,15 @@ const KEEP_KEYS: (keyof Keep)[] = ['layout', 'style', 'content', 'motion']
 /** Keyboard-first: everything in the core loop has a key. */
 export function useShortcuts(onHelp: () => void) {
   useEffect(() => {
+    // Long text pasted on the board (not into a field): offer to pour it in, or make a page from it.
+    const onPaste = (e: ClipboardEvent) => {
+      if (typing(e.target) || e.defaultPrevented) return
+      const text = e.clipboardData?.getData('text/plain') ?? ''
+      if (text.trim().length < 80 || text.trim().split('\n').length < 2) return
+      e.preventDefault()
+      useJevTools.setState({ open: currentSlots(useStore.getState()).length > 2 ? 'pour' : 'page', text })
+    }
+    window.addEventListener('paste', onPaste)
     const onKey = (e: KeyboardEvent) => {
       if (typing(e.target) || e.defaultPrevented) return
       // Enter on a focused button presses it; it doesn't save a version.
@@ -25,6 +36,12 @@ export function useShortcuts(onHelp: () => void) {
       const focused = currentSlots(st).find((s) => s.id === st.ui.focusedSlotId)
       const k = e.key
 
+      // ⌘K: say what to change (Jev).
+      if (mod && k.toLowerCase() === 'k') {
+        e.preventDefault()
+        toggleSay()
+        return
+      }
       if (mod && k.toLowerCase() === 'z') {
         e.preventDefault()
         if (e.shiftKey) redo()
@@ -219,6 +236,9 @@ export function useShortcuts(onHelp: () => void) {
       }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('paste', onPaste)
+    }
   }, [onHelp])
 }

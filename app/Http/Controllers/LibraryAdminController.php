@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\JevController;
 use App\Models\LibrarySection;
 use App\Models\LibrarySite;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +25,8 @@ class LibraryAdminController extends Controller
             'sites' => LibrarySite::query()->forCards()->latest('updated_at')->get()->map->summary()->values(),
             'site' => $site?->full(true),
             'types' => LibrarySection::TYPES,
+            // What people asked Jev for that Blokmix can't do yet: the other half of what to make next.
+            'wants' => JevController::wantCounts(),
         ]);
     }
 }

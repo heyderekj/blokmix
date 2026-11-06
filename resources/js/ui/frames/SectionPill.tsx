@@ -15,6 +15,7 @@ import { SliderPicker } from './SliderPicker'
 import { DeviceSwitch, SectionSpacingRows, useDevice } from '../blocks/Spacing'
 import { SectionMotionRows } from '../blocks/MotionMenu'
 import { BackdropPicker } from '../dials/BackdropPicker'
+import { DressUp } from '../jev/DressUp'
 import { useResolvedGuide } from '@/state/derived'
 import { bandTokens, SURFACES, SURFACE_LABEL, surfaceTokens, SECTION_WIDTHS, SECTION_WIDTH_LABEL } from '@/core/surface'
 import { isBackdropId, readBackdrop } from '@/core/treatments'
@@ -251,6 +252,7 @@ export function StyleTab({ slot }: { slot: Slot }) {
         <HiddenHere slot={slot} />
         {clip.slider && <SliderPicker slot={slot} options={clip.slider} />}
         <div className="mt-2.5">
+          <DressUp slot={slot} />
           <BackdropPicker slot={slot} tokens={slot.keep.style ? t : surfaceTokens(resolved, slot.surface)} />
           <BackdropNote slot={slot} />
         </div>

@@ -138,15 +138,23 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 ## Guided start
 
 The audience is non-designers first (`docs/simple-vision.md`). New mix (and the browser-only mix's first visit, or
-"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx`: what you're making (`KINDS`), three raw starts in Wireframe to
-pick a structure, then that page under the skins with an optional brand color (`core/palette.ts` `paletteFrom`, AA on
-every `CONTRAST_PAIRS`). `core/start.ts` `startCandidates` offers matching starter mixes
+"Start a new mix" in its menu) opens `ui/start/StartFlow.tsx` on one box (`ui/start/StartBox.tsx`): the name, then a
+sentence about the site or the words you already have. Code tells them apart (`core/jev/describe.ts` `textMode`: one or
+two short lines describe). A description goes to Jev (`describeRequest`: the kind, each optional section, the look) and
+becomes the kind's page with sections added or dropped (`sectionsFor`); pasted words become a page from your words in
+three arrangements (`lib/startFromText.ts` `wordsCandidates`, the pure `state/jevPage.ts` `wordsPage`, a nav and footer from
+`chromeFor`; lines it wasn't sure of ride along in `content.tray`). What Jev heard shows as chips you can change (kind,
+sections ✕ and +, looks). "Answer three questions" is the old form (what you're making, `KINDS`), and the only way in when
+Jev is off. Then three raw starts in Wireframe to pick a structure, then that page under the skins, Jev's look first ("Jev's
+pick") with an optional brand color (`core/palette.ts` `paletteFrom`, AA on every `CONTRAST_PAIRS`) or colors by feel from
+the description (`ui/start/FeelColors.tsx`, `StartInput.palette`). `core/start.ts` `startCandidates` offers matching starter mixes
 (`samples/starters/*.json`, checked by `checkStarters`) first, then fills the kind's `RECIPES` from the library with
 `suggestClip`, built-in layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, with the
 name, an email and the year filled in (a test keeps Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone and widths between
 (`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its first screen
 holds up (after Shu Ding's "The Calculus of Interfaces"). The pick becomes the mix; every start is kept as a version
-(A/B/C). Hosted, it posts to `POST /api/mixes`; agents use `suggest_starts` and `apply_start`.
+(A/B/C). Hosted, it posts to `POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, the
+box's words, and `sections`). The flash says how many spots still hold sample words.
 
 ## Skins and the contract
 
@@ -172,6 +180,36 @@ your own lines. Swaps and Surprise me leave Keep alone; agent commands that writ
 the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: the Theme and Keep or surprise tiles atop the Style
 guide (on screen a skin is a Theme and the contract is Keep or surprise; code keeps `skin` and `contract`); a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
 moves the canvas so the section shows beside it. Agents: `list_skins`, `apply_skin`, `surprise_me`, `get_contract`, `set_contract`.
+
+## Jev (TypeSafe)
+
+Jev, TypeSafe's System One model (docs.typesafe.ai), places, picks and checks real things; it never writes words. Typed
+questions (choice, score, noul, box) about a JSON state, ~100ms, near free. Weak at counting, maths, hex colors and
+dates: code does those.
+- Layer: `core/jev/` (pure: question builders, `shuffled`/`merged` ask a choice in both orders to cancel its first-option
+  lean, `vocab.ts` section types and kinds in words, one file per feature with its QUESTIONS and THRESHOLDS on top).
+  `lib/jev.ts` `askJev` posts to `/api/jev` and returns null when off, slow or failing, so every caller falls back;
+  `setJevTransport` swaps in a fake (`tests/helpers/fakeJev.ts`; `npm test` never uses the network).
+- Key: `TYPESAFE_API_KEY`, server only. Hosted: `Api\JevController` (signed in, `throttle:jev` 120/min 3,000/day, checks
+  shape and image sizes, passes the body on unchanged). Vite-only dev: `scripts/jev/devProxy.ts` reads `.env.local`. No key
+  means Jev is off. Per device: "Let Jev help" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
+- Features (commands first, `core/commands/schema/jev.ts`, `state/commands/jev.ts`): `place_links` (smart links; the
+  checklist's dead-link fix, "Jev suggests" in the link menu), `five_second_test` (the first screen's words to a visitor;
+  "Before you hand it off" card in the packet panel), `find_subject` (`MediaFill.focus` → object-position; the Image
+  menu's pad) and stock photos best fit first, `understand` (Say it, ⌘K: an allow-listed intent plus closed-set
+  arguments from the page → one ordinary command), `pour_words` and `page_from_words` (your words placed verbatim; Words
+  to place tray), `suggest_palettes`/`set_palette` (Colors by feel in the Feel tile; candidates are AA by construction,
+  drawn as swatch cards), `suggest_treatments` (Dress it up in a section's Style panel), and the start box
+  (`describe.ts`, `suggest_starts` with `text`; see Guided start).
+- On the board Say it is a bar that's always there above the Dock (`ui/jev/SayBar.tsx`, ⌘K focuses it). It takes a
+  command, or a paste of two or more lines: "Pour into this page" / "Make a new page" hand the words to `WordsSheet`
+  (`useJevTools.auto`), which places them at once. Words to place (`content.tray`, saved and undone with the mix's words;
+  `trayLines`, `setTray`) unfolds from the "n to place" chip beside the bar.
+- What to make next: `npx vite-node scripts/library/gaps.ts [--all]` reads every library screenshot (type, shape, ~30
+  elements and treatments) into `.out/library/gaps.md`; unmet asks from Say it, Pour and Dress it up are counted by name
+  only (`jev_wants`, `POST /api/jev/wants`) and shown to owners on `/library/admin`.
+- Bench: `npx vite-node scripts/jev/bench.ts [suite] [--runs 3]` (accuracy against today's rule, coverage at thresholds,
+  calibration, option-order flips, latency, cost). Change thresholds only on its numbers.
 
 ## Agents
 
@@ -429,6 +467,13 @@ use them in shows the same entries.
 ### Content
 
 Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI calls it Content, never "CMS".
+- Content is a document (`ui/content/PageDoc.tsx`): on a wide window it takes the main area in place of the canvas
+  (`ui/content/ContentDoc.tsx`, Escape goes back), on a narrow one it sits in the top bar's pill (`ContentPanel`). The page's
+  words top to bottom, each at its size on the page (by `roleOfField`), typed into in place; a section's name goes back to it
+  on the canvas. Whose words they are comes from `core/ownWords.ts` (`fieldOwner`, `pageOwnership`): yours (in `slot.words`,
+  or `content.mine`: the name, email and one line the start was given) or not yet (a layout's or the start's sample words,
+  muted and marked; focusing one selects it). The name and logo sit at the top; the header counts "18 of 31 are yours"; hidden blocks don't count. A paste
+  box at the bottom pours more in; Words to place is a column beside it.
 - Your site's name (`content.brand`, Content → "Your site's name", `set_brand`) changes everywhere it's written when you
   finish typing: fields, each section's words and kept options, whole words only (`renameBrand`), one undo step.
 - Your logo once (`content.logo`, `set_logo`) fills the nav's and footer's logo spot (`isSiteLogo`) wherever it has no

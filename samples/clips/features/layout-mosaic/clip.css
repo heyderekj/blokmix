@@ -48,12 +48,12 @@
       "c1 c5 c6";
     gap: var(--mx-space-4);
   }
-  & .c1 { grid-area: c1; }
-  & .c2 { grid-area: c2; }
-  & .c3 { grid-area: c3; }
-  & .c4 { grid-area: c4; }
-  & .c5 { grid-area: c5; }
-  & .c6 { grid-area: c6; }
+  & .grid > :nth-child(1) { grid-area: c1; }
+  & .grid > :nth-child(2) { grid-area: c2; }
+  & .grid > :nth-child(3) { grid-area: c3; }
+  & .grid > :nth-child(4) { grid-area: c4; }
+  & .grid > :nth-child(5) { grid-area: c5; }
+  & .grid > :nth-child(6) { grid-area: c6; }
 
   & .cell {
     display: flex;
@@ -65,10 +65,10 @@
     border-radius: var(--mx-radius-lg);
   }
   & .text { display: grid; gap: var(--mx-space-2); align-content: start; }
-  & .c1 .media { flex: 1; aspect-ratio: auto; min-height: 320px; }
-  & .c1 .title { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: var(--mx-text-2xl); line-height: 1.15; letter-spacing: -0.02em; }
-  & .c3 .media { aspect-ratio: 16 / 9; }
-  & .c3 .text { margin-top: auto; }
+  & .grid > :nth-child(1) .media { flex: 1; aspect-ratio: auto; min-height: 320px; }
+  & .grid > :nth-child(1) .title { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); font-size: var(--mx-text-2xl); line-height: 1.15; letter-spacing: -0.02em; }
+  & .grid > :nth-child(3) .media { aspect-ratio: 16 / 9; }
+  & .grid > :nth-child(3) .text { margin-top: auto; }
 
   /* The stat: one solid cell, its title set at display size. */
   & .stat { justify-content: flex-end; background: var(--mx-color-primary); color: var(--mx-color-on-primary); border-color: transparent; }
@@ -81,10 +81,10 @@
   }
   & .stat .body { color: color-mix(in oklab, var(--mx-color-on-primary) 74%, transparent); }
 
-  & .wide { flex-direction: row; align-items: center; }
-  & .wide .text { flex: 1; }
-  & .wide .media { flex: 0 0 42%; aspect-ratio: 4 / 3; }
-  & .c5, & .c6 { justify-content: flex-end; min-height: 168px; }
+  & .grid > :nth-child(4) { flex-direction: row; align-items: center; }
+  & .grid > :nth-child(4) .text { flex: 1; }
+  & .grid > :nth-child(4) .media { flex: 0 0 42%; aspect-ratio: 4 / 3; }
+  & .grid > :nth-child(5), & .grid > :nth-child(6) { justify-content: flex-end; min-height: 168px; }
 
   @container (max-width: 952px) {
     & .mosaic {
@@ -109,10 +109,10 @@
       gap: var(--mx-space-3);
     }
     & .cell { padding: var(--mx-space-5); gap: var(--mx-space-4); }
-    & .c1 .media { flex: none; aspect-ratio: 4 / 3; min-height: 0; }
-    & .c1 .title { font-size: var(--mx-text-xl); }
-    & .wide { flex-direction: column; align-items: stretch; }
-    & .wide .media { flex: none; }
-    & .c5, & .c6 { min-height: 0; }
+    & .grid > :nth-child(1) .media { flex: none; aspect-ratio: 4 / 3; min-height: 0; }
+    & .grid > :nth-child(1) .title { font-size: var(--mx-text-xl); }
+    & .grid > :nth-child(4) { flex-direction: column; align-items: stretch; }
+    & .grid > :nth-child(4) .media { flex: none; }
+    & .grid > :nth-child(5), & .grid > :nth-child(6) { min-height: 0; }
   }
 }
