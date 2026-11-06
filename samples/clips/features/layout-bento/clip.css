@@ -48,12 +48,12 @@
       "c5 c6 c6";
     gap: var(--mx-space-4);
   }
-  & .c1 { grid-area: c1; }
-  & .c2 { grid-area: c2; }
-  & .c3 { grid-area: c3; }
-  & .c4 { grid-area: c4; }
-  & .c5 { grid-area: c5; }
-  & .c6 { grid-area: c6; }
+  & .grid > :nth-child(1) { grid-area: c1; }
+  & .grid > :nth-child(2) { grid-area: c2; }
+  & .grid > :nth-child(3) { grid-area: c3; }
+  & .grid > :nth-child(4) { grid-area: c4; }
+  & .grid > :nth-child(5) { grid-area: c5; }
+  & .grid > :nth-child(6) { grid-area: c6; }
 
   & .card {
     display: flex;
@@ -103,7 +103,7 @@
     stroke-width: var(--mx-stroke);
   }
   & .x path { vector-effect: non-scaling-stroke; }
-  & .c2 .media { flex: 1; }
+  & .grid > :nth-child(2) .media { flex: 1; }
 
   @media (max-width: 760px) {
     padding: var(--mx-space-9) var(--mx-space-5);
