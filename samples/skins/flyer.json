@@ -1,9 +1,12 @@
 {
-  "name": "Monolith",
-  "words": "A brutalist hardware store: black rules, hi-vis yellow, no corners.",
-  "tier": "pack",
+  "name": "Flyer",
+  "words": "Loud: black rules, hi-vis yellow, no corners.",
+  "tier": "free",
   "mode": "light",
-  "feel": ["bold", "playful"],
+  "feel": [
+    "bold",
+    "playful"
+  ],
   "tokens": {
     "icon.set": "tabler:bold",
     "color.bg": "#ffffff",
@@ -15,9 +18,9 @@
     "color.onPrimary": "#000000",
     "color.accent": "#ff3b00",
     "font.display": "'Archivo Black', 'Arial Black', sans-serif",
-    "font.body": "'Space Mono', ui-monospace, monospace",
+    "font.body": "'Archivo', system-ui, sans-serif",
     "font.mono": "'Space Mono', ui-monospace, monospace",
-    "type.base": "15px",
+    "type.base": "16px",
     "type.ratio": "1.5",
     "type.displayWeight": "400",
     "radius.base": "0px",
@@ -59,6 +62,14 @@
         "angle": 90,
         "smooth": false
       }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 700,
+      "tracking": 0.04,
+      "size": "sm"
     }
   },
   "components": {

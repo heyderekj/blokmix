@@ -2,7 +2,7 @@
   "name": "Newsletter",
   "blurb": "For writers: the latest issues up front and a sign-up everywhere.",
   "kind": "writing",
-  "skin": "editorial",
+  "skin": "liner-notes",
   "pages": [
     {
       "path": "/",

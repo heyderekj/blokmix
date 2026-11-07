@@ -1,9 +1,13 @@
 {
-  "name": "Puffin",
-  "words": "Soft and floaty: lavender whites, violet to peach, big round corners.",
+  "name": "Dream Pop",
+  "words": "Soft and floaty: lavender, peach, round corners.",
   "tier": "pack",
   "mode": "light",
-  "feel": ["playful", "calm", "modern"],
+  "feel": [
+    "playful",
+    "calm",
+    "modern"
+  ],
   "tokens": {
     "icon.set": "material:bold",
     "color.bg": "#fdfcff",
@@ -57,6 +61,13 @@
         "size": 60,
         "strength": 30
       }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "weight": 700,
+      "tracking": 0.01,
+      "upper": false
     }
   },
   "components": {

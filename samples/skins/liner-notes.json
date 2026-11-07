@@ -1,34 +1,36 @@
 {
-  "name": "Editorial",
-  "words": "Like a good magazine. Big serif headlines, fine lines.",
+  "name": "Liner Notes",
+  "words": "Warm paper and oxblood ink, set like a magazine.",
   "tier": "pack",
   "mode": "light",
-  "feel": ["classic", "serious", "calm"],
+  "feel": [
+    "classic",
+    "warm",
+    "calm"
+  ],
   "tokens": {
+    "icon.set": "iconoir:light",
+    "color.bg": "#f6f1e7",
+    "color.surface": "#ece4d3",
+    "color.text": "#1f1a14",
+    "color.muted": "#6b6155",
+    "color.border": "#d6c9b1",
+    "color.primary": "#7a1f1f",
+    "color.onPrimary": "#f6f1e7",
+    "color.accent": "#c2602e",
     "font.display": "'Fraunces', Georgia, serif",
     "font.body": "'Newsreader', Georgia, serif",
+    "font.mono": "'IBM Plex Mono', ui-monospace, monospace",
     "type.base": "18px",
     "type.ratio": "1.333",
-    "type.displayWeight": "400",
+    "type.displayWeight": "380",
     "radius.base": "2px",
-    "space.section": "112px",
-    "shadow.card": "none",
-    "motion.duration": "500ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
-    "color.bg": "#fffbfb",
-    "color.surface": "#fcefee",
-    "color.text": "#221716",
-    "color.muted": "#736564",
-    "color.border": "#e9dcdb",
-    "color.primary": "#7a1f1f",
-    "color.onPrimary": "#fffbfa",
-    "color.accent": "#509a55",
-    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
     "stroke.width": "1px",
-    "icon.set": "lucide:light",
+    "shadow.card": "0 1px 0 #d6c9b1",
     "space.base": "4px",
-    "space.content": "1200px",
-    "space.text": "760px"
+    "space.section": "112px",
+    "motion.duration": "700ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
   },
   "effects": {
     "shadow": {
@@ -55,12 +57,27 @@
       }
     }
   },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0.12
+    }
+  },
   "components": {
     "badge": {
-      "variant": "mono"
+      "variant": "line"
     },
     "card": {
-      "variant": "rule"
+      "variant": "flat"
+    },
+    "button": {
+      "secondary": {
+        "variant": "arrow"
+      }
+    },
+    "heading": {
+      "variant": "light"
     },
     "icon": {
       "variant": "bare"
@@ -68,6 +85,9 @@
   },
   "sections": {
     "hero": {
+      "backdrop": {
+        "id": "grain"
+      },
       "motion": {
         "mode": "preset",
         "enter": "fade",
@@ -109,6 +129,7 @@
       }
     },
     "cta": {
+      "surface": "brand",
       "motion": {
         "mode": "preset",
         "enter": "fade",
@@ -171,9 +192,14 @@
         "onScroll": true,
         "speed": "slow"
       }
+    },
+    "nav": {
+      "backdrop": {
+        "id": "grain"
+      }
     }
   },
   "picture": {
-    "style": "arch"
+    "style": "topo"
   }
 }

@@ -13,8 +13,10 @@ export function SkinPreview({ site, guide, content, title, height = 260, peek = 
   useLayoutEffect(() => {
     const el = frame.current
     if (!el) return
-    setScale(el.clientWidth / 1280)
-    const ro = new ResizeObserver(([e]) => setScale(e.contentRect.width / 1280))
+    // A frame not laid out yet measures 0 wide; keep the last scale rather than dividing by it.
+    const fit = (w: number) => w > 0 && setScale(w / 1280)
+    fit(el.clientWidth)
+    const ro = new ResizeObserver(([e]) => fit(e.contentRect.width))
     ro.observe(el)
     return () => ro.disconnect()
   }, [])

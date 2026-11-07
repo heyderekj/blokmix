@@ -54,7 +54,7 @@ const jevOnMenu = () =>
     return undefined
   })
 
-/** Jev on "a bakery…": a local business that wants a menu with prices and its hours, no team, in the Friendly look. */
+/** Jev on "a bakery…": a local business that wants a menu with prices and its hours, no team, in the Lo-fi look. */
 const jevOnBakery = () =>
   fakeJev((name) => {
     if (name.startsWith('kind')) return { option: 'local', p: 0.85 }
@@ -62,7 +62,7 @@ const jevOnBakery = () =>
     if (name === 'need_contact') return 0.95
     if (name === 'need_testimonials') return 0.05
     if (name.startsWith('need_')) return 0.4
-    if (name.startsWith('look')) return { option: 'friendly', p: 0.7 }
+    if (name.startsWith('look')) return { option: 'lofi', p: 0.7 }
     return undefined
   })
 
@@ -151,7 +151,7 @@ describe('the start box', () => {
     expect(heard!.kind).toBe('local')
     expect(heard!.sections).toContain('pricing')
     expect(heard!.sections).not.toContain('testimonials')
-    expect(heard!.looks[0]).toBe('friendly')
+    expect(heard!.looks[0]).toBe('lofi')
     const req = fake.requests[0]
     for (const q of Object.values(req.questions)) expect(JSON.stringify(q.instructions)).toContain('Elm Street')
     expect(readDescribe(null)).toBeNull()

@@ -68,7 +68,7 @@ export function marksFor(slots: Slot[], notes: Note[]): Note[] {
   })
 }
 
-/** A short, playful auto-title from the sources used, e.g. "Monolith × Marginalia × Puffin". */
+/** A short, playful auto-title from the sources used, e.g. "Flyer × Liner Notes × Dream Pop". */
 export function autoTitle(slots: Slot[], lib: Library): string {
   const names: string[] = []
   for (const s of slots) {

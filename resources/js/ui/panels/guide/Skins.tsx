@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Lock, X } from 'lucide-react'
 import type { GuideState, TokenSet } from '@/core/types'
-import { applySkin, skinList, skinOpen, type Skin } from '@/core/skins'
+import { applySkin, skinList, skinOpen, skinRefOf, type Skin } from '@/core/skins'
 import { emptyContract } from '@/core/contract'
 import { resolveGuide } from '@/core/guide'
 import { pageOf } from '@/core/site'
@@ -71,7 +71,7 @@ export function SkinGrid({ looks, cols = 2 }: { looks: SkinLook[]; cols?: 2 | 3 
       <FontLinks tokens={looks.map((l) => l.tokens)} />
       <div className={`grid gap-x-2 gap-y-2.5 ${cols === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
         {looks.map(({ skin, tokens, components }) => (
-          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={on?.id === skin.id} locked={!skinOpen(library, skin)} onPick={() => putSkin(skin)} />
+          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={skinRefOf(on)?.id === skin.id} locked={!skinOpen(library, skin)} onPick={() => putSkin(skin)} />
         ))}
       </div>
     </>
@@ -119,7 +119,7 @@ function Compare({ onClose, onPick }: { onClose: () => void; onPick: (s: Skin) =
               <SkinPreview site={shown} guide={applySkin(guide, skin, contract ?? emptyContract())} content={content} title={skin.name} height={200} />
               <span className="block p-3">
                 <span className="flex items-center gap-1.5 text-[13.5px] font-semibold text-zinc-900">{skin.name}{!skinOpen(library, skin) && <Lock size={11} className="text-zinc-400" />}</span>
-                <span className="mt-0.5 block text-[12px] leading-snug text-zinc-500">{skin.words}</span>
+                <span className="mt-0.5 line-clamp-3 text-[12px] leading-snug text-zinc-500 [text-wrap:pretty]">{skin.words}</span>
               </span>
             </button>
           ))}

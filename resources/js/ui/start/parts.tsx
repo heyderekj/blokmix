@@ -1,6 +1,6 @@
 // Pieces the guided start draws with: start cards, theme cards, the score ring and the kind tile.
-import { useEffect, useMemo } from 'react'
-import { ArrowRight, Check, type LucideIcon } from 'lucide-react'
+import { Children, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { ArrowRight, Check, ChevronLeft, ChevronRight, type LucideIcon } from 'lucide-react'
 import type { Kind, SectionType } from '@/core/types'
 import { guideFor } from '@/core/start'
 import { KIND_FEEL, themesFor } from '@/core/feel'
@@ -31,7 +31,7 @@ export function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPic
         <SkinPreview site={start.site} guide={guide} content={start.content} title={skin.name} height={160} />
       </span>
       <span className="block px-4 py-3">
-        <span className="flex items-center justify-between gap-2 text-[15px] font-semibold" style={{ fontFamily: guide.base['font.display'] }}>
+        <span className="flex items-center justify-between gap-2 text-[15px] font-semibold">
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate">{skin.name}</span>
             {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Best fit</span>}
@@ -40,6 +40,60 @@ export function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPic
         </span>
       </span>
     </button>
+  )
+}
+
+/**
+ * A row of cards that scrolls sideways, each at least `min` wide, so a card never gets too narrow to read its page.
+ * Swipe or scroll it; ‹ › show on the side that has more.
+ */
+export function Carousel({ children, label, min = 280 }: { children: ReactNode; label: string; min?: number }) {
+  const row = useRef<HTMLDivElement>(null)
+  const [more, setMore] = useState({ back: false, on: false })
+  const check = useCallback(() => {
+    const el = row.current
+    if (!el) return
+    setMore({ back: el.scrollLeft > 4, on: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 })
+  }, [])
+  useLayoutEffect(() => {
+    const el = row.current
+    if (!el) return
+    check()
+    const ro = new ResizeObserver(check)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [check, children])
+  const step = (dir: 1 | -1) => {
+    const el = row.current
+    if (el) el.scrollBy({ left: dir * (min + 12), behavior: 'smooth' })
+  }
+  const arrow = `absolute top-[80px] z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white text-[#17121A] shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_6px_16px_-6px_rgb(23_18_26/0.35)] ${PRESS}`
+  return (
+    <div className="relative -mx-1">
+      <div
+        ref={row}
+        role="group"
+        aria-label={label}
+        onScroll={check}
+        className="flex snap-x snap-mandatory scroll-px-1 gap-3 overflow-x-auto px-1 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {Children.map(children, (child) => (
+          <div className="flex shrink-0 snap-start [&>*]:w-full" style={{ width: `max(${min}px, calc((100% - 24px) / 3))` }}>
+            {child}
+          </div>
+        ))}
+      </div>
+      {more.back && (
+        <button type="button" aria-label="Back" onClick={() => step(-1)} className={`${arrow} -left-2`}>
+          <ChevronLeft size={18} />
+        </button>
+      )}
+      {more.on && (
+        <button type="button" aria-label="More" onClick={() => step(1)} className={`${arrow} -right-2`}>
+          <ChevronRight size={18} />
+        </button>
+      )}
+    </div>
   )
 }
 

@@ -28,7 +28,7 @@ describe('pairings', () => {
     st.setBrandColor('#2747a8', { accentTurn: 180 })
     const before = resolveGuide(useStore.getState().guide).tokens['color.accent']
     expect(useStore.getState().guide.brand?.variant?.accentTurn).toBe(180)
-    expect(useStore.getState().applySkin('calm')).toBe(true)
+    expect(useStore.getState().applySkin('studio')).toBe(true)
     expect(resolveGuide(useStore.getState().guide).tokens['color.accent']).toBe(before)
   })
 })

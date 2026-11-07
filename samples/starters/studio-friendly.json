@@ -2,7 +2,7 @@
   "name": "Small agency",
   "blurb": "Warm and approachable: services, packages and a way to get in touch.",
   "kind": "studio",
-  "skin": "friendly",
+  "skin": "lofi",
   "pages": [
     {
       "path": "/",

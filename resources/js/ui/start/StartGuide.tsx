@@ -21,7 +21,7 @@ import { scoredStarts, type ScoredStart } from '@/lib/start'
 import { guessHeard, hearStart, startsFromText, wordsCandidates, type Heard } from '@/lib/startFromText'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 import { GuideOption, StarterOption, useDisplayFonts, type GuideChoice } from './StartFrom'
-import { HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, firstPage, sectionWords, useSkinFonts } from './parts'
+import { Carousel, HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, firstPage, sectionWords, useSkinFonts } from './parts'
 
 /** Whether the guided start is showing over the board (the browser-only mix opens on it the first time). */
 export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
@@ -329,11 +329,11 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                       })}
                     </Chips>
                   )}
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <Carousel label="Themes">
                     {shownThemes.map((x: Skin) => (
                       <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} brand={brand} palette={x.id === theme ? palette : null} mode={x.id === theme ? mode : undefined} jevPick={!other && !!vh?.looks.includes(x.id)} onPick={() => (setSkin(x.id), setMode(undefined))} />
                     ))}
-                  </div>
+                  </Carousel>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
                     <button type="button" onClick={() => (setOther((o) => !o), setSkin(null))} className={QUIET}>
                       <Shuffle size={14} /> {other ? 'Back to the best fits' : 'Show me different ones'}
@@ -455,7 +455,9 @@ function Ask({ title, lead, busy, onNext, onSkip, children }: { title: string; l
         {lead && <p className="mt-1.5 min-h-[2lh] text-[15px] text-[#6B5F68] [text-wrap:pretty]">{lead}</p>}
       </div>
       {children}
-      <div className="flex items-center gap-2">
+      {/* Next stays on screen however long the question runs: it sticks to the panel's bottom, above a hairline. */}
+      <div className="sticky -bottom-6 z-10 -mx-5 -mb-6 flex items-center gap-2 border-t border-zinc-950/[0.06] bg-[#FBF8F9] px-5 pb-6 pt-4 sm:-mx-7 sm:px-7">
+
         <button type="button" onClick={onNext} className={PRIMARY}>
           Next <ArrowRight size={16} />
         </button>

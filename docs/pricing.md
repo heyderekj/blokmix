@@ -5,7 +5,7 @@ Free, and Plus: $25 once. No subscription. Sold through Polar in Blokmix's own o
 | | Free | Plus, $25 once |
 |---|---|---|
 | Mixes | 1 open at a time (archive it to start another) | As many as you like |
-| Layouts and themes | The core layouts (`"tier": "free"` in clip.json) and the free themes, plus every clip you capture | Every layout and theme, Mashup |
+| Layouts and themes | The core layouts (`"tier": "free"` in clip.json) and the free themes (Wireframe, Studio, Lo-fi, Flyer), plus every clip you capture | Every layout and theme, Mashup |
 | Style | The Feel dials, Light/Dark, your brand colors and fonts | Every style guide control, source picks, block looks, saved style guides |
 | Treatments | Preview only | Effects, backdrops, generative pictures, UI mockups, live shaders |
 | Room | 100 MB of images and video | 10 GB |

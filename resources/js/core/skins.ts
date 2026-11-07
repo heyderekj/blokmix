@@ -90,7 +90,31 @@ export function registerSkins(list: Skin[]) {
   skins.splice(0, skins.length, ...list)
 }
 export const skinList = (): Skin[] => skins
-export const skinById = (id: string): Skin | undefined => skins.find((s) => s.id === id)
+
+/** Themes that were folded into others, by their old id: a mix or an agent that names one gets the theme it became. */
+export const RETIRED_SKINS: Record<string, string> = {
+  calm: 'studio',
+  technical: 'afterhours',
+  nightowl: 'afterhours',
+  editorial: 'liner-notes',
+  marginalia: 'liner-notes',
+  friendly: 'lofi',
+  puffin: 'dreampop',
+  bold: 'flyer',
+  monolith: 'flyer',
+}
+/** A theme's id today, following a retired one to the theme it became. */
+export const canonicalSkinId = (id: string): string => RETIRED_SKINS[id] ?? id
+export const skinById = (id: string): Skin | undefined => {
+  const want = canonicalSkinId(id)
+  return skins.find((s) => s.id === want)
+}
+/** The theme a guide says it wears, by today's id and name (a mix saved in "Calm" reads "Studio"); its values stay its own. */
+export function skinRefOf(ref: GuideState['skin']): GuideState['skin'] {
+  if (!ref || !RETIRED_SKINS[ref.id]) return ref
+  const now = skinById(ref.id)
+  return now ? { id: now.id, name: now.name } : ref
+}
 
 /** Whether this mix's plan opens a skin (`library.paid` follows the mix's owner). */
 export const skinOpen = (lib: { paid?: boolean }, skin: Pick<Skin, 'tier'>) => lib.paid !== false || skin.tier === 'free'
@@ -162,7 +186,7 @@ export interface Surprise {
   guide: GuideState
   /** Which skin each rolled area came from. */
   picks: { area: StyleArea; skin: Skin }[]
-  /** "Type from Editorial, color from Monolith." */
+  /** "Type from Liner Notes, color from Flyer." */
   words: string
 }
 

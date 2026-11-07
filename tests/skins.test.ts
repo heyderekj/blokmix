@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { applySkin, closestSkin, contrastFailures, dressOldGuide, dressSavedMix, parseSkin, skinById, skinList, skinTokens, surpriseMe, type Skin } from '@/core/skins'
+import { applySkin, closestSkin, contrastFailures, dressOldGuide, dressSavedMix, parseSkin, RETIRED_SKINS, skinById, skinList, skinRefOf, skinTokens, surpriseMe, type Skin } from '@/core/skins'
+import { FEEL_WORDS, themesFor } from '@/core/feel'
+import { VARIANTS } from '@/core/blocks/variants'
+import { TEXT_STYLES } from '@/core/textStyles'
 import { areasOfCommand, cleanContract, contractMarkdown, contractRefusal, emptyContract, type Contract } from '@/core/contract'
 import { pictureFor, withSectionDefaults } from '@/core/sectionDefaults'
 import { emptyGuide, resolveGuide } from '@/core/guide'
@@ -78,7 +81,7 @@ describe('surpriseMe', () => {
   const pool = () => skinList()
 
   it('rolls only what the contract marks Surprise', () => {
-    const guide = applySkin(emptyGuide(), skinById('calm')!)
+    const guide = applySkin(emptyGuide(), skinById('studio')!)
     const before = resolveGuide(guide).tokens
     const out = surpriseMe(guide, contract({ type: 'surprise' }), 3, pool())!
     const after = resolveGuide(out.guide).tokens
@@ -90,7 +93,7 @@ describe('surpriseMe', () => {
   })
 
   it('never touches a kept area when nothing is marked', () => {
-    const guide = applySkin(emptyGuide(), skinById('calm')!)
+    const guide = applySkin(emptyGuide(), skinById('studio')!)
     const out = surpriseMe(guide, contract({ color: 'keep' }), 9, pool())!
     expect(out.picks.map((p) => p.area)).not.toContain('color')
     expect(resolveGuide(out.guide).tokens['color.primary']).toBe(resolveGuide(guide).tokens['color.primary'])
@@ -155,9 +158,42 @@ describe('section defaults', () => {
 })
 
 describe('the skins themselves', () => {
-  it('load, starting from Wireframe', () => {
-    expect(skinList().length).toBeGreaterThanOrEqual(10)
+  it('load, eight of them, starting from Wireframe', () => {
+    expect(skinList().map((s) => s.id).sort()).toEqual(['afterhours', 'dreampop', 'flyer', 'liner-notes', 'lofi', 'studio', 'vinyl', 'wireframe'])
     expect(skinList()[0].id).toBe('wireframe')
+  })
+
+  it('still answer to the ids of the themes folded into them, by today’s name', () => {
+    for (const [old, now] of Object.entries(RETIRED_SKINS)) {
+      expect(skinById(now), now).toBeTruthy()
+      expect(skinById(old)?.id, old).toBe(now)
+    }
+    expect(skinRefOf({ id: 'calm', name: 'Calm' })).toEqual({ id: 'studio', name: 'Studio' })
+    expect(skinRefOf({ id: 'own', name: 'Your own' })).toEqual({ id: 'own', name: 'Your own' })
+  })
+
+  // What every theme but the sketch decides, so none is a palette swap of another.
+  it.each(skinList().filter((s) => s.id !== 'wireframe').map((s) => s.id))('%s is a whole look: colors, type, block looks, bands and pictures', (id) => {
+    const s = skinById(id)!
+    for (const k of ['color.bg', 'color.surface', 'color.text', 'color.muted', 'color.border', 'color.primary', 'color.onPrimary', 'color.accent', 'font.display', 'font.body', 'font.mono', 'icon.set'] as const)
+      expect(s.tokens[k], `${id} ${k}`).toBeTruthy()
+    expect(Object.keys(s.textStyles?.label ?? {}).length, `${id} label`).toBeGreaterThan(0)
+    // Layouts size the headline to the window (clamp with vw); a Display style would fix it at one size everywhere.
+    expect(s.textStyles?.display, `${id} display`).toBeUndefined()
+    for (const style of Object.keys(s.textStyles ?? {})) expect(TEXT_STYLES, `${id} ${style}`).toContain(style)
+    const has = (kind: 'badge' | 'card' | 'icon' | 'button', v?: string) => !!v && (VARIANTS[kind] ?? []).some((x) => x.id === v)
+    expect(has('badge', s.components?.badge?.variant), `${id} badge`).toBe(true)
+    expect(has('card', s.components?.card?.variant), `${id} card`).toBe(true)
+    expect(has('icon', s.components?.icon?.variant), `${id} icon`).toBe(true)
+    expect(has('button', s.components?.button?.secondary?.variant), `${id} quieter button`).toBe(true)
+    expect(Object.values(s.sections ?? {}).some((d) => d.surface || d.backdrop), `${id} band or backdrop`).toBe(true)
+    expect(s.picture?.style, `${id} picture`).toBeTruthy()
+    expect(s.words.length, `${id} words`).toBeGreaterThan(0)
+  })
+
+  it('cover every feel word, and dark twice', () => {
+    for (const w of FEEL_WORDS) expect(skinList().filter((s) => s.feel.includes(w)).length, w).toBeGreaterThanOrEqual(w === 'dark' ? 2 : 1)
+    expect(themesFor(['dark'], skinList()).slice(0, 2).every((s) => s.mode === 'dark')).toBe(true)
   })
 
   it.each(skinList().map((s) => s.id))('%s reads at AA', (id) => {
@@ -322,12 +358,12 @@ describe('the contract', () => {
 
   it('goes into the packet, and opens rule 1 only where it says Surprise', () => {
     const slot: Slot = { id: 's', type: 'hero', clipId: 'hero.layout-split', locked: false, keep: { ...DEFAULT_KEEP } }
-    const guideState = applySkin(emptyGuide(), skinById('calm')!)
+    const guideState = applySkin(emptyGuide(), skinById('studio')!)
     const guide = resolveGuide(guideState)
     const input = { page: composeSite({ site: siteFromSlots([slot]), guide, content: DEFAULT_CONTENT, library, page: guideState }), guide, guideState, library, mixName: 'M', targets: ['astro' as const] }
     const plain = packetFiles(input)
     expect(plain['CONTRACT.md']).toContain('# Contract')
-    expect(JSON.parse(plain['blokmix.json'] as string).skin.name).toBe('Calm')
+    expect(JSON.parse(plain['blokmix.json'] as string).skin.name).toBe('Studio')
     expect(plain['BLOKMIX.md']).not.toContain('marks Surprise')
     const open = packetFiles({ ...input, contract: contract({ color: 'surprise', type: 'keep' }) })
     expect(open['BLOKMIX.md']).toContain('CONTRACT.md marks Surprise (color)')
@@ -382,8 +418,8 @@ describe('the commands', () => {
 
   it('apply a skin as one undo step, leaving block edits alone', () => {
     const before = useStore.temporal.getState().pastStates.length
-    runCommand('apply_skin', { skin: 'calm' })
-    expect(useStore.getState().guide.skin?.id).toBe('calm')
+    runCommand('apply_skin', { skin: 'studio' })
+    expect(useStore.getState().guide.skin?.id).toBe('studio')
     expect(useStore.temporal.getState().pastStates.length).toBe(before + 1)
     expect(() => runCommand('apply_skin', { skin: 'nope' })).toThrow(/No skin/)
   })
