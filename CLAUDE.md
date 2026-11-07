@@ -183,7 +183,7 @@ starter, a saved style guide (hosted), a blank page, a mix file (`ui/start/Start
 
 ## Skins and the contract
 
-On screen (`docs/simple-vision.md`, the brand guide's B3): Your mix (not working mix), Look (the panel), Themes (skins),
+On screen (`docs/simple-vision.md`, the brand guide's B3): Your mix (not working mix), Design (the panel; `look` in code), Content (your words; `words` in code), Themes (skins),
 Rules for your agent (the contract), Style guide (every value, behind Look), Options (candidates), Crate (the clips drawer), Original / Your style, Export (code) vs Download a copy
 (the mix file), Notes (not marks). Word tags read Your words · Placeholder · Original · Saved. No "packet", "tokens" or
 "slot" in anything a person reads.
@@ -532,8 +532,8 @@ as "What this site is for" in BLOKMIX.md and `brief` in blokmix.json. Store: `se
 ### Content
 
 Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI calls it Content, never "CMS".
-- The board's left side is a slim rail, Words · Look · Notes (`ui/shell/LeftPanel.tsx`, `ui.leftPanel`, W and G; on a narrow
-  window a sheet from the bottom); the open one docks beside the page, which stays in view and fits beside it (`setInset`).
+- The board's left side is a slim rail, Design · Content · Notes (`ui/shell/LeftPanel.tsx`, `ui.leftPanel` look/words/notes, G
+  and W; on a narrow window the same three start the dock and open a sheet from the bottom); the open one docks beside the page, which stays in view and fits beside it (`setInset`).
   The top bar holds the mix, draft and page on the left and Share · Publish · Export · Save version on the right.
 - Words (`ui/words/WordsPanel.tsx`) is your words beside the page: the site's name and logo, "What it's for" (the brief, to
   change), "18 of 31 are yours" and Next (the first spot still holding sample words), then each section top to bottom

@@ -29,7 +29,7 @@ export function GuideBoard() {
           <button
             type="button"
             onClick={() => useStore.getState().setUi({ guideView: 'look' })}
-            aria-label="Back to Look"
+            aria-label="Back to Design"
             className="-ml-1 grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-zinc-500 transition-[background-color,color,scale] active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5 [@media(hover:hover)_and_(pointer:fine)]:hover:text-zinc-900"
           >
             <ChevronLeft size={17} />
