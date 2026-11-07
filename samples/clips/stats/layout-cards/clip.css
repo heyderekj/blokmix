@@ -41,13 +41,13 @@
   & .cards {
     margin-top: var(--mx-space-9);
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--mx-space-4);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--mx-space-5);
   }
   & .card {
     display: flex;
     flex-direction: column;
-    gap: var(--mx-space-2);
+    gap: var(--mx-space-8);
     padding: var(--mx-space-6);
     border: var(--mx-stroke) solid var(--mx-color-border);
     border-radius: var(--mx-radius-lg);
@@ -77,7 +77,7 @@
   @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .cards { margin-top: var(--mx-space-8); gap: var(--mx-space-3); }
-    & .card { padding: var(--mx-space-5) var(--mx-space-4); }
+    & .card { gap: var(--mx-space-6); padding: var(--mx-space-5) var(--mx-space-4); }
     & .value { font-size: var(--mx-text-2xl); }
   }
 }

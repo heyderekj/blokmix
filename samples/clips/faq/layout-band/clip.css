@@ -59,12 +59,7 @@
   & .answer { max-width: 62ch; color: var(--mx-color-muted); line-height: 1.6; }
 
   & .question { padding-block: var(--mx-space-5); font-size: var(--mx-text-lg); }
-  & .icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
-  }
+  & .icon svg { width: 1em; height: 1em; }
   & .qa[open] .icon .v { opacity: 0; }
   & .answer { padding: 0 var(--mx-space-8) var(--mx-space-6) 0; }
   & .actions.contact { justify-content: center; gap: var(--mx-space-4); margin-top: var(--mx-space-8); }
@@ -72,7 +67,6 @@
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.secondary:hover { background: var(--mx-color-surface); }
-    & .question:hover .icon { background: var(--mx-color-surface); }
   }
 
   @media (max-width: 760px) {

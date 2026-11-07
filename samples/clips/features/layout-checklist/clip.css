@@ -28,18 +28,19 @@
   /* Six checked rows in two columns, each with a small tick. */
   & .head { position: sticky; top: var(--mx-space-8); }
   & .checks { gap: var(--mx-space-7) var(--mx-space-6); }
-  & .check { display: flex; align-items: start; gap: var(--mx-space-4); }
-  & .tick {
-    display: grid;
-    place-items: center;
+  & .check { display: flex; align-items: start; gap: var(--mx-space-3); }
+  & .icon {
+    display: inline-flex;
     flex: none;
-    width: 28px;
-    aspect-ratio: 1;
-    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
     color: var(--mx-color-text);
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
+    line-height: 1;
+    font-size: var(--mx-text-base);
   }
-  & .text { display: grid; gap: var(--mx-space-1); padding-top: 2px; }
+  & .icon svg { width: 1.25em; height: 1.25em; }
+  & .icon.inline { line-height: 1.3; height: 1lh; }
+  & .text { display: grid; gap: var(--mx-space-1); }
   & .title { font-size: var(--mx-text-base); }
   & .body { font-size: var(--mx-text-sm); }
 

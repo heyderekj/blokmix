@@ -45,8 +45,8 @@
     color: var(--mx-color-muted);
     font-weight: 500;
   }
-  & .crumb svg { flex: none; }
-  & .crumb svg + svg { opacity: 0.6; }
+  & .crumb svg { flex: none; width: 1.25em; height: 1.25em; }
+  & .crumb svg + svg { width: 1em; height: 1em; opacity: 0.6; }
   & .crumb span { color: var(--mx-color-text); font-weight: 600; }
   & .heading { font-size: clamp(var(--mx-text-2xl), 3vw, var(--mx-text-3xl)); }
   & .lead { font-size: var(--mx-text-base); }

@@ -27,6 +27,9 @@ const press = `transition: background-color var(--mx-motion-duration) var(--mx-m
 const BUTTON_BASE = `display: inline-flex; align-items: center; justify-content: center; gap: var(--mx-space-2);
   min-height: 44px; padding: var(--mx-space-3) var(--mx-space-5); font-weight: 600; line-height: 1.1; text-decoration: none;`
 
+// A box that grows with the icon's words: 2.25em square, the 1.25em glyph centred by padding.
+const ICON_BOX = `display: inline-grid; place-items: center; box-sizing: border-box; width: 2.25em; height: 2.25em; padding: 0.5em; flex: none;`
+
 const CARD_BASE = `padding: var(--mx-space-6); border-radius: ${radius('var(--mx-radius-lg)')};`
 
 export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
@@ -234,13 +237,17 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     { id: 'square', label: 'Square', hint: 'Sharp corners, edge to edge', css: `border-radius: 0; overflow: hidden;` },
     { id: 'circle', label: 'Circle', hint: 'For portraits and avatars', css: `border-radius: 50%; aspect-ratio: 1; overflow: hidden;` },
   ],
+  // Icons: the glyph is 1.25em of the words it sits with (the layout sets its size), so a box is 2.25em around it,
+  // padded rather than stretched, which works whether the block is a wrapper or the <svg> itself. Bare and Tinted
+  // keep the layout's own sizing.
   icon: [
-    { id: 'tile', label: 'Tile', hint: 'A soft square behind the icon', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: ${radius('var(--mx-radius)')}; background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 14%, transparent); color: ${ink('var(--mx-color-primary)')};` },
-    { id: 'circle', label: 'Circle', hint: 'A solid round badge', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')};` },
-    { id: 'bare', label: 'Bare', hint: 'Just the glyph', css: `background: none; border: 0; box-shadow: none; color: ${ink('var(--mx-color-text)')};` },
-    { id: 'ring', label: 'Ring', hint: 'A hairline circle; light and precise', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: none; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-text) 24%, transparent); color: ${ink('var(--mx-color-text)')};` },
-    { id: 'accent', label: 'Accent', hint: 'Your accent color, softly tiled', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: ${radius('var(--mx-radius)')}; background: color-mix(in oklab, ${fill('var(--mx-color-accent)')} 16%, transparent); color: ${ink(fill('var(--mx-color-accent)'))};` },
-    { id: 'raised', label: 'Raised', hint: 'A small card that holds the icon', css: `display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: ${radius('var(--mx-radius)')}; background: ${fill('var(--mx-color-bg)')}; border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: ${shadow('var(--mx-shadow-card)')}; color: ${ink('var(--mx-color-text)')};` },
+    { id: 'bare', label: 'Bare', hint: 'Just the glyph, in your text color', css: `background: none; border: 0; box-shadow: none; color: ${ink('var(--mx-color-text)')};` },
+    { id: 'tinted', label: 'Tinted', hint: 'Just the glyph, in your primary color', css: `background: none; border: 0; box-shadow: none; color: ${ink(fill('var(--mx-color-primary)'))};` },
+    { id: 'tile', label: 'Tile', hint: 'A soft square behind the icon', css: `${ICON_BOX} border-radius: ${radius('var(--mx-radius)')}; background: color-mix(in oklab, ${fill('var(--mx-color-primary)')} 14%, transparent); color: ${ink('var(--mx-color-primary)')};` },
+    { id: 'circle', label: 'Circle', hint: 'A solid round badge', css: `${ICON_BOX} border-radius: 50%; background: ${fill('var(--mx-color-primary)')}; color: ${ink('var(--mx-color-on-primary)')};` },
+    { id: 'ring', label: 'Ring', hint: 'A hairline circle; light and precise', css: `${ICON_BOX} border-radius: 50%; background: none; border: var(--mx-stroke) solid color-mix(in oklab, var(--mx-color-text) 24%, transparent); color: ${ink('var(--mx-color-text)')};` },
+    { id: 'accent', label: 'Accent', hint: 'Your accent color, softly tiled', css: `${ICON_BOX} border-radius: ${radius('var(--mx-radius)')}; background: color-mix(in oklab, ${fill('var(--mx-color-accent)')} 16%, transparent); color: ${ink(fill('var(--mx-color-accent)'))};` },
+    { id: 'raised', label: 'Raised', hint: 'A small card that holds the icon', css: `${ICON_BOX} border-radius: ${radius('var(--mx-radius)')}; background: ${fill('var(--mx-color-bg)')}; border: var(--mx-stroke) solid var(--mx-color-border); box-shadow: ${shadow('var(--mx-shadow-card)')}; color: ${ink('var(--mx-color-text)')};` },
   ],
   input: [
     { id: 'outlined', label: 'Outlined', hint: 'The clearest field', css: `background: var(--mx-color-bg); border: calc(var(--mx-stroke) * 1.5) solid var(--mx-color-border); border-radius: ${radius('var(--mx-radius)')}; min-height: 44px; padding: var(--mx-space-3) var(--mx-space-4); &:focus { outline: 2px solid ${fill('var(--mx-color-primary)')}; outline-offset: 1px; }` },

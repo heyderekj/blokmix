@@ -7,7 +7,7 @@ import { snapshotKey } from '@/core/versions'
 import { BARE_TYPES, lintBones } from '@/core/lint'
 import { allFonts } from '@/core/library'
 import { BASE_FONTS, fontsForTokens } from '@/core/tokens'
-import { DEFAULT_KEEP, type GuideState, type SectionType, type Site, type Slot, type VersionNode } from '@/core/types'
+import { DEFAULT_KEEP, type GuideState, type SectionType, type Site, type TokenKey, type Slot, type VersionNode } from '@/core/types'
 import { DEFAULT_CONTENT } from '@/core/content'
 import { siteFromSlots } from '@/core/site'
 import { packetFiles } from '@/core/export/packet'
@@ -19,6 +19,7 @@ import { sectionTokens, SURFACES, surfaceTokens } from '@/core/surface'
 import { BACKDROP_IDS, backdropCss, backdropInfo, readBackdrop } from '@/core/treatments'
 import { paletteFrom } from '@/core/palette'
 import { BASE_TOKENS, contrastRatio } from '@/core/tokens'
+import { ICON_SETS } from '@/core/icons'
 import { runCommand } from '@/state/commands'
 import { useStore } from '@/state/store'
 
@@ -170,6 +171,19 @@ describe('the skins themselves', () => {
       const family = t[key].split(',')[0].replace(/['"]/g, '').trim()
       expect(fonts, `${id}: ${family}`).toContain(family)
     }
+  })
+
+  it.each(skinList().map((s) => s.id))('%s draws icons that read: a colored glyph 3:1 on its page, an icon set it has', (id) => {
+    const skin = skinById(id)!
+    const t = skinTokens(skin)
+    const ink = { tinted: 'color.primary', tile: 'color.primary', accent: 'color.accent' }[skin.components?.icon?.variant ?? ''] as TokenKey | undefined
+    if (ink) expect(contrastRatio(t[ink], t['color.bg']), `${id} ${ink}`).toBeGreaterThanOrEqual(3)
+    expect(ICON_SETS.map((s) => s.id), id).toContain(t['icon.set'])
+  })
+
+  it('box icons only where the skin asks for it', () => {
+    const boxed = skinList().filter((s) => !['bare', 'tinted', undefined].includes(s.components?.icon?.variant)).map((s) => s.id)
+    expect(boxed.length).toBeLessThanOrEqual(3)
   })
 
   it('keep one main action: a skin that fills buttons says what the quieter ones do', () => {
@@ -337,6 +351,22 @@ describe('bare layouts', () => {
   it.each(bare.map((c) => c.id))('%s is bones only', (id) => {
     const c = library.clips[id]
     expect(lintBones({ html: c.html, css: c.css, motionCss: c.motionCss })).toEqual([])
+  })
+
+  const bones = (html: string, css: string) => lintBones({ html: `<section class="mx-x-y" data-mx-section="features">${html}</section>`, css: `.mx-x-y { ${css} }`, motionCss: null })
+  it('leave an icon’s box to the skin and size it in em', () => {
+    const ico = '<span class="ico" data-mx-block="icon"><svg data-mx-icon="star"></svg></span>'
+    expect(bones(ico, '& .ico { font-size: var(--mx-text-lg); } & .ico svg { width: 1.25em; height: 1.25em; }')).toEqual([])
+    expect(bones(ico, '& .ico { background: var(--mx-color-surface); }').join()).toMatch(/own box/)
+    expect(bones(ico, '& .item:hover .ico { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }').join()).toMatch(/own box/)
+    expect(bones(ico, '& .ico svg { width: 20px; }').join()).toMatch(/sized in px/)
+  })
+  it('keep one main action, one eyebrow per head and spacing on the scale', () => {
+    expect(bones('<a class="btn primary"></a><a class="btn primary"></a>', '').join()).toMatch(/2 main buttons/)
+    expect(bones('<header class="head"><p class="eyebrow"></p><span data-mx-block="badge"></span></header>', '').join()).toMatch(/more than one eyebrow/)
+    expect(bones('<header class="head"><p class="eyebrow"></p></header><ul><li><span data-mx-block="badge"></span></li></ul>', '')).toEqual([])
+    expect(bones('', '& .a { padding: 12px var(--mx-space-4); }').join()).toMatch(/off the spacing scale/)
+    expect(bones('', '& .a { margin-top: 0; padding: var(--mx-space-4); border-top: 1px solid; gap: 2px; }')).toEqual([])
   })
 })
 

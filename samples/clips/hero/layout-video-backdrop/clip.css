@@ -41,7 +41,7 @@
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
   & .btn.secondary { background: var(--mx-color-bg); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & .btn svg { flex: none; }
+  & .btn svg { flex: none; width: 1em; height: 1em; }
   & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   /* A film fills the whole section, the copy centred on it. Unfilled: a box with a cross and a play glyph at its foot. */
@@ -66,9 +66,9 @@
     position: absolute;
     right: var(--mx-space-8);
     bottom: var(--mx-space-8);
-    width: 32px;
-    height: 32px;
-    fill: currentColor;
+    width: var(--mx-space-6);
+    height: var(--mx-space-6);
+    fill: var(--mx-color-muted);
   }
 
   @media (hover: hover) and (pointer: fine) {

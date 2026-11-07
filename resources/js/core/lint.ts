@@ -203,6 +203,58 @@ export function lintBones(input: { html: string; css: string; motionCss: string 
     }
     n.kids.forEach(visit)
   }
-  parseHtml(input.html).forEach(visit)
+  const tree = parseHtml(input.html)
+  tree.forEach(visit)
+  out.push(...lintCraft(tree, css))
   return [...new Set(out)]
+}
+
+const classesOf = (n: { attrs: [string, string][] }) => (n.attrs.find(([k]) => k === 'class')?.[1] ?? '').split(/\s+/).filter(Boolean)
+
+/** Each innermost rule of a stylesheet: its selector (the text after the last declaration before it) and its body. */
+function innerRules(css: string): { selector: string; body: string }[] {
+  return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({ selector: m[1].split(';').at(-1)!.trim(), body: m[2] }))
+}
+
+/**
+ * The craft bar for bare layouts (docs/layout-quality.md): icons are bare glyphs sized in em, one main action, one
+ * eyebrow per head, spacing on the scale.
+ */
+function lintCraft(tree: ReturnType<typeof parseHtml>, css: string): string[] {
+  const out: string[] = []
+  const icons = new Set<string>()
+  let primaries = 0
+  const visit = (n: ReturnType<typeof parseHtml>[number], inHead: { eyebrows: number } | null) => {
+    if (n.t !== 'el') return
+    const cls = classesOf(n)
+    if (n.attrs.some(([k, v]) => k === 'data-mx-block' && v === 'icon')) cls.forEach((c) => icons.add(c))
+    if (cls.includes('btn') && cls.includes('primary')) primaries++
+    let head = inHead
+    if (cls.includes('head')) head = { eyebrows: 0 }
+    else if (head && (cls.includes('eyebrow') || n.attrs.some(([k, v]) => k === 'data-mx-block' && v === 'badge'))) head.eyebrows++
+    n.kids.forEach((k) => visit(k, head))
+    if (head && head !== inHead && head.eyebrows > 1) out.push('has more than one eyebrow or badge in a head; keep one')
+  }
+  tree.forEach((n) => visit(n, null))
+  if (primaries > 1) out.push(`has ${primaries} main buttons (.btn.primary); keep one and make the rest .secondary`)
+
+  for (const { selector, body } of innerRules(css)) {
+    for (const part of selector.split(',')) {
+      const steps = part.trim().split(/\s+|>|\+|~/).filter(Boolean)
+      const last = steps.at(-1) ?? ''
+      const iconHere = [...icons].find((c) => new RegExp(`\\.${c}(?![\\w-])`).test(last))
+      const iconSvg = last === 'svg' && [...icons].find((c) => new RegExp(`\\.${c}(?![\\w-])`).test(steps.at(-2) ?? ''))
+      if (iconHere) {
+        if (/(^|;)\s*background(-color)?\s*:\s*(?!none|transparent)/.test(body) || /(^|;)\s*border(-(top|right|bottom|left))?\s*:\s*(?!0|none)/.test(body) || /(^|;)\s*box-shadow\s*:\s*(?!none)/.test(body))
+          out.push(`icon .${iconHere} has its own box; leave the box to the skin's icon look`)
+      }
+      if ((iconHere || iconSvg) && /(^|;)\s*(width|height)\s*:\s*\d+(\.\d+)?px/.test(body)) out.push(`icon .${iconHere || iconSvg} is sized in px; size it in em so it follows its text`)
+    }
+  }
+  // Spacing on the scale: padding, margins and gaps come from --mx-space-* (0 and hairlines are fine).
+  for (const m of css.matchAll(/(?:^|[;{\s])((?:padding|margin|gap|row-gap|column-gap)(?:-[a-z]+)*)\s*:\s*([^;{}]+)/g)) {
+    const off = [...m[2].matchAll(/(?<![\w.-])(\d*\.?\d+)(px|rem)\b/g)].filter(([, n, u]) => !(u === 'px' && Number(n) <= 2))
+    if (off.length) out.push(`${m[1]}: ${m[2].trim()} is off the spacing scale; use var(--mx-space-*)`)
+  }
+  return out
 }

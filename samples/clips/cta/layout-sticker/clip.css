@@ -70,7 +70,7 @@
     align-items: end;
     gap: var(--mx-space-8);
     margin-top: var(--mx-space-9);
-    padding-left: clamp(0px, 8vw, 120px);
+    padding-left: var(--mx-space-9);
   }
   & .foot .stack { justify-self: end; align-items: flex-start; }
 

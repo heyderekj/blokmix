@@ -30,7 +30,7 @@
 
   & .container { position: relative; max-width: var(--mx-width-content); margin-inline: auto; }
   & .head { display: grid; gap: var(--mx-space-4); max-width: var(--mx-width-text); justify-items: start; }
-  & .head + * { margin-top: var(--mx-space-10); }
+  & .head + * { margin-top: var(--mx-space-9); }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading {
     font-family: var(--mx-font-display);

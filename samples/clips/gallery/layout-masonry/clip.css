@@ -53,14 +53,13 @@
   }
   & .x path { vector-effect: non-scaling-stroke; }
 
-  /* Masonry: three CSS columns, pictures keep their own shapes; captions sit on a chip over each one. */
+  /* Masonry: three CSS columns, pictures keep their own shapes; each caption under its picture, never over it. */
   & .wall {
     columns: 3;
     column-gap: var(--mx-space-5);
     margin-top: var(--mx-space-9);
   }
   & .item { break-inside: avoid; padding-bottom: var(--mx-space-5); }
-  & .figure { position: relative; }
   & .r1 { aspect-ratio: 3 / 2; }
   & .r2 { aspect-ratio: 4 / 5; }
   & .r3 { aspect-ratio: 4 / 3; }
@@ -69,18 +68,11 @@
   & .r6 { aspect-ratio: 1 / 1; }
   & .r7 { aspect-ratio: 2 / 3; }
   & .r8 { aspect-ratio: 3 / 4; }
+  & .figure { display: flex; flex-direction: column; gap: var(--mx-space-3); }
   & .caption {
-    position: absolute;
-    left: var(--mx-space-3);
-    bottom: var(--mx-space-3);
-    max-width: calc(100% - var(--mx-space-3) * 2);
-    padding: var(--mx-space-2) var(--mx-space-3);
-    border-radius: var(--mx-radius);
-    background: var(--mx-color-bg);
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
     font-size: var(--mx-text-sm);
     line-height: 1.4;
-    color: var(--mx-color-text);
+    color: var(--mx-color-muted);
     text-wrap: pretty;
   }
   & .more { display: flex; justify-content: center; margin-top: var(--mx-space-7); }
@@ -100,16 +92,8 @@
     & .lead { font-size: var(--mx-text-base); }
     & .wall { margin-top: var(--mx-space-8); column-gap: var(--mx-space-3); }
     & .item { padding-bottom: var(--mx-space-5); }
-    & .figure { display: flex; flex-direction: column; gap: var(--mx-space-2); }
-    & .caption {
-      position: static;
-      max-width: none;
-      padding: 0;
-      background: none;
-      box-shadow: none;
-      font-size: var(--mx-text-xs);
-      color: var(--mx-color-muted);
-    }
+    & .figure { gap: var(--mx-space-2); }
+    & .caption { font-size: var(--mx-text-xs); }
     & .more { margin-top: var(--mx-space-5); }
   }
 }

@@ -25,7 +25,7 @@
     "color.accent": "#509a55",
     "font.mono": "'JetBrains Mono', ui-monospace, monospace",
     "stroke.width": "1px",
-    "icon.set": "lucide:regular",
+    "icon.set": "lucide:light",
     "space.base": "4px",
     "space.content": "1200px",
     "space.text": "760px"

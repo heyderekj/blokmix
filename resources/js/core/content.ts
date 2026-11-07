@@ -8,7 +8,7 @@ const range = (n: number, f: (i: number) => string[]) => Array.from({ length: n 
  */
 export const FIELD_SCHEMA: Record<SectionType, string[]> = {
   nav: ['brand', 'link1', 'link2', 'link3', 'link4', 'cta', ...range(6, (i) => [`notice${i}`]), ...range(6, (i) => [`menu${i}`])],
-  hero: ['eyebrow', 'headline', 'subhead', 'ctaPrimary', 'ctaSecondary', 'note', ...range(6, (i) => [`s${i}Title`, `s${i}Body`, `s${i}Cta`])],
+  hero: ['eyebrow', 'headline', 'subhead', 'ctaPrimary', 'ctaSecondary', 'note', ...range(6, (i) => [`s${i}Title`, `s${i}Body`, `s${i}Cta`]), ...range(6, (i) => [`logo${i}`])],
   features: ['eyebrow', 'heading', 'intro', ...range(6, (i) => [`f${i}Title`, `f${i}Body`])],
   testimonials: [
     'eyebrow',

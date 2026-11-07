@@ -5,6 +5,7 @@
   "mode": "dark",
   "feel": ["dark", "modern", "bold"],
   "tokens": {
+    "icon.set": "lucide:regular",
     "color.bg": "#0b0d0e",
     "color.surface": "#14181a",
     "color.text": "#e8f0ec",
@@ -68,7 +69,7 @@
       "variant": "glow"
     },
     "icon": {
-      "variant": "ring"
+      "variant": "tinted"
     },
     "link": {
       "variant": "mono"

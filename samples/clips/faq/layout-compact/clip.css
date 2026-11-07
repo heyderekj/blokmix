@@ -83,6 +83,7 @@
   & .question { padding: var(--mx-space-4) var(--mx-space-5); }
   & .question:focus-visible { outline-offset: -3px; }
   & .icon { color: var(--mx-color-muted); }
+  & .icon svg { width: 1em; height: 1em; }
   & .qa[open] .icon { scale: 1 -1; }
   & .answer { padding: 0 var(--mx-space-5) var(--mx-space-5); font-size: var(--mx-text-sm); }
   & .card.contact { flex-direction: row; align-items: center; gap: var(--mx-space-4); margin-top: var(--mx-space-6); padding: var(--mx-space-5); }

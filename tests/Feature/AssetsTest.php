@@ -50,6 +50,35 @@ class AssetsTest extends TestCase
         $this->upload(['id' => 'img_zz99yy88'])->assertForbidden();
     }
 
+    public function test_svg_logos_stay_vectors_and_are_cleaned(): void
+    {
+        $svg = '<?xml version="1.0"?><svg viewBox="0 0 120 30" onload="alert(1)"><script>alert(2)</script>'
+            .'<a href="https://evil.example"><path d="M0 0h120v30H0z" style="fill:url(https://x.example/a)"/></a>'
+            .'<use href="#p"/><foreignObject><div>hi</div></foreignObject></svg>';
+        $this->actingAs($this->owner)->upload([
+            'mime' => 'image/svg+xml', 'name' => 'logo.svg',
+            'file' => UploadedFile::fake()->createWithContent('img_ab12cd34', $svg),
+        ])->assertCreated();
+
+        $kept = Storage::disk('uploads-test')->get("mixes/{$this->mix->id}/img_ab12cd34");
+        $this->assertStringContainsString('<path d="M0 0h120v30H0z"', $kept);
+        $this->assertStringContainsString('href="#p"', $kept);
+        foreach (['onload', '<script', 'alert', 'evil.example', 'x.example', 'foreignObject'] as $gone) {
+            $this->assertStringNotContainsString($gone, $kept);
+        }
+        $this->get("/api/mixes/{$this->mix->id}/assets/img_ab12cd34")->assertOk()
+            ->assertHeader('Content-Type', 'image/svg+xml')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox");
+    }
+
+    public function test_an_upload_is_only_served_as_what_its_kind_can_be(): void
+    {
+        $this->actingAs($this->owner)->upload(['mime' => 'text/html'])->assertUnprocessable();
+        $this->upload(['kind' => 'video', 'mime' => 'image/svg+xml'])->assertUnprocessable();
+        $this->upload(['mime' => 'image/svg+xml', 'file' => UploadedFile::fake()->createWithContent('img_ab12cd34', '<html><body>hi</body></html>')])->assertUnprocessable();
+    }
+
     public function test_strangers_see_nothing_and_ids_are_checked(): void
     {
         $this->actingAs($this->owner)->upload(['id' => '../../etc/passwd'])->assertUnprocessable();

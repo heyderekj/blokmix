@@ -45,7 +45,7 @@
      share the columns and every card keeps its own height. */
   & .wall { columns: 3; column-gap: var(--mx-space-5); }
   & .tile { break-inside: avoid; margin-bottom: var(--mx-space-5); gap: var(--mx-space-5); }
-  & .mark { width: 24px; height: 24px; color: var(--mx-color-muted); }
+  & .mark { flex: none; font-size: var(--mx-text-lg); width: 1.25em; height: 1.25em; color: var(--mx-color-muted); }
   & .quote p { font-size: var(--mx-text-lg); line-height: 1.5; }
   & .person { display: flex; align-items: center; gap: var(--mx-space-3); }
   & .who { display: flex; flex-direction: column; gap: var(--mx-space-1); }

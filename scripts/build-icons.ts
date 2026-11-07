@@ -3,7 +3,8 @@
  * under one meaningful name, drawn by every supported pack and weight.
  *   npx vite-node scripts/build-icons.ts
  *
- * Packs and licences: Lucide (ISC), Phosphor (MIT), Tabler (MIT), Heroicons (MIT).
+ * Packs and licences: Lucide (ISC), Phosphor (MIT), Tabler (MIT), Heroicons (MIT), Iconoir (MIT),
+ * Material Symbols Rounded (Apache-2.0).
  * Each entry keeps only the SVG's inner markup; the renderer adds the <svg>
  * wrapper with the pack's own viewBox and stroke/fill conventions.
  */
@@ -118,7 +119,114 @@ const NAMES: Record<string, [string, string, string, string]> = {
   percent: ['percent', 'percent', 'percentage', 'receipt-percent'],
 }
 
-type Pack = 'lucide' | 'phosphor' | 'tabler' | 'heroicons'
+/** name → [iconoir, Material Symbols] file names, for the newer packs. */
+const MORE: Record<string, [string, string]> = {
+  'arrow-right': ['arrow-right', 'arrow_forward'],
+  'arrow-left': ['arrow-left', 'arrow_back'],
+  'arrow-up-right': ['arrow-up-right', 'arrow_outward'],
+  'arrow-down': ['arrow-down', 'arrow_downward'],
+  'chevron-right': ['nav-arrow-right', 'chevron_right'],
+  'chevron-down': ['nav-arrow-down', 'keyboard_arrow_down'],
+  check: ['check', 'check'],
+  'check-circle': ['check-circle', 'check_circle'],
+  x: ['xmark', 'close'],
+  plus: ['plus', 'add'],
+  minus: ['minus', 'remove'],
+  menu: ['menu', 'menu'],
+  search: ['search', 'search'],
+  star: ['star', 'star'],
+  heart: ['heart', 'favorite'],
+  sparkles: ['sparks', 'star_shine'],
+  zap: ['flash', 'bolt'],
+  rocket: ['rocket', 'rocket_launch'],
+  mail: ['mail', 'mail'],
+  phone: ['phone', 'call'],
+  'map-pin': ['map-pin', 'location_on'],
+  globe: ['globe', 'language'],
+  calendar: ['calendar', 'calendar_today'],
+  clock: ['clock', 'schedule'],
+  user: ['user', 'person'],
+  users: ['group', 'group'],
+  chat: ['chat-bubble', 'chat_bubble'],
+  bell: ['bell', 'notifications'],
+  settings: ['settings', 'settings'],
+  sliders: ['filter-list', 'tune'],
+  home: ['home', 'home'],
+  'shopping-cart': ['cart', 'shopping_cart'],
+  'shopping-bag': ['shopping-bag', 'shopping_bag'],
+  'credit-card': ['credit-card', 'credit_card'],
+  tag: ['label', 'sell'],
+  gift: ['gift', 'redeem'],
+  truck: ['delivery-truck', 'local_shipping'],
+  lock: ['lock', 'lock'],
+  shield: ['shield-check', 'verified_user'],
+  key: ['key', 'key'],
+  eye: ['eye', 'visibility'],
+  bookmark: ['bookmark', 'bookmark'],
+  link: ['link', 'link'],
+  'external-link': ['open-new-window', 'open_in_new'],
+  download: ['download', 'download'],
+  upload: ['upload', 'upload'],
+  refresh: ['refresh', 'refresh'],
+  share: ['share-android', 'share'],
+  edit: ['edit-pencil', 'edit'],
+  trash: ['trash', 'delete'],
+  copy: ['copy', 'content_copy'],
+  file: ['page', 'description'],
+  folder: ['folder', 'folder'],
+  image: ['media-image', 'image'],
+  camera: ['camera', 'photo_camera'],
+  video: ['video-camera', 'videocam'],
+  play: ['play', 'play_arrow'],
+  music: ['music-double-note', 'music_note'],
+  mic: ['microphone', 'mic'],
+  layers: ['multiple-pages', 'layers'],
+  layout: ['view-grid', 'grid_view'],
+  grid: ['table-2-columns', 'apps'],
+  list: ['list', 'list'],
+  filter: ['filter', 'filter_alt'],
+  chart: ['stats-up-square', 'bar_chart'],
+  'trending-up': ['graph-up', 'trending_up'],
+  pie: ['stats-report', 'pie_chart'],
+  target: ['archery', 'target'],
+  trophy: ['trophy', 'trophy'],
+  award: ['medal', 'award_star'],
+  briefcase: ['suitcase', 'work'],
+  building: ['building', 'apartment'],
+  book: ['open-book', 'menu_book'],
+  graduation: ['graduation-cap', 'school'],
+  lightbulb: ['light-bulb', 'lightbulb'],
+  puzzle: ['puzzle', 'extension'],
+  wand: ['magic-wand', 'wand_stars'],
+  palette: ['color-filter', 'palette'],
+  scissors: ['scissor', 'content_cut'],
+  code: ['code', 'code'],
+  terminal: ['terminal', 'terminal'],
+  cpu: ['cpu', 'memory'],
+  cloud: ['cloud', 'cloud'],
+  database: ['database', 'database'],
+  server: ['server', 'dns'],
+  wifi: ['wifi', 'wifi'],
+  sun: ['sun-light', 'light_mode'],
+  moon: ['half-moon', 'dark_mode'],
+  leaf: ['leaf', 'eco'],
+  flame: ['fire-flame', 'local_fire_department'],
+  coffee: ['coffee-cup', 'coffee'],
+  smile: ['emoji', 'sentiment_satisfied'],
+  'thumbs-up': ['thumbs-up', 'thumb_up'],
+  compass: ['compass', 'explore'],
+  flag: ['triangle-flag', 'flag'],
+  info: ['info-circle', 'info'],
+  help: ['help-circle', 'help'],
+  alert: ['warning-triangle', 'warning'],
+  quote: ['quote', 'format_quote'],
+  newspaper: ['journal-page', 'newspaper'],
+  dollar: ['dollar', 'attach_money'],
+  percent: ['percentage', 'percent'],
+}
+
+
+type Pack = 'lucide' | 'phosphor' | 'tabler' | 'heroicons' | 'iconoir' | 'material'
 
 /** Each pack's weights, and where their SVGs live. */
 const SOURCES: Record<Pack, Record<string, (file: string) => string>> = {
@@ -134,11 +242,28 @@ const SOURCES: Record<Pack, Record<string, (file: string) => string>> = {
     outline: (f) => join(NM, 'heroicons/24/outline', `${f}.svg`),
     solid: (f) => join(NM, 'heroicons/24/solid', `${f}.svg`),
   },
+  // Iconoir is drawn in strokes, so its weights are stroke widths (icons.ts): one drawing serves them all.
+  iconoir: { regular: (f) => join(NM, 'iconoir/icons/regular', `${f}.svg`) },
+  // Material Symbols Rounded at three weights, and filled.
+  material: {
+    light: (f) => join(NM, '@material-symbols/svg-300/rounded', `${f}.svg`),
+    regular: (f) => join(NM, '@material-symbols/svg-400/rounded', `${f}.svg`),
+    bold: (f) => join(NM, '@material-symbols/svg-600/rounded', `${f}.svg`),
+    fill: (f) => join(NM, '@material-symbols/svg-400/rounded', `${f}-fill.svg`),
+  },
 }
-const PACK_INDEX: Record<Pack, number> = { lucide: 0, phosphor: 1, tabler: 2, heroicons: 3 }
+const PACK_INDEX: Record<Pack, number> = { lucide: 0, phosphor: 1, tabler: 2, heroicons: 3, iconoir: 0, material: 1 }
+const fileFor = (pack: Pack, name: string) => (pack === 'iconoir' || pack === 'material' ? MORE[name] : NAMES[name])[PACK_INDEX[pack]]
 
 /** The inner markup of an SVG file, without comments, ids, classes or the pack's own wrapper. */
-function inner(svg: string): string {
+function inner(svg: string, pack: Pack): string {
+  // Iconoir repeats the wrapper's stroke on every path: drop it, so the set's own stroke width applies.
+  // (The <svg> wrapper goes below anyway, so every stroke attribute left is a path's.)
+  if (pack === 'iconoir') svg = svg.replace(/\sstroke(?:-width|-linecap|-linejoin)?="[^"]*"/g, '')
+  // Iconoir's four-place decimals add weight and nothing visible at 24 units. (Material's paths are relative, so
+  // rounding them drifts: they stay exact.)
+  const places = pack === 'iconoir' ? 2 : null
+  if (places !== null) svg = svg.replace(/\sd="([^"]*)"/g, (_, d: string) => ` d="${d.replace(/-?\d*\.\d+/g, (n) => String(Number(Number(n).toFixed(places))))}"`)
   return svg
     .replace(/<!--[\s\S]*?-->/g, '')
     .replace(/^[\s\S]*?<svg[^>]*>/, '')
@@ -156,10 +281,10 @@ for (const [pack, weights] of Object.entries(SOURCES) as [Pack, Record<string, (
   out[pack] = {}
   for (const [weight, path] of Object.entries(weights)) {
     out[pack][weight] = {}
-    for (const [name, files] of Object.entries(NAMES)) {
-      const file = files[PACK_INDEX[pack]]
+    for (const name of Object.keys(NAMES)) {
+      const file = fileFor(pack, name)
       try {
-        out[pack][weight][name] = inner(readFileSync(path(file), 'utf8'))
+        out[pack][weight][name] = inner(readFileSync(path(file), 'utf8'), pack)
       } catch {
         // Tabler's filled set is smaller: fall back to its outline for names it doesn't fill.
         if (pack === 'tabler' && weight === 'filled') out[pack][weight][name] = ''

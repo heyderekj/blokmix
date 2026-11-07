@@ -75,12 +75,15 @@
   & .post {
     flex: 0 0 clamp(260px, 28vw, 380px);
     scroll-snap-align: start;
-    padding: var(--mx-space-3) var(--mx-space-3) var(--mx-space-5);
     gap: var(--mx-space-4);
-    transition: background-color var(--mx-motion-duration) var(--mx-motion-ease);
   }
-  & .post .media { border-radius: var(--mx-radius); }
-  & .text { display: flex; flex-direction: column; gap: var(--mx-space-2); padding-inline: var(--mx-space-2); }
+  & .post.card {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  & .text { display: flex; flex-direction: column; gap: var(--mx-space-2); }
   & .title { text-wrap: balance; }
   & .link { cursor: pointer; }
 
@@ -133,7 +136,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.secondary:hover { background: var(--mx-color-surface); }
-    & .post:hover { background: var(--mx-color-surface); }
+    & .post:hover .link { text-decoration: underline; text-decoration-thickness: var(--mx-stroke); text-underline-offset: 0.14em; }
   }
 
   @media (max-width: 760px) {
