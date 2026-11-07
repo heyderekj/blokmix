@@ -128,10 +128,12 @@ export function motionCss(i: MotionCssInput): string {
     // Entrances only have a `from`: filling backwards holds it until they start, and once they end nothing stays
     // applied, so a finished entrance leaves no transform behind (one would trap absolutely placed children).
     const base = `animation: ${p}-${preset} ${ms}ms ${EASE_OUT} ${delay}ms backwards;`
+    // On scroll it plays while the block comes into view and is done once all of it is on screen, so even the last
+    // block on a page, which can't scroll any higher, ends fully shown.
     if (onScroll && !i.canvas) {
       frames.add(enterKeyframes(p, 'fade'))
       moving.push(
-        `${sel} { ${base} }\n@supports (animation-timeline: view()) { ${sel} { animation: ${p}-${preset} linear backwards; animation-timeline: view(); animation-range: entry 0% cover 28%; } }`,
+        `${sel} { ${base} }\n@supports (animation-timeline: view()) { ${sel} { animation: ${p}-${preset} linear backwards; animation-timeline: view(); animation-range: entry 0% entry 100%; } }`,
       )
     } else moving.push(`${sel} { ${base} }`)
     frames.add(enterKeyframes(p, 'fade'))
