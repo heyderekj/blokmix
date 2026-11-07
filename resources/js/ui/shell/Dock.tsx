@@ -13,6 +13,7 @@ import { Crate } from './Crate'
 import { Alternatives } from './Alternatives'
 import { toggleSheet } from './TopBar'
 import { toggleLeft, useDocked } from './LeftPanel'
+import { useInsets } from '@/ui/canvas/insets'
 import { outstanding } from '@/core/notes'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
@@ -41,8 +42,10 @@ export function Dock() {
   const asked = useDockLayouts((s) => s.slotId)
   const setAsked = (slotId: string | null) => useDockLayouts.setState({ slotId })
   const focused = section && asked === section.id ? section : undefined
+  const inset = useInsets()
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3" data-dock>
+    // Centered in the room beside the docked panels (Design, Content, Notes on the left; Style on the right), never over them.
+    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3" style={{ paddingLeft: Math.max(12, inset.left), paddingRight: Math.max(12, inset.right) }} data-dock>
       <FirstRunTip />
       <WordsTray />
       <WordsSheet />
