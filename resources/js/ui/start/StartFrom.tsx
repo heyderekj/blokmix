@@ -47,13 +47,13 @@ export function StarterOption({ starter, picked, onPick }: { starter: Starter; p
   const { site, guide } = useMemo(() => buildStarter(library, starter), [starter])
   const t = useMemo(() => resolveGuide(guide).tokens, [guide])
   const sections = site.pages[0].slots.map((s) => TYPE_LABEL[s.type as SectionType]).join(' · ')
-  // On Free, a starter that uses layouts in a mix pack shows a lock (creating it says why).
+  // On Free, a starter that uses layouts in Plus shows a lock (creating it says why).
   const locked = !starterOpen(library, starter)
   return (
-    <button type="button" onClick={onPick} className={`${OPTION} ${picked ? PICKED : ''} relative`} title={locked ? 'Uses layouts in a mix pack' : undefined}>
+    <button type="button" onClick={onPick} className={`${OPTION} ${picked ? PICKED : ''} relative`} title={locked ? 'Uses layouts in Plus' : undefined}>
       <Swatch tokens={t} />
-      <Label title={starter.name} note={locked ? `In a mix pack · ${sections}` : sections} />
-      {locked && <Lock size={13} className="absolute right-2.5 top-2.5 text-zinc-500" aria-label="In a mix pack" />}
+      <Label title={starter.name} note={locked ? `In Plus · ${sections}` : sections} />
+      {locked && <Lock size={13} className="absolute right-2.5 top-2.5 text-zinc-500" aria-label="In Plus" />}
     </button>
   )
 }

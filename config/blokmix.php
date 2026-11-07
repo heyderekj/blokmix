@@ -11,22 +11,21 @@ return [
     'upload_max_kb' => 40 * 1024,
 
     /**
-     * What each plan includes. Null is unlimited. Free has one mix; mix packs (bought once, never renewed) hold three
-     * mixes each, stack, and open everything else. Mixes are slots: archiving one frees it. Mixes and uploads count
-     * against the mix's owner; clips against whoever saved them; collections and entries per collection (provisional
-     * numbers) against the collection's owner. Shared mixes, built-in layouts and placeholder art never count. The
-     * people who run Blokmix (owners, below) and accounts given `plan = plus` by hand have no mix limit.
+     * What each plan includes (docs/pricing.md). Null is unlimited. Free has one mix open at a time (archiving it frees
+     * the place); Plus is bought once, never renewed, and has as many mixes as you like and every feature. Mixes and
+     * uploads count against the mix's owner; shared mixes, built-in layouts and placeholder art never count. Storage is
+     * the only other limit, a guardrail. The people who run Blokmix (owners, below) are on Plus.
      */
     'plans' => [
-        'free' => ['mixes' => 1, 'clips' => 40, 'upload_mb' => 100, 'collections' => 1, 'entries' => 25],
-        'paid' => ['mixes' => null, 'clips' => null, 'upload_mb' => 10 * 1024, 'collections' => null, 'entries' => null],
+        'free' => ['mixes' => 1, 'upload_mb' => 100],
+        'plus' => ['mixes' => null, 'upload_mb' => 10 * 1024],
     ],
 
-    /** A mix pack: one-time, three mixes. */
-    'pack' => ['mixes' => 3, 'price_usd' => 20],
+    /** Plus: one-time, everything. */
+    'plus' => ['price_usd' => 25],
 
     /**
-     * While Blokmix is on a waitlist, nobody hits a plan limit: every account is paid. Set BLOKMIX_WAITLIST_MODE=false when plans open.
+     * While Blokmix is on a waitlist, nobody hits a plan limit: every account is on Plus. Set BLOKMIX_WAITLIST_MODE=false when plans open.
      */
     'waitlist_mode' => (bool) env('BLOKMIX_WAITLIST_MODE', true),
 

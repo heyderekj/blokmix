@@ -10,8 +10,6 @@ import { renameBrand } from './words'
 
 /** What on screen a draft is called. */
 export const DRAFT_WORD = 'Draft'
-/** Free has this many drafts in a mix (a start makes three); a mix pack has up to MAX_DRAFTS. */
-export const FREE_DRAFTS = 3
 export const MAX_DRAFTS = 6
 
 /** A draft's own copy of what you edit. */

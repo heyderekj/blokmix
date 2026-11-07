@@ -100,29 +100,25 @@ const ago = (iso: string) => {
  */
 /**
  * Your plan (config/blokmix.php `plans`): what it includes (null is unlimited; mixes are how many can be open at once)
- * and what you've used, the mix packs you've bought, and whether one can be bought here now.
+ * and what you've used, its price, and whether Plus can be bought here now.
  */
 interface Plan {
-  name: 'free' | 'paid'
-  limits: { mixes: number | null; clips: number | null; upload_mb: number | null }
-  usage: { mixes: number; clips: number; uploads: number }
-  packs: number
-  pack: { mixes: number; price_usd: number }
+  name: 'free' | 'plus'
+  limits: { mixes: number | null; upload_mb: number | null }
+  usage: { mixes: number; uploads: number }
+  price: number
   buy: boolean
   receipts: boolean
 }
 /** Why there's no room for another open mix (the server says the same). */
-const mixFull = (p: Plan) =>
-  p.name === 'free'
-    ? `Free has one mix. Archive it, or get a mix pack: ${p.pack.mixes} mixes for $${p.pack.price_usd}, once.`
-    : `Your mix packs hold ${p.limits.mixes} mixes. Archive one, or add a pack: ${p.pack.mixes} more for $${p.pack.price_usd}.`
-const buyPack = () => router.post('/api/billing/checkout')
+const mixFull = (p: Plan) => `Free has one mix. Archive it, or get Plus: every mix and feature for $${p.price}, once.`
+const buyPlus = () => router.post('/api/billing/checkout')
 
 export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
   const auth = usePage<{ auth: { user: { name: string } | null; owner?: boolean; plan?: Plan | null } }>().props.auth
   const user = auth?.user
   const plan = auth?.plan ?? null
-  // Starting, copying, importing or saving a mix makes one you own; Free has room for one, each pack three more.
+  // Starting, copying, importing or saving a mix makes one you own; Free has room for one, Plus for as many as you like.
   const full = !!plan && plan.limits.mixes !== null && plan.usage.mixes >= plan.limits.mixes
   const MIX_FULL = plan ? mixFull(plan) : ''
   // What a new mix can start from follows your plan (the guided start, starters, sites).
@@ -203,7 +199,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
   const post = (body: { name: string; site?: Site; guide?: GuideState }) =>
     router.post('/mixes', body as unknown as Record<string, string>, { onError: (e) => (setGuided(false), e.mix && setProblem(e.mix)) })
   const startStarter = (starter: Starter, name: string) => {
-    if (!starterOpen(library, starter)) return setProblem(`“${starter.name}” uses layouts in a mix pack. Free starts from the starters without a lock, or answers the questions.`)
+    if (!starterOpen(library, starter)) return setProblem(`“${starter.name}” uses layouts in Plus. Free starts from the starters without a lock, or answers the questions.`)
     const { site, guide } = buildStarter(library, starter)
     post({ name: name === 'Your site' ? starter.name : name, site, guide })
   }
@@ -318,15 +314,15 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
 
         {bought && (
           <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-2.5 text-[13px] text-emerald-800">
-            {bought === 'arrived' ? `Thank you! Your mix pack is here: ${plan?.limits.mixes ?? 'more'} mixes, and every layout and control.` : 'Thank you! Your mix pack shows up here as soon as Polar confirms it.'}
+            {bought === 'arrived' ? 'Thank you! Plus is on: every mix, layout and control.' : 'Thank you! Plus turns on here as soon as Polar confirms it.'}
           </p>
         )}
         {problem && (
           <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-red-50 px-4 py-2.5 text-[13px] text-red-700">
             {problem}
             {problem === MIX_FULL && plan?.buy && (
-              <button type="button" onClick={buyPack} className="cursor-pointer font-semibold underline underline-offset-2">
-                Get a mix pack
+              <button type="button" onClick={buyPlus} className="cursor-pointer font-semibold underline underline-offset-2">
+                Get Plus
               </button>
             )}
           </p>
@@ -450,7 +446,7 @@ function NewMix({ full, onOpen }: { full: string | null; onOpen: () => void }) {
         <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#17121A]">
           <Plus size={16} strokeWidth={2.4} /> New mix
         </span>
-        {full && <span className="-mt-2 text-[12.5px] text-[#6B5F68]">No room for another: archive one, or add a pack</span>}
+        {full && <span className="-mt-2 text-[12.5px] text-[#6B5F68]">No room for another: archive yours, or get Plus</span>}
       </span>
     </div>
   )
@@ -485,7 +481,7 @@ function MixCard({ mix: m, onDelete, onDuplicate, onArchive }: { mix: SavedMix; 
         {onArchive && (
           <button
             type="button"
-            title={m.archived ? 'Bring back (it counts as one of your mixes again)' : 'Archive (kept read-only, and frees one of your mixes)'}
+            title={m.archived ? 'Bring back' : 'Archive (kept, read-only)'}
             aria-label={`${m.archived ? 'Bring back' : 'Archive'} ${m.name}`}
             onClick={onArchive}
             className={CARD_BUTTON + ' hover:text-zinc-900'}
@@ -634,29 +630,28 @@ function Name({ id, name }: { id: string; name: string }) {
 }
 
 /**
- * What's used of what your plan includes (mixes open, clips and uploads; unlimited ones left out), the packs you've
- * bought, and getting one (or, once you have, their receipts at Polar).
+ * What's used of what your plan includes (mixes open and uploads; unlimited ones left out), and getting Plus (or,
+ * once you have it, its receipt at Polar).
  */
 function PlanLine({ plan }: { plan: Plan }) {
-  const { limits: l, usage: u, pack } = plan
+  const { limits: l, usage: u, price } = plan
   const mb = u.uploads / (1024 * 1024)
   const parts = [
     l.mixes !== null && `${u.mixes} of ${l.mixes} ${l.mixes === 1 ? 'mix' : 'mixes'}`,
-    l.clips !== null && `${u.clips} of ${l.clips} clips`,
     l.upload_mb !== null && `${mb < 10 ? mb.toFixed(1).replace(/\.0$/, '') : Math.round(mb)} of ${l.upload_mb >= 1024 ? `${l.upload_mb / 1024} GB` : `${l.upload_mb} MB`}`,
   ].filter(Boolean)
-  const label = plan.name === 'free' ? 'Free' : plan.packs ? `${plan.packs} mix ${plan.packs === 1 ? 'pack' : 'packs'}` : 'Unlimited'
+  const label = plan.name === 'free' ? 'Free' : 'Plus'
   const link = 'cursor-pointer font-semibold text-[#C2185B] underline-offset-2 hover:underline'
   return (
     <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-[13px] text-[#6B5F68]">
       <span className="font-semibold text-[#17121A]">{label}</span>
       {parts.length > 0 && <span>· {parts.join(' · ')}</span>}
-      {l.mixes !== null && (plan.buy ? (
-        <button type="button" onClick={buyPack} className={link}>
-          · {plan.name === 'free' ? `Get a mix pack, $${pack.price_usd}` : 'Add a pack'}
+      {plan.name === 'free' && (plan.buy ? (
+        <button type="button" onClick={buyPlus} className={link}>
+          · Get Plus, ${price} once
         </button>
       ) : (
-        <span>· Mix packs ({pack.mixes} mixes, ${pack.price_usd} once) are coming soon</span>
+        <span>· Plus (${price} once, every mix and feature) opens at launch</span>
       ))}
       {plan.receipts && (
         <a href="/api/billing/receipts" className={link}>
@@ -667,11 +662,10 @@ function PlanLine({ plan }: { plan: Plan }) {
   )
 }
 
-/** Back from Polar's checkout (?bought=1): say thanks, and look again until the webhook has added the pack. */
+/** Back from Polar's checkout (?bought=1): say thanks, and look again until the webhook has turned Plus on. */
 function useBought(plan: Plan | null): 'waiting' | 'arrived' | null {
-  const [packs] = useState(plan?.packs ?? 0)
   const [bought] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('bought'))
-  const arrived = (plan?.packs ?? 0) > packs
+  const arrived = plan?.name === 'plus'
   useEffect(() => {
     if (!bought) return
     if (arrived) return void window.history.replaceState(null, '', window.location.pathname)

@@ -18,7 +18,7 @@ export const DRAFT_COMMANDS = {
   },
   new_draft: {
     description:
-      'Make a new draft beside the others: a copy of a draft (the open one unless from_draft says) or of a saved version (from_version, a letter like "A2"), to try another direction without touching the original. Opens it unless open is false. Free has 3 drafts in a mix, a mix pack 6.',
+      'Make a new draft beside the others: a copy of a draft (the open one unless from_draft says) or of a saved version (from_version, a letter like "A2"), to try another direction without touching the original. Opens it unless open is false. A mix holds up to 6 drafts.',
     input: z.object({
       from_draft: draft.optional(),
       from_version: z.string().min(1).optional().describe('A saved version’s letter ("A2") or id'),

@@ -19,7 +19,7 @@ export interface DressIdea {
   label: string
   command: string
   input: Record<string, unknown>
-  /** Needs a mix pack, and this mix's owner is on Free. */
+  /** Needs Plus, and this mix's owner is on Free. */
   locked: boolean
   fit: number
 }

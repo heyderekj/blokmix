@@ -39,8 +39,8 @@ import { paletteFrom , type PaletteVariant } from '@/core/palette'
 import { toneOfGuide } from '@/core/dials'
 import { library, slotClip } from '@/data/library'
 import { cycleIds, layoutOpen, withClip } from '@/core/library'
-import { blockEditNeedsPack, FREE_TOKENS } from '@/core/plan'
-import { needsPack } from './plan'
+import { blockEditNeedsPlus, FREE_TOKENS } from '@/core/plan'
+import { needsPlus } from './plan'
 import { BANNER_ID } from '@/core/banner'
 import { addInsert, insertOf, InsertError, removeInsert } from '@/core/inserts'
 import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
@@ -244,7 +244,7 @@ export interface State extends MixData {
   setEffects: (effects: EffectsState, replace?: boolean) => void
   /** What's behind a section (null = as clipped). */
   setBackdrop: (slotId: string, value: TreatmentValue | null) => void
-  /** Put a whole skin on: one undo step, and the contract says what it leaves alone. False when it needs a mix pack. */
+  /** Put a whole skin on: one undo step, and the contract says what it leaves alone. False when it needs Plus. */
   applySkin: (skinId: string) => boolean
   /** Remix: the areas the contract opens come from other skins. Says what changed, or null when nothing can. */
   surpriseMe: (seed?: number) => string | null
@@ -500,7 +500,7 @@ export const useStore = create<State>()(
           },
           // Picking a clip from another shelf (All your clips) brings it into this mix, and so into its arrows.
           setClip: (slotId, clipId) => {
-            if (!layoutOpen(library, clipId) && needsPack('That layout')) return
+            if (!layoutOpen(library, clipId) && needsPlus('That layout')) return
             const clip = library.clips[clipId]
             const have = get().clips ?? []
             set((st) => ({
@@ -564,8 +564,8 @@ export const useStore = create<State>()(
             }
           },
           editBlock: (slotId, blockId, patch) => {
-            const locked = blockEditNeedsPack(patch)
-            if (locked && needsPack(locked)) return
+            const locked = blockEditNeedsPlus(patch)
+            if (locked && needsPlus(locked)) return
             updateSlot(slotId, (s) => {
               // Hiding an added banner removes it; so does hiding a blok you added.
               if (blockId === BANNER_ID && patch?.hidden) return { ...s, banner: undefined }
@@ -668,7 +668,7 @@ export const useStore = create<State>()(
               return { ...s, motion, keep: { ...s.keep, motion: motion.mode !== 'none' } }
             }),
           promoteBlock: (slotId, blockId) => {
-            if (needsPack('Making a block look the default')) return
+            if (needsPlus('Making a block look the default')) return
             const st = get()
             const slot = allSlots(st.site).find((x) => x.id === slotId)
             const block = slot && slotClip(slot).blocks.find((b) => b.id === blockId)
@@ -726,7 +726,7 @@ export const useStore = create<State>()(
               }
               return st.showFlash(`The site already has a ${chrome}. Change its layout instead.`)
             }
-            if (clipId && !layoutOpen(library, clipId) && needsPack('That layout')) return
+            if (clipId && !layoutOpen(library, clipId) && needsPlus('That layout')) return
             // With no clip named, take the one that suits this spot best.
             const slot: Slot = { id: uid('slot'), type, clipId: clipId ?? suggestClip(type, view, at, library)[0]?.clipId, locked: false, keep: { ...DEFAULT_KEEP }, ...(extra?.inspiredBy ? { inspiredBy: extra.inspiredBy } : {}) }
             if (!slot.clipId) return
@@ -810,9 +810,9 @@ export const useStore = create<State>()(
             if (fresh.length) set({ clips: [...have, ...fresh] })
           },
           removeMixClip: (id) => set({ clips: (get().clips ?? []).filter((c) => c !== id) }),
-          replaceGuide: (guide) => needsPack('A saved style guide') || set({ guide: { skin: OWN_LOOK, ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
+          replaceGuide: (guide) => needsPlus('A saved style guide') || set({ guide: { skin: OWN_LOOK, ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } } }),
           startFrom: (site, guide) =>
-            (allSlots(site).every((s) => layoutOpen(library, s.clipId)) || !needsPack('That starter’s layouts')) &&
+            (allSlots(site).every((s) => layoutOpen(library, s.clipId)) || !needsPlus('That starter’s layouts')) &&
             set((st) => ({
               site: structuredClone(site),
               guide: { skin: OWN_LOOK, ...emptyGuide(), ...structuredClone(guide), base: { ...BASE_TOKENS, ...guide.base } },
@@ -820,17 +820,17 @@ export const useStore = create<State>()(
             })),
 
           promoteClip: (clipId, groups) => {
-            if (needsPack('Taking a section’s look')) return
+            if (needsPlus('Taking a section’s look')) return
             const clip = library.clips[clipId]
             if (clip) set((st) => ({ guide: promote(st.guide, clip, groups) }))
           },
           adoptClipDesign: (clipId, groups = [...TOKEN_GROUPS]) => {
-            if (needsPack('Taking a section’s look')) return
+            if (needsPlus('Taking a section’s look')) return
             const clip = library.clips[clipId]
             if (clip) set((st) => ({ guide: adoptDesign(st.guide, clip, groups) }))
           },
           promoteSite: (source, groups = [...TOKEN_GROUPS], adopt = false) =>
-            needsPack('Taking a site’s look') ||
+            needsPlus('Taking a site’s look') ||
             set((st) => {
               const guide = promoteSource(st.guide, source, groups)
               if (!adopt) return { guide }
@@ -844,7 +844,7 @@ export const useStore = create<State>()(
               return inspiredBy ? { ...rest, inspiredBy } : rest
             }),
           removeCandidate: (id) => set((st) => ({ guide: removeCandidate(st.guide, id) })),
-          chooseToken: (key, choice) => (choice && !FREE_TOKENS.has(key) && needsPack('That style guide control')) || set((st) => ({ guide: choose(st.guide, key, choice) })),
+          chooseToken: (key, choice) => (choice && !FREE_TOKENS.has(key) && needsPlus('That style guide control')) || set((st) => ({ guide: choose(st.guide, key, choice) })),
           setEffect: (id, value) => get().setEffects({ [id]: value ?? undefined }),
           setTextStyle: (id, patch) =>
             set((st) => {
@@ -856,7 +856,7 @@ export const useStore = create<State>()(
               return { guide: { ...st.guide, textStyles: Object.keys(all).length ? all : undefined } }
             }),
           setEffects: (patch, replace) =>
-            (Object.values(patch).some(Boolean) && needsPack('An effect')) ||
+            (Object.values(patch).some(Boolean) && needsPlus('An effect')) ||
             set((st) => {
               const effects: EffectsState = replace ? {} : { ...st.guide.effects }
               for (const [k, v] of Object.entries(patch) as [EffectId, TreatmentValue | undefined][]) {
@@ -870,7 +870,7 @@ export const useStore = create<State>()(
               return { guide }
             }),
           setBackdrop: (slotId, value) =>
-            (!!value && needsPack('A section backdrop')) ||
+            (!!value && needsPlus('A section backdrop')) ||
             updateSlot(slotId, (s) => {
               const clean = value && cleanTreatment('backdrop', value)
               // Taking a backdrop off where the guide gives this type one needs saying, or the guide's comes back.
@@ -878,12 +878,12 @@ export const useStore = create<State>()(
             }),
           applySkin: (skinId) => {
             const skin = skinById(skinId)
-            if (!skin || (skin.tier !== 'free' && needsPack(`The ${skin.name} skin`))) return false
+            if (!skin || (skin.tier !== 'free' && needsPlus(`The ${skin.name} skin`))) return false
             set((st) => ({ guide: applySkinTo(st.guide, skin, st.contract) }))
             return true
           },
           surpriseMe: (seed = Date.now()) => {
-            if (needsPack('Surprise me')) return null
+            if (needsPlus('Surprise me')) return null
             const st = get()
             const out = remix(st.guide, st.contract ?? emptyContract(), seed, skinList())
             if (!out) return null
@@ -893,7 +893,7 @@ export const useStore = create<State>()(
           setContract: (patch) => set((st) => ({ contract: cleanContract({ ...(st.contract ?? emptyContract()), ...patch }) })),
           chooseTokens: (values) =>
             set((st) => ({ guide: (Object.entries(values) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide) })),
-          chooseGroup: (candidateId) => needsPack('Picking a source’s values') || set((st) => ({ guide: chooseGroup(st.guide, candidateId) })),
+          chooseGroup: (candidateId) => needsPlus('Picking a source’s values') || set((st) => ({ guide: chooseGroup(st.guide, candidateId) })),
           setField: (type, key, value) =>
             set((st) => ({
               content: { ...st.content, fields: { ...st.content.fields, [type]: { ...(st.content.fields[type] ?? {}), [key]: value } } },

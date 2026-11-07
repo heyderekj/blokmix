@@ -141,7 +141,7 @@ class Mix extends Model
             'schema' => $this->schema,
             'archived' => $this->isArchived(),
             // What the board opens follows the owner's plan, so editors and viewers never need a pack.
-            'paid' => ($this->owner()?->planName() ?? 'free') === 'paid',
+            'paid' => (bool) $this->owner()?->hasPlus(),
         ];
     }
 }

@@ -78,5 +78,5 @@ tools that can't open a folder (v0, Lovable).
 
 ## Shipped
 
-Feel dials (`core/dials.ts`), publishing to blok.page, and mix packs at Polar (the $20 one-time pack in
+Feel dials (`core/dials.ts`), publishing to blok.page, and buying once at Polar (now Plus, $25 once, in
 `pricing.md`) were on this list and are built; see CLAUDE.md.

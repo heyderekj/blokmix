@@ -1,7 +1,5 @@
-import { draftList, forkDraft, FREE_DRAFTS, MAX_DRAFTS, swapDraft } from '@/core/drafts'
+import { draftList, forkDraft, MAX_DRAFTS, swapDraft } from '@/core/drafts'
 import { pageOf } from '@/core/site'
-import { library } from '@/data/library'
-import { needsPack } from '../plan'
 import { uid } from '../uid'
 import type { State } from '../store'
 
@@ -25,7 +23,6 @@ export function draftActions(set: Set, get: Get): Pick<State, 'switchDraft' | 'a
       const st = get()
       const count = Object.keys(st.drafts).length
       if (count >= MAX_DRAFTS) return null
-      if (count >= FREE_DRAFTS && needsPack('More than three drafts')) return null
       const draft = forkDraft(st, from, { id: uid('draft'), name: opts.name })
       if (!draft) return null
       set({ drafts: { ...st.drafts, [draft.id]: draft } })
@@ -59,4 +56,4 @@ export function draftActions(set: Set, get: Get): Pick<State, 'switchDraft' | 'a
 }
 
 /** Whether this mix's owner can have another draft (for buttons; the action asks again). */
-export const canAddDraft = (st: Pick<State, 'drafts'>) => Object.keys(st.drafts).length < (library.paid === false ? FREE_DRAFTS : MAX_DRAFTS)
+export const canAddDraft = (st: Pick<State, 'drafts'>) => Object.keys(st.drafts).length < MAX_DRAFTS

@@ -64,8 +64,8 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   "Mix / Draft A ▾ / Page" (`ui/drafts/DraftsPanel.tsx`: open, new draft from this, rename, delete; history: go back to
   this, new draft, export, show on canvas). On the canvas the other drafts are columns beside the open one
   (`placeDrafts`, `ui/frames/DraftFrame.tsx`, a click opens one); version frames are only builds, versions you chose to
-  show (`ui.pinnedVersions`) and versions with notes (`placeVersions`). Sync sends drafts one by one like versions. Free has
-  3 drafts in a mix, a pack 6 (`FREE_DRAFTS`, `MAX_DRAFTS`). Export and Publish can pick another draft (`draft:<id>`,
+  show (`ui.pinnedVersions`) and versions with notes (`placeVersions`). Sync sends drafts one by one like versions. A mix
+  holds up to 6 (`MAX_DRAFTS`). Export and Publish can pick another draft (`draft:<id>`,
   `lib/packet.ts` `sourceVersion`). Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
   drops one, and sections it uses always count. A section's arrows (‹ Layout n of m ›, ← →, Shuffle, `get_options`)
@@ -85,24 +85,26 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   offers a starter (posts `site`, `guide` and `name` to `/mixes`, which stores `data = {guide, site}`; the board fills
   the rest from a blank mix), a saved style guide or another mix's (the questions go on with that guide, and the look
   step folds away), a blank page or a mix file. Every mix keeps its own copy, so edits never spread.
-- Plans (`config/blokmix.php` `plans` and `pack`, `docs/pricing.md`): Free is 1 mix, 40 clips, 100 MB, the core layouts
-  and the Feel dials; a mix pack ($20 once, `users.mix_packs`) is 3 mixes open at a time (packs stack), every layout,
-  control and treatment, unlimited clips and 10 GB. Mixes are slots: archived ones (`mixes.archived_at`, `POST
+- Plans (`config/blokmix.php` `plans` and `plus`, `docs/pricing.md`): Free and Plus ($25 once, never renewed). Free is
+  1 mix open at a time, the core layouts and free themes, and the Feel dials (plus brand colors and fonts), 100 MB; Plus
+  (`users.plan = plus`, bought or set by hand) is any number of mixes, every layout, control and treatment, 10 GB.
+  Clips, drafts, collections and publications aren't counted. Archived mixes (`mixes.archived_at`, `POST
   /api/mixes/{id}/archive|unarchive`, owners only) don't count and are read-only like a viewer's. Mixes and uploads
-  count toward the mix's owner (an editor's upload uses the owner's room); clips toward whoever saved them; shared
-  mixes, layouts and placeholder art never count. `User` `mixSlots`/`mixRefusal`/`clipRefusal`/`uploadRefusal` say
-  why, and the controllers refuse with 403 and that message (the web New mix gets it as `errors.mix`). Existing work
-  over a limit is kept; only adding more is refused. The people who run Blokmix (and `plan = plus` set by hand) have
-  no mix limit. Inertia shares `auth.plan` (name, limits, usage, packs, pack, buy, receipts).
+  count toward the mix's owner (an editor's upload uses the owner's room); shared mixes, layouts and placeholder art
+  never count. `User` `hasPlus`/`mixSlots`/`mixRefusal`/`uploadRefusal` say why, and the controllers refuse with 403
+  and that message (the web New mix gets it as `errors.mix`). Existing work over a limit is kept; only adding more is
+  refused. The people who run Blokmix, and everyone while `waitlist_mode` is on, have Plus. Inertia shares `auth.plan`
+  (name, limits, usage, price, buy, receipts).
 - Feature gates follow the mix's owner (`toBoard` `paid`): `library.paid = false` limits `pickable`, matching, starters
   and the site library to `"tier": "free"` layouts (`core/library.ts` `layoutOpen`), and store actions ask
-  `state/plan.ts` `needsPack` before locked layouts, knobs outside `FREE_TOKENS`, source picks, block looks, saved
+  `state/plan.ts` `needsPlus` before locked layouts, knobs outside `FREE_TOKENS`, source picks, block looks, saved
   guides, effects, backdrops and generative/mock/shader fills (`core/plan.ts`). On the board that opens
   `ui/shell/BuySheet.tsx`; agent commands run `strictly` and refuse with why.
-- Mix packs are sold at Polar (`config/billing.php`, `Services/PolarClient` ported from ReviseMy, `Services/MixPacks`):
+- Plus is sold at Polar (`config/billing.php`, `Services/PolarClient` ported from ReviseMy, `Services/Plus`):
   `POST /api/billing/checkout`, `GET /api/billing/receipts`, and the signed webhook `POST /api/polar/webhook`
-  (`order.paid` grants one pack per order once, a full `order.refunded` takes it back). Off until
-  `BLOKMIX_PRICING_ENABLED`; then the buy buttons go to Polar's checkout and back to `/?bought=1`.
+  (`order.paid` sets `plan = plus` once per order, a full `order.refunded` sets it back unless another order holds it).
+  Off until `BLOKMIX_PRICING_ENABLED`; then the buy buttons go to Polar's checkout and back to `/?bought=1`. No
+  subscription unless Blokmix someday hosts sites on custom domains (`docs/pricing.md`).
 - Publishing (blok.page): the board builds every page like an export (`core/export/publish.ts` `publishFiles`, `referenceHtml`'s
   `web` mode: noindex, media as files, root links under `PUBLISH_BASE`), zips them and posts them (`lib/publish.ts`,
   `POST /api/mixes/{id}/publication`, owners and editors; `GET` reads, `DELETE` unpublishes). `publications` (one per mix)
@@ -110,8 +112,7 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   swaps the base for `/<code>/<slug>` and adds the "Made with Blokmix" badge for a Free owner. `PublishedController` serves
   `blok.page/<code>/<slug>/<page>` on `Route::domain(config('blokmix.publish_host'))` without the web middleware (no
   session, cookies or CSRF; noindex, CSP); an old slug redirects, unpublished is 410, nothing else answers there.
-  `BLOKMIX_PUBLISH_URL` (default https://blok.page, http://blok.localhost:8000 locally). Free has one live publication;
-  published bytes count toward the owner's upload room (`User::publishRefusal`). UI: Publish in the top bar (hosted
+  `BLOKMIX_PUBLISH_URL` (default https://blok.page, http://blok.localhost:8000 locally). Published bytes count toward the owner's upload room (`User::publishRefusal`). UI: Publish in the top bar (hosted
   only); agents: `publish`, `get_publication`, `unpublish`. BLOKMIX.md lists the address while it's live.
 - Agents on the live site: the local MCP bridge also accepts Blokmix's hosted HTTPS origins (`HOSTED_ORIGINS` in
   `core/commands/bridge.ts`, plus BLOKMIX_ORIGINS). Chrome may ask once to let the site reach this device.
@@ -144,8 +145,7 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   (`Collection::roleOf`): the owner does anything; anyone else comes through `?mix=<id or short>`, a mix they're in
   whose data binds the slug (`"collection": "<slug>"` anywhere) and that the collection's owner can edit. Its editors
   (and its owner) change entries only, viewers read; everyone else gets 404. Index lists yours plus those reached
-  through your mixes (each with `role` and `mix`). Plans add `collections` and `entries` (per collection; Free 1 and 25,
-  provisional): `User::collectionRefusal`, counted against the collection's owner, and its uploads use the owner's room.
+  through your mixes (each with `role` and `mix`). A collection's uploads use its owner's room.
 
 ## Guided start
 

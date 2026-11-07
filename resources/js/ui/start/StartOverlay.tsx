@@ -25,7 +25,7 @@ export function StartOverlay() {
         close()
       }}
       onStarter={(starter, name) => {
-        if (!starterOpen(library, starter)) return useStore.getState().showFlash(`“${starter.name}” uses layouts in a mix pack.`)
+        if (!starterOpen(library, starter)) return useStore.getState().showFlash(`“${starter.name}” uses layouts in Plus.`)
         const { site, guide } = buildStarter(library, starter)
         useStore.getState().openMixData({ ...blankMix(name === 'Your site' ? starter.name : name), site, guide })
         close()
