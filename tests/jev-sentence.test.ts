@@ -90,9 +90,13 @@ describe('the start sentence', () => {
     }
   })
 
+  it('lists groups A to Z', () => {
+    expect(groupsOf(START_BLANKS.business).map((g) => g.name)).toEqual(['Apps & products', 'Events', 'Just me', 'Shops & places', 'Studios & services', 'Writing & shows'])
+  })
+
   it('groups each blank’s options, and suggests a few once there’s something to go on', () => {
     for (const b of [START_BLANKS.business, START_BLANKS.feel, START_BLANKS.goal, START_BLANKS.show]) {
-      expect(groupsOf(b).map((g) => g.name)).toEqual(b.groups)
+      expect(groupsOf(b).map((g) => g.name)).toEqual([...b.groups].sort((x, y) => x.localeCompare(y)))
       expect(suggestedFor(b)).toEqual([])
     }
     expect(suggestedFor(START_BLANKS.goal, undefined, 'event').slice(0, 2).map((g) => g.id)).toEqual(expect.arrayContaining(['tickets']))

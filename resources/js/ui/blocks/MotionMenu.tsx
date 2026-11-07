@@ -9,6 +9,7 @@ import { Steps } from './Spacing'
 import { StepSlider, StyleRow } from '../panels/StyleRows'
 import { Strip } from '../panels/Strip'
 import { useBlockPreview } from './preview'
+import { BLANK, blankLook } from '@/ui/jev/Sentence'
 
 type Trigger = 'enter' | 'hover' | 'scroll' | 'loop'
 
@@ -77,9 +78,7 @@ export function MotionMenu({
         <button
           type="button"
           onClick={() => setOpen(open === t ? null : t)}
-          className={`mx-0.5 rounded-md px-1 py-px font-medium underline decoration-dotted decoration-1 underline-offset-[5px] transition ${
-            open === t ? 'bg-zinc-900 text-white decoration-transparent' : v ? 'bg-key/15 text-zinc-900 hover:bg-key/25' : 'text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-800'
-          }`}
+          className={`cursor-pointer py-px font-semibold ${BLANK} ${blankLook(open === t, !!v)}`}
         >
           {PHRASE[t](v)}
           {t === 'hover' && ' on hover'}
@@ -102,7 +101,7 @@ export function MotionMenu({
 
   return (
     <div className={bare ? '' : 'glass-menu w-[340px] animate-pop rounded-2xl p-3'}>
-      <p className="text-[14px] leading-[1.95] text-zinc-600">
+      <p className="text-[14px] font-medium leading-[1.95] text-[#17121A]">
         This {KIND_NOUN[kind]} <Phrase t="enter" after="," /> {hoverable && <Phrase t="hover" after="," />} <Phrase t="scroll" /> and <Phrase t="loop" after="." />
       </p>
 

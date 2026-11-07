@@ -84,7 +84,7 @@ export function Sentence({
   const big = size === 'lg'
   return (
     <div>
-      <p className={big ? 'text-[22px] font-medium leading-[1.9] tracking-tight text-zinc-500 [text-wrap:pretty] sm:text-[26px]' : 'text-[14px] leading-[1.95] text-zinc-500'}>
+      <p className={big ? 'text-[22px] font-semibold leading-[1.5] tracking-[-0.02em] text-[#17121A] [text-wrap:pretty] sm:text-[27px]' : 'text-[14px] font-medium leading-[1.95] text-[#17121A]'}>
         {segments.map((s, i) => (
           <Fragment key={i}>
             {'text' in s ? (
@@ -92,7 +92,7 @@ export function Sentence({
             ) : (
               <>
                 {' '}
-                <BlankWords blank={s.blank} picks={picks} open={openId === s.blank.id} big={big} onOpen={() => setOpenId(openId === s.blank.id ? null : s.blank.id)} onDrop={(i) => set(s.blank.id, (picks[s.blank.id] ?? []).filter((_, k) => k !== i), false)} />
+                <BlankWords blank={s.blank} picks={picks} open={openId === s.blank.id} onOpen={() => setOpenId(openId === s.blank.id ? null : s.blank.id)} onDrop={(i) => set(s.blank.id, (picks[s.blank.id] ?? []).filter((_, k) => k !== i), false)} />
               </>
             )}
           </Fragment>
@@ -116,23 +116,28 @@ export function Sentence({
   )
 }
 
+/**
+ * A blank in any fill-in-the-blanks sentence, as on blokmix.com: a pink underline, a pink tint on hover, blush while it's
+ * open. Empty, it names what goes there in a quieter voice; your own words (not one of the options) are underlined in ink.
+ */
+export const BLANK = 'mx-[0.02em] rounded-[0.2em] px-[0.15em] underline decoration-[0.09em] underline-offset-[0.16em] [text-decoration-skip-ink:none] transition-[background-color,color] duration-150'
+export const blankLook = (on: boolean, filled: boolean, own = false) =>
+  on
+    ? 'bg-[#FFD4E8] text-[#17121A] decoration-transparent'
+    : `${filled ? 'text-[#17121A]' : 'text-[#B3A7AE]'} ${own ? 'decoration-[#17121A]' : 'decoration-[#FF69B4]'} [@media(hover:hover)]:hover:bg-[#FF69B4]/12`
+
 /** A blank in the sentence: its words once filled, what it asks for while empty; several picks read as a list. */
-function BlankWords({ blank, picks, open, big, onOpen, onDrop }: { blank: Blank; picks: Picks; open: boolean; big: boolean; onOpen: () => void; onDrop: (i: number) => void }) {
+function BlankWords({ blank, picks, open, onOpen, onDrop }: { blank: Blank; picks: Picks; open: boolean; onOpen: () => void; onDrop: (i: number) => void }) {
   const list = (picks[blank.id] ?? []).filter((p) => p.words.trim())
-  const base = `rounded-lg border-[1.5px] underline decoration-dotted decoration-[1.5px] underline-offset-[6px] transition-[background-color,color,border-color] duration-150 ${big ? 'px-1.5' : 'px-1'}`
-  // Empty, a blank is a dashed slot naming what goes there; filled, your words in ink.
-  const look = (on: boolean, filled: boolean) =>
-    on
-      ? 'border-zinc-900 bg-zinc-900 text-white decoration-transparent'
-      : filled
-        ? 'border-transparent bg-[#FF69B4]/10 text-zinc-900 decoration-[#FF69B4] [@media(hover:hover)]:hover:bg-[#FF69B4]/20'
-        : 'border-dashed border-zinc-300 text-zinc-400 decoration-transparent [@media(hover:hover)]:hover:border-zinc-400 [@media(hover:hover)]:hover:text-zinc-600'
+  const base = BLANK
+  const look = blankLook
+  const own = (p: { id?: string }) => !p.id
   if (blank.many && list.length) {
     return (
       <>
         {list.map((p, i) => (
           <Fragment key={`${p.words}${i}`}>
-            <span className={`group/m relative inline-flex items-center ${base} ${look(false, true)}`}>
+            <span className={`group/m relative ${base} ${look(false, true, own(p))}`}>
               {p.words}
               <button type="button" onClick={() => onDrop(i)} aria-label={`Drop ${p.words}`} className="absolute -right-2 -top-1.5 grid size-5 cursor-pointer place-items-center rounded-full bg-white text-zinc-500 opacity-0 shadow-[0_0_0_1px_rgb(0_0_0/0.1)] transition-opacity hover:text-zinc-900 group-hover/m:opacity-100 focus-visible:opacity-100">
                 <X size={11} />
@@ -148,7 +153,7 @@ function BlankWords({ blank, picks, open, big, onOpen, onDrop }: { blank: Blank;
     )
   }
   return (
-    <button type="button" onClick={onOpen} aria-expanded={open} className={`cursor-pointer ${base} ${look(open, list.length > 0)}`}>
+    <button type="button" onClick={onOpen} aria-expanded={open} className={`cursor-pointer ${base} ${look(open, list.length > 0, list.length > 0 && list.every(own))}`}>
       {list.length ? list.map((p) => p.words).join(', ') : (blank.ask ?? blank.placeholder)}
     </button>
   )

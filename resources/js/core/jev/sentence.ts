@@ -41,7 +41,7 @@ export interface Blank {
   ask?: string
   /** An example answer ("a bakery"), only for Jev's question about the blank. */
   placeholder: string
-  /** Its options' groups, in the order they're shown. */
+  /** Its options' groups (shown A to Z). */
   groups?: string[]
   options: Choice[]
   /** Several picks ("our menu, opening hours and …"). */
@@ -505,11 +505,11 @@ export interface OptionGroup {
   options: Choice[]
 }
 
-/** A blank's options in its groups, in the blank's group order, each group best first. */
+/** A blank's options in its groups, the groups A to Z, each group best first. */
 export function groupsOf(blank: Blank, order?: string[], kind: Kind | null = null): OptionGroup[] {
   const sorted = orderOptions(blank, order, kind)
-  const names = [...(blank.groups ?? []), ...new Set(sorted.map((o) => o.group ?? 'More'))]
-  return [...new Set(names)].map((name) => ({ name, options: sorted.filter((o) => (o.group ?? 'More') === name) })).filter((g) => g.options.length)
+  const names = [...new Set([...(blank.groups ?? []), ...sorted.map((o) => o.group ?? 'More')])].sort((x, y) => x.localeCompare(y))
+  return names.map((name) => ({ name, options: sorted.filter((o) => (o.group ?? 'More') === name) })).filter((g) => g.options.length)
 }
 
 /**
