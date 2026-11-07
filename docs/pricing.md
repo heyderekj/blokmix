@@ -9,7 +9,7 @@ Blokmix's own organization).
 - The core layouts: three per section type (`"tier": "free"` in clip.json), plus every clip you capture yourself
 - The guided start, the Crate, the site library (sections land as the closest open layout), marks, versions, export
   and handing off to your agent
-- Wireframe, Calm, Friendly and Bold skins, the Feel dials, Light/Dark, your brand colors and fonts, section surfaces and widths
+- Wireframe, Studio, Lo-fi and Flyer themes, the Feel dials, Light/Dark, your brand colors and fonts, section surfaces and widths
 - Starter mixes made only of open layouts (the others show a lock)
 
 ## Mix pack — $20 once

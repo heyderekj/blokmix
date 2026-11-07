@@ -3,7 +3,7 @@ import { ChevronRight, RefreshCw } from 'lucide-react'
 import { FEEL_WORDS, NUDGE_LABEL, nudgesFor, nudgeTokens, themesFor, type FeelWord, type Nudge } from '@/core/feel'
 import { emptyContract } from '@/core/contract'
 import { openGroups, resolveGuide } from '@/core/guide'
-import { skinList, skinOpen, surpriseMe } from '@/core/skins'
+import { skinList, skinOpen, skinRefOf, surpriseMe } from '@/core/skins'
 import { library } from '@/data/library'
 import { useResolvedGuide } from '@/state/derived'
 import { useStore } from '@/state/store'
@@ -114,7 +114,7 @@ function Themes() {
       <FontLinks tokens={[...shown.map((l) => l.tokens), ...(mix ? [mix.tokens] : [])]} />
       <div className="grid grid-cols-3 gap-x-2 gap-y-2.5">
         {shown.map(({ skin, tokens, components }) => (
-          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={on?.id === skin.id} locked={!skinOpen(library, skin)} onPick={() => putSkin(skin)} />
+          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={skinRefOf(on)?.id === skin.id} locked={!skinOpen(library, skin)} onPick={() => putSkin(skin)} />
         ))}
         {mix && <SkinCard label="Mashup" words={mix.words} tokens={mix.tokens} components={mix.components} here={false} locked={library.paid === false} onPick={putMix} />}
       </div>

@@ -1,31 +1,35 @@
 {
-  "name": "Marginalia",
-  "words": "Warm paper and oxblood ink, for reading slowly.",
+  "name": "Vinyl",
+  "words": "Black and ivory with fine serif type, set like a gallery.",
   "tier": "pack",
-  "mode": "light",
-  "feel": ["warm", "classic", "calm"],
+  "mode": "dark",
+  "feel": [
+    "dark",
+    "classic",
+    "serious"
+  ],
   "tokens": {
     "icon.set": "iconoir:light",
-    "color.bg": "#f6f1e7",
-    "color.surface": "#ece4d3",
-    "color.text": "#1f1a14",
-    "color.muted": "#6b6155",
-    "color.border": "#d6c9b1",
-    "color.primary": "#7a1f1f",
-    "color.onPrimary": "#f6f1e7",
-    "color.accent": "#c2602e",
-    "font.display": "'Fraunces', Georgia, serif",
-    "font.body": "'Newsreader', Georgia, serif",
-    "font.mono": "'IBM Plex Mono', ui-monospace, monospace",
-    "type.base": "18px",
+    "color.bg": "#0f0e0c",
+    "color.surface": "#1a1815",
+    "color.text": "#f2ece0",
+    "color.muted": "#a39a8b",
+    "color.border": "#322d26",
+    "color.primary": "#efe6d4",
+    "color.onPrimary": "#13110e",
+    "color.accent": "#c9a46a",
+    "font.display": "'Instrument Serif', Georgia, serif",
+    "font.body": "'Hanken Grotesk', system-ui, sans-serif",
+    "font.mono": "'DM Mono', ui-monospace, monospace",
+    "type.base": "16px",
     "type.ratio": "1.333",
-    "type.displayWeight": "380",
-    "radius.base": "2px",
+    "type.displayWeight": "400",
+    "radius.base": "0px",
     "stroke.width": "1px",
-    "shadow.card": "0 1px 0 #d6c9b1",
+    "shadow.card": "none",
     "space.base": "4px",
-    "space.section": "112px",
-    "motion.duration": "700ms",
+    "space.section": "128px",
+    "motion.duration": "600ms",
     "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
   },
   "effects": {
@@ -38,19 +42,16 @@
     "grain": {
       "id": "grain",
       "params": {
-        "amount": 10,
-        "size": 0.7
+        "amount": 8,
+        "size": 0.8
       }
-    },
-    "gradient": {
-      "id": "gradient",
-      "params": {
-        "stops": [
-          "surface",
-          "bg"
-        ],
-        "angle": 180
-      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 400,
+      "tracking": 0.16
     }
   },
   "components": {
@@ -58,15 +59,12 @@
       "variant": "line"
     },
     "card": {
-      "variant": "flat"
+      "variant": "rule"
     },
     "button": {
       "secondary": {
         "variant": "arrow"
       }
-    },
-    "heading": {
-      "variant": "light"
     },
     "icon": {
       "variant": "bare"
@@ -75,7 +73,15 @@
   "sections": {
     "hero": {
       "backdrop": {
-        "id": "grain"
+        "id": "spotlight",
+        "params": {
+          "color": "accent",
+          "strength": 16,
+          "x": 72,
+          "size": 70,
+          "anchor": "full",
+          "reach": 100
+        }
       },
       "motion": {
         "mode": "preset",
@@ -93,6 +99,7 @@
       }
     },
     "testimonials": {
+      "surface": "soft",
       "motion": {
         "mode": "preset",
         "enter": "fade",
@@ -179,14 +186,16 @@
         "onScroll": true,
         "speed": "slow"
       }
-    },
-    "nav": {
-      "backdrop": {
-        "id": "grain"
-      }
     }
   },
   "picture": {
-    "style": "topo"
+    "style": "grain-gradient",
+    "params": {
+      "a": "accent",
+      "b": "bg",
+      "c": "primary",
+      "angle": 200,
+      "grain": 40
+    }
   }
 }

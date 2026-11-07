@@ -2,7 +2,7 @@
   "name": "Launch waitlist",
   "blurb": "Loud and simple: say what's coming and collect emails.",
   "kind": "event",
-  "skin": "bold",
+  "skin": "flyer",
   "pages": [
     {
       "path": "/",

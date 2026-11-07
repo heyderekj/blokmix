@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import type { BlockKind, BlockMotion, EnterPreset, MotionSpeed, SectionMotion, Slot } from '@/core/types'
 import { ENTER_INFO, HOVER_INFO, LOOP_INFO, SCROLL_INFO, SPEED_LABEL, canHover, presetsFor } from '@/core/motion'
+import { skinRefOf } from '@/core/skins'
 import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { Switch } from '../panels/parts'
@@ -223,7 +224,7 @@ export function SectionMotionRows({ slot, untitled }: { slot: Slot; untitled?: b
   // A built-in layout has no motion of its own: "as it comes" is the skin's, which is nothing at all if the skin has none.
   const fromSkin = useStore((s) => s.guide.sections?.[slot.type]?.motion)
   const skinEnter = fromSkin?.mode === 'preset' ? (fromSkin.enter ?? 'rise') : null
-  const skinName = useStore((s) => s.guide.skin?.name)
+  const skinName = skinRefOf(useStore((s) => s.guide.skin))?.name
   const asComes = !layout || !!skinEnter
   const on = m.mode === 'preset' ? (m.enter ?? 'rise') : m.mode === 'captured' && !asComes ? 'none' : m.mode
   const tiles: { id: string; label: string; hint: string }[] = [

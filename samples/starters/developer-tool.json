@@ -2,7 +2,7 @@
   "name": "Developer tool",
   "description": "A dark, technical page for a developer product: terminal-style hero, how it works, usage pricing and docs-like questions.",
   "kind": "product",
-  "skin": "technical",
+  "skin": "afterhours",
   "tokens": {
     "color.bg": "#0b0d0e",
     "color.surface": "#14181a",

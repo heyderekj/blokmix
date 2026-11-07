@@ -2,7 +2,7 @@
   "name": "Neighbourhood spot",
   "blurb": "A café, studio or shop: a big photo, what you offer, where to find you.",
   "kind": "local",
-  "skin": "friendly",
+  "skin": "lofi",
   "pages": [
     {
       "path": "/",

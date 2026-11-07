@@ -1,57 +1,52 @@
 {
-  "name": "Friendly",
-  "words": "Round, warm and a little playful.",
+  "name": "Lo-fi",
+  "words": "Cream and terracotta, cozy as a Sunday café.",
   "tier": "free",
   "mode": "light",
-  "feel": ["warm", "playful"],
+  "feel": [
+    "warm",
+    "playful",
+    "calm"
+  ],
   "tokens": {
-    "icon.set": "phosphor:bold",
-    "font.display": "'Plus Jakarta Sans', system-ui, sans-serif",
-    "font.body": "'Plus Jakarta Sans', system-ui, sans-serif",
+    "icon.set": "phosphor:duotone",
+    "color.bg": "#fbf6ee",
+    "color.surface": "#f4eadb",
+    "color.text": "#2b2119",
+    "color.muted": "#6f5f50",
+    "color.border": "#e6d8c4",
+    "color.primary": "#b84a22",
+    "color.onPrimary": "#fffaf3",
+    "color.accent": "#5d7a3a",
+    "font.display": "'Young Serif', Georgia, serif",
+    "font.body": "'Figtree', system-ui, sans-serif",
+    "font.mono": "'DM Mono', ui-monospace, monospace",
+    "type.base": "17px",
     "type.ratio": "1.25",
-    "type.displayWeight": "800",
-    "radius.base": "20px",
+    "type.displayWeight": "400",
+    "radius.base": "16px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 2px rgb(43 33 25 / 0.06), 0 10px 30px rgb(43 33 25 / 0.08)",
+    "space.base": "4px",
     "space.section": "104px",
-    "shadow.card": "0 2px 4px rgb(30 27 58 / 0.05), 0 12px 32px rgb(30 27 58 / 0.08)",
     "motion.duration": "360ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
-    "color.bg": "#fffcfa",
-    "color.surface": "#fcf0eb",
-    "color.text": "#221814",
-    "color.muted": "#736661",
-    "color.border": "#e9ddd8",
-    "color.primary": "#a83607",
-    "color.onPrimary": "#fffaf7",
-    "color.accent": "#159e6d"
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
   },
   "effects": {
-    "shadow": {
-      "id": "shadow",
+    "grain": {
+      "id": "grain",
       "params": {
-        "elevation": 30,
-        "softness": 90,
-        "layers": 5,
-        "opacity": 20,
-        "tighten": 35
+        "amount": 6,
+        "size": 0.9
       }
-    },
-    "glass": {
-      "id": "glass",
-      "params": {
-        "blur": 20,
-        "fill": 55,
-        "edge": 75
-      }
-    },
-    "gradient": {
-      "id": "gradient",
-      "params": {
-        "stops": [
-          "primary",
-          "accent"
-        ],
-        "angle": 135
-      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "weight": 600,
+      "tracking": 0.02,
+      "upper": false,
+      "size": "sm"
     }
   },
   "components": {
@@ -59,14 +54,31 @@
       "variant": "pill"
     },
     "card": {
-      "variant": "raised"
+      "variant": "tinted"
+    },
+    "button": {
+      "variant": "pill",
+      "secondary": {
+        "variant": "soft"
+      }
     },
     "icon": {
-      "variant": "accent"
+      "variant": "circle"
     }
   },
   "sections": {
     "hero": {
+      "backdrop": {
+        "id": "orb",
+        "params": {
+          "color": "accent",
+          "second": "primary",
+          "size": 40,
+          "strength": 22,
+          "anchor": "top-right",
+          "reach": 90
+        }
+      },
       "motion": {
         "mode": "preset",
         "enter": "rise",

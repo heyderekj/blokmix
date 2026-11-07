@@ -1,38 +1,67 @@
 {
-  "name": "Calm",
-  "words": "Clean and quiet. Lots of room, one soft accent.",
+  "name": "Studio",
+  "words": "Crisp and sure: white, near-black, one bright blue.",
   "tier": "free",
   "mode": "light",
-  "feel": ["calm", "modern", "serious"],
+  "feel": [
+    "calm",
+    "modern",
+    "serious"
+  ],
   "tokens": {
-    "font.display": "'Inter', system-ui, sans-serif",
+    "icon.set": "lucide:regular",
+    "color.bg": "#ffffff",
+    "color.surface": "#f4f5f7",
+    "color.text": "#0c0e13",
+    "color.muted": "#5a606e",
+    "color.border": "#e2e4e9",
+    "color.primary": "#0c0e13",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#3a5bf7",
+    "font.display": "'General Sans', system-ui, sans-serif",
     "font.body": "'Inter', system-ui, sans-serif",
-    "type.ratio": "1.25",
-    "type.displayWeight": "650",
-    "radius.base": "10px",
-    "space.section": "104px",
-    "shadow.card": "0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(0 0 0 / 0.05)",
-    "motion.duration": "320ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
-    "color.bg": "#fcfcfd",
-    "color.surface": "#f2f2f3",
-    "color.text": "#1a1a1b",
-    "color.muted": "#696969",
-    "color.border": "#dfdfe0",
-    "color.primary": "#18181b",
-    "color.onPrimary": "#fbfbff",
-    "color.accent": "#b87251",
     "font.mono": "'JetBrains Mono', ui-monospace, monospace",
     "type.base": "16px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "600",
+    "radius.base": "10px",
     "stroke.width": "1px",
-    "icon.set": "lucide:regular",
+    "shadow.card": "0 1px 2px rgb(12 14 19 / 0.06), 0 8px 24px rgb(12 14 19 / 0.06)",
     "space.base": "4px",
-    "space.content": "1200px",
-    "space.text": "760px"
+    "space.section": "112px",
+    "motion.duration": "280ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+  },
+  "effects": {
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "stops": [
+          "accent",
+          "primary"
+        ],
+        "angle": 135
+      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0.08
+    }
   },
   "components": {
+    "badge": {
+      "variant": "outline"
+    },
     "card": {
       "variant": "bordered"
+    },
+    "button": {
+      "secondary": {
+        "variant": "outline"
+      }
     },
     "icon": {
       "variant": "tinted"
@@ -40,6 +69,15 @@
   },
   "sections": {
     "hero": {
+      "backdrop": {
+        "id": "grid",
+        "params": {
+          "gap": 56,
+          "strength": 9,
+          "anchor": "top",
+          "reach": 75
+        }
+      },
       "motion": {
         "mode": "preset",
         "enter": "rise",
@@ -86,7 +124,7 @@
       }
     },
     "cta": {
-      "surface": "soft",
+      "surface": "inverse",
       "motion": {
         "mode": "preset",
         "enter": "rise",
@@ -160,6 +198,13 @@
     }
   },
   "picture": {
-    "style": "waves"
+    "style": "grain-gradient",
+    "params": {
+      "a": "accent",
+      "b": "surface",
+      "c": "bg",
+      "angle": 160,
+      "grain": 18
+    }
   }
 }

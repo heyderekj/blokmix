@@ -22,7 +22,7 @@ import { guessHeard, hearStart, startsFromText, wordsCandidates, type Heard } fr
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 import { FeelColors } from './FeelColors'
 import { GuideOption, StarterOption, useDisplayFonts, type GuideChoice } from './StartFrom'
-import { HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, firstPage, sectionWords, useSkinFonts } from './parts'
+import { Carousel, HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, firstPage, sectionWords, useSkinFonts } from './parts'
 
 /** Whether the guided start is showing over the board (the browser-only mix opens on it the first time). */
 export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
@@ -96,10 +96,12 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const feel = feelFrom(va, vh)
   const name = va.name.trim() || 'Your site'
   const open = useMemo(() => skinList().filter((x) => skinOpen(library, x) && x.id !== WIREFRAME), [])
-  // The look on show: yours, else the best fit (the read's, then the feel's), never the grey sketch.
+  // The look on show: yours, else the best fit (the read's, then the feel's), never the grey sketch. The carousel holds
+  // the three best fits first, then every other theme you can use.
   const themes = useMemo(() => {
     const read = (vh?.looks ?? []).flatMap((id) => open.filter((x) => x.id === id))
-    return [...new Set([...read, ...themesFor(feel, open, { count: 3 })])].slice(0, 3)
+    const best = [...new Set([...read, ...themesFor(feel, open, { count: 3 })])].slice(0, 3)
+    return [...best, ...themesFor(feel, open, { count: open.length }).filter((x) => !best.includes(x))]
   }, [vh?.looks, feel, open])
   const theme = skin ?? themes[0]?.id ?? WIREFRAME
   const paste = heard?.mode === 'paste' && !!heard.plan
@@ -319,11 +321,11 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                       )
                     })}
                   </Chips>
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <Carousel label="Themes">
                     {themes.map((x: Skin) => (
                       <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} brand={brand} palette={x.id === theme ? palette : null} mode={x.id === theme ? mode : undefined} jevPick={!!heard?.looks.includes(x.id)} onPick={() => (setSkin(x.id), setMode(undefined))} />
                     ))}
-                  </div>
+                  </Carousel>
                   <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                     <ColorButton
                       value={brand ?? skinById(theme)?.tokens['color.primary'] ?? '#404040'}
@@ -439,7 +441,9 @@ function Ask({ title, lead, busy, onNext, onSkip, children }: { title: string; l
         {lead && <p className="mt-1.5 min-h-[2lh] text-[15px] text-[#6B5F68] [text-wrap:pretty]">{lead}</p>}
       </div>
       {children}
-      <div className="flex items-center gap-2">
+      {/* Next stays on screen however long the question runs: it sticks to the panel's bottom, above a hairline. */}
+      <div className="sticky -bottom-6 z-10 -mx-5 -mb-6 flex items-center gap-2 border-t border-zinc-950/[0.06] bg-[#FBF8F9] px-5 pb-6 pt-4 sm:-mx-7 sm:px-7">
+
         <button type="button" onClick={onNext} className={PRIMARY}>
           Next <ArrowRight size={16} />
         </button>

@@ -74,7 +74,7 @@ describe('the start sentence', () => {
     expect(f.name).toBe('Fern & Co')
     expect(f.sections).toEqual(expect.arrayContaining(['nav', 'hero', 'pricing', 'contact', 'team', 'footer']))
     expect(f.sections!.indexOf('pricing')).toBeLessThan(f.sections!.indexOf('contact'))
-    expect(f.looks[0]).toBe('friendly')
+    expect(f.looks[0]).toBe('lofi')
     expect(f.button).toBe('Order ahead')
     expect(f.feel).toBe('cozy bakery')
     expect(f.wants).toEqual(['a map'])
