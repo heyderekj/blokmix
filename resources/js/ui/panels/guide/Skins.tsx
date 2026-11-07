@@ -50,9 +50,9 @@ export function SkinCard({ label, words, tokens, components, here, locked, onPic
       aria-pressed={here}
       aria-label={`${label}: ${words}`}
       title={words}
-      className="group/skin grid min-w-0 cursor-pointer gap-1 rounded-[13px] text-left transition-[scale] duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent,#ff69b4)]"
+      className="group/skin grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)] gap-1 rounded-[13px] text-left transition-[scale] duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent,#ff69b4)]"
     >
-      <span className={`block rounded-[12px] transition-[box-shadow] duration-150 ${here ? 'shadow-[0_0_0_2px_var(--color-accent,#ff69b4)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.06)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/skin:shadow-[0_0_0_1px_rgb(0_0_0/0.18)]'}`}>
+      <span className={`block min-w-0 rounded-[12px] transition-[box-shadow] duration-150 ${here ? 'shadow-[0_0_0_2px_var(--color-accent,#ff69b4)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.06)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/skin:shadow-[0_0_0_1px_rgb(0_0_0/0.18)]'}`}>
         <SkinSpecimen tokens={tokens} components={components} name={brand?.trim() || 'Your site'} />
       </span>
       <span className="flex items-center justify-between gap-1 px-1 text-[11.5px] font-semibold text-zinc-800">

@@ -42,16 +42,17 @@ export function SkinSpecimen({ tokens: t, components, name }: { tokens: TokenSet
   return (
     <span
       aria-hidden
-      className="grid gap-2 overflow-hidden rounded-[11px] px-2.5 pb-2 pt-2.5 transition-[background-color] duration-200"
+      className="@container grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 overflow-hidden rounded-[11px] px-2.5 pb-2 pt-2.5 transition-[background-color] duration-200"
       style={{ background: t['color.bg'], boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${t['color.text']} 10%, transparent)` }}
     >
-      <span className="truncate text-[16px] leading-[1.05] tracking-[-0.01em]" style={{ fontFamily: t['font.display'], fontWeight: Number(t['type.displayWeight']) || 700, color: t['color.text'] }}>
+      <span className="truncate leading-[1.05] tracking-[-0.01em]" style={{ fontSize: 'min(16px, 14cqw)', fontFamily: t['font.display'], fontWeight: Number(t['type.displayWeight']) || 700, color: t['color.text'] }}>
         {name}
       </span>
-      <span className="flex items-center gap-1.5">
+      <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
         <span
-          className="whitespace-nowrap px-2 py-[3px] text-[9.5px] font-semibold"
+          className="min-w-0 truncate whitespace-nowrap px-2 py-[3px] font-semibold"
           style={{
+            fontSize: 'min(9.5px, 9cqw)',
             background: t['color.primary'],
             color: t['color.onPrimary'],
             fontFamily: t['font.body'],
@@ -61,7 +62,7 @@ export function SkinSpecimen({ tokens: t, components, name }: { tokens: TokenSet
         >
           Get started
         </span>
-        <span className="h-[15px] w-[26px] shrink-0" style={cardStyle(t, components?.card?.variant, Math.min(r, 8))} />
+        <span className="h-[15px] w-[26px] shrink-0 @max-[118px]:hidden" style={cardStyle(t, components?.card?.variant, Math.min(r, 8))} />
       </span>
     </span>
   )
