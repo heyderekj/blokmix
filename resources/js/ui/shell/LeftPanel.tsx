@@ -77,12 +77,13 @@ export function LeftPanel() {
             style={{ left: RAIL_X + RAIL_W + GAP, top: 72, maxHeight: 'calc(100% - 84px)', width: PANEL_W }}
             aria-label={LABEL[which]}
             data-left-panel
+            data-layer-host
           >
             <PanelHead title={LABEL[which]} onClose={close} />
             <div className="flex min-h-0 flex-col">{body}</div>
           </aside>
         ) : (
-          <aside className="glass-menu pointer-events-auto fixed inset-x-0 bottom-0 z-40 flex max-h-[62vh] animate-pop flex-col overflow-hidden rounded-t-2xl" aria-label={LABEL[which]} data-left-panel>
+          <aside className="glass-menu pointer-events-auto fixed inset-x-0 bottom-0 z-40 flex max-h-[62vh] animate-pop flex-col overflow-hidden rounded-t-2xl" aria-label={LABEL[which]} data-left-panel data-layer-host>
             <PanelHead title={LABEL[which]} onClose={close} />
             <div className="flex min-h-0 flex-col">{body}</div>
           </aside>

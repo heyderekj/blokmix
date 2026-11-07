@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Copy, Pipette } from 'lucide-react'
+import { Check, ChevronLeft, Copy, Pipette } from 'lucide-react'
 import { hexToOklch, oklchToHex, type Mode, type PaletteVariant } from '@/core/palette'
 import { pairingOf, pairingPalettes, readability, type Pairing } from '@/core/colorPairs'
 import { NAMED_COLORS, parseColor } from '@/core/colorInput'
@@ -75,16 +75,11 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, variant: 
   const reads = useMemo(() => readability(hex), [hex])
   const eyedrop = typeof window !== 'undefined' && 'EyeDropper' in window
 
-  return createPortal(
-    <div
-      ref={box}
-      role="dialog"
-      aria-label={title}
-      data-color-picker
-      className="glass-menu fixed z-[60] animate-pop rounded-2xl p-3 text-zinc-900"
-      style={{ width: W, left: pos.left, top: pos.top, visibility: pos.ready ? 'visible' : 'hidden' }}
-      onPointerDown={(e) => e.stopPropagation()}
-    >
+  // Opened from inside a panel (Design, Content, Notes, Style): a layer over that panel, with a way back to it.
+  // Anywhere else (the start): a popover by the swatch.
+  const host = anchor?.closest<HTMLElement>('[data-layer-host]') ?? null
+  const body = (
+    <>
       {/* The hex comes first: paste one in, or copy it out. */}
       <div className="flex items-center gap-2">
         <span className="size-9 shrink-0 rounded-xl shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: hex }} />
@@ -229,6 +224,47 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, variant: 
           Use this color
         </button>
       </div>
+    </>
+  )
+  if (host)
+    return createPortal(
+      <div
+        ref={box}
+        role="dialog"
+        aria-label={title}
+        data-color-picker
+        className="absolute inset-0 z-30 flex animate-layer flex-col bg-[var(--lift,#fff)] text-zinc-900"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-1 px-2 pb-1 pt-2.5">
+          <button
+            type="button"
+            onClick={() => onDone(hex, palette ? pair.variant : undefined)}
+            aria-label={`Back to ${host.getAttribute('aria-label') ?? 'the panel'}`}
+            className={`flex h-8 items-center gap-0.5 rounded-full pl-1 pr-2.5 text-[12.5px] font-medium text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-900 ${PRESS}`}
+          >
+            <ChevronLeft size={16} /> {host.getAttribute('aria-label') ?? 'Back'}
+          </button>
+          <h3 className="flex-1 truncate text-center text-[13.5px] font-semibold text-zinc-900">{title}</h3>
+          <span className="w-16" />
+        </div>
+        <div className="thin-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-3 pt-1" data-scroll-ok>
+          {body}
+        </div>
+      </div>,
+      host,
+    )
+  return createPortal(
+    <div
+      ref={box}
+      role="dialog"
+      aria-label={title}
+      data-color-picker
+      className="glass-menu fixed z-[60] animate-pop rounded-2xl p-3 text-zinc-900"
+      style={{ width: W, left: pos.left, top: pos.top, visibility: pos.ready ? 'visible' : 'hidden' }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      {body}
     </div>,
     document.body,
   )
