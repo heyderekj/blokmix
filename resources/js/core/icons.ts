@@ -1,5 +1,6 @@
 // Icon packs: one curated set of meaningful names (arrow-right, mail, star…)
-// drawn by Lucide, Phosphor, Tabler and Heroicons at several weights. Clips
+// drawn by Lucide, Phosphor, Tabler, Heroicons, Iconoir and Material Symbols
+// Rounded at several weights. Clips
 // name their icons, so the same icon redraws in whichever set the style guide
 // uses; a source's own set is identified from the icons in its clips.
 
@@ -7,7 +8,7 @@ import data from '../data/icons.json'
 import type { HEl, HNode } from './html/parse'
 import { attr, parseHtml } from './html/parse'
 
-type Pack = 'lucide' | 'phosphor' | 'tabler' | 'heroicons'
+export type Pack = 'lucide' | 'phosphor' | 'tabler' | 'heroicons' | 'iconoir' | 'material'
 const PACKS = data.packs as Record<Pack, Record<string, Record<string, string>>>
 
 export const ICON_NAMES: readonly string[] = data.names
@@ -18,27 +19,36 @@ export interface IconSet {
   pack: Pack
   weight: string
   label: string
+  /** The style's name within its pack, for the pack-then-style picker. */
+  short: string
   style: 'outline' | 'solid' | 'duotone'
   /** Outline sets: the stroke they're drawn with (in the pack's own units). */
   stroke?: number
 }
 
 export const ICON_SETS: IconSet[] = [
-  { id: 'lucide:light', pack: 'lucide', weight: 'regular', label: 'Lucide Light', style: 'outline', stroke: 1.5 },
-  { id: 'lucide:regular', pack: 'lucide', weight: 'regular', label: 'Lucide', style: 'outline', stroke: 2 },
-  { id: 'lucide:bold', pack: 'lucide', weight: 'regular', label: 'Lucide Bold', style: 'outline', stroke: 2.5 },
-  { id: 'phosphor:thin', pack: 'phosphor', weight: 'thin', label: 'Phosphor Thin', style: 'outline' },
-  { id: 'phosphor:light', pack: 'phosphor', weight: 'light', label: 'Phosphor Light', style: 'outline' },
-  { id: 'phosphor:regular', pack: 'phosphor', weight: 'regular', label: 'Phosphor', style: 'outline' },
-  { id: 'phosphor:bold', pack: 'phosphor', weight: 'bold', label: 'Phosphor Bold', style: 'outline' },
-  { id: 'phosphor:fill', pack: 'phosphor', weight: 'fill', label: 'Phosphor Fill', style: 'solid' },
-  { id: 'phosphor:duotone', pack: 'phosphor', weight: 'duotone', label: 'Phosphor Duotone', style: 'duotone' },
-  { id: 'tabler:light', pack: 'tabler', weight: 'regular', label: 'Tabler Light', style: 'outline', stroke: 1.5 },
-  { id: 'tabler:regular', pack: 'tabler', weight: 'regular', label: 'Tabler', style: 'outline', stroke: 2 },
-  { id: 'tabler:bold', pack: 'tabler', weight: 'regular', label: 'Tabler Bold', style: 'outline', stroke: 2.5 },
-  { id: 'tabler:filled', pack: 'tabler', weight: 'filled', label: 'Tabler Filled', style: 'solid' },
-  { id: 'heroicons:outline', pack: 'heroicons', weight: 'outline', label: 'Heroicons', style: 'outline', stroke: 1.5 },
-  { id: 'heroicons:solid', pack: 'heroicons', weight: 'solid', label: 'Heroicons Solid', style: 'solid' },
+  { id: 'lucide:light', pack: 'lucide', weight: 'regular', label: 'Lucide Light', short: 'Light', style: 'outline', stroke: 1.5 },
+  { id: 'lucide:regular', pack: 'lucide', weight: 'regular', label: 'Lucide', short: 'Regular', style: 'outline', stroke: 2 },
+  { id: 'lucide:bold', pack: 'lucide', weight: 'regular', label: 'Lucide Bold', short: 'Bold', style: 'outline', stroke: 2.5 },
+  { id: 'phosphor:thin', pack: 'phosphor', weight: 'thin', label: 'Phosphor Thin', short: 'Thin', style: 'outline' },
+  { id: 'phosphor:light', pack: 'phosphor', weight: 'light', label: 'Phosphor Light', short: 'Light', style: 'outline' },
+  { id: 'phosphor:regular', pack: 'phosphor', weight: 'regular', label: 'Phosphor', short: 'Regular', style: 'outline' },
+  { id: 'phosphor:bold', pack: 'phosphor', weight: 'bold', label: 'Phosphor Bold', short: 'Bold', style: 'outline' },
+  { id: 'phosphor:fill', pack: 'phosphor', weight: 'fill', label: 'Phosphor Fill', short: 'Fill', style: 'solid' },
+  { id: 'phosphor:duotone', pack: 'phosphor', weight: 'duotone', label: 'Phosphor Duotone', short: 'Duotone', style: 'duotone' },
+  { id: 'tabler:light', pack: 'tabler', weight: 'regular', label: 'Tabler Light', short: 'Light', style: 'outline', stroke: 1.5 },
+  { id: 'tabler:regular', pack: 'tabler', weight: 'regular', label: 'Tabler', short: 'Regular', style: 'outline', stroke: 2 },
+  { id: 'tabler:bold', pack: 'tabler', weight: 'regular', label: 'Tabler Bold', short: 'Bold', style: 'outline', stroke: 2.5 },
+  { id: 'tabler:filled', pack: 'tabler', weight: 'filled', label: 'Tabler Filled', short: 'Fill', style: 'solid' },
+  { id: 'heroicons:outline', pack: 'heroicons', weight: 'outline', label: 'Heroicons', short: 'Outline', style: 'outline', stroke: 1.5 },
+  { id: 'heroicons:solid', pack: 'heroicons', weight: 'solid', label: 'Heroicons Solid', short: 'Solid', style: 'solid' },
+  { id: 'iconoir:light', pack: 'iconoir', weight: 'regular', label: 'Iconoir Light', short: 'Light', style: 'outline', stroke: 1.2 },
+  { id: 'iconoir:regular', pack: 'iconoir', weight: 'regular', label: 'Iconoir', short: 'Regular', style: 'outline', stroke: 1.5 },
+  { id: 'iconoir:bold', pack: 'iconoir', weight: 'regular', label: 'Iconoir Bold', short: 'Bold', style: 'outline', stroke: 2 },
+  { id: 'material:light', pack: 'material', weight: 'light', label: 'Material Rounded Light', short: 'Light', style: 'outline' },
+  { id: 'material:regular', pack: 'material', weight: 'regular', label: 'Material Rounded', short: 'Regular', style: 'outline' },
+  { id: 'material:bold', pack: 'material', weight: 'bold', label: 'Material Rounded Bold', short: 'Bold', style: 'outline' },
+  { id: 'material:fill', pack: 'material', weight: 'fill', label: 'Material Rounded Fill', short: 'Fill', style: 'solid' },
 ]
 
 export const DEFAULT_ICON_SET = 'lucide:regular'
@@ -52,6 +62,38 @@ export const PACK_CREDIT: Record<Pack, string> = {
   phosphor: 'Phosphor Icons (MIT), phosphoricons.com',
   tabler: 'Tabler Icons (MIT), tabler.io/icons',
   heroicons: 'Heroicons (MIT), heroicons.com',
+  iconoir: 'Iconoir (MIT), iconoir.com',
+  material: 'Material Symbols (Apache-2.0), fonts.google.com/icons',
+}
+
+/** The packs in the order the picker shows them, each with a line on its character. */
+export const ICON_PACKS: { id: Pack; label: string; hint: string }[] = [
+  { id: 'lucide', label: 'Lucide', hint: 'Clean, even lines' },
+  { id: 'phosphor', label: 'Phosphor', hint: 'Friendly, with six weights' },
+  { id: 'tabler', label: 'Tabler', hint: 'Precise and technical' },
+  { id: 'heroicons', label: 'Heroicons', hint: 'Plain and sturdy' },
+  { id: 'iconoir', label: 'Iconoir', hint: 'Light, airy, a little hand-drawn' },
+  { id: 'material', label: 'Material', hint: 'Soft, rounded shapes' },
+]
+
+/** A pack's styles (weights, fills), lightest first. */
+export const setsInPack = (pack: Pack): IconSet[] => ICON_SETS.filter((s) => s.pack === pack)
+
+/**
+ * The same style in another pack: Bold stays Bold, Fill stays filled where the pack has one, so switching packs
+ * keeps how heavy your icons are. Falls back to the pack's regular weight.
+ */
+export function sameStyleIn(pack: Pack, setId: string | undefined): string {
+  const now = iconSet(setId)
+  const sets = setsInPack(pack)
+  // The nearest name another pack uses for the same weight.
+  const near: Record<string, string[]> = { Thin: ['Light'], Light: ['Thin'], Outline: ['Regular'], Regular: ['Outline'], Duotone: ['Regular'], Solid: ['Fill'], Fill: ['Solid'] }
+  const pick =
+    sets.find((s) => s.short === now.short) ??
+    sets.find((s) => near[now.short]?.includes(s.short)) ??
+    (now.style === 'solid' ? sets.find((s) => s.style === 'solid') : undefined) ??
+    sets.find((s) => s.short === 'Regular' || s.short === 'Outline')!
+  return pick.id
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
@@ -72,6 +114,8 @@ export function iconSvg(name: string, setId: string | undefined, attrs: [string,
   const wrap: [string, string][] =
     set.pack === 'phosphor'
       ? [['viewBox', '0 0 256 256'], ['fill', 'currentColor']]
+      : set.pack === 'material'
+        ? [['viewBox', '40 -920 880 880'], ['fill', 'currentColor']]
       : set.style === 'solid' && !outlineFallback
         ? [['viewBox', '0 0 24 24'], ['fill', 'currentColor']]
         : [
