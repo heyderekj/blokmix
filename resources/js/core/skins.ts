@@ -139,7 +139,7 @@ export function applySkin(guide: GuideState, skin: Skin, contract: Contract = em
   // Your brand color comes along: the theme's palette is remade from it, unless color is Kept (it stays as it is) or
   // set to Surprise (the theme's own colors win).
   if (guide.brand && settingOf(contract, 'color') === 'tweak') {
-    const colors = paletteFrom(guide.brand.color, skin.mode)
+    const colors = paletteFrom(guide.brand.color, skin.mode, guide.brand.variant)
     for (const [k, v] of Object.entries(colors) as [TokenKey, string][]) {
       out.base[k] = v
       if (out.choices[k]) out.choices[k] = { kind: 'custom', value: v }

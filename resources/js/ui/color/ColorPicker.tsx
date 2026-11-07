@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Copy, Pipette } from 'lucide-react'
-import { hexToOklch, oklchToHex, paletteFrom, type Mode } from '@/core/palette'
+import { hexToOklch, oklchToHex, type Mode, type PaletteVariant } from '@/core/palette'
+import { pairingOf, pairingPalettes, readability, type Pairing } from '@/core/colorPairs'
 import { NAMED_COLORS, parseColor } from '@/core/colorInput'
 
 const W = 304
@@ -20,15 +21,17 @@ const css = (L: number, C: number, h: number) => `oklch(${L.toFixed(3)} ${C.toFi
  * two faders for how light and how vivid; or start from a named swatch. Works in OKLCH, so steps feel even and the
  * hex is always a real sRGB color. With `palette`, it shows the palette a brand color makes, as it'll land.
  */
-export function ColorPicker({ value, anchor, title = 'Color', palette, onChange, onDone, onCancel }: {
+export function ColorPicker({ value, anchor, title = 'Color', palette, variant: startVariant, onChange, onDone, onCancel }: {
   value: string
   anchor: HTMLElement | null
   title?: string
   /** For a brand color: show the whole palette it makes, in this mode. */
   palette?: Mode
+  /** For a brand color: how it pairs (the accent and the greys), as last chosen. */
+  variant?: PaletteVariant
   /** Every change while you pick (for a live preview). */
-  onChange?: (hex: string) => void
-  onDone: (hex: string) => void
+  onChange?: (hex: string, variant?: PaletteVariant) => void
+  onDone: (hex: string, variant?: PaletteVariant) => void
   onCancel: () => void
 }) {
   const start = useRef(parseColor(value) ?? '#a83607')
@@ -36,6 +39,7 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, onChange,
   const [hex, setHex] = useState(start.current)
   const [typed, setTyped] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [pair, setPair] = useState<Pairing>(() => pairingOf(startVariant))
   const box = useRef<HTMLDivElement>(null)
   const pos = usePlace(anchor, box)
 
@@ -57,7 +61,7 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, onChange,
     const key = (e: KeyboardEvent) => e.key === 'Escape' && (e.stopPropagation(), onCancel())
     const down = (e: PointerEvent) => {
       if (box.current?.contains(e.target as Node) || anchor?.contains(e.target as Node)) return
-      onDone(hex)
+      onDone(hex, palette ? pair.variant : undefined)
     }
     window.addEventListener('keydown', key, true)
     window.addEventListener('pointerdown', down, true)
@@ -65,9 +69,10 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, onChange,
       window.removeEventListener('keydown', key, true)
       window.removeEventListener('pointerdown', down, true)
     }
-  }, [hex, anchor, onDone, onCancel])
+  }, [hex, pair, palette, anchor, onDone, onCancel])
 
-  const swatches = useMemo(() => (palette ? paletteFrom(hex, palette) : null), [hex, palette])
+  const pairings = useMemo(() => (palette ? pairingPalettes(hex, palette) : null), [hex, palette])
+  const reads = useMemo(() => readability(hex), [hex])
   const eyedrop = typeof window !== 'undefined' && 'EyeDropper' in window
 
   return createPortal(
@@ -101,7 +106,7 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, onChange,
               setTyped(null)
               setFromHex(c)
             }}
-            onKeyDown={(e) => e.key === 'Enter' && onDone(parseColor(typed ?? hex) ?? hex)}
+            onKeyDown={(e) => e.key === 'Enter' && onDone(parseColor(typed ?? hex) ?? hex, palette ? pair.variant : undefined)}
             onBlur={() => setTyped(null)}
             spellCheck={false}
             aria-label="Hex code"
@@ -167,22 +172,60 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, onChange,
         ))}
       </div>
 
-      {swatches && (
-        <div className="mt-3 rounded-xl bg-zinc-950/[0.04] p-2">
-          <div className="flex h-7 overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]">
-            {(['color.bg', 'color.surface', 'color.text', 'color.primary', 'color.accent'] as const).map((k) => (
-              <span key={k} className="flex-1" style={{ background: swatches[k] }} />
+      {pairings && (
+        <>
+          {/* Is it readable? Words on the color, both ways, with the verdict in plain words. */}
+          <div className="mt-3 grid grid-cols-2 gap-1.5">
+            {reads.map((r, i) => (
+              <div key={r.ink} className={`flex items-center gap-1.5 rounded-xl px-1.5 py-1.5 ${i === 0 ? 'bg-zinc-950/[0.05]' : ''}`}>
+                <span className="grid size-7 shrink-0 place-items-center rounded-lg text-[12px] font-bold" style={{ background: hex, color: r.ink === 'light' ? '#ffffff' : '#17121a' }}>
+                  Aa
+                </span>
+                <span className="grid min-w-0 leading-tight">
+                  <span className={`text-[11.5px] font-semibold ${r.ratio >= 4.5 ? 'text-zinc-800' : r.ratio >= 3 ? 'text-amber-700' : 'text-red-600'}`}>{r.verdict}</span>
+                  <span className="whitespace-nowrap text-[10.5px] tabular-nums text-zinc-400">
+                    {r.ink === 'light' ? 'White' : 'Dark'} · {r.ratio.toFixed(1)}:1
+                  </span>
+                </span>
+              </div>
             ))}
           </div>
-          <p className="pt-1.5 text-[11px] leading-snug text-zinc-500">The whole palette follows, and every pair of colors stays readable.</p>
-        </div>
+          {/* What it pairs with: each a whole palette, readable by construction. */}
+          <div className="mt-3">
+            <div className="flex items-baseline justify-between pb-1.5">
+              <span className="text-[11.5px] font-semibold text-zinc-800">Goes with</span>
+              <span className="text-[10.5px] text-zinc-400">every one reads</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {pairings.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  title={p.words}
+                  aria-pressed={pair.id === p.id}
+                  onClick={() => (setPair(p), onChange?.(hex, p.variant))}
+                  className={`grid gap-1 rounded-xl p-1.5 text-left ${PRESS} ${pair.id === p.id ? 'bg-white shadow-[0_0_0_2px_#17121A]' : 'shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)] hover:bg-zinc-950/[0.03]'}`}
+                >
+                  <span className="flex h-6 overflow-hidden rounded-md shadow-[inset_0_0_0_1px_rgb(0_0_0/0.06)]" style={{ background: p.palette['color.bg'] }}>
+                    <span className="w-1/4" style={{ background: p.palette['color.surface'] }} />
+                    <span className="flex-1" style={{ background: p.palette['color.primary'] }} />
+                    <span className="w-1/4" style={{ background: p.palette['color.accent'] }} />
+                    <span className="w-1/6" style={{ background: p.palette['color.text'] }} />
+                  </span>
+                  <span className="truncate px-0.5 text-[11px] font-semibold text-zinc-700">{p.name}</span>
+                </button>
+              ))}
+            </div>
+            <p className="pt-1.5 text-[11px] leading-snug text-zinc-500">{pair.words}.</p>
+          </div>
+        </>
       )}
 
       <div className="mt-3 flex justify-end gap-1.5">
         <button type="button" onClick={onCancel} className={`h-8 rounded-full px-3 text-[12.5px] font-medium text-zinc-600 hover:bg-zinc-950/5 ${PRESS}`}>
           Cancel
         </button>
-        <button type="button" onClick={() => onDone(hex)} className={`h-8 rounded-full bg-zinc-900 px-3.5 text-[12.5px] font-semibold text-white ${PRESS}`}>
+        <button type="button" onClick={() => onDone(hex, palette ? pair.variant : undefined)} className={`h-8 rounded-full bg-zinc-900 px-3.5 text-[12.5px] font-semibold text-white ${PRESS}`}>
           Use this color
         </button>
       </div>
@@ -316,11 +359,12 @@ function usePlace(anchor: HTMLElement | null, box: React.RefObject<HTMLDivElemen
  * A swatch that opens the picker. `live` sends every change as you pick (for a preview); otherwise only the color you
  * end on. The swatch itself is whatever you pass, or a plain round chip.
  */
-export function ColorButton({ value, onPick, live, palette, title, className, children }: {
+export function ColorButton({ value, onPick, live, palette, variant, title, className, children }: {
   value: string
-  onPick: (hex: string) => void
-  live?: (hex: string) => void
+  onPick: (hex: string, variant?: PaletteVariant) => void
+  live?: (hex: string, variant?: PaletteVariant) => void
   palette?: Mode
+  variant?: PaletteVariant
   title?: string
   className?: string
   children?: ReactNode
@@ -351,10 +395,11 @@ export function ColorButton({ value, onPick, live, palette, title, className, ch
           anchor={ref.current}
           title={title}
           palette={palette}
+          variant={variant}
           onChange={live}
-          onDone={(h) => {
+          onDone={(h, v) => {
             setOpen(false)
-            if (h !== before.current) onPick(h)
+            if (h !== before.current || v) onPick(h, v)
           }}
           onCancel={() => {
             setOpen(false)

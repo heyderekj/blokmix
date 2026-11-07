@@ -1,4 +1,5 @@
 import { ColorButton } from '@/ui/color/ColorPicker'
+import type { PaletteVariant } from '@/core/palette'
 import { useResolvedGuide } from '@/state/derived'
 import { Moon, Sun, X } from 'lucide-react'
 import { DIAL_NAMES, DIALS, readDials, setTone, toneOfGuide } from '@/core/dials'
@@ -73,10 +74,11 @@ export function Dials() {
  */
 export function BrandColor({ fallback }: { fallback: string }) {
   const brand = useStore((s) => s.guide.brand?.color)
+  const variant = useStore((s) => s.guide.brand?.variant)
   const mode = toneOfGuide(useResolvedGuide().tokens)
   const draft = brand ?? fallback
-  const pick = (hex: string) => {
-    useStore.getState().setBrandColor(hex)
+  const pick = (hex: string, v?: PaletteVariant) => {
+    useStore.getState().setBrandColor(hex, v)
     useStore.getState().showFlash('Made a palette from your brand color', { undo: true })
   }
   return (
@@ -85,6 +87,7 @@ export function BrandColor({ fallback }: { fallback: string }) {
         value={draft}
         onPick={pick}
         palette={mode}
+        variant={variant}
         title="Brand color"
         className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1 py-1 text-left transition-[background-color] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5"
       >
