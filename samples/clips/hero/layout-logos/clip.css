@@ -55,27 +55,18 @@
     gap: var(--mx-space-6) var(--mx-space-8);
   }
 
-  /* A logo, unfilled: a small box with a cross. */
+  /* A logo is plain words until you add the picture: an uploaded logo fills the word's own box. */
   & .logo {
-    position: relative;
-    display: block;
-    overflow: hidden;
-    width: 120px;
-    aspect-ratio: 4 / 1;
-    background: var(--mx-color-surface);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius-sm);
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    font-family: var(--mx-font-display);
+    font-weight: var(--mx-type-display-weight);
+    font-size: var(--mx-text-lg);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--mx-color-muted);
   }
-  & .x {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    fill: none;
-    stroke: var(--mx-color-border);
-    stroke-width: var(--mx-stroke);
-  }
-  & .x path { vector-effect: non-scaling-stroke; }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-text)); }
@@ -91,6 +82,6 @@
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; }
     & .trusted { padding-top: var(--mx-space-7); gap: var(--mx-space-6); }
     & .logos { gap: var(--mx-space-5) var(--mx-space-6); }
-    & .logo { width: 84px; }
+    & .logo { font-size: var(--mx-text-base); }
   }
 }
