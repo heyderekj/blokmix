@@ -1,3 +1,4 @@
+import { ColorButton } from '@/ui/color/ColorPicker'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { create } from 'zustand'
 import { Link2, LayoutTemplate, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, MoreHorizontal, Palette, Plus, RotateCcw, Type, Users, MessageSquarePlus, Image as ImageIcon, Smile, Database, ListPlus } from 'lucide-react'
@@ -95,7 +96,8 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   useEffect(() => {
     if (!menu) return
     const down = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setMenu(null)
+      // A color picker opened from the menu floats above the page: picking in it isn't a click away.
+      if (!ref.current?.contains(e.target as Node) && !(e.target as Element).closest?.('[data-color-picker]')) setMenu(null)
     }
     window.addEventListener('pointerdown', down, true)
     return () => window.removeEventListener('pointerdown', down, true)
@@ -817,7 +819,7 @@ function NewSwatch({ onDone }: { onDone: (name: string | null) => void }) {
   }
   return (
     <div className="mx-2 mb-1.5 flex items-center gap-2 rounded-xl bg-zinc-950/[0.04] p-1.5">
-      <input type="color" value={value} onChange={(e) => setValue(e.target.value)} className="size-7 shrink-0 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Color" />
+      <ColorButton value={value} onPick={setValue} title="Color" />
       <input
         autoFocus
         value={name}

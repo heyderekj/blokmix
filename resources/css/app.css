@@ -59,6 +59,7 @@
 
   --animate-pop: pop 160ms var(--ease-snap) both;
   --animate-rise: rise 220ms var(--ease-out-strong) both;
+  --animate-layer: layer-in 200ms var(--ease-out-strong) both;
   --animate-pulse-ring: pulse-ring 1.6s ease-out infinite;
 
   @keyframes pop {
@@ -66,6 +67,10 @@
   }
   @keyframes rise {
     from { opacity: 0; transform: translateY(6px); }
+  }
+  /* A sub-panel stepping in over its parent panel, from the side it came from. */
+  @keyframes layer-in {
+    from { opacity: 0; transform: translateX(14px); }
   }
   @keyframes pulse-ring {
     0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--n-500) 55%, transparent); }

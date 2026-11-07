@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { ColorButton } from '@/ui/color/ColorPicker'
+import type { PaletteVariant } from '@/core/palette'
+import { useResolvedGuide } from '@/state/derived'
 import { Moon, Sun, X } from 'lucide-react'
 import { DIAL_NAMES, DIALS, readDials, setTone, toneOfGuide } from '@/core/dials'
 import { useStore } from '@/state/store'
@@ -72,31 +74,31 @@ export function Dials() {
  */
 export function BrandColor({ fallback }: { fallback: string }) {
   const brand = useStore((s) => s.guide.brand?.color)
-  const [draft, setDraft] = useState(brand ?? fallback)
-  useEffect(() => setDraft(brand ?? fallback), [brand, fallback])
-  const input = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    const el = input.current
-    if (!el) return
-    // The native "change" fires when the picker closes; React's onChange fires on every drag.
-    const done = () => {
-      useStore.getState().setBrandColor(el.value)
-      useStore.getState().showFlash('Made a palette from your brand color', { undo: true })
-    }
-    el.addEventListener('change', done)
-    return () => el.removeEventListener('change', done)
-  }, [])
+  const variant = useStore((s) => s.guide.brand?.variant)
+  const mode = toneOfGuide(useResolvedGuide().tokens)
+  const draft = brand ?? fallback
+  const pick = (hex: string, v?: PaletteVariant) => {
+    useStore.getState().setBrandColor(hex, v)
+    useStore.getState().showFlash('Made a palette from your brand color', { undo: true })
+  }
   return (
     <div className="mb-3 flex items-center gap-2">
-      <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1 py-1 transition-[background-color] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5">
-        <span className="relative size-6 shrink-0 overflow-hidden rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: draft }}>
-          <input ref={input} type="color" value={draft} onChange={(e) => setDraft(e.target.value)} aria-label="Brand color" className="absolute inset-0 cursor-pointer opacity-0" />
-        </span>
+      <ColorButton
+        value={draft}
+        onPick={pick}
+        palette={mode}
+        variant={variant}
+        title="Brand color"
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1 py-1 text-left transition-[background-color] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5"
+      >
+        <span className="size-6 shrink-0 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: draft }} />
         <span className="grid leading-tight">
-          <span className="text-[11.5px] font-medium text-zinc-700">Brand color</span>
-          <span className="text-[10.5px] text-zinc-400">{brand ? 'Your palette, kept when you try themes' : 'Pick one: the whole palette follows'}</span>
+          <span className="text-[11.5px] font-medium text-zinc-700">
+            Brand color {brand && <span className="font-mono text-[10.5px] uppercase text-zinc-400">{brand}</span>}
+          </span>
+          <span className="text-[10.5px] text-zinc-400">{brand ? 'Your palette, kept when you try themes' : 'Pick one or paste a hex: the whole palette follows'}</span>
         </span>
-      </label>
+      </ColorButton>
       {brand && (
         <button
           type="button"

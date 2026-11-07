@@ -35,7 +35,7 @@ import type {
 } from '@/core/types'
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, resolveGuide, SOURCE_PREFIX } from '@/core/guide'
-import { paletteFrom } from '@/core/palette'
+import { paletteFrom , type PaletteVariant } from '@/core/palette'
 import { toneOfGuide } from '@/core/dials'
 import { library, slotClip } from '@/data/library'
 import { cycleIds, layoutOpen, withClip } from '@/core/library'
@@ -257,7 +257,7 @@ export interface State extends MixData {
   /** What the site is for (core/brief.ts), patched in one undo step; the kind follows it. */
   setBrief: (patch: Partial<Brief>) => void
   /** One brand color: a whole palette made from it, kept when you try other themes (null forgets it). */
-  setBrandColor: (color: string | null) => void
+  setBrandColor: (color: string | null, variant?: PaletteVariant) => void
 
   // versions
   pressVersion: () => string
@@ -916,15 +916,16 @@ export const useStore = create<State>()(
               const { logo: _, ...rest } = st.content
               return { content: logo ? { ...rest, logo } : rest }
             }),
-          setBrandColor: (color) =>
+          setBrandColor: (color, variant) =>
             set((st) => {
               if (!color) {
                 const { brand: _, ...rest } = st.guide
                 return { guide: rest }
               }
-              const colors = paletteFrom(color, toneOfGuide(resolveGuide(st.guide).tokens))
+              const colors = paletteFrom(color, toneOfGuide(resolveGuide(st.guide).tokens), variant)
               const guide = (Object.entries(colors) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide)
-              return { guide: { ...guide, brand: { color } } }
+              const pairs = variant && (variant.accentTurn !== undefined || variant.tint !== undefined)
+              return { guide: { ...guide, brand: { color, ...(pairs ? { variant } : {}) } } }
             }),
 
           ...versionActions(set, get),

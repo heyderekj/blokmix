@@ -552,6 +552,15 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
   finish typing: fields, each section's words and kept options, whole words only (`renameBrand`), one undo step.
 - Your logo once (`content.logo`, `set_logo`) fills the nav's and footer's logo spot (`isSiteLogo`) wherever it has no
   picture of its own, clipped or built in (`pictureFor`'s `site` argument).
+- Colors are picked in Blokmix's own picker (`ui/color/ColorPicker.tsx`, `ColorButton`; never `<input type="color">`): the hex first
+  (paste or type, `core/colorInput.ts` `parseColor` takes hex, short hex and rgb()), copy and the eyedropper; a ring of hues around
+  a disc of the color (drag round it, ← →); one Shade slider, Deep to Light, in OKLCH (the knob is the Feel dials'); named swatches (`NAMED_COLORS`); for a brand color, the palette
+  it makes. Opened from inside a side panel (anything marked `data-layer-host`: Design, Content, Notes, the Style panel) it's a layer over
+  that panel, "‹ Design · Brand color", that slides in (`animate-layer`); elsewhere a popover by the swatch. Escape puts it back;
+  Use this color, the back arrow or a click outside keeps it. For a brand color it also says how words read on it
+  (white and dark, ratio and a plain verdict, `core/colorPairs.ts` `readability`) and offers six pairings, each a whole palette
+  that reads (`PAIRINGS`: Triad, Opposite, Split, Neighbor, Quiet, Rich, as `PaletteVariant`s); the one you pick is kept as
+  `guide.brand.variant`, so trying themes keeps it (`applySkin`).
 - One brand color (`guide.brand`, the Feel tile, `set_brand_color`) makes a whole AA palette (`paletteFrom`), and
   `applySkin` remakes the theme's colors from it unless the contract keeps color (stays) or sets it to Surprise.
 - Trying another layout keeps your pictures and links (`carryEdits`, run by `withClip`): by picture name (any logo spot

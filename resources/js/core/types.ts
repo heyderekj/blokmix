@@ -259,7 +259,8 @@ export interface GuideState {
   /** The skin this guide came from (core/skins.ts), so the board and the packet can name it. */
   skin?: { id: string; name: string }
   /** Your brand color: the palette is made from it, and trying another theme keeps it (unless color is set to Surprise). */
-  brand?: { color: string }
+  /** One brand color the palette is made from, and how it pairs (`core/colorPairs.ts`; the accent and the greys). */
+  brand?: { color: string; variant?: import('./palette').PaletteVariant }
 }
 
 /** A type of section's look across the page. */

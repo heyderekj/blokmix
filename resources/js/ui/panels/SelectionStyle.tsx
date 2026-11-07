@@ -78,6 +78,7 @@ function Panel({ slot, block }: { slot: Slot; block?: BlockInfo }) {
       style={{ backgroundColor: 'var(--lift)', boxShadow: '0 0 0 1px rgb(0 0 0 / 0.08), 0 16px 40px -16px rgb(0 0 0 / 0.35)' }}
       // Below the top bar (Save, Share, Export stay reachable); on phones a sheet that sits above the dock.
       className="fixed right-3 top-[68px] z-40 flex max-h-[calc(100dvh-80px)] w-[340px] flex-col overflow-hidden rounded-2xl max-sm:inset-x-3 max-sm:bottom-[72px] max-sm:top-auto max-sm:max-h-[42vh] max-sm:w-auto"
+      data-layer-host
       onPointerDown={(e) => e.stopPropagation()}
       onPointerUp={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
