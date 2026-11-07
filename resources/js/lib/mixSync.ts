@@ -31,7 +31,7 @@ export interface ServerMix {
   schema?: number
   /** Archived: read-only until its owner brings it back. */
   archived?: boolean
-  /** Whether its owner has a mix pack (what the board opens follows the owner). */
+  /** Whether its owner has Plus (what the board opens follows the owner). */
   paid?: boolean
 }
 

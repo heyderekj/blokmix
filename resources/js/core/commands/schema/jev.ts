@@ -71,7 +71,7 @@ export const JEV_COMMANDS = {
   },
   suggest_treatments: {
     description:
-      'Dress it up: backgrounds that suit a section (from Blokmix’s own backdrops and presets, a live shader only if no other section runs one), a product screen for its empty picture, and with no section the set of effects that suits the whole page. Jev reads each treatment’s name and description against the section’s words, the skin’s mood and the feel you give. Returns ready commands (set_section_backdrop, set_mock, apply_look) and whether each needs a mix pack. Changes nothing.',
+      'Dress it up: backgrounds that suit a section (from Blokmix’s own backdrops and presets, a live shader only if no other section runs one), a product screen for its empty picture, and with no section the set of effects that suits the whole page. Jev reads each treatment’s name and description against the section’s words, the skin’s mood and the feel you give. Returns ready commands (set_section_backdrop, set_mock, apply_look) and whether each needs Plus. Changes nothing.',
     input: z.object({ section: section.optional(), feel: z.string().trim().max(160).optional() }),
     write: false,
   },

@@ -14,7 +14,7 @@ use RuntimeException;
 
 /**
  * The few Polar calls Blokmix needs (checkout, customer portal) and webhook verification. Ported from ReviseMy.
- * Polar is the merchant of record; mix packs live in our database.
+ * Polar is the merchant of record; who has Plus lives in our database.
  */
 class PolarClient
 {
@@ -25,7 +25,7 @@ class PolarClient
     {
         return filled(config('billing.polar.access_token'))
             && filled(config('billing.polar.webhook_secret'))
-            && filled($this->productId('mix_pack'));
+            && filled($this->productId('plus'));
     }
 
     public function baseUrl(): string

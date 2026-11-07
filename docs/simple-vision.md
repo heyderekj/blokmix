@@ -71,8 +71,8 @@ in hidden frames at several widths and read what we see.
 
 ## Pricing direction
 
-See `pricing.md`: a free tier that completes one real starting point, and a $20 one-time mix pack for the full
-library, every control and 3 mixes open at a time (packs stack). No subscription. Editors and viewers free. No seat math.
+See `pricing.md`: Free completes one real site, and Plus, $25 once, opens the full library, every control and as
+many mixes as you like. No subscription (only ever for hosting on your own domain, if we build it). Editors and viewers free. No seat math.
 
 ## Relationship to the rest of the suite
 

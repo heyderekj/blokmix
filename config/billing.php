@@ -2,8 +2,8 @@
 
 return [
     /*
-     * Mix packs are sold through Polar (merchant of record), in Blokmix's own Polar organization. Until this is on,
-     * nothing calls Polar and the buy button says packs are coming soon.
+     * Plus is sold through Polar (merchant of record), in Blokmix's own Polar organization. Until this is on, nothing
+     * calls Polar and the buy button says Plus opens at launch.
      */
     'enabled' => (bool) env('BLOKMIX_PRICING_ENABLED', false),
 
@@ -11,9 +11,9 @@ return [
         'server' => env('POLAR_SERVER', 'production'), // production | sandbox
         'access_token' => env('POLAR_ACCESS_TOKEN'),
         'webhook_secret' => env('POLAR_WEBHOOK_SECRET'),
-        // Our product keys to Polar product ids. A mix pack is one-time: three mixes (config/blokmix.php `pack`).
+        // Our product keys to Polar product ids. Plus is one-time (config/blokmix.php `plus`).
         'products' => [
-            'mix_pack' => env('POLAR_PRODUCT_MIX_PACK'),
+            'plus' => env('POLAR_PRODUCT_PLUS'),
         ],
     ],
 ];

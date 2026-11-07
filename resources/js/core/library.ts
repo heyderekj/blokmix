@@ -197,7 +197,7 @@ export const starterOpen = (lib: Library, starter: { pages: { sections: string[]
 
 /**
  * The clips you can pick for a section, from the whole account: the layouts, then captured clips. Draft layouts wait
- * for review. On Free, layouts in a mix pack are left out unless `locked` asks for them too (the Crate shows them with
+ * for review. On Free, layouts in Plus are left out unless `locked` asks for them too (the Crate shows them with
  * a lock).
  */
 export const pickable = (lib: Library, type: SectionType, opts: { locked?: boolean } = {}): string[] =>

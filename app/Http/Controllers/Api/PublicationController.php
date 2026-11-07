@@ -59,7 +59,7 @@ class PublicationController extends Controller
         }
 
         $owner = $mix->owner() ?? $request->user();
-        $badge = $owner->planName() === 'free';
+        $badge = ! $owner->hasPlus();
         $publication = Publication::firstOrNew(['mix_id' => $mix->id], ['code' => Publication::freshCode(), 'kind' => 'mix']);
         $slug = Publication::slugFor($input['name']);
         foreach ($files as $path => $data) {

@@ -107,7 +107,7 @@ class PublishingTest extends TestCase
         $this->publish(files: ['about.html' => 'x'])->assertUnprocessable();
     }
 
-    public function test_free_has_one_publication_with_a_badge_and_files_count(): void
+    public function test_free_publishes_with_a_badge_and_files_count(): void
     {
         $this->actingAs($this->owner)->publish()->assertOk()->assertJsonPath('publication.badge', true);
         $code = Publication::first()->code;
@@ -116,10 +116,10 @@ class PublishingTest extends TestCase
 
         $other = Mix::create(['name' => 'Second']);
         $other->admit($this->owner, MixRole::Owner);
-        $this->publish($other)->assertForbidden();
+        $this->publish($other)->assertOk()->assertJsonPath('publication.badge', true);
 
-        // A mix pack: as many as you like, no badge.
-        $this->owner->forceFill(['mix_packs' => 1])->save();
+        // Plus: no badge.
+        $this->owner->forceFill(['plan' => 'plus'])->save();
         $this->publish($other)->assertOk()->assertJsonPath('publication.badge', false);
         $this->publish()->assertOk();
         $this->assertStringNotContainsString('Made with Blokmix', Storage::disk('uploads-test')->get("published/{$code}/index.html"));

@@ -4,7 +4,7 @@ import { TYPE_RATIOS } from '@/core/dials'
 import { Check, ClipboardCopy, Lock, Plus, RotateCcw, X } from 'lucide-react'
 import { FREE_TOKENS } from '@/core/plan'
 import { useAccount } from '@/lib/account'
-import { needsPack } from '@/state/plan'
+import { needsPlus } from '@/state/plan'
 import type { BlockKind, ComponentDefault, Conflict, TokenGroup, TokenKey } from '@/core/types'
 import { BLOCK_LABEL } from '@/core/blocks'
 import { findVariant } from '@/core/blocks/variants'
@@ -281,14 +281,14 @@ const TYPE_HINT: Record<TokenGroup, (t: Record<TokenKey, string>) => string> = {
 export function TokenRow({ k, value, provenance, conflict, chosen }: { k: TokenKey; value: string; provenance: string; conflict?: Conflict; chosen: boolean }) {
   const st = useStore.getState
   const from = provenance === 'base' ? 'default' : provenance === 'custom' ? 'custom' : (sourceOf(provenance)?.name ?? '')
-  // On Free, the Feel dials move these; the knob itself is in a mix pack (brand colors and fonts stay yours).
+  // On Free, the Feel dials move these; the knob itself is in Plus (brand colors and fonts stay yours).
   const locked = !useAccount((s) => s.paid) && !FREE_TOKENS.has(k)
   return (
     <div className={`rounded-xl ${conflict && !conflict.resolved ? 'bg-attention-soft/40 p-2 ring-1 ring-attention/30' : ''}`}>
       <div className="flex items-center gap-2">
         <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-zinc-700">{TOKEN_LABEL[k]}</span>
         <span className="truncate text-[11px] text-zinc-400">{from}</span>
-        {locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="In a mix pack" />}
+        {locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="In Plus" />}
         {chosen && (
           <button type="button" title="Reset to automatic" onClick={() => st().chooseToken(k, null)} className="grid size-5 place-items-center rounded text-zinc-400 hover:bg-zinc-950/5 hover:text-zinc-700">
             <RotateCcw size={11} />
@@ -299,7 +299,7 @@ export function TokenRow({ k, value, provenance, conflict, chosen }: { k: TokenK
         <div inert={locked} className={locked ? 'opacity-50' : undefined}>
           <Knob k={k} value={value} onChange={(v) => st().chooseToken(k, { kind: 'custom', value: v })} />
         </div>
-        {locked && <button type="button" onClick={() => needsPack(TOKEN_LABEL[k])} className="absolute inset-0 cursor-pointer" aria-label={`${TOKEN_LABEL[k]}: in a mix pack`} />}
+        {locked && <button type="button" onClick={() => needsPlus(TOKEN_LABEL[k])} className="absolute inset-0 cursor-pointer" aria-label={`${TOKEN_LABEL[k]}: in Plus`} />}
       </div>
       {conflict && (
         <div className="mt-2 flex flex-wrap gap-1.5">

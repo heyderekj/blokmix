@@ -21,7 +21,7 @@ export interface Skin {
   name: string
   /** One line a non-designer can picture. */
   words: string
-  /** Free skins work on any plan; the rest come with a mix pack. */
+  /** Free skins work on any plan; the rest come with Plus. */
   tier: 'free' | 'pack'
   mode: 'light' | 'dark'
   /** How it feels, in the Look panel's words (`core/feel.ts`): what “warm” or “serious” brings up. */

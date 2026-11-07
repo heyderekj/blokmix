@@ -55,7 +55,7 @@ This keeps the free tier useful for completing one starting point while the lice
   dark, vivid) is read from the clip's own colors. The Crate's Library tab filters by all of these in plain words.
 - **Starter mixes** live in `samples/starters/*.json`: a name, what it's for, a feel, and its pages' sections.
   The guided start offers the ones that match first.
-- A layout's `tier` is `free` (on Free) or left out (in a mix pack). `core/library.ts` `layoutOpen`/`pickable` enforce it
+- A layout's `tier` is `free` (on Free) or left out (Plus). `core/library.ts` `layoutOpen`/`pickable` enforce it
   when `library.paid === false`; every type keeps at least three free layouts (`tests/plan.test.ts`).
 
 ## Open questions

@@ -176,38 +176,9 @@ class CollectionsTest extends TestCase
         $this->getJson("/api/collections/{$made['id']}?mix={$plain->id}")->assertNotFound();
     }
 
-    public function test_free_has_one_collection_of_25_entries(): void
+    public function test_collections_have_no_limits_on_free(): void
     {
-        [$me, $editor] = User::factory()->count(2)->create();
-        $made = $this->create($me);
-        $this->actingAs($me)->postJson('/api/collections', ['slug' => 'team', 'name' => 'Team', 'schema' => $this->schema()])
-            ->assertForbidden()->assertJsonPath('message', 'Free includes one collection. A mix pack has as many as you like.');
-
-        $this->save($made['id'], 1, ['entries' => $this->entries(25)])->assertOk();
-        $this->save($made['id'], 2, ['entries' => $this->entries(26)])->assertForbidden();
-
-        // An editor's entries count toward the owner.
-        $mix = $this->boundMix($me, $editor);
-        $this->actingAs($editor);
-        $this->save($made['id'], 2, ['entries' => $this->entries(26)], "?mix={$mix->id}")->assertForbidden()
-            ->assertJsonPath('message', 'This collection’s owner is out of room for entries.');
-
-        // Work already over the limit is kept: it can shrink or be edited, just not grow.
-        $over = $this->entries(30);
-        Collection::whereKey($made['id'])->update(['entries' => json_encode($over)]);
-        $over[0]['data']['title'] = 'Edited';
-        $this->actingAs($me);
-        $this->save($made['id'], 2, ['entries' => $over])->assertOk();
-        $this->save($made['id'], 3, ['entries' => $this->entries(31)])->assertForbidden();
-
-        $this->actingAs($me)->getJson('/api/collections')->assertOk();
-        $this->assertSame(1, $me->usage()['collections']);
-        $this->actingAs(User::factory()->create())->postJson('/api/collections', ['slug' => 'big', 'name' => 'Big', 'schema' => $this->schema(), 'entries' => $this->entries(26)])->assertForbidden();
-    }
-
-    public function test_plus_has_no_collection_limits(): void
-    {
-        $me = User::factory()->create(['email' => 'runs@blokmix.test']);
+        $me = User::factory()->create();
         $this->create($me);
         $this->create($me, ['slug' => 'team', 'name' => 'Team', 'entries' => $this->entries(100)]);
         $this->assertSame(2, $me->collections()->count());

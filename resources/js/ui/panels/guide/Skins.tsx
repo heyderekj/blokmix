@@ -57,7 +57,7 @@ export function SkinCard({ label, words, tokens, components, here, locked, onPic
       </span>
       <span className="flex items-center justify-between gap-1 px-1 text-[11.5px] font-semibold text-zinc-800">
         <span className="truncate">{label}</span>
-        {here ? <Check size={12} className="shrink-0" /> : locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="Mix pack" />}
+        {here ? <Check size={12} className="shrink-0" /> : locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="Plus" />}
       </span>
     </button>
   )
