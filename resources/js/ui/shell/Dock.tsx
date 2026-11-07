@@ -11,8 +11,8 @@ import { canvasApi, onPaint } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
 import { Alternatives } from './Alternatives'
-import { toggleSheet, useWideBar } from './TopBar'
-import { toggleLeft } from './LeftPanel'
+import { toggleSheet } from './TopBar'
+import { toggleLeft, useDocked } from './LeftPanel'
 import { outstanding } from '@/core/notes'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
@@ -83,9 +83,9 @@ export function Dock() {
   )
 }
 
-/** On a narrow window there's no room for the left rail: Words, Look and Notes sit at the start of the dock instead. */
+/** On a phone there's no room for the left rail: Words, Look and Notes sit at the start of the dock instead. */
 function NarrowPanels() {
-  const wide = useWideBar()
+  const wide = useDocked()
   const which = useStore((s) => s.ui.leftPanel)
   const todo = useStore((s) => s.notes.filter(outstanding).length)
   if (wide) return null
