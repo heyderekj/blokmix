@@ -1,11 +1,11 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { CornerDownLeft, X } from 'lucide-react'
 import type { Kind } from '@/core/types'
-import { defaultOrder, openBlanks, type Blank, type Choice, type Matched, type Picks, type Segment } from '@/core/jev/sentence'
+import { groupsOf, openBlanks, orderOptions, suggestedFor, type Blank, type Choice, type Matched, type Picks, type Segment } from '@/core/jev/sentence'
 
 /**
- * A sentence with blanks, after the motion menu: "I'm making a site for [a bakery] called [Fern & Co]…". Tap a blank and
- * a row of options opens under the sentence; the field at its end takes your own words (Jev maps them to the nearest
+ * A sentence with blanks, after the motion menu: "I'm making a site for [what it is] called [its name]…". Each empty blank
+ * says what it asks for. Tap one and its options open under the sentence (in groups, with a few to try first); the field at its end takes your own words (Jev maps them to the nearest
  * option, and your words still stand). Picking moves on to the next empty blank; Tab steps between blanks.
  */
 export function Sentence({
@@ -116,12 +116,17 @@ export function Sentence({
   )
 }
 
-/** A blank in the sentence: its words once filled, its placeholder while empty; several picks read as a list. */
+/** A blank in the sentence: its words once filled, what it asks for while empty; several picks read as a list. */
 function BlankWords({ blank, picks, open, big, onOpen, onDrop }: { blank: Blank; picks: Picks; open: boolean; big: boolean; onOpen: () => void; onDrop: (i: number) => void }) {
   const list = (picks[blank.id] ?? []).filter((p) => p.words.trim())
-  const base = `rounded-lg underline decoration-dotted decoration-[1.5px] underline-offset-[6px] transition-[background-color,color] duration-150 ${big ? 'px-1.5' : 'px-1'}`
+  const base = `rounded-lg border-[1.5px] underline decoration-dotted decoration-[1.5px] underline-offset-[6px] transition-[background-color,color,border-color] duration-150 ${big ? 'px-1.5' : 'px-1'}`
+  // Empty, a blank is a dashed slot naming what goes there; filled, your words in ink.
   const look = (on: boolean, filled: boolean) =>
-    on ? 'bg-zinc-900 text-white decoration-transparent' : filled ? 'bg-[#FF69B4]/10 text-zinc-900 decoration-[#FF69B4] [@media(hover:hover)]:hover:bg-[#FF69B4]/20' : 'text-zinc-400 decoration-zinc-300 [@media(hover:hover)]:hover:bg-zinc-950/5 [@media(hover:hover)]:hover:text-zinc-700'
+    on
+      ? 'border-zinc-900 bg-zinc-900 text-white decoration-transparent'
+      : filled
+        ? 'border-transparent bg-[#FF69B4]/10 text-zinc-900 decoration-[#FF69B4] [@media(hover:hover)]:hover:bg-[#FF69B4]/20'
+        : 'border-dashed border-zinc-300 text-zinc-400 decoration-transparent [@media(hover:hover)]:hover:border-zinc-400 [@media(hover:hover)]:hover:text-zinc-600'
   if (blank.many && list.length) {
     return (
       <>
@@ -144,14 +149,15 @@ function BlankWords({ blank, picks, open, big, onOpen, onDrop }: { blank: Blank;
   }
   return (
     <button type="button" onClick={onOpen} aria-expanded={open} className={`cursor-pointer ${base} ${look(open, list.length > 0)}`}>
-      {list.length ? list.map((p) => p.words).join(', ') : blank.placeholder}
+      {list.length ? list.map((p) => p.words).join(', ') : (blank.ask ?? blank.placeholder)}
     </button>
   )
 }
 
 /**
- * A blank's options in one sideways row, Jev's best first, and a field for your own words at the end. The order is taken
- * when the row opens and stays put while your pointer is on it; a newer order fades in.
+ * A blank's options. In the start (big) they come in groups, with a few to try first once there's something to go on; in
+ * the bar, one sideways row. A field for your own words sits at the end. The order is taken when the options open and
+ * stays put while your pointer is on them; a newer order fades in.
  */
 function Options({
   blank,
@@ -176,12 +182,9 @@ function Options({
 }) {
   const [words, setWords] = useState('')
   const [hovering, setHovering] = useState(false)
+  const [more, setMore] = useState<Set<string>>(new Set())
   const field = useRef<HTMLInputElement>(null)
-  const sorted = useMemo(() => {
-    if (!order?.length) return defaultOrder(blank.options, kind)
-    const at = new Map(order.map((id, i) => [id, i]))
-    return [...blank.options].sort((a, b) => (at.get(a.id) ?? 999) - (at.get(b.id) ?? 999))
-  }, [blank, order, kind])
+  const sorted = useMemo(() => orderOptions(blank, order, kind), [blank, order, kind])
   // Never reorder under the pointer.
   const [shown, setShown] = useState(sorted)
   const [fade, setFade] = useState(false)
@@ -202,22 +205,107 @@ function Options({
 
   const chosen = new Set((picks[blank.id] ?? []).map((p) => p.id).filter(Boolean))
   const q = words.trim().toLowerCase()
-  const list = q ? shown.filter((o) => o.label.toLowerCase().includes(q)) : shown
+  const hits = (o: Choice) => !q || o.label.toLowerCase().includes(q)
+  const list = shown.filter(hits)
   const near = closest.map((id) => blank.options.find((o) => o.id === id)).filter((o): o is Choice => !!o)
-  const chip = (o: Choice, hint?: boolean) => (
+  const ids = shown.map((o) => o.id)
+  const grouped = big && !!blank.groups?.length
+  const suggested = grouped ? suggestedFor(blank, order?.length || kind ? ids : undefined) : []
+  // A group shows its first few; "+ n more" only when that hides more than a couple.
+  const SHOW = 6
+  const groups = grouped ? groupsOf(blank, ids) : []
+
+  const chip = (o: Choice, hint?: boolean, key = '') => (
     <button
-      key={`${hint ? 'n' : ''}${o.id}`}
+      key={`${key}${hint ? 'n' : ''}${o.id}`}
       type="button"
       onClick={() => onChoose(o)}
       data-on={chosen.has(o.id) || undefined}
       aria-pressed={chosen.has(o.id)}
-      className={`shrink-0 cursor-pointer snap-start rounded-full font-medium transition-[background-color,box-shadow,scale,color] duration-150 active:scale-[0.97] ${big ? 'h-10 px-4 text-[14.5px]' : 'h-8 px-3 text-[12.5px]'} ${
+      className={`shrink-0 cursor-pointer snap-start rounded-full font-medium transition-[background-color,box-shadow,scale,color] duration-150 active:scale-[0.97] ${big ? 'h-9 px-3.5 text-[13.5px]' : 'h-8 px-3 text-[12.5px]'} ${
         chosen.has(o.id) ? 'bg-zinc-900 text-white' : hint ? 'bg-[#FF69B4]/12 text-zinc-900 shadow-[0_0_0_1px_rgb(255_105_180/0.5)]' : 'bg-white text-zinc-800 shadow-[0_0_0_1px_rgb(0_0_0/0.1)] [@media(hover:hover)]:hover:shadow-[0_0_0_1px_rgb(0_0_0/0.3)]'
       }`}
     >
       {o.label}
     </button>
   )
+  const label = (text: string) => <span className={`font-semibold text-zinc-500 ${big ? 'text-[12px]' : 'text-[11.5px]'}`}>{text}</span>
+  const ask = blank.ask ?? blank.placeholder
+
+  const own = (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (words.trim()) {
+          onOwn(words)
+          setWords('')
+        } else onDone()
+      }}
+      className={`flex items-center gap-2 ${blank.ownOnly ? '' : grouped ? 'border-t border-zinc-950/[0.06] pt-3' : 'mt-2'}`}
+    >
+      <input
+        ref={field}
+        value={words}
+        onChange={(e) => setWords(e.target.value)}
+        onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), onDone())}
+        placeholder={blank.ownOnly ? `Type ${ask}` : grouped ? 'Not here? Say it your way' : 'or say it your way'}
+        aria-label={blank.ownOnly ? ask : 'Your own words'}
+        className={`min-w-0 flex-1 rounded-full bg-white outline-none shadow-[0_0_0_1px_rgb(0_0_0/0.1)] placeholder:text-zinc-400 focus:shadow-[0_0_0_2px_#FF69B4] ${big ? 'h-10 px-4 text-[14.5px]' : 'h-8 px-3 text-[12.5px]'}`}
+      />
+      {words.trim() && (
+        <button type="submit" aria-label="Use my words" className={`grid shrink-0 cursor-pointer place-items-center rounded-full bg-zinc-900 text-white transition-[scale] active:scale-[0.97] ${big ? 'size-10' : 'size-8'}`}>
+          <CornerDownLeft size={big ? 15 : 13} />
+        </button>
+      )}
+    </form>
+  )
+
+  if (grouped) {
+    // A few to try first, unless they'd only repeat the top of one group.
+    const top = q ? [] : near.length ? near : new Set(suggested.map((o) => o.group)).size > 1 ? suggested : []
+    const matching = groups.map((g) => ({ ...g, options: g.options.filter(hits) })).filter((g) => g.options.length)
+    return (
+      <div className="mt-4 animate-pop rounded-2xl bg-zinc-50 p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06)]">
+        <div
+          className={`thin-scroll max-h-[340px] overflow-y-auto px-1 pb-3 pt-1 transition-opacity duration-150 ${fade ? 'opacity-40' : ''}`}
+          data-scroll-ok
+          onMouseEnter={() => setHovering(true)}
+          onMouseLeave={() => setHovering(false)}
+          role="listbox"
+          aria-label={ask}
+        >
+          {top.length > 0 && (
+            <div className="mb-4">
+              {label(near.length ? 'Closest to your words' : 'Try one of these')}
+              <div className="mt-1.5 flex flex-wrap gap-2">{top.map((o) => chip(o, near.length > 0, 'top'))}</div>
+            </div>
+          )}
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,190px),1fr))] gap-x-4 gap-y-4">
+            {matching.map((g) => {
+              const rest = g.options.length - SHOW
+              const all = more.has(g.name) || !!q || rest <= 2
+              return (
+                <div key={g.name} className="min-w-0">
+                  {label(g.name)}
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {(all ? g.options : g.options.slice(0, SHOW)).map((o) => chip(o))}
+                    {!all && rest > 0 && (
+                      <button type="button" onClick={() => setMore((m) => new Set(m).add(g.name))} className="h-9 cursor-pointer rounded-full px-2.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-zinc-900">
+                        + {rest} more
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {q && !matching.length && <p className="text-[13px] text-zinc-500">Nothing like that here. Enter keeps your words.</p>}
+        </div>
+        {own}
+      </div>
+    )
+  }
+
   return (
     <div className={`animate-pop ${big ? 'mt-4' : 'mt-2'}`}>
       {!blank.ownOnly && (
@@ -227,7 +315,7 @@ function Options({
           onMouseEnter={() => setHovering(true)}
           onMouseLeave={() => setHovering(false)}
           role="listbox"
-          aria-label={blank.placeholder}
+          aria-label={ask}
         >
           {near.length > 0 && !q && (
             <>
@@ -240,31 +328,7 @@ function Options({
           {q && !list.length && <span className={`flex shrink-0 items-center text-zinc-400 ${big ? 'text-[13px]' : 'text-[11.5px]'}`}>Nothing like that here: Enter keeps your words</span>}
         </div>
       )}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (words.trim()) {
-            onOwn(words)
-            setWords('')
-          } else onDone()
-        }}
-        className={`flex items-center gap-2 ${blank.ownOnly ? '' : 'mt-2'}`}
-      >
-        <input
-          ref={field}
-          value={words}
-          onChange={(e) => setWords(e.target.value)}
-          onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), onDone())}
-          placeholder={blank.ownOnly ? `Type it: ${blank.placeholder}` : 'or say it your way'}
-          aria-label={blank.ownOnly ? blank.placeholder : 'Your own words'}
-          className={`min-w-0 flex-1 rounded-full bg-white outline-none shadow-[0_0_0_1px_rgb(0_0_0/0.1)] placeholder:text-zinc-400 focus:shadow-[0_0_0_2px_#FF69B4] ${big ? 'h-10 px-4 text-[14.5px]' : 'h-8 px-3 text-[12.5px]'}`}
-        />
-        {words.trim() && (
-          <button type="submit" aria-label="Use my words" className={`grid shrink-0 cursor-pointer place-items-center rounded-full bg-zinc-900 text-white transition-[scale] active:scale-[0.97] ${big ? 'size-10' : 'size-8'}`}>
-            <CornerDownLeft size={big ? 15 : 13} />
-          </button>
-        )}
-      </form>
+      {own}
     </div>
   )
 }

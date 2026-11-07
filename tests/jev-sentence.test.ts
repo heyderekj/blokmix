@@ -10,8 +10,16 @@ import {
   VERBS,
   PAGE_HOWS,
   SECTION_HOWS,
+  BUSINESS_GROUPS,
+  FEEL_GROUPS,
+  GOAL_GROUPS,
+  SHOW_GROUPS,
+  START_BLANKS,
   barSentence,
   defaultOrder,
+  groupsOf,
+  startText,
+  suggestedFor,
   fillBar,
   fillStart,
   matchRequest,
@@ -53,12 +61,44 @@ describe('the vocabularies', () => {
 })
 
 describe('the start sentence', () => {
-  it('grows as you fill it', () => {
-    const blanks = (p: Picks) => startSentence(p).flatMap((s) => ('blank' in s ? [s.blank.id] : []))
-    expect(blanks({})).toEqual(['business', 'name'])
-    expect(blanks({ business: pick('bakery', 'a bakery') })).toEqual(['business', 'name', 'feel'])
-    expect(blanks({ business: pick('bakery'), feel: pick('cozy') })).toEqual(['business', 'name', 'feel', 'goal'])
-    expect(blanks({ business: pick('bakery'), feel: pick('cozy'), goal: pick('order') })).toEqual(['business', 'name', 'feel', 'goal', 'show'])
+  it('shows every blank from the start, each saying what it asks for', () => {
+    const segs = startSentence({})
+    expect(segs.flatMap((s) => ('blank' in s ? [s.blank.id] : []))).toEqual(['business', 'name', 'feel', 'goal', 'show'])
+    expect(segs.flatMap((s) => ('blank' in s ? [s.blank.ask] : []))).toEqual(['what it is', 'its name', 'a feeling', 'do what', 'what to show'])
+    // Nothing that reads like an answer sits in an empty blank.
+    const shown = sentenceText(segs, {})
+    for (const example of ['bakery', 'Fern', 'cozy', 'order ahead', 'menu']) expect(shown).not.toContain(example)
+  })
+
+  it('says only what’s filled when written out', () => {
+    expect(startText({})).toBe('')
+    expect(startText({ business: pick('bakery', 'a bakery') })).toBe('I’m making a site for a bakery.')
+    expect(startText({ name: [{ words: 'Fern' }], goal: pick('order', 'order ahead') })).toBe('I’m making a site called Fern. It should help people order ahead.')
+  })
+
+  it('puts every option in one of its blank’s groups', () => {
+    const lists = [
+      [BUSINESSES, Object.values(BUSINESS_GROUPS)],
+      [FEELS, Object.keys(FEEL_GROUPS)],
+      [GOALS, Object.keys(GOAL_GROUPS)],
+      [SHOWS, Object.keys(SHOW_GROUPS)],
+    ] as const
+    for (const [list, groups] of lists) for (const o of list) expect(groups, o.id).toContain(o.group)
+    for (const groups of [FEEL_GROUPS, GOAL_GROUPS, SHOW_GROUPS]) {
+      const ids = Object.values(groups).flat()
+      expect(new Set(ids).size).toBe(ids.length)
+    }
+  })
+
+  it('groups each blank’s options, and suggests a few once there’s something to go on', () => {
+    for (const b of [START_BLANKS.business, START_BLANKS.feel, START_BLANKS.goal, START_BLANKS.show]) {
+      expect(groupsOf(b).map((g) => g.name)).toEqual(b.groups)
+      expect(suggestedFor(b)).toEqual([])
+    }
+    expect(suggestedFor(START_BLANKS.goal, undefined, 'event').slice(0, 2).map((g) => g.id)).toEqual(expect.arrayContaining(['tickets']))
+    expect(suggestedFor(START_BLANKS.feel, ['dark', 'techy', 'cozy'])[0].id).toBe('dark')
+    // Groups follow the order too.
+    expect(groupsOf(START_BLANKS.feel, ['dreamy']).find((g) => g.name === 'Soft & playful')!.options[0].id).toBe('dreamy')
   })
 
   it('fills in the kind, the sections, the looks and the button', () => {
@@ -158,7 +198,7 @@ describe('Jev on the sentence', () => {
     const segs = startSentence(picks)
     const open = openBlanks(segs, picks)
     const req = rankRequest(sentenceText(segs, picks), [...open, { id: 'goal', placeholder: 'order ahead', options: GOALS }])
-    expect(Object.keys(req.questions)).toEqual(['rank_feel', 'rank_goal'])
+    expect(Object.keys(req.questions)).toEqual(['rank_feel', 'rank_goal', 'rank_show'])
     for (const q of Object.values(req.questions)) expect(JSON.stringify(q.instructions)).toContain('a bakery')
     const order = readRank(await askJev(req), [...open, { id: 'goal', placeholder: 'order ahead', options: GOALS }])
     expect(order.feel[0]).toBe('cozy')

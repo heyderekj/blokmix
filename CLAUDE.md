@@ -152,18 +152,20 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 The audience is non-designers first (`docs/simple-vision.md`). New mix (the gallery's tile, the browser-only mix's first
 visit, or "Start a new mix" in its menu) opens `ui/start/StartGuide.tsx`: plain questions one at a time on the left, the
 page they add up to on the right (`startCandidates`' first, drawn at once; measuring waits for the end). The first screen is
-a sentence to fill in, "I'm making a site for [a bakery] called [Fern & Co]. It should feel [cozy] and help people [order
-ahead]. Show [our menu]…" (`core/jev/sentence.ts` `startSentence`, `fillStart`; `ui/jev/Sentence.tsx`: each blank a row of
-options Jev puts in order, `rankRequest`, or your own words, matched to the nearest, `matchRequest`), with a box under it
-to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
+a sentence to fill in, whole from the start, each empty blank naming what it asks for (`Blank.ask`, never a sample
+answer): "I'm making a site for [what it is] called [its name]. It should feel [a feeling] and help people [do what].
+Show [what to show]." (`core/jev/sentence.ts` `startSentence`, `fillStart`, `startText` for what's filled; `ui/jev/Sentence.tsx`:
+each blank's options in groups, `BUSINESS_GROUPS`/`FEEL_GROUPS`/`GOAL_GROUPS`/`SHOW_GROUPS` and `groupsOf`, under "Try one of
+these", `suggestedFor`, once Jev's order, `rankRequest`, or the kind gives something to go on; or your own
+words, matched to the nearest, `matchRequest`), with a box under it to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
 those questions and folds them (`answersFromSentence`, `heardFromSentence`, `SENTENCE_GOAL`, `SENTENCE_FEEL`). Answered
 questions fold into one line each with Change; "Skip, show me pages" takes every suggestion. The questions
 (`core/startFlow.ts`, pure: `QUESTIONS`, `nextQuestion`, `folded`, `skipToPages`, `briefFrom`, `sectionsFrom`):
 1–2. The sentence (its name, what it is), or the words you already have (`textMode` tells a paste apart) 3. The kind
 of site and industry, folded when the first sentence settled both 4. What should it do for you? (goals, something else,
 who it's for) 5. What should the main button say? (`actionChoices`, or your own words) 6. What goes on the page? (section
-chips, ✕ and +; folded for pasted words) 7. How should it feel? (feel words from the industry and kind, three themes,
-brand color, light/dark, colors by feel) 8. Three ways to lay it out: measured, in the theme you picked; the one you open
+chips, ✕ and +; folded for pasted words) 7. Pick a look (three themes that fit the sentence's feeling, or
+feel words when it gave none; "Show me different ones"; brand color and light/dark in one small row) 8. Three ways to lay it out: measured, in the theme you picked; the one you open
 is the mix and the other two are kept (A/B/C).
 The answers are the brief (see The brief): `recipeFor` shapes the kind's page by format and goals, `contentFor` puts the
 main button's words in the buttons. Jev only ranks what's offered: one request (`describeRequest`: the kind, each
