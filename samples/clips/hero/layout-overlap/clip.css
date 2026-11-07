@@ -52,7 +52,6 @@
     border-radius: var(--mx-radius-lg);
   }
   & .panel .actions { margin-top: var(--mx-space-4); }
-  & .rule { width: var(--mx-space-8); height: var(--mx-stroke); background: var(--mx-color-border); }
 
   /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
   & .media {

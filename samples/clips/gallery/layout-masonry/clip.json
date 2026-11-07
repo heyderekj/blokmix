@@ -1,6 +1,6 @@
 {
   "title": "Masonry wall",
-  "layoutPattern": "centered-head-then-css-columns-masonry-caption-chips",
+  "layoutPattern": "centered-head-then-css-columns-masonry-captions-below",
   "rhythm": "grid",
   "density": "dense",
   "tier": "free",

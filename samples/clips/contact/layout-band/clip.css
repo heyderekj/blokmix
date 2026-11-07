@@ -65,7 +65,7 @@
   }
   & .details { display: flex; flex-wrap: wrap; gap: var(--mx-space-3) var(--mx-space-6); }
   & .detail { display: flex; align-items: center; gap: var(--mx-space-2); font-size: var(--mx-text-sm); }
-  & .detail svg { flex: none; color: var(--mx-color-muted); }
+  & .detail svg { flex: none; width: 1.25em; height: 1.25em; color: var(--mx-color-muted); }
   & .detail a { cursor: pointer; }
 
   @media (hover: hover) and (pointer: fine) {

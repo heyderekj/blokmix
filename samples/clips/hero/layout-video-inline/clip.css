@@ -36,15 +36,11 @@
   & .btn:active { scale: 0.97; }
   & .btn.primary { background: var(--mx-color-primary); color: var(--mx-color-on-primary); }
   & .btn.secondary { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
-  & .btn svg { flex: none; }
+  & .btn svg { flex: none; width: 1em; height: 1em; }
   & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
-  /* Centred copy, then a wide player in a padded frame. */
-  & .window {
-    padding: var(--mx-space-3);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: calc(var(--mx-radius-lg) + var(--mx-space-3));
-  }
+  /* Centred copy, then a wide player: one frame, the picture's own. */
+  & .window { position: relative; }
 
   /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */
   & .media {
@@ -69,8 +65,8 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 40px;
-    height: 40px;
+    width: var(--mx-space-7);
+    height: var(--mx-space-7);
     translate: -50% -50%;
     fill: currentColor;
   }
@@ -86,7 +82,6 @@
   @container (max-width: 616px) {
     & .head + * { margin-top: var(--mx-space-8); }
     & .lead { font-size: var(--mx-text-base); }
-    & .window { padding: var(--mx-space-2); border-radius: calc(var(--mx-radius-lg) + var(--mx-space-2)); }
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; justify-self: stretch; }
   }
 }

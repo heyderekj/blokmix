@@ -25,31 +25,12 @@
   & .start-7 { grid-column-start: 7; }
   & .flow { display: flex; flex-direction: column; gap: var(--mx-space-6); }
 
-  /* Numbered steps joined by a thin line. */
-  & .steps { display: flex; flex-direction: column; }
-  & .step { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--mx-space-5); padding-bottom: var(--mx-space-7); }
-  & .step:last-child { padding-bottom: 0; }
-  & .line {
-    position: absolute;
-    left: 24px;
-    top: 48px;
-    bottom: 0;
-    border-left: var(--mx-stroke) solid var(--mx-color-border);
-  }
-  & .step:last-child .line { display: none; }
-  & .num {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    font-family: var(--mx-font-mono);
-    font-size: var(--mx-text-sm);
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
-    background: var(--mx-color-bg);
-  }
-  & .step .body { padding-top: var(--mx-space-2); font-size: var(--mx-text-lg); color: var(--mx-color-text); }
-  & .flow .note { padding-left: calc(48px + var(--mx-space-5)); }
+  /* Numbered steps, one per hairline: the number hangs in its own column. */
+  & .steps { display: flex; flex-direction: column; border-bottom: var(--mx-stroke) solid var(--mx-color-border); }
+  & .step { display: grid; grid-template-columns: var(--mx-space-8) minmax(0, 1fr); gap: var(--mx-space-5); align-items: baseline; padding-block: var(--mx-space-6); border-top: var(--mx-stroke) solid var(--mx-color-border); }
+  & .num { font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+  & .step .body { font-size: var(--mx-text-lg); color: var(--mx-color-text); }
+  & .flow .note { padding-left: calc(var(--mx-space-8) + var(--mx-space-5)); }
 
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
@@ -63,10 +44,8 @@
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
-    & .step { grid-template-columns: 40px minmax(0, 1fr); gap: var(--mx-space-4); padding-bottom: var(--mx-space-6); }
-    & .line { left: 20px; top: 40px; }
-    & .num { width: 40px; height: 40px; }
-    & .step .body { padding-top: var(--mx-space-1); font-size: var(--mx-text-base); }
-    & .flow .note { padding-left: calc(40px + var(--mx-space-4)); }
+    & .step { grid-template-columns: var(--mx-space-7) minmax(0, 1fr); gap: var(--mx-space-3); padding-block: var(--mx-space-5); }
+    & .step .body { font-size: var(--mx-text-base); }
+    & .flow .note { padding-left: calc(var(--mx-space-7) + var(--mx-space-3)); }
   }
 }

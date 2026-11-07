@@ -76,7 +76,7 @@
   }
   & .arrow:active { scale: 0.97; }
   & .arrow:disabled { color: var(--mx-color-muted); cursor: default; opacity: 0.5; scale: 1; }
-  & .arrow svg { width: 18px; height: 18px; }
+  & .arrow svg { width: 1.125em; height: 1.125em; }
   & .dots { display: flex; flex: 1; align-items: center; justify-content: center; flex-wrap: wrap; min-width: 0; }
   & .dot { display: grid; place-items: center; width: 28px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; }
   & .pip { width: 8px; height: 8px; border-radius: var(--mx-radius-pill); background: color-mix(in oklab, var(--mx-color-text) 22%, transparent); transition: width 240ms cubic-bezier(0.23, 1, 0.32, 1), background-color 240ms cubic-bezier(0.23, 1, 0.32, 1); }
