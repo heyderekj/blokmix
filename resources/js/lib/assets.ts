@@ -1,18 +1,19 @@
 import { create } from 'zustand'
 import type { UploadData } from '@/core/media'
 import { xsrf } from './http'
+import { cleanSvg, svgDataUrl } from '@/core/svg'
 
 /**
  * Images you upload or paste, kept in this browser (IndexedDB), never in the
  * mix's saved state, which stays small. Each is downscaled to WebP, at most
- * 1,600px on its long side. Frames get them as data URLs, because a sandboxed
+ * 1,600px on its long side; an SVG stays a vector, cleaned of anything that could run (core/svg.ts). Frames get them as data URLs, because a sandboxed
  * frame can't read this page's blob URLs.
  */
 export interface Asset {
   id: string
   name: string
   kind?: 'image' | 'video' | 'lottie'
-  /** Images: the downscaled WebP. */
+  /** Images: the downscaled WebP, or the cleaned SVG. */
   dataUrl?: string
   /** Videos and Lotties: the file itself. */
   bytes?: ArrayBuffer
@@ -94,7 +95,7 @@ const MAX_MOVING = 40 * 1024 * 1024
 /** Store any dropped or pasted file: images are downscaled; videos and Lotties kept as they are. */
 export async function addFile(file: File): Promise<Asset> {
   const name = file.name.toLowerCase()
-  if (file.type.startsWith('image/')) return addImage(file, file.name)
+  if (file.type.startsWith('image/') || name.endsWith('.svg')) return addImage(file, file.name)
   const isVideo = file.type.startsWith('video/')
   const isLottie = name.endsWith('.lottie') || name.endsWith('.json')
   if (!isVideo && !isLottie) throw new Error('Drop an image, a video, or a Lottie (.lottie or .json)')
@@ -148,6 +149,7 @@ async function videoStill(file: Blob): Promise<{ width: number; height: number; 
 
 /** Downscale and store an image file; resolves to its asset id. */
 export async function addImage(file: Blob, name = 'image'): Promise<Asset> {
+  if (file.type === 'image/svg+xml' || name.toLowerCase().endsWith('.svg')) return addSvg(await file.text(), name)
   const bitmap = await createImageBitmap(file)
   const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
   const w = Math.round(bitmap.width * scale)
@@ -158,6 +160,17 @@ export async function addImage(file: Blob, name = 'image'): Promise<Asset> {
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, w, h)
   const dataUrl = canvas.toDataURL('image/webp', 0.86)
   const asset: Asset = { id: `img_${Math.random().toString(36).slice(2, 10)}`, name, kind: 'image', dataUrl, width: w, height: h, addedAt: Date.now() }
+  await tx('readwrite', (s) => s.put(asset))
+  useAssets.setState((st) => ({ assets: { ...st.assets, [asset.id]: asset } }))
+  void sendUp(asset)
+  return asset
+}
+
+/** Keep an SVG as a vector: cleaned, sized from its own width, height or viewBox. */
+export async function addSvg(text: string, name = 'image.svg'): Promise<Asset> {
+  const clean = cleanSvg(text)
+  if (!clean) throw new Error('That SVG can’t be read, or it’s over 2 MB')
+  const asset: Asset = { id: `img_${Math.random().toString(36).slice(2, 10)}`, name, kind: 'image', dataUrl: svgDataUrl(clean.svg), mime: 'image/svg+xml', width: clean.width, height: clean.height, addedAt: Date.now() }
   await tx('readwrite', (s) => s.put(asset))
   useAssets.setState((st) => ({ assets: { ...st.assets, [asset.id]: asset } }))
   void sendUp(asset)
@@ -224,7 +237,7 @@ async function sendUp(a: Asset) {
   form.append('id', a.id)
   form.append('kind', a.kind ?? 'image')
   form.append('name', a.name || a.id)
-  form.append('mime', a.kind === 'image' || !a.mime ? 'image/webp' : a.mime)
+  form.append('mime', a.mime === 'image/svg+xml' ? a.mime : a.kind === 'image' || !a.mime ? 'image/webp' : a.mime)
   form.append('width', String(a.width || 0))
   form.append('height', String(a.height || 0))
   form.append('file', file, a.id)

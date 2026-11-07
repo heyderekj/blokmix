@@ -595,7 +595,9 @@ scripts/check-fonts.ts` checks every library font still loads.
 
 Image blocks take a fill (`BlockEdit.media`, `core/media.ts`): a placeholder SVG drawn from the
 current palette (re-themes with the style guide), an upload (downscaled WebP in the browser's
-IndexedDB via `lib/assets.ts`, never in the persisted store), or an Unsplash photo (hotlinked, credited,
+IndexedDB via `lib/assets.ts`, never in the persisted store; an SVG file or pasted SVG code stays a vector, cleaned of
+scripts, handlers and outside links by `core/svg.ts` `cleanSvg` and again on the server by `Services/SvgCleaner`, which
+also allows only each kind's types and serves uploads with a no-scripts CSP and nosniff; good for logos), or an Unsplash photo (hotlinked, credited,
 download-tracked; needs `VITE_UNSPLASH_ACCESS_KEY` in `.env.local`). Frames and exports layer an
 `<img class="mx-media">` over the block's own art, which keeps the size and shape. Exports write
 `public/media/*`; `npm run export:demo` squeezes raster images with Dinky's CLI (dinkyfiles.com) when

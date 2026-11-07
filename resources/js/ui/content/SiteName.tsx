@@ -73,7 +73,7 @@ export function SiteLogo() {
           <X size={13} />
         </button>
       )}
-      <input ref={input} type="file" accept="image/*" hidden onChange={(e) => void take(e.target.files?.[0])} />
+      <input ref={input} type="file" accept="image/*,.svg" hidden onChange={(e) => void take(e.target.files?.[0])} />
       {error && <p className="text-[12px] text-problem-ink">{error}</p>}
     </div>
   )

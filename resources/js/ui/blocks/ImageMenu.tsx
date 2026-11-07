@@ -15,6 +15,7 @@ import { useStore } from '@/state/store'
 import { DialPanel } from '../dials/DialPanel'
 import { effectVarsStyle } from '../dials/EffectsTile'
 import { addFile, addImage, removeAsset, useAssets, type Asset } from '@/lib/assets'
+import { looksLikeSvg } from '@/core/svg'
 import { Steps } from './Spacing'
 import { Switch } from '../panels/parts'
 
@@ -291,6 +292,9 @@ function Uploads({ fill, onHover, onPick }: { fill?: MediaFill; onHover: (m: Med
   useEffect(() => {
     const paste = (e: ClipboardEvent) => {
       const files = [...(e.clipboardData?.files ?? [])]
+      // SVG code copied from a design tool arrives as text: it's a picture too.
+      const text = files.length ? '' : (e.clipboardData?.getData('text/plain') ?? '')
+      if (!files.length && looksLikeSvg(text)) files.push(new File([text], 'pasted.svg', { type: 'image/svg+xml' }))
       if (files.length) {
         e.preventDefault()
         void take(files)
@@ -318,9 +322,9 @@ function Uploads({ fill, onHover, onPick }: { fill?: MediaFill; onHover: (m: Med
       >
         {busy ? <Upload size={18} className="animate-pulse text-zinc-500" /> : <ImagePlus size={18} className="text-zinc-500" />}
         <span className="text-[12.5px] font-semibold text-zinc-800">{busy ? 'Adding…' : 'Drop, paste or choose a file'}</span>
-        <span className="text-[11px] text-zinc-400">Images, videos or Lotties (.lottie, .json)</span>
+        <span className="text-[11px] text-zinc-400">Images, SVGs (stay sharp at any size), videos or Lotties</span>
       </button>
-      <input ref={input} type="file" accept="image/*,video/*,.lottie,.json" hidden onChange={(e) => void take(e.target.files)} />
+      <input ref={input} type="file" accept="image/*,.svg,video/*,.lottie,.json" hidden onChange={(e) => void take(e.target.files)} />
       {error && <p className="px-1 pt-1.5 text-[12px] text-problem-ink">{error}</p>}
       {list.length > 0 && (
         <div className="mt-2 grid max-h-40 grid-cols-4 gap-1.5 overflow-y-auto thin-scroll" onMouseLeave={() => onHover(null)}>

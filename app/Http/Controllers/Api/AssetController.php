@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
 use App\Models\MixAsset;
+use App\Services\SvgCleaner;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,11 +45,27 @@ class AssetController extends Controller
             'file' => ['required', 'file', 'max:'.config('blokmix.upload_max_kb')],
             'poster' => ['nullable', 'file', 'max:4096'],
         ]);
+        // The type it's served with is the one it was sent with, so only what each kind can be.
+        $allowed = [
+            'image' => '#^image/(webp|png|jpeg|gif|avif|svg\+xml)$#',
+            'video' => '#^video/[a-z0-9.+-]+$#',
+            'lottie' => '#^application/(json|zip|octet-stream)$#',
+        ];
+        abort_unless(preg_match($allowed[$input['kind']], $input['mime']), 422, 'That kind of file can’t be added.');
+        // An SVG is a document that could carry script: it's cleaned before it's kept.
+        if ($input['mime'] === 'image/svg+xml') {
+            $clean = SvgCleaner::clean((string) file_get_contents($request->file('file')->getRealPath()));
+            abort_if($clean === null, 422, 'That SVG can’t be read.');
+            file_put_contents($request->file('file')->getRealPath(), $clean);
+            clearstatcache(true, $request->file('file')->getRealPath());
+        }
+        // A cleaned SVG is measured as kept; anything else as it came.
+        $size = $input['mime'] === 'image/svg+xml' ? (int) filesize($request->file('file')->getRealPath()) : $request->file('file')->getSize();
 
         // Uploads count toward the mix owner's plan, whoever adds them; replacing one only counts the difference.
         $owner = $mix->owner() ?? $request->user();
         $was = (int) $mix->assets()->where('key', $input['id'])->value('size');
-        $why = $owner->uploadRefusal($request->file('file')->getSize() - $was);
+        $why = $owner->uploadRefusal($size - $was);
         if ($why !== null && $owner->isNot($request->user())) {
             $why = 'This mix’s owner is out of room for images and video. It stays in this browser.';
         }
@@ -65,7 +82,7 @@ class AssetController extends Controller
             'mime' => $input['mime'],
             'width' => $input['width'] ?? 0,
             'height' => $input['height'] ?? 0,
-            'size' => $request->file('file')->getSize(),
+            'size' => $size,
             'path' => $path,
             'poster_path' => $poster,
         ]);
@@ -93,6 +110,9 @@ class AssetController extends Controller
         return Storage::disk(config('blokmix.uploads_disk'))->response($path, null, [
             'Content-Type' => $poster ? 'image/webp' : $asset->mime,
             'Cache-Control' => 'private, max-age=31536000, immutable',
+            // Opened on its own (an SVG especially), an upload can't run anything or load anything else.
+            'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox",
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 }
