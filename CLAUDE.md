@@ -550,8 +550,8 @@ Words are content (`core/words.ts`, `core/lists.ts`, `core/outline.ts`); the UI 
 - Your logo once (`content.logo`, `set_logo`) fills the nav's and footer's logo spot (`isSiteLogo`) wherever it has no
   picture of its own, clipped or built in (`pictureFor`'s `site` argument).
 - Colors are picked in Blokmix's own picker (`ui/color/ColorPicker.tsx`, `ColorButton`; never `<input type="color">`): the hex first
-  (paste or type, `core/colorInput.ts` `parseColor` takes hex, short hex and rgb()), copy and the eyedropper; a record whose rim is
-  the hue (drag the needle, ← →); Light and Vivid faders in OKLCH; named swatches (`NAMED_COLORS`); for a brand color, the palette
+  (paste or type, `core/colorInput.ts` `parseColor` takes hex, short hex and rgb()), copy and the eyedropper; a ring of hues around
+  a disc of the color (drag round it, ← →); one Shade slider, Deep to Light, in OKLCH (the knob is the Feel dials'); named swatches (`NAMED_COLORS`); for a brand color, the palette
   it makes. Escape puts it back; Use this color or a click outside keeps it.
 - One brand color (`guide.brand`, the Feel tile, `set_brand_color`) makes a whole AA palette (`paletteFrom`), and
   `applySkin` remakes the theme's colors from it unless the contract keeps color (stays) or sets it to Surprise.

@@ -68,7 +68,6 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, onChange,
   }, [hex, anchor, onDone, onCancel])
 
   const swatches = useMemo(() => (palette ? paletteFrom(hex, palette) : null), [hex, palette])
-  const ink = lch.L > 0.68 ? '#17121a' : '#ffffff'
   const eyedrop = typeof window !== 'undefined' && 'EyeDropper' in window
 
   return createPortal(
@@ -137,25 +136,19 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, onChange,
         )}
       </div>
 
-      {/* The record: spin the rim for the hue; the label in the middle is the color itself. */}
+      {/* The ring: drag round it for the hue. */}
       <div className="mt-3 flex justify-center">
-        <HueRecord lch={lch} ink={ink} hex={hex} onHue={(h) => set({ ...lch, h })} />
+        <HueRing lch={lch} hex={hex} onHue={(h) => set({ ...lch, h, C: lch.C < 0.04 ? 0.15 : lch.C })} />
       </div>
 
-      <div className="mt-3 grid gap-2.5">
+      {/* One slider: the hue from deep to light. How vivid it can be follows (very light and very deep colors are softer). */}
+      <div className="mt-3">
         <Fader
-          label="Light"
+          label="Shade"
           ends={['Deep', 'Light']}
           value={(lch.L - 0.22) / (0.92 - 0.22)}
           track={`linear-gradient(to right, ${css(0.22, lch.C, lch.h)}, ${css(0.57, lch.C, lch.h)}, ${css(0.92, lch.C, lch.h)})`}
           onChange={(v) => set({ ...lch, L: 0.22 + v * (0.92 - 0.22) })}
-        />
-        <Fader
-          label="Vivid"
-          ends={['Soft', 'Vivid']}
-          value={lch.C / 0.26}
-          track={`linear-gradient(to right, ${css(lch.L, 0, lch.h)}, ${css(lch.L, 0.26, lch.h)})`}
-          onChange={(v) => set({ ...lch, C: v * 0.26 })}
         />
       </div>
 
@@ -198,8 +191,8 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, onChange,
   )
 }
 
-/** The hue as a record: its rim is every hue at this lightness and vividness; drag the needle round, or use ← →. */
-function HueRecord({ lch, ink, hex, onHue }: { lch: Lch; ink: string; hex: string; onHue: (h: number) => void }) {
+/** The hue as a ring: every hue at this shade; drag the handle round, or use ← →. The middle is the color itself. */
+function HueRing({ lch, hex, onHue }: { lch: Lch; hex: string; onHue: (h: number) => void }) {
   const el = useRef<HTMLDivElement>(null)
   const C = Math.max(lch.C, 0.06)
   const stops = Array.from({ length: 13 }, (_, i) => css(lch.L, C, i * 30)).join(', ')
@@ -209,7 +202,7 @@ function HueRecord({ lch, ink, hex, onHue }: { lch: Lch; ink: string; hex: strin
     return (a + 90 + 360) % 360
   }
   const knob = ((lch.h - 90) * Math.PI) / 180
-  const R = RING / 2 - 11
+  const R = RING / 2 - 8
   return (
     <div
       ref={el}
@@ -235,24 +228,19 @@ function HueRecord({ lch, ink, hex, onHue }: { lch: Lch; ink: string; hex: strin
       className="relative cursor-grab touch-none select-none rounded-full outline-none focus-visible:shadow-[0_0_0_3px_#FF69B4] active:cursor-grabbing"
       style={{ width: RING, height: RING, background: `conic-gradient(from 0deg, ${stops})` }}
     >
-      {/* The grooves, then the label in the color you're on. */}
-      <span className="absolute inset-[22px] rounded-full" style={{ background: 'repeating-radial-gradient(circle, #1b1719 0 2px, #26211f 2px 4px)' }} />
-      <span className="absolute inset-[50px] grid place-items-center rounded-full shadow-[0_0_0_3px_rgb(0_0_0/0.25)]" style={{ background: hex }}>
-        <span className="absolute size-2 rounded-full bg-[#1b1719]" />
-        <span className="absolute bottom-[22%] font-mono text-[10px] font-semibold uppercase tracking-wide" style={{ color: ink }}>
-          {hex}
-        </span>
-      </span>
+      {/* A clean ring of hues around a disc of the color you're on. */}
+      <span className="absolute inset-[16px] rounded-full bg-[var(--lift,#fff)]" />
+      <span className="absolute inset-[24px] rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]" style={{ background: hex }} />
       {/* The needle sits on the rim, at the hue. */}
       <span
-        className="pointer-events-none absolute size-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgb(0_0_0/0.4)]"
+        className="pointer-events-none absolute size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_0_0_1px_rgb(0_0_0/0.14),0_1px_3px_rgb(0_0_0/0.25)]"
         style={{ left: RING / 2 + R * Math.cos(knob), top: RING / 2 + R * Math.sin(knob), background: css(lch.L, C, lch.h) }}
       />
     </div>
   )
 }
 
-/** A mixing-desk fader: drag along its track, or use ← →. */
+/** A slider like the Feel dials': a round knob on its track; drag, or use ← →. */
 function Fader({ label, ends, value, track, onChange }: { label: string; ends: [string, string]; value: number; track: string; onChange: (v: number) => void }) {
   const el = useRef<HTMLDivElement>(null)
   const v = Math.min(1, Math.max(0, value))
@@ -287,10 +275,10 @@ function Fader({ label, ends, value, track, onChange }: { label: string; ends: [
           t.addEventListener('pointermove', move)
           t.addEventListener('pointerup', up)
         }}
-        className="relative h-3 cursor-pointer touch-none rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)] outline-none focus-visible:shadow-[0_0_0_2px_#FF69B4]"
+        className="relative h-2 cursor-pointer touch-none rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)] outline-none focus-visible:shadow-[0_0_0_2px_#FF69B4]"
         style={{ background: track }}
       >
-        <span className="pointer-events-none absolute top-1/2 h-5 w-3 -translate-x-1/2 -translate-y-1/2 rounded-[5px] border-2 border-white bg-zinc-900 shadow-[0_1px_3px_rgb(0_0_0/0.35)]" style={{ left: `${v * 100}%` }} />
+        <span className="pointer-events-none absolute top-1/2 size-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-zinc-900 shadow-[0_0_0_1px_rgb(0_0_0/0.14),0_1px_3px_rgb(0_0_0/0.25)] transition-[scale] duration-100 active:scale-110" style={{ left: `${v * 100}%` }} />
       </div>
     </div>
   )
