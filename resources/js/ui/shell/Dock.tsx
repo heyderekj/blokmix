@@ -4,14 +4,16 @@ import { AnimatePresence, motion } from 'motion/react'
 import { create } from 'zustand'
 import { useEscape } from './keys'
 import { openHelp } from './Overlays'
-import { ChevronDown, Dices, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard, MoveHorizontal, Scan, Square, Wand2 } from 'lucide-react'
+import { ChevronDown, Dices, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard, MoveHorizontal, Scan, Square, Wand2, Type, SwatchBook, MessageSquare } from 'lucide-react'
 import { useStore, type Tool, currentSlots } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi, onPaint } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
 import { Alternatives } from './Alternatives'
-import { toggleSheet } from './TopBar'
+import { toggleSheet, useWideBar } from './TopBar'
+import { toggleLeft } from './LeftPanel'
+import { outstanding } from '@/core/notes'
 import { Avatar } from './Avatar'
 import { agent as agentP, useMe } from '@/lib/people'
 import { SayBar, toggleSay, useSay } from '../jev/SayBar'
@@ -54,6 +56,7 @@ export function Dock() {
         onClose={() => (open ? useStore.getState().setUi({ sheet: 'none' }) : setAsked(null))}
         bar={
           <>
+            <NarrowPanels />
             <ToolSwitcher />
             <Divider />
             <ShuffleButton />
@@ -77,6 +80,35 @@ export function Dock() {
         {open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
       </Island>
     </div>
+  )
+}
+
+/** On a narrow window there's no room for the left rail: Words, Look and Notes sit at the start of the dock instead. */
+function NarrowPanels() {
+  const wide = useWideBar()
+  const which = useStore((s) => s.ui.leftPanel)
+  const todo = useStore((s) => s.notes.filter(outstanding).length)
+  if (wide) return null
+  const item = (id: 'words' | 'look' | 'notes', Icon: typeof Type, label: string, count = 0) => (
+    <button
+      type="button"
+      onClick={() => toggleLeft(id)}
+      title={label}
+      aria-label={label}
+      aria-pressed={which === id}
+      className={`relative grid size-8 place-items-center rounded-full transition active:scale-[0.97] ${which === id ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5'}`}
+    >
+      <Icon size={16} />
+      {count > 0 && <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-problem px-1 text-[10px] font-bold tabular-nums text-white">{count}</span>}
+    </button>
+  )
+  return (
+    <>
+      {item('words', Type, 'Words')}
+      {item('look', SwatchBook, 'Look')}
+      {item('notes', MessageSquare, 'Notes', todo)}
+      <Divider />
+    </>
   )
 }
 
