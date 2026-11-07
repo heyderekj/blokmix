@@ -28,17 +28,16 @@ export function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPic
   return (
     <button type="button" onClick={onPick} aria-pressed={on} className={`${CARD} overflow-hidden ${on ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
       <span className="block border-b border-zinc-950/5">
-        <SkinPreview site={start.site} guide={guide} content={start.content} title={skin.name} height={190} />
+        <SkinPreview site={start.site} guide={guide} content={start.content} title={skin.name} height={160} />
       </span>
-      <span className="block p-4">
-        <span className="flex items-center justify-between gap-2 text-[16px] font-semibold">
+      <span className="block px-4 py-3">
+        <span className="flex items-center justify-between gap-2 text-[15px] font-semibold">
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate">{skin.name}</span>
             {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Best fit</span>}
           </span>
           {on && <Check size={16} style={{ color: PINK }} />}
         </span>
-        <span className="mt-1 line-clamp-3 text-[13px] leading-snug text-[#6B5F68] [text-wrap:pretty]">{skin.words}</span>
       </span>
     </button>
   )
@@ -68,7 +67,7 @@ export function Carousel({ children, label, min = 280 }: { children: ReactNode; 
     const el = row.current
     if (el) el.scrollBy({ left: dir * (min + 12), behavior: 'smooth' })
   }
-  const arrow = `absolute top-[95px] z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white text-[#17121A] shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_6px_16px_-6px_rgb(23_18_26/0.35)] ${PRESS}`
+  const arrow = `absolute top-[80px] z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white text-[#17121A] shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_6px_16px_-6px_rgb(23_18_26/0.35)] ${PRESS}`
   return (
     <div className="relative -mx-1">
       <div

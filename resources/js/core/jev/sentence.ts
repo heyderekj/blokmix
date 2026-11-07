@@ -31,12 +31,18 @@ export interface Choice {
   id: string
   label: string
   kinds?: Kind[]
+  /** Which of its blank's groups it sits in ("Shops & places"), so a long list reads in kinds. */
+  group?: string
 }
 
 export interface Blank {
   id: string
-  /** What the blank reads as while it's empty: "a bakery". */
+  /** What an empty blank shows: what it's asking for ("what it is"), never a made-up answer. */
+  ask?: string
+  /** An example answer ("a bakery"), only for Jev's question about the blank. */
   placeholder: string
+  /** Its options' groups (shown A to Z). */
+  groups?: string[]
   options: Choice[]
   /** Several picks ("our menu, opening hours and …"). */
   many?: boolean
@@ -59,7 +65,23 @@ export interface Business extends Choice {
   kind: Kind
 }
 
-const biz = (kind: Kind, ...labels: string[]): Business[] => labels.map((label) => ({ id: label.replace(/^(an?|my) /, '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').toLowerCase(), label, kind }))
+export const BUSINESS_GROUPS: Record<Kind, string> = {
+  local: 'Shops & places',
+  studio: 'Studios & services',
+  product: 'Apps & products',
+  event: 'Events',
+  personal: 'Just me',
+  writing: 'Writing & shows',
+}
+
+const biz = (kind: Kind, ...labels: string[]): Business[] =>
+  labels.map((label) => ({ id: label.replace(/^(an?|my) /, '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').toLowerCase(), label, kind, group: BUSINESS_GROUPS[kind] }))
+
+/** Puts each option in its group, by id (a test checks none is left out). */
+function inGroups<T extends Choice>(list: T[], groups: Record<string, string[]>): T[] {
+  const of = new Map(Object.entries(groups).flatMap(([g, ids]) => ids.map((id) => [id, g] as const)))
+  return list.map((o) => ({ ...o, group: of.get(o.id) }))
+}
 
 export const BUSINESSES: Business[] = [
   ...biz('local', 'a bakery', 'a café', 'a restaurant', 'a bar', 'a food truck', 'a coffee roaster', 'a bookshop', 'a florist', 'a hair salon', 'a barber', 'a nail studio', 'a gym', 'a yoga studio', 'a dentist', 'a clinic', 'a vet', 'a bike shop', 'a hardware store', 'a gift shop', 'a clothing shop', 'a hotel', 'a bed and breakfast', 'a school', 'a daycare', 'a dance studio', 'a tattoo studio', 'a car repair shop', 'a plumber', 'a cleaning service', 'a dog groomer'),
@@ -75,7 +97,16 @@ export interface Feel extends Choice {
   skins: string[]
 }
 
-export const FEELS: Feel[] = [
+export const FEEL_GROUPS: Record<string, string[]> = {
+  'Warm & friendly': ['cozy', 'warm', 'friendly', 'earthy', 'simple'],
+  'Calm & clean': ['calm', 'clean', 'minimal', 'trustworthy', 'precise'],
+  'Bold & loud': ['bold', 'loud', 'confident', 'industrial', 'raw'],
+  'Classic & elegant': ['premium', 'elegant', 'classic', 'editorial', 'bookish', 'retro'],
+  'Dark & techy': ['dark', 'techy', 'nerdy'],
+  'Soft & playful': ['playful', 'fun', 'soft', 'dreamy'],
+}
+
+export const FEELS: Feel[] = inGroups<Feel>([
   { id: 'cozy', label: 'cozy', skins: ['lofi', 'liner-notes'], kinds: ['local', 'writing'] },
   { id: 'warm', label: 'warm', skins: ['lofi', 'liner-notes'], kinds: ['local', 'studio', 'personal'] },
   { id: 'friendly', label: 'friendly', skins: ['lofi', 'dreampop'], kinds: ['local', 'product', 'event'] },
@@ -104,7 +135,7 @@ export const FEELS: Feel[] = [
   { id: 'fun', label: 'fun', skins: ['dreampop', 'flyer'], kinds: ['event', 'product'] },
   { id: 'trustworthy', label: 'trustworthy', skins: ['studio', 'liner-notes'], kinds: ['studio', 'product'] },
   { id: 'simple', label: 'simple', skins: ['studio', 'lofi'], kinds: ['local', 'personal', 'writing'] },
-]
+], FEEL_GROUPS)
 
 export interface Goal extends Choice {
   /** The main button's words. */
@@ -113,7 +144,15 @@ export interface Goal extends Choice {
   sections: SectionType[]
 }
 
-export const GOALS: Goal[] = [
+export const GOAL_GROUPS: Record<string, string[]> = {
+  'Visit or book': ['order', 'book-table', 'book', 'visit'],
+  'Get in touch': ['touch', 'call', 'quote', 'hire'],
+  'Buy or sign up': ['sign-up', 'try', 'buy', 'download'],
+  'Read, see or listen': ['work', 'read', 'subscribe', 'listen'],
+  'Come along': ['tickets', 'rsvp', 'waitlist', 'donate'],
+}
+
+export const GOALS: Goal[] = inGroups<Goal>([
   { id: 'order', label: 'order ahead', button: 'Order ahead', sections: ['pricing', 'contact'], kinds: ['local'] },
   { id: 'book-table', label: 'book a table', button: 'Book a table', sections: ['contact'], kinds: ['local'] },
   { id: 'book', label: 'book an appointment', button: 'Book an appointment', sections: ['contact'], kinds: ['local', 'studio'] },
@@ -134,14 +173,21 @@ export const GOALS: Goal[] = [
   { id: 'read', label: 'read my writing', button: 'Start reading', sections: ['blog'], kinds: ['writing', 'personal'] },
   { id: 'donate', label: 'donate', button: 'Donate', sections: ['stats'], kinds: ['event'] },
   { id: 'listen', label: 'listen', button: 'Listen now', sections: ['blog'], kinds: ['writing', 'personal'] },
-]
+], GOAL_GROUPS)
 
 export interface Show extends Choice {
   /** The section it becomes, or null when Blokmix has none yet (it's counted as a want). */
   section: SectionType | null
 }
 
-export const SHOWS: Show[] = [
+export const SHOW_GROUPS: Record<string, string[]> = {
+  'What you offer': ['menu', 'prices', 'services', 'features', 'shop', 'posts'],
+  Proof: ['reviews', 'work', 'photos', 'clients', 'press', 'numbers'],
+  'About you': ['story', 'team', 'speakers'],
+  Practical: ['hours', 'where', 'map', 'contact', 'questions', 'schedule', 'events'],
+}
+
+export const SHOWS: Show[] = inGroups<Show>([
   { id: 'menu', label: 'our menu', section: 'pricing', kinds: ['local'] },
   { id: 'prices', label: 'prices', section: 'pricing', kinds: ['product', 'studio', 'local'] },
   { id: 'hours', label: 'opening hours', section: 'contact', kinds: ['local'] },
@@ -164,30 +210,52 @@ export const SHOWS: Show[] = [
   { id: 'map', label: 'a map', section: null, kinds: ['local'] },
   { id: 'events', label: 'upcoming events', section: null, kinds: ['local', 'event'] },
   { id: 'shop', label: 'a shop', section: null, kinds: ['local', 'product'] },
-]
+], SHOW_GROUPS)
 
 // ---- The start sentence ----
 
 const filled = (picks: Picks, id: string) => (picks[id] ?? []).some((p) => p.words.trim())
 
 export const START_BLANKS = {
-  business: { id: 'business', placeholder: 'a bakery', options: BUSINESSES },
-  name: { id: 'name', placeholder: 'Fern & Co', options: [], ownOnly: true },
-  feel: { id: 'feel', placeholder: 'cozy', options: FEELS },
-  goal: { id: 'goal', placeholder: 'order ahead', options: GOALS },
-  show: { id: 'show', placeholder: 'our menu', options: SHOWS, many: true },
+  business: { id: 'business', ask: 'what it is', placeholder: 'a bakery', options: BUSINESSES, groups: Object.values(BUSINESS_GROUPS) },
+  name: { id: 'name', ask: 'its name', placeholder: 'Fern & Co', options: [], ownOnly: true },
+  feel: { id: 'feel', ask: 'a feeling', placeholder: 'cozy', options: FEELS, groups: Object.keys(FEEL_GROUPS) },
+  goal: { id: 'goal', ask: 'do what', placeholder: 'order ahead', options: GOALS, groups: Object.keys(GOAL_GROUPS) },
+  show: { id: 'show', ask: 'what to show', placeholder: 'our menu', options: SHOWS, many: true, groups: Object.keys(SHOW_GROUPS) },
 } satisfies Record<string, Blank>
 
-/** "I'm making a site for [a bakery] called [Fern & Co]. It should feel [cozy] and help people [order ahead]. Show […]." It grows as you fill it. */
-export function startSentence(picks: Picks): Segment[] {
+/**
+ * "I'm making a site for [what it is] called [its name]. It should feel [a feeling] and help people [do what]. Show [what
+ * to show]." The whole sentence from the start, every blank saying what it asks for, like a fill-in-the-blanks game.
+ */
+export function startSentence(_picks: Picks = {}): Segment[] {
   const B = START_BLANKS
-  const out: Segment[] = [{ text: 'I’m making a site for' }, { blank: B.business }, { text: 'called' }, { blank: B.name }, { text: '.' }]
-  if (!filled(picks, 'business')) return out
-  out.push({ text: 'It should feel' }, { blank: B.feel })
-  if (!filled(picks, 'feel')) return [...out, { text: '.' }]
-  out.push({ text: 'and help people' }, { blank: B.goal }, { text: '.' })
-  if (!filled(picks, 'goal')) return out
-  return [...out, { text: 'Show' }, { blank: B.show }, { text: '.' }]
+  return [
+    { text: 'I’m making a site for' },
+    { blank: B.business },
+    { text: 'called' },
+    { blank: B.name },
+    { text: '.' },
+    { text: 'It should feel' },
+    { blank: B.feel },
+    { text: 'and help people' },
+    { blank: B.goal },
+    { text: '.' },
+    { text: 'Show' },
+    { blank: B.show },
+    { text: '.' },
+  ]
+}
+
+/** What the start sentence says, leaving out what's still blank: "I'm making a site for a bakery. It should feel cozy." */
+export function startText(picks: Picks): string {
+  const w = (id: string) => listWords((picks[id] ?? []).map((p) => p.words.trim()).filter(Boolean))
+  const [business, name, feel, goal, show] = ['business', 'name', 'feel', 'goal', 'show'].map(w)
+  const out: string[] = []
+  if (business || name) out.push(`I’m making a site${business ? ` for ${business}` : ''}${name ? ` called ${name}` : ''}.`)
+  if (feel || goal) out.push(`It should ${feel ? `feel ${feel}` : ''}${feel && goal ? ' and ' : ''}${goal ? `help people ${goal}` : ''}.`)
+  if (show) out.push(`Show ${show}.`)
+  return out.join(' ')
 }
 
 const byId = <T extends Choice>(list: T[], id: string | undefined) => (id ? list.find((x) => x.id === id) : undefined)
@@ -233,7 +301,7 @@ export function fillStart(picks: Picks): StartFill {
     button: goal?.button ?? (one('goal')?.words.trim() ? capital(one('goal')!.words.trim()) : undefined),
     feel: feelWords ? `${feelWords}${businessWords ? ` ${businessWords}` : ''}` : undefined,
     wants: shows.filter(({ s }) => !s?.section).map(({ p }) => p.words.trim()).filter(Boolean),
-    text: sentenceText(startSentence(picks), picks),
+    text: startText(picks),
   }
 }
 
@@ -305,31 +373,31 @@ const ADDABLE: Choice[] = SECTION_TYPES.filter((t) => t !== 'nav' && t !== 'foot
 
 /** The bar's sentence for the verb you picked: "Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]". */
 export function barSentence(picks: Picks, ctx: SayContext): Segment[] {
-  const verb: Blank = { id: 'verb', placeholder: 'Make', options: VERBS }
+  const verb: Blank = { id: 'verb', ask: 'do what', placeholder: 'Make', options: VERBS }
   const v = picks.verb?.[0]?.id
   const out: Segment[] = [{ blank: verb }]
-  const section = (id = 'section', except?: string): Blank => ({ id, placeholder: 'Pricing', options: sectionChoices(ctx, { except }) })
+  const section = (id = 'section', except?: string): Blank => ({ id, ask: 'which section', placeholder: 'Pricing', options: sectionChoices(ctx, { except }) })
   switch (v) {
     case 'make': {
-      const target: Blank = { id: 'section', placeholder: 'Pricing', options: [PAGE, ...sectionChoices(ctx)] }
+      const target: Blank = { id: 'section', ask: 'what', placeholder: 'Pricing', options: [PAGE, ...sectionChoices(ctx)] }
       const page = picks.section?.[0]?.id === 'page'
-      return [...out, { blank: target }, { blank: { id: 'how', placeholder: page ? 'roomier' : 'darker', options: page ? PAGE_HOWS : SECTION_HOWS } }]
+      return [...out, { blank: target }, { blank: { id: 'how', ask: 'how', placeholder: page ? 'roomier' : 'darker', options: page ? PAGE_HOWS : SECTION_HOWS } }]
     }
     case 'move': {
-      out.push({ blank: section() }, { blank: { id: 'where', placeholder: 'above', options: WHERE } })
+      out.push({ blank: section() }, { blank: { id: 'where', ask: 'where', placeholder: 'above', options: WHERE } })
       const w = picks.where?.[0]?.id
       return w === 'above' || w === 'below' ? [...out, { blank: section('other', picks.section?.[0]?.id) }] : out
     }
     case 'add':
-      return [...out, { blank: { id: 'type', placeholder: 'a FAQ section', options: ADDABLE } }]
+      return [...out, { blank: { id: 'type', ask: 'what kind', placeholder: 'a FAQ section', options: ADDABLE } }]
     case 'remove':
       return [...out, { blank: section() }]
     case 'swap':
       return [...out, { blank: section() }, { text: 'layout' }]
     case 'colors':
-      return [...out, { blank: { id: 'feel', placeholder: 'cozy', options: FEELS } }]
+      return [...out, { blank: { id: 'feel', ask: 'a feeling', placeholder: 'cozy', options: FEELS } }]
     case 'dress':
-      return [...out, { blank: section() }, { text: 'that feel' }, { blank: { id: 'feel', placeholder: 'premium', options: FEELS } }]
+      return [...out, { blank: section() }, { text: 'that feel' }, { blank: { id: 'feel', ask: 'a feeling', placeholder: 'premium', options: FEELS } }]
     default:
       return out
   }
@@ -423,6 +491,33 @@ export function openBlanks(segs: Segment[], picks: Picks): Blank[] {
 export function defaultOrder(options: Choice[], kind: Kind | null): Choice[] {
   if (!kind) return options
   return [...options.filter((o) => o.kinds?.includes(kind)), ...options.filter((o) => !o.kinds?.includes(kind))]
+}
+
+/** A blank's options best first: Jev's order when there is one, else the kind's lean. */
+export function orderOptions(blank: Blank, order?: string[], kind: Kind | null = null): Choice[] {
+  if (!order?.length) return defaultOrder(blank.options, kind)
+  const at = new Map(order.map((id, i) => [id, i]))
+  return [...blank.options].sort((a, b) => (at.get(a.id) ?? 999) - (at.get(b.id) ?? 999))
+}
+
+export interface OptionGroup {
+  name: string
+  options: Choice[]
+}
+
+/** A blank's options in its groups, the groups A to Z, each group best first. */
+export function groupsOf(blank: Blank, order?: string[], kind: Kind | null = null): OptionGroup[] {
+  const sorted = orderOptions(blank, order, kind)
+  const names = [...new Set([...(blank.groups ?? []), ...sorted.map((o) => o.group ?? 'More')])].sort((x, y) => x.localeCompare(y))
+  return names.map((name) => ({ name, options: sorted.filter((o) => (o.group ?? 'More') === name) })).filter((g) => g.options.length)
+}
+
+/**
+ * A few to try first, once there's something to go on (Jev's order or the kind of site). Before that there are none: the
+ * groups themselves already show the range.
+ */
+export function suggestedFor(blank: Blank, order?: string[], kind: Kind | null = null, count = 6): Choice[] {
+  return order?.length || kind ? orderOptions(blank, order, kind).slice(0, count) : []
 }
 
 const criteria = (options: Choice[]): Record<string, Criterion> => Object.fromEntries(options.map((o) => [o.id, { what: o.label }]))
