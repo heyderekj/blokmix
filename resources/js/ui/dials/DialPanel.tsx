@@ -1,3 +1,4 @@
+import { ColorButton } from '@/ui/color/ColorPicker'
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Plus, RotateCcw, Shuffle } from 'lucide-react'
 import type { TokenKey, TokenSet } from '@/core/types'
@@ -262,14 +263,14 @@ export function ColorPick({ value, tokens, onHover, onPick }: { value: string; t
           style={{ background: tokens[`color.${r}` as TokenKey] }}
         />
       ))}
-      <label
+      <ColorButton
+        value={/^#[0-9a-f]{6}$/i.test(hexOf(value, tokens)) ? hexOf(value, tokens) : '#000000'}
+        onPick={onPick}
         title="Your own color"
         className={`relative grid size-5 cursor-pointer place-items-center overflow-hidden rounded-full ${isRole(value) ? 'ring-1 ring-dashed ring-zinc-950/30' : 'ring-2 ring-zinc-900 ring-offset-2 ring-offset-[var(--lift)]'}`}
-        style={isRole(value) ? undefined : { background: value }}
       >
-        {isRole(value) && <Plus size={11} className="text-zinc-500" />}
-        <input type="color" value={/^#[0-9a-f]{6}$/i.test(hexOf(value, tokens)) ? hexOf(value, tokens) : '#000000'} onChange={(e) => onPick(e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" />
-      </label>
+        {isRole(value) ? <Plus size={11} className="text-zinc-500" /> : <span className="absolute inset-0" style={{ background: value }} />}
+      </ColorButton>
     </div>
   )
 }

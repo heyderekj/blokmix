@@ -1,3 +1,4 @@
+import { ColorButton } from '@/ui/color/ColorPicker'
 import { useState } from 'react'
 import { TYPE_RATIOS } from '@/core/dials'
 import { Check, ClipboardCopy, Lock, Plus, RotateCcw, X } from 'lucide-react'
@@ -201,7 +202,7 @@ export function AddSwatch() {
   }
   return (
     <span className="flex items-center gap-1.5">
-      <input type="color" value={value} onChange={(e) => setValue(e.target.value)} className="size-6 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Color" />
+      <ColorButton value={value} onPick={setValue} title="Color" className="size-6 shrink-0 cursor-pointer rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" />
       <input
         autoFocus
         value={name}
@@ -378,9 +379,14 @@ function Knob({ k, value, onChange }: { k: TokenKey; value: string; onChange: (v
   if (k.startsWith('color.')) {
     return (
       <div className="flex items-center gap-2">
-        <label className="relative size-8 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-zinc-950/15 shadow-inner" style={{ background: value }}>
-          <input type="color" value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" />
-        </label>
+        <ColorButton
+          value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'}
+          onPick={onChange}
+          title="Pick a color"
+          className="size-8 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-zinc-950/15 shadow-inner"
+        >
+          <span className="block size-full" style={{ background: value }} />
+        </ColorButton>
         <input
           key={value}
           defaultValue={value}

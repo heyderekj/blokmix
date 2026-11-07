@@ -1,3 +1,4 @@
+import { ColorButton } from '@/ui/color/ColorPicker'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowRight, Check, FileText, Moon, Plus, Shuffle, Sun, Upload, X } from 'lucide-react'
 import { create } from 'zustand'
@@ -324,10 +325,17 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                     ))}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                    <label className="flex h-11 cursor-pointer items-center gap-3 text-[14px] font-medium">
-                      <input type="color" value={brand ?? skinById(theme)?.tokens['color.primary'] ?? '#404040'} onChange={(e) => (setBrand(e.target.value), setPalette(null))} className="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0" aria-label="Brand color" />
-                      {palette ? 'Colors by feel' : brand ? 'Your brand color' : 'Have a brand color? Pick it'}
-                    </label>
+                    <ColorButton
+                      value={brand ?? skinById(theme)?.tokens['color.primary'] ?? '#404040'}
+                      live={(h) => (setBrand(h), setPalette(null))}
+                      onPick={(h) => (setBrand(h), setPalette(null))}
+                      palette={mode ?? skinById(theme)?.mode ?? 'light'}
+                      title="Brand color"
+                      className="flex h-11 cursor-pointer items-center gap-3 rounded-full pr-2 text-[14px] font-medium"
+                    >
+                      <span className="size-9 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: brand ?? skinById(theme)?.tokens['color.primary'] ?? '#404040' }} />
+                      {palette ? 'Colors by feel' : brand ? <>Your brand color <span className="font-mono text-[12px] uppercase text-[#6B5F68]">{brand}</span></> : 'Have a brand color? Pick or paste it'}
+                    </ColorButton>
                     {(brand || palette) && (
                       <button type="button" onClick={() => (setBrand(null), setPalette(null))} className={QUIET}>
                         Use the theme’s own
