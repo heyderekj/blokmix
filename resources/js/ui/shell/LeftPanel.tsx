@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { MessageSquare, SwatchBook, Type, X } from 'lucide-react'
 import { openGroups } from '@/core/guide'
 import { outstanding } from '@/core/notes'
@@ -8,13 +8,29 @@ import { setInset } from '@/ui/canvas/insets'
 import { GuidePanel } from '@/ui/panels/GuidePanel'
 import { NotesPanel } from '@/ui/panels/NotesPanel'
 import { WordsPanel } from '@/ui/words/WordsPanel'
-import { useWideBar } from './TopBar'
 
 type Which = 'words' | 'look' | 'notes'
 const RAIL_X = 12
 const RAIL_W = 60
-const PANEL_W = 400
 const GAP = 8
+/** Docked beside the page from tablet width up; only phones get the sheet from the bottom. */
+const DOCKED = '(min-width: 768px)'
+const ROOMY = '(min-width: 1120px)'
+
+function useMedia(query: string) {
+  const [on, setOn] = useState(() => typeof window === 'undefined' || window.matchMedia(query).matches)
+  useEffect(() => {
+    const m = window.matchMedia(query)
+    const change = () => setOn(m.matches)
+    change()
+    m.addEventListener('change', change)
+    return () => m.removeEventListener('change', change)
+  }, [query])
+  return on
+}
+
+/** Whether the left panels dock beside the page (tablet width and up) rather than rising from the bottom. */
+export const useDocked = () => useMedia(DOCKED)
 
 /** Open or close a left panel (the same one again closes it). */
 export function toggleLeft(which: Which) {
@@ -23,12 +39,14 @@ export function toggleLeft(which: Which) {
 }
 
 /**
- * The left side of the board: a slim rail (Words, Look, Notes), and the one you open beside it, docked, so the page
- * stays in view and you can keep selecting things on it. On a narrow window the panel is a sheet from the bottom.
+ * The left side of the board: a slim rail (Design, Content, Notes), and the one you open beside it, docked, so the page
+ * stays in view and you can keep selecting things on it. On a phone the panel is a sheet from the bottom.
  */
 export function LeftPanel() {
   const which = useStore((s) => s.ui.leftPanel)
-  const wide = useWideBar()
+  const wide = useDocked()
+  // A little narrower on a tablet, so the page keeps room beside it.
+  const PANEL_W = useMedia(ROOMY) ? 400 : 340
   const decisions = openGroups(useResolvedGuide()).length
   const todo = useStore((s) => s.notes.filter(outstanding).length)
   const open = which !== 'none'
@@ -37,7 +55,7 @@ export function LeftPanel() {
   useEffect(() => {
     setInset('left', wide ? RAIL_X + RAIL_W + (open ? GAP + PANEL_W : 0) + 12 : 0)
     return () => setInset('left', 0)
-  }, [wide, open])
+  }, [wide, open, PANEL_W])
 
   const body = which === 'words' ? <WordsPanel /> : which === 'look' ? <Scroll><GuidePanel /></Scroll> : which === 'notes' ? <Scroll><NotesPanel /></Scroll> : null
   const close = () => useStore.getState().setUi({ leftPanel: 'none' })
@@ -46,8 +64,8 @@ export function LeftPanel() {
     <>
       {wide && (
         <nav className="glass-menu pointer-events-auto absolute z-40 flex flex-col gap-1 rounded-2xl p-1.5" style={{ left: RAIL_X, top: 72, width: RAIL_W }} aria-label="Panels">
-          <RailButton on={which === 'words'} icon={Type} label="Words" title="Your words, and the layouts that fit them (W)" onClick={() => toggleLeft('words')} />
-          <RailButton on={which === 'look'} icon={SwatchBook} label="Look" title={decisions ? `Look: ${decisions} to decide (G)` : 'Look: themes, feel and the style guide (G)'} onClick={() => toggleLeft('look')} dot={decisions > 0} />
+          <RailButton on={which === 'look'} icon={SwatchBook} label="Design" title={decisions ? `Design: ${decisions} to decide (G)` : 'Design: themes, feel, color and the style guide (G)'} onClick={() => toggleLeft('look')} dot={decisions > 0} />
+          <RailButton on={which === 'words'} icon={Type} label="Content" title="Your words, and the layouts that fit them (W)" onClick={() => toggleLeft('words')} />
           <RailButton on={which === 'notes'} icon={MessageSquare} label="Notes" title={todo ? `${todo} note${todo > 1 ? 's' : ''} to do` : 'Notes'} onClick={() => toggleLeft('notes')} count={todo} />
         </nav>
       )}
@@ -73,7 +91,7 @@ export function LeftPanel() {
   )
 }
 
-const LABEL: Record<Which, string> = { words: 'Words', look: 'Look', notes: 'Notes' }
+const LABEL: Record<Which, string> = { words: 'Content', look: 'Design', notes: 'Notes' }
 
 function PanelHead({ title, onClose }: { title: string; onClose: () => void }) {
   return (

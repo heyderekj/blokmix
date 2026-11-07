@@ -401,7 +401,7 @@ const LABEL: Record<Question, string> = {
   goals: 'It should',
   action: 'Main button',
   sections: 'On the page',
-  look: 'Look',
+  look: 'Design',
   drafts: 'Layouts',
 }
 
