@@ -104,8 +104,8 @@ function NarrowPanels() {
   )
   return (
     <>
-      {item('words', Type, 'Words')}
-      {item('look', SwatchBook, 'Look')}
+      {item('look', SwatchBook, 'Design')}
+      {item('words', Type, 'Content')}
       {item('notes', MessageSquare, 'Notes', todo)}
       <Divider />
     </>

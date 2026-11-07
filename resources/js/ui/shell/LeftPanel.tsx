@@ -23,7 +23,7 @@ export function toggleLeft(which: Which) {
 }
 
 /**
- * The left side of the board: a slim rail (Words, Look, Notes), and the one you open beside it, docked, so the page
+ * The left side of the board: a slim rail (Design, Content, Notes), and the one you open beside it, docked, so the page
  * stays in view and you can keep selecting things on it. On a narrow window the panel is a sheet from the bottom.
  */
 export function LeftPanel() {
@@ -46,8 +46,8 @@ export function LeftPanel() {
     <>
       {wide && (
         <nav className="glass-menu pointer-events-auto absolute z-40 flex flex-col gap-1 rounded-2xl p-1.5" style={{ left: RAIL_X, top: 72, width: RAIL_W }} aria-label="Panels">
-          <RailButton on={which === 'words'} icon={Type} label="Words" title="Your words, and the layouts that fit them (W)" onClick={() => toggleLeft('words')} />
-          <RailButton on={which === 'look'} icon={SwatchBook} label="Look" title={decisions ? `Look: ${decisions} to decide (G)` : 'Look: themes, feel and the style guide (G)'} onClick={() => toggleLeft('look')} dot={decisions > 0} />
+          <RailButton on={which === 'look'} icon={SwatchBook} label="Design" title={decisions ? `Design: ${decisions} to decide (G)` : 'Design: themes, feel, color and the style guide (G)'} onClick={() => toggleLeft('look')} dot={decisions > 0} />
+          <RailButton on={which === 'words'} icon={Type} label="Content" title="Your words, and the layouts that fit them (W)" onClick={() => toggleLeft('words')} />
           <RailButton on={which === 'notes'} icon={MessageSquare} label="Notes" title={todo ? `${todo} note${todo > 1 ? 's' : ''} to do` : 'Notes'} onClick={() => toggleLeft('notes')} count={todo} />
         </nav>
       )}
@@ -73,7 +73,7 @@ export function LeftPanel() {
   )
 }
 
-const LABEL: Record<Which, string> = { words: 'Words', look: 'Look', notes: 'Notes' }
+const LABEL: Record<Which, string> = { words: 'Content', look: 'Design', notes: 'Notes' }
 
 function PanelHead({ title, onClose }: { title: string; onClose: () => void }) {
   return (

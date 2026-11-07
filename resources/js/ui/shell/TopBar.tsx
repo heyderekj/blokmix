@@ -253,8 +253,8 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
               <X size={16} /> Showing as clipped: back to your style
             </button>
           )}
-          {row(SwatchBook, 'Look', () => st().setUi({ sheet: 'none', leftPanel: 'look' }), decisions > 0 ? <span className="text-[12px] font-semibold text-attention-ink">{decisions} to decide</span> : undefined)}
-          {row(Type, 'Words', () => st().setUi({ sheet: 'none', leftPanel: 'words' }))}
+          {row(SwatchBook, 'Design', () => st().setUi({ sheet: 'none', leftPanel: 'look' }), decisions > 0 ? <span className="text-[12px] font-semibold text-attention-ink">{decisions} to decide</span> : undefined)}
+          {row(Type, 'Content', () => st().setUi({ sheet: 'none', leftPanel: 'words' }))}
           {row(MessageSquare, 'Notes', () => st().setUi({ sheet: 'none', leftPanel: 'notes' }), todo > 0 ? <span className="min-w-5 rounded-full bg-problem px-1.5 text-center text-[11px] font-bold tabular-nums text-white">{todo}</span> : undefined)}
           <div className="mx-3 my-1 h-px bg-zinc-950/6" />
           {isHosted() && row(Users, 'Share', () => st().setUi({ sheet: 'share' }), <Presence size={22} inline />)}
