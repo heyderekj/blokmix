@@ -7,22 +7,25 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-/** Selling mix packs: a Polar checkout for one, and the webhooks that grant it (or take it back on a full refund). */
-class MixPacks
+/** Selling Plus: a Polar checkout, and the webhooks that grant it (or take it back on a full refund). One price, once. */
+class Plus
 {
-    public const PRODUCT = 'mix_pack';
+    public const PRODUCT = 'plus';
 
     public function __construct(private PolarClient $polar) {}
 
-    /** Whether people can buy a pack here now. */
+    /** Whether people can buy Plus here now. */
     public function available(): bool
     {
         return config('billing.enabled') && $this->polar->configured();
     }
 
-    /** Polar's checkout page for one pack, for this person. */
+    /** Polar's checkout page for Plus, for this person. Someone who already has it can't buy it again. */
     public function checkoutUrl(User $user): string
     {
+        if ($user->hasPlus()) {
+            throw new \RuntimeException('You already have Plus.');
+        }
         $session = $this->polar->createCheckout(
             productId: (string) $this->polar->productId(self::PRODUCT),
             externalCustomerId: (string) $user->id,
@@ -35,14 +38,14 @@ class MixPacks
         return $session['url'];
     }
 
-    /** Polar's customer portal (receipts) for someone who has bought a pack. */
+    /** Polar's customer portal (receipts) for someone who has bought Plus. */
     public function receiptsUrl(User $user): ?string
     {
         return $user->polar_customer_id ? $this->polar->customerPortalUrl((string) $user->id) : null;
     }
 
     /**
-     * A verified Polar event. Anything that isn't an order for a mix pack, or names nobody we know, is ignored
+     * A verified Polar event. Anything that isn't an order for Plus, or names nobody we know, is ignored
      * (so Polar doesn't retry it).
      *
      * @param  array<string, mixed>  $event
@@ -95,16 +98,16 @@ class MixPacks
                 'packs' => 1,
                 'amount_cents' => (int) ($data['total_amount'] ?? $data['amount'] ?? 0),
             ]);
-            // A redelivered webhook: this order already granted its pack.
+            // A redelivered webhook: this order already granted Plus.
             if (! $order->wasRecentlyCreated) {
                 return;
             }
             $user->forceFill(['polar_customer_id' => $data['customer_id'] ?? $user->polar_customer_id])->save();
-            $user->increment('mix_packs', $order->packs);
+            $user->forceFill(['plan' => 'plus'])->save();
         });
     }
 
-    /** A full refund takes the pack back; the mixes stay (only opening more is refused). @param  array<string, mixed>  $data */
+    /** A full refund takes Plus back, unless another order still holds it; the mixes stay (only opening more is refused). @param  array<string, mixed>  $data */
     private function refunded(User $user, array $data): void
     {
         $order = BillingOrder::where('polar_order_id', (string) ($data['id'] ?? ''))->where('user_id', $user->id)->first();
@@ -114,7 +117,10 @@ class MixPacks
 
         DB::transaction(function () use ($user, $order) {
             $order->forceFill(['refunded_at' => now()])->save();
-            $user->forceFill(['mix_packs' => max(0, $user->mix_packs - $order->packs)])->save();
+            $paid = $user->billingOrders()->whereNull('refunded_at')->where('product_key', self::PRODUCT)->exists();
+            if (! $paid) {
+                $user->forceFill(['plan' => 'free'])->save();
+            }
         });
     }
 }

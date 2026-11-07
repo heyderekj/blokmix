@@ -2,15 +2,15 @@ import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { router } from '@inertiajs/react'
 import { Check, Lock } from 'lucide-react'
-import { PACK_OPENS } from '@/core/plan'
-import { needsPack, useBuySheet } from '@/state/plan'
+import { PLUS_OPENS } from '@/core/plan'
+import { needsPlus, useBuySheet } from '@/state/plan'
 import { useAccount } from '@/lib/account'
 
 const close = () => useBuySheet.setState({ open: false, what: null })
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
 
 /**
- * What a mix pack opens, when something on the board needs one (state/plan.ts `needsPack`): $20 once, three mixes,
+ * What Plus opens, when something on the board needs it (state/plan.ts `needsPlus`): $25 once, every mix,
  * and everything Free leaves out. The mix's owner can buy one at Polar; anyone else hears that it's the owner's call.
  */
 export function BuySheet() {
@@ -51,26 +51,26 @@ export function BuySheet() {
               <Lock size={20} />
             </span>
             <h2 id="buy-title" className="mt-4 text-[17px] font-semibold leading-snug tracking-tight text-zinc-900 [text-wrap:balance]">
-              A mix pack opens {what ? lower(what) : 'everything'}
+              Plus opens {what ? lower(what) : 'everything'}
             </h2>
             <p className="mt-1.5 text-[14px] leading-relaxed text-zinc-500 [text-wrap:pretty]">
-              ${price} once, no subscription. {owns ? 'Buy more whenever you need more mixes.' : 'This mix’s owner is on Free; a pack is theirs to get.'}
+              ${price} once, no subscription. {owns ? 'Everything, for good.' : 'This mix’s owner is on Free; Plus is theirs to get.'}
             </p>
             <ul className="mt-4 grid gap-1.5">
-              {PACK_OPENS.map((line) => (
+              {PLUS_OPENS.map((line) => (
                 <li key={line} className="flex items-start gap-2 text-[13.5px] leading-snug text-zinc-700">
                   <Check size={15} strokeWidth={2.5} className="mt-0.5 shrink-0 text-key-ink" aria-hidden /> {line}
                 </li>
               ))}
             </ul>
             <div className="mt-6 flex items-center justify-end gap-2">
-              {owns && !buy && <span className="mr-auto text-[12.5px] text-zinc-500">Mix packs are coming soon.</span>}
+              {owns && !buy && <span className="mr-auto text-[12.5px] text-zinc-500">Plus opens at launch.</span>}
               <button type="button" onClick={close} className="btn-quiet h-10 cursor-pointer rounded-full px-4 text-[13.5px] font-semibold">
                 {owns && buy ? 'Not now' : 'OK'}
               </button>
               {owns && buy && (
                 <button ref={okRef} type="button" onClick={() => router.post('/api/billing/checkout')} className="btn-lit h-10 cursor-pointer rounded-full px-4 text-[13.5px] font-semibold">
-                  Get a mix pack, ${price}
+                  Get Plus, ${price}
                 </button>
               )}
             </div>
@@ -88,10 +88,10 @@ export function PackNote({ what }: { what: string }) {
   return (
     <button
       type="button"
-      onClick={() => needsPack(what)}
+      onClick={() => needsPlus(what)}
       className="flex w-full cursor-pointer items-center gap-2 rounded-xl bg-key-soft/60 px-2.5 py-2 text-left text-[12px] font-medium text-key-ink transition-[scale] duration-150 active:scale-[0.97]"
     >
-      <Lock size={13} className="shrink-0" /> {what} come with a mix pack. Preview them here.
+      <Lock size={13} className="shrink-0" /> {what} come with Plus. Preview them here.
     </button>
   )
 }

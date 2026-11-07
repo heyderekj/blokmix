@@ -79,7 +79,7 @@ export async function hear(text: string): Promise<Heard | null> {
   return { action, options, kept }
 }
 
-/** Do it: an ordinary command as you (one undo step, the buy sheet when it needs a pack), or open a tool. */
+/** Do it: an ordinary command as you (one undo step, the buy sheet when it needs Plus), or open a tool. */
 export async function doSay(a: SayAction, text: string): Promise<string | null> {
   const st = useStore.getState()
   if (a.open) {

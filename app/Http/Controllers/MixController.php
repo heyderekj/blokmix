@@ -75,7 +75,7 @@ class MixController extends Controller
 
     public function local(Request $request): Response
     {
-        return Inertia::render('mixes/show', ['mix' => ['id' => 'local', 'paid' => $request->user()->planName() === 'paid'], 'role' => MixRole::Owner->value]);
+        return Inertia::render('mixes/show', ['mix' => ['id' => 'local', 'paid' => $request->user()->hasPlus()], 'role' => MixRole::Owner->value]);
     }
 
     public function show(Request $request, Mix $mix): Response

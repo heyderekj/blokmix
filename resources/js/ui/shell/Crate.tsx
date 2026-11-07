@@ -42,7 +42,7 @@ export function Crate() {
   const mix = useMemo(() => new Set(mixClipIds({ site, clips: own })), [site, own])
   // This mix's clips first when it has some, then your whole library, then the built-in layouts.
   const [shelf, setShelf] = useState<Shelf>(mix.size ? 'mix' : yours ? 'yours' : 'layouts')
-  // On Free, layouts in a mix pack show too, with a lock, after the ones you can use.
+  // On Free, layouts in Plus show too, with a lock, after the ones you can use.
   useAccount((s) => s.paid)
   const pool = (t: SectionType) => {
     const ids = pickable(library, t, { locked: true }).filter((id) => onShelf(id, shelf, mix))
@@ -325,10 +325,10 @@ function ClipCard({ clip, used, inMix, own, scroller }: { clip: Clip; used: bool
           <span className={`truncate text-[12px] ${used ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-700'}`}>{layout ? clip.title : source?.name}</span>
           {used ? <span className="size-1.5 shrink-0 rounded-full bg-key" title="On the page" /> : layout ? <LayoutTag /> : null}
         </div>
-        <div className="truncate px-0.5 text-[11px] text-zinc-400">{locked ? 'In a mix pack' : inMix && !used ? `In this mix · ${feel}` : feel}</div>
+        <div className="truncate px-0.5 text-[11px] text-zinc-400">{locked ? 'In Plus' : inMix && !used ? `In this mix · ${feel}` : feel}</div>
       </button>
       {locked && (
-        <span className="pointer-events-none absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-white text-zinc-600 shadow-sm ring-1 ring-zinc-950/10" title="In a mix pack">
+        <span className="pointer-events-none absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-white text-zinc-600 shadow-sm ring-1 ring-zinc-950/10" title="In Plus">
           <Lock size={12} strokeWidth={2.25} />
         </span>
       )}

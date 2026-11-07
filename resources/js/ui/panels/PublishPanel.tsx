@@ -3,7 +3,6 @@ import { BadgeCheck, Check, Copy, EyeOff, ExternalLink, Globe, Link2, Loader2, R
 import { useStore } from '@/state/store'
 import { useSave } from '@/lib/mixSync'
 import { canEdit, useAccount } from '@/lib/account'
-import { useBuySheet } from '@/state/plan'
 import { loadPublication, publishMix, unpublishMix, usePublication, type PublishStep } from '@/lib/publish'
 import { localMixState, saveLocalMix } from '@/lib/localMix'
 import { sourceVersion } from '@/lib/packet'
@@ -65,7 +64,6 @@ export function PublishPanel() {
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
       setError(message)
-      if (/mix pack/i.test(message) && !paidPlan) useBuySheet.setState({ open: true, what: 'Publishing more than one mix' })
     } finally {
       setBusy(null)
       setStep(null)
@@ -191,7 +189,7 @@ export function PublishPanel() {
         <Fact icon={EyeOff}>Search engines won’t index it</Fact>
         <Fact icon={Link2}>Anyone with the link can see it</Fact>
         <Fact icon={RefreshCw}>Updating keeps the same address</Fact>
-        {!paidPlan && <Fact icon={BadgeCheck}>On Free: one published mix, with a small “Made with Blokmix” badge</Fact>}
+        {!paidPlan && <Fact icon={BadgeCheck}>On Free, a small “Made with Blokmix” badge</Fact>}
       </ul>
     </div>
   )

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { library } from '@/data/library'
 import { layoutOpen, pickable, starterOpen } from '@/core/library'
-import { blockEditNeedsPack, fillNeedsPack } from '@/core/plan'
+import { blockEditNeedsPlus, fillNeedsPlus } from '@/core/plan'
 import { KINDS, SECTION_TYPES } from '@/core/types'
 import { startCandidates } from '@/core/start'
 import { allSlots } from '@/core/site'
@@ -9,7 +9,7 @@ import { currentSlots, useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
 import { useBuySheet } from '@/state/plan'
 
-// What Free leaves out and a mix pack opens (core/plan.ts, docs/pricing.md).
+// What Free leaves out and Plus opens (core/plan.ts, docs/pricing.md).
 const free = () => (library.paid = false)
 afterEach(() => {
   library.paid = undefined
@@ -24,7 +24,7 @@ describe('Free’s layouts', () => {
     }
   })
 
-  it('offers only those on Free, and every layout with a pack', () => {
+  it('offers only those on Free, and every layout with Plus', () => {
     const all = pickable(library, 'hero')
     free()
     const open = pickable(library, 'hero')
@@ -46,14 +46,14 @@ describe('Free’s layouts', () => {
   })
 })
 
-describe('what needs a pack', () => {
+describe('what needs Plus', () => {
   it('names block looks and generative pictures, not uploads or simple placeholders', () => {
-    expect(blockEditNeedsPack({ variant: 'outline' })).toBe('A block look')
-    expect(blockEditNeedsPack({ media: { source: 'shader', shader: 'mesh-gradient' } })).toBe('A live shader')
-    expect(blockEditNeedsPack({ media: { source: 'placeholder', style: 'dither' } })).toBe('A generative picture')
-    expect(blockEditNeedsPack({ hidden: true })).toBeNull()
-    expect(fillNeedsPack({ source: 'placeholder', style: 'mesh' })).toBe(false)
-    expect(fillNeedsPack({ source: 'upload' })).toBe(false)
+    expect(blockEditNeedsPlus({ variant: 'outline' })).toBe('A block look')
+    expect(blockEditNeedsPlus({ media: { source: 'shader', shader: 'mesh-gradient' } })).toBe('A live shader')
+    expect(blockEditNeedsPlus({ media: { source: 'placeholder', style: 'dither' } })).toBe('A generative picture')
+    expect(blockEditNeedsPlus({ hidden: true })).toBeNull()
+    expect(fillNeedsPlus({ source: 'placeholder', style: 'mesh' })).toBe(false)
+    expect(fillNeedsPlus({ source: 'upload' })).toBe(false)
   })
 })
 
@@ -85,18 +85,18 @@ describe('on the board', () => {
     expect(st().guide.effects?.grain).toBeUndefined()
   })
 
-  it('tells an agent what needs a pack, and changes nothing', () => {
+  it('tells an agent what needs Plus, and changes nothing', () => {
     free()
     const before = useStore.getState().guide
-    expect(() => runCommand('set_effect', { effect: 'grain' })).toThrow(/needs a mix pack/)
+    expect(() => runCommand('set_effect', { effect: 'grain' })).toThrow(/needs Plus/)
     expect(useStore.getState().guide).toBe(before)
     expect(useBuySheet.getState().open).toBe(false)
     const hero = currentSlots(useStore.getState()).find((s) => s.type === 'hero')!
     const locked = pickable(library, 'hero', { locked: true }).find((id) => !layoutOpen(library, id))!
-    expect(() => runCommand('swap_section', { section: hero.id, clip_id: locked })).toThrow(/That layout needs a mix pack/)
+    expect(() => runCommand('swap_section', { section: hero.id, clip_id: locked })).toThrow(/That layout needs Plus/)
   })
 
-  it('opens everything with a pack', () => {
+  it('opens everything with Plus', () => {
     const st = useStore.getState
     st().setEffect('grain', { id: 'grain' })
     expect(st().guide.effects?.grain).toBeTruthy()

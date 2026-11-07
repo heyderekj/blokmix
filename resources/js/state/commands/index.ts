@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { canEdit, useAccount } from '@/lib/account'
 import { CommandError, findBlock, findSection } from './refs'
 import { TYPE_LABEL } from '@/core/content'
-import { PackRefusal, strictly } from '../plan'
+import { PlusRefusal, strictly } from '../plan'
 import { contractRefusal } from '@/core/contract'
 import * as read from './read'
 import * as review from './review'
@@ -51,10 +51,10 @@ const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later
 const MARKS = new Set(['add_note', 'update_note', 'reply_note'])
 
 export function runCommand(name: string, raw: unknown, by: Caller = 'agent'): unknown {
-  // An agent hears what needs a mix pack; you get the buy sheet.
+  // An agent hears what needs Plus; you get the buy sheet.
   if (by !== 'agent') return run(name, raw, by)
   const refused = (e: unknown) => {
-    throw e instanceof PackRefusal ? new CommandError(e.message) : e
+    throw e instanceof PlusRefusal ? new CommandError(e.message) : e
   }
   try {
     const out = strictly(() => run(name, raw, by))

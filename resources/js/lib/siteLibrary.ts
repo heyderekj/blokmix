@@ -119,7 +119,7 @@ export function sectionClipState(lib: Pick<Library, 'clips'>, s: LibrarySection)
 }
 
 /**
- * On Free (`paid === false`), a section matched to a layout in a mix pack lands as an open layout of the same shape
+ * On Free (`paid === false`), a section matched to a layout in Plus lands as an open layout of the same shape
  * (rhythm), else the type's first open one.
  */
 function openStandIn(lib: Pick<Library, 'clips'> & Partial<Library>, id: string): string {

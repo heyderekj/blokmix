@@ -68,8 +68,6 @@ class CollectionController extends Controller
         ]);
         // The payload as sent: validate() would keep only the keys that have rules.
         $input = $request->only(['id', 'slug', 'name', 'schema', 'entries']);
-        $why = $me->collectionRefusal() ?? $me->collectionRefusal(count($input['entries'] ?? []));
-        abort_if($why !== null, 403, (string) $why);
         if ($clash = $this->slugClash($me, $input['slug'])) {
             return $clash;
         }
@@ -115,14 +113,6 @@ class CollectionController extends Controller
             }
         }
         $owner = $collection->user;
-        // Entries count toward the owner's plan, whoever adds them. What's already there is kept; only adding more is refused.
-        if (array_key_exists('entries', $input) && count($input['entries']) > count($collection->entries ?? [])) {
-            $why = $owner->collectionRefusal(count($input['entries']));
-            if ($why !== null && $owner->isNot($request->user())) {
-                $why = 'This collection’s owner is out of room for entries.';
-            }
-            abort_if($why !== null, 403, (string) $why);
-        }
         if (isset($input['slug']) && $input['slug'] !== $collection->slug && ($clash = $this->slugClash($owner, $input['slug']))) {
             return $clash;
         }

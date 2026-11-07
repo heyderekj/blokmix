@@ -4,7 +4,7 @@ import { library } from '@/data/library'
 import type { Library } from '@/core/types'
 import { DEFAULT_KEEP } from '@/core/types'
 import { effectiveEdit, ORIGINAL } from '@/core/blocks/style'
-import { blockEditNeedsPack } from '@/core/plan'
+import { blockEditNeedsPlus } from '@/core/plan'
 import { blankMix } from '@/state/seed'
 import { DEFAULT_CONTENT } from '@/core/content'
 
@@ -71,8 +71,8 @@ describe('Original over a skin’s default look', () => {
     expect(own?.style).toBeUndefined()
   })
   it('is free', () => {
-    expect(blockEditNeedsPack({ variant: ORIGINAL })).toBeNull()
-    expect(blockEditNeedsPack({ variant: 'pill' })).toBe('A block look')
+    expect(blockEditNeedsPlus({ variant: ORIGINAL })).toBeNull()
+    expect(blockEditNeedsPlus({ variant: 'pill' })).toBe('A block look')
   })
 })
 

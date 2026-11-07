@@ -99,7 +99,7 @@ export function DressUp({ slot }: { slot: Slot }) {
               className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2.5 py-1.5 text-left text-[12px] text-zinc-800 ring-1 ring-zinc-950/10 transition hover:ring-zinc-400 active:scale-[0.98]"
             >
               <span className="min-w-0 flex-1 truncate">{idea.label}</span>
-              {idea.locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="Needs a mix pack" />}
+              {idea.locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="Needs Plus" />}
             </button>
           ))}
         </div>

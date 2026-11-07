@@ -18,9 +18,6 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /** A new account has bought no mix packs (the column's default, before it's read back). */
-    protected $attributes = ['mix_packs' => 0];
-
     public function clips(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Clip::class);
@@ -47,29 +44,31 @@ class User extends Authenticatable
         return $this->hasMany(BillingOrder::class);
     }
 
-    /** Free, or paid once a mix pack is bought. The people who run Blokmix, and `plan = plus` given by hand, are paid. */
+    /** Free, or Plus once it's bought (`plan = plus`, also given by hand). The people who run Blokmix, and everyone while on the waitlist, are on Plus. */
     public function planName(): string
     {
-        return $this->mix_packs > 0 || $this->unlimited() ? 'paid' : 'free';
+        return $this->plan === 'plus' || $this->unlimited() ? 'plus' : 'free';
     }
 
-    /** No limits: the people who run Blokmix, accounts given `plan = plus` by hand, and everyone while on the waitlist. */
+    /** No limits: the people who run Blokmix and everyone while on the waitlist. */
     public function unlimited(): bool
     {
-        return config('blokmix.waitlist_mode') || $this->plan === 'plus' || in_array(strtolower($this->email), config('blokmix.owners'), true);
+        return config('blokmix.waitlist_mode') || in_array(strtolower($this->email), config('blokmix.owners'), true);
     }
 
-    /** How many mixes can be open at once: one on Free, three per pack, null for no limit. */
+    /** Whether this person has Plus (bought, given, or unlimited). */
+    public function hasPlus(): bool
+    {
+        return $this->planName() === 'plus';
+    }
+
+    /** How many mixes can be open at once: one on Free, null (no limit) on Plus. */
     public function mixSlots(): ?int
     {
-        if ($this->unlimited()) {
-            return null;
-        }
-
-        return max(1, $this->mix_packs * config('blokmix.pack.mixes'));
+        return $this->hasPlus() ? null : config('blokmix.plans.free.mixes');
     }
 
-    /** What the plan includes: mixes (open at once), clips, upload_mb, collections and entries (per collection), null for unlimited. */
+    /** What the plan includes: mixes (open at once) and upload_mb, null for unlimited. */
     public function limits(): array
     {
         return ['mixes' => $this->mixSlots()] + config('blokmix.plans.'.$this->planName());
@@ -107,42 +106,9 @@ class User extends Authenticatable
         if ($max === null || $this->activeMixes()->count() < $max) {
             return null;
         }
-        $price = config('blokmix.pack.price_usd');
-        $per = config('blokmix.pack.mixes');
+        $price = config('blokmix.plus.price_usd');
 
-        return $this->planName() === 'free'
-            ? "Free has one mix. Archive it, or get a mix pack: {$per} mixes for \${$price}, once."
-            : "Your mix packs hold {$max} mixes. Archive one, or add a pack: {$per} more for \${$price}.";
-    }
-
-    /**
-     * Why this person can't start another collection (no $entries), or why one of theirs can't hold $entries entries
-     * (null when they can).
-     */
-    public function collectionRefusal(?int $entries = null): ?string
-    {
-        if ($entries !== null) {
-            $max = $this->limits()['entries'] ?? null;
-
-            return $max !== null && $entries > $max
-                ? "Free includes {$max} entries in a collection. Remove one to make room, or get a mix pack for as many as you like."
-                : null;
-        }
-        $max = $this->limits()['collections'] ?? null;
-
-        return $max !== null && $this->collections()->count() >= $max
-            ? ($max === 1 ? 'Free includes one collection. A mix pack has as many as you like.' : "Your plan includes {$max} collections.")
-            : null;
-    }
-
-    /** Why this person can't save another clip (null when they can). */
-    public function clipRefusal(): ?string
-    {
-        $max = $this->limits()['clips'];
-
-        return $max !== null && $this->clips()->count() >= $max
-            ? "Free includes {$max} clips. Remove one to make room, or get a mix pack for as many as you like."
-            : null;
+        return "Free has one mix. Archive it, or get Plus: every mix and feature for \${$price}, once.";
     }
 
     /** What this person has on blok.page (counted toward them, as the owner of the mix it came from). */
@@ -152,16 +118,13 @@ class User extends Authenticatable
     }
 
     /**
-     * Why $mix can't go live on blok.page with $bytes of files (null when it can). Free has one live publication;
-     * republishing the same mix replaces it, and its files only count the difference.
+     * Why $mix can't go live on blok.page with $bytes of files (null when it can): only room. Republishing the same mix
+     * replaces it, and its files only count the difference.
      */
     public function publishRefusal(Mix $mix, int $bytes): ?string
     {
         $live = $this->publications()->whereNotNull('published_at')->whereNull('unpublished_at');
         $was = (int) (clone $live)->where('mix_id', $mix->id)->value('size');
-        if ($this->planName() === 'free' && (clone $live)->where(fn ($q) => $q->whereNull('mix_id')->orWhere('mix_id', '!=', $mix->id))->exists()) {
-            return 'Free has one published mix. Unpublish the other one, or get a mix pack to publish as many as you like.';
-        }
         $mb = $this->limits()['upload_mb'];
 
         return $mb !== null && $this->usage()['uploads'] - $was + $bytes > $mb * 1024 * 1024
@@ -189,7 +152,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'mix_packs' => 'integer',
         ];
     }
 }
