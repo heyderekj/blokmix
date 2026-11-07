@@ -19,7 +19,7 @@ import { useLayout } from '@/state/layout'
 import { MEASURE_WIDTHS, useMeasuredPage } from '@/lib/measure'
 import { MotionMenu } from './MotionMenu'
 import { ImageMenu } from './ImageMenu'
-import { IconMenu } from './IconMenu'
+import { IconMenu, IconSetPicker } from './IconMenu'
 import { blockIconName } from '@/core/icons'
 import { listContext } from '@/core/lists'
 import { linkWords, sectionLinks } from '@/core/links'
@@ -389,6 +389,7 @@ export function BlockStyleBody({ slot, block }: { slot: Slot; block: BlockInfo }
           <LooksPicker slot={slot} block={block} />
         </PanelGroup>
       )}
+      {block.kind === 'icon' && <IconPackGroup />}
       {typed && (
         <PanelGroup title="Text">
           <TextMenu
@@ -443,6 +444,17 @@ export function BlockStyleBody({ slot, block }: { slot: Slot; block: BlockInfo }
 }
 
 /** A titled group in the Style panel that folds away, Figma's way: click its title. What you fold stays folded. */
+/** Icons: the pack and its style, for every icon on the site at once, so they stay one family. */
+function IconPackGroup() {
+  const set = useResolvedGuide().tokens['icon.set']
+  return (
+    <PanelGroup title="Icons">
+      <IconSetPicker value={set} onChange={(v) => useStore.getState().chooseToken('icon.set', { kind: 'custom', value: v })} />
+      <p className="mt-2 px-0.5 text-[11px] leading-snug text-zinc-400">Every icon on your site changes with it, so they stay one family.</p>
+    </PanelGroup>
+  )
+}
+
 export function PanelGroup({ title, children }: { title?: string; children: ReactNode }) {
   const folded = useFolded((s) => (title ? !!s.folded[title] : false))
   return (

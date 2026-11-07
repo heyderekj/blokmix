@@ -391,7 +391,10 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
 
 14. Icons: give every inline icon `<svg>` a meaningful name, `data-mx-icon="<name>"`, from `ICON_NAMES` in
     `core/icons.ts` (arrow-right, mail, star…). In "Your style" named icons redraw in the style guide's icon
-    set (Lucide, Phosphor, Tabler or Heroicons at a weight, token `icon.set`); a source's own set is identified
+    set (token `icon.set`, "pack:style": Lucide, Phosphor, Tabler, Heroicons, Iconoir or Material Symbols Rounded, each
+    at its own weights and fills; `ICON_PACKS`, `setsInPack`, and `sameStyleIn` keeps the weight when you switch packs).
+    The Style panel of a selected icon and the Style guide pick a pack, then its style (`IconSetPicker`; one set for the
+    whole site, so icons stay one family). Skins choose theirs to match their type. A source's own set is identified
     from its named icons. Logos, illustrations and decoration stay unnamed. An icon whose inner shapes carry
     classes (an animated plus/minus) keeps its own drawing. Regenerate the curated icons with
     `npx vite-node scripts/build-icons.ts`.
@@ -592,7 +595,9 @@ scripts/check-fonts.ts` checks every library font still loads.
 
 Image blocks take a fill (`BlockEdit.media`, `core/media.ts`): a placeholder SVG drawn from the
 current palette (re-themes with the style guide), an upload (downscaled WebP in the browser's
-IndexedDB via `lib/assets.ts`, never in the persisted store), or an Unsplash photo (hotlinked, credited,
+IndexedDB via `lib/assets.ts`, never in the persisted store; an SVG file or pasted SVG code stays a vector, cleaned of
+scripts, handlers and outside links by `core/svg.ts` `cleanSvg` and again on the server by `Services/SvgCleaner`, which
+also allows only each kind's types and serves uploads with a no-scripts CSP and nosniff; good for logos), or an Unsplash photo (hotlinked, credited,
 download-tracked; needs `VITE_UNSPLASH_ACCESS_KEY` in `.env.local`). Frames and exports layer an
 `<img class="mx-media">` over the block's own art, which keeps the size and shape. Exports write
 `public/media/*`; `npm run export:demo` squeezes raster images with Dinky's CLI (dinkyfiles.com) when
@@ -648,7 +653,9 @@ Layouts are clips from the `layout` source, moving to bare wireframes: structure
 follow every rule above, fill every field in their type's schema where it makes sense and avoid any brand name in static text.
 All of them (`BARE_TYPES`, `core/lint.ts`) pass `lintBones` in `npm test`: no accent, gradient, shadow,
 tilt, filter, `::before`/`::after`, fixed container width or `motion.css`, and pictures hold only the wireframe cross
-(`svg.x`, in `samples/layout-primitives.css`). A logo is plain words (`data-mx-media="logo…"`). A nav shares the page's background: no filled bar. Keep what makes a layout distinct: its arrangement, fields, blocks and working
+(`svg.x`, in `samples/layout-primitives.css`); icons are bare glyphs sized in em (`.icon`; any tile or circle is the skin's
+icon look), one `.btn.primary` and one eyebrow per head, spacing on `--mx-space-*`. The whole bar, and how to check a
+layout against it, is `docs/layout-quality.md`. A logo is plain words (`data-mx-media="logo…"`). A nav shares the page's background: no filled bar. Keep what makes a layout distinct: its arrangement, fields, blocks and working
 interactions. One main button per section; every quieter action has the class `secondary`. The section root is always the page color, since bands are the skin's. All must read clearly under every skin.
 
 ### Layout primitives

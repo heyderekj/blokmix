@@ -38,20 +38,20 @@
   & .cards > :nth-child(4n + 2) { grid-column-start: 7; }
   & .cards > :nth-child(4n + 3) { grid-column-start: 2; }
   & .cards > :nth-child(4n + 4) { grid-column-start: 8; }
-  & .cards > :nth-child(even) { translate: 0 var(--mx-space-10); }
+  /* margin, not translate: a skin's entrance motion animates translate and would cancel the offset. */
+  & .cards > :nth-child(even) { margin-top: var(--mx-space-10); margin-bottom: calc(var(--mx-space-10) * -1); }
 
-  & .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--mx-space-3); }
-  & .badge {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    aspect-ratio: 1;
-    border-radius: var(--mx-radius);
-    background: var(--mx-color-surface);
+  & .top { display: flex; margin-bottom: var(--mx-space-3); }
+  & .icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
     color: var(--mx-color-text);
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
+    line-height: 1;
+    font-size: var(--mx-text-xl);
   }
-  & .num { font-family: var(--mx-font-mono); font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
+  & .icon svg { width: 1.25em; height: 1.25em; }
 
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
@@ -69,11 +69,11 @@
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-4) var(--mx-space-4); }
     & .cards { padding-bottom: 0; }
-    & .cards > *, & .cards > :nth-child(odd), & .cards > :nth-child(even) { grid-column: auto / span 12; translate: none; }
+    & .cards > *, & .cards > :nth-child(odd), & .cards > :nth-child(even) { grid-column: auto / span 12; margin-block: 0; }
     & .cards > :nth-child(odd) { margin-right: var(--mx-space-6); }
     & .cards > :nth-child(even) { margin-left: var(--mx-space-6); }
     & .card { padding: var(--mx-space-5); }
     & .title { font-size: var(--mx-text-lg); }
-    & .badge { width: 44px; }
+    & .icon { font-size: var(--mx-text-lg); }
   }
 }

@@ -63,7 +63,7 @@
 
   /* A shelf of three products: a tall picture with its tag, then name, line, size, price and one quiet button. */
   & .products { align-items: stretch; }
-  & .product { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--mx-space-3); text-align: center; }
+  & .product { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: var(--mx-space-2); }
   & .product .media { align-self: stretch; aspect-ratio: 4 / 5; margin-bottom: var(--mx-space-3); }
   & .tag {
     position: absolute;
@@ -78,9 +78,9 @@
     letter-spacing: 0.02em;
     color: var(--mx-color-muted);
   }
-  & .info { display: flex; flex-direction: column; align-items: center; gap: var(--mx-space-2); max-width: 34ch; }
-  & .price { margin-top: auto; padding-top: var(--mx-space-2); font-size: var(--mx-text-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
-  & .product .btn { align-self: stretch; margin-top: var(--mx-space-2); }
+  & .info { display: flex; flex-direction: column; gap: var(--mx-space-1); max-width: 34ch; }
+  & .price { margin-top: auto; font-size: var(--mx-text-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
+  & .product .btn { margin-top: var(--mx-space-3); }
 
   @media (hover: hover) and (pointer: fine) {
     & .btn.secondary:hover { background: var(--mx-color-surface); }

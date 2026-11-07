@@ -77,22 +77,22 @@
   & .area { min-height: 132px; resize: vertical; line-height: 1.5; }
 
   & .form .actions { gap: var(--mx-space-4); }
-  & .details.stack { gap: var(--mx-space-4); }
-  & .detail { gap: var(--mx-space-1); padding: var(--mx-space-5); }
-
-  & .tile {
+  & .details.stack { gap: 0; border-bottom: var(--mx-stroke) solid var(--mx-color-border); }
+  & .detail.card {
     display: grid;
-    place-items: center;
-    flex: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--mx-color-surface);
-    color: var(--mx-color-text);
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--mx-space-3);
+    row-gap: var(--mx-space-1);
+    padding: var(--mx-space-5) 0;
+    background: none;
+    border: 0;
+    border-top: var(--mx-stroke) solid var(--mx-color-border);
+    border-radius: 0;
   }
-
-  & .detail .tile { margin-bottom: var(--mx-space-3); }
+  & .detail .icon { grid-row: span 2; }
+  & .icon { display: inline-flex; flex: none; align-items: center; justify-content: center; color: var(--mx-color-text); line-height: 1; font-size: var(--mx-text-base); }
+  & .icon svg { width: 1.25em; height: 1.25em; }
+  & .icon.inline { line-height: inherit; height: 1lh; }
   & .value { font-weight: 600; overflow-wrap: anywhere; }
   & a.value { width: fit-content; cursor: pointer; }
 
@@ -105,7 +105,7 @@
   @container (max-width: 952px) {
     & .grid { column-gap: var(--mx-space-5); }
     & .grid > .t-col-12 { grid-column: auto / span 12; }
-    & .details.stack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    & .details.stack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--mx-space-5); border-bottom: 0; }
   }
 
   @media (max-width: 760px) {
@@ -118,6 +118,6 @@
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .lead { font-size: var(--mx-text-base); }
     & .form { padding: var(--mx-space-6) var(--mx-space-5); }
-    & .details.stack { grid-template-columns: minmax(0, 1fr); }
+    & .details.stack { grid-template-columns: minmax(0, 1fr); border-bottom: var(--mx-stroke) solid var(--mx-color-border); }
   }
 }

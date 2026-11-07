@@ -12,17 +12,8 @@
     align-items: center;
     text-align: center;
   }
-  & .mark {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    margin-bottom: var(--mx-space-6);
-    border: var(--mx-stroke) solid var(--mx-color-border);
-    border-radius: var(--mx-radius);
-    background: var(--mx-color-surface);
-    color: var(--mx-color-text);
-  }
+  & .icon { display: inline-flex; flex: none; align-items: center; justify-content: center; color: var(--mx-color-text); line-height: 1; font-size: var(--mx-text-2xl); margin-bottom: var(--mx-space-5); }
+  & .icon svg { width: 1.25em; height: 1.25em; }
   & .eyebrow {
     font-size: var(--mx-text-sm);
     font-weight: 600;

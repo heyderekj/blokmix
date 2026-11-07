@@ -55,18 +55,16 @@
   & .amt {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: var(--mx-text-5xl);
+    font-size: var(--mx-text-4xl);
     line-height: 1;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
   }
   & .per { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
-  & .amt { font-size: var(--mx-text-4xl); }
-
   & .feats { display: grid; gap: var(--mx-space-3); }
   & .feats li { display: flex; align-items: flex-start; gap: var(--mx-space-3); font-size: var(--mx-text-sm); line-height: 1.5; }
-  & .feats svg { flex: none; margin-top: 1px; color: var(--mx-color-muted); }
+  & .feats svg { flex: none; width: 1.25em; height: 1lh; color: var(--mx-color-muted); }
 
   & .feats { padding-top: var(--mx-space-6); border-top: var(--mx-stroke) solid var(--mx-color-border); }
   & .footnote { margin-top: var(--mx-space-6); }
@@ -89,6 +87,8 @@
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
     & .lead { font-size: var(--mx-text-base); }
+    /* A big price never outgrows a phone, whatever the type scale. */
+    & .amt { font-size: min(var(--mx-text-4xl), 13cqi); }
     & .plan { padding: var(--mx-space-6) var(--mx-space-5); }
     & .plan + .plan { border-left: 0; border-top: var(--mx-stroke) solid var(--mx-color-border); }
   }

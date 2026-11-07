@@ -58,8 +58,9 @@
     transition: color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   & .search:active { scale: 0.97; }
-  & .search .icon { display: flex; }
-  & .rule { width: var(--mx-stroke); height: 20px; background: var(--mx-color-border); }
+  & .icon { display: inline-flex; flex: none; align-items: center; justify-content: center; line-height: 1; font-size: var(--mx-text-sm); }
+  & .icon svg { width: 1.25em; height: 1.25em; }
+  & .rule { width: var(--mx-stroke); height: 1.25em; background: var(--mx-color-border); }
   & .quiet {
     display: inline-flex;
     align-items: center;

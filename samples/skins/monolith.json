@@ -5,6 +5,7 @@
   "mode": "light",
   "feel": ["bold", "playful"],
   "tokens": {
+    "icon.set": "tabler:bold",
     "color.bg": "#ffffff",
     "color.surface": "#f2f2ee",
     "color.text": "#000000",

@@ -51,15 +51,8 @@
   /* Packages: an icon, what it is, a starting price and what's in it. */
   & .package { gap: var(--mx-space-6); padding: var(--mx-space-7); }
   & .featured { padding: calc(var(--mx-space-7) - var(--mx-stroke)); border: calc(var(--mx-stroke) * 2) solid var(--mx-color-text); }
-  & .tile {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--mx-radius);
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
-    color: var(--mx-color-text);
-  }
+  & .icon { display: inline-flex; flex: none; align-items: center; justify-content: center; color: var(--mx-color-text); line-height: 1; font-size: var(--mx-text-xl); justify-self: start; margin-bottom: var(--mx-space-3); }
+  & .icon svg { width: 1.25em; height: 1.25em; }
   & .top { display: grid; gap: var(--mx-space-2); }
   & .name-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--mx-space-1) var(--mx-space-3); }
   & .flag {
@@ -74,7 +67,8 @@
   & .amt {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: var(--mx-text-4xl);
+    /* A five-figure price fits its third of the row at any type scale. */
+    font-size: min(var(--mx-text-4xl), 4.4cqi);
     line-height: 1;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
@@ -82,7 +76,7 @@
 
   & .feats { display: grid; gap: var(--mx-space-3); }
   & .feats li { display: flex; align-items: flex-start; gap: var(--mx-space-3); font-size: var(--mx-text-sm); line-height: 1.5; }
-  & .feats svg { flex: none; margin-top: 1px; color: var(--mx-color-muted); }
+  & .feats svg { flex: none; width: 1.25em; height: 1lh; color: var(--mx-color-muted); }
 
   & .package .btn { margin-top: auto; }
   & .footnote { margin-top: var(--mx-space-8); text-align: center; }

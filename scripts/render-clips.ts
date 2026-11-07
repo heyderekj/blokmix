@@ -79,7 +79,8 @@ for (const { tag, state } of runs) {
     for (const width of widths) {
       const tab = await browser.newPage({ viewport: { width, height: 900 } })
       await tab.setContent(html, { waitUntil: 'networkidle' }).catch(() => tab.setContent(html))
-      // Let entrance motion finish so the shot shows the at-rest state.
+      // Show the at-rest state: let time-based entrances finish, and drop scroll-driven ones (a still has no scroll).
+      await tab.addStyleTag({ content: '*, *::before, *::after { animation-timeline: auto !important; animation-range: normal !important; }' })
       await tab.waitForTimeout(1600)
       let missed = false
       if (click) {

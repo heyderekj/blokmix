@@ -34,6 +34,9 @@
   },
   "devDependencies": {
     "@astrojs/compiler": "^4.0.0",
+    "@material-symbols/svg-300": "^0.48.3",
+    "@material-symbols/svg-400": "^0.48.3",
+    "@material-symbols/svg-600": "^0.48.3",
     "@modelcontextprotocol/sdk": "^1.32.2",
     "@phosphor-icons/core": "2.1.1",
     "@tabler/icons": "3.49.0",
@@ -47,6 +50,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.6",
     "heroicons": "2.2.0",
+    "iconoir": "^7.12.2",
     "laravel-vite-plugin": "^3.2.0",
     "lucide-static": "1.53.0",
     "playwright-core": "^1.64.1",

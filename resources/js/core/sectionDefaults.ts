@@ -36,8 +36,8 @@ const seedOf = (id: string) => {
  * What an image block shows: its own fill, else the skin's picture style. Only built-in layouts' pictures take one;
  * a captured section's images are the real thing, and a section keeping its own look keeps them.
  */
-/** Picture styles with shapes and lines that would cross words laid over them. */
-const BUSY: string[] = ['shapes', 'grid', 'arch', 'portrait', 'waves']
+/** Picture styles soft enough to sit behind words; any other (shapes, lines, dots, blocks, type) would cross them. */
+const SOFT: string[] = ['mesh', 'grain-gradient']
 
 export function pictureFor(
   own: MediaFill | undefined,
@@ -53,7 +53,7 @@ export function pictureFor(
   // A logo is the brand's name, and a block holding words shows them: neither is an empty picture.
   if (/^logo/i.test(b.media ?? '') || b.field) return own
   // A picture behind the words (a hero's backdrop) gets soft art: the theme's shapes and lines would cross the words.
-  if (/^backdrop$/i.test(b.media ?? '') && BUSY.includes(picture.style)) return { source: 'placeholder', style: 'mesh', seed: seedOf(b.id) }
+  if (/^backdrop$/i.test(b.media ?? '') && !SOFT.includes(picture.style)) return { source: 'placeholder', style: 'mesh', seed: seedOf(b.id) }
   return { source: 'placeholder', style: picture.style, seed: seedOf(b.id), ...(picture.params ? { params: picture.params } : {}) }
 }
 

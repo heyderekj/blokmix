@@ -60,14 +60,16 @@
     border-radius: var(--mx-radius-lg);
   }
 
-  /* Four compact cards: a picture inset in the card, then meta, title and a short excerpt. */
-  & .posts { gap: var(--mx-space-5); }
-  & .post {
-    padding: var(--mx-space-3) var(--mx-space-3) var(--mx-space-5);
+  /* Four compact posts, open: a picture, then meta, title and a short excerpt. The skin's card look may box them. */
+  & .posts { gap: var(--mx-space-8) var(--mx-space-5); }
+  & .post.card {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
     gap: var(--mx-space-4);
   }
-  & .post .media { border-radius: var(--mx-radius); }
-  & .text { display: flex; flex-direction: column; gap: var(--mx-space-2); padding-inline: var(--mx-space-2); }
+  & .text { display: flex; flex-direction: column; gap: var(--mx-space-2); }
   & .title { text-wrap: balance; }
   & .body { font-size: var(--mx-text-sm); }
   & .link { cursor: pointer; }
@@ -102,11 +104,10 @@
     & .lead { font-size: var(--mx-text-base); }
     & .grid { gap: var(--mx-space-6) var(--mx-space-4); }
     & .grid > *, & .grid > [class*="t-col-"] { grid-column: auto / span 12; }
-    & .posts { gap: var(--mx-space-4); }
-    /* On a phone each card turns into a row: a small picture beside its words. */
-    & .post { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: start; padding: var(--mx-space-3); gap: var(--mx-space-4); }
+    & .posts { gap: var(--mx-space-6) var(--mx-space-4); }
+    /* On a phone each post turns into a row: a small picture beside its words. */
+    & .post.card { display: grid; grid-template-columns: var(--mx-space-9) minmax(0, 1fr); align-items: start; gap: var(--mx-space-4); }
     & .post .media { aspect-ratio: 1; }
-    & .text { padding: var(--mx-space-1) 0 0; }
     & .title { font-size: var(--mx-text-base); }
     & .posts + .actions { margin-top: var(--mx-space-7); }
   }

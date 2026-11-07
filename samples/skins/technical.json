@@ -5,6 +5,7 @@
   "mode": "dark",
   "feel": ["dark", "modern", "serious"],
   "tokens": {
+    "icon.set": "tabler:regular",
     "font.display": "'Geist', system-ui, sans-serif",
     "font.body": "'Geist', system-ui, sans-serif",
     "font.mono": "'Geist Mono', ui-monospace, monospace",
@@ -33,7 +34,7 @@
       "variant": "bordered"
     },
     "icon": {
-      "variant": "ring"
+      "variant": "bare"
     }
   },
   "sections": {

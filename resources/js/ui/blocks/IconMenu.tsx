@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { RotateCcw, Search } from 'lucide-react'
-import { ICON_NAMES, ICON_SETS, iconSvg } from '@/core/icons'
+import { ICON_NAMES, ICON_PACKS, iconSet, iconSvg, sameStyleIn, setsInPack } from '@/core/icons'
 import { useResolvedGuide } from '@/state/derived'
 
 /** An icon drawn in a set, for the chrome. The SVG comes from our own bundled packs. */
@@ -43,7 +43,7 @@ export function IconMenu({ current, original, onHover, onPick }: { current?: str
       </div>
       <div className="mt-2 flex items-center justify-between border-t border-zinc-950/6 px-1 pt-2 text-[11px] text-zinc-500">
         <span>
-          Drawn in <span className="font-semibold text-zinc-700">{ICON_SETS.find((s) => s.id === set)?.label}</span> (style guide)
+          Drawn in <span className="font-semibold text-zinc-700">{iconSet(set).label}</span> (style guide)
         </span>
         {current && (
           <button type="button" onClick={() => onPick(null)} className="flex items-center gap-1 font-semibold text-zinc-600 hover:text-zinc-900">
@@ -57,26 +57,62 @@ export function IconMenu({ current, original, onHover, onPick }: { current?: str
 
 const SAMPLE = ['star', 'mail', 'heart', 'settings', 'arrow-right']
 
-/** Pick the style guide's icon set, each shown drawing a few icons. */
+/**
+ * Pick the style guide's icons: a pack first (each row draws a few icons in it, at the weight you have now), then
+ * one of that pack's styles. Every icon on the site redraws in the pick.
+ */
 export function IconSetPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const now = iconSet(value)
+  const styles = setsInPack(now.pack)
   return (
-    <div className="grid grid-cols-1 gap-0.5">
-      {ICON_SETS.map((s) => (
-        <button
-          key={s.id}
-          type="button"
-          onClick={() => onChange(s.id)}
-          className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition ${value === s.id ? 'bg-zinc-950/[0.07]' : 'hover:bg-zinc-950/[0.04]'}`}
-        >
-          <span className="flex gap-1.5 text-zinc-800">
-            {SAMPLE.map((n) => (
-              <IconGlyph key={n} name={n} set={s.id} size={16} />
-            ))}
-          </span>
-          <span className="flex-1 text-[12.5px] font-medium text-zinc-700">{s.label}</span>
-          {value === s.id && <span className="size-1.5 rounded-full bg-key" />}
-        </button>
-      ))}
+    <div className="grid gap-2">
+      <div className="grid grid-cols-1 gap-0.5" role="radiogroup" aria-label="Icon pack">
+        {ICON_PACKS.map((p) => {
+          const id = p.id === now.pack ? now.id : sameStyleIn(p.id, value)
+          const on = p.id === now.pack
+          return (
+            <button
+              key={p.id}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              title={`${p.label}: ${p.hint}`}
+              onClick={() => onChange(id)}
+              className={`flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition active:scale-[0.97] ${on ? 'bg-zinc-950/[0.07]' : 'hover:bg-zinc-950/[0.04]'}`}
+            >
+              <span className="flex gap-1.5 text-zinc-800">
+                {SAMPLE.map((n) => (
+                  <IconGlyph key={n} name={n} set={id} size={16} />
+                ))}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[12.5px] font-medium text-zinc-700">{p.label}</span>
+                <span className="block truncate text-[11px] text-zinc-400">{p.hint}</span>
+              </span>
+              {on && <span className="size-1.5 shrink-0 rounded-full bg-key" />}
+            </button>
+          )
+        })}
+      </div>
+      <div>
+        <div className="mb-1.5 px-0.5 text-[11px] font-semibold text-zinc-400">Style</div>
+        <div className="flex rounded-full bg-chip p-0.5" role="radiogroup" aria-label={`${ICON_PACKS.find((p) => p.id === now.pack)?.label} style`}>
+          {styles.map((x) => (
+            <button
+              key={x.id}
+              type="button"
+              role="radio"
+              aria-checked={x.id === now.id}
+              title={x.label}
+              onClick={() => onChange(x.id)}
+              className={`flex h-7 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1 rounded-full px-1 text-[11.5px] font-semibold transition ${x.id === now.id ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+            >
+              {styles.length <= 4 && <IconGlyph name="star" set={x.id} size={12} />}
+              <span className="truncate">{x.short}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

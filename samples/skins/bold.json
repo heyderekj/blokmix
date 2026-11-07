@@ -5,6 +5,7 @@
   "mode": "light",
   "feel": ["bold", "playful"],
   "tokens": {
+    "icon.set": "lucide:bold",
     "font.display": "'Archivo Black', 'Arial Black', sans-serif",
     "font.body": "'Inter', system-ui, sans-serif",
     "font.mono": "'JetBrains Mono', ui-monospace, monospace",

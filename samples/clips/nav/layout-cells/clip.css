@@ -44,11 +44,6 @@
     cursor: pointer;
     transition: color var(--mx-motion-duration) var(--mx-motion-ease);
   }
-  & .num {
-    font-family: var(--mx-font-mono);
-    font-size: var(--mx-text-xs);
-    color: var(--mx-color-muted);
-  }
 
   & .end {
     display: flex;
@@ -78,7 +73,6 @@
   }
 
   @container (max-width: 952px) {
-    & .num { display: none; }
     & .brand { padding: 0 var(--mx-space-4); }
     & .link { justify-content: center; padding: 0 var(--mx-space-2); }
     & .end { padding: 0 var(--mx-space-3); }

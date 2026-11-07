@@ -78,11 +78,10 @@
 
   & .feats { display: grid; gap: var(--mx-space-3); }
   & .feats li { display: flex; align-items: flex-start; gap: var(--mx-space-3); font-size: var(--mx-text-sm); line-height: 1.5; }
-  & .feats svg { flex: none; margin-top: 1px; color: var(--mx-color-muted); }
+  & .feats svg { flex: none; width: 1.25em; height: 1lh; color: var(--mx-color-muted); }
 
   & .feats { padding-top: var(--mx-space-6); border-top: var(--mx-stroke) solid var(--mx-color-border); }
   & .feats li { font-size: var(--mx-text-base); }
-  & .feats svg { margin-top: var(--mx-space-1); }
   & .plan .btn { margin-top: auto; }
   & .footnote { margin-top: var(--mx-space-8); text-align: center; }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ICON_NAMES, ICON_SETS, blockIconName, iconSvg, identifyIconSet, swapIcons } from '@/core/icons'
+import { ICON_NAMES, ICON_PACKS, ICON_SETS, blockIconName, iconSvg, identifyIconSet, sameStyleIn, setsInPack, swapIcons } from '@/core/icons'
 import { parseHtml } from '@/core/html/parse'
 import { serialize } from '@/core/html/serialize'
 import { library } from '@/data/library'
@@ -69,5 +69,31 @@ describe('icon packs', () => {
     const out = serialize(swapIcons(tree, 'heroicons:solid', { b0: 'check' }, true), 'html')
     expect(out).toContain('data-mx-icon="check"')
     expect(out).toContain('<svg data-mx-icon="star" />')
+  })
+})
+
+describe('choosing a pack, then a style', () => {
+  it('gives every pack a plain style and a short name for each', () => {
+    for (const p of ICON_PACKS) {
+      const sets = setsInPack(p.id)
+      expect(sets.length, p.id).toBeGreaterThan(0)
+      expect(sets.some((s) => s.short === 'Regular' || s.short === 'Outline'), p.id).toBe(true)
+      expect(new Set(sets.map((s) => s.short)).size, p.id).toBe(sets.length)
+    }
+    expect(ICON_SETS.every((s) => ICON_PACKS.some((p) => p.id === s.pack))).toBe(true)
+  })
+
+  it('keeps the weight when you switch packs', () => {
+    expect(sameStyleIn('phosphor', 'lucide:bold')).toBe('phosphor:bold')
+    expect(sameStyleIn('lucide', 'phosphor:thin')).toBe('lucide:light')
+    expect(sameStyleIn('heroicons', 'material:fill')).toBe('heroicons:solid')
+    expect(sameStyleIn('material', 'heroicons:outline')).toBe('material:regular')
+    expect(sameStyleIn('iconoir', 'tabler:filled')).toBe('iconoir:regular')
+  })
+
+  it('draws the newer packs in their own grid', () => {
+    expect(iconSvg('home', 'material:regular')).toContain('viewBox="40 -920 880 880"')
+    expect(iconSvg('home', 'iconoir:bold')).toContain('stroke-width="2"')
+    expect(iconSvg('home', 'iconoir:regular')).not.toMatch(/<path[^>]*stroke=/)
   })
 })

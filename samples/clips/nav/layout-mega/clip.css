@@ -113,7 +113,7 @@
   & .entry {
     display: flex;
     align-items: center;
-    gap: var(--mx-space-4);
+    gap: var(--mx-space-3);
     min-height: 44px;
     padding: var(--mx-space-3);
     margin-inline: calc(var(--mx-space-3) * -1);
@@ -122,15 +122,9 @@
     transition: color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   & .entry:active { scale: 0.97; }
-  & .ico {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 40px;
-    aspect-ratio: 1;
-    border-radius: var(--mx-radius);
-    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
-  }
+  & .icon { display: inline-flex; flex: none; align-items: center; justify-content: center; color: var(--mx-color-muted); line-height: 1; font-size: inherit; }
+  & .icon svg { width: 1.25em; height: 1.25em; }
+  & .icon.inline { line-height: inherit; height: 1lh; }
 
   & .promo { display: block; cursor: pointer; transition: scale 120ms cubic-bezier(0.23, 1, 0.32, 1); }
   & .promo:active { scale: 0.97; }
@@ -139,7 +133,7 @@
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-bg)); }
     & .trigger:hover, & .link:hover { color: var(--mx-color-text); }
     & .entry:hover { color: var(--mx-color-muted); }
-    & .burger:hover { box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-text); }
+    & .burger:hover { color: var(--mx-color-muted); }
   }
 
   @container (max-width: 952px) {
@@ -166,12 +160,11 @@
       flex: none;
       width: 44px;
       height: 44px;
-      border-radius: 50%;
-      box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
       cursor: pointer;
-      transition: box-shadow var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
+      transition: color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
     }
     & .burger:active { scale: 0.97; }
+    & .burger svg { width: 1.25em; height: 1.25em; }
     & .close-icon { display: none; }
     & .drawer {
       order: 10;
@@ -203,6 +196,5 @@
     & .kicker, & .promo { display: none; }
     & .entries { grid-template-columns: minmax(0, 1fr); gap: 0; }
     & .entry { margin-inline: 0; padding-inline: 0; }
-    & .ico { width: 36px; }
   }
 }
