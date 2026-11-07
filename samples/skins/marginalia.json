@@ -5,6 +5,7 @@
   "mode": "light",
   "feel": ["warm", "classic", "calm"],
   "tokens": {
+    "icon.set": "iconoir:light",
     "color.bg": "#f6f1e7",
     "color.surface": "#ece4d3",
     "color.text": "#1f1a14",

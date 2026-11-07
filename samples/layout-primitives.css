@@ -103,6 +103,14 @@
   & .body { color: var(--mx-color-muted); line-height: 1.6; }
   & .meta { font-size: var(--mx-text-sm); color: var(--mx-color-muted); }
 
+  /* Icon: a bare glyph (data-mx-block="icon") in the color and size of the words it belongs to. Set the icon's
+     font-size to its title's, and the glyph follows at 1.25em, its stroke scaling with it. Top-left above a title by
+     default; .inline sits beside the first line of a row's words, centred on it. Any tile, circle or ring around it
+     is the skin's icon look, never the layout's. */
+  & .icon { display: inline-flex; flex: none; align-items: center; justify-content: center; color: var(--mx-color-text); line-height: 1; }
+  & .icon svg { width: 1.25em; height: 1.25em; }
+  & .icon.inline { line-height: inherit; height: 1lh; }
+
   /* Media: a picture's frame, unfilled: a box with a cross (svg.x inside). A skin or a real image takes its place. */
   & .media {
     position: relative;

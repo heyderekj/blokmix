@@ -5,6 +5,7 @@
   "mode": "light",
   "feel": ["playful", "calm", "modern"],
   "tokens": {
+    "icon.set": "material:bold",
     "color.bg": "#fdfcff",
     "color.surface": "#f3effe",
     "color.text": "#1e1b3a",
@@ -71,7 +72,7 @@
       }
     },
     "icon": {
-      "variant": "raised"
+      "variant": "tile"
     }
   },
   "sections": {

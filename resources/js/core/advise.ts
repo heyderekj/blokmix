@@ -410,6 +410,7 @@ export function suggestedVariants(b: BlockInfo, i: Pick<AdviseInput, 'blocks' | 
     return parent?.kind === 'list' ? ['bordered', 'raised', 'flat'] : ['raised', 'tinted', 'glass']
   }
   if (b.kind === 'badge') return ['pill', 'dot']
+  if (b.kind === 'icon') return ['bare', 'tinted']
   if (b.kind === 'image') return b.ratio === '1/1' ? ['circle', 'rounded'] : ['rounded', 'square']
   return []
 }
