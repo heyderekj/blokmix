@@ -31,9 +31,6 @@ class MixApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $this->guardSize($request);
-        // Importing a file and saving the browser's mix start a mix too.
-        $why = $request->user()->mixRefusal();
-        abort_if($why !== null, 403, (string) $why);
         $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'data' => ['nullable', 'array'],
@@ -156,12 +153,12 @@ class MixApiController extends Controller
 
     /**
      * A copy of a mix you can open: its pages, style guide, words, notes, versions and uploads, as a new mix you own
-     * ("… copy"). Sharing doesn't come along.
+     * ("… copy"). Sharing doesn't come along, and neither does paying: the copy is a new site, unpaid.
      */
     public function duplicate(Request $request, Mix $mix): JsonResponse
     {
         abort_unless($mix->roleOf($request->user()), 404);
-        $why = $request->user()->mixRefusal() ?? $request->user()->uploadRefusal((int) $mix->assets()->sum('size'));
+        $why = $request->user()->uploadRefusal((int) $mix->assets()->sum('size'));
         abort_if($why !== null, 403, (string) $why);
         $disk = Storage::disk(config('blokmix.uploads_disk'));
 
@@ -196,7 +193,7 @@ class MixApiController extends Controller
         return $this->withLock(response()->json($copy->load('versions', 'drafts')->toBoard(), 201), $copy->lock_version);
     }
 
-    /** Archive a mix: it stays, read-only, and stops taking one of its owner's mixes. */
+    /** Archive a mix: it stays, read-only, out of the way. */
     public function archive(Request $request, Mix $mix): JsonResponse
     {
         abort_unless($mix->roleOf($request->user()), 404);
@@ -208,14 +205,12 @@ class MixApiController extends Controller
         return response()->json(['archived' => true]);
     }
 
-    /** Bring an archived mix back, when one of its owner's mixes is free. */
+    /** Bring an archived mix back. */
     public function unarchive(Request $request, Mix $mix): JsonResponse
     {
         abort_unless($mix->roleOf($request->user()), 404);
         abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can bring a mix back.');
         if ($mix->isArchived()) {
-            $why = $request->user()->mixRefusal();
-            abort_if($why !== null, 403, (string) $why);
             Mix::whereKey($mix->id)->update(['archived_at' => null]);
         }
 

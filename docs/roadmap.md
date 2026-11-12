@@ -30,8 +30,8 @@ marked where it came from ("From Claude"), can be dismissed, and taking it is on
 - Data: account skins (a `skins` table, or `style_guides` with a kind, checked by `parseSkin`); data block looks
   (`guide.looks[kind]`, the `{id, label, hint, css}` shape of `VARIANTS`, linted tokens-only like clip CSS).
 - Commands: `add_token_candidates` (wraps `promoteSource` with `src:agent:<name>`), `add_block_look`, `save_skin`,
-  `add_clip` (lint plus `POST /api/clips`, joins the mix); `word_options` already keeps words. Plan gates follow
-  `core/plan.ts`. BLOKMIX.md (`core/export/packet.ts`) gets a short "When you're done, bring it back" next to
+  `add_clip` (lint plus `POST /api/clips`, joins the mix); `word_options` already keeps words. Only shipping is paid
+  (`state/shipping.ts`). BLOKMIX.md (`core/export/packet.ts`) gets a short "When you're done, bring it back" next to
   `report_build`.
 - Without MCP: "Bring back changes" in the board menu reads a built project's `tokens.css` and content files
   (`src/content/*.json`, Next `content/`), compares them with the packet (`data-mx-src` paths), and offers what
@@ -78,5 +78,5 @@ tools that can't open a folder (v0, Lovable).
 
 ## Shipped
 
-Feel dials (`core/dials.ts`), publishing to blok.page, and buying once at Polar (now Plus, $25 once, in
+Feel dials (`core/dials.ts`), publishing to blok.page, and paying once at Polar (now $30 a site when you ship it, in
 `pricing.md`) were on this list and are built; see CLAUDE.md.

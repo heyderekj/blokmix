@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Lock, Wand2 } from 'lucide-react'
+import { Wand2 } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { backdropPlace, isBackdropId, treatmentInfo, type TreatmentValue } from '@/core/treatments'
@@ -94,12 +94,11 @@ export function DressUp({ slot }: { slot: Slot }) {
               onClick={() => {
                 show(null)
                 runCommand(idea.command, idea.input, 'you')
-                if (!idea.locked) useStore.getState().showFlash(`${idea.label} on ${TYPE_LABEL[slot.type]}`, { undo: true })
+                useStore.getState().showFlash(`${idea.label} on ${TYPE_LABEL[slot.type]}`, { undo: true })
               }}
               className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2.5 py-1.5 text-left text-[12px] text-zinc-800 ring-1 ring-zinc-950/10 transition hover:ring-zinc-400 active:scale-[0.98]"
             >
               <span className="min-w-0 flex-1 truncate">{idea.label}</span>
-              {idea.locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="Needs Plus" />}
             </button>
           ))}
         </div>

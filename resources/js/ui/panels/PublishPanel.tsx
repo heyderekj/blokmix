@@ -22,7 +22,7 @@ export function PublishPanel() {
   const notes = useStore((s) => s.notes)
   const others = draftList(drafts).filter((d) => d.id !== draftId && d.body)
   const role = useAccount((s) => s.role)
-  const paidPlan = useAccount((s) => s.paid)
+  const ships = useAccount((s) => s.ships)
   const { pub, loaded } = usePublication()
   const [name, setName] = useState('')
   const [source, setSource] = useState<string>('working')
@@ -189,7 +189,7 @@ export function PublishPanel() {
         <Fact icon={EyeOff}>Search engines won’t index it</Fact>
         <Fact icon={Link2}>Anyone with the link can see it</Fact>
         <Fact icon={RefreshCw}>Updating keeps the same address</Fact>
-        {!paidPlan && <Fact icon={BadgeCheck}>On Free, a small “Made with Blokmix” badge</Fact>}
+        {!ships && <Fact icon={BadgeCheck}>A small “Made with Blokmix” badge until the site is paid for</Fact>}
       </ul>
     </div>
   )

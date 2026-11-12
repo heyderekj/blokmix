@@ -1,13 +1,21 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { router } from '@inertiajs/react'
-import { Check, Lock } from 'lucide-react'
-import { PLUS_OPENS } from '@/core/plan'
-import { needsPlus, useBuySheet } from '@/state/plan'
-import { useAccount } from '@/lib/account'
+import { Check } from 'lucide-react'
+import { useBuySheet } from '@/state/shipping'
+import { useStore } from '@/state/store'
+import { canEdit, useAccount } from '@/lib/account'
+import { openMixId } from '@/lib/mixSync'
 
 const close = () => useBuySheet.setState({ open: false, what: null })
-const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
+
+/** What paying for a site opens, in plain words. Storage is a guardrail, never listed. */
+const SITE_OPENS = [
+  'Download the code: Astro or Next.js, with BLOKMIX.md for your agent',
+  'Hand any version to your agent to build',
+  'Every version and export of this site, free from then on',
+  'No “Made with Blokmix” badge on blok.page',
+] as const
 
 /** The brand's pink block, as on blokmix.com: a soft top, a deep edge, and a drip of paint off its bottom. */
 function Block({ size, tilt = 0 }: { size: number; tilt?: number }) {
@@ -25,23 +33,40 @@ function Block({ size, tilt = 0 }: { size: number; tilt?: number }) {
 }
 
 /**
- * What Plus opens, when something on the board needs it (state/plan.ts `needsPlus`): the pricing ticket from blokmix.com
- * on its pink paint (public/paint/pricing.webp, the site's baked still). $25 once, every mix and everything Free leaves
- * out. The mix's owner can buy it at Polar; anyone else hears that it's the owner's call.
+ * Paying for this site, when someone tries to ship a mix that isn't paid for yet (state/shipping.ts `canShip`): the
+ * pricing ticket from blokmix.com on its pink paint (public/paint/pricing.webp). Free to make, $30 a site when you ship
+ * it. Anyone who can edit the mix can pay at Polar; a viewer hears that it's an editor's call.
  */
 export function BuySheet() {
   const { open, what } = useBuySheet()
-  const { owns, buy, price } = useAccount()
+  const { role, archived, buy, price } = useAccount()
+  const name = useStore((s) => s.mixName)
   const reduce = useReducedMotion()
   const okRef = useRef<HTMLButtonElement>(null)
+  const [error, setError] = useState<string | null>(null)
+  const id = openMixId()
+  const saved = !!id && id !== 'local'
+  const canPay = saved && canEdit(role) && !archived
 
   useEffect(() => {
     if (!open) return
+    setError(null)
     okRef.current?.focus()
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close()
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
   }, [open])
+
+  const pay = () =>
+    router.post(`/api/mixes/${id}/checkout`, {}, { preserveState: true, preserveScroll: true, onError: (e) => setError(e.buy ?? 'Couldn’t start paying. Try again.') })
+
+  const why = !saved
+    ? 'Save this mix to your mixes first, then pay for it there.'
+    : archived
+      ? 'This mix is archived. Bring it back from your mixes to pay for it.'
+      : !canEdit(role)
+        ? 'Someone who can edit this mix can pay for it.'
+        : 'Paying for sites opens at launch.'
 
   return (
     <AnimatePresence>
@@ -65,8 +90,8 @@ export function BuySheet() {
           >
             <img src="/paint/pricing.webp" alt="" aria-hidden className="pointer-events-none absolute inset-0 size-full object-cover" />
             <div className="relative grid max-h-[calc(100dvh-64px)] gap-5 overflow-y-auto rounded-[18px] bg-[var(--lift)] p-6 shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_24px_48px_-24px_rgb(194_24_91/0.7)]">
-              <span className="inline-flex items-center gap-1.5 text-[16px] font-bold text-[#C2185B]">
-                <Block size={14} tilt={-6} /> Plus
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-[16px] font-bold text-[#C2185B]">
+                <Block size={14} tilt={-6} /> <span className="truncate">{name || 'This site'}</span>
               </span>
               <p className="-mt-2 flex items-baseline gap-2 text-[16px] text-zinc-500">
                 <b className="text-[52px] font-extrabold leading-none tracking-[-0.04em] text-zinc-900 tabular-nums">${price}</b> once
@@ -77,15 +102,15 @@ export function BuySheet() {
                   <Block size={24} tilt={-4} />
                   <Block size={24} tilt={3} />
                 </span>
-                <span className="text-[14px] font-semibold text-zinc-900">Every feature, every mix</span>
+                <span className="text-[14px] font-semibold text-zinc-900">Free to make. ${price} a site when you ship it.</span>
               </div>
 
               <div className="grid gap-2 border-t border-zinc-950/10 pt-4">
                 <h2 id="buy-title" className="text-[15px] font-semibold leading-snug tracking-tight text-zinc-900 [text-wrap:balance]">
-                  Plus opens {what ? lower(what) : 'everything'}
+                  {what ?? 'Shipping'} needs this site paid for
                 </h2>
                 <ul className="grid gap-1.5">
-                  {PLUS_OPENS.map((line) => (
+                  {SITE_OPENS.map((line) => (
                     <li key={line} className="flex items-start gap-2 text-[13.5px] leading-snug text-zinc-600">
                       <Check size={15} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#C2185B]" aria-hidden /> {line}
                     </li>
@@ -94,10 +119,10 @@ export function BuySheet() {
               </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                {owns && buy ? (
+                {canPay && buy ? (
                   <>
-                    <button ref={okRef} type="button" onClick={() => router.post('/api/billing/checkout')} className="btn-block h-11 cursor-pointer rounded-full px-5 text-[14px] font-semibold">
-                      Get Plus, ${price}
+                    <button ref={okRef} type="button" onClick={pay} className="btn-block h-11 cursor-pointer rounded-full px-5 text-[14px] font-semibold">
+                      Pay ${price} for this site
                     </button>
                     <button type="button" onClick={close} className="cursor-pointer text-[13.5px] font-semibold text-zinc-500 hover:text-zinc-900">
                       Not now
@@ -108,15 +133,16 @@ export function BuySheet() {
                     <button ref={okRef} type="button" onClick={close} className="btn-block h-11 cursor-pointer rounded-full px-6 text-[14px] font-semibold">
                       OK
                     </button>
-                    <span className="text-[13px] text-zinc-500">{owns ? 'Plus opens at launch.' : 'This mix’s owner is on Free; Plus is theirs to get.'}</span>
+                    <span className="text-[13px] text-zinc-500">{why}</span>
                   </>
                 )}
               </div>
+              {error && <p className="-mt-2 text-[13px] text-red-700">{error}</p>}
 
               <div className="flex items-center gap-3 border-t border-zinc-950/10 pt-4">
                 <span aria-hidden className="size-6 shrink-0 rounded-[22%] shadow-[inset_0_0_0_1.5px_currentColor] text-zinc-900" />
                 <p className="text-[13px] leading-snug text-zinc-500">
-                  <b className="font-semibold text-zinc-900">{owns ? 'You’re on Free.' : 'Free'}</b> 1 mix, the core layouts and themes, and the Feel dials.
+                  <b className="font-semibold text-zinc-900">Making stays free.</b> Every layout, theme and control, as many mixes as you like. A copy of a mix is a new site.
                 </p>
               </div>
             </div>
@@ -124,20 +150,5 @@ export function BuySheet() {
         </motion.div>
       )}
     </AnimatePresence>
-  )
-}
-
-/** A quiet note where something needs Plus (Effects, backdrops): previews stay, using one opens the sheet. */
-export function PackNote({ what }: { what: string }) {
-  const paid = useAccount((s) => s.paid)
-  if (paid) return null
-  return (
-    <button
-      type="button"
-      onClick={() => needsPlus(what)}
-      className="flex w-full cursor-pointer items-center gap-2 rounded-xl bg-key-soft/60 px-2.5 py-2 text-left text-[12px] font-medium text-key-ink transition-[scale] duration-150 active:scale-[0.97]"
-    >
-      <Lock size={13} className="shrink-0" /> {what} come with Plus. Preview them here.
-    </button>
   )
 }

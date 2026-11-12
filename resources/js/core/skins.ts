@@ -21,8 +21,6 @@ export interface Skin {
   name: string
   /** One line a non-designer can picture. */
   words: string
-  /** Free skins work on any plan; the rest come with Plus. */
-  tier: 'free' | 'pack'
   mode: 'light' | 'dark'
   /** How it feels, in the Look panel's words (`core/feel.ts`): what “warm” or “serious” brings up. */
   feel: FeelWord[]
@@ -40,7 +38,6 @@ export const WIREFRAME = 'wireframe'
 const shape = z.object({
   name: z.string(),
   words: z.string().default(''),
-  tier: z.enum(['free', 'pack']).default('pack'),
   mode: z.enum(['light', 'dark']).default('light'),
   feel: z.array(z.enum(FEEL_WORDS)).default([]),
   tokens: z.record(z.string(), z.string()).default({}),
@@ -73,7 +70,6 @@ export function parseSkin(id: string, json: unknown): Skin {
     id,
     name: r.name,
     words: r.words,
-    tier: r.tier,
     mode: r.mode,
     feel: r.feel,
     tokens: r.tokens as Partial<TokenSet>,
@@ -115,9 +111,6 @@ export function skinRefOf(ref: GuideState['skin']): GuideState['skin'] {
   const now = skinById(ref.id)
   return now ? { id: now.id, name: now.name } : ref
 }
-
-/** Whether this mix's plan opens a skin (`library.paid` follows the mix's owner). */
-export const skinOpen = (lib: { paid?: boolean }, skin: Pick<Skin, 'tier'>) => lib.paid !== false || skin.tier === 'free'
 
 /** A skin's whole token set: the neutral base with its choices on top. */
 export const skinTokens = (skin: Pick<Skin, 'tokens'>): TokenSet => ({ ...BASE_TOKENS, ...skin.tokens })
@@ -213,7 +206,6 @@ export function surpriseMe(guide: GuideState, contract: Contract, seed: number, 
     id: 'remix',
     name: `Mix of ${[...new Set(picks.map((p) => p.skin.name))].join(', ')}`,
     words: '',
-    tier: 'pack',
     mode: 'light',
     feel: [],
     tokens,

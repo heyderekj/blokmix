@@ -3,7 +3,6 @@
   "layoutPattern": "feature-cards-2x2-media-top",
   "rhythm": "grid",
   "density": "balanced",
-  "tier": "free",
   "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",

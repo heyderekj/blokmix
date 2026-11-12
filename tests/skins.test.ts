@@ -26,7 +26,7 @@ import { ICON_SETS } from '@/core/icons'
 import { runCommand } from '@/state/commands'
 import { useStore } from '@/state/store'
 
-const skin = (over: Partial<Skin> = {}): Skin => ({ id: 'test', name: 'Test', words: '', tier: 'free', mode: 'light', feel: [], tokens: { 'color.primary': '#112233', 'radius.base': '3px', 'font.display': "'Fraunces', serif" }, ...over })
+const skin = (over: Partial<Skin> = {}): Skin => ({ id: 'test', name: 'Test', words: '', mode: 'light', feel: [], tokens: { 'color.primary': '#112233', 'radius.base': '3px', 'font.display': "'Fraunces', serif" }, ...over })
 const contract = (areas: Contract['areas'], more: Partial<Contract> = {}): Contract => ({ ...emptyContract(), areas, ...more })
 const withCandidate = (): GuideState => ({
   ...emptyGuide(),
@@ -316,10 +316,6 @@ describe('the skins themselves', () => {
   it('refuses a file with an unknown token or backdrop', () => {
     expect(() => parseSkin('x', { name: 'X', tokens: { 'color.nope': '#000' } })).toThrow(/unknown token/)
     expect(() => parseSkin('x', { name: 'X', sections: { hero: { backdrop: { id: 'nope' } } } })).toThrow(/backdrop/)
-  })
-
-  it('leaves at least two free skins beside Wireframe', () => {
-    expect(skinList().filter((s) => s.tier === 'free' && s.id !== 'wireframe').length).toBeGreaterThanOrEqual(2)
   })
 })
 

@@ -134,7 +134,7 @@ const server = new Server(
   {
     capabilities: { tools: {} },
     instructions:
-      'Blokmix is a canvas where a page is mixed from sections clipped from real sites and built-in layouts. Start with get_page to see sections and their blocks (labelled like "Pricing · Plan 2 · Button"). Prefer looks, palette colours and spacing steps over one-offs, run review after changes, and use show to point the person at what you changed. Every change is one undo away for them. To build a version for real: list_versions, then prepare_build (it writes the packet to disk and returns the prompt), build and preview it, report_build with the preview URL, and if ReviseMy is connected run its review loop and bring the marks back with import_review_marks.',
+      'Blokmix is a canvas where a page is mixed from sections clipped from real sites and built-in layouts. Start with get_page to see sections and their blocks (labelled like "Pricing · Plan 2 · Button"). Prefer looks, palette colours and spacing steps over one-offs, run review after changes, and use show to point the person at what you changed. Every change is one undo away for them. To build a version for real: list_versions, then prepare_build (it writes the packet to disk and returns the prompt; a mix that isn’t paid for refuses and says how to pay), build and preview it, report_build with the preview URL, and if ReviseMy is connected run its review loop and bring the marks back with import_review_marks.',
   },
 )
 server.setRequestHandler(ListToolsRequestSchema, async () => ({

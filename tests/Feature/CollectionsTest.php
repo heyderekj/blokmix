@@ -96,7 +96,6 @@ class CollectionsTest extends TestCase
     public function test_slugs_are_unique_per_owner(): void
     {
         [$me, $other] = User::factory()->count(2)->create();
-        config(['blokmix.plans.free.collections' => null]);
         $first = $this->create($me);
         $this->actingAs($me)->postJson('/api/collections', ['slug' => 'posts', 'name' => 'Again', 'schema' => $this->schema()])
             ->assertStatus(409)->assertJsonPath('errors.slug.0', 'There’s already a collection at that address.');
@@ -224,7 +223,7 @@ class CollectionsTest extends TestCase
         $this->get("/api/collections/{$id}/assets/img_ab12cd34?mix={$mix->id}")->assertNotFound();
 
         // The owner's room is shared with their mixes (Free's 100 MB, made 1 MB here).
-        config(['blokmix.plans.free.upload_mb' => 1]);
+        config(['blokmix.upload_mb.default' => 1]);
         $this->actingAs($editor);
         $upload('img_bg12cd34', 900, "?mix={$mix->id}")->assertForbidden()
             ->assertJsonPath('message', 'This collection’s owner is out of room for images and video. It stays in this browser.');

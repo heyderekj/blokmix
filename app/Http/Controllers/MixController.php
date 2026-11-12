@@ -61,6 +61,8 @@ class MixController extends Controller
                     'heading' => is_string($heading) ? Str::limit(trim($heading), 80) : null,
                     'role' => $m->pivot->role,
                     'archived' => $m->isArchived(),
+                    // Paid for: its card says so (a duplicate is a new site, so it doesn't carry this).
+                    'paid' => $m->isPaid(),
                     'owner' => $owners[$m->id] ?? null,
                     'pages' => count($site['pages'] ?? []),
                     'sections' => $sections->filter()->values(),
@@ -75,7 +77,7 @@ class MixController extends Controller
 
     public function local(Request $request): Response
     {
-        return Inertia::render('mixes/show', ['mix' => ['id' => 'local', 'paid' => $request->user()->hasPlus()], 'role' => MixRole::Owner->value]);
+        return Inertia::render('mixes/show', ['mix' => ['id' => 'local', 'ships' => $request->user()->hasPlus()], 'role' => MixRole::Owner->value]);
     }
 
     public function show(Request $request, Mix $mix): Response
@@ -106,9 +108,6 @@ class MixController extends Controller
             'site.pages' => ['required_with:site', 'array', 'min:1'],
             'name' => ['nullable', 'string', 'max:120'],
         ]);
-        if ($why = $request->user()->mixRefusal()) {
-            return back()->withErrors(['mix' => $why]);
-        }
         // as sent: validate() keeps only the keys that have rules
         $data = array_filter(['guide' => $request->input('guide'), 'site' => $request->input('site')]);
         $mix = Mix::create(['name' => trim((string) $request->input('name')) ?: 'Untitled mix', 'data' => $data ?: null]);

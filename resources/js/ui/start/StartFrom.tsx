@@ -1,14 +1,12 @@
 // The quiet ways to start a new mix, besides the questions: a starter, a saved style guide, a blank page or a mix
 // file. Starters and guides list here; the guided start shows them under its first questions.
 import { useEffect, useMemo } from 'react'
-import { Lock } from 'lucide-react'
 import type { GuideState, SectionType, TokenSet } from '@/core/types'
 import { resolveGuide } from '@/core/guide'
 import { TYPE_LABEL } from '@/core/content'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import { library, starters } from '@/data/library'
 import { buildStarter, type Starter } from '@/core/starters'
-import { starterOpen } from '@/core/library'
 
 /** A style guide to start from: one you saved, or another mix's. */
 export interface GuideChoice {
@@ -47,13 +45,10 @@ export function StarterOption({ starter, picked, onPick }: { starter: Starter; p
   const { site, guide } = useMemo(() => buildStarter(library, starter), [starter])
   const t = useMemo(() => resolveGuide(guide).tokens, [guide])
   const sections = site.pages[0].slots.map((s) => TYPE_LABEL[s.type as SectionType]).join(' · ')
-  // On Free, a starter that uses layouts in Plus shows a lock (creating it says why).
-  const locked = !starterOpen(library, starter)
   return (
-    <button type="button" onClick={onPick} className={`${OPTION} ${picked ? PICKED : ''} relative`} title={locked ? 'Uses layouts in Plus' : undefined}>
+    <button type="button" onClick={onPick} className={`${OPTION} ${picked ? PICKED : ''} relative`}>
       <Swatch tokens={t} />
-      <Label title={starter.name} note={locked ? `In Plus · ${sections}` : sections} />
-      {locked && <Lock size={13} className="absolute right-2.5 top-2.5 text-zinc-500" aria-label="In Plus" />}
+      <Label title={starter.name} note={sections} />
     </button>
   )
 }

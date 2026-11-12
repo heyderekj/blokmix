@@ -3,7 +3,6 @@
   "layoutPattern": "head-then-3col-image-grid-captions-below",
   "rhythm": "grid",
   "density": "balanced",
-  "tier": "free",
   "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",

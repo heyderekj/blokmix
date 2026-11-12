@@ -71,8 +71,8 @@ in hidden frames at several widths and read what we see.
 
 ## Pricing direction
 
-See `pricing.md`: Free completes one real site, and Plus, $25 once, opens the full library, every control and as
-many mixes as you like. No subscription (only ever for hosting on your own domain, if we build it). Editors and viewers free. No seat math.
+See `pricing.md`: free to make, $30 a site when you ship it. Everything on the board is free, as many mixes as you
+like; a mix is paid for once, when you export it or hand it to an agent. No subscription (only ever for hosting on your own domain, if we build it). Editors and viewers free. No seat math.
 
 ## Relationship to the rest of the suite
 

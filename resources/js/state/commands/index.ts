@@ -4,7 +4,6 @@ import { useStore } from '../store'
 import { canEdit, useAccount } from '@/lib/account'
 import { CommandError, findBlock, findSection } from './refs'
 import { TYPE_LABEL } from '@/core/content'
-import { PlusRefusal, strictly } from '../plan'
 import { contractRefusal } from '@/core/contract'
 import * as read from './read'
 import * as review from './review'
@@ -51,17 +50,7 @@ const ASYNC: Record<string, AsyncCommand> = { ...review.later, ...versions.later
 const MARKS = new Set(['add_note', 'update_note', 'reply_note'])
 
 export function runCommand(name: string, raw: unknown, by: Caller = 'agent'): unknown {
-  // An agent hears what needs Plus; you get the buy sheet.
-  if (by !== 'agent') return run(name, raw, by)
-  const refused = (e: unknown) => {
-    throw e instanceof PlusRefusal ? new CommandError(e.message) : e
-  }
-  try {
-    const out = strictly(() => run(name, raw, by))
-    return out instanceof Promise ? out.catch(refused) : out
-  } catch (e) {
-    return refused(e)
-  }
+  return run(name, raw, by)
 }
 
 function run(name: string, raw: unknown, by: Caller): unknown {
@@ -86,7 +75,7 @@ function run(name: string, raw: unknown, by: Caller): unknown {
   const later = ASYNC[name]
   if (later) {
     return later.prepare(input as never).then((prepared) => {
-      const apply = () => (by === 'agent' ? strictly(() => later.apply(input as never, prepared)) : later.apply(input as never, prepared))
+      const apply = () => later.apply(input as never, prepared)
       return cmd.write ? asOneStep(name, input, by, apply) : apply()
     })
   }

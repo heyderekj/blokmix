@@ -1,4 +1,4 @@
-import type { BlockEdit, Capture, Clip, ClipStyle, Density, Feel, Insert, Keep, Library, SlotEdits, Rhythm, SectionType, Source, Starter, Tier, TokenSet, SliderOptions } from './types'
+import type { BlockEdit, Capture, Clip, ClipStyle, Density, Feel, Insert, Keep, Library, SlotEdits, Rhythm, SectionType, Source, Starter, TokenSet, SliderOptions } from './types'
 import { CLIP_STYLES, DENSITIES, FEELS, SECTION_TYPES } from './types'
 import { hexToRgb } from './tokens'
 import { extractFields, parseHtml } from './html/parse'
@@ -21,7 +21,6 @@ export interface RawClip {
     feel?: Feel[]
     density?: Density
     slider?: SliderOptions
-    tier?: Tier
     status?: 'draft'
     inspiredBy?: { site: string; url: string }
     motionNotes?: string
@@ -69,7 +68,6 @@ export function buildLibrary(sources: Source[], raws: RawClip[], starters: Start
       ...(feel.length ? { feel } : {}),
       ...(density ? { density } : {}),
       ...(raw.meta.slider ? { slider: raw.meta.slider } : {}),
-      ...(raw.meta.tier ? { tier: raw.meta.tier } : {}),
       ...(raw.meta.status === 'draft' ? { status: 'draft' as const } : {}),
       ...(raw.meta.inspiredBy ? { inspiredBy: raw.meta.inspiredBy } : {}),
       origin: source.kind === 'layout' ? 'layout' : 'clip',
@@ -185,23 +183,8 @@ export const isSample = (lib: Library, id: string): boolean => {
   return !!clip && clip.origin === 'clip' && /\.example(\/|$)/.test(new URL(lib.sources[clip.sourceId]?.url ?? 'https://x/').host + '/')
 }
 
-/** Whether this mix can use a clip: your own clips always; on Free (`lib.paid === false`), layouts marked free. */
-export const layoutOpen = (lib: Library, id: string): boolean => {
-  const clip = lib.clips[id]
-  return !!clip && (lib.paid !== false || clip.origin !== 'layout' || clip.tier === 'free')
-}
-
-/** Whether a starter uses only layouts this mix can use. */
-export const starterOpen = (lib: Library, starter: { pages: { sections: string[] }[] }): boolean =>
-  starter.pages.every((p) => p.sections.every((id) => !lib.clips[id] || layoutOpen(lib, id)))
-
-/**
- * The clips you can pick for a section, from the whole account: the layouts, then captured clips. Draft layouts wait
- * for review. On Free, layouts in Plus are left out unless `locked` asks for them too (the Crate shows them with
- * a lock).
- */
-export const pickable = (lib: Library, type: SectionType, opts: { locked?: boolean } = {}): string[] =>
-  lib.byType[type].filter((id) => !isSample(lib, id) && !lib.clips[id]?.status && (opts.locked || layoutOpen(lib, id)))
+/** The clips you can pick for a section, from the whole account: the layouts, then captured clips. Draft layouts wait for review. */
+export const pickable = (lib: Library, type: SectionType): string[] => lib.byType[type].filter((id) => !isSample(lib, id) && !lib.clips[id]?.status)
 
 /**
  * What a section's ‹ › arrows (and ← →, Shuffle) step through: the built-in layouts plus this mix's own clips, never

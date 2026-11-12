@@ -56,7 +56,7 @@ class Mix extends Model
 
     protected function casts(): array
     {
-        return ['data' => 'array', 'schema' => 'integer', 'lock_version' => 'integer', 'archived_at' => 'datetime'];
+        return ['data' => 'array', 'schema' => 'integer', 'lock_version' => 'integer', 'archived_at' => 'datetime', 'paid_at' => 'datetime', 'paid_order_id' => 'integer'];
     }
 
     public function versions(): HasMany
@@ -108,10 +108,25 @@ class Mix extends Model
         return $role !== null && $role->canEdit() && ! $this->isArchived();
     }
 
-    /** Whoever owns the mix: its uploads count toward their plan, and its features follow their plan. */
+    /** Whoever owns the mix: its uploads count toward their room. */
     public function owner(): ?User
     {
         return $this->members()->wherePivot('role', MixRole::Owner->value)->first();
+    }
+
+    /** Paid for: someone paid $30 for this site (a full refund takes it back). A duplicate starts unpaid. */
+    public function isPaid(): bool
+    {
+        return $this->paid_at !== null;
+    }
+
+    /**
+     * Whether this mix can ship (download its code, hand it to an agent): it's paid for, or its owner has Plus (bought
+     * before sites were sold one by one, or runs Blokmix), or Blokmix is on its waitlist. Making it is free either way.
+     */
+    public function ships(): bool
+    {
+        return $this->isPaid() || config('blokmix.waitlist_mode') || (bool) $this->owner()?->hasPlus();
     }
 
     /** Add someone, or raise their role; never lowers it. */
@@ -140,8 +155,8 @@ class Mix extends Model
             'lock' => $this->lock_version,
             'schema' => $this->schema,
             'archived' => $this->isArchived(),
-            // What the board opens follows the owner's plan, so editors and viewers never need a pack.
-            'paid' => (bool) $this->owner()?->hasPlus(),
+            // Whether exporting and building are open (paid for, Plus or the waitlist); everything else always is.
+            'ships' => $this->ships(),
         ];
     }
 }

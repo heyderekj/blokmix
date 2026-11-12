@@ -217,7 +217,7 @@ let target: { mixId: string; canSend: boolean } | null = null
 const known = new Set<string>()
 /** Uploads the server answered with an error, so a broken one isn't retried on every open. */
 const failed = new Set<string>()
-/** Whether the plan's upload limit was already explained this visit. */
+/** Whether the owner's upload room was already explained this visit. */
 let refused = false
 
 const blobToDataUrl = (blob: Blob) =>
@@ -247,7 +247,7 @@ async function sendUp(a: Asset) {
     if (res.ok) known.add(a.id)
     else {
       failed.add(a.id)
-      // Over the plan's upload room: say so once; the upload still works in this browser.
+      // Over the owner's upload room: say so once; the upload still works in this browser.
       if (res.status === 403 && !refused) {
         refused = true
         const why = (await res.json().catch(() => null))?.message

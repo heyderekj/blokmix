@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -18,17 +19,17 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    public function clips(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function clips(): HasMany
     {
         return $this->hasMany(Clip::class);
     }
 
-    public function styleGuides(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function styleGuides(): HasMany
     {
         return $this->hasMany(StyleGuide::class);
     }
 
-    public function collections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function collections(): HasMany
     {
         return $this->hasMany(Collection::class);
     }
@@ -39,58 +40,50 @@ class User extends Authenticatable
         return $this->belongsToMany(Mix::class, 'mix_members')->withPivot('role')->withTimestamps();
     }
 
-    public function billingOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function billingOrders(): HasMany
     {
         return $this->hasMany(BillingOrder::class);
     }
 
-    /** Free, or Plus once it's bought (`plan = plus`, also given by hand). The people who run Blokmix, and everyone while on the waitlist, are on Plus. */
-    public function planName(): string
+    /**
+     * Plus, the old one-time unlock (`plan = plus`, bought or given by hand), kept for those who have it: every mix they
+     * own ships free (Mix::ships). The people who run Blokmix, and everyone while on the waitlist, count as Plus too.
+     */
+    public function hasPlus(): bool
     {
-        return $this->plan === 'plus' || $this->unlimited() ? 'plus' : 'free';
+        return $this->plan === 'plus' || $this->unlimited();
     }
 
-    /** No limits: the people who run Blokmix and everyone while on the waitlist. */
+    /** No paywall: the people who run Blokmix and everyone while on the waitlist. */
     public function unlimited(): bool
     {
         return config('blokmix.waitlist_mode') || in_array(strtolower($this->email), config('blokmix.owners'), true);
     }
 
-    /** Whether this person has Plus (bought, given, or unlimited). */
-    public function hasPlus(): bool
-    {
-        return $this->planName() === 'plus';
-    }
-
-    /** How many mixes can be open at once: one on Free, null (no limit) on Plus. */
-    public function mixSlots(): ?int
-    {
-        return $this->hasPlus() ? null : config('blokmix.plans.free.mixes');
-    }
-
-    /** What the plan includes: mixes (open at once) and upload_mb, null for unlimited. */
-    public function limits(): array
-    {
-        return ['mixes' => $this->mixSlots()] + config('blokmix.plans.'.$this->planName());
-    }
-
-    /** The mixes this person owns (shared ones don't count toward the plan). */
+    /** The mixes this person owns (shared ones don't count toward their room). */
     public function ownedMixes(): BelongsToMany
     {
         return $this->mixes()->wherePivot('role', 'owner');
     }
 
-    /** The owned mixes that take a slot: everything but the archived ones. */
-    public function activeMixes(): BelongsToMany
+    /** The owned mixes someone has paid for. */
+    public function paidMixes(): BelongsToMany
     {
-        return $this->ownedMixes()->whereNull('mixes.archived_at');
+        return $this->ownedMixes()->whereNotNull('mixes.paid_at');
     }
 
-    /** What counts toward the plan: open mixes owned, clips saved, collections owned, and bytes uploaded into owned mixes and collections. */
+    /** Room for uploads, in MB: a guardrail, more once they've paid for a site (or have Plus). Never printed as a feature. */
+    public function uploadMb(): int
+    {
+        $paid = $this->hasPlus() || $this->paidMixes()->exists();
+
+        return (int) config('blokmix.upload_mb.'.($paid ? 'paid' : 'default'));
+    }
+
+    /** What counts toward their room: bytes uploaded into owned mixes and collections, and what's live on blok.page. Clips and collections are shown, never limited. */
     public function usage(): array
     {
         return [
-            'mixes' => $this->activeMixes()->count(),
             'clips' => $this->clips()->count(),
             'collections' => $this->collections()->count(),
             'uploads' => (int) MixAsset::whereIn('mix_id', $this->ownedMixes()->select('mixes.id'))->sum('size')
@@ -99,20 +92,8 @@ class User extends Authenticatable
         ];
     }
 
-    /** Why this person can't open another mix, new or brought back from the archive (null when they can). */
-    public function mixRefusal(): ?string
-    {
-        $max = $this->mixSlots();
-        if ($max === null || $this->activeMixes()->count() < $max) {
-            return null;
-        }
-        $price = config('blokmix.plus.price_usd');
-
-        return "Free has one mix. Archive it, or get Plus: every mix and feature for \${$price}, once.";
-    }
-
     /** What this person has on blok.page (counted toward them, as the owner of the mix it came from). */
-    public function publications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function publications(): HasMany
     {
         return $this->hasMany(Publication::class);
     }
@@ -125,21 +106,27 @@ class User extends Authenticatable
     {
         $live = $this->publications()->whereNotNull('published_at')->whereNull('unpublished_at');
         $was = (int) (clone $live)->where('mix_id', $mix->id)->value('size');
-        $mb = $this->limits()['upload_mb'];
+        $mb = $this->uploadMb();
 
-        return $mb !== null && $this->usage()['uploads'] - $was + $bytes > $mb * 1024 * 1024
-            ? "Publishing this would go over your {$mb} MB of images, video and published pages."
+        return $this->usage()['uploads'] - $was + $bytes > $mb * 1024 * 1024
+            ? 'Publishing this would go over your '.self::room($mb).' of images, video and published pages.'
             : null;
     }
 
     /** Why this person's mixes can't take another $bytes of uploads (null when they can). */
     public function uploadRefusal(int $bytes): ?string
     {
-        $mb = $this->limits()['upload_mb'];
+        $mb = $this->uploadMb();
 
-        return $mb !== null && $this->usage()['uploads'] + $bytes > $mb * 1024 * 1024
-            ? ($this->planName() === 'free' ? "Free includes {$mb} MB of images and video, and this would go over. It stays in this browser." : "That would go over your {$mb} MB of uploads.")
+        return $this->usage()['uploads'] + $bytes > $mb * 1024 * 1024
+            ? 'That would go over your '.self::room($mb).' of images and video. It stays in this browser.'
             : null;
+    }
+
+    /** 100 MB, 10 GB. */
+    private static function room(int $mb): string
+    {
+        return $mb >= 1024 && $mb % 1024 === 0 ? ($mb / 1024).' GB' : "{$mb} MB";
     }
 
     /**

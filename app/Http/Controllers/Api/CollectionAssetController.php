@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * A collection's uploads, like a mix's (AssetController). Whoever can read the collection reads them; its owner, and
- * editors through a mix that binds it (`?mix`), add them, and they count toward the owner's plan.
+ * editors through a mix that binds it (`?mix`), add them, and they count toward the owner's room.
  */
 class CollectionAssetController extends Controller
 {
@@ -43,7 +43,7 @@ class CollectionAssetController extends Controller
             'poster' => ['nullable', 'file', 'max:4096'],
         ]);
 
-        // Uploads count toward the collection owner's plan, whoever adds them; replacing one only counts the difference.
+        // Uploads count toward the collection owner's room, whoever adds them; replacing one only counts the difference.
         $owner = $collection->user;
         $was = (int) $collection->assets()->where('key', $input['id'])->value('size');
         $why = $owner->uploadRefusal($request->file('file')->getSize() - $was);

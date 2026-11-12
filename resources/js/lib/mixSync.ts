@@ -31,8 +31,8 @@ export interface ServerMix {
   schema?: number
   /** Archived: read-only until its owner brings it back. */
   archived?: boolean
-  /** Whether its owner has Plus (what the board opens follows the owner). */
-  paid?: boolean
+  /** Whether it can be exported and built: paid for, its owner has Plus from before, or the waitlist. */
+  ships?: boolean
 }
 
 type MixFields = Omit<MixData, 'mixName' | 'versions' | 'drafts'>
