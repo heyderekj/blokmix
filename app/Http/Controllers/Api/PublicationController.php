@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\PublishedController;
 use App\Models\Mix;
 use App\Models\Publication;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use GuzzleHttp\Promise\Each;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\AwsS3V3Adapter;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -59,7 +59,8 @@ class PublicationController extends Controller
         }
 
         $owner = $mix->owner() ?? $request->user();
-        $badge = ! $owner->hasPlus();
+        // "Made with Blokmix" until the site is paid for (or ships free: Plus, the waitlist).
+        $badge = ! $mix->ships();
         $publication = Publication::firstOrNew(['mix_id' => $mix->id], ['code' => Publication::freshCode(), 'kind' => 'mix']);
         $slug = Publication::slugFor($input['name']);
         foreach ($files as $path => $data) {
@@ -144,7 +145,7 @@ class PublicationController extends Controller
         Each::ofLimitAll($puts, self::PARALLEL_PUTS)->wait();
     }
 
-    /** "Made with Blokmix", on Free: a small link in the corner, before </body>. */
+    /** "Made with Blokmix", on a site not paid for yet: a small link in the corner, before </body>. */
     public static function withBadge(string $html): string
     {
         $badge = '<a href="https://blokmix.com" target="_blank" rel="noopener" data-blokmix-badge style="position:fixed;right:12px;bottom:12px;z-index:2147483647;'

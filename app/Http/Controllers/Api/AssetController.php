@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mix;
-use App\Models\MixAsset;
 use App\Services\SvgCleaner;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,7 +61,7 @@ class AssetController extends Controller
         // A cleaned SVG is measured as kept; anything else as it came.
         $size = $input['mime'] === 'image/svg+xml' ? (int) filesize($request->file('file')->getRealPath()) : $request->file('file')->getSize();
 
-        // Uploads count toward the mix owner's plan, whoever adds them; replacing one only counts the difference.
+        // Uploads count toward the mix owner's room, whoever adds them; replacing one only counts the difference.
         $owner = $mix->owner() ?? $request->user();
         $was = (int) $mix->assets()->where('key', $input['id'])->value('size');
         $why = $owner->uploadRefusal($size - $was);

@@ -15,9 +15,9 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\LibraryAdminController;
 use App\Http\Controllers\MixController;
 use App\Http\Controllers\PublishedController;
-use App\Models\Mix;
 use App\Http\Controllers\ShareController;
 use App\Http\Controllers\WaitlistController as WaitlistPage;
+use App\Models\Mix;
 use Illuminate\Support\Facades\Route;
 
 // blok.page: published mixes, first so nothing else answers on that host. No web middleware: no session, no cookies, no
@@ -72,8 +72,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/mixes/{mix}/assets/{key}', [AssetController::class, 'show'])->name('assets.show');
         Route::get('/mixes/{mix}/assets/{key}/poster', [AssetController::class, 'poster'])->name('assets.poster');
 
-        // Buying a mix pack, and its receipts, at Polar.
-        Route::post('/billing/checkout', [BillingController::class, 'checkout'])->middleware('throttle:10,1')->name('billing.checkout');
+        // Paying for a site (one mix, $30 once), and receipts, at Polar.
+        Route::post('/mixes/{mix}/checkout', [BillingController::class, 'checkout'])->middleware('throttle:10,1')->name('billing.checkout');
         Route::get('/billing/receipts', [BillingController::class, 'receipts'])->name('billing.receipts');
 
         Route::get('/clips', [ClipController::class, 'index'])->name('clips.index');

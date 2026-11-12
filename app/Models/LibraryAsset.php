@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
-/** A library site's screenshot (full page, section crop or thumbnail) on the uploads disk. Never counts toward a plan. */
+/** A library site's screenshot (full page, section crop or thumbnail) on the uploads disk. Never counts toward anyone's room. */
 class LibraryAsset extends Model
 {
     public const KINDS = ['full', 'section', 'thumb'];

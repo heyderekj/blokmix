@@ -11,21 +11,17 @@ return [
     'upload_max_kb' => 40 * 1024,
 
     /**
-     * What each plan includes (docs/pricing.md). Null is unlimited. Free has one mix open at a time (archiving it frees
-     * the place); Plus is bought once, never renewed, and has as many mixes as you like and every feature. Mixes and
-     * uploads count against the mix's owner; shared mixes, built-in layouts and placeholder art never count. Storage is
-     * the only other limit, a guardrail. The people who run Blokmix (owners, below) are on Plus.
+     * Free to make, $30 a site when you ship it (docs/pricing.md). Everything in the app is free; paying is once per mix,
+     * and opens downloading its code and handing it to an agent, for every version of it from then on. Storage is a
+     * guardrail, never printed as a feature: 100 MB per owner, 10 GB once they have paid for a site (or have Plus).
+     * Uploads count against the mix's owner; shared mixes, built-in layouts and placeholder art never count.
      */
-    'plans' => [
-        'free' => ['mixes' => 1, 'upload_mb' => 100],
-        'plus' => ['mixes' => null, 'upload_mb' => 10 * 1024],
-    ],
-
-    /** Plus: one-time, everything. */
-    'plus' => ['price_usd' => 25],
+    'site' => ['price_usd' => 30],
+    'upload_mb' => ['default' => 100, 'paid' => 10 * 1024],
 
     /**
-     * While Blokmix is on a waitlist, nobody hits a plan limit: every account is on Plus. Set BLOKMIX_WAITLIST_MODE=false when plans open.
+     * While Blokmix is on a waitlist, nobody hits a paywall: every mix ships free (and every account counts as Plus).
+     * Set BLOKMIX_WAITLIST_MODE=false when paying opens.
      */
     'waitlist_mode' => (bool) env('BLOKMIX_WAITLIST_MODE', true),
 
@@ -52,8 +48,8 @@ return [
     'jev_key' => env('TYPESAFE_API_KEY'),
 
     /**
-     * Who runs Blokmix: these accounts see the waitlist (/waitlist). Comma-separated emails in BLOKMIX_OWNERS;
-     * without it, Derek's account.
+     * Who runs Blokmix: these accounts see the waitlist (/waitlist) and, like Plus, ship every mix they own free.
+     * Comma-separated emails in BLOKMIX_OWNERS; without it, Derek's account.
      */
     'owners' => array_values(array_filter(array_map(
         fn ($e) => strtolower(trim($e)),

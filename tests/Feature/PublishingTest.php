@@ -3,12 +3,17 @@
 namespace Tests\Feature;
 
 use App\Enums\MixRole;
+use App\Http\Controllers\Api\PublicationController;
 use App\Models\Mix;
 use App\Models\Publication;
 use App\Models\User;
+use Aws\MockHandler;
+use Aws\Result;
+use Aws\S3\Exception\S3Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class PublishingTest extends TestCase
@@ -46,7 +51,7 @@ class PublishingTest extends TestCase
         return new UploadedFile($path, 'bundle.zip', 'application/zip', null, true);
     }
 
-    private function publish(?Mix $mix = null, array $files = [], string $name = 'Fern & Co'): \Illuminate\Testing\TestResponse
+    private function publish(?Mix $mix = null, array $files = [], string $name = 'Fern & Co'): TestResponse
     {
         $mix ??= $this->mix;
         $files = $files ?: [
@@ -107,7 +112,7 @@ class PublishingTest extends TestCase
         $this->publish(files: ['about.html' => 'x'])->assertUnprocessable();
     }
 
-    public function test_free_publishes_with_a_badge_and_files_count(): void
+    public function test_an_unpaid_site_publishes_with_a_badge_and_files_count(): void
     {
         $this->actingAs($this->owner)->publish()->assertOk()->assertJsonPath('publication.badge', true);
         $code = Publication::first()->code;
@@ -118,11 +123,15 @@ class PublishingTest extends TestCase
         $other->admit($this->owner, MixRole::Owner);
         $this->publish($other)->assertOk()->assertJsonPath('publication.badge', true);
 
-        // Plus: no badge.
+        // Paid for: no badge on that site (the next publish drops it); the owner's other site keeps its own.
+        $this->mix->forceFill(['paid_at' => now()])->save();
+        $this->publish()->assertOk()->assertJsonPath('publication.badge', false);
+        $this->assertStringNotContainsString('Made with Blokmix', Storage::disk('uploads-test')->get("published/{$code}/index.html"));
+        $this->publish($other)->assertOk()->assertJsonPath('publication.badge', true);
+
+        // Plus from before: no badge on any of the owner's sites.
         $this->owner->forceFill(['plan' => 'plus'])->save();
         $this->publish($other)->assertOk()->assertJsonPath('publication.badge', false);
-        $this->publish()->assertOk();
-        $this->assertStringNotContainsString('Made with Blokmix', Storage::disk('uploads-test')->get("published/{$code}/index.html"));
     }
 
     public function test_published_routes_answer_only_on_the_publish_host(): void
@@ -141,20 +150,20 @@ class PublishingTest extends TestCase
 
     public function test_files_go_up_to_a_bucket_together(): void
     {
-        $mock = new \Aws\MockHandler;
+        $mock = new MockHandler;
         $files = [];
         for ($i = 1; $i <= 40; $i++) {
             $files["media/p{$i}.svg"] = '<svg/>';
-            $mock->append(new \Aws\Result([]));
+            $mock->append(new Result([]));
         }
         $files['index.html'] = '<html></html>';
-        $mock->append(new \Aws\Result([]));
+        $mock->append(new Result([]));
         $disk = Storage::build([
             'driver' => 's3', 'key' => 'k', 'secret' => 's', 'region' => 'auto', 'bucket' => 'blokmix-test',
             'endpoint' => 'https://r2.example.test', 'root' => 'app', 'handler' => $mock,
         ]);
 
-        \App\Http\Controllers\Api\PublicationController::putAll($disk, 'published/k3x9', $files);
+        PublicationController::putAll($disk, 'published/k3x9', $files);
 
         $this->assertSame(0, $mock->count(), 'every file was put');
         $last = $mock->getLastCommand();
@@ -166,13 +175,13 @@ class PublishingTest extends TestCase
 
     public function test_a_failed_put_fails_the_publish(): void
     {
-        $mock = new \Aws\MockHandler([
-            new \Aws\Result([]),
-            fn ($cmd) => new \Aws\S3\Exception\S3Exception('Nope', $cmd),
+        $mock = new MockHandler([
+            new Result([]),
+            fn ($cmd) => new S3Exception('Nope', $cmd),
         ]);
         $disk = Storage::build(['driver' => 's3', 'key' => 'k', 'secret' => 's', 'region' => 'auto', 'bucket' => 'b', 'handler' => $mock]);
 
-        $this->expectException(\Aws\S3\Exception\S3Exception::class);
-        \App\Http\Controllers\Api\PublicationController::putAll($disk, 'published/k3x9', ['index.html' => 'x', 'about.html' => 'y']);
+        $this->expectException(S3Exception::class);
+        PublicationController::putAll($disk, 'published/k3x9', ['index.html' => 'x', 'about.html' => 'y']);
     }
 }
