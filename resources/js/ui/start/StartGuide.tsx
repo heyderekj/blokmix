@@ -6,7 +6,7 @@ import type { GuideState, SectionType } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { startCandidates, type StartCandidate, type StartInput } from '@/core/start'
 import { FEEL_WORDS, themesFor, type FeelWord } from '@/core/feel'
-import { skinById, skinList, skinOpen, WIREFRAME, type Skin } from '@/core/skins'
+import { skinById, skinList, WIREFRAME, type Skin } from '@/core/skins'
 import { actionChoices, FORMAT_LABEL, FORMATS, GOAL_LABEL, GOALS, INDUSTRIES, INDUSTRY_LABEL, patchBrief, type Brief, type Goal } from '@/core/brief'
 import { OPTIONAL, placeSection, textMode } from '@/core/jev/describe'
 import { answer, answersFromSentence, briefFrom, emptyAnswers, heardFromSentence, feelFrom, folded, kindFrom, nextQuestion, QUESTIONS, reopen, sectionsFrom, skipToPages, type Answers, type Question } from '@/core/startFlow'
@@ -94,7 +94,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const sections = sectionsFrom(va, vh)
   const feel = feelFrom(va, vh)
   const name = va.name.trim() || 'Your site'
-  const open = useMemo(() => skinList().filter((x) => skinOpen(library, x) && x.id !== WIREFRAME), [])
+  const open = useMemo(() => skinList().filter((x) => x.id !== WIREFRAME), [])
   // The look on show: yours, else the best fit (the read's, then the feel's), never the grey sketch.
   const themes = useMemo(() => {
     const read = (vh?.looks ?? []).flatMap((id) => open.filter((x) => x.id === id))

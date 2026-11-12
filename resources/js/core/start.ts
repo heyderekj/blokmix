@@ -11,7 +11,7 @@ import { DEFAULT_CONTENT, FIELD_SCHEMA } from './content'
 import { KIND_WORDS, SHARED_WORDS } from './startWords'
 import { siteFromSlots } from './site'
 import { suggestClip, suggestTypes } from './suggest'
-import { pickable, shelfOf, starterOpen } from './library'
+import { pickable, shelfOf } from './library'
 import { applySkin, skinById, skinList, WIREFRAME } from './skins'
 import { setTone } from './dials'
 import { paletteFrom, type Mode, type Palette } from './palette'
@@ -209,10 +209,10 @@ const countShelves = (lib: Library, site: Site) => {
 
 const signature = (site: Site) => [site.shared.nav, ...site.pages.flatMap((p) => p.slots), site.shared.footer].map((s) => s?.clipId ?? '').join(',')
 
-/** Starter mixes for a kind of site this mix can use. */
+/** Starter mixes for a kind of site. */
 export function startersFor(lib: Library, kind: Kind, brief?: Brief): Starter[] {
   const fits = (s: Starter) => (brief?.industry && s.industries?.includes(brief.industry) ? 2 : 0) + (brief?.format && s.formats?.includes(brief.format) ? 1 : 0)
-  return lib.starters.filter((s) => s.kind === kind && starterOpen(lib, s)).sort((a, b) => fits(b) - fits(a))
+  return lib.starters.filter((s) => s.kind === kind).sort((a, b) => fits(b) - fits(a))
 }
 
 /**

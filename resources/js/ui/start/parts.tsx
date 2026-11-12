@@ -4,9 +4,8 @@ import { ArrowRight, Check, ChevronLeft, ChevronRight, type LucideIcon } from 'l
 import type { Kind, SectionType } from '@/core/types'
 import { guideFor } from '@/core/start'
 import { KIND_FEEL, themesFor } from '@/core/feel'
-import { skinList, skinOpen, WIREFRAME, type Skin } from '@/core/skins'
+import { skinList, WIREFRAME, type Skin } from '@/core/skins'
 import { resolveGuide } from '@/core/guide'
-import { library } from '@/data/library'
 import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import type { ScoredStart } from '@/lib/start'
 import type { Palette as Colors } from '@/core/palette'
@@ -164,7 +163,7 @@ export const firstPage = (start: ScoredStart): SectionType[] => (start.site.page
 
 /** The look a new start opens in: Jev's pick, else the theme that fits this kind best, never the grey sketch. */
 export function firstTheme(looks: string[], kind: Kind): string {
-  const open = skinList().filter((x) => skinOpen(library, x))
+  const open = skinList()
   return looks.find((id) => open.some((x) => x.id === id)) ?? themesFor(KIND_FEEL[kind], open, { count: 1 })[0]?.id ?? WIREFRAME
 }
 

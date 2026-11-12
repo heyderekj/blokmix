@@ -107,8 +107,6 @@ export interface Clip {
   feel?: Feel[]
   /** How much it holds and how tightly, for browsing the library. */
   density?: Density
-  /** Which part of the library it belongs to once the license exists. Not enforced yet. */
-  tier?: Tier
   /** A layout drafted from a real site and not yet approved (the review queue). */
   status?: 'draft'
   /** The real site a layout was drafted from. */
@@ -691,7 +689,6 @@ export type Density = (typeof DENSITIES)[number]
 /** Library tags, in plain words (`docs/library.md`). */
 export const FEELS = ['calm', 'friendly', 'editorial', 'technical', 'bold'] as const
 export type Feel = (typeof FEELS)[number]
-export type Tier = 'free' | 'full'
 
 /** What someone is making, from the guided start's first question. */
 export const KINDS = ['product', 'studio', 'local', 'event', 'personal', 'writing'] as const
@@ -710,7 +707,6 @@ export interface Starter {
   skin: string
   /** Home first. Each page lists its sections' clip ids top to bottom, nav and footer included. */
   pages: { path: string; title: string; sections: string[] }[]
-  tier?: Tier
   /** Industries and formats it suits best (core/brief.ts ids): the guided start offers it first for those. */
   industries?: string[]
   formats?: string[]
@@ -726,8 +722,6 @@ export interface Library {
   /** Starter mixes, for the guided start and the Crate's library. */
   starters: Starter[]
   warnings: LintIssue[]
-  /** False when the open mix's owner is on Free: only layouts marked `tier: free` (and your own clips) are offered. */
-  paid?: boolean
 }
 
 export interface LintIssue {

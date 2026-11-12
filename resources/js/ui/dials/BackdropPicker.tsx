@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { PackNote } from '../shell/BuySheet'
 import { Ban, ChevronDown } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { BACKDROP_ANCHORS, CSS_BACKDROP_IDS, SHADER_IDS, backdropDecls, backdropPlace, backdropShaderId, treatmentInfo, type BackdropAnchor, type BackdropId, type TreatmentValue } from '@/core/treatments'
@@ -65,7 +64,6 @@ export function BackdropPicker({ slot, tokens }: { slot: Slot; tokens: TokenSet 
   }
   return (
     <div className="grid gap-2">
-      <PackNote what="Backdrops" />
       <StyleRow label="Backdrop">
         <button
           type="button"

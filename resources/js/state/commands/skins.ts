@@ -18,13 +18,13 @@ export const read = {
     const on = skinRefOf(useStore.getState().guide.skin)
     return {
       current: on ?? null,
-      skins: skinList().map((s) => ({ id: s.id, name: s.name, words: s.words, tier: s.tier, mode: s.mode, on: on?.id === s.id })),
+      skins: skinList().map((s) => ({ id: s.id, name: s.name, words: s.words, mode: s.mode, on: on?.id === s.id })),
     }
   },
   get_contract: () => contractNow(),
   suggest_themes: (i: CommandInput<'suggest_themes'>) => {
     const on = skinRefOf(useStore.getState().guide.skin)
-    return { themes: themesFor(i.words, skinList(), { different: i.different, count: i.count }).map((s) => ({ id: s.id, name: s.name, words: s.words, feel: s.feel, tier: s.tier, on: on?.id === s.id })) }
+    return { themes: themesFor(i.words, skinList(), { different: i.different, count: i.count }).map((s) => ({ id: s.id, name: s.name, words: s.words, feel: s.feel, on: on?.id === s.id })) }
   },
 }
 

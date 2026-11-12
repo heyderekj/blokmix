@@ -8,6 +8,7 @@ import { dfsOrder, nextLetter } from '@/core/versions'
 import { pressVersionAndFly } from '@/lib/actions'
 import { bridgeWriter } from '@/lib/agentLink'
 import { packetInputFor } from '@/lib/packet'
+import { shipRefusal } from '../shipping'
 import { withBakedPosters } from '@/lib/shaderPosters'
 import { loadPublication, publishMix, unpublishMix, usePublication, type Publication } from '@/lib/publish'
 import { useStore } from '../store'
@@ -102,6 +103,9 @@ interface Prepared {
 /** A version's packet, written to disk through the bridge before the build frame opens. */
 const prepare_build: AsyncCommand<Prepared> = {
   prepare: (async (i: CommandInput<'prepare_build'>) => {
+    // Building is shipping: a mix that isn't paid for refuses, with how to pay (state/shipping.ts).
+    const unpaid = shipRefusal()
+    if (unpaid) throw new CommandError(unpaid)
     // Claim the bridge request now: it's only known while the command starts.
     const writer = bridgeWriter()
     let v = findVersion(i.version)

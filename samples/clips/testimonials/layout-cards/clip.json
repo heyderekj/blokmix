@@ -3,7 +3,6 @@
   "layoutPattern": "testimonial-cards-3up",
   "rhythm": "grid",
   "density": "balanced",
-  "tier": "free",
   "motionNotes": "None of its own: motion comes from the skin.",
   "capture": {
     "path": "/",

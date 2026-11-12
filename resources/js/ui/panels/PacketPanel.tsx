@@ -13,6 +13,8 @@ import { slug } from '@/core/export/astro'
 import { dfsOrder } from '@/core/versions'
 import { useStore } from '@/state/store'
 import { useLayout } from '@/state/layout'
+import { canShip } from '@/state/shipping'
+import { useAccount } from '@/lib/account'
 import { Segmented } from '../shell/TopBar'
 import { AstroIcon, NextIcon } from '../shell/FrameworkIcons'
 import { FiveSecondCard } from '../jev/FiveSecondCard'
@@ -34,6 +36,9 @@ export function PacketPanel() {
   const [tab, setTab] = useState<'files' | 'prompt'>('prompt')
   // Without an agent connected to Blokmix, the prompt leaves out the steps that report back to it.
   const mcp = useAgentLink((s) => s.status === 'connected')
+  // Looking inside is free; downloading, copying and handing it to an agent is shipping (state/shipping.ts).
+  const ships = useAccount((s) => s.ships)
+  const price = useAccount((s) => s.price)
   const st = useStore.getState
 
   const drafts = useStore((s) => s.drafts)
@@ -59,6 +64,7 @@ export function PacketPanel() {
   }
 
   const download = async () => {
+    if (!canShip('Downloading the files')) return
     const name = `${slug(mixName)}-${version ? version.letter.toLowerCase().replace(/\./g, '-') : 'mix'}`
     // Live shaders get posters drawn from the real shader (the preview shows stand-ins).
     const ready = input.page.shaders.length ? packetFiles({ ...input, page: await withBakedPosters(input.page) }) : files
@@ -72,6 +78,7 @@ export function PacketPanel() {
   }
 
   const copyPrompt = async (t: BuildTarget) => {
+    if (!canShip('Handing it to your agent')) return
     await navigator.clipboard.writeText(agentPrompt(input, t, undefined, { mcp }))
     flash(`prompt-${t}`)
   }
@@ -150,6 +157,12 @@ export function PacketPanel() {
         )}
       </div>
 
+      {!ships && (
+        <p className="border-t border-zinc-950/6 px-4 py-2.5 text-[12px] leading-snug text-zinc-500">
+          <b className="font-semibold text-zinc-800">Free to make. ${price} a site when you ship it.</b> Look inside for free; downloading or handing it to your agent asks once, then every version is yours.
+        </p>
+      )}
+
       <FiveSecondCard />
 
       {/* tier 2: tabs left, targets right */}
@@ -183,6 +196,7 @@ export function PacketPanel() {
             <div className="mb-1.5 mt-3 flex items-center justify-between">
               <span className="truncate font-mono text-[11.5px] text-zinc-500">{current}</span>
               <CopyBtn copied={copied === 'file'} onClick={async () => {
+                if (!canShip('Copying a file')) return
                 const f = files[current]
                 if (typeof f === 'string') await navigator.clipboard.writeText(f)
                 flash('file')

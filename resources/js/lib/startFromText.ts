@@ -11,7 +11,7 @@ import { briefFromKind, guessBrief, kindOf } from '@/core/brief'
 import type { HeardBrief } from '@/core/startFlow'
 import { describeSections } from '@/core/jev/pageFromWords'
 import { siteFromSlots } from '@/core/site'
-import { skinList, skinOpen, WIREFRAME } from '@/core/skins'
+import { skinList, WIREFRAME } from '@/core/skins'
 import { library } from '@/data/library'
 import { askJev } from './jev'
 import { scoreStart, scoredStarts, type ScoredStart } from './start'
@@ -35,10 +35,10 @@ export interface Heard extends HeardBrief {
   waiting?: number
 }
 
-/** The looks Jev may pick from: every skin this plan opens but the raw Wireframe. */
+/** The looks Jev may pick from: every skin but the raw Wireframe. */
 export const looksOnOffer = (): Look[] =>
   skinList()
-    .filter((s) => s.id !== WIREFRAME && skinOpen(library, s))
+    .filter((s) => s.id !== WIREFRAME)
     .map((s) => ({ id: s.id, name: s.name, words: s.words }))
 
 /** Ask Jev about the box's text. Null when Jev is off, slow, or there's nothing to read. */

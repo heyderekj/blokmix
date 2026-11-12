@@ -13,7 +13,7 @@ export function localMixState(): Record<string, unknown> | null {
 
 /**
  * Copy the browser's mix to your mixes on the server (the browser keeps its copy). Resolves to the new mix's short
- * address, or the reason it couldn't (a full plan, a dropped connection), in words.
+ * address, or the reason it couldn't (no room left, a dropped connection), in words.
  */
 export async function saveLocalMix(state: Record<string, unknown>, fallbackName = 'Untitled mix'): Promise<{ short: string } | { problem: string }> {
   const { mixName, versions, drafts, ui: _ui, camera: _camera, ...data } = state

@@ -90,7 +90,7 @@ describe('dress it up', () => {
       return undefined
     })
     const hero = currentSlots(useStore.getState()).find((s) => s.type === 'hero')!
-    const ideas = (await runCommand('suggest_treatments', { section: hero.id, feel: 'more premium' })) as { command: string; input: Record<string, unknown>; needs_pack: boolean }[]
+    const ideas = (await runCommand('suggest_treatments', { section: hero.id, feel: 'more premium' })) as { command: string; input: Record<string, unknown> }[]
     expect(ideas.length).toBeGreaterThan(0)
     for (const i of ideas) expect(COMMANDS[i.command as CommandName].input.safeParse(i.input).success, i.command).toBe(true)
     const req: JevRequest | undefined = undefined

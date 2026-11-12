@@ -6,8 +6,7 @@ import { hearStart, startsFromText, type Heard } from '@/lib/startFromText'
 import { jevOffMessage, jevOn } from '@/lib/jev'
 import type { Kind } from '@/core/types'
 import { allSlots } from '@/core/site'
-import { skinById, skinList, skinOpen } from '@/core/skins'
-import { library } from '@/data/library'
+import { skinById, skinList } from '@/core/skins'
 import { useStore } from '../store'
 import { CommandError } from './refs'
 import type { AsyncCommand } from './index'
@@ -73,7 +72,6 @@ export const later = {
       const pick = starts[i.start - 1]
       const skin = i.skin ? skinById(i.skin) : null
       if (i.skin && !skin) throw new CommandError(`No skin called "${i.skin}". Skins: ${skinList().map((s) => s.id).join(', ')}`)
-      if (skin && !skinOpen(library, skin)) throw new CommandError(`The ${skin.name} skin needs Plus`)
       if (!pick) throw new CommandError(`There are only ${starts.length} starts for those answers`)
       useStore.getState().applyStart(pick)
       return describe(pick, i.start - 1)

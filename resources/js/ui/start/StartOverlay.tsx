@@ -3,7 +3,6 @@ import { canvasApi } from '@/ui/canvas/Canvas'
 import { blankMix } from '@/state/seed'
 import { mixFromStart, startedWords } from '@/lib/start'
 import { buildStarter } from '@/core/starters'
-import { starterOpen } from '@/core/library'
 import { library } from '@/data/library'
 import { importLocalMix } from '@/ui/shell/TopBar'
 import { StartGuide, useStartFlow } from './StartGuide'
@@ -25,7 +24,6 @@ export function StartOverlay() {
         close()
       }}
       onStarter={(starter, name) => {
-        if (!starterOpen(library, starter)) return useStore.getState().showFlash(`“${starter.name}” uses layouts in Plus.`)
         const { site, guide } = buildStarter(library, starter)
         useStore.getState().openMixData({ ...blankMix(name === 'Your site' ? starter.name : name), site, guide })
         close()

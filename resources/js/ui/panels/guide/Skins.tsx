@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Lock, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import type { GuideState, TokenSet } from '@/core/types'
-import { applySkin, skinList, skinOpen, skinRefOf, type Skin } from '@/core/skins'
+import { applySkin, skinList, skinRefOf, type Skin } from '@/core/skins'
 import { emptyContract } from '@/core/contract'
 import { resolveGuide } from '@/core/guide'
 import { pageOf } from '@/core/site'
-import { library } from '@/data/library'
 import { useStore } from '@/state/store'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 import { SkinSpecimen } from '@/ui/skins/SkinSpecimen'
@@ -41,7 +40,7 @@ export function putSkin(skin: Skin) {
 }
 
 /** A theme drawn in its own look, with its name under it. Also used for a mix, which has no skin of its own. */
-export function SkinCard({ label, words, tokens, components, here, locked, onPick }: { label: string; words: string; tokens: TokenSet; components?: GuideState['components']; here: boolean; locked: boolean; onPick: () => void }) {
+export function SkinCard({ label, words, tokens, components, here, onPick }: { label: string; words: string; tokens: TokenSet; components?: GuideState['components']; here: boolean; onPick: () => void }) {
   const brand = useStore((s) => s.content.brand)
   return (
     <button
@@ -57,7 +56,7 @@ export function SkinCard({ label, words, tokens, components, here, locked, onPic
       </span>
       <span className="flex items-center justify-between gap-1 px-1 text-[11.5px] font-semibold text-zinc-800">
         <span className="truncate">{label}</span>
-        {here ? <Check size={12} className="shrink-0" /> : locked && <Lock size={11} className="shrink-0 text-zinc-400" aria-label="Plus" />}
+        {here && <Check size={12} className="shrink-0" />}
       </span>
     </button>
   )
@@ -71,7 +70,7 @@ export function SkinGrid({ looks, cols = 2 }: { looks: SkinLook[]; cols?: 2 | 3 
       <FontLinks tokens={looks.map((l) => l.tokens)} />
       <div className={`grid gap-x-2 gap-y-2.5 ${cols === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
         {looks.map(({ skin, tokens, components }) => (
-          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={skinRefOf(on)?.id === skin.id} locked={!skinOpen(library, skin)} onPick={() => putSkin(skin)} />
+          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={skinRefOf(on)?.id === skin.id} onPick={() => putSkin(skin)} />
         ))}
       </div>
     </>
@@ -118,7 +117,7 @@ function Compare({ onClose, onPick }: { onClose: () => void; onPick: (s: Skin) =
             <button key={skin.id} type="button" onClick={() => onPick(skin)} className={`overflow-hidden rounded-2xl bg-white text-left shadow-[0_0_0_1px_rgb(0_0_0/0.08)] ${PRESS}`}>
               <SkinPreview site={shown} guide={applySkin(guide, skin, contract ?? emptyContract())} content={content} title={skin.name} height={200} />
               <span className="block p-3">
-                <span className="flex items-center gap-1.5 text-[13.5px] font-semibold text-zinc-900">{skin.name}{!skinOpen(library, skin) && <Lock size={11} className="text-zinc-400" />}</span>
+                <span className="flex items-center gap-1.5 text-[13.5px] font-semibold text-zinc-900">{skin.name}</span>
                 <span className="mt-0.5 line-clamp-3 text-[12px] leading-snug text-zinc-500 [text-wrap:pretty]">{skin.words}</span>
               </span>
             </button>

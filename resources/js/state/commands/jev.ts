@@ -217,7 +217,7 @@ export const later = {
       if (!r) throw new CommandError('No answer that time; try again.')
       return r.ideas
     },
-    apply: (_i: CommandInput<'suggest_treatments'>, ideas: DressIdea[]) => ideas.map((d) => ({ does: d.label, command: d.command, input: d.input, needs_pack: d.locked, fit: Math.round(d.fit * 100) / 100 })),
+    apply: (_i: CommandInput<'suggest_treatments'>, ideas: DressIdea[]) => ideas.map((d) => ({ does: d.label, command: d.command, input: d.input, fit: Math.round(d.fit * 100) / 100 })),
   } satisfies AsyncCommand<DressIdea[]>,
   understand: {
     prepare: async (i: CommandInput<'understand'>) => {

@@ -1,6 +1,5 @@
 import type { Clip, Library, SectionType } from './types'
 import { parseHtml, attr, type HEl, type HNode } from './html/parse'
-import { layoutOpen } from './library'
 
 /**
  * Matching a section to Blokmix's built-in layouts. A section captured from a real site and a built-in layout are
@@ -181,7 +180,7 @@ export interface LayoutMatch {
 /** The built-in layouts of the section's type this mix can use, closest first (drafts included only when asked). */
 export function matchLayouts(sig: Signature, lib: Library, opts: { includeDrafts?: boolean; limit?: number } = {}): LayoutMatch[] {
   return (lib.layoutsByType[sig.type] ?? [])
-    .filter((id) => (opts.includeDrafts || !lib.clips[id].status) && layoutOpen(lib, id))
+    .filter((id) => opts.includeDrafts || !lib.clips[id].status)
     .map((id) => ({ layoutId: id, ...similarity(sig, signatureOf(lib.clips[id])) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, opts.limit ?? 5)

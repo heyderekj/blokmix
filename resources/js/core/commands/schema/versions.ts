@@ -15,7 +15,7 @@ export const VERSION_COMMANDS = {
   },
   prepare_build: {
     description:
-      'Start building a version for real. Composes its packet (BLOKMIX.md, blokmix.json, tokens, the Astro or Next.js reference project) and writes it to builds/<mix>-<letter>/ next to the bridge, opens a build frame on the canvas, and returns the folder and the prompt to follow. Then build and run it there, and report progress with report_build.',
+      'Start building a version for real. Composes its packet (BLOKMIX.md, blokmix.json, tokens, the Astro or Next.js reference project) and writes it to builds/<mix>-<letter>/ next to the bridge, opens a build frame on the canvas, and returns the folder and the prompt to follow. Building is shipping: a mix that isn’t paid for refuses (it’s $30 a site, once, paid by someone who can edit it from Export on the board); after that every version builds free. Then build and run it there, and report progress with report_build.',
     input: z.object({
       version: version,
       target: z.enum(['astro', 'next']).default('astro'),
@@ -41,7 +41,7 @@ export const VERSION_COMMANDS = {
   },
   publish: {
     description:
-      'Publish the mix (or a saved version) to blok.page: an unlisted page anyone with the link can open, search engines never index. Every page of the site, in the mix’s style. Publishing again updates the same address. Returns the URL. Only in hosted Blokmix (a saved mix); on Free one mix can be published at a time, with a small badge.',
+      'Publish the mix (or a saved version) to blok.page: an unlisted page anyone with the link can open, search engines never index. Every page of the site, in the mix’s style. Publishing again updates the same address. Returns the URL. Only in hosted Blokmix (a saved mix). Free for every mix; until the site is paid for it carries a small “Made with Blokmix” badge.',
     input: z.object({
       version: version.optional().describe('A saved version to publish instead of the mix as it is now'),
       name: z.string().min(1).max(120).optional().describe('The name in the address (blok.page/<code>/<name>); defaults to what’s published, or the mix’s name'),

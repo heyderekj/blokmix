@@ -1,6 +1,6 @@
 // Dress it up, on the board: what suits a section from Blokmix's own treatments, as
 // ordinary commands (set_section_backdrop, set_mock) that preview on hover and land as
-// one undo step. On Free they show a lock and open the buy sheet, like any treatment.
+// one undo step.
 
 import { treatmentList, lookList, MOCK_IDS, mockSource } from '@/core/treatments'
 import { backdropShaderId } from '@/core/treatments/backdrops'
@@ -13,14 +13,11 @@ import { slotClip } from '@/data/library'
 import { askJev } from '@/lib/jev'
 import { currentSlots, useStore } from './store'
 import { wordsFor } from './commands/refs'
-import { paid } from './plan'
 
 export interface DressIdea {
   label: string
   command: string
   input: Record<string, unknown>
-  /** Needs Plus, and this mix's owner is on Free. */
-  locked: boolean
   fit: number
 }
 
@@ -53,9 +50,8 @@ export async function dressSection(slotId: string, feel?: string): Promise<{ ide
   const res = await askJev(dressRequest(brief, cands), { timeoutMs: 6000 })
   if (!res) return null
   const dressed = readDress(res, cands)
-  const locked = !paid()
-  const ideas: DressIdea[] = dressed.backdrops.map((b) => ({ label: b.label, command: 'set_section_backdrop', input: { section: slot.id, backdrop: b.treatment, preset: b.preset }, locked, fit: b.fit }))
-  if (dressed.mock && empty) ideas.push({ label: `${mockSource(dressed.mock.id)?.label ?? dressed.mock.id} screen in the picture`, command: 'set_mock', input: { section: slot.id, block: empty.id, mock: dressed.mock.id }, locked, fit: dressed.mock.p })
+  const ideas: DressIdea[] = dressed.backdrops.map((b) => ({ label: b.label, command: 'set_section_backdrop', input: { section: slot.id, backdrop: b.treatment, preset: b.preset }, fit: b.fit }))
+  if (dressed.mock && empty) ideas.push({ label: `${mockSource(dressed.mock.id)?.label ?? dressed.mock.id} screen in the picture`, command: 'set_mock', input: { section: slot.id, block: empty.id, mock: dressed.mock.id }, fit: dressed.mock.p })
   return { ideas, dressed }
 }
 
@@ -76,5 +72,5 @@ export async function dressPage(feel?: string): Promise<DressIdea | null> {
   const res = await askJev(dressRequest(brief, []), { timeoutMs: 6000 })
   const d = readDress(res, [])
   const look = d.look && looks.find((l) => l.id === d.look!.id)
-  return look ? { label: `${look.label} effects`, command: 'apply_look', input: { look: look.id }, locked: !paid(), fit: d.look!.p } : null
+  return look ? { label: `${look.label} effects`, command: 'apply_look', input: { look: look.id }, fit: d.look!.p } : null
 }
