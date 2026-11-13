@@ -43,6 +43,15 @@ Today nothing reads a build back: `lib/mixFile.ts` imports only Blokmix's own fi
 (`report_build`, `import_review_marks`). Skins, block looks and palettes are a fixed set agents can choose from but
 not add to; saved style guides have no agent command.
 
+## Theming
+
+Themes that fit the site you're making, and ways to steer them. Today there are seven themes, offered by counting
+feel words, so a bakery gets Lo-fi, Dream Pop and Flyer; industry barely reaches them and Jev only reads their names.
+The plan: a kit of parts (the eight style areas Rules for your agent already uses), about sixteen themes with industry
+flavors, "Change one part", and Jev to rank themes for your brief, change the look from words, and check how it reads.
+Phased PRs: fixes and the kit, then industry themes, then Jev. The full plan, with what's wrong today, is in
+`docs/theming.md`.
+
 ## Capture straight to your account
 
 The extension sends a clip to the live app in one click, instead of downloading a zip you then add in the
