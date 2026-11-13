@@ -11,6 +11,8 @@ import {
   rubber,
   stepZoom,
   unrubber,
+  WHEEL_GAP,
+  wheelHand,
   ZOOM_STOPS,
   zoomFactor,
   zoomKey,
@@ -34,6 +36,23 @@ describe('normalizeWheel', () => {
   })
   it('scrolls sideways with shift on a mouse', () => {
     expect(normalizeWheel({ deltaX: 0, deltaY: 40, deltaMode: 0, shiftKey: true })).toMatchObject({ dx: 40, dy: 0 })
+  })
+})
+
+describe('wheelHand', () => {
+  const run = (deltas: number[], gap = 16) => {
+    let hand = null as ReturnType<typeof wheelHand> | null
+    return deltas.map((d, i) => (hand = wheelHand(hand, normalizeWheel({ deltaX: 0, deltaY: d, deltaMode: 0 }).notch, i * gap)).kind)
+  }
+  it('keeps a fast trackpad flick a trackpad, whole-pixel deltas and all', () => {
+    expect(run([2, 6, 14, 30, 52, 80, 110, 120, 104, 86, 70, 55, 42])).toEqual(Array(13).fill('pad'))
+  })
+  it('reads a mouse wheel spun fast as clicks', () => {
+    expect(run([100, 100, 100, 100])).toEqual(Array(4).fill('mouse'))
+  })
+  it('turns trackpad as soon as a gesture shows it, and starts fresh after a pause', () => {
+    expect(run([100, 100, 4, 100])).toEqual(['mouse', 'mouse', 'pad', 'pad'])
+    expect(run([4, 100], WHEEL_GAP)).toEqual(['pad', 'mouse'])
   })
 })
 

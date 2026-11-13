@@ -4,7 +4,7 @@ import { useLayout } from '@/state/layout'
 import type { NoteAnchor } from '@/core/types'
 import { pressable, typing } from '../shell/keys'
 import { fitRect, MIX_ID, placeDrafts, placeVersions, VIEW_W, zoomAt, type Camera } from './geometry'
-import { centerX, clampZ, fitWidth as fitWidthOf, leavesPage, normalizeWheel, PAGE_HEAD, pageBounds, round, rubber, stepZoom, unrubber, zoomFactor, type View } from './camera'
+import { centerX, clampZ, fitWidth as fitWidthOf, leavesPage, normalizeWheel, PAGE_HEAD, pageBounds, round, rubber, stepZoom, unrubber, wheelHand, zoomFactor, type View, type WheelHand } from './camera'
 import { useInsets } from './insets'
 
 /** Insets of the floating chrome, so "fit" lands in the visible middle. */
@@ -145,6 +145,8 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
   /** A scroll past the page's ends, as it would be without the give. */
   let raw: number | null = null
   let springTimer = 0
+  /** The wheel gesture under way: a trackpad's or a mouse wheel's. */
+  let hand: WheelHand | null = null
   let swallowTimer = 0
   let swallowing = false
   let rect = { left: 0, top: 0, width: 0, height: 0 }
@@ -396,7 +398,9 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
   const wheel = (e: WheelEvent) => {
     if (swallowing) return swallow()
     const v = view()
-    const w = normalizeWheel(e, v.h - v.top - v.bottom)
+    const n = normalizeWheel(e, v.h - v.top - v.bottom)
+    hand = wheelHand(hand, n.notch, e.timeStamp || performance.now())
+    const w = { ...n, notch: hand.kind === 'mouse' }
     const sx = e.clientX - rect.left
     const sy = e.clientY - rect.top
     if (w.zoom) {

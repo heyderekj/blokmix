@@ -51,6 +51,25 @@ export function normalizeWheel(
   return { dx, dy, zoom: !!(e.ctrlKey || e.metaKey), notch }
 }
 
+/** Wheel events closer together than this belong to one gesture (a trackpad's momentum tail included). */
+export const WHEEL_GAP = 200
+
+/** What made a wheel gesture, decided across its events rather than one at a time. */
+export interface WheelHand {
+  kind: 'pad' | 'mouse'
+  at: number
+}
+
+/**
+ * Trackpads often send whole-pixel deltas of 50 or more in a fast flick, which look like a mouse wheel's click on
+ * their own. So a gesture is a mouse wheel only while every event in it reads as a click; once one doesn't, the rest
+ * of that gesture is a trackpad's, and the page follows the fingers instead of gliding a click at a time.
+ */
+export function wheelHand(prev: WheelHand | null, notch: boolean, now: number): WheelHand {
+  if (!prev || now - prev.at >= WHEEL_GAP) return { kind: notch ? 'mouse' : 'pad', at: now }
+  return { kind: prev.kind === 'pad' || !notch ? 'pad' : 'mouse', at: now }
+}
+
 /** Zoom stops: every zoom step (keys, the dock, a mouse wheel's click) lands on the next one. */
 export const ZOOM_STOPS = [0.05, 0.1, 0.15, 0.2, 0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.25, 1.5, 2] as const
 
