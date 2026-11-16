@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BadgeCheck, Check, Copy, EyeOff, ExternalLink, Globe, Link2, Loader2, RefreshCw } from 'lucide-react'
+import { Check, Copy, EyeOff, ExternalLink, Globe, Link2, Loader2 } from 'lucide-react'
 import { useStore } from '@/state/store'
 import { useSave } from '@/lib/mixSync'
 import { canEdit, useAccount } from '@/lib/account'
@@ -22,8 +22,8 @@ export function PublishPanel() {
   const notes = useStore((s) => s.notes)
   const others = draftList(drafts).filter((d) => d.id !== draftId && d.body)
   const role = useAccount((s) => s.role)
-  const ships = useAccount((s) => s.ships)
-  const { pub, loaded } = usePublication()
+  const { pub: publication, loaded } = usePublication()
+  const pub = loaded === mixId ? publication : null
   const [name, setName] = useState('')
   const [source, setSource] = useState<string>('working')
   const [busy, setBusy] = useState<'publish' | 'unpublish' | null>(null)
@@ -41,13 +41,22 @@ export function PublishPanel() {
   // Start from what's published (its name and source), or the mix's own name.
   useEffect(() => {
     setName(pub?.slug ?? slugify(mixName ?? ''))
-    setSource(pub?.version && versions[pub.version] ? pub.version : 'working')
+    const version = pub?.version
+    setSource(version && (versions[version] || others.some((draft) => `draft:${draft.id}` === version)) ? version : 'working')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pub?.code, loaded])
 
   if (mixId === 'local') return <SaveLocalFirst />
 
-  const live = pub?.live ? pub : null
+  const preview = pub?.live ? pub : null
+  const publishedVersion = preview?.version
+  let publishedSource = 'Working mix'
+  if (publishedVersion?.startsWith('draft:')) {
+    publishedSource = drafts[publishedVersion.slice('draft:'.length)]?.name ?? 'Saved draft'
+  } else if (publishedVersion) {
+    const version = versions[publishedVersion]
+    publishedSource = version ? `Version ${version.letter}` : 'Saved version'
+  }
   // The address up to the name: blok.page/<code>/ (the code stays when you unpublish, so it shows then too).
   const prefix = pub ? pub.url.replace(/^https?:\/\//, '').replace(/[^/]+\/$/, '') : 'blok.page/'
   const run = async (what: 'publish' | 'unpublish') => {
@@ -56,10 +65,10 @@ export function PublishPanel() {
     try {
       if (what === 'publish') {
         await publishMix({ version: source === 'working' ? null : sourceVersion({ versions, drafts, draftId, notes }, source), name, onStep: setStep })
-        useStore.getState().showFlash(live ? 'Updated on blok.page' : 'Published to blok.page')
+        useStore.getState().showFlash(preview ? 'Preview updated' : 'Preview ready to share')
       } else {
         await unpublishMix()
-        useStore.getState().showFlash('Unpublished')
+        useStore.getState().showFlash('Preview removed')
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
@@ -70,9 +79,9 @@ export function PublishPanel() {
     }
   }
   const copy = async () => {
-    if (!live) return
+    if (!preview) return
     try {
-      await navigator.clipboard.writeText(live.url)
+      await navigator.clipboard.writeText(preview.url)
       setCopied(true)
       setTimeout(() => setCopied(false), 1400)
     } catch {
@@ -83,24 +92,18 @@ export function PublishPanel() {
   return (
     <div className="flex flex-col gap-4 p-4">
       <section className="flex flex-col gap-2.5">
-        <div className="flex min-h-5 items-center justify-between gap-3 px-0.5 text-[12px]">
-          {live ? (
-            <span className="flex items-center gap-1.5 font-semibold text-emerald-700">
-              <span className="size-1.5 rounded-full bg-emerald-500" /> Live
-              {live.publishedAt && <span className="font-normal text-zinc-500">· updated {timeAgo(live.publishedAt)}</span>}
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 text-zinc-500">
-              <Globe size={13} className="text-zinc-400" /> Its own page, at a link you can send
-            </span>
-          )}
-          {live && (
-            <span className="shrink-0 text-zinc-500">
-              {live.pages.length === 1 ? 'One page' : `${live.pages.length} pages`}
-              {live.version && versions[live.version] ? ` · ${versions[live.version].letter}` : ''}
-            </span>
-          )}
+        <div className="flex items-center justify-between gap-3 px-0.5">
+          <h2 className="flex items-center gap-2 text-[14px] font-semibold text-zinc-900">
+            <Globe size={15} className="shrink-0 text-zinc-500" /> Share a preview
+          </h2>
+          {preview && <span className="flex shrink-0 items-center gap-1.5 text-[12px] font-semibold text-emerald-700">
+            <span className="size-1.5 rounded-full bg-emerald-500" /> Preview ready
+          </span>}
         </div>
+        {preview && <p className="px-0.5 text-[12px] text-zinc-500">
+          {publishedSource} · {preview.pages.length === 1 ? '1 page' : `${preview.pages.length} pages`}
+          {preview.publishedAt && ` · Updated ${timeAgo(preview.publishedAt)}`}
+        </p>}
 
         {/* The address is the field: the fixed part, then the name you can change. */}
         <div className="flex h-11 items-center rounded-xl bg-white pl-3 pr-1 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] transition-shadow duration-150 focus-within:shadow-[inset_0_0_0_2px_rgb(24_24_27)]">
@@ -115,19 +118,19 @@ export function PublishPanel() {
               onBlur={() => setName((n) => n.replace(/^-+|-+$/g, ''))}
               maxLength={60}
               spellCheck={false}
-              aria-label="Name in the address"
+              aria-label="Name in the preview link"
               placeholder="your-site"
               className="h-full min-w-0 flex-1 bg-transparent text-[14px] font-semibold text-zinc-900 outline-none placeholder:font-normal placeholder:text-zinc-300"
             />
           ) : (
-            <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-zinc-900">{live?.slug ?? ''}</span>
+            <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-zinc-900">{preview?.slug ?? ''}</span>
           )}
-          {live && (
+          {preview && (
             <>
-              <IconButton label={copied ? 'Copied' : 'Copy address'} onClick={copy}>
+              <IconButton label={copied ? 'Copied' : 'Copy preview link'} onClick={copy}>
                 {copied ? <Check size={16} /> : <Copy size={16} />}
               </IconButton>
-              <IconButton label="Open in a new tab" onClick={() => window.open(live.url, '_blank', 'noopener,noreferrer')}>
+              <IconButton label="Open preview in a new tab" onClick={() => window.open(preview.url, '_blank', 'noopener,noreferrer')}>
                 <ExternalLink size={16} />
               </IconButton>
             </>
@@ -168,28 +171,26 @@ export function PublishPanel() {
               className="flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-zinc-900 px-4 text-[13px] font-semibold text-white transition-[scale,opacity] duration-150 active:scale-[0.97] disabled:cursor-default disabled:opacity-60"
             >
               {busy === 'publish' && <Loader2 size={14} className="animate-spin" />}
-              {busy === 'publish' ? 'Publishing…' : live ? 'Update' : 'Publish'}
+              {busy === 'publish' ? 'Preparing preview…' : preview ? 'Update preview' : 'Create preview link'}
             </button>
-            {live && (
+            {preview && (
               <button
                 type="button"
                 disabled={busy !== null}
                 onClick={() => void run('unpublish')}
                 className="h-9 cursor-pointer rounded-full px-3 text-[13px] font-medium text-zinc-600 transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.97] disabled:opacity-60"
               >
-                {busy === 'unpublish' ? 'Unpublishing…' : 'Unpublish'}
+                {busy === 'unpublish' ? 'Removing…' : 'Remove preview'}
               </button>
             )}
           </div>
         )}
       </section>
-      {!editable && !live && <p className="px-1 text-[13px] text-zinc-500">This mix isn’t published. Its owner or an editor can publish it.</p>}
+      {!editable && !preview && <p className="px-1 text-[13px] text-zinc-500">Ask the owner or an editor to create a preview link.</p>}
 
       <ul className="flex flex-col gap-2 border-t border-zinc-950/6 px-1 pt-3 text-[12.5px] text-zinc-600">
-        <Fact icon={EyeOff}>Search engines won’t index it</Fact>
         <Fact icon={Link2}>Anyone with the link can see it</Fact>
-        <Fact icon={RefreshCw}>Updating keeps the same address</Fact>
-        {!ships && <Fact icon={BadgeCheck}>A small “Made with Blokmix” badge until the site is paid for</Fact>}
+        <Fact icon={EyeOff}>Search indexing and form submissions are disabled</Fact>
       </ul>
     </div>
   )
@@ -312,7 +313,7 @@ function SaveLocalFirst() {
   }
   return (
     <div className="grid gap-3 px-4 py-5">
-      <p className="text-[13px] text-pretty text-zinc-600">This mix lives only in this browser. Save it to your mixes to publish it (this browser keeps its copy).</p>
+      <p className="text-[13px] text-pretty text-zinc-600">Save this mix to your account to create a preview link.</p>
       <button type="button" disabled={busy} onClick={save} className="btn-lit btn-ink flex h-8 w-fit cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold active:scale-[0.97]">
         {busy ? <Loader2 size={14} className="animate-spin" /> : null} Save to your mixes
       </button>

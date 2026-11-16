@@ -258,7 +258,7 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
           {row(MessageSquare, 'Notes', () => st().setUi({ sheet: 'none', leftPanel: 'notes' }), todo > 0 ? <span className="min-w-5 rounded-full bg-problem px-1.5 text-center text-[11px] font-bold tabular-nums text-white">{todo}</span> : undefined)}
           <div className="mx-3 my-1 h-px bg-zinc-950/6" />
           {isHosted() && row(Users, 'Share', () => st().setUi({ sheet: 'share' }), <Presence size={22} inline />)}
-          {isHosted() && row(Globe, 'Publish to blok.page', () => st().setUi({ sheet: 'publish' }))}
+          {isHosted() && row(Globe, 'Publish', () => st().setUi({ sheet: 'publish' }))}
           {row(Package, 'Export', () => st().setUi({ sheet: 'packet' }))}
         </div>
       ) : (
@@ -440,7 +440,7 @@ function ShipIsland() {
             <button
               type="button"
               onClick={() => toggleSheet('publish')}
-              title="Publish this mix to blok.page: an unlisted page to show people"
+              title="Create a preview link on blok.page"
               aria-expanded={sheet === 'publish'}
               className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-[background-color,color,scale] duration-150 active:scale-[0.97] ${
                 sheet === 'publish' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900'

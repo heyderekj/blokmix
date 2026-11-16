@@ -41,7 +41,7 @@ export const VERSION_COMMANDS = {
   },
   publish: {
     description:
-      'Publish the mix (or a saved version) to blok.page: an unlisted page anyone with the link can open, search engines never index. Every page of the site, in the mix’s style. Publishing again updates the same address. Returns the URL. Only in hosted Blokmix (a saved mix). Free for every mix; until the site is paid for it carries a small “Made with Blokmix” badge.',
+      'Create or update a free preview of the mix (or a saved version) on blok.page. Anyone with the link can view it. Each page shows a Blokmix preview notice, and search indexing and form submissions are disabled. Returns the URL. Only available for saved mixes in hosted Blokmix.',
     input: z.object({
       version: version.optional().describe('A saved version to publish instead of the mix as it is now'),
       name: z.string().min(1).max(120).optional().describe('The name in the address (blok.page/<code>/<name>); defaults to what’s published, or the mix’s name'),

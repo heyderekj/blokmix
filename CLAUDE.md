@@ -108,7 +108,7 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `web` mode: noindex, media as files, root links under `PUBLISH_BASE`), zips them and posts them (`lib/publish.ts`,
   `POST /api/mixes/{id}/publication`, owners and editors; `GET` reads, `DELETE` unpublishes). `publications` (one per mix)
   keeps the code (Mix::SHORT_PATTERN, never reused) and slug; files at `published/<code>/` on the uploads disk; the server
-  swaps the base for `/<code>/<slug>` and adds the "Made with Blokmix" badge while the mix doesn't ship (not paid for). `PublishedController` serves
+  swaps the base for `/<code>/<slug>`. `PublishedController` adds the collapsible Blokmix preview notice when serving HTML on
   `blok.page/<code>/<slug>/<page>` on `Route::domain(config('blokmix.publish_host'))` without the web middleware (no
   session, cookies or CSRF; noindex, CSP); an old slug redirects, unpublished is 410, nothing else answers there.
   `BLOKMIX_PUBLISH_URL` (default https://blok.page, http://blok.localhost:8000 locally). Published bytes count toward the owner's upload room (`User::publishRefusal`). UI: Publish in the top bar (hosted

@@ -3,6 +3,7 @@ import { Check, Copy, Link2, Trash2, X } from 'lucide-react'
 import { api, useSave } from '@/lib/mixSync'
 import { useStore } from '@/state/store'
 import type { MixRole } from '@/lib/account'
+import { ShareAvatar } from '../shell/ShareAvatar'
 
 interface Member {
   id: number
@@ -143,7 +144,7 @@ export function SharePanel() {
           <ul className="flex flex-col gap-0.5">
             {members.map((m) => (
               <li key={m.id} className="flex items-center gap-2.5 rounded-lg px-1.5 py-1.5">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-key-soft text-[12px] font-bold text-key-ink">{initials(m.name)}</span>
+                <ShareAvatar name={m.name} mixId={mixId} memberId={m.id} owner={m.role === 'owner'} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px] font-medium text-zinc-900">
                     {m.name}
@@ -184,15 +185,6 @@ export function SharePanel() {
     </div>
   )
 }
-
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
 
 function IconBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (

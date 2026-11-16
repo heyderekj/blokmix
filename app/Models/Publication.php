@@ -87,7 +87,7 @@ class Publication extends Model
             'url' => $this->url(),
             'pages' => $this->pages,
             'size' => $this->size,
-            'badge' => $this->badge,
+            'badge' => true, // The preview notice appears on every blok.page publication.
             'version' => $this->version_key,
             'live' => $this->isLive(),
             'publishedAt' => $this->published_at?->toIso8601String(),

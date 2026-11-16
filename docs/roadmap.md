@@ -85,6 +85,16 @@ Today it's Export → pick a framework → download → unzip → open in your t
 "Copy prompt for Cursor / Claude Code" (pointing at a hosted packet URL) and a variant that inlines the essentials for
 tools that can't open a folder (v0, Lovable).
 
+## Launch on your own domain
+
+From Publish, choose “Use a domain you already own” and enter the address. Guide people through connecting or creating
+a hosting account, and resume setup when they return. Let people keep their current domain provider when their chosen
+host supports it. When a DNS change is needed, show where to make it, offer a copy button for each field, and verify
+the change and HTTPS automatically. Use plain status messages like “Waiting for your domain” and “Ready to launch.”
+
+The live site gets its own published version, clean URLs and a sitemap, and is eligible for search indexing. The `blok.page` preview
+stays available for feedback and can point visitors to the live site once the domain is ready.
+
 ## Shipped
 
 Feel dials (`core/dials.ts`), publishing to blok.page, and paying once at Polar (now $30 a site when you ship it, in

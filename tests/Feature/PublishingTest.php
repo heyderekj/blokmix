@@ -79,8 +79,8 @@ class PublishingTest extends TestCase
         $this->assertStringContainsString("frame-ancestors 'self'", $page->headers->get('Content-Security-Policy'));
         $this->assertSame([], $page->headers->getCookies(), 'blok.page never sets a cookie');
         $page->assertSee("href=\"/{$code}/fern-co/about\"", false);
-        $this->get("{$this->host}/{$code}/fern-co/about")->assertOk()->assertSee('About us');
-        $this->get("{$this->host}/{$code}/fern-co/media/hero1-b3.svg")->assertOk()->assertHeader('Content-Type', 'image/svg+xml');
+        $this->get("{$this->host}/{$code}/fern-co/about")->assertOk()->assertSee('About us')->assertSee('Made with');
+        $this->get("{$this->host}/{$code}/fern-co/media/hero1-b3.svg")->assertOk()->assertHeader('Content-Type', 'image/svg+xml')->assertDontSee('Made with');
         $this->get("{$this->host}/{$code}/fern-co/nope")->assertNotFound();
 
         // A rename keeps the code; the old name redirects.
@@ -129,9 +129,12 @@ class PublishingTest extends TestCase
         $this->actingAs($this->owner)->publish()->assertOk();
         $pub = Publication::firstOrFail();
         $disk = Storage::disk('uploads-test');
-        $disk->move($pub->dir().'/index.html', "published/{$pub->code}/index.html");
-        $pub->update(['release' => null]);
-        $this->get("{$this->host}/{$pub->code}/fern-co/")->assertOk()->assertSee('About');
+        $badge = '<a href="https://blokmix.com" target="_blank" rel="noopener" data-blokmix-badge style="position:fixed">Made with Blokmix</a>';
+        $disk->put("published/{$pub->code}/index.html", '<html><body>About'.$badge.'</body></html>');
+        $pub->update(['release' => null, 'badge' => false]);
+        $oldEtag = '"'.md5($pub->published_at->getTimestamp().'|index.html').'"';
+        $this->get("{$this->host}/{$pub->code}/fern-co/", ['If-None-Match' => $oldEtag])->assertOk()
+            ->assertSee('About')->assertSee('Made with')->assertDontSee('data-blokmix-badge');
 
         $this->publish()->assertOk();
         $this->get("{$this->host}/{$pub->code}/fern-co/")->assertOk();
@@ -176,27 +179,24 @@ class PublishingTest extends TestCase
         $this->publish(files: ['about.html' => 'x'])->assertUnprocessable();
     }
 
-    public function test_an_unpaid_site_publishes_with_a_badge_and_files_count(): void
+    public function test_paid_and_unpaid_sites_both_show_the_preview_notice(): void
     {
         $this->actingAs($this->owner)->publish()->assertOk()->assertJsonPath('publication.badge', true);
         $code = Publication::first()->code;
-        $this->get("{$this->host}/{$code}/fern-co/")->assertSee('Made with Blokmix');
+        $this->get("{$this->host}/{$code}/fern-co/")->assertOk()
+            ->assertSee('<details data-blokmix-preview open>', false)
+            ->assertSee('Made with <img src="/wordmark-ink.svg"', false)
+            ->assertSee('Anyone with the link can view')
+            ->assertSee('Search indexing disabled')
+            ->assertSee('Form submissions disabled')
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
         $this->assertGreaterThan(0, $this->owner->usage()['uploads']);
 
-        $other = Mix::create(['name' => 'Second']);
-        $other->admit($this->owner, MixRole::Owner);
-        $this->publish($other)->assertOk()->assertJsonPath('publication.badge', true);
-
-        // Paid for: no badge on that site (the next publish drops it); the owner's other site keeps its own.
         $this->mix->forceFill(['paid_at' => now()])->save();
-        $this->publish()->assertOk()->assertJsonPath('publication.badge', false);
+        $this->publish()->assertOk()->assertJsonPath('publication.badge', true);
+        $this->get("{$this->host}/{$code}/fern-co/")->assertOk()->assertSee('Made with');
         $path = Publication::where('code', $code)->firstOrFail()->dir().'/index.html';
-        $this->assertStringNotContainsString('Made with Blokmix', Storage::disk('uploads-test')->get($path));
-        $this->publish($other)->assertOk()->assertJsonPath('publication.badge', true);
-
-        // Plus from before: no badge on any of the owner's sites.
-        $this->owner->forceFill(['plan' => 'plus'])->save();
-        $this->publish($other)->assertOk()->assertJsonPath('publication.badge', false);
+        $this->assertStringNotContainsString('data-blokmix-preview', Storage::disk('uploads-test')->get($path));
     }
 
     public function test_published_routes_answer_only_on_the_publish_host(): void

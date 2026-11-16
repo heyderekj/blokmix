@@ -16,6 +16,9 @@ import { toggleLeft, useDocked } from './LeftPanel'
 import { useInsets } from '@/ui/canvas/insets'
 import { outstanding } from '@/core/notes'
 import { Avatar } from './Avatar'
+import { ShareAvatar } from './ShareAvatar'
+import { useAccount } from '@/lib/account'
+import { useSave } from '@/lib/mixSync'
 import { agent as agentP, useMe } from '@/lib/people'
 import { SayBar, toggleSay, useSay } from '../jev/SayBar'
 import { WordsSheet, WordsTray } from '../jev/WordsSheet'
@@ -285,11 +288,16 @@ function ViewMenu() {
 export function Presence({ size = 28, inline = false }: { size?: number; inline?: boolean }) {
   const agent = useStore((s) => s.agent)
   const me = useMe()
+  const account = useAccount((s) => s.user)
+  const owns = useAccount((s) => s.owns)
+  const mixId = useSave((s) => s.mixId)
   const active = !!agent.versionId
   return (
     <div className={`flex items-center ${inline ? '' : 'pl-0.5 pr-1'}`}>
       <div className="flex -space-x-1.5">
-        <Avatar who={me} size={size} />
+        {account && mixId !== 'local'
+          ? <ShareAvatar name={me.name} mixId={mixId} memberId={account.id} owner={owns} size={size} live />
+          : <Avatar who={me} size={size} />}
         <AnimatePresence>
           {active && (
             <motion.span
