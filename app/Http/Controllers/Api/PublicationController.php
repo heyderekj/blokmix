@@ -84,15 +84,12 @@ class PublicationController extends Controller
     private function saveRelease(Request $request, Mix $mix, array $input, array $files, array $pages, Filesystem $disk, ?string &$staged): array
     {
         $owner = $mix->owner() ?? $request->user();
-        // "Made with Blokmix" until the site is paid for (or ships free: Plus, the waitlist).
-        $badge = ! $mix->ships();
         $publication = Publication::firstOrNew(['mix_id' => $mix->id], ['code' => Publication::freshCode(), 'kind' => 'mix']);
         $slug = Publication::slugFor($input['name']);
         foreach ($files as $path => $data) {
             if (str_ends_with($path, '.html')) {
                 // The board writes links and pictures under a stand-in base (core/export/publish.ts PUBLISH_BASE).
-                $data = str_replace(self::BASE, "/{$publication->code}/{$slug}", $data);
-                $files[$path] = $badge ? self::withBadge($data) : $data;
+                $files[$path] = str_replace(self::BASE, "/{$publication->code}/{$slug}", $data);
             }
         }
         $size = array_sum(array_map('strlen', $files));
@@ -110,7 +107,6 @@ class PublicationController extends Controller
             'slug' => $slug,
             'pages' => $pages,
             'size' => $size,
-            'badge' => $badge,
             'published_at' => now(),
             'unpublished_at' => null,
             'release' => (string) Str::ulid(),
@@ -198,17 +194,6 @@ class PublicationController extends Controller
         if ($failure !== null) {
             throw $failure;
         }
-    }
-
-    /** "Made with Blokmix", on a site not paid for yet: a small link in the corner, before </body>. */
-    public static function withBadge(string $html): string
-    {
-        $badge = '<a href="https://blokmix.com" target="_blank" rel="noopener" data-blokmix-badge style="position:fixed;right:12px;bottom:12px;z-index:2147483647;'
-            .'display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#111;color:#fff;'
-            .'font:500 12px/1.2 system-ui,-apple-system,sans-serif;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.2)">Made with Blokmix</a>';
-        $at = strripos($html, '</body>');
-
-        return $at === false ? $html.$badge : substr($html, 0, $at).$badge.substr($html, $at);
     }
 
     private function authorizeEdit(Request $request, Mix $mix): void

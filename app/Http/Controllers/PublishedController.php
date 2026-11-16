@@ -64,7 +64,8 @@ class PublishedController extends Controller
         $disk = Storage::disk(config('blokmix.uploads_disk'));
         $stored = $publication->dir().'/'.$file;
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-        $etag = '"'.md5(($publication->release ?? $publication->published_at?->getTimestamp()).'|'.$file).'"';
+        $preview = $ext === 'html' ? view('published.preview')->render() : '';
+        $etag = '"'.md5(($publication->release ?? $publication->published_at?->getTimestamp()).'|'.$file.$preview).'"';
         if (in_array($etag, $request->getETags(), true) && $disk->exists($stored)) {
             return $this->plain(response('', 304)->setEtag(trim($etag, '"')), $ext);
         }
@@ -78,10 +79,19 @@ class PublishedController extends Controller
 
             return $this->notice(404, 'There’s no such page in this mix.');
         }
-        $response = response($contents, 200, ['Content-Type' => self::TYPES[$ext] ?? 'application/octet-stream']);
+        $response = response($preview ? $this->withPreview($contents, $preview) : $contents, 200, ['Content-Type' => self::TYPES[$ext] ?? 'application/octet-stream']);
         $response->setEtag(trim($etag, '"'));
 
         return $this->plain($response, $ext);
+    }
+
+    private function withPreview(string $html, string $preview): string
+    {
+        // Earlier releases stored the original branding link inside the HTML.
+        $html = preg_replace('~<a href="https://blokmix\.com" target="_blank" rel="noopener" data-blokmix-badge style="[^"]*">Made with Blokmix</a>~', '', $html);
+        $end = strripos($html, '</body>');
+
+        return $end === false ? $html.$preview : substr_replace($html, $preview, $end, 0);
     }
 
     /** `` → index.html, `about` (or `about/`) → about.html, `media/…` as is. Null for anything else. */

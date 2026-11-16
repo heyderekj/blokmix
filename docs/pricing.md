@@ -15,8 +15,8 @@ subscription. Sold through Polar in Blokmix's own organization.
 - **Anyone who can edit may pay.** The owner or an editor; viewers hear it's an editor's call. The payment belongs to
   the mix, not the person.
 - **A copy is a new site.** Duplicating a mix makes an unpaid one; the gallery's Duplicate says so.
-- **Free, whatever you pay:** publishing to blok.page for feedback (with a small "Made with Blokmix" badge until the site
-  is paid for; publish again after paying to drop it), share links, marks, versions, collections, the Crate and
+- **Free, whatever you pay:** publishing to blok.page for feedback (with a Blokmix preview notice on every page),
+  share links, marks, versions, collections, the Crate and
   capture. The mix file (Download a copy) is a backup, not an export, and stays free.
 - **Nothing is taken away.** A full refund un-pays the mix: the mix, its versions and anything already downloaded stay;
   only shipping again asks to pay.
