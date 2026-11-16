@@ -18,6 +18,8 @@ export interface PacketSource {
   /** The working mix (null) or a version. */
   version: VersionNode | null
   targets: BuildTarget[]
+  /** Render a standalone HTML page for each collection entry when publishing. */
+  expandCollections?: boolean
   /** Measured section positions, so notes pinned on a version frame name their section. */
   sections?: SectionRows
 }
@@ -28,7 +30,7 @@ export interface PacketSource {
  * commands (prepare_build) build the same packet.
  */
 export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 'content' | 'contract' | 'notes' | 'versions'>, src: PacketSource): PacketInput {
-  const { version, targets, sections = {} } = src
+  const { version, targets, sections = {}, expandCollections } = src
   const live = allSlots(st.site)
   const snap: Pick<MixSnapshot, 'site' | 'guide' | 'content' | 'slotNotes' | 'marks' | 'generalNotes'> = version?.snapshot ?? {
     site: st.site,
@@ -53,7 +55,7 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 
     : []
   const parent = version?.parentId ? st.versions[version.parentId] : null
   return {
-    page: composeSite({ site: mapSlots(snap.site, (s) => (library.clips[s.clipId] ? s : null)), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: uploadData, bind: bindContextFor(snap.site) }),
+    page: composeSite({ site: mapSlots(snap.site, (s) => (library.clips[s.clipId] ? s : null)), guide, content: snap.content, library, slotNotes: snap.slotNotes, title: snap.content.brand, page: snap.guide, uploads: uploadData, bind: bindContextFor(snap.site), expandCollections }),
     guide,
     guideState: snap.guide,
     library,

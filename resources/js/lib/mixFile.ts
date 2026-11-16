@@ -39,8 +39,7 @@ const toBase64 = (buf: ArrayBuffer) => {
 const fromBase64 = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer
 
 /** The open mix as a file. */
-export function mixFile(): MixFile {
-  const st = useStore.getState()
+export function mixFile(st: MixData = useStore.getState()): MixFile {
   const data = Object.fromEntries(FIELDS.map((k) => [k, st[k]])) as Fields
   const all = useAssets.getState().assets
   const assets = assetIdsIn([data, st.versions, st.drafts])
@@ -57,8 +56,8 @@ export function mixFile(): MixFile {
 }
 
 /** Download the open mix as `<name>.blokmix.json`. */
-export function downloadMix() {
-  const file = mixFile()
+export function downloadMix(state?: MixData) {
+  const file = mixFile(state)
   const blob = new Blob([JSON.stringify(file)], { type: 'application/json' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)

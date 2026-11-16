@@ -1,5 +1,6 @@
 import { CloudAlert, CloudCheck, CloudOff, CloudUpload } from 'lucide-react'
 import { useSave } from '@/lib/mixSync'
+import { useStore } from '@/state/store'
 
 const STATES = {
   saved: { icon: CloudCheck, label: 'Saved', tone: 'text-zinc-400' },
@@ -11,11 +12,19 @@ const STATES = {
 /** Whether a saved mix's edits have reached the server. Nothing for the browser-only mix. */
 export function SaveState() {
   const status = useSave((s) => s.status)
+  const hasRecovery = useSave((s) => s.recoveries.length > 0)
   if (status === 'local') return null
   const s = STATES[status]
   return (
-    <span className={`grid size-8 shrink-0 place-items-center ${s.tone}`} title={s.label} aria-label={s.label} role="status">
-      <s.icon size={15} />
-    </span>
+    <div className="flex items-center">
+      <span className={`grid size-8 shrink-0 place-items-center ${s.tone}`} title={s.label} aria-label={s.label} role="status">
+        <s.icon size={15} />
+      </span>
+      {hasRecovery && (
+        <button type="button" className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-amber-600 hover:bg-zinc-950/5" title="Recover unsent edits" aria-label="Recover unsent edits" onClick={() => useStore.getState().setUi({ sheet: 'menu' })}>
+          <CloudAlert size={15} />
+        </button>
+      )}
+    </div>
   )
 }

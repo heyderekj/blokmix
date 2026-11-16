@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
+use Mockery;
 use Tests\TestCase;
 
 class PublishingTest extends TestCase
@@ -65,12 +66,14 @@ class PublishingTest extends TestCase
 
     public function test_publish_serve_republish_and_unpublish(): void
     {
+        $this->freezeTime();
         $res = $this->actingAs($this->owner)->publish()->assertOk()->assertJsonPath('publication.slug', 'fern-co')->assertJsonPath('publication.live', true);
         $code = $res->json('publication.code');
         $this->assertMatchesRegularExpression('#^'.Mix::SHORT_PATTERN.'$#', $code);
         $this->assertSame(['/', '/about'], $res->json('publication.pages'));
         $this->assertStringEndsWith("/{$code}/fern-co/", $res->json('publication.url'));
-        Storage::disk('uploads-test')->assertExists("published/{$code}/index.html");
+        $firstRelease = Publication::firstOrFail()->dir();
+        Storage::disk('uploads-test')->assertExists("{$firstRelease}/index.html");
 
         $page = $this->get("{$this->host}/{$code}/fern-co/")->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow');
         $this->assertStringContainsString("frame-ancestors 'self'", $page->headers->get('Content-Security-Policy'));
@@ -82,16 +85,77 @@ class PublishingTest extends TestCase
 
         // A rename keeps the code; the old name redirects.
         $this->publish(name: 'Fern Studio', files: ['index.html' => '<html><body>v2</body></html>'])->assertOk()->assertJsonPath('publication.code', $code);
+        $secondRelease = Publication::firstOrFail()->dir();
         $this->get("{$this->host}/{$code}/fern-co/about")->assertRedirect("/{$code}/fern-studio/about");
         $this->get("{$this->host}/{$code}")->assertRedirect("/{$code}/fern-studio/");
-        $this->get("{$this->host}/{$code}/fern-studio/")->assertSee('v2');
-        Storage::disk('uploads-test')->assertMissing("published/{$code}/about.html");
+        $newPage = $this->get("{$this->host}/{$code}/fern-studio/", ['If-None-Match' => $page->headers->get('ETag')])->assertOk()->assertSee('v2');
+        $this->assertNotSame($page->headers->get('ETag'), $newPage->headers->get('ETag'));
+        Storage::disk('uploads-test')->assertDirectoryEmpty($firstRelease);
+        $this->get("{$this->host}/{$code}/fern-studio/about")->assertNotFound();
 
         $this->deleteJson(config('app.url')."/api/mixes/{$this->mix->id}/publication")->assertOk()->assertJsonPath('publication.live', false);
         $this->get("{$this->host}/{$code}/fern-studio/")->assertStatus(410);
-        Storage::disk('uploads-test')->assertMissing("published/{$code}/index.html");
+        Storage::disk('uploads-test')->assertMissing("{$secondRelease}/index.html");
         // Publishing again brings back the same address.
         $this->publish()->assertOk()->assertJsonPath('publication.code', $code);
+    }
+
+    public function test_a_failed_republish_keeps_the_previous_release_live(): void
+    {
+        $this->actingAs($this->owner)->publish()->assertOk();
+        $pub = Publication::firstOrFail();
+        $disk = Storage::disk('uploads-test');
+        $brokenDisk = Mockery::mock($disk);
+        $stagedFile = null;
+        $brokenDisk->shouldReceive('put')->twice()->andReturnUsing(function ($path, $data) use ($disk, &$stagedFile) {
+            if ($stagedFile !== null) {
+                return false;
+            }
+            $stagedFile = $path;
+
+            return $disk->put($path, $data);
+        });
+        Storage::shouldReceive('disk')->with('uploads-test')->andReturn($brokenDisk, $disk);
+
+        $this->publish(name: 'Replacement', files: ['index.html' => '<html><body>Replacement</body></html>', 'new.html' => 'new'])->assertInternalServerError();
+        $this->assertSame($pub->release, $pub->fresh()->release);
+        $this->get("{$this->host}/{$pub->code}/fern-co/")->assertOk()->assertSee('About');
+        $this->get("{$this->host}/{$pub->code}/fern-co/about")->assertOk()->assertSee('About us');
+        $disk->assertMissing($stagedFile);
+    }
+
+    public function test_an_existing_publication_without_a_release_still_works(): void
+    {
+        $this->actingAs($this->owner)->publish()->assertOk();
+        $pub = Publication::firstOrFail();
+        $disk = Storage::disk('uploads-test');
+        $disk->move($pub->dir().'/index.html', "published/{$pub->code}/index.html");
+        $pub->update(['release' => null]);
+        $this->get("{$this->host}/{$pub->code}/fern-co/")->assertOk()->assertSee('About');
+
+        $this->publish()->assertOk();
+        $this->get("{$this->host}/{$pub->code}/fern-co/")->assertOk();
+        $disk->assertMissing($pub->dir().'/index.html');
+    }
+
+    public function test_a_request_can_follow_a_release_switch_during_its_file_read(): void
+    {
+        $this->actingAs($this->owner)->publish()->assertOk();
+        $pub = Publication::firstOrFail();
+        $disk = Storage::disk('uploads-test');
+        $switchingDisk = Mockery::mock($disk);
+        $switchingDisk->shouldReceive('get')->with($pub->dir().'/index.html')->once()->andReturnUsing(function () use ($disk, $pub) {
+            $previous = $pub->dir();
+            $pub->release = '01k00000000000000000000000';
+            $disk->put($pub->dir().'/index.html', '<html><body>New release</body></html>');
+            $pub->save();
+            $disk->deleteDirectory($previous);
+
+            return null;
+        });
+        Storage::shouldReceive('disk')->with('uploads-test')->andReturn($switchingDisk, $disk);
+
+        $this->get("{$this->host}/{$pub->code}/fern-co/")->assertOk()->assertSee('New release');
     }
 
     public function test_viewers_and_strangers_cant_publish(): void
@@ -126,7 +190,8 @@ class PublishingTest extends TestCase
         // Paid for: no badge on that site (the next publish drops it); the owner's other site keeps its own.
         $this->mix->forceFill(['paid_at' => now()])->save();
         $this->publish()->assertOk()->assertJsonPath('publication.badge', false);
-        $this->assertStringNotContainsString('Made with Blokmix', Storage::disk('uploads-test')->get("published/{$code}/index.html"));
+        $path = Publication::where('code', $code)->firstOrFail()->dir().'/index.html';
+        $this->assertStringNotContainsString('Made with Blokmix', Storage::disk('uploads-test')->get($path));
         $this->publish($other)->assertOk()->assertJsonPath('publication.badge', true);
 
         // Plus from before: no badge on any of the owner's sites.

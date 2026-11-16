@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\PublicationController;
 use App\Models\Publication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * blok.page: published mixes at /<code>/<slug>/<page>, read from published/<code>/ on the uploads disk. These routes
+ * blok.page: published mixes at /<code>/<slug>/<page>, read from the active release on the uploads disk. These routes
  * run without the web middleware (no session, no cookies, no CSRF), and every answer says noindex: a published mix is
  * an unlisted snapshot to share, not a site for search engines.
  */
@@ -37,10 +38,17 @@ class PublishedController extends Controller
         if (! $publication) {
             return $this->notice(404, 'Nothing is published here.');
         }
+
+        return $this->serve($request, $publication, $rest);
+    }
+
+    private function serve(Request $request, Publication $publication, string $rest, bool $retry = true): Response
+    {
         if (! $publication->isLive()) {
             return $this->notice(410, 'This mix isn’t published anymore.');
         }
 
+        $code = $publication->code;
         $parts = $rest === '' ? [] : explode('/', $rest, 2);
         $slug = $parts[0] ?? '';
         $path = $parts[1] ?? '';
@@ -55,16 +63,22 @@ class PublishedController extends Controller
         }
         $disk = Storage::disk(config('blokmix.uploads_disk'));
         $stored = $publication->dir().'/'.$file;
-        if (! $disk->exists($stored)) {
-            return $this->notice(404, 'There’s no such page in this mix.');
-        }
-
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-        $etag = '"'.md5($publication->published_at?->getTimestamp().'|'.$file).'"';
-        if (in_array($etag, $request->getETags(), true)) {
+        $etag = '"'.md5(($publication->release ?? $publication->published_at?->getTimestamp()).'|'.$file).'"';
+        if (in_array($etag, $request->getETags(), true) && $disk->exists($stored)) {
             return $this->plain(response('', 304)->setEtag(trim($etag, '"')), $ext);
         }
-        $response = response($disk->get($stored), 200, ['Content-Type' => self::TYPES[$ext] ?? 'application/octet-stream']);
+        $contents = $disk->get($stored);
+        if ($contents === null) {
+            // A republish can retire this request's release between reading the row and reading its file.
+            $current = $retry ? $publication->fresh() : null;
+            if ($current && ($current->release !== $publication->release || ! $current->isLive())) {
+                return $this->serve($request, $current, $rest, false);
+            }
+
+            return $this->notice(404, 'There’s no such page in this mix.');
+        }
+        $response = response($contents, 200, ['Content-Type' => self::TYPES[$ext] ?? 'application/octet-stream']);
         $response->setEtag(trim($etag, '"'));
 
         return $this->plain($response, $ext);
@@ -77,12 +91,12 @@ class PublishedController extends Controller
         if ($path === '' || $path === 'index' || $path === 'index.html') {
             return 'index.html';
         }
-        if (str_starts_with($path, 'media/')) {
-            return \App\Http\Controllers\Api\PublicationController::safePath($path) ? $path : null;
+        if (str_starts_with($path, 'media/') && PublicationController::safePath($path)) {
+            return $path;
         }
         $page = str_ends_with($path, '.html') ? $path : $path.'.html';
 
-        return \App\Http\Controllers\Api\PublicationController::safePath($page) ? $page : null;
+        return PublicationController::safePath($page) ? $page : null;
     }
 
     private function notice(int $status, string $message): Response
