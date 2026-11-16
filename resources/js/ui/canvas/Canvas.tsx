@@ -4,7 +4,7 @@ import { useLayout } from '@/state/layout'
 import type { NoteAnchor } from '@/core/types'
 import { pressable, typing } from '../shell/keys'
 import { fitRect, MIX_ID, placeDrafts, placeVersions, VIEW_W, zoomAt, type Camera } from './geometry'
-import { centerX, clampZ, fitWidth as fitWidthOf, leavesPage, normalizeWheel, PAGE_HEAD, pageBounds, round, rubber, stepZoom, unrubber, wheelHand, zoomFactor, type View, type WheelHand } from './camera'
+import { centerX, clampZ, fitWidth as fitWidthOf, followPageWheel, leavesPage, normalizeWheel, PAGE_HEAD, pageBounds, pageWheelTarget, round, stepZoom, wheelHand, zoomFactor, type View, type WheelHand } from './camera'
 import { useInsets } from './insets'
 
 /** Insets of the floating chrome, so "fit" lands in the visible middle. */
@@ -123,8 +123,8 @@ const SWALLOW_MS = 260
 
 /**
  * The camera, two of it: where it's headed (`target`) and where it is on screen (`cur`). Glides move `cur` toward
- * `target` a frame at a time; any gesture starts from `cur` and cancels the glide, so nothing ever jumps. Wheel and
- * pinch events only move `cur` and ask for one paint on the next frame.
+ * `target` a frame at a time. A gesture takes over from `cur`. Page wheel events accumulate at `target`, and
+ * the camera follows it once per frame.
  *
  * In page mode the page fits the free space's width and scrolls up and down like a website (with a give at either
  * end); pinching zooms it around the pointer's height, and pinching out far enough lets go of it: the free canvas.
@@ -134,16 +134,17 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
   let cur: Camera = st().camera ?? { x: 0, y: 0, z: 0.3 }
   let target = cur
   let tweenRaf = 0
+  let pageWheelRaf = 0
+  let pageWheelTime = 0
   let landTimer = 0
   let settleTimer = 0
   let frameReq = 0
   let moving = false
   let shownZl = NaN
   let shownZ = NaN
+  let shownMode: CanvasMode | undefined
   /** Page mode: the zoom was changed by hand (a pinch, a key), so the page doesn't refit by itself. */
   let zoomed = false
-  /** A scroll past the page's ends, as it would be without the give. */
-  let raw: number | null = null
   let springTimer = 0
   /** The wheel gesture under way: a trackpad's or a mouse wheel's. */
   let hand: WheelHand | null = null
@@ -192,15 +193,18 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
     if (!w || !r) return
     const dpr = window.devicePixelRatio || 1
     w.style.transform = `translate(${round(c.x, dpr)}px, ${round(c.y, dpr)}px) scale(${c.z})`
-    const g = dotGrid(c)
-    // A pan changes only positions: no style below the world is touched, so nothing re-lays out.
     if (c.z !== shownZl) {
+      const g = dotGrid(c)
       shownZl = c.z
       w.style.setProperty('--zl', String(c.z))
       r.style.backgroundImage = g.image
       r.style.backgroundSize = g.size
     }
-    r.style.backgroundPosition = g.position
+    const m = mode()
+    // Moving the gradient repaints the viewport. Keep it stationary while reading a page.
+    if (m === 'canvas') r.style.backgroundPosition = `${c.x}px ${c.y}px`
+    else if (m !== shownMode) r.style.backgroundPosition = '0px 0px'
+    shownMode = m
     if (!moving) {
       moving = true
       w.style.willChange = 'transform'
@@ -238,8 +242,11 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
 
   const cancelGlide = () => {
     if (tweenRaf) cancelAnimationFrame(tweenRaf)
+    if (pageWheelRaf) cancelAnimationFrame(pageWheelRaf)
     tweenRaf = 0
+    pageWheelRaf = 0
     window.clearTimeout(landTimer)
+    window.clearTimeout(springTimer)
     target = cur
   }
 
@@ -318,7 +325,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
 
   const fitAll = () => {
     storeMode('canvas')
-    raw = null
     const s = st()
     const lay = useLayout.getState()
     const w = pageW()
@@ -347,7 +353,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
   const toPage = (slotId?: string) => {
     storeMode('page')
     zoomed = false
-    raw = null
     const v = view()
     const m = middle(v)
     const z = fitZ()
@@ -374,7 +379,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
 
   /** A pinch (or ⌘-scroll) step to `nz` around a screen point. */
   const pinchTo = (nz: number, sx: number, sy: number, from = cur) => {
-    raw = null
     if (mode() === 'page') {
       if (leavesPage(nz, fitZ())) return leavePage()
       zoomed = Math.abs(nz - fitZ()) > 1e-3
@@ -383,10 +387,17 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
   }
 
   const springBack = () => {
-    raw = null
     if (mode() !== 'page') return
-    const to = onPage(cur)
-    if (to.y !== cur.y) glide(to, 280)
+    const to = onPage(target)
+    if (to.y !== target.y || clampY(cur.y, cur.z) !== cur.y) glide(to, 280)
+  }
+
+  const followPageScroll = (now: number) => {
+    const y = followPageWheel(cur.y, target.y, now - pageWheelTime)
+    pageWheelTime = now
+    cur = y === target.y ? target : { ...target, y }
+    pageWheelRaf = cur === target ? 0 : requestAnimationFrame(followPageScroll)
+    paint(cur)
   }
 
   const swallow = () => {
@@ -398,39 +409,35 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
   const wheel = (e: WheelEvent) => {
     if (swallowing) return swallow()
     const v = view()
-    const n = normalizeWheel(e, v.h - v.top - v.bottom)
-    hand = wheelHand(hand, n.notch, e.timeStamp || performance.now())
-    const w = { ...n, notch: hand.kind === 'mouse' }
-    const sx = e.clientX - rect.left
-    const sy = e.clientY - rect.top
+    const w = normalizeWheel(e, v.h - v.top - v.bottom)
+    hand = wheelHand(hand, w.notch, e.timeStamp || performance.now())
     if (w.zoom) {
+      const sx = e.clientX - rect.left
+      const sy = e.clientY - rect.top
       // A mouse wheel's click goes one stop, gliding; a pinch follows the fingers.
-      if (w.notch) return api.zoomTo(stepZoom(target.z, w.dy < 0 ? 1 : -1), { x: sx, y: sy })
-      return pinchTo(clampZ(cur.z * zoomFactor(w, cur.z)), sx, sy)
+      if (hand.kind === 'mouse') return api.zoomTo(stepZoom(target.z, w.dy < 0 ? 1 : -1), { x: sx, y: sy })
+      return pinchTo(clampZ(cur.z * zoomFactor({ ...w, notch: false }, cur.z)), sx, sy)
     }
     if (mode() !== 'page') return nudge({ ...cur, x: cur.x - w.dx, y: cur.y - w.dy })
     // Across the page: nothing to see, it stays centred.
     if (!w.dy) return
-    window.clearTimeout(springTimer)
-    const x = centerX(pageW(), cur.z, v)
-    if (w.notch) {
-      // A mouse wheel: a short glide a click at a time, no give.
-      raw = null
-      return glide({ z: cur.z, x, y: clampY(target.y - w.dy, cur.z) }, 160)
+    if (!pageWheelRaf) {
+      cancelGlide()
+      cancelAnimationFrame(frameReq)
+      frameReq = 0
+      pageWheelTime = performance.now()
+      pageWheelRaf = requestAnimationFrame(followPageScroll)
     }
-    const b = bounds(cur.z)
-    const d = give()
-    if (raw === null) raw = unrubber(cur.y, b.min, b.max, d)
-    raw -= w.dy
-    // Never stretch further than one push past the end gets you (momentum keeps pushing).
-    nudge({ z: cur.z, x, y: rubber(raw, b.min, b.max, d) })
-    if (raw > b.max || raw < b.min) springTimer = window.setTimeout(springBack, SPRING_AFTER)
-    else raw = null
+    window.clearTimeout(springTimer)
+    const { z } = target
+    const b = bounds(z)
+    const y = pageWheelTarget(target.y, w.dy, b, give())
+    target = { z, x: centerX(pageW(), z, v), y }
+    if (y > b.max || y < b.min) springTimer = window.setTimeout(springBack, SPRING_AFTER)
   }
 
   /** A drag of the background (or the hand tool, Space, the middle button): the canvas follows, or the page scrolls. */
   const dragTo = (start: Camera, dx: number, dy: number) => {
-    raw = null
     if (mode() === 'page') nudge(onPage({ ...start, y: start.y + dy }))
     else nudge({ ...start, x: start.x + dx, y: start.y + dy })
   }
@@ -461,7 +468,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
     if (swallowing) return
     const nz = clampZ(touch.cam.z * (dist / touch.dist))
     const c = zoomAt(touch.cam, touch.mid.x, touch.mid.y, nz)
-    raw = null
     if (mode() === 'page') {
       if (leavesPage(nz, fitZ())) return leavePage()
       zoomed = Math.abs(nz - fitZ()) > 1e-3
@@ -480,7 +486,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
     view,
     el: () => root.current,
     set: (c, animate = false) => {
-      raw = null
       const to = mode() === 'page' ? onPage(c) : c
       if (animate) glide(to)
       else jump(to)
@@ -490,7 +495,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
     zoomTo: (nz, anchor) => {
       const z = clampZ(nz)
       const a = anchor ?? middle()
-      raw = null
       if (mode() === 'page') {
         if (leavesPage(z, fitZ())) {
           // Stepping out past the page lets go of it, at that zoom, where you are.
@@ -508,7 +512,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
     fitMix: () => {
       if (mode() === 'page') {
         zoomed = false
-        raw = null
         const z = fitZ()
         return glide(onPage({ z, x: 0, y: bounds(z).max }), 420)
       }
@@ -522,7 +525,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
     fitWidth: () => {
       if (mode() !== 'page') return toPage()
       zoomed = false
-      raw = null
       const z = fitZ()
       const m = middle()
       const wy = (m.y - target.y) / target.z
@@ -556,7 +558,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
       return false
     },
     focusRect: (r, maxZ = 0.6) => {
-      raw = null
       if (mode() === 'page') {
         // Something on the page: scroll to it. Anything off it (a version) needs the canvas.
         const w = pageW()
@@ -566,7 +567,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
       glide(fitRect(r, view(), maxZ))
     },
     scrollToY: (wy, animate = true) => {
-      raw = null
       const t = target
       const c = { ...t, y: CHROME.top + 12 - wy * t.z }
       const to = mode() === 'page' ? onPage(c) : c
@@ -574,7 +574,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
       else jump(to)
     },
     scrollBy: (dy) => {
-      raw = null
       const c = { ...target, y: target.y - dy }
       glide(mode() === 'page' ? onPage(c) : c, 200)
     },
@@ -595,7 +594,6 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
       glide(mode() === 'page' ? onPage(c) : c, 360)
     },
     pageTop: (animate = true) => {
-      raw = null
       const t = target
       const c = { ...t, y: CHROME.top + PAGE_HEAD }
       const to = mode() === 'page' ? onPage(c) : c
@@ -626,7 +624,16 @@ function makeCamera(root: RefObject<HTMLDivElement | null>, world: RefObject<HTM
     return saved ? null : window.setTimeout(() => api.fitMix(), 60)
   }
 
-  return { api, start, measure, refit, wheel, dragTo, gestureStart, gestureChange, gestureEnd, touchPinch, touchEnd, mode, get: () => cur }
+  const stop = () => {
+    cancelGlide()
+    cancelAnimationFrame(frameReq)
+    frameReq = 0
+    window.clearTimeout(settleTimer)
+    window.clearTimeout(swallowTimer)
+    swallowing = false
+  }
+
+  return { api, start, stop, measure, refit, wheel, dragTo, gestureStart, gestureChange, gestureEnd, touchPinch, touchEnd, mode, get: () => cur }
 }
 
 export function Canvas({ children }: { children: ReactNode }) {
@@ -663,6 +670,7 @@ export function Canvas({ children }: { children: ReactNode }) {
     })
     return () => {
       if (t) window.clearTimeout(t)
+      cam.stop()
       ro.disconnect()
       cancelAnimationFrame(raf)
       offInsets()
@@ -724,6 +732,8 @@ export function Canvas({ children }: { children: ReactNode }) {
     for (const t of ['gesturestart', 'gesturechange', 'gestureend']) el.addEventListener(t, onGesture)
     el.addEventListener('mx-gesture', onFrameGesture)
     return () => {
+      window.clearTimeout(wheeling)
+      el.removeAttribute('data-wheeling')
       el.removeEventListener('wheel', onWheel)
       for (const t of ['gesturestart', 'gesturechange', 'gestureend']) el.removeEventListener(t, onGesture)
       el.removeEventListener('mx-gesture', onFrameGesture)

@@ -163,13 +163,15 @@ function useLiveZoom() {
   const [pct, setPct] = useState(() => Math.round((useStore.getState().camera?.z ?? 0.3) * 100))
   useEffect(() => {
     let raf = 0
-    let z = 0
+    let nextPct: number | undefined
     const off = onPaint((c) => {
-      z = c.z
+      const p = Math.round(c.z * 100)
+      if (p === nextPct) return
+      nextPct = p
       if (!raf)
         raf = requestAnimationFrame(() => {
           raf = 0
-          setPct(Math.round(z * 100))
+          setPct(nextPct ?? p)
         })
     })
     return () => {

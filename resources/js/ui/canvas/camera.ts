@@ -63,7 +63,7 @@ export interface WheelHand {
 /**
  * Trackpads often send whole-pixel deltas of 50 or more in a fast flick, which look like a mouse wheel's click on
  * their own. So a gesture is a mouse wheel only while every event in it reads as a click; once one doesn't, the rest
- * of that gesture is a trackpad's, and the page follows the fingers instead of gliding a click at a time.
+ * of that gesture is a trackpad's, so zoom follows the fingers continuously.
  */
 export function wheelHand(prev: WheelHand | null, notch: boolean, now: number): WheelHand {
   if (!prev || now - prev.at >= WHEEL_GAP) return { kind: notch ? 'mouse' : 'pad', at: now }
@@ -139,6 +139,18 @@ export function unrubber(y: number, min: number, max: number, dim: number): numb
   if (y > max) return max + ungive(y - max, dim)
   if (y < min) return min - ungive(min - y, dim)
   return y
+}
+
+/** Apply each wheel delta to the pending destination. Cap the stretch so momentum can't bury the next reversal. */
+export function pageWheelTarget(y: number, dy: number, { min, max }: { min: number; max: number }, stretch: number): number {
+  const next = clamp(unrubber(y, min, max, stretch) - dy, min - stretch, max + stretch)
+  return rubber(next, min, max, stretch)
+}
+
+/** Follow wheel input in real time, with the same response at different refresh rates. */
+export function followPageWheel(y: number, goal: number, elapsed: number): number {
+  const remaining = (y - goal) * Math.exp(-Math.max(0, elapsed) / 16)
+  return Math.abs(remaining) < 0.25 ? goal : goal + remaining
 }
 
 /**
