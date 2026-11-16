@@ -170,20 +170,27 @@ function forwardGesture(frame: HTMLIFrameElement | null, g: { phase: 'start' | '
 }
 
 /**
- * A wheel event from inside a frame, replayed on the frame's element in page
- * coordinates, so the canvas pans or zooms as if the frame weren't there. Where
- * nothing takes it (a frame in a scrolling list), the list scrolls instead.
+ * Replay wheel input on the frame element so the canvas can pan or zoom.
+ * Where nothing takes it (a frame in a scrolling list), the list scrolls instead.
  */
 function forwardWheel(frame: HTMLIFrameElement | null, w: NonNullable<Parameters<Parameters<typeof registerFrame>[1]>[0]['wheel']>) {
   if (!frame) return
-  const r = frame.getBoundingClientRect()
-  const scale = frame.offsetWidth ? r.width / frame.offsetWidth : 1
+  let clientX = 0
+  let clientY = 0
+  if (w.ctrl || w.meta) {
+    // Only zoom needs a pointer anchor. Plain scrolling can skip the layout reads.
+    const r = frame.getBoundingClientRect()
+    const width = frame.offsetWidth
+    const scale = width ? r.width / width : 1
+    clientX = r.left + w.x * scale
+    clientY = r.top + w.y * scale
+  }
   const e = new WheelEvent('wheel', {
     deltaX: w.dx,
     deltaY: w.dy,
     deltaMode: w.mode,
-    clientX: r.left + w.x * scale,
-    clientY: r.top + w.y * scale,
+    clientX,
+    clientY,
     ctrlKey: w.ctrl,
     metaKey: w.meta,
     shiftKey: w.shift,

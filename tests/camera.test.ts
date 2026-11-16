@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   centerX,
   fitWidth,
+  followPageWheel,
   leavesPage,
   normalizeWheel,
   pageBounds,
+  pageWheelTarget,
   PINCH_MAX,
   PINCH_MIN,
   round,
@@ -133,6 +135,32 @@ describe('pageBounds and rubber', () => {
   })
   it('picks a stretched page up where it is', () => {
     for (const y of [-900, -620, -100, 30, 400]) expect(rubber(unrubber(rubber(y, -500, 0, 200), -500, 0, 200), -500, 0, 200)).toBeCloseTo(rubber(y, -500, 0, 200))
+  })
+})
+
+describe('Page wheel scrolling', () => {
+  const bounds = { min: -1000, max: 0 }
+  const stretch = 160
+
+  it('keeps each delta when a flick changes from large steps to a fractional tail', () => {
+    const inputs = [100, 80, 4.25, 0.5, -12]
+    const goal = inputs.reduce((y, dy) => pageWheelTarget(y, dy, bounds, stretch), 0)
+    expect(goal).toBe(-172.75)
+  })
+
+  it('limits repeated pushes past an edge and responds to the next reversal', () => {
+    const pastTop = pageWheelTarget(0, -200, bounds, stretch)
+    expect(pastTop).toBeGreaterThan(0)
+    expect(pageWheelTarget(pastTop, -1000, bounds, stretch)).toBe(pastTop)
+    expect(pageWheelTarget(pastTop, 180, bounds, stretch)).toBeCloseTo(-20)
+  })
+
+  it('moves toward the same point over the same time at different refresh rates', () => {
+    const oneFrame = followPageWheel(0, -100, 16)
+    const twoFrames = followPageWheel(followPageWheel(0, -100, 8), -100, 8)
+    expect(oneFrame).toBeLessThan(-60)
+    expect(twoFrames).toBeCloseTo(oneFrame)
+    expect(followPageWheel(oneFrame, -100, 100)).toBe(-100)
   })
 })
 

@@ -22,9 +22,9 @@
         width: min(14.5rem, calc(100vw - 36px));
         max-height: calc(100dvh - 24px);
         overflow: auto;
-        border: 1px solid #eadce5;
+        border: 0;
         border-radius: 16px;
-        background: #fff8fc;
+        background: #fff;
         color: #241824;
         color-scheme: light;
         box-shadow: 0 4px 10px #2c14251a, 0 12px 32px #2c142526;
