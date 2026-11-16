@@ -20,7 +20,7 @@ import { checkJevServer, useJevServer } from '@/lib/jev'
 import { Switch } from '../panels/parts'
 import { isHosted } from '@/lib/host'
 import { canEdit, useAccount } from '@/lib/account'
-import { api, flushMix, openMixId } from '@/lib/mixSync'
+import { api, discardRecovery, flushMix, openMixId, useSave } from '@/lib/mixSync'
 import { useStartFlow } from '../start/StartGuide'
 import { DraftSwitch, DraftsPanel } from '../drafts/DraftsPanel'
 import { SharePanel } from '../panels/SharePanel'
@@ -275,6 +275,7 @@ function CompactBar({ onHelp }: { onHelp: () => void }) {
 function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean }) {
   const mixName = useStore((s) => s.mixName)
   const theme = useStore((s) => s.ui.theme)
+  const recoveries = useSave((s) => s.recoveries)
   const st = useStore.getState
   return (
         <div className="p-1.5">
@@ -287,6 +288,20 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
           </>
         )}
         <MenuItem icon={Download} label="Download a copy of this mix" onClick={() => (st().setUi({ sheet: 'none' }), downloadMix())} />
+        {recoveries.length > 0 && (
+          <div className="max-h-44 overflow-auto px-2.5 py-2">
+            <p className="text-[12px] font-semibold">Unsent edits</p>
+            <p className="mb-1 text-[12px] text-zinc-500">Download a copy and import it from All mixes.</p>
+            {recoveries.map(({ id, at, state }) => (
+              <div key={id} className="flex items-center gap-1">
+                <MenuItem icon={Download} label={new Date(at).toLocaleString()} onClick={() => downloadMix({ ...state, mixName: `${state.mixName} recovery` })} />
+                <button type="button" className="btn-quiet grid size-8 shrink-0 place-items-center rounded-full" aria-label={`Discard recovery from ${new Date(at).toLocaleString()}`} onClick={async () => {
+                  if (await confirmAction({ title: 'Discard this recovery copy?', confirm: 'Discard' })) discardRecovery(id)
+                }}><X size={15} /></button>
+              </div>
+            ))}
+          </div>
+        )}
         {!isHosted() && (
           <MenuItem
             icon={Upload}

@@ -11,6 +11,8 @@ import { resolveGuide, emptyGuide } from '@/core/guide'
 import { siteFromSlots } from '@/core/site'
 import { astroFiles } from '@/core/export/astro'
 import { nextFiles } from '@/core/export/next'
+import { PUBLISH_BASE, publishFiles } from '@/core/export/publish'
+import { bindContextFor } from '@/state/collections'
 
 function boundBlog(): { slot: Slot; collection: Collection } {
   const clip = sectionClip(library.clips['blog.layout-cards'])
@@ -84,5 +86,31 @@ describe('collections in exports', () => {
     expect(next).toContain('intro: paragraph(entry.body, 1)')
     // The home page's list links each item to its entry's page.
     expect(astroFiles(page)['astro/src/components/sections/BlogLayoutCards.astro'] as string).toMatch(/href="\/blog-posts\/[a-z-]+"/)
+  })
+
+  it('publishes each visible entry with its own content, media and working links', () => {
+    const { slot, collection } = boundBlog()
+    const [first, second, draft] = collection.entries
+    const image = collection.schema.fields.find((f) => f.type === 'image')!.key
+    const posts: Collection = { ...collection, entries: [
+      { ...first, data: { ...first.data, title: 'First public post' } },
+      { ...second, data: { ...second.data, title: 'Second public post', [image]: { source: 'upload', asset: 'test-image' } } },
+      { ...draft, draft: true, data: { ...draft.data, title: 'Unpublished post' } },
+    ] }
+    const header: Slot = { id: 'h', type: 'header', clipId: 'header.layout-media', locked: false, keep: { ...DEFAULT_KEEP }, bind: { entry: { fields: { heading: 'title' }, media: { cover: image } } } }
+    const site = siteFromSlots([slot])
+    site.pages.push({ id: 'posts', path: '/blog-posts/[slug]', title: 'Post', slots: [header], show: { nav: true, footer: true }, template: { collection: posts.slug } })
+    const page = composeSite({ site, library, guide: resolveGuide(emptyGuide()), content: DEFAULT_CONTENT, bind: bindContextFor(site, { [posts.slug]: posts }), expandCollections: true, uploads: () => ({ dataUrl: 'data:image/png;base64,AQID', mime: 'image/png', bytes: new Uint8Array([1, 2, 3]).buffer }) })
+    const files = publishFiles(page)
+    expect(files['index.html']).toContain(`href="${PUBLISH_BASE}/blog-posts/${second.slug}"`)
+    expect(files['index.html']).not.toContain('Unpublished post')
+    expect(files[`blog-posts/${draft.slug}.html`]).toBeUndefined()
+    expect(files[`blog-posts/${first.slug}.html`]).toContain('First public post')
+    const secondPage = files[`blog-posts/${second.slug}.html`] as string
+    expect(secondPage).toContain('Second public post')
+    expect(secondPage).not.toContain('First public post')
+    const picture = secondPage.match(/src="\/__blokmix_base__\/(media\/[^" ]+\.png)"/)?.[1]
+    expect(picture).toBeDefined()
+    expect(files[picture!]).toEqual(new Uint8Array([1, 2, 3]))
   })
 })

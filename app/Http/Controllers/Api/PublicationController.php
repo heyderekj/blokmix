@@ -12,12 +12,16 @@ use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
+use Throwable;
 
 /**
  * A mix on blok.page. The board builds the pages (the same code as exports) and sends them as one zip; this keeps
- * them under published/<code>/ and PublishedController serves them on the publish host. Members read; owners and
+ * them in a release directory and PublishedController serves them on the publish host. Members read; owners and
  * editors publish and unpublish. Files count toward the mix owner's room, like its uploads.
  */
 class PublicationController extends Controller
@@ -58,6 +62,27 @@ class PublicationController extends Controller
             throw ValidationException::withMessages(['bundle' => 'The bundle has no index.html.']);
         }
 
+        $disk = Storage::disk(config('blokmix.uploads_disk'));
+        $staged = null;
+        try {
+            // Serialize publication changes for this mix, including its first publish when no publication row exists.
+            [$publication, $previous] = DB::transaction(function () use ($request, $mix, $input, $files, $pages, $disk, &$staged) {
+                $mix = Mix::lockForUpdate()->findOrFail($mix->id);
+                $this->authorizeEdit($request, $mix);
+
+                return $this->saveRelease($request, $mix, $input, $files, $pages, $disk, $staged);
+            });
+        } catch (Throwable $e) {
+            self::removeRelease($disk, $staged);
+            throw $e;
+        }
+        self::removeRelease($disk, $previous);
+
+        return response()->json(['publication' => $publication->toBoard()]);
+    }
+
+    private function saveRelease(Request $request, Mix $mix, array $input, array $files, array $pages, Filesystem $disk, ?string &$staged): array
+    {
         $owner = $mix->owner() ?? $request->user();
         // "Made with Blokmix" until the site is paid for (or ships free: Plus, the waitlist).
         $badge = ! $mix->ships();
@@ -77,11 +102,7 @@ class PublicationController extends Controller
         }
         abort_if($why !== null, 403, (string) $why);
 
-        $disk = Storage::disk(config('blokmix.uploads_disk'));
-        // Republishing replaces everything, so a page or picture that's gone doesn't linger at its old address.
-        if ($publication->exists) {
-            $disk->deleteDirectory($publication->dir());
-        }
+        $previous = $publication->isLive() ? $publication->dir() : null;
         $publication->fill([
             'user_id' => $owner->id,
             'version_key' => $input['version'] ?? null,
@@ -92,23 +113,46 @@ class PublicationController extends Controller
             'badge' => $badge,
             'published_at' => now(),
             'unpublished_at' => null,
+            'release' => (string) Str::ulid(),
         ]);
-        self::putAll($disk, $publication->dir(), $files);
+        $staged = $publication->dir();
+        self::putAll($disk, $staged, $files);
         $publication->save();
 
-        return response()->json(['publication' => $publication->toBoard()]);
+        return [$publication, $previous];
     }
 
     public function destroy(Request $request, Mix $mix): JsonResponse
     {
         $this->authorizeEdit($request, $mix);
-        $publication = Publication::where('mix_id', $mix->id)->first();
-        if ($publication?->isLive()) {
-            Storage::disk(config('blokmix.uploads_disk'))->deleteDirectory($publication->dir());
-            $publication->update(['unpublished_at' => now(), 'size' => 0]);
-        }
+        [$publication, $previous] = DB::transaction(function () use ($request, $mix) {
+            $mix = Mix::lockForUpdate()->findOrFail($mix->id);
+            $this->authorizeEdit($request, $mix);
+            $publication = Publication::where('mix_id', $mix->id)->first();
+            $previous = $publication?->isLive() ? $publication->dir() : null;
+            if ($previous !== null) {
+                $publication->update(['unpublished_at' => now(), 'size' => 0]);
+            }
+
+            return [$publication, $previous];
+        });
+        self::removeRelease(Storage::disk(config('blokmix.uploads_disk')), $previous);
 
         return response()->json(['publication' => $publication?->toBoard()]);
+    }
+
+    private static function removeRelease(Filesystem $disk, ?string $dir): void
+    {
+        if ($dir === null) {
+            return;
+        }
+        try {
+            if (! $disk->deleteDirectory($dir)) {
+                report(new RuntimeException("Could not remove publication files at {$dir}."));
+            }
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     /** How many files go up to the bucket at once. */
@@ -124,15 +168,21 @@ class PublicationController extends Controller
     {
         if (! $disk instanceof AwsS3V3Adapter) {
             foreach ($files as $path => $data) {
-                $disk->put("{$dir}/{$path}", $data);
+                if (! $disk->put("{$dir}/{$path}", $data)) {
+                    throw new RuntimeException("Could not write publication file {$path}.");
+                }
             }
 
             return;
         }
         $client = $disk->getClient();
         $bucket = $disk->getConfig()['bucket'];
-        $puts = (function () use ($client, $bucket, $disk, $dir, $files) {
+        $failure = null;
+        $puts = (function () use ($client, $bucket, $disk, $dir, $files, &$failure) {
             foreach ($files as $path => $data) {
+                if ($failure !== null) {
+                    break;
+                }
                 yield $client->putObjectAsync([
                     'Bucket' => $bucket,
                     'Key' => $disk->path("{$dir}/{$path}"),
@@ -141,8 +191,13 @@ class PublicationController extends Controller
                 ]);
             }
         })();
-        // Any failed put rejects the whole write, so a half-published mix never reports success.
-        Each::ofLimitAll($puts, self::PARALLEL_PUTS)->wait();
+        // Drain outstanding writes before cleanup, so none can recreate files in a failed release.
+        Each::ofLimit($puts, self::PARALLEL_PUTS, null, function (Throwable $e) use (&$failure) {
+            $failure ??= $e;
+        })->wait();
+        if ($failure !== null) {
+            throw $failure;
+        }
     }
 
     /** "Made with Blokmix", on a site not paid for yet: a small link in the corner, before </body>. */

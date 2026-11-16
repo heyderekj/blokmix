@@ -1,5 +1,5 @@
 import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet, ListBinding } from './types'
-import { applyBindings, findList, sortedEntries, type BindContext, type Collection } from './collections'
+import { applyBindings, entryTitle, findList, sortedEntries, type BindContext, type Collection } from './collections'
 import { bandTokens, sectionTokens, widthTokens } from './surface'
 import { blockTextStyle } from './textStyles'
 import { applyFields, attr, mapTree, parseHtml, walk, type HEl, type HNode } from './html/parse'
@@ -480,19 +480,30 @@ export function composePage(input: ComposeInput): ComposedPage {
  * sections, with class prefixes and component names unique across the site and
  * links that know other pages. `sections` lists everything, nav first.
  */
-export function composeSite(input: Omit<ComposeInput, 'slots' | 'key' | 'used' | 'link' | 'anchors'> & { site: Site }): ComposedPage {
-  const { site, ...base } = input
+export function composeSite(input: Omit<ComposeInput, 'slots' | 'key' | 'used' | 'link' | 'anchors'> & { site: Site; expandCollections?: boolean }): ComposedPage {
+  const { site, expandCollections, ...base } = input
   const used = new Map<string, number>()
   const one = (slots: Site['pages'][number]['slots'], key: string, here: string | null, viewOf?: string) =>
     composePage({ ...base, slots, key, used, link: siteScope(site, here), anchors: viewOf ? sectionAnchors(pageView(site, viewOf)) : undefined })
   const nav = site.shared.nav ? one([site.shared.nav], 'nav', null) : null
-  // A collection's template page is composed with its first entry (exports make one page per entry from it).
-  const withEntry = (p: Site['pages'][number]) => {
-    const c = p.template && base.bind?.collections[p.template.collection]
-    const entry = c ? sortedEntries(c).find((e) => !e.draft) : undefined
-    return c && entry ? { ...base, bind: { ...base.bind!, entry: { collection: c.slug, entry } } } : base
-  }
-  const pages = site.pages.map((p, i) => ({ page: p, composed: composePage({ ...withEntry(p), slots: p.slots, key: i === 0 ? 's' : `p${i + 1}s`, used, link: siteScope(site, p.id), anchors: sectionAnchors(pageView(site, p.id)) }) }))
+  const pages = site.pages.flatMap<{ page: Site['pages'][number]; composed: ComposedPage }>((p, i) => {
+    const key = i === 0 ? 's' : `p${i + 1}s`
+    const link = siteScope(site, p.id)
+    const anchors = sectionAnchors(pageView(site, p.id))
+    const bindings = base.bind
+    const collection = p.template && bindings?.collections[p.template.collection]
+    const entries = collection ? sortedEntries(collection).filter((entry) => !entry.draft) : []
+    // Framework exports use a sample entry to compose the template. Publishing writes each entry's own HTML.
+    if (p.template && expandCollections) {
+      if (!collection || !bindings) return []
+      return entries.map((entry, j) => ({
+        page: { ...p, id: `${p.id}:${entry.slug}`, path: p.path.replace(/\[[^\]]+\]/, entry.slug), title: entryTitle(collection, entry), template: undefined },
+        composed: composePage({ ...base, bind: { ...bindings, entry: { collection: collection.slug, entry } }, slots: p.slots, key: `${key}e${j + 1}s`, used, link, anchors }),
+      }))
+    }
+    const bind = collection && entries[0] ? { ...base.bind!, entry: { collection: collection.slug, entry: entries[0] } } : base.bind
+    return [{ page: p, composed: composePage({ ...base, bind, slots: p.slots, key, used, link, anchors }) }]
+  })
   const footer = site.shared.footer ? one([site.shared.footer], 'ft', null) : null
   const all = [nav, ...pages.map((x) => x.composed), footer].filter((x): x is ComposedPage => !!x)
   const fonts = new Map(all.flatMap((c) => c.fonts.map((f) => [f.family, f] as const)))
@@ -502,7 +513,7 @@ export function composeSite(input: Omit<ComposeInput, 'slots' | 'key' | 'used' |
   for (const p of site.pages) if (p.template) shown.add(p.template.collection)
   // Pictures in entries become files under public/media/collections (stock photos keep their address).
   const collectionMedia: Record<string, string | Uint8Array> = {}
-  const collections = [...shown]
+  const collections = (expandCollections ? [] : [...shown])
     .map((slug) => input.bind?.collections[slug])
     .filter((c): c is Collection => !!c)
     .map((c) => ({

@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 /**
  * Something live on blok.page: today a mix's pages, at blok.page/<code>/<slug>. The code is the address and never
- * changes; the slug follows the name (an old one redirects). Files: published/<code>/ on the uploads disk.
+ * changes; the slug follows the name (an old one redirects). Each release has its own directory on the uploads disk.
  */
 class Publication extends Model
 {
@@ -20,7 +20,7 @@ class Publication extends Model
 
     private const CODE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
 
-    protected $fillable = ['code', 'kind', 'user_id', 'mix_id', 'version_key', 'name', 'slug', 'pages', 'size', 'badge', 'reviews', 'published_at', 'unpublished_at'];
+    protected $fillable = ['code', 'kind', 'user_id', 'mix_id', 'version_key', 'name', 'slug', 'pages', 'size', 'badge', 'reviews', 'published_at', 'unpublished_at', 'release'];
 
     protected function casts(): array
     {
@@ -51,7 +51,7 @@ class Publication extends Model
 
     public function dir(): string
     {
-        return "published/{$this->code}";
+        return $this->release ? "published/releases/{$this->code}/{$this->release}" : "published/{$this->code}";
     }
 
     /** blok.page/<code>/<slug>/, on whichever host publishing answers on. */

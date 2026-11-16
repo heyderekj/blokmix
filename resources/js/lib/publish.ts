@@ -74,7 +74,7 @@ const breathe = () => new Promise<void>((r) => requestAnimationFrame(() => setTi
 export async function publicationBundle(version: VersionNode | null, onStep: OnStep = () => {}): Promise<{ zip: Uint8Array; pages: string[] }> {
   onStep({ stage: 'compose' })
   await breathe()
-  const input = packetInputFor(useStore.getState(), { version, targets: ['astro'] })
+  const input = packetInputFor(useStore.getState(), { version, targets: ['astro'], expandCollections: true })
   if (input.page.shaders.length) {
     onStep({ stage: 'posters', count: input.page.shaders.length })
     await breathe()

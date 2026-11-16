@@ -18,13 +18,17 @@ export function publishedPath(path: string): string {
 }
 
 /**
- * Every page (a template page, which needs a collection's entries, is left out) plus the pictures they use. Paths are
- * relative to the publication; links and pictures inside point under `base`.
+ * Every concrete page plus its pictures. Compose with expandCollections to render the entries behind template pages.
+ * Paths are relative to the publication; links and pictures inside point under `base`.
  */
 export function publishFiles(page: ComposedPage, opts: { base: string } = { base: PUBLISH_BASE }): FileMap {
   const files: FileMap = {}
   const pages = page.site ? page.site.pages.filter((p) => !p.template) : [{ id: undefined, path: '/' }]
-  for (const p of pages) files[publishedPath(p.path)] = referenceHtml(page, { pageId: p.id, web: { base: opts.base } })
+  for (const p of pages) {
+    const path = publishedPath(p.path)
+    if (Object.hasOwn(files, path)) throw new Error(`More than one page uses ${p.path}. Give one of them a different address before publishing.`)
+    files[path] = referenceHtml(page, { pageId: p.id, web: { base: opts.base } })
+  }
   for (const [path, data] of Object.entries(page.mediaFiles)) if (path.startsWith('media/')) files[path] = data
   return files
 }

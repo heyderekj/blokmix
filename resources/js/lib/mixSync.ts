@@ -4,6 +4,7 @@ import type { VersionNode } from '@/core/types'
 import type { Draft } from '@/core/drafts'
 import { STORAGE_KEY, localMixStorage, sameMix, useStore, type MixData, type Persisted } from '@/state/store'
 import { blankMix } from '@/state/seed'
+import { uid } from '@/state/uid'
 import { useAccount, type MixRole } from './account'
 import { xsrf } from './http'
 import { assetIdsIn, syncAssets } from './assets'
@@ -14,9 +15,8 @@ import { assetIdsIn, syncAssets } from './assets'
  * saves a moment after each change, one request at a time, sending only what
  * changed (the mix's data, its name, and the versions that changed). Each save
  * names the lock it last read; a stale one gets the mix as it is now, which
- * replaces what's on screen. This device's view (ui, camera) and any edits not
- * yet sent stay in localStorage, so a reload or a dropped connection loses
- * nothing.
+ * replaces what's on screen after keeping the unsent work as a recovery copy.
+ * This device's view (ui, camera) and edits not yet sent stay in localStorage.
  */
 
 /** A mix as the server sends it (Mix::toBoard). */
@@ -42,15 +42,53 @@ type Keyed = 'versions' | 'drafts'
 type KeyedPut = { versions: VersionNode; drafts: Draft }
 
 export type SaveStatus = 'local' | 'saved' | 'saving' | 'offline' | 'error'
+interface Recovery {
+  id: string
+  at: number
+  state: Persisted
+}
 /** How saving is going, for the top bar. */
-export const useSave = create<{ status: SaveStatus; mixId: string }>()(() => ({ status: 'local', mixId: 'local' }))
+export const useSave = create<{ status: SaveStatus; mixId: string; recoveries: Recovery[] }>()(() => ({ status: 'local', mixId: 'local', recoveries: [] }))
 
 const SAVE_AFTER = 800
 const VIEW_AFTER = 1000
 const cacheKey = (id: string) => `blokmix:mix:${id}`
+const recoveryKey = (id: string) => `${cacheKey(id)}:recovery`
+// Keep recovery available in this session even if the browser is out of storage.
+const memoryRecovery = new Map<string, Recovery[]>()
+
+function readRecoveries(id: string): Recovery[] {
+  try {
+    return memoryRecovery.get(id) ?? JSON.parse(localStorage.getItem(recoveryKey(id)) ?? '[]')
+  } catch {
+    return []
+  }
+}
+
+function saveRecoveries(id: string, recoveries: Recovery[]) {
+  try {
+    if (recoveries.length) localStorage.setItem(recoveryKey(id), JSON.stringify(recoveries))
+    else localStorage.removeItem(recoveryKey(id))
+    memoryRecovery.delete(id)
+  } catch {
+    memoryRecovery.set(id, recoveries)
+  }
+  if (useSave.getState().mixId === id) useSave.setState({ recoveries })
+}
+
+function keepRecovery(id: string, state: Persisted) {
+  saveRecoveries(id, [{ id: uid('recovery'), at: Date.now(), state }, ...readRecoveries(id)])
+}
+
+export function discardRecovery(recoveryId: string) {
+  const id = useSave.getState().mixId
+  saveRecoveries(id, readRecoveries(id).filter((r) => r.id !== recoveryId))
+}
 
 interface Cache {
   lock: number
+  /** Which open board wrote the pending work. */
+  writer?: string
   ui?: Persisted['ui']
   camera?: Persisted['camera']
   /** The whole mix, while edits are waiting to be sent. */
@@ -106,6 +144,8 @@ class MixSync {
   private viewTimer: ReturnType<typeof setTimeout> | undefined
   /** Whether the latest state holds edits the server doesn't have yet. */
   private unsent = false
+  private resume = false
+  private writer = uid('save')
 
   constructor(mix: ServerMix) {
     this.id = mix.id
@@ -121,11 +161,24 @@ class MixSync {
   /** What the board starts from: the server's mix, or edits this browser hadn't sent yet (when made on top of the same lock). */
   initial(mix: ServerMix): Persisted {
     const cache = readCache(mix.id)
-    if (cache?.unsent && cache.lock === mix.lock) return cache.unsent
+    if (cache?.unsent) {
+      if (cache.lock === mix.lock && !mix.archived) {
+        this.resume = true
+        writeCache(this.id, { ...cache, writer: this.writer })
+        return cache.unsent
+      }
+      if (this.diff(cache.unsent)) keepRecovery(this.id, cache.unsent)
+      writeCache(this.id, { lock: mix.lock, ui: cache.ui, camera: cache.camera })
+    }
     const view = { ui: cache?.ui, camera: cache?.camera ?? null }
     // A new mix may hold only some fields (a guide it started from); a blank mix fills the rest.
     const data = { ...fields(blankMix(mix.name)), ...mix.data }
     return { ...data, mixName: mix.name, versions: mix.versions ?? {}, ...(mix.drafts && Object.keys(mix.drafts).length ? { drafts: mix.drafts } : {}), ...view } as Persisted
+  }
+
+  start(state: Persisted) {
+    if (this.resume) this.changed(state)
+    else this.latest = state
   }
 
   storage(mix: ServerMix): PersistStorage<Persisted> {
@@ -148,20 +201,26 @@ class MixSync {
       this.viewTimer = setTimeout(() => this.writeView(), VIEW_AFTER)
       return
     }
-    const pending = this.diff(state)
-    this.unsent = !!pending
-    writeCache(this.id, { lock: this.lock, ui: state.ui, camera: state.camera, ...(pending ? { unsent: state } : {}) })
-    if (!pending) return
+    // A change back to the old base still needs saving if an in-flight request is about to change that base.
+    this.unsent = !!this.inflight || !!this.diff(state)
+    this.writeView(true)
+    if (!this.unsent) return
     useSave.setState({ status: 'saving' })
     clearTimeout(this.timer)
     this.timer = setTimeout(() => void this.flush(), SAVE_AFTER)
   }
 
   /** This device's view (and the edits still waiting to be sent) into the offline copy. */
-  writeView() {
+  writeView(replacePending = false) {
     clearTimeout(this.viewTimer)
     const s = this.latest
-    if (s) writeCache(this.id, { lock: this.lock, ui: s.ui, camera: s.camera, ...(this.unsent ? { unsent: s } : {}) })
+    if (!s) return
+    const cache = readCache(this.id)
+    if (cache?.unsent && cache.writer && cache.writer !== this.writer) {
+      if (!replacePending || !this.unsent) return
+      keepRecovery(this.id, cache.unsent)
+    }
+    writeCache(this.id, { lock: this.lock, ui: s.ui, camera: s.camera, ...(this.unsent ? { writer: this.writer, unsent: s } : {}) })
   }
 
   private diff(state: Persisted) {
@@ -187,8 +246,10 @@ class MixSync {
       if (!keepalive) return this.flush()
     }
     const state = this.latest
-    const change = state && this.diff(state)
+    const change = this.unsent && state && this.diff(state)
     if (!state || !change) {
+      this.unsent = false
+      this.writeView()
       if (!this.closed) useSave.setState({ status: 'saved' })
       return
     }
@@ -206,15 +267,23 @@ class MixSync {
           this.retry = 0
           const still = this.latest && this.diff(this.latest)
           this.unsent = !!still
-          writeCache(this.id, { lock: this.lock, ui: state.ui, camera: state.camera, ...(still ? { unsent: this.latest! } : {}) })
+          this.writeView()
           if (!this.closed) useSave.setState({ status: still ? 'saving' : 'saved' })
           if (still && !this.closed) this.timer = setTimeout(() => void this.flush(), SAVE_AFTER)
         } else if (res.status === 412 && res.body.mix) {
-          // Saved somewhere else since we read it (another tab): show theirs.
-          writeCache(this.id, { lock: res.body.mix.lock, ui: state.ui, camera: state.camera })
+          // Include edits made during the request and stop the old sync from retrying them.
+          const unsent = this.latest ?? state
+          const recovery = new MixSync(res.body.mix).diff(unsent)
+          if (recovery) keepRecovery(this.id, unsent)
+          this.latest = null
+          this.unsent = false
+          const cache = readCache(this.id)
+          if (cache?.lock === this.lock && (!cache.writer || cache.writer === this.writer)) {
+            writeCache(this.id, { lock: res.body.mix.lock, ui: cache.ui, camera: cache.camera })
+          }
           if (!this.closed) {
             openMix(res.body.mix, { force: true })
-            useStore.getState().showFlash('This mix changed in another tab. Showing the latest.')
+            if (recovery) useStore.getState().showFlash('This mix changed elsewhere. Download your unsent edits from the mix menu.')
           }
         } else {
           if (!this.closed) useSave.setState({ status: 'error' })
@@ -263,22 +332,25 @@ export function openMix(mix: ServerMix | 'local', opts: { force?: boolean; role?
   viewOnly = null
   openId = id
   const persist = useStore.persist
+  let sync: MixSync | null = null
   if (mix === 'local') {
     persist.setOptions({ name: STORAGE_KEY, storage: localMixStorage() })
-    useSave.setState({ status: 'local', mixId: 'local' })
+    useSave.setState({ status: 'local', mixId: 'local', recoveries: [] })
   } else {
-    const sync = new MixSync(mix)
+    sync = new MixSync(mix)
     current = sync
     persist.setOptions({ name: cacheKey(mix.id), storage: sync.storage(mix) })
-    useSave.setState({ status: 'saved', mixId: mix.id })
+    useSave.setState({ status: 'saved', mixId: mix.id, recoveries: readRecoveries(mix.id) })
   }
   void persist.rehydrate()
+  sync?.start(persist.getOptions().partialize!(useStore.getState()))
   useStore.temporal.getState().clear()
   if (role === 'viewer') viewOnly = holdStill()
   // Uploads: fetch what this browser lacks, send what the server lacks.
   if (mix !== 'local') {
     const st = useStore.getState()
-    void syncAssets(mix.id, assetIdsIn([st.site, st.versions, st.drafts]), role !== 'viewer')
+    const recoveries = useSave.getState().recoveries.map((r) => [r.state.site, r.state.versions, r.state.drafts])
+    void syncAssets(mix.id, assetIdsIn([st.site, st.versions, st.drafts, recoveries]), role !== 'viewer')
   } else void syncAssets(null, [], false)
 }
 
@@ -304,6 +376,9 @@ function holdStill(): () => void {
 }
 
 if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === recoveryKey(openId)) useSave.setState({ recoveries: readRecoveries(openId) })
+  })
   // Last chance to send edits when the tab closes (the offline copy covers it if this doesn't make it).
   window.addEventListener('pagehide', () => {
     current?.writeView()

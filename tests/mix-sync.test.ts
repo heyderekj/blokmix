@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useStore } from '@/state/store'
 import { buildSeed } from '@/state/seed'
 import { library } from '@/data/library'
-import { openMix, useSave, type ServerMix } from '@/lib/mixSync'
+import { discardRecovery, flushMix, openMix, useSave, type ServerMix } from '@/lib/mixSync'
 
 // A browser's localStorage (before the store is made, so it persists), and a server that records what it's sent.
 const ls = vi.hoisted(() => {
@@ -16,7 +16,8 @@ const ls = vi.hoisted(() => {
 
 type Call = { method: string; url: string; headers: Record<string, string>; body: Record<string, unknown> | undefined }
 let calls: Call[] = []
-let reply: (c: Call) => { status: number; body: unknown } | Promise<never>
+type Reply = { status: number; body: unknown }
+let reply: (c: Call) => Reply | Promise<Reply>
 const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
   // Only saves are recorded; the uploads list (GET …/assets) answers empty.
   if (!init?.method || init.method === 'GET') return { status: 200, ok: true, json: async () => [] } as unknown as Response
@@ -93,16 +94,30 @@ describe('saving a mix to the server', () => {
     expect(calls[1].body!.data).toBeDefined()
   })
 
-  it('shows the mix as it is now when another tab saved first', async () => {
+  it('keeps the latest local edits in recovery when another tab saves first', async () => {
     openMix(serverMix())
-    reply = () => ({ status: 412, body: { mix: serverMix({ name: 'Saved in another tab', lock: 5 }) } })
+    let finish!: (r: Reply) => void
+    reply = () => new Promise((resolve) => { finish = resolve })
     useStore.getState().renameMix('Mine')
+    const pending = flushMix()
+    useStore.getState().renameMix('Edited during the save')
+    const next = serverMix({ name: 'Saved in another tab', lock: 5 })
+    finish({ status: 412, body: { mix: next } })
+    await pending
     await settle()
+    expect(calls).toHaveLength(1)
     expect(useStore.getState().mixName).toBe('Saved in another tab')
+    openMix('local')
+    openMix(next)
+    const [recovery] = useSave.getState().recoveries
+    expect(recovery.state.mixName).toBe('Edited during the save')
     reply = () => ({ status: 200, body: { lock: 6 } })
     useStore.getState().renameMix('After')
     await settle()
     expect(calls.at(-1)!.headers['If-Match']).toBe('"5"')
+    expect(useSave.getState().recoveries).toHaveLength(1)
+    discardRecovery(recovery.id)
+    expect(useSave.getState().recoveries).toHaveLength(0)
   })
 
   it('keeps edits in this browser while offline, then sends them', async () => {
@@ -118,13 +133,47 @@ describe('saving a mix to the server', () => {
     openMix('local')
     openMix(serverMix())
     expect(useStore.getState().mixName).toBe('Offline edit')
+    expect(useSave.getState().status).toBe('saving')
 
     reply = () => ({ status: 200, body: { lock: 2 } })
-    await vi.advanceTimersByTimeAsync(31_000)
-    useStore.getState().renameMix('Offline edit')
     await settle()
     expect(calls.at(-1)!.body).toMatchObject({ name: 'Offline edit' })
     expect(useSave.getState().status).toBe('saved')
+  })
+
+  it('keeps offline edits in recovery when the server changed before reopening the mix', async () => {
+    openMix(serverMix())
+    reply = () => Promise.reject(new TypeError('Failed to fetch'))
+    useStore.getState().renameMix('Offline edit')
+    await flushMix()
+    openMix('local')
+    const newer = serverMix({ lock: 8, name: 'Saved elsewhere' })
+    openMix(newer)
+    expect(useStore.getState().mixName).toBe('Saved elsewhere')
+    expect(useSave.getState().recoveries.map((r) => r.state.mixName)).toEqual(['Offline edit'])
+    const count = calls.length
+    await settle()
+    expect(calls).toHaveLength(count)
+    openMix('local')
+    openMix(newer)
+    expect(useSave.getState().recoveries).toHaveLength(1)
+  })
+
+  it('does not clear another tab’s cached work when a save finishes', async () => {
+    openMix(serverMix())
+    let finish!: (r: Reply) => void
+    reply = () => new Promise((resolve) => { finish = resolve })
+    useStore.getState().renameMix('Saved from here')
+    const pending = flushMix()
+    const cached = JSON.parse(ls.get('blokmix:mix:m1')!)
+    cached.writer = 'other-tab'
+    cached.unsent.mixName = 'Still pending in the other tab'
+    ls.set('blokmix:mix:m1', JSON.stringify(cached))
+    finish({ status: 200, body: { lock: 2 } })
+    await pending
+
+    expect(useSave.getState().status).toBe('saved')
+    expect(JSON.parse(ls.get('blokmix:mix:m1')!).unsent.mixName).toBe('Still pending in the other tab')
   })
 
   it('starts a new mix blank and saves it whole', async () => {
