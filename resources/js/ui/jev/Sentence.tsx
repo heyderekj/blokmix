@@ -1,11 +1,12 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { CornerDownLeft, X } from 'lucide-react'
 import type { Kind } from '@/core/types'
-import { groupsOf, openBlanks, orderOptions, suggestedFor, type Blank, type Choice, type Matched, type Picks, type Segment } from '@/core/jev/sentence'
+import { groupsOf, openBlanks, orderOptions, type Blank, type Choice, type Matched, type Picks, type Segment } from '@/core/jev/sentence'
 
 /**
  * A sentence with blanks, after the motion menu: "I'm making a site for [what it is] called [its name]…". Each empty blank
- * says what it asks for. Tap one and its options open under the sentence (in groups, with a few to try first); the field at its end takes your own words (Jev maps them to the nearest
+ * says what it asks for. Tap one and a few options open under the sentence. The same field searches or takes your own words (Jev maps them to the nearest
  * option, and your words still stand). Picking moves on to the next empty blank; Tab steps between blanks.
  */
 export function Sentence({
@@ -160,8 +161,8 @@ function BlankWords({ blank, picks, open, onOpen, onDrop }: { blank: Blank; pick
 }
 
 /**
- * A blank's options. In the start (big) they come in groups, with a few to try first once there's something to go on; in
- * the bar, one sideways row. A field for your own words sits at the end. The order is taken when the options open and
+ * A blank's options. The guided start shows a shortlist and can browse one category at a time. The bar uses a
+ * sideways row. The order is taken when the options open and
  * stays put while your pointer is on them; a newer order fades in.
  */
 function Options({
@@ -187,7 +188,8 @@ function Options({
 }) {
   const [words, setWords] = useState('')
   const [hovering, setHovering] = useState(false)
-  const [more, setMore] = useState<Set<string>>(new Set())
+  const [category, setCategory] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
   const field = useRef<HTMLInputElement>(null)
   const sorted = useMemo(() => orderOptions(blank, order, kind), [blank, order, kind])
   // Never reorder under the pointer.
@@ -208,17 +210,13 @@ function Options({
     if (blank.ownOnly) field.current?.focus()
   }, [blank])
 
-  const chosen = new Set((picks[blank.id] ?? []).map((p) => p.id).filter(Boolean))
+  const selected = picks[blank.id] ?? []
+  const chosen = new Set(selected.map((p) => p.id).filter(Boolean))
   const q = words.trim().toLowerCase()
-  const hits = (o: Choice) => !q || o.label.toLowerCase().includes(q)
-  const list = shown.filter(hits)
+  const list = shown.filter((o) => o.label.toLowerCase().includes(q))
   const near = closest.map((id) => blank.options.find((o) => o.id === id)).filter((o): o is Choice => !!o)
-  const ids = shown.map((o) => o.id)
   const grouped = big && !!blank.groups?.length
-  const suggested = grouped ? suggestedFor(blank, order?.length || kind ? ids : undefined) : []
-  // A group shows its first few; "+ n more" only when that hides more than a couple.
-  const SHOW = 6
-  const groups = grouped ? groupsOf(blank, ids) : []
+  const groups = grouped ? groupsOf(blank, shown.map((o) => o.id)) : []
 
   const chip = (o: Choice, hint?: boolean, key = '') => (
     <button
@@ -246,67 +244,83 @@ function Options({
           setWords('')
         } else onDone()
       }}
-      className={`flex items-center gap-2 ${blank.ownOnly ? '' : grouped ? 'border-t border-zinc-950/[0.06] pt-3' : 'mt-2'}`}
+      className={`flex items-center gap-2 ${blank.ownOnly || grouped ? '' : 'mt-2'}`}
     >
       <input
         ref={field}
         value={words}
-        onChange={(e) => setWords(e.target.value)}
+        onChange={(e) => {
+          setWords(e.target.value)
+          setShowAll(false)
+        }}
         onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), onDone())}
-        placeholder={blank.ownOnly ? `Type ${ask}` : grouped ? 'Not here? Say it your way' : 'or say it your way'}
-        aria-label={blank.ownOnly ? ask : 'Your own words'}
+        placeholder={blank.ownOnly ? `Type ${ask}` : grouped ? 'Search or type your own' : 'or say it your way'}
+        aria-label={blank.ownOnly ? ask : grouped ? 'Search or type your own' : 'Your own words'}
         className={`min-w-0 flex-1 rounded-full bg-white outline-none shadow-[0_0_0_1px_rgb(0_0_0/0.1)] placeholder:text-zinc-400 focus:shadow-[0_0_0_2px_#FF69B4] ${big ? 'h-10 px-4 text-[14.5px]' : 'h-8 px-3 text-[12.5px]'}`}
       />
       {words.trim() && (
-        <button type="submit" aria-label="Use my words" className={`grid shrink-0 cursor-pointer place-items-center rounded-full bg-zinc-900 text-white transition-[scale] active:scale-[0.97] ${big ? 'size-10' : 'size-8'}`}>
-          <CornerDownLeft size={big ? 15 : 13} />
+        <button type="submit" aria-label="Use my words" className={`grid shrink-0 cursor-pointer place-items-center rounded-full bg-zinc-900 text-white transition-[scale] active:scale-[0.97] ${grouped ? 'h-10 px-3 text-[13px] font-semibold' : big ? 'size-10' : 'size-8'}`}>
+          {grouped ? 'Use' : <CornerDownLeft size={big ? 15 : 13} />}
         </button>
       )}
     </form>
   )
 
   if (grouped) {
-    // A few to try first, unless they'd only repeat the top of one group.
-    const top = q ? [] : near.length ? near : new Set(suggested.map((o) => o.group)).size > 1 ? suggested : []
-    const matching = groups.map((g) => ({ ...g, options: g.options.filter(hits) })).filter((g) => g.options.length)
+    const ranked = !!kind || !!order?.length
+    const examples = ranked ? shown : groups.map((group) => group.options[0])
+    const top = [...near, ...examples.filter((o) => !near.some((n) => n.id === o.id))].slice(0, 6)
+    const browsing = !q && category !== null
+    const options = q ? list : browsing ? groups.find((group) => group.name === category)?.options ?? [] : top
+    const visible = showAll ? options : options.slice(0, 8)
+    const heading = q ? 'Matching options' : browsing ? 'Category' : near.length ? 'Closest to your words' : ranked ? 'Suggestions' : 'Examples'
+    const link = 'min-h-8 shrink-0 cursor-pointer rounded-md px-1 text-[12px] font-semibold text-[#665762] underline decoration-[#B9AAB4] underline-offset-4 hover:text-[#17121A]'
+
     return (
-      <div className="mt-4 animate-pop rounded-2xl bg-zinc-50 p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06)]">
+      <div className="mt-3 grid gap-2.5 rounded-2xl bg-zinc-50 p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06)] motion-safe:animate-pop">
+        {own}
         <div
-          className={`thin-scroll max-h-[340px] overflow-y-auto px-1 pb-3 pt-1 transition-opacity duration-150 ${fade ? 'opacity-40' : ''}`}
-          data-scroll-ok
+          className={`grid min-w-0 gap-2 transition-opacity duration-150 ${fade ? 'opacity-40' : ''}`}
           onMouseEnter={() => setHovering(true)}
           onMouseLeave={() => setHovering(false)}
-          role="listbox"
-          aria-label={ask}
         >
-          {top.length > 0 && (
-            <div className="mb-4">
-              {label(near.length ? 'Closest to your words' : 'Try one of these')}
-              <div className="mt-1.5 flex flex-wrap gap-2">{top.map((o) => chip(o, near.length > 0, 'top'))}</div>
-            </div>
-          )}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,190px),1fr))] gap-x-4 gap-y-4">
-            {matching.map((g) => {
-              const rest = g.options.length - SHOW
-              const all = more.has(g.name) || !!q || rest <= 2
-              return (
-                <div key={g.name} className="min-w-0">
-                  {label(g.name)}
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {(all ? g.options : g.options.slice(0, SHOW)).map((o) => chip(o))}
-                    {!all && rest > 0 && (
-                      <button type="button" onClick={() => setMore((m) => new Set(m).add(g.name))} className="h-9 cursor-pointer rounded-full px-2.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-zinc-900">
-                        + {rest} more
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+          <div className="flex flex-wrap items-center justify-between gap-x-2">
+            {label(heading)}
+            {!q && groups.length > 1 && (
+              <button type="button" aria-expanded={browsing} onClick={() => {
+                setCategory(browsing ? null : groups[0].name)
+                setShowAll(false)
+              }} className={link}>
+                {browsing ? 'Back to suggestions' : 'Browse categories'}
+              </button>
+            )}
           </div>
-          {q && !matching.length && <p className="text-[13px] text-zinc-500">Nothing like that here. Enter keeps your words.</p>}
+          {browsing && (
+            <Dropdown
+              label="Category"
+              value={category ?? ''}
+              options={groups.map((group) => ({ v: group.name, label: group.name }))}
+              onChange={(next) => {
+                setCategory(next)
+                setShowAll(false)
+              }}
+              className="min-h-9 w-full"
+            />
+          )}
+          {visible.length ? (
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label={ask}>
+              {visible.map((o) => chip(o, !q && !browsing && near.some((n) => n.id === o.id)))}
+            </div>
+          ) : (
+            <p className="text-[13px] text-zinc-600" role="status">No matches. Use keeps your words.</p>
+          )}
+          {options.length > 8 && (
+            <button type="button" aria-expanded={showAll} onClick={() => setShowAll((value) => !value)} className={`${link} justify-self-start`}>
+              {showAll ? 'Show fewer' : `Show all ${options.length}`}
+            </button>
+          )}
+          {blank.many && selected.length > 0 && <button type="button" onClick={onDone} className={`${link} justify-self-end`}>Done</button>}
         </div>
-        {own}
       </div>
     )
   }

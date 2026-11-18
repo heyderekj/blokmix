@@ -154,9 +154,9 @@ page they add up to on the right (`startCandidates`' first, drawn at once; measu
 a sentence to fill in, whole from the start, each empty blank naming what it asks for (`Blank.ask`, never a sample
 answer): "I'm making a site for [what it is] called [its name]. It should feel [a feeling] and help people [do what].
 Show [what to show]." (`core/jev/sentence.ts` `startSentence`, `fillStart`, `startText` for what's filled; `ui/jev/Sentence.tsx`:
-each blank's options in groups, `BUSINESS_GROUPS`/`FEEL_GROUPS`/`GOAL_GROUPS`/`SHOW_GROUPS` and `groupsOf`, under "Try one of
-these", `suggestedFor`, once Jev's order, `rankRequest`, or the kind gives something to go on; or your own
-words, matched to the nearest, `matchRequest`), with a box under it to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
+each blank opens a shortlist and a field that searches all options or takes your own words. Browse categories
+shows one group at a time. Jev's order (`rankRequest`) or the kind informs the shortlist and `matchRequest`
+matches your words to an option), with a box under it to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
 those questions and folds them (`answersFromSentence`, `heardFromSentence`, `SENTENCE_GOAL`, `SENTENCE_FEEL`). Answered
 questions fold into one line each with Change; "Skip, show me pages" takes every suggestion. The questions
 (`core/startFlow.ts`, pure: `QUESTIONS`, `nextQuestion`, `folded`, `skipToPages`, `briefFrom`, `sectionsFrom`):
@@ -632,7 +632,7 @@ packet text (`describeParams`) and the defaults. Colors are palette roles (`prim
   buttons and headings, glass/grain/glow cards, lifted shadow, glow hover). Curated sets: `samples/treatments/*.json`.
 - **Backdrops** (`backdrops.ts`, `slot.backdrop`, the Style panel): each sits where `anchor` says (the whole section, or a spot on a 3×3 pad) and fades out by `reach`, on a masked `::before` (a live one masks its `.mx-backdrop`); new picks start at `backdropPlace`. They are: gradient, mesh, grain, dots, grid, lines, topo,
   halftone, op-art stripes, spotlight, orb, as background layers on the section root in `@layer effects`
-  (`LAYER_ORDER` is `base, clip, effects, motion, blocks`). Inverse flips the section to primary.
+  (`LAYER_ORDER` is `base, clip, effects, motion, navigation, blocks`). Inverse flips the section to primary.
 - **Generative fills** (`fills.ts`): more `PLACEHOLDER_STYLES` (dither, halftone, topo, flow, blocks, ascii, op-art,
   marble, grain-gradient) drawn as small SVGs; `MediaFill.params` holds their dials.
 - **UI mockups** (`mocks.ts`, `samples/mocks/<id>/mock.{html,css,json}`, `lintMock`): small screens in HTML/CSS

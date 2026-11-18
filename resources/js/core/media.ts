@@ -1,6 +1,9 @@
 // Images in blocks: placeholders drawn from your palette, uploads and stock.
 // Pure, so the canvas, the exports and an agent all make the same picture.
 
+import { isSketch, SKETCH_LABEL, SKETCH_PHOTO } from './sketchCatalog'
+import { sketchMode, sketchSvg } from './pictureSketch'
+import { isSamplePhoto, type SamplePhoto } from './types'
 import type { MediaFill, MediaLink, MediaPlay, PlaceholderStyle, StockPhoto, TokenSet } from './types'
 import type { ParamValues } from './treatments/params'
 
@@ -11,7 +14,33 @@ export { mixHex }
 import { mockRender } from './treatments/mocks'
 import { isShaderId, shaderSpec, type ShaderId, type ShaderSpec } from './treatments/shaders'
 
+import bakeryPhoto from '../assets/sample-photos/bakery.webp?inline'
+import tablePhoto from '../assets/sample-photos/table.webp?inline'
+import studioPhoto from '../assets/sample-photos/studio.webp?inline'
+import architecturePhoto from '../assets/sample-photos/architecture.webp?inline'
+import interiorPhoto from '../assets/sample-photos/interior.webp?inline'
+import retailPhoto from '../assets/sample-photos/retail.webp?inline'
+import coastPhoto from '../assets/sample-photos/coast.webp?inline'
+
+export const samplePhotoSrc: Record<SamplePhoto, string> = {
+  'bakery': bakeryPhoto,
+  'table-setting': tablePhoto,
+  'print-studio': studioPhoto,
+  'courtyard': architecturePhoto,
+  'reading-room': interiorPhoto,
+  'ceramics': retailPhoto,
+  'mountain-trail': coastPhoto,
+}
+
 export const PLACEHOLDER_LABEL: Record<PlaceholderStyle, string> = {
+  ...SKETCH_LABEL,
+  'bakery': 'Bread on the bench',
+  'table-setting': 'Plating a dish',
+  'print-studio': 'Print studio',
+  'courtyard': 'Stone courtyard',
+  'reading-room': 'Reading room',
+  'ceramics': 'Ceramics',
+  'mountain-trail': 'Mountain trail',
   mesh: 'Mesh',
   shapes: 'Shapes',
   arch: 'Arch',
@@ -43,6 +72,11 @@ export function sizeForRatio(ratio: string | undefined, long = 800): [number, nu
 /** A placeholder picture in your palette, as SVG. Generative ones take their dials. */
 export function placeholderSvg(style: PlaceholderStyle, seed: number, tokens: TokenSet, ratio?: string, params?: ParamValues): string {
   const [W, H] = sizeForRatio(ratio)
+  if (isSketch(style)) {
+    const photo = params?.photo === true && SKETCH_PHOTO[style]
+    return sketchSvg(style, sketchMode(params), tokens, W, H, photo ? samplePhotoSrc[photo] : undefined)
+  }
+  if (isSamplePhoto(style)) return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"><image href="${samplePhotoSrc[style]}" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/></svg>`
   if (isFillId(style)) return fillSvg(style, params, seed, tokens, W, H)
   const r = rng(seed)
   const bg = tokens['color.bg']
@@ -160,6 +194,9 @@ export function renderMedia(fill: MediaFill, tokens: TokenSet, ratio: string | u
   const fit = fill.fit ?? 'cover'
   const moving = { play: fill.play ?? defaultPlay(fill), loop: fill.loop ?? true, lightbox: !!fill.lightbox }
   const posterOf = (p: string | undefined) => (p ? (uploads(p)?.dataUrl ?? p) : undefined)
+  if (fill.source === 'placeholder' && isSamplePhoto(fill.style)) {
+    return { kind: 'image', src: samplePhotoSrc[fill.style], alt: fill.alt ?? PLACEHOLDER_LABEL[fill.style], fit, lightbox: !!fill.lightbox }
+  }
   if (fill.source === 'placeholder') return { kind: 'image', src: svgDataUri(placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, tokens, ratio, fill.params)), alt, fit, lightbox: !!fill.lightbox }
   if (fill.source === 'mock') {
     const m = fill.mock ? mockRender(fill.mock, fill.params, fill.seed ?? 1, tokens) : null

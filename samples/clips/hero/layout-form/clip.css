@@ -10,7 +10,7 @@
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-3xl), 5vw, var(--mx-text-6xl));
+    font-size: clamp(min(var(--mx-text-2xl), 1.75rem), 4.75cqi, min(var(--mx-text-6xl), 4.5rem));
     line-height: 1.04;
     letter-spacing: -0.03em;
   }
@@ -108,5 +108,12 @@
     }
     & .input:focus { outline: 2px solid var(--mx-color-text); outline-offset: 2px; }
     & .meta-row { flex-direction: column; gap: 0; }
+  }
+
+  @container (max-width: 480px) {
+    & .heading {
+      font-size: clamp(min(var(--mx-text-xl), 1.5rem), 7.5cqi, min(var(--mx-text-4xl), 2.375rem));
+      line-height: 1.08;
+    }
   }
 }

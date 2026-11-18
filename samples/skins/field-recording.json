@@ -194,7 +194,15 @@
     }
   },
   "picture": {
-    "style": "topo"
+    "style": "topo",
+    "subjects": [
+      "trail-map",
+      "mountain-trail",
+      "courtyard",
+      "calendar"
+    ],
+    "mode": "combined",
+    "photo": true
   },
   "industries": [
     "travel",

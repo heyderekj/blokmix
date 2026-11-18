@@ -219,7 +219,14 @@
     }
   },
   "picture": {
-    "style": "grain-gradient"
+    "style": "grain-gradient",
+    "subjects": [
+      "pottery-shelf",
+      "ceramics",
+      "print-edition",
+      "cards"
+    ],
+    "mode": "image"
   },
   "industries": [
     "education",

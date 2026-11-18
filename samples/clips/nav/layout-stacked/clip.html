@@ -1,13 +1,14 @@
-<nav class="mx-nav-layout-stacked" data-mx-section="nav">
-  <div class="container">
-    <div class="top">
+<nav class="mx-nav-layout-stacked" data-mx-section="nav" data-site-nav aria-label="Primary navigation">
+  <div class="container" data-nav-bar>
+    <div class="top" data-nav-group>
       <span class="spacer" aria-hidden="true"></span>
-      <a href="#" class="brand" data-mx-block="image" data-mx-media="logo" data-mx-ratio="4/1">
+      <a href="#" class="brand" data-nav-brand data-mx-block="image" data-mx-media="logo" data-mx-ratio="4/1">
         <span class="name" data-mx-field="brand">Marlow Studio</span>
       </a>
-      <a href="#" class="btn primary" data-mx-block="button" data-mx-field="cta">Book a call</a>
+      <button type="button" data-nav-toggle aria-expanded="false"><span>Menu</span><span class="nav-toggle-icon" aria-hidden="true"></span></button>
+      <a href="#" class="btn primary" data-nav-action data-mx-block="button" data-mx-field="cta">Book a call</a>
     </div>
-    <ul class="links" data-mx-block="list" data-mx-list="links">
+    <ul class="links" data-nav-panel data-mx-block="list" data-mx-list="links">
       <li data-mx-block="item" data-mx-label="Link"><a href="#" class="link" data-mx-block="link" data-mx-field="link1">Work</a></li>
       <li data-mx-block="item" data-mx-label="Link"><a href="#" class="link" data-mx-block="link" data-mx-field="link2">Services</a></li>
       <li data-mx-block="item" data-mx-label="Link"><a href="#" class="link" data-mx-block="link" data-mx-field="link3">Journal</a></li>

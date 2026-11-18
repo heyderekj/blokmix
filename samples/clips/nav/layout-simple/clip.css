@@ -70,18 +70,4 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-4);
   }
-  @container (max-width: 616px) {
-    & .bar {
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas: "brand cta" "links links";
-      row-gap: var(--mx-space-2);
-    }
-    & .brand { min-height: 44px; }
-    & .links {
-      overflow-x: auto;
-      margin: 0 calc(var(--mx-space-3) * -1);
-      scrollbar-width: none;
-    }
-    & .link, & .cta { min-height: 44px; }
-  }
 }

@@ -1,5 +1,6 @@
 import { BASE_CSS, GRID_SPAN_CSS, LAYER_ORDER } from '@/core/export/base-css'
 import { MEDIA_CSS, MEDIA_JS } from '@/core/export/media-runtime'
+import { NAV_CSS, NAV_JS } from '@/core/export/nav-runtime'
 import { SLIDER_JS } from '@/core/export/slider-runtime'
 import { MOCK_BASE_CSS } from '@/core/treatments/mocks'
 import { SHADER_CSS } from '@/core/export/shaders'
@@ -161,7 +162,7 @@ const BRIDGE = `(function () {
     if (editing && editing.contains(e.target)) { if (e.target.closest && e.target.closest('label')) e.preventDefault(); return; }
     /* Dots, tabs, toggles and accordions still work while editing: the click switches them, and selects as usual. */
     if (e.target.matches && e.target.matches('input[type=radio], input[type=checkbox]')) return;
-    if (e.target.closest && e.target.closest('[data-slider-prev], [data-slider-next], [data-slider-dot]')) return;
+    if (e.target.closest && e.target.closest('[data-slider-prev], [data-slider-next], [data-slider-dot], [data-nav-toggle]')) return;
     if (e.target.closest && e.target.closest('label, summary')) {
       var hit = target(e.target);
       post({ pick: hit ? hit.getAttribute('data-mx-b') : null });
@@ -215,8 +216,11 @@ const BRIDGE = `(function () {
     post({ editing: true });
     requestAnimationFrame(report);
   }
-  /* The frame never scrolls itself: scrolling and pinching over it pan and zoom the canvas. */
+  /* The canvas pans with the wheel. Horizontal gestures over sliders belong to their track. */
   document.addEventListener('wheel', function (e) {
+    var track = e.target.closest && e.target.closest('[data-slider-track]');
+    var sideways = e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY);
+    if (track && sideways && !e.ctrlKey && !e.metaKey && track.scrollWidth > track.clientWidth) return;
     e.preventDefault();
     post({ wheel: { dx: e.deltaX, dy: e.deltaY, mode: e.deltaMode, x: e.clientX, y: e.clientY, ctrl: e.ctrlKey, meta: e.metaKey, shift: e.shiftKey } });
   }, { passive: false });
@@ -581,7 +585,7 @@ export function buildSrcdoc(i: SrcdocInput): string {
 ${links}
 <style>${LAYER_ORDER}</style>
 <style id="mx-tokens">${i.tokensCss}</style>
-<style id="mx-base">@layer base {\n${BASE_CSS}}\n${FRAME_CSS}\n${GRID_SPAN_CSS}</style>
+<style id="mx-base">@layer base {\n${BASE_CSS}}\n${FRAME_CSS}\n${GRID_SPAN_CSS}\n${NAV_CSS}</style>
 <style id="mx-clip">@layer clip {\n${i.css}\n}</style>
 <style id="mx-motion"${i.motion === false ? ' media="not all"' : ''}>@layer motion {\n${i.motionCss ?? ''}\n}</style>
 <style id="mx-blocks">${i.blocksCss ?? ''}</style>
@@ -594,5 +598,6 @@ ${i.html}
 <script>${BRIDGE}</script>
 <script>${MEDIA_JS}</script>
 <script>${SLIDER_JS}</script>
+<script>${NAV_JS}</script>
 </body></html>`
 }

@@ -172,7 +172,20 @@
     }
   },
   "picture": {
-    "style": "ascii"
+    "style": "ascii",
+    "subjects": [
+      "code",
+      "chat",
+      "analytics",
+      "toasts"
+    ],
+    "mode": "ui",
+    "mockParams": {
+      "tint": true,
+      "chrome": "browser",
+      "inset": 6,
+      "shadow": true
+    }
   },
   "industries": [
     "ai",

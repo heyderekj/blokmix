@@ -8,6 +8,7 @@ import { defaultFor, effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
 import { advise, type Advice } from '@/core/advise'
 import { resolveFields, TYPE_LABEL } from '@/core/content'
+import { pictureFor } from '@/core/sectionDefaults'
 import { slotClip } from '@/data/library'
 import { useStore, currentSlots } from '@/state/store'
 import { useLinkScope, useResolvedGuide } from '@/state/derived'
@@ -64,7 +65,10 @@ const PLURAL: Record<BlockKind, string> = {
  * Style panel at the window's side, the same panel a section uses.
  */
 export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; rect: FrameRect | null }) {
-  const blocks = slotClip(slot).blocks
+  const clip = slotClip(slot)
+  const blocks = clip.blocks
+  const picture = useStore((s) => s.guide.picture)
+  const industry = useStore((s) => s.content.brief?.industry)
   const components = useStore((s) => s.guide.components)
   const own = slot.edits?.[slot.clipId]?.[block.id]
   const def = defaultFor(components, block)
@@ -258,7 +262,8 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         <ImageMenu
           block={block}
           slot={slot}
-          fill={own?.media}
+          fill={pictureFor(own?.media, block, picture, clip.origin, slot.keep.style, { type: slot.type, industry })}
+          canReset={!!own?.media}
           onHover={(m) => hover(m ? { media: m } : null)}
           onPick={(m) => {
             apply({ media: m ?? undefined })

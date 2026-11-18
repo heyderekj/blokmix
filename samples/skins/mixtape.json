@@ -20,7 +20,7 @@
     "font.body": "'Figtree', sans-serif",
     "font.mono": "'Space Mono', ui-monospace, monospace",
     "type.base": "16px",
-    "type.ratio": "1.5",
+    "type.ratio": "1.25",
     "type.displayWeight": "800",
     "radius.base": "14px",
     "stroke.width": "2px",
@@ -131,7 +131,14 @@
     }
   },
   "picture": {
-    "style": "shapes"
+    "style": "shapes",
+    "subjects": [
+      "pottery-shelf",
+      "ceramics",
+      "bread-counter",
+      "cards"
+    ],
+    "mode": "combined"
   },
   "industries": [
     "food",

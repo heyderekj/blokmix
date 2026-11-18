@@ -8,7 +8,7 @@
   & .head.center { margin-inline: auto; text-align: center; justify-items: center; }
   & .eyebrow { font-size: var(--mx-text-sm); font-weight: 600; letter-spacing: 0.02em; color: var(--mx-color-muted); }
   & .heading { font-family: var(--mx-font-display); font-weight: var(--mx-type-display-weight); line-height: 1.1; letter-spacing: -0.02em; }
-  & .heading.display { font-size: clamp(var(--mx-text-3xl), 4.4vw, var(--mx-text-6xl)); line-height: 1.04; letter-spacing: -0.03em; }
+  & .heading.display { font-size: clamp(min(var(--mx-text-2xl), 1.625rem), 3.75cqi, min(var(--mx-text-5xl), 3.375rem)); line-height: 1.04; letter-spacing: -0.03em; }
   & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
   & .actions { display: flex; flex-wrap: wrap; gap: var(--mx-space-3); margin-top: var(--mx-space-2); }
   & .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: var(--mx-space-3) var(--mx-space-6); border-radius: var(--mx-radius-pill); font-weight: 600; line-height: 1.1; cursor: pointer; transition: background-color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1); }
@@ -25,9 +25,10 @@
   &[data-intro="above"] .actions { justify-content: center; }
 
   /* A track that scrolls natively, so it holds any number of slides. */
-  & .slider { min-width: 0; display: grid; gap: var(--mx-space-5); }
+  & .slider { min-width: 0; container: slide-rail / inline-size; display: grid; gap: var(--mx-space-5); }
   & .track {
     --show: 1;
+    --visible: var(--show);
     --between: var(--mx-space-5);
     display: flex;
     gap: var(--between);
@@ -36,7 +37,7 @@
     scrollbar-width: none;
   }
   & .track::-webkit-scrollbar { display: none; }
-  & .slide { flex: 0 0 calc((100% - (var(--show) - 1) * var(--between)) / var(--show)); min-width: 0; scroll-snap-align: start; }
+  & .slide { flex: 0 0 calc((100% - (var(--visible) - 1) * var(--between)) / var(--visible)); min-width: 0; scroll-snap-align: start; }
   &[data-show="2"] .track { --show: 2; }
   &[data-show="3"] .track { --show: 3; }
   &[data-show="4"] .track { --show: 4; }
@@ -62,8 +63,18 @@
   & .body { color: var(--mx-color-muted); line-height: 1.55; }
   & .more { margin-top: var(--mx-space-1); font-size: var(--mx-text-sm); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
   &[data-slide="picture"] .caption { display: none; }
-  &[data-slide="over"] .slide { position: relative; }
-  &[data-slide="over"] .caption { position: absolute; left: var(--mx-space-4); right: var(--mx-space-4); bottom: var(--mx-space-4); padding: var(--mx-space-4); background: var(--mx-color-bg); border-radius: var(--mx-radius); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
+  /* The caption overlaps the lower edge of the picture and can keep growing below it. */
+  &[data-slide="over"] .track { align-items: flex-start; }
+  &[data-slide="over"] .slide { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  &[data-slide="over"] .caption {
+    position: relative;
+    margin: clamp(-4rem, -18%, -1rem) var(--mx-space-4) 0;
+    padding: var(--mx-space-4);
+    min-width: 0;
+    background: var(--mx-color-bg);
+    border-radius: var(--mx-radius);
+    box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border);
+  }
   &[data-slide="beside"] .slide { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: center; gap: var(--mx-space-6); }
 
   /* Arrows, dots and a count, once /mx-slider.js is running; swiping works without it. Everything fitting hides them. */
@@ -114,5 +125,20 @@
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; justify-self: stretch; }
     & .slide, &[data-slide="beside"] .slide { grid-template-columns: minmax(0, 1fr); }
     &[data-show] .track { --show: 1; }
+  }
+
+  @container (max-width: 480px) {
+    & .heading.display {
+      font-size: clamp(min(var(--mx-text-xl), 1.5rem), 7.5cqi, min(var(--mx-text-4xl), 2.375rem));
+      line-height: 1.08;
+    }
+  }
+
+  @container slide-rail (max-width: 760px) {
+    &:not([data-slide="picture"]) .track { --visible: min(2, var(--show)); }
+  }
+
+  @container slide-rail (max-width: 460px) {
+    &:not([data-slide="picture"]) .track { --visible: 1; }
   }
 }

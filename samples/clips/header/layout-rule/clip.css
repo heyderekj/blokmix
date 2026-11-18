@@ -10,11 +10,11 @@
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    font-size: clamp(min(var(--mx-text-2xl), 1.5rem), 3.4cqi, min(var(--mx-text-4xl), 3rem));
     line-height: 1.1;
     letter-spacing: -0.02em;
   }
-  & .heading.display { font-size: clamp(var(--mx-text-3xl), 5vw, var(--mx-text-6xl)); line-height: 1.04; letter-spacing: -0.03em; }
+  & .heading.display { font-size: clamp(min(var(--mx-text-3xl), 1.875rem), 5cqi, min(var(--mx-text-6xl), 5rem)); line-height: 1.04; letter-spacing: -0.03em; }
   & .lead { max-width: 60ch; font-size: var(--mx-text-lg); line-height: 1.55; color: var(--mx-color-muted); }
 
   & .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mx-space-3); }
@@ -40,7 +40,7 @@
 
   /* A very large heading across the page, a hairline, then the intro and the action side by side. */
   & .head { max-width: var(--mx-width-content); }
-  & .head .heading.display { font-size: clamp(var(--mx-text-3xl), 6.2vw, calc(var(--mx-text-6xl) * 1.3)); line-height: 1; letter-spacing: -0.04em; }
+  & .head .heading.display { font-size: clamp(min(var(--mx-text-3xl), 1.875rem), 5.75cqi, min(var(--mx-text-6xl), 5rem)); line-height: 1; letter-spacing: -0.04em; }
   & .under {
     padding-top: var(--mx-space-7);
     border-top: var(--mx-stroke) solid var(--mx-color-border);

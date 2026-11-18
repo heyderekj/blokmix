@@ -205,7 +205,14 @@
     }
   },
   "picture": {
-    "style": "shapes"
+    "style": "shapes",
+    "subjects": [
+      "bread-counter",
+      "bakery",
+      "table-setting",
+      "pottery-shelf"
+    ],
+    "mode": "image"
   },
   "industries": [
     "food",

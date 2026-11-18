@@ -198,7 +198,20 @@
     }
   },
   "picture": {
-    "style": "waves"
+    "style": "waves",
+    "subjects": [
+      "day-ticket",
+      "calendar",
+      "cards",
+      "chat"
+    ],
+    "mode": "ui",
+    "mockParams": {
+      "tint": true,
+      "chrome": "none",
+      "inset": 6,
+      "shadow": false
+    }
   },
   "industries": [
     "education",

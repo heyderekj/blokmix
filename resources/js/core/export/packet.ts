@@ -307,7 +307,7 @@ export function buildNotes(i: PacketInput): string {
           : m.source === 'mock'
           ? `UI mockup “${m.mock}” drawn in HTML and the style guide (markup and CSS are in the section; replace with a real screenshot or keep it as an illustration)`
           : m.source === 'placeholder'
-          ? 'placeholder from the palette (replace with a real image before launch)'
+          ? m.src.endsWith('.webp') ? 'sample photograph (replace with your own photo)' : 'placeholder from the palette (replace with a real image before launch)'
           : m.source === 'upload'
             ? 'uploaded image'
             : m.source === 'stock'

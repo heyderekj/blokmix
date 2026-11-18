@@ -47,16 +47,6 @@
   }
   & .x path { vector-effect: non-scaling-stroke; }
 
-  & .sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    opacity: 0;
-  }
-
   /* Bar: brand, the links (the first one opens the mega panel), the button. */
   & .bar { display: flex; align-items: center; gap: var(--mx-space-6); }
   & .brand {
@@ -89,7 +79,6 @@
   & .chev { flex: none; }
   & .mega[open] .trigger { color: var(--mx-color-text); box-shadow: inset 0 0 0 var(--mx-stroke) var(--mx-color-border); }
   & .mega[open] .chev { scale: 1 -1; }
-  & .burger { display: none; }
 
   /* The mega panel: drops under the whole nav, full width, over the page below. */
   & .panel {
@@ -133,7 +122,6 @@
     & .btn.primary:hover { background: color-mix(in oklab, var(--mx-color-primary) 86%, var(--mx-color-bg)); }
     & .trigger:hover, & .link:hover { color: var(--mx-color-text); }
     & .entry:hover { color: var(--mx-color-muted); }
-    & .burger:hover { color: var(--mx-color-muted); }
   }
 
   @container (max-width: 952px) {
@@ -141,51 +129,11 @@
     & .trigger, & .link { padding-inline: var(--mx-space-3); }
   }
 
-  /* Phone: the links fold into a menu under the bar; the mega panel opens in place as a list. */
-  @media (max-width: 760px) {
+  @media (max-width: 800px) {
     padding: var(--mx-space-3) var(--mx-space-5);
-    &:has(.burger input:checked) {
-      & .open-icon { display: none; }
-      & .close-icon { display: block; }
-      & .drawer { display: flex; }
-    }}
-  @container (max-width: 616px) {
-    & .bar { flex-wrap: wrap; column-gap: var(--mx-space-3); row-gap: 0; }
-    & .brand { flex: 1 1 0; min-width: 0; min-height: 44px; font-size: var(--mx-text-base); white-space: normal; }
-    & .bar > .btn { min-height: 44px; }
-    & .burger {
-      position: relative;
-      display: grid;
-      place-items: center;
-      flex: none;
-      width: 44px;
-      height: 44px;
-      cursor: pointer;
-      transition: color var(--mx-motion-duration) var(--mx-motion-ease), scale 120ms cubic-bezier(0.23, 1, 0.32, 1);
-    }
-    & .burger:active { scale: 0.97; }
-    & .burger svg { width: 1.25em; height: 1.25em; }
-    & .close-icon { display: none; }
-    & .drawer {
-      order: 10;
-      flex-basis: 100%;
-      display: none;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0;
-      margin: var(--mx-space-3) 0 0;
-      padding-top: var(--mx-space-2);
-      border-top: var(--mx-stroke) solid var(--mx-color-border);
-    }
+  }
+  @container (max-width: 800px) {
     & .links { flex-direction: column; align-items: stretch; gap: 0; }
-    & .trigger, & .link {
-      justify-content: space-between;
-      width: 100%;
-      padding-inline: 0;
-      border-radius: 0;
-      font-size: var(--mx-text-lg);
-      color: var(--mx-color-text);
-    }
     & .mega[open] .trigger { box-shadow: none; }
     & .panel {
       position: static;
@@ -194,7 +142,7 @@
     }
     & .panel .grid { display: block; }
     & .kicker, & .promo { display: none; }
-    & .entries { grid-template-columns: minmax(0, 1fr); gap: 0; }
-    & .entry { margin-inline: 0; padding-inline: 0; }
+    & .entries { grid-template-columns: minmax(0, 1fr); gap: 0; padding-inline-start: var(--mx-space-4); }
+    & .entry { margin-inline: 0; }
   }
 }

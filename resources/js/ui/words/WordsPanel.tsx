@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Check, ChevronDown, Pencil, Type, Wand2 } from 'lucide-react'
 import type { SectionType, Slot } from '@/core/types'
@@ -139,28 +140,16 @@ function BriefRow() {
       </div>
       {open && (
         <div className="mt-2 grid gap-2 text-[12.5px]">
-          <label className="grid gap-1">
+          <div className="grid gap-1">
             <span className="text-zinc-500">Kind of site</span>
-            <select value={b.format ?? ''} onChange={(e) => st().setBrief({ format: (e.target.value || undefined) as never })} className="h-8 rounded-lg bg-white px-2 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]">
-              <option value="">Not said</option>
-              {FORMATS.map((f) => (
-                <option key={f} value={f}>
-                  {FORMAT_LABEL[f]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1">
+            <Dropdown label="Kind of site" value={b.format ?? ''} onChange={(next) => st().setBrief({ format: next || undefined })}
+              options={[{ v: '' as const, label: 'Not said' }, ...FORMATS.map((v) => ({ v, label: FORMAT_LABEL[v] }))]} />
+          </div>
+          <div className="grid gap-1">
             <span className="text-zinc-500">Industry</span>
-            <select value={b.industry ?? ''} onChange={(e) => st().setBrief({ industry: (e.target.value || undefined) as never })} className="h-8 rounded-lg bg-white px-2 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]">
-              <option value="">Not said</option>
-              {INDUSTRIES.map((i) => (
-                <option key={i} value={i}>
-                  {INDUSTRY_LABEL[i]}
-                </option>
-              ))}
-            </select>
-          </label>
+            <Dropdown label="Industry" value={b.industry ?? ''} onChange={(next) => st().setBrief({ industry: next || undefined })}
+              options={[{ v: '' as const, label: 'Not said' }, ...INDUSTRIES.map((v) => ({ v, label: INDUSTRY_LABEL[v] }))]} />
+          </div>
           <div className="grid gap-1">
             <span className="text-zinc-500">It should</span>
             <div className="flex flex-wrap gap-1">
@@ -174,15 +163,23 @@ function BriefRow() {
               })}
             </div>
           </div>
-          <label className="grid gap-1">
-            <span className="text-zinc-500">Main button</span>
-            <input list="main-actions" defaultValue={b.mainAction ?? ''} onBlur={(e) => st().setBrief({ mainAction: e.target.value, mainActionTyped: true })} placeholder={actionChoices(b)[0]} className="h-8 rounded-lg bg-white px-2 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" />
-            <datalist id="main-actions">
-              {actionChoices(b).map((a) => (
-                <option key={a} value={a} />
+          <div className="grid gap-1">
+            <label className="grid gap-1">
+              <span className="text-zinc-500">Main button</span>
+              <input key={b.mainAction ?? ''} defaultValue={b.mainAction ?? ''} onBlur={(e) => {
+                if (e.target.value !== (b.mainAction ?? '')) st().setBrief({ mainAction: e.target.value, mainActionTyped: true })
+              }} placeholder={actionChoices(b)[0]} className="h-8 rounded-lg bg-white px-2 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" />
+            </label>
+            <div className="flex flex-wrap gap-1">
+              {actionChoices(b).map((action) => (
+                <button key={action} type="button" aria-pressed={b.mainAction === action}
+                  onClick={() => st().setBrief({ mainAction: action, mainActionTyped: false })}
+                  className="rounded-full bg-white px-2 py-1 text-[11.5px] text-zinc-600 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)] hover:bg-zinc-950/5 aria-pressed:bg-key-soft aria-pressed:text-key-ink">
+                  {action}
+                </button>
               ))}
-            </datalist>
-          </label>
+            </div>
+          </div>
           <label className="grid gap-1">
             <span className="text-zinc-500">Who it’s for</span>
             <input defaultValue={b.who ?? ''} onBlur={(e) => st().setBrief({ who: e.target.value })} placeholder="Neighbors, regulars, people passing by" className="h-8 rounded-lg bg-white px-2 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" />

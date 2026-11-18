@@ -39,6 +39,7 @@
 
   /* Head on the left, a quiet scroll hint on the right. */
   & .top { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--mx-space-8); }
+  &:has([data-slider-fits]) .hint { display: none; }
   & .hint {
     display: inline-flex;
     flex: none;
@@ -53,7 +54,7 @@
     --edge: calc(var(--mx-space-8) + max(0px, (100% - var(--mx-width-content)) / 2));
     display: flex;
     gap: var(--mx-space-6);
-    margin: var(--mx-space-9) calc(var(--mx-space-8) * -1) 0;
+    margin-inline: calc(var(--mx-space-8) * -1);
     padding: var(--mx-space-1) var(--edge) var(--mx-space-5);
     overflow-x: auto;
     overscroll-behavior-x: contain;
@@ -73,7 +74,7 @@
   & .text { display: grid; gap: var(--mx-space-2); padding-right: var(--mx-space-4); }
 
   & .slider { min-width: 0; display: grid; gap: var(--mx-space-4); }
-  /* The head and the slider below it: the same room as any head and what follows it. */
+  /* Space the header and rail once. */
   & .container + .slider { margin-top: var(--mx-space-9); }
 
   /* Arrows, dots and a count, once /mx-slider.js is running; swiping works without it. Everything fitting hides them. */
@@ -117,7 +118,7 @@
     & .track {
       --edge: var(--mx-space-5);
       gap: var(--mx-space-4);
-      margin: var(--mx-space-8) calc(var(--mx-space-5) * -1) 0;
+      margin-inline: calc(var(--mx-space-5) * -1);
     }
     & .slide { flex-basis: 80%; gap: var(--mx-space-4); }
   }

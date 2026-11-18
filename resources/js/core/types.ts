@@ -1,6 +1,7 @@
 // Core types. Nothing in core/ imports React or Vite APIs, so the same code can
 // later run inside the capture extension and the MCP server.
 
+import { SKETCH_IDS, type SketchId, type SketchMode } from './sketchCatalog'
 import type { Brief } from './brief'
 import type { ParamValues, TreatmentValue } from './treatments/params'
 
@@ -271,6 +272,11 @@ export interface SectionDefault {
 
 /** A placeholder style for pictures nobody has filled yet. */
 export interface PictureDefault {
+  /** Example subjects for empty layout images, in display order. The first leads the hero. */
+  mode?: SketchMode
+  photo?: boolean
+  subjects?: (SamplePhoto | SketchId | import('./treatments/mocks').MockId)[]
+  mockParams?: ParamValues
   style: PlaceholderStyle
   params?: import('./treatments/params').ParamValues
 }
@@ -553,7 +559,10 @@ export interface SectionMotion {
 }
 
 /** Placeholders: the simple ones, then the generative ones with dials (core/treatments/fills.ts). */
-export const PLACEHOLDER_STYLES = ['mesh', 'shapes', 'arch', 'waves', 'grid', 'portrait', 'grain-gradient', 'dither', 'halftone', 'topo', 'flow', 'blocks', 'ascii', 'op-art', 'marble'] as const
+export const SAMPLE_PHOTOS = ['bakery', 'table-setting', 'print-studio', 'courtyard', 'reading-room', 'ceramics', 'mountain-trail'] as const
+export type SamplePhoto = (typeof SAMPLE_PHOTOS)[number]
+export const isSamplePhoto = (style: string | undefined): style is SamplePhoto => SAMPLE_PHOTOS.some((photo) => photo === style)
+export const PLACEHOLDER_STYLES = [...SAMPLE_PHOTOS, ...SKETCH_IDS, 'mesh', 'shapes', 'arch', 'waves', 'grid', 'portrait', 'grain-gradient', 'dither', 'halftone', 'topo', 'flow', 'blocks', 'ascii', 'op-art', 'marble'] as const
 export type PlaceholderStyle = (typeof PLACEHOLDER_STYLES)[number]
 
 /** A stock photo, hotlinked as the provider asks, with its credit. */

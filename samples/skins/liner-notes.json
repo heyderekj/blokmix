@@ -209,7 +209,13 @@
     }
   },
   "picture": {
-    "style": "topo"
+    "style": "topo",
+    "subjects": [
+      "print-edition",
+      "reading-room",
+      "print-studio"
+    ],
+    "mode": "image"
   },
   "industries": [
     "media",

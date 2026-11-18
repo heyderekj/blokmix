@@ -102,6 +102,8 @@ const phoneRules = (rules: string[]) => (rules.length ? `\n@media (max-width: ${
 export interface BlockCssInput {
   blocks: BlockInfo[]
   edits: Record<string, BlockEdit> | undefined
+  /** Built-in headings keep their layout size until the guide or block explicitly changes it. */
+  layout?: boolean
   components?: Partial<Record<BlockKind, ComponentDefault>>
   /** The guide's text style edits: picked styles use them, and edited styles restyle the blocks that read as them. */
   textStyles?: TextStyleEdits
@@ -140,7 +142,9 @@ export function blockCss(i: BlockCssInput): string {
     if (s?.shadow) decl.push(`--b-shadow: ${SHADOW[s.shadow]}; box-shadow: ${SHADOW[s.shadow]};`)
     decl.push(...spacingDecl(s))
     // Type after the variant's own, so a picked text style or size wins on the same element.
-    const type = textDecl(ts ? styles[ts] : undefined, s?.size)
+    const edits = ts && i.layout && b.kind === 'heading' && !s?.text ? i.textStyles?.[ts] : undefined
+    const sizing = edits && !edits.size ? (edits.phone ? 'phone' : 'layout') : 'style'
+    const type = textDecl(ts ? styles[ts] : undefined, s?.size, sizing)
     decl.push(...type.desktop)
     const v = findVariant(b.kind, e?.variant)
     // Variant first so the explicit picks above (declared after) win on the same element.

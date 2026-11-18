@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { listParts } from '@/core/themeParts'
 import { AREA_LABEL, type StyleArea } from '@/core/contract'
@@ -11,6 +12,7 @@ import { SkinPreview } from '@/ui/skins/SkinPreview'
 import { jevOn } from '@/lib/jev'
 
 const control = 'rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs font-medium focus-visible:outline-2'
+const field = `${control} w-full min-w-0`
 
 export function PartPicker() {
   const guide = useStore((s) => s.guide)
@@ -88,26 +90,19 @@ export function PartPicker() {
   }
   return (
     <section className="grid gap-3 rounded-2xl bg-[var(--lift)] p-3">
-      <label className="grid gap-1.5 text-[13px] font-semibold">
-        Change one part
-        <select
-          aria-label="Change one part"
-          className={control}
+      <div className="grid gap-1.5 text-[13px] font-semibold">
+        <span>Change one part</span>
+        <Dropdown
+          label="Change one part"
+          className="w-full"
           value={area}
-          onChange={(e) => {
+          options={[{ v: '' as const, label: 'Choose a part' }, ...rows.map((r) => ({ v: r.area, label: r.name + (r.kept ? ' · Kept' : '') }))]}
+          onChange={(next) => {
             clear()
-            setArea(e.target.value as StyleArea)
+            setArea(next)
           }}
-        >
-          <option value="">Choose a part</option>
-          {rows.map((r) => (
-            <option key={r.area} value={r.area}>
-              {r.name}
-              {r.kept ? ' · Kept' : ''}
-            </option>
-          ))}
-        </select>
-      </label>
+        />
+      </div>
       {row &&
         (row.kept ? (
           <p className="text-xs">
@@ -117,29 +112,26 @@ export function PartPicker() {
             </button>
           </p>
         ) : (
-          <label className="grid gap-1 text-xs">
-            {row.name}
-            <select
-              aria-label={row.name}
-              className={control}
+          <div className="grid gap-1 text-xs">
+            <span>{row.name}</span>
+            <Dropdown
+              label={row.name}
+              className="w-full"
               value={parts?.[row.area] ?? row.current ?? ''}
-              onChange={(e) => setParts(e.target.value ? { [row.area]: e.target.value } : null)}
-            >
-              {!row.current && <option value="">Your own</option>}
-              {row.options.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              options={[
+                ...(!row.current ? [{ v: '', label: 'Your own' }] : []),
+                ...row.options.map((p) => ({ v: p.id, label: p.name })),
+              ]}
+              onChange={(next) => setParts(next ? { [row.area]: next } : null)}
+            />
+          </div>
         ))}
       {enabled && online && (
         <div className="grid gap-2">
           <label className="grid gap-1 text-xs">
             Say how it should change
             <input
-              className={control}
+              className={field}
               value={text}
               maxLength={300}
               onChange={(e) => {

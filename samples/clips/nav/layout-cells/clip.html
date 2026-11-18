@@ -1,16 +1,17 @@
-<nav class="mx-nav-layout-cells" data-mx-section="nav">
-  <div class="container cells">
-    <a href="#" class="brand" data-mx-block="image" data-mx-media="logo" data-mx-ratio="4/1">
+<nav class="mx-nav-layout-cells" data-mx-section="nav" data-site-nav aria-label="Primary navigation">
+  <div class="container cells nav-frame" data-nav-bar>
+    <a href="#" class="brand" data-nav-brand data-mx-block="image" data-mx-media="logo" data-mx-ratio="4/1">
       <span class="name" data-mx-field="brand">Marlow Studio</span>
     </a>
-    <ul class="links" data-mx-block="list" data-mx-list="links">
+    <button type="button" data-nav-toggle aria-expanded="false"><span>Menu</span><span class="nav-toggle-icon" aria-hidden="true"></span></button>
+    <ul class="links" data-nav-panel data-mx-block="list" data-mx-list="links">
       <li data-mx-block="item" data-mx-label="Link"><a href="#" class="link" data-mx-block="link"><span data-mx-field="link1">Work</span></a></li>
       <li data-mx-block="item" data-mx-label="Link"><a href="#" class="link" data-mx-block="link"><span data-mx-field="link2">Services</span></a></li>
       <li data-mx-block="item" data-mx-label="Link"><a href="#" class="link" data-mx-block="link"><span data-mx-field="link3">Journal</span></a></li>
       <li data-mx-block="item" data-mx-label="Link"><a href="#" class="link" data-mx-block="link"><span data-mx-field="link4">About</span></a></li>
     </ul>
-    <div class="end">
-      <a href="#" class="go" data-mx-block="button" data-mx-field="cta">Book a call</a>
+    <div class="end" data-nav-group>
+      <a href="#" class="go" data-nav-action data-mx-block="button" data-mx-field="cta">Book a call</a>
     </div>
   </div>
 </nav>

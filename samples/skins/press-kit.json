@@ -177,7 +177,14 @@
     }
   },
   "picture": {
-    "style": "halftone"
+    "style": "halftone",
+    "subjects": [
+      "day-ticket",
+      "calendar",
+      "print-studio",
+      "cards"
+    ],
+    "mode": "combined"
   },
   "industries": [
     "media",

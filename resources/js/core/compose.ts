@@ -1,3 +1,4 @@
+import { isSamplePhoto } from './types'
 import type { LinkTarget, Site, BlockEdit, MediaFill, MediaPlay, SectionMotion, Clip, CssVars, FontSource, GuideState, Keep, Library, ProjectContent, ResolvedGuide, SectionType, Slot, TokenSet, ListBinding } from './types'
 import { applyBindings, entryTitle, findList, sortedEntries, type BindContext, type Collection } from './collections'
 import { bandTokens, sectionTokens, widthTokens } from './surface'
@@ -113,6 +114,8 @@ export interface ComposedPage {
   moving: boolean
   /** A section is a slider: ship /mx-slider.js. */
   sliding?: boolean
+  /** Enhanced navigation disclosures are used on the site. */
+  navigation?: boolean
   /** Live shaders (backdrops and image blocks): ship /mx-shaders.js, and bake their posters. */
   shaders: ComposedShader[]
   /** Other pages that links lead to but the site doesn't have yet (/careers): for the agent to build. */
@@ -214,7 +217,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const changed = clip.blocks
       .map((b) => {
         const edit = effectiveEdit(edits?.[b.id], defaultFor(input.page?.components, b))
-        const picture = pictureFor(edit?.media, b, input.page?.picture, clip.origin, slot.keep.style, { type: clip.type, logo: input.content.logo })
+        const picture = pictureFor(edit?.media, b, input.page?.picture, clip.origin, slot.keep.style, { type: clip.type, logo: input.content.logo, industry: input.content.brief?.industry })
         return { b, edit: picture && !edit?.media ? { ...edit, media: picture } : edit ?? (blockTextStyle(b, clip.blocks, undefined, input.page) ? {} : undefined) }
       })
       .filter((x): x is { b: (typeof x)['b']; edit: BlockEdit } => !!x.edit)
@@ -248,6 +251,10 @@ export function composePage(input: ComposeInput): ComposedPage {
       if (r.shader) {
         const [w, h] = sizeForRatio(b.ratio, 1200)
         src = posterFor(`${base}.png`, r.shader, w, h)
+      } else if (fill.source === 'placeholder' && isSamplePhoto(fill.style)) {
+        const path = `media/example-${fill.style}.webp`
+        if (!mediaFiles[path]) mediaFiles[path] = dataUrlBytes(r.src)!.bytes
+        src = `/${path}`
       } else if (fill.source === 'placeholder') {
         src = `/${base}.svg`
         mediaFiles[`${base}.svg`] = placeholderSvg(fill.style ?? 'mesh', fill.seed ?? 1, input.guide.tokens, b.ratio, fill.params)
@@ -350,6 +357,7 @@ export function composePage(input: ComposeInput): ComposedPage {
       blocks: clip.blocks,
       edits,
       components: input.page?.components,
+      layout: clip.origin === 'layout',
       textStyles: input.page?.textStyles,
       select: (b) => `.${clip.rootClass}.${blockClass(b.id)}, .${clip.rootClass} .${blockClass(b.id)}`,
     }) + (spaced ? `\n${sectionSpacingCss(slot.spacing, `.${clip.rootClass}.mx-${key}${position + 1}`)}` : '')
@@ -470,6 +478,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     mediaFiles,
     moving: sections.some((x) => x.media.some((m) => (m.kind !== 'image' && m.kind !== 'mock' && m.kind !== 'shader') || m.lightbox)),
     sliding: sections.some((x) => x.clip.html.includes('data-slider')),
+    navigation: sections.some((x) => x.clip.html.includes('data-site-nav')),
     shaders,
     pages: [...new Set(sections.flatMap((x) => x.links.filter((l) => l.to === 'page').map((l) => l.href)))].sort(),
   }
@@ -542,6 +551,7 @@ export function composeSite(input: Omit<ComposeInput, 'slots' | 'key' | 'used' |
     mediaFiles: Object.assign({}, ...all.map((c) => c.mediaFiles), collectionMedia),
     moving: all.some((c) => c.moving),
     sliding: all.some((c) => c.sliding),
+    navigation: all.some((c) => c.navigation),
     shaders: all.flatMap((c) => c.shaders),
     pages: [...new Set(all.flatMap((c) => c.pages))].filter((p) => !paths.has(p)).sort(),
     site: {

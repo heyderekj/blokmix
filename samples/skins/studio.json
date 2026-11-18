@@ -211,6 +211,19 @@
       "c": "bg",
       "angle": 160,
       "grain": 18
+    },
+    "subjects": [
+      "print-edition",
+      "print-studio",
+      "cards",
+      "courtyard"
+    ],
+    "mode": "combined",
+    "mockParams": {
+      "tint": true,
+      "chrome": "browser",
+      "inset": 6,
+      "shadow": true
     }
   },
   "industries": [

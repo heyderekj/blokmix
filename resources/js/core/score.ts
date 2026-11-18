@@ -15,7 +15,7 @@ export interface PageMeasure {
   /** Where the nav ends (0 without one). */
   navBottom: number
   /** The opening section's main heading, and how many lines it wraps to. */
-  headline?: { top: number; bottom: number; lines: number }
+  headline?: { top: number; bottom: number; lines: number; clipped?: boolean }
   /** The opening section's first button. */
   button?: { top: number; bottom: number }
   /** Every block that starts above the fold, top to bottom: what a visitor sees before scrolling. */
@@ -73,7 +73,9 @@ export function scorePage(byWidth: Record<number, PageMeasure>, extra: ScoreChec
               ? m.button
                 ? `On a ${where}, the button sits below the first screen`
                 : `Headline shows on a ${where} without scrolling`
-              : `On a ${where}, the headline starts below the first screen`,
+              : m.headline && m.headline.top < m.height
+                ? `On a ${where}, the headline continues below the first screen`
+                : `On a ${where}, the headline starts below the first screen`,
       })
     }
     const share = m.navBottom / m.height
@@ -91,9 +93,11 @@ export function scorePage(byWidth: Record<number, PageMeasure>, extra: ScoreChec
     const lines = phone.headline.lines
     checks.push({
       id: 'headline-lines',
-      ok: lines <= 4,
-      weight: 1,
-      words: lines <= 4 ? `The headline fits in ${lines} line${lines === 1 ? '' : 's'} on a phone` : `The headline runs to ${lines} lines on a phone; fewer words would read faster`,
+      ok: !phone.headline.clipped,
+      weight: phone.headline.clipped ? 2 : 0,
+      words: phone.headline.clipped
+        ? 'Part of the headline is clipped on a phone'
+        : `The headline wraps to ${lines} line${lines === 1 ? '' : 's'} on a phone`,
     })
   }
 

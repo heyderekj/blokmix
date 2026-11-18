@@ -137,7 +137,9 @@ export async function measureFirstScreen(data: PageData, width: number, height: 
     const btn = within(pick('button', 'ctaPrimary')?.id)
     const hb = box(head)
     const bb = box(btn)
-    const lineHeight = head ? parseFloat(getComputedStyle(head).lineHeight) || parseFloat(getComputedStyle(head).fontSize) * 1.2 : 0
+    const style = head ? getComputedStyle(head) : null
+    const lineHeight = style ? parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2 : 0
+    const clipped = head && style?.overflowY !== 'visible' && head.scrollHeight > head.clientHeight + 1
     // What starts above the fold, top to bottom.
     const shown: { slot: string; block: string; y: number }[] = []
     for (const sec of doc.querySelectorAll<HTMLElement>('[data-mx-slot]')) {
@@ -154,7 +156,7 @@ export async function measureFirstScreen(data: PageData, width: number, height: 
       scrollWidth: doc.documentElement.scrollWidth,
       docHeight: doc.documentElement.scrollHeight,
       navBottom: nav ? Math.round(nav.bottom + top) : 0,
-      headline: hb && hb.height ? { top: Math.round(hb.top + top), bottom: Math.round(hb.bottom + top), lines: Math.max(1, Math.round(hb.height / lineHeight)) } : undefined,
+      headline: hb && hb.height ? { top: Math.round(hb.top + top), bottom: Math.round(hb.bottom + top), lines: Math.max(1, Math.round(hb.height / lineHeight)), ...(clipped ? { clipped: true } : {}) } : undefined,
       button: bb && bb.height ? { top: Math.round(bb.top + top), bottom: Math.round(bb.bottom + top) } : undefined,
       shown: shown.map(({ slot, block }) => ({ slot, block })),
     }

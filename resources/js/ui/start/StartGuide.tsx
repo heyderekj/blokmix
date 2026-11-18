@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { ColorButton } from '@/ui/color/ColorPicker'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowRight, Check, FileText, Moon, Plus, Shuffle, Sun, Upload, X } from 'lucide-react'
@@ -25,7 +26,7 @@ import { scoredStarts, type ScoredStart } from '@/lib/start'
 import { guessHeard, hearStart, startsFromText, wordsCandidates, type Heard } from '@/lib/startFromText'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 import { GuideOption, StarterOption, useDisplayFonts, type GuideChoice } from './StartFrom'
-import { Carousel, HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, firstPage, sectionWords } from './parts'
+import { Carousel, HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, StartOutline, firstPage, startHeroTitle, sectionWords } from './parts'
 
 /** Whether the guided start is showing over the board (the browser-only mix opens on it the first time). */
 export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
@@ -41,7 +42,7 @@ const FIXED: SectionType[] = ['nav', 'hero', 'footer']
 /**
  * New mix, a question at a time. What it's called, what it is (a sentence, or the words you already have), then what
  * was read from that, to confirm: the kind of site and its industry, what it should do, the main button, the sections
- * and the look. Each answer shows at once in the page on the right; anything the first sentence already settled folds
+ * and the look. The sidebar shows a neutral outline until the look step; anything the first sentence already settled folds
  * away, and "Skip, show me pages" takes every suggestion. Last come three ways to lay it out: the one you open is the
  * mix, the other two come along. Jev only ranks the answers on offer; nothing here is written for you.
  */
@@ -125,12 +126,14 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const input: StartInput = { kind, name, seed, skin: theme, brand, variant, mode, brief, ...(paste ? {} : { sections }) }
   const key = JSON.stringify({ input, fixed: fixed?.name })
 
-  // The page on the right: the first start for the answers so far, drawn at once (measuring waits for the end).
-  const preview = useMemo<StartCandidate | null>(() => {
-    const c = paste && heard?.plan ? wordsCandidates(input, heard.plan)[0] : startCandidates(input, library, 1)[0]
-    return c && fixed ? { ...c, guide: fixed.guide ?? c.guide } : (c ?? null)
+  // Real page previews are only needed while comparing themes. The questions render a neutral outline.
+  const [previewHero, setPreviewHero] = useState(0)
+  const previews = useMemo<StartCandidate[]>(() => {
+    if (q !== 'look') return []
+    return paste && heard?.plan ? wordsCandidates(input, heard.plan) : startCandidates(input, library)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, heard])
+  }, [key, heard, q])
+  const preview = previews[previewHero] ?? previews[0]
 
   // The three ways to lay it out, measured, once every question is answered.
   useEffect(() => {
@@ -218,6 +221,9 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
 
   const answered = QUESTIONS.filter((x) => x !== 'drafts' && x !== q && (a.done.includes(x) || skip[x] || (x === 'name' && a.name.trim())))
   const wide = q === 'drafts'
+  const answerRows = answered.map((x) => (
+    <Answered key={x} label={LABEL[x]} value={skip[x] && !a.done.includes(x) ? skip[x]! : (summary[x] ?? '')} onChange={() => setA((y) => reopen(y, x))} />
+  ))
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#17121A]/30 p-3 backdrop-blur-[2px] sm:p-6" onClick={onClose}>
@@ -246,13 +252,20 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
 
         <div className="flex min-h-0 flex-1">
           <main className={`min-h-0 overflow-y-auto px-5 py-6 sm:px-7 ${wide ? 'flex-1' : 'w-full lg:w-[540px] lg:shrink-0'}`}>
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
-              {answered.map((x) => (
-                <Answered key={x} label={LABEL[x]} value={skip[x] && !a.done.includes(x) ? skip[x]! : (summary[x] ?? '')} onChange={() => setA((y) => reopen(y, x))} />
-              ))}
-            </div>
+            {wide && answered.length ? (
+              <details className="mb-4 rounded-xl border border-zinc-950/[0.06] bg-white">
+                <summary className="cursor-pointer px-3 py-2 text-[13px] font-medium text-[#6B5F68]">Site details</summary>
+                <div className="grid gap-2 px-2 pb-2">
+                  {answerRows}
+                </div>
+              </details>
+            ) : (
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
+                {answerRows}
+              </div>
+            )}
 
-            <div ref={asking} className={answered.length ? 'mt-5' : ''}>
+            <div ref={asking} className={answered.length && !wide ? 'mt-5' : ''}>
               {(q === 'name' || q === 'what') && (
                 <Ask
                   title="What are you making?"
@@ -340,6 +353,18 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                       })}
                     </Chips>
                   )}
+                  {previews.length > 1 && (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-medium text-[#6B5F68]">
+                      <span>Preview hero</span>
+                      <Dropdown
+                        label="Preview hero"
+                        value={String(previews[previewHero] ? previewHero : 0)}
+                        options={previews.map((p, i) => ({ v: String(i), label: startHeroTitle(p) ?? p.label }))}
+                        onChange={(next) => setPreviewHero(Number(next))}
+                        className="max-w-full"
+                      />
+                    </div>
+                  )}
                   <Carousel label="Themes">
                     {shown.map(({ skin: x, guide, reason }) => (
                       <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} guide={guide} reason={reason} jevPick={jev && visualPick?.key === rankingKey && visualPick.id === x.id} onPick={() => setSkin(x.id)} />
@@ -413,14 +438,23 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
 
           {!wide && (
             <aside className="hidden min-w-0 flex-1 border-l border-zinc-950/[0.06] p-6 lg:block" style={{ backgroundImage: 'radial-gradient(#E4D9DF 1.1px, transparent 1.2px)', backgroundSize: '22px 22px' }}>
-              <div className="sticky top-0 overflow-hidden rounded-[16px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_24px_48px_-28px_rgb(23_18_26/0.35)]">
-                {preview ? (
-                  <SkinPreview site={preview.site} guide={fixed?.guide ?? preview.guide} content={preview.content} title="Your page so far" height={620} peek />
-                ) : (
-                  <div className="grid h-[620px] place-items-center text-[13.5px] text-[#6B5F68]">Your page shows here as you fill in the blanks.</div>
-                )}
-              </div>
-              <p className="mt-3 text-center text-[12.5px] text-[#6B5F68]">{hearing ? 'Reading what you wrote…' : 'Your page so far. Hover to scroll it.'}</p>
+              {preview ? (
+                <>
+                  <div className="group sticky top-0 overflow-hidden rounded-[16px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_24px_48px_-28px_rgb(23_18_26/0.35)]">
+                    <SkinPreview site={preview.site} guide={preview.guide} content={preview.content} title="Theme preview" height={620} peek />
+                  </div>
+                  <p className="mt-3 text-center text-[12.5px] text-[#6B5F68]">Theme preview. Hover to see more.</p>
+                </>
+              ) : (
+                <StartOutline
+                  name={va.name.trim()}
+                  action={va.brief.mainAction}
+                  sections={a.sections && (q === 'sections' || !picks.show?.length)
+                    ? a.sections.filter((type) => !FIXED.includes(type)).map((type) => TYPE_LABEL[type])
+                    : (picks.show ?? []).map((pick) => pick.words.trim()).filter(Boolean)}
+                />
+              )}
+              {hearing && <p role="status" className="mt-3 text-center text-[12.5px] text-[#6B5F68]">Reading what you wrote…</p>}
             </aside>
           )}
         </div>

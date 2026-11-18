@@ -7,7 +7,7 @@ its own. Copy on screen follows `docs/simple-vision.md` and the brand guide's vo
 
 ## Implementation notes
 
-The catalog contains 15 finished themes, Wireframe, and eight curated variants. Both pickers rank the resolved guide.
+The catalog contains 17 finished themes, Wireframe, and eight curated variants. Both pickers rank the resolved guide.
 The saved brief carries explicit feel, and a saved guide carries the brand recipe, an optional explicit mode, and the
 base theme ID with its optional flavor. Existing mixes continue to store their resolved values. The legacy dressing
 pool lives in `samples/legacy/themes.json`.

@@ -146,6 +146,15 @@ describe('section defaults', () => {
     expect(pictureFor(own, b, { style: 'arch' }, 'layout', false)).toBe(own)
   })
 
+  it('keeps picture subjects relevant to the brief and the section', () => {
+    const picture = skinById('counter-service')!.picture
+    const b = { id: 'hero-cover', kind: 'image' as const, media: 'cover' }
+    expect(pictureFor(undefined, b, picture, 'layout', false, { type: 'hero' })).toMatchObject({ style: 'bread-counter', params: { mode: 'combined' } })
+    expect(pictureFor(undefined, b, picture, 'layout', false, { type: 'hero', industry: 'fintech' })).toMatchObject({ style: 'balance-book' })
+    expect(pictureFor(undefined, { ...b, media: 'g2Image' }, picture, 'layout', false, { type: 'gallery' })).toMatchObject({ style: 'bakery' })
+    expect(pictureFor(undefined, b, picture, 'layout', false, { type: 'team' })).toMatchObject({ style: 'portrait' })
+  })
+
   it('reach the export', () => {
     const slot: Slot = { id: 's', type: 'hero', clipId: 'hero.layout-split', locked: false, keep: { ...DEFAULT_KEEP } }
     const guide = applySkin(emptyGuide(), skin({ sections: { hero: { surface: 'brand' } }, picture: { style: 'arch' } }))
@@ -159,8 +168,8 @@ describe('section defaults', () => {
 })
 
 describe('the skins themselves', () => {
-  it('load, sixteen of them, starting from Wireframe', () => {
-    expect(skinList().map((s) => s.id).sort()).toEqual(['acoustic', 'afterhours', 'deep-cut', 'dreampop', 'field-recording', 'flyer', 'gatefold', 'homeroom', 'liner-notes', 'lofi', 'mastered', 'mixtape', 'press-kit', 'studio', 'vinyl', 'wireframe'])
+  it('load the catalog, starting from Wireframe', () => {
+    expect(skinList().map((s) => s.id).sort()).toEqual(['acoustic', 'afterhours', 'counter-service', 'day-planner', 'deep-cut', 'dreampop', 'field-recording', 'flyer', 'gatefold', 'homeroom', 'liner-notes', 'lofi', 'mastered', 'mixtape', 'press-kit', 'studio', 'vinyl', 'wireframe'])
     expect(skinList()[0].id).toBe('wireframe')
   })
 

@@ -208,7 +208,14 @@ export function sectionLinks(
   slotId: string,
 ): Record<string, ResolvedLink> {
   const out: Record<string, ResolvedLink> = {}
-  for (const b of blocks) if (b.linkable) out[b.id] = resolveLink(edits?.[b.id]?.link, linkWords(b, blocks, fields), scope, slotId)
+  const home = scope.pages?.find((p) => p.path === '/')
+  const nav = scope.slots.some((s) => s.id === slotId && s.type === 'nav')
+  for (const b of blocks) {
+    if (!b.linkable) continue
+    // The site's logo links home, including on inner pages, unless the owner sets its destination.
+    const brand = nav && home && b.media === 'logo' ? { to: 'page' as const, path: home.path, pageId: home.id } : undefined
+    out[b.id] = resolveLink(edits?.[b.id]?.link ?? brand, linkWords(b, blocks, fields), scope, slotId)
+  }
   return out
 }
 

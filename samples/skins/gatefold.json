@@ -180,7 +180,14 @@
     }
   },
   "picture": {
-    "style": "arch"
+    "style": "arch",
+    "subjects": [
+      "courtyard",
+      "print-edition",
+      "reading-room",
+      "cards"
+    ],
+    "mode": "image"
   },
   "industries": [
     "architecture",

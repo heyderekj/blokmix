@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useMemo, useState } from 'react'
 import { ArrowDown, ArrowLeft, ArrowUp, ImagePlus, Plus, Redo2, Trash2, Undo2, X } from 'lucide-react'
 import {
@@ -261,12 +262,8 @@ function FieldInput({ f, v, onChange }: { f: CollectionField; v: EntryValue; onC
       return <input type="number" key={text} defaultValue={text} onBlur={(e) => blur(e.target.value)} className={inputCls} />
     case 'select':
       return (
-        <select value={text} onChange={(e) => onChange(e.target.value || null)} className={inputCls}>
-          <option value="">—</option>
-          {(f.options ?? []).map((o) => (
-            <option key={o}>{o}</option>
-          ))}
-        </select>
+        <Dropdown label={f.label} value={text} onChange={(next) => onChange(next || null)} className="w-full"
+          options={[{ v: '', label: '—' }, ...(f.options ?? []).filter(Boolean).map((v) => ({ v, label: v }))]} />
       )
     case 'image':
       return <ImageField v={v} onChange={onChange} />
@@ -330,13 +327,8 @@ function Fields({ c }: { c: Collection }) {
               className="min-w-0 flex-1 rounded-md bg-transparent px-1.5 py-1 text-[12.5px] font-medium text-zinc-900 outline-none hover:bg-zinc-950/[0.04] focus:bg-white focus:ring-2 focus:ring-zinc-900/10"
             />
             {f.key === c.schema.titleField && <span className="rounded-full bg-key-soft px-1.5 py-px text-[10px] font-semibold text-key-ink">Title</span>}
-            <select value={f.type} onChange={(e) => retype(f, e.target.value as FieldType)} aria-label="Field type" className="h-7 rounded-lg border border-zinc-950/10 bg-white px-1.5 text-[11.5px] text-zinc-700">
-              {FIELD_TYPES.filter((t) => t !== 'reference').map((t) => (
-                <option key={t} value={t}>
-                  {FIELD_TYPE_LABEL[t]}
-                </option>
-              ))}
-            </select>
+            <Dropdown label="Field type" value={f.type} onChange={(next) => retype(f, next)}
+              options={FIELD_TYPES.filter((v) => v !== 'reference').map((v) => ({ v, label: FIELD_TYPE_LABEL[v] }))} />
             <IconBtn
               label={f.key === c.schema.titleField ? 'The title field can’t be removed' : 'Remove field'}
               disabled={f.key === c.schema.titleField}
@@ -362,13 +354,8 @@ function Fields({ c }: { c: Collection }) {
           placeholder="New field"
           className={inputCls}
         />
-        <select value={type} onChange={(e) => setType(e.target.value as FieldType)} className="h-8 rounded-lg border border-zinc-950/10 bg-white px-1.5 text-[12px] text-zinc-700">
-          {FIELD_TYPES.filter((t) => t !== 'reference').map((t) => (
-            <option key={t} value={t}>
-              {FIELD_TYPE_LABEL[t]}
-            </option>
-          ))}
-        </select>
+        <Dropdown label="New field type" value={type} onChange={setType}
+          options={FIELD_TYPES.filter((v) => v !== 'reference').map((v) => ({ v, label: FIELD_TYPE_LABEL[v] }))} />
         <button
           type="button"
           disabled={!label.trim()}

@@ -180,7 +180,20 @@
     }
   },
   "picture": {
-    "style": "blocks"
+    "style": "blocks",
+    "subjects": [
+      "balance-book",
+      "dashboard",
+      "analytics",
+      "table"
+    ],
+    "mode": "ui",
+    "mockParams": {
+      "tint": true,
+      "chrome": "none",
+      "inset": 6,
+      "shadow": false
+    }
   },
   "industries": [
     "fintech",

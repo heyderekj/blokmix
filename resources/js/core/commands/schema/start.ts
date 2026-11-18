@@ -13,7 +13,7 @@ const startInput = {
   kind: z.enum(KINDS).optional().describe('What the site is for: product (an app or product), studio (a studio or service), local (a local business), event (an event or launch), personal, writing (writing or a newsletter). Required without text; with text it overrides what Jev heard'),
   sections: z.array(z.enum(SECTION_TYPES)).max(16).optional().describe('Home’s sections top to bottom, in place of the kind’s usual page (described starts only)'),
   name: z.string().trim().min(1).max(80).describe('The site’s name, used as the brand in the nav and footer'),
-  one_liner: z.string().trim().max(160).optional().describe('What it is, in one line: becomes the main headline'),
+  one_liner: z.string().trim().max(320).optional().describe('The main headline as written; wraps to fit each layout'),
   skin: z.string().optional().describe('A skin id from list_skins, once you know the look; left out, starts come in Wireframe, the raw structure'),
   brand: z.string().regex(/^#[0-9a-f]{6}$/i).optional().describe('One brand color as #rrggbb; the whole palette is made from it'),
   mode: z.enum(['light', 'dark']).optional().describe('Light or dark; default: the skin’s own'),

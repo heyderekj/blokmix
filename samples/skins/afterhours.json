@@ -199,7 +199,20 @@
     }
   },
   "picture": {
-    "style": "dither"
+    "style": "dither",
+    "subjects": [
+      "analytics",
+      "code",
+      "dashboard",
+      "table"
+    ],
+    "mode": "ui",
+    "mockParams": {
+      "tint": true,
+      "chrome": "none",
+      "inset": 6,
+      "shadow": false
+    }
   },
   "industries": [
     "devtools",

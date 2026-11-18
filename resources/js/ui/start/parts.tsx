@@ -5,6 +5,7 @@ import type { GuideState, Kind, SectionType } from '@/core/types'
 import { KIND_FEEL } from '@/core/feel'
 import { themesFor } from '@/core/themeRanking'
 import { skinList, WIREFRAME, type Skin } from '@/core/skins'
+import { library } from '@/data/library'
 import type { ScoredStart } from '@/lib/start'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 
@@ -17,6 +18,38 @@ export const ON = 'shadow-[0_0_0_2px_#FF69B4,0_16px_32px_-20px_rgb(255_105_180/0
 // The app's lit pink button, the step's one main action.
 export const PRIMARY = `btn-lit flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold disabled:pointer-events-none disabled:opacity-45 ${PRESS}`
 export const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-medium text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`
+
+/** A quiet outline for the questions before Blokmix asks about visual style. */
+export function StartOutline({ name, action, sections }: { name: string; action?: string; sections: string[] }) {
+  return (
+    <figure className="mx-auto max-w-[520px]">
+      <div className="overflow-hidden rounded-[16px] border border-zinc-200 bg-white text-zinc-600">
+        <div className="border-b border-zinc-200 bg-zinc-50 px-6 py-4 text-sm font-medium [overflow-wrap:anywhere]">
+          {name || 'Site name'}
+        </div>
+        <div className="px-6 py-7 sm:px-8 sm:py-9">
+          <div className="text-base font-medium">Heading</div>
+          <div aria-hidden="true" className="mt-4 grid gap-2">
+            <span className="h-1.5 w-3/5 rounded-full bg-zinc-200" />
+            <span className="h-1.5 w-2/5 rounded-full bg-zinc-200" />
+          </div>
+          {action && <div className="mt-5 w-fit max-w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm [overflow-wrap:anywhere]">{action}</div>}
+          <div className="mt-7 grid min-h-28 place-items-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-4 py-5 text-sm">
+            Main content
+          </div>
+          {sections.length > 0 && (
+            <ul className="mt-4 grid list-none gap-2 p-0">
+              {sections.map((section, i) => (
+                <li key={i} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm [overflow-wrap:anywhere]">{section}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      <figcaption className="mt-3 text-center text-[12.5px] text-[#6B5F68]">Page outline</figcaption>
+    </figure>
+  )
+}
 
 /** A skin, drawn as your actual page in it. */
 export function SkinCard({ skin, on, start, guide, reason, jevPick, onPick }: { skin: Skin; on: boolean; start: Pick<ScoredStart, 'site' | 'content'>; guide: GuideState; reason: string; jevPick: boolean; onPick: () => void }) {
@@ -93,11 +126,16 @@ export function Carousel({ children, label, min = 280 }: { children: ReactNode; 
   )
 }
 
+export function startHeroTitle(start: Pick<ScoredStart, 'site'>): string | undefined {
+  const hero = start.site.pages[0]?.slots.find((s) => s.type === 'hero' || s.type === 'header')
+  return hero ? library.clips[hero.clipId]?.title : undefined
+}
+
 /** One start: its page on a laptop (hover pans down it), what's in it, and only what needs a look. The card is the pick. */
 export function StartCard({ start, letter, best, busy, sections, onPick }: { start: ScoredStart; letter: string; best: boolean; busy?: boolean; sections: boolean; onPick: () => void }) {
   const { checks, phoneScreens, score } = start.score
   const misses = checks.filter((c) => !c.ok).sort((a, b) => b.weight - a.weight)
-  const name = start.from === 'starter' ? start.label.replace(/^Starter: /, '') : start.label
+  const name = startHeroTitle(start) ?? start.label.replace(/^Starter: /, '')
   const types = firstPage(start)
   return (
     <button
@@ -107,19 +145,18 @@ export function StartCard({ start, letter, best, busy, sections, onPick }: { sta
       aria-label={`Open ${letter}: ${name}${misses.length ? `. ${misses[0].words}` : ''}`}
       className={`group flex flex-col overflow-hidden rounded-[16px] bg-white text-left shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_18px_36px_-26px_rgb(23_18_26/0.35)] ${PRESS} disabled:pointer-events-none disabled:opacity-60 ${HOVER}shadow-[0_0_0_2px_#FF69B4,0_18px_36px_-22px_rgb(255_105_180/0.55)]`}
     >
-      <span className="relative block border-b border-zinc-950/5">
-        <SkinPreview site={start.site} guide={start.guide} content={start.content} title={`Start ${letter}`} height={196} peek />
-        <span className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white to-transparent" />
-        {best && <span className="absolute bottom-2 left-3 rounded-full bg-[#FF69B4] px-2 py-0.5 text-[10.5px] font-semibold text-white shadow-[0_2px_6px_-2px_rgb(194_40_111/0.6)]">Holds up best</span>}
+      <span className="block w-full border-b border-zinc-950/5">
+        <SkinPreview site={start.site} guide={start.guide} content={start.content} title={`Start ${letter}`} height={260} peek />
       </span>
-      <span className="flex flex-1 flex-col gap-2 px-3.5 pb-3.5 pt-3">
+      <span className="flex w-full flex-1 flex-col gap-2 px-3.5 pb-3.5 pt-3">
         <span className="flex items-center gap-2">
           <span className="grid size-[20px] shrink-0 place-items-center rounded-full bg-[#17121A] text-[10.5px] font-semibold text-white">{letter}</span>
-          <span className="min-w-0 truncate text-[14.5px] font-semibold leading-tight">{name}</span>
+          <span className="min-w-0 text-[14.5px] font-semibold leading-tight [text-wrap:balance]">{name}</span>
           {misses.length > 0 && <Score value={score} />}
         </span>
+        {best && <span className="self-start rounded-full bg-[#FFE4F2] px-2 py-0.5 text-[10.5px] font-semibold text-[#B0186A]">Holds up best</span>}
         {sections && <span className="text-[12.5px] leading-snug text-[#6B5F68] [text-wrap:pretty]">{sectionWords(types).replace(/^./, (c) => c.toUpperCase())}</span>}
-        {misses.length > 0 && <span className="line-clamp-2 rounded-lg bg-amber-50 px-2 py-1.5 text-[12px] leading-snug text-amber-900 [text-wrap:pretty]">{misses[0].words}</span>}
+        {misses.length > 0 && <span className="rounded-lg bg-amber-50 px-2 py-1.5 text-[12px] leading-snug text-amber-900 [text-wrap:pretty]">{misses[0].words}</span>}
         <span className="mt-auto flex items-center justify-between gap-2 border-t border-zinc-950/[0.06] pt-2.5">
           <span className="text-[11.5px] text-[#9A8E97]">{phoneScreens !== null && `${Math.max(1, Math.round(phoneScreens))} screens on a phone`}</span>
           <span className="flex items-center gap-1 text-[12.5px] font-semibold text-[#17121A] opacity-75 transition-opacity duration-150 group-hover:opacity-100">

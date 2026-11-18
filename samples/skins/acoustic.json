@@ -178,7 +178,20 @@
     }
   },
   "picture": {
-    "style": "marble"
+    "style": "marble",
+    "subjects": [
+      "reading-room",
+      "calendar",
+      "courtyard",
+      "form"
+    ],
+    "mode": "combined",
+    "mockParams": {
+      "tint": true,
+      "chrome": "browser",
+      "inset": 6,
+      "shadow": false
+    }
   },
   "industries": [
     "health",

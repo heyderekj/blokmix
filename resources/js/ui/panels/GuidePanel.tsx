@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { ColorButton } from '@/ui/color/ColorPicker'
 import { useState } from 'react'
 import { TYPE_RATIOS } from '@/core/dials'
@@ -397,16 +398,7 @@ function Knob({ k, value, onChange }: { k: TokenKey; value: string; onChange: (v
     case 'type.base':
       return <Slider value={n} min={12} max={22} unit="px" onChange={onChange} />
     case 'type.ratio':
-      return (
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={selectCls}>
-          {!RATIOS.includes(value) && <option value={value}>{value}</option>}
-          {RATIOS.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-      )
+      return <Dropdown label="Size steps" value={value} onChange={onChange} options={[...new Set([value, ...RATIOS])].map((v) => ({ v, label: v }))} />
     case 'type.displayWeight':
       return <Slider value={n} min={300} max={900} step={10} unit="" onChange={onChange} />
     case 'radius.base':
@@ -426,29 +418,19 @@ function Knob({ k, value, onChange }: { k: TokenKey; value: string; onChange: (v
     case 'motion.duration':
       return <Slider value={n} min={60} max={1200} step={20} unit="ms" onChange={onChange} />
     case 'motion.ease':
-      return (
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={selectCls}>
-          {!EASES.some(([v]) => v === value) && <option value={value}>{value}</option>}
-          {EASES.map(([v, l]) => (
-            <option key={v} value={v}>
-              {l}
-            </option>
-          ))}
-        </select>
-      )
+      return <Dropdown label="Easing" value={value} onChange={onChange} options={[
+        ...(!EASES.some(([v]) => v === value) ? [{ v: value, label: value }] : []),
+        ...EASES.map(([v, label]) => ({ v, label })),
+      ]} />
     case 'shadow.card': {
       const presets = [...new Set(Object.values(library.sources).map((s) => s.tokens['shadow.card']))]
-      return (
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={selectCls}>
-          {!presets.includes(value) && <option value={value}>{value}</option>}
-          {presets.map((p) => (
-            <option key={p} value={p}>
-              {Object.values(library.sources).find((s) => s.tokens['shadow.card'] === p)?.name}: {p.slice(0, 22)}
-            </option>
-          ))}
-          <option value="none">None</option>
-        </select>
-      )
+      return <Dropdown label="Card shadow" value={value} onChange={onChange} options={[
+        ...(!presets.includes(value) && value !== 'none' ? [{ v: value, label: value }] : []),
+        ...presets.filter((v) => v !== 'none').map((v) => ({
+          v, label: `${Object.values(library.sources).find((s) => s.tokens['shadow.card'] === v)?.name}: ${v.slice(0, 22)}`,
+        })),
+        { v: 'none', label: 'None' },
+      ]} />
     }
     default:
       return <input defaultValue={value} key={value} onBlur={(e) => onChange(e.target.value)} className={selectCls} />

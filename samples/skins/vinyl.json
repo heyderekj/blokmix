@@ -205,7 +205,13 @@
       "c": "primary",
       "angle": 200,
       "grain": 40
-    }
+    },
+    "subjects": [
+      "reading-room",
+      "print-edition",
+      "print-studio"
+    ],
+    "mode": "image"
   },
   "industries": [
     "architecture",

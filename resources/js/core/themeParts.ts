@@ -20,7 +20,7 @@ export function partDescription(skin: Skin, area: StyleArea): string {
     case 'looks':
       return `${skin.components?.card?.variant ?? 'Plain'} cards · ${skin.components?.button?.secondary?.variant ?? 'plain'} secondary buttons`
     case 'pictures':
-      return skin.picture?.style ?? 'Plain placeholders'
+      return skin.picture?.subjects?.slice(0, 3).map((id) => id.replaceAll('-', ' ')).join(' · ') ?? skin.picture?.style ?? 'Plain placeholders'
     case 'sections':
       return `${skin.sections?.hero?.backdrop?.id ?? skin.sections?.hero?.surface ?? 'Plain'} hero · ${skin.sections?.cta?.surface ?? 'plain'} closing section`
     case 'color':

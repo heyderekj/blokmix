@@ -14,6 +14,8 @@ import { suggestClip, suggestTypes } from './suggest'
 import { pickable, shelfOf } from './library'
 import { applySkin, skinById, skinList, WIREFRAME } from './skins'
 import type { Mode, PaletteVariant, Palette } from './palette'
+import { navForStart } from './startNav'
+import { heroFamily } from './heroLayouts'
 import { mineKey } from './ownWords'
 import { FORMATS, GOAL_SECTIONS, goalsOf, INDUSTRIES, MAIN_ACTION_FIELDS, type Brief } from './brief'
 import { placeSection, sectionsFor } from './jev/describe'
@@ -179,6 +181,14 @@ function fillPage(lib: Library, types: SectionType[], variant: number, seed: num
       out.push(hero)
       continue
     }
+    // A clear brand, a short row of links and one action are the default chrome for generated pages.
+    if (type === 'nav') {
+      const navs = ['simple', 'centered', 'pill'].map((id) => `nav.layout-${id}`).filter((id) => lib.clips[id])
+      if (navs.length) {
+        out.push(navs[(variant + seed) % navs.length])
+        continue
+      }
+    }
     const slots = out.map((clipId) => ({ type: lib.clips[clipId].type, clipId }))
     const ranked = suggestClip(type, slots, slots.length, lib)
       .map((s, i) => ({ id: s.clipId, score: (lib.clips[s.clipId].origin === 'layout' ? 2 : 0) - i * 0.25 }))
@@ -190,12 +200,23 @@ function fillPage(lib: Library, types: SectionType[], variant: number, seed: num
   return out
 }
 
-/** Heroes for generated starts: built-in layouts first, in an order the seed turns, so each start opens differently. */
-function heroesFor(lib: Library, seed: number): string[] {
+// Start with compositions that make sense for the brief. Shuffle brings the rest of the shelf forward.
+const leadHeroes: Record<Kind, string[]> = {
+  product: ['split', 'product', 'bento', 'editorial'],
+  studio: ['editorial', 'split', 'collage', 'media-below'],
+  local: ['split', 'editorial', 'media-below', 'bento'],
+  event: ['bento', 'editorial', 'form', 'split'],
+  personal: ['portrait', 'split', 'centered', 'collage'],
+  writing: ['editorial', 'form', 'split', 'collage'],
+}
+
+function heroesFor(lib: Library, kind: Kind, seed: number): string[] {
   const all = pickable(lib, 'hero')
-  const layouts = all.filter((id) => lib.clips[id].origin === 'layout')
-  const turn = layouts.length ? mix(seed, 'hero') % layouts.length : 0
-  return [...new Set([...layouts.slice(turn), ...layouts.slice(0, turn), ...all])]
+  const layouts = all.filter((id) => lib.clips[id].origin === 'layout' && !id.startsWith('hero.layout-video-'))
+  const lead = leadHeroes[kind].map((id) => `hero.layout-${id}`).filter((id) => layouts.includes(id))
+  const ordered = [...new Set([...lead, ...layouts])]
+  const turn = ordered.length ? seed % ordered.length : 0
+  return [...ordered.slice(turn), ...ordered.slice(0, turn), ...all.filter((id) => lib.clips[id].origin === 'clip')]
 }
 
 const countShelves = (lib: Library, site: Site) => {
@@ -229,22 +250,30 @@ export function startCandidates(input: StartInput, lib: Library, n = 3): StartCa
     const sig = signature(c.site)
     if (seen.has(sig) || out.length >= n) return
     seen.add(sig)
-    out.push({ ...c, id: `start${out.length}`, shelves: countShelves(lib, c.site) })
+    out.push({ ...c, ...navForStart(c.site, c.content, lib), id: `start${out.length}`, shelves: countShelves(lib, c.site) })
   }
 
   // Your own list of sections wins over starter mixes, which come with theirs.
   const own = !!input.sections?.length && input.sections.join() !== RECIPES[input.kind].home.join()
   const starters = own ? [] : startersFor(lib, input.kind, input.brief)
   const offset = starters.length ? seed % starters.length : 0
-  for (const s of [...starters.slice(offset), ...starters.slice(0, offset)].slice(0, Math.min(2, n - 1))) {
+  const usedHeroes = new Set<string>()
+  const rotatedStarters = [...starters.slice(offset), ...starters.slice(0, offset)]
+  for (const s of rotatedStarters) {
+    if (out.length >= Math.min(2, n - 1)) break
+    const hero = s.pages[0]?.sections.find((id) => lib.clips[id]?.type === 'hero')
+    if (hero && usedHeroes.has(heroFamily(hero, lib))) continue
+    if (hero) usedHeroes.add(heroFamily(hero, lib))
     push({ label: `Starter: ${s.name}`, from: 'starter', starterId: s.id, site: siteFromPages(lib, s.pages, `${s.id}_`), guide, content })
   }
 
   const recipe = own ? { ...RECIPES[input.kind], home: input.sections! } : RECIPES[input.kind]
-  const usedHeroes = new Set(out.map((c) => c.site.pages[0].slots.find((s) => s.type === 'hero')?.clipId))
-  const heroes = heroesFor(lib, seed).filter((id) => !usedHeroes.has(id))
-  for (let variant = 0, tries = 0; out.length < n && tries < n * 4; variant++, tries++) {
-    const hero = heroes.length ? heroes[(variant + seed) % heroes.length] : undefined
+  const heroes = heroesFor(lib, input.kind, seed)
+  for (let variant = 0; out.length < n && variant < n * 4; variant++) {
+    const distinct = heroes.findIndex((id) => !usedHeroes.has(heroFamily(id, lib)))
+    const index = distinct >= 0 ? distinct : 0
+    const [hero] = heroes.splice(index, 1)
+    if (hero) usedHeroes.add(heroFamily(hero, lib))
     const pages = [{ path: '/', title: 'Home', sections: fillPage(lib, recipe.home, variant, seed, hero) }]
     if (recipe.about) pages.push({ path: '/about', title: 'About', sections: fillPage(lib, recipe.about, variant, seed) })
     const site = siteFromPages(lib, pages, `gen${variant}_`)

@@ -1,5 +1,6 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useMemo, useState, type ReactNode } from 'react'
-import { Check, ChevronDown, ChevronRight, ClipboardCopy, Download, FileCode2, FileJson, FileText, Files, Folder, Layers, StickyNote, SwatchBook } from 'lucide-react'
+import { Check, ChevronRight, ClipboardCopy, Download, FileCode2, FileJson, FileText, Files, Folder, Layers, StickyNote, SwatchBook } from 'lucide-react'
 import type { BuildTarget } from '@/core/types'
 import { openGroups } from '@/core/guide'
 import { agentPrompt, packetFiles, type PacketInput } from '@/core/export/packet'
@@ -102,41 +103,22 @@ export function PacketPanel() {
       {/* tier 1: what's being handed off, and the one action */}
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="min-w-0 flex-1">
-          <div className="relative -ml-1.5 w-fit max-w-full">
-            <select
-              value={version ? source : 'mix'}
-              onChange={(e) => st().setUi({ packetSource: e.target.value })}
-              className="w-full max-w-full cursor-pointer appearance-none truncate rounded-md bg-transparent py-0.5 pl-1.5 pr-6 text-[15px] font-semibold text-zinc-900 outline-none transition hover:bg-zinc-950/5"
-              aria-label="Which draft or version to export"
-            >
-              <option value="mix">{drafts[draftId]?.name ?? 'Your mix'}, as it is now</option>
-              {others.map((d) => (
-                <option key={d.id} value={`draft:${d.id}`}>
-                  {d.name}
-                </option>
-              ))}
-              {draftList(drafts).map((d) => {
-                const saved = versionsOf(versions, d.id)
-                return saved.length ? (
-                  <optgroup key={d.id} label={`${d.name}: saved`}>
-                    {saved.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.letter} · {v.title}
-                      </option>
-                    ))}
-                  </optgroup>
-                ) : null
-              })}
-              {dfsOrder(versions)
+          <Dropdown
+            label="Which draft or version to export"
+            value={version ? source : 'mix'}
+            onChange={(next) => st().setUi({ packetSource: next })}
+            className="w-fit max-w-full"
+            options={[
+              { v: 'mix', label: `${drafts[draftId]?.name ?? 'Your mix'}, as it is now` },
+              ...others.map((d) => ({ v: `draft:${d.id}`, label: d.name })),
+              ...draftList(drafts).flatMap((d) => versionsOf(versions, d.id).map((v) => ({
+                v: v.id, label: `${v.letter} · ${v.title}`, group: `${d.name}: saved`,
+              }))),
+              ...dfsOrder(versions)
                 .filter(({ node }) => !node.draftId || !drafts[node.draftId])
-                .map(({ node }) => (
-                  <option key={node.id} value={node.id}>
-                    {node.letter} · {node.title}
-                  </option>
-                ))}
-            </select>
-            <ChevronDown size={14} className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-          </div>
+                .map(({ node }) => ({ v: node.id, label: `${node.letter} · ${node.title}` })),
+            ]}
+          />
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-zinc-500">
             {facts.map((f) => (
               <span key={f.text} className="flex items-center gap-1">

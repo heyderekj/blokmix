@@ -20,7 +20,7 @@
     "font.body": "'Archivo', system-ui, sans-serif",
     "font.mono": "'Space Mono', ui-monospace, monospace",
     "type.base": "16px",
-    "type.ratio": "1.5",
+    "type.ratio": "1.25",
     "type.displayWeight": "400",
     "radius.base": "0px",
     "stroke.width": "2px",
@@ -120,7 +120,14 @@
     }
   },
   "picture": {
-    "style": "halftone"
+    "style": "halftone",
+    "subjects": [
+      "day-ticket",
+      "print-edition",
+      "calendar",
+      "cards"
+    ],
+    "mode": "image"
   },
   "industries": [
     "events",

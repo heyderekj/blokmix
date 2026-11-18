@@ -9,7 +9,9 @@ import { FORMATS, INDUSTRIES, type Format, type Industry } from './brief'
 import { z } from 'zod'
 import type { GuideState, Library, PictureDefault, SectionDefault, SectionType, Site, TokenKey, TokenSet, VersionNode } from './types'
 import { allSlots } from './site'
-import { PLACEHOLDER_STYLES, SECTION_TYPES, TOKEN_KEYS } from './types'
+import { SKETCH_IDS, SKETCH_MODES } from './sketchCatalog'
+import { MOCK_IDS } from './treatments/mocks'
+import { SAMPLE_PHOTOS, PLACEHOLDER_STYLES, SECTION_TYPES, TOKEN_KEYS } from './types'
 import { resolveGuide } from './guide'
 import { BASE_TOKENS, CONTRAST_PAIRS, contrastRatio, hexToRgb, primaryFamily, TOKEN_GROUP_OF } from './tokens'
 import { setTone, toneOfGuide } from './dials'
@@ -62,7 +64,7 @@ const shape = z.object({
   textStyles: z.record(z.string(), z.any()).optional(),
   components: z.record(z.string(), z.any()).optional(),
   sections: z.record(z.string(), z.any()).optional(),
-  picture: z.object({ style: z.enum(PLACEHOLDER_STYLES), params: z.record(z.string(), z.any()).optional() }).optional(),
+  picture: z.object({ style: z.enum(PLACEHOLDER_STYLES), mode: z.enum(SKETCH_MODES).optional(), photo: z.boolean().optional(), subjects: z.array(z.enum([...SAMPLE_PHOTOS, ...SKETCH_IDS, ...MOCK_IDS])).min(1).optional(), mockParams: z.record(z.string(), z.any()).optional(), params: z.record(z.string(), z.any()).optional() }).optional(),
 })
 
 /** A skin's file, checked: known tokens, effects, sections and backdrops only. Throws, so a bad file fails its test. */

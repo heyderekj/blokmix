@@ -69,11 +69,4 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-3);
   }
-  @container (max-width: 616px) {
-    & .pill { padding-left: var(--mx-space-4); gap: var(--mx-space-3); }
-    & .links { display: none; }
-    /* The brand gives way first: its name wraps and the button keeps its words. */
-    & .brand { min-width: 0; min-height: 44px; white-space: normal; }
-    & .cta { flex-shrink: 0; min-height: 44px; }
-  }
 }
