@@ -4,13 +4,14 @@ import { ArrowUpRight, Check, ChevronDown, Columns2, Plug, Send, Upload } from '
 import { useStore } from '@/state/store'
 import { openMixId, api } from '@/lib/mixSync'
 import { canEdit, useAccount } from '@/lib/account'
-import { stageReturn, decideReturn, reviewReturn, sendChanges, handoffPacket } from '@/lib/iterations'
+import { stageReturn, watchReturnInbox, decideReturn, reviewReturn, sendChanges, handoffPacket } from '@/lib/iterations'
 import { changeLabel, type Bundle } from '@/core/iterations'
 import { packetInputFor } from '@/lib/packet'
 import { referenceHtml } from '@/core/export/reference-html'
 import { pickFile } from '@/lib/pickFile'
 import { canShip } from '@/state/shipping'
 import type { VersionNode } from '@/core/types'
+import { Dropdown } from '../controls/Dropdown'
 import { SharedRecipes } from './SharedRecipes'
 
 export function useReturns(mix: string) {
@@ -19,22 +20,18 @@ export function useReturns(mix: string) {
     if (mix === 'local' || !editor) return
     let closed = false
     let cursor = 0
-    const errorsSeen = new Set<string>()
+    let fetching = false
+    const inbox = watchReturnInbox(mix)
     const pull = async () => {
-      if (document.hidden) return
-      const res = await api<{ cursor: number; items: Bundle[] }>('GET', '/api/mixes/' + mix + '/returns?after=' + cursor)
-      if (closed || mix !== openMixId() || res.status !== 200) return
-      cursor = Math.max(cursor, res.body.cursor)
-      for (const bundle of res.body.items) {
-        if (!bundle.base || !useStore.getState().versions[bundle.base]) continue
-        try {
-          stageReturn(bundle)
-        } catch (e) {
-          if (!errorsSeen.has(bundle.id)) {
-            errorsSeen.add(bundle.id)
-            useStore.getState().showFlash('Return needs a correction. ' + (e as Error).message)
-          }
-        }
+      if (document.hidden || fetching) return
+      fetching = true
+      try {
+        const res = await api<{ cursor: number; items: Bundle[] }>('GET', '/api/mixes/' + mix + '/returns?after=' + cursor)
+        if (closed || mix !== openMixId() || res.status !== 200) return
+        inbox.receive(res.body.items)
+        cursor = res.body.cursor
+      } finally {
+        fetching = false
       }
     }
     const refresh = () => {
@@ -45,6 +42,7 @@ export function useReturns(mix: string) {
     window.addEventListener('focus', refresh)
     return () => {
       closed = true
+      inbox.close()
       clearInterval(timer)
       window.removeEventListener('focus', refresh)
     }
@@ -174,11 +172,7 @@ export function Comparison({ left, right, close }: { left: VersionNode; right: V
     >
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <h2 className="draft-title mr-auto">Version comparison</h2>
-        <select className="draft-secondary" aria-label="Compare page" value={path} onChange={(e) => setPath(e.target.value)}>
-          {paths.map((p) => (
-            <option key={p}>{p}</option>
-          ))}
-        </select>
+        <Dropdown label="Compare page" value={path} options={paths.map((p) => ({ v: p, label: p }))} onChange={setPath} />
         <button className="draft-secondary" onClick={close}>
           Close
         </button>

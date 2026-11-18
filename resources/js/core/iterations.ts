@@ -95,7 +95,7 @@ export const returnSchema = z.object({
 })
 export type Bundle = z.infer<typeof returnSchema>
 export type Change = Bundle['changes'][number]
-export type ReturnRecord = { bundle: Bundle; status: 'pending' | 'accepted' | 'dismissed'; at: number; version?: string }
+export type ReturnRecord = { bundle: Bundle; status: 'pending' | 'accepted' | 'dismissed'; at: number; version?: string; decisions?: { applied: boolean; value?: string }[] }
 
 export function layoutClip(recipe: Recipe, lib: Library) {
   const { layout, type } = recipe

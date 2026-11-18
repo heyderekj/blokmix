@@ -22,6 +22,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { draftList, newestVersionFirst, versionsOf, type Draft } from '@/core/drafts'
+import { changeLabel, type ReturnRecord } from '@/core/iterations'
 import { allSlots } from '@/core/site'
 import { TYPE_LABEL } from '@/core/content'
 import type { VersionNode } from '@/core/types'
@@ -279,11 +280,66 @@ function DraftRow({ draft: d, open, only }: { draft: Draft; open: boolean; only:
 }
 
 /** The open draft's saved versions, newest first: go back to one, branch a draft from it, export it or show it on the canvas. */
+function appliedCount(record: ReturnRecord) {
+  return record.decisions && record.decisions.filter((d) => d.applied).length + ' of ' + record.bundle.changes.length + ' applied'
+}
+
+function ReviewReceipt({ record, base, showTitle }: { record: ReturnRecord; base: VersionNode; showTitle?: boolean }) {
+  const { bundle, decisions } = record
+  if (!decisions)
+    return (
+      <p className="text-sm text-muted-foreground">
+        {bundle.summary} · {record.status}
+      </p>
+    )
+  const slots = allSlots(base.snapshot.site)
+  return (
+    <section className="draft-receipt" aria-label="Review decisions">
+      {showTitle && <strong className="block text-sm">{bundle.summary}</strong>}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h4 className="text-sm font-semibold">Review decisions</h4>
+        <span className="text-[13px] text-muted-foreground">{appliedCount(record)}</span>
+      </div>
+      <ul className="mt-2 divide-y divide-border">
+        {bundle.changes.map((change, i) => {
+          const decision = decisions[i]
+          if (!decision) return null
+          const section = 'section' in change ? slots.find((s) => s.id === change.section) : undefined
+          const label = changeLabel(change).replace(/([a-z])([A-Z])/g, '$1 $2')
+          const status = decision.applied ? 'Applied' : decision.value !== undefined ? 'Kept yours' : 'Skipped'
+          return (
+            <li key={i} className="flex items-start justify-between gap-3 py-2">
+              <div className="min-w-0">
+                <span className="block text-sm font-medium">
+                  {label.charAt(0).toUpperCase() + label.slice(1)}
+                  {section && <span className="font-normal text-muted-foreground"> · {TYPE_LABEL[section.type]}</span>}
+                </span>
+                {decision.value !== undefined && (
+                  <span className="block whitespace-pre-wrap text-sm text-muted-foreground">{decision.value || 'Empty'}</span>
+                )}
+              </div>
+              <span
+                className={
+                  'inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold ' +
+                  (decision.applied ? 'text-done-ink' : 'text-zinc-600')
+                }
+              >
+                {decision.applied && <Check size={13} />} {status}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
 function History({ versions, wide }: { versions: VersionNode[]; wide: boolean }) {
   const st = useStore.getState
   const drafts = useStore((s) => s.drafts)
   const pinned = useStore((s) => s.ui.pinnedVersions)
   const head = useStore((s) => s.head)
+  const saved = useStore((s) => s.versions)
   const room = useStore(canAddDraft)
   const [all, setAll] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -311,6 +367,8 @@ function History({ versions, wide }: { versions: VersionNode[]; wide: boolean })
       )}
       <ul className="draft-versions">
         {shown.map((v) => {
+          const origin = v.acceptedFrom && saved[v.acceptedFrom.base]
+          const receipt = origin?.returns?.find((r) => r.bundle.id === v.acceptedFrom?.submission)
           const on = pinned.includes(v.id)
           const isOpen = expanded === v.id && !compare
           const title =
@@ -337,7 +395,9 @@ function History({ versions, wide }: { versions: VersionNode[]; wide: boolean })
                 <span className="min-w-0 flex-1">
                   <strong className="block text-[15px] leading-snug">{title}</strong>
                   <span className="mt-0.5 block text-[13px] leading-snug text-muted-foreground">
-                    {[wide && v.draftId && drafts[v.draftId]?.name, when(v.createdAt), by].filter(Boolean).join(' · ')}
+                    {[wide && v.draftId && drafts[v.draftId]?.name, when(v.createdAt), by, !isOpen && receipt && appliedCount(receipt)]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </span>
                 </span>
                 {v.id === head && (
@@ -349,12 +409,11 @@ function History({ versions, wide }: { versions: VersionNode[]; wide: boolean })
               </button>
               {isOpen && (
                 <div className="draft-version-detail">
-                  <p className="mb-1 text-sm text-muted-foreground">{sectionsOf(v)}</p>
+                  {!receipt?.decisions && <p className="mb-1 text-sm text-muted-foreground">{sectionsOf(v)}</p>}
                   {v.handoff && <p className="text-sm">Sent by {v.handoff.by}</p>}
+                  {origin && receipt?.decisions && <ReviewReceipt record={receipt} base={origin} />}
                   {v.returns?.map((r) => (
-                    <p key={r.bundle.id} className="text-sm">
-                      {r.bundle.summary} · {r.status}
-                    </p>
+                    <ReviewReceipt key={r.bundle.id} record={r} base={v} showTitle />
                   ))}
                   <div className="mt-2 flex flex-wrap gap-1">
                     {v.kind === 'snapshot' && versions.some((other) => other.kind === 'snapshot' && other.id !== v.id) && (

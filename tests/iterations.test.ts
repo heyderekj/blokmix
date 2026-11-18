@@ -7,7 +7,7 @@ import { applyControl, layoutClip, returnSchema, type Bundle } from '@/core/iter
 import { useStore } from '@/state/store'
 import { blankMix } from '@/state/seed'
 import { library } from '@/data/library'
-import { decideReturn, handoffPacket, newMixFromReturn, reviewReturn, sendChanges, stageReturn } from '@/lib/iterations'
+import { decideReturn, handoffPacket, newMixFromReturn, reviewReturn, sendChanges, stageReturn, watchReturnInbox } from '@/lib/iterations'
 import { updateSlotIn } from '@/core/site'
 import { packetInputFor } from '@/lib/packet'
 import { packetFiles } from '@/core/export/packet'
@@ -77,24 +77,53 @@ describe('agent iterations', () => {
     expect(v.snapshot.site.pages[0].slots[0].recipe).toEqual(slot.recipe)
     const files = packetFiles(packetInputFor(useStore.getState(), { version: v, targets: ['astro', 'next'] }))
     for (const target of ['astro', 'next'])
-      expect(Object.entries(files).some(([k, val]) => k.includes(target) && k.includes('content/') && String(val).includes('$200 annually'))).toBe(
-        true,
-      )
+      expect(
+        Object.entries(files).some(([k, val]) => k.includes(target) && k.includes('content/') && String(val).includes('$200 annually')),
+      ).toBe(true)
     const second: Bundle = {
       ...bundle,
       id: crypto.randomUUID(),
       base: v.id,
-      changes: [{ kind: 'word', section: slot.id, field: 'heading', value: 'Agent plans' }],
+      changes: [
+        { kind: 'word', section: slot.id, field: 'heading', value: 'Agent plans' },
+        { kind: 'spacing', section: slot.id, edge: 'bottom', value: 'tight' },
+      ],
     }
     useStore.getState().setWord(slot.id, 'heading', 'My plans')
     stageReturn(second)
     expect(reviewReturn(v, second).rows[0]).toMatchObject({ conflict: true, here: 'My plans', incoming: 'Agent plans' })
-    decideReturn(v.id, second.id, new Set([0]))
-    expect(useStore.getState().site.pages[0].slots[0].words?.heading).toBe('Agent plans')
+    decideReturn(v.id, second.id, new Set([1]))
+    expect(useStore.getState().versions[v.id].returns?.[0].decisions).toEqual([
+      { applied: false, value: 'My plans' },
+      { applied: true, value: 'tight' },
+    ])
+    expect(useStore.getState().site.pages[0].slots[0].words?.heading).toBe('My plans')
+    expect(useStore.getState().site.pages[0].slots[0].spacing?.bottom).toBe('tight')
     useStore.temporal.getState().undo()
     expect(useStore.getState().site.pages[0].slots[0].words?.heading).toBe('My plans')
     expect(useStore.getState().versions[v.id].returns?.[0].status).toBe('pending')
     expect(useStore.getState().versions[first].snapshot.site.pages[0].slots).toHaveLength(0)
+    decideReturn(v.id, second.id, null)
+    expect(useStore.getState().versions[v.id].returns?.[0]).toMatchObject({
+      status: 'dismissed', decisions: [{ applied: false }, { applied: false }],
+    })
+  })
+  it('stages an early return when its version loads and delivers other returns immediately', async () => {
+    const base = useStore.getState().pressVersion()
+    const version = useStore.getState().versions[base]
+    const inbox = watchReturnInbox('local')
+    try {
+      const early = { ...pricing, base: 'late_version' }
+      inbox.receive([early, { ...pricing, base }])
+      expect(useStore.getState().versions[base].returns).toHaveLength(1)
+      useStore.setState(s => ({ versions: { ...s.versions, late_version: { ...version, id: 'late_version' } } }))
+      await Promise.resolve()
+      expect(useStore.getState().versions.late_version.returns?.[0].status).toBe('pending')
+      inbox.receive([early])
+      expect(useStore.getState().versions.late_version.returns).toHaveLength(1)
+    } finally {
+      inbox.close()
+    }
   })
   it('prepares sample words for curation and uses the next mix’s own pricing', () => {
     const sample = sampleRecipe(pricing.changes[0].recipe)
@@ -111,7 +140,9 @@ describe('agent iterations', () => {
     expect(mix.versions[mix.data.head].returns?.[0].bundle.base).toBe(mix.data.head)
     const clip = layoutClip(pricing.changes[0].recipe, library)
     expect(clip.blocks.map((b) => b.kind)).toContain('heading')
-    expect(() => layoutClip({ ...pricing.changes[0].recipe, layout: { rows: [[{ kind: 'text', field: 'imaginary' }]] } }, library)).toThrow()
+    expect(() =>
+      layoutClip({ ...pricing.changes[0].recipe, layout: { rows: [[{ kind: 'text', field: 'imaginary' }]] } }, library),
+    ).toThrow()
     expect(returnSchema.safeParse({ ...pricing, preview: 'javascript:alert(1)' }).success).toBe(false)
   })
 })

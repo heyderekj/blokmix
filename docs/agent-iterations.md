@@ -6,6 +6,8 @@ The agent calls `get_handoff` for a file index and reads named files in chunks. 
 
 The agent submits a `blokmix.return/v1` bundle using `submit_changes`. The hosted tool takes the handoff ID and the JSON-encoded bundle. The local bridge takes the bundle object. A build can also provide the same JSON as a file. In an existing mix, choose **Draft history → Agent tools → Bring into Blokmix**. From the mixes page, choose **Bring into Blokmix → Copy instructions for my AI** to get the standalone return format. A bundle without a base version starts a new mix.
 
+After review, expand the saved version in **Draft history** to see which changes you applied and which values you kept. A dismissed return appears under its original handoff.
+
 New layouts can use a built-in clip or declare responsive rows of native fields. Choice and toggle controls bind to word fields and block styles. Range controls bind to a block’s gap. A build can also return a working preview URL for custom runtime behavior.
 
 ## Hosted deployment

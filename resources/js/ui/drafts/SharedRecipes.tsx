@@ -10,6 +10,7 @@ import { library } from '@/data/library'
 import { uid } from '@/state/uid'
 import type { Slot, VersionNode } from '@/core/types'
 import { blankMix } from '@/state/seed'
+import { Dropdown } from '../controls/Dropdown'
 import { VersionPreview } from './IterationReview'
 
 interface Item {
@@ -72,16 +73,12 @@ export function RecipeControls({ slot }: { slot: Slot }) {
             {c.kind === 'toggle' ? (
               <input type="checkbox" checked={value === 1} onChange={(e) => set(e.target.checked ? 1 : 0)} />
             ) : (
-              <select aria-label={c.label} value={value} onChange={(e) => set(+e.target.value)}>
-                <option value={-1} disabled>
-                  Custom
-                </option>
-                {c.options.map((o, n) => (
-                  <option key={n} value={n}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+              <Dropdown
+                label={c.label}
+                value={value < 0 ? 'Custom' : String(value)}
+                options={c.options.map((o, index) => ({ v: String(index), label: o.label }))}
+                onChange={(n) => set(Number(n))}
+              />
             )}
           </label>
         )

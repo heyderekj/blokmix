@@ -271,3 +271,10 @@
   padding: 0 8px;
   text-decoration: underline;
 }
+
+.draft-receipt {
+  margin: 10px 0;
+  padding: 12px 14px 5px;
+  border-radius: 10px;
+  background: var(--card);
+}

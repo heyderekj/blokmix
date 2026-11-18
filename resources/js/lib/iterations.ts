@@ -1,6 +1,6 @@
 import { blankMix } from '@/state/seed'
 import wireReturnSchema from '../../schemas/agent-return.json'
-import { applyChange, difference, fromSavedIteration, inspectChange, returnSchema, type Bundle } from '@/core/iterations'
+import { applyChange, difference, fromSavedIteration, inspectChange, returnSchema, type Bundle, type ReturnRecord } from '@/core/iterations'
 import { stableStringify } from '@/core/hash'
 import { nextVersionLetter } from '@/core/drafts'
 import { allSlots } from '@/core/site'
@@ -89,6 +89,38 @@ export function stageReturn(raw: unknown, allowUnbased = false) {
   return base.letter
 }
 
+/** A handoff can arrive before this browser has loaded its base version. */
+export function watchReturnInbox(mix: string) {
+  const waiting = new Map<string, Bundle>()
+  let closed = false
+  function drain() {
+    if (closed || mix !== openMixId()) return
+    for (const [key, bundle] of waiting) {
+      if (!bundle.base || !useStore.getState().versions[bundle.base]) continue
+      waiting.delete(key)
+      try {
+        stageReturn(bundle)
+      } catch (e) {
+        useStore.getState().showFlash('Return needs a correction. ' + (e as Error).message)
+      }
+    }
+  }
+  const unsubscribe = useStore.subscribe((s, previous) => {
+    if (waiting.size && s.versions !== previous.versions) queueMicrotask(drain)
+  })
+  return {
+    receive(items: Bundle[]) {
+      for (const bundle of items) waiting.set(bundle.base + '/' + bundle.id, bundle)
+      drain()
+    },
+    close() {
+      closed = true
+      unsubscribe()
+      waiting.clear()
+    },
+  }
+}
+
 /** Check each operation against its base, then apply only the user's selections to the current working copy. */
 export function reviewReturn(base: VersionNode, bundle: Bundle, selected?: ReadonlySet<number>, commit = false) {
   const st = useStore.getState()
@@ -126,8 +158,14 @@ export function decideReturn(baseId: string, id: string, selected: ReadonlySet<n
   if (!item || item.status !== 'pending') throw Error('This return has already been reviewed.')
   const versions = { ...st.versions }
   let next: VersionNode | undefined
+  let decisions: ReturnRecord['decisions']
   if (selected?.size) {
-    const { current } = reviewReturn(base, item.bundle, selected, true)
+    const { current, rows } = reviewReturn(base, item.bundle, selected, true)
+    decisions = rows.map((row, i) => {
+      const applied = selected.has(i)
+      const value = applied ? row.incoming : row.here
+      return typeof value === 'string' ? { applied, value } : { applied }
+    })
     current.clipHashes = Object.fromEntries(allSlots(current.site).map((s) => [s.clipId, library.clips[s.clipId]?.hash ?? '']))
     let parentId = st.head ?? base.id
     const working = snapshotOf(st)
@@ -159,10 +197,12 @@ export function decideReturn(baseId: string, id: string, selected: ReadonlySet<n
       acceptedFrom: { base: base.id, submission: id, agent: item.bundle.agent },
     }
     versions[next.id] = next
+  } else {
+    decisions = item.bundle.changes.map(() => ({ applied: false }))
   }
   versions[base.id] = {
     ...base,
-    returns: base.returns!.map((r) => (r !== item ? r : { ...r, status: next ? 'accepted' : 'dismissed', version: next?.id })),
+    returns: base.returns!.map((r) => (r !== item ? r : { ...r, status: next ? 'accepted' : 'dismissed', version: next?.id, decisions })),
   }
   const temporal = useStore.temporal.getState()
   temporal.pause()
