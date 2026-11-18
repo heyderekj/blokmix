@@ -233,8 +233,8 @@ dates: code does those.
 - On screen there's no "Jev" and no feature names, only plain words: Suggestions (the menu switch, whose credit line,
   "Suggestions by Jev (TypeSafe)", is the one place the name shows; `tests/jev-name.test.ts` checks it), "From what you wrote", "Suggested", "Suggestions are off (Blokmix menu)", "What do you want to change?" (the
   bar), "Add your text to this page", "Make a page from your text", "Text not placed yet", "Background ideas", "Find colors",
-  "Is it clear?", "Best match first". Code names (`core/jev`, commands, files) stay. Without a server key the Say bar isn't
-  drawn (`useJevServer`, `checkJevServer` in `lib/jev.ts`); command errors come from `jevOffMessage`.
+  "Is it clear?", "Best match first". Code names (`core/jev`, commands, files) stay. The Say bar's built-in edits work
+  without a server key or with suggestions turned off. Commands that need suggestions use `jevOffMessage`.
 - Features (commands first, `core/commands/schema/jev.ts`, `state/commands/jev.ts`): `place_links` (smart links; the
   checklist's dead-link fix, "Suggested" in the link menu), `five_second_test` (the first screen's words to a visitor;
   "Is it clear?" card in the export panel), `find_subject` (`MediaFill.focus` → object-position; the Image
@@ -245,7 +245,7 @@ dates: code does those.
 - On the board Say it is a bar above the Dock (`ui/jev/SayBar.tsx`), hidden until ⌘K or the Dock's wand button opens it; it
   hides again on a click elsewhere with nothing typed (a "n not placed" chip still shows). Empty and
   focused, it offers a verb-led sentence ("Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]", "Add [a FAQ
-  section]", `barSentence`); `fillBar` builds the same action Say it would (`buildAction` on certain answers). It also takes a
+  section]", `barSentence`); `fillBar` and the built-in text commands (`readLocalSay`) use the same `pickedSay` actions. It also takes a
   typed command, or a paste of two or more lines: "Add to this page" / "Make a new page" hand the words to `WordsSheet`
   (`useJevTools.auto`), which places them at once. Text not placed yet (`content.tray`, saved and undone with the mix's words;
   `trayLines`, `setTray`) unfolds from the "n not placed" chip beside the bar.

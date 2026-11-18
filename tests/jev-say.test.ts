@@ -1,8 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { currentSlots, useStore } from '@/state/store'
+import { currentSlots, undo, useStore } from '@/state/store'
 import { COMMANDS, type CommandName } from '@/core/commands/schema'
 import { INTENTS, sayRequest, sectionByNumber, understand, type IntentId } from '@/core/jev/say'
 import { doSay, hear, sayContext } from '@/state/jevSay'
+import { fillBar } from '@/core/jev/sentence'
+import { resolveGuide } from '@/core/guide'
+import { toneOfGuide } from '@/core/dials'
+import { surfaceTokens } from '@/core/surface'
 import { runCommand } from '@/state/commands'
 import type { ChoiceQuestion, JevResponse } from '@/core/jev'
 import { answerFor, fakeJev, realJev, type Rule } from './helpers/fakeJev'
@@ -45,6 +49,52 @@ describe('Say it', () => {
     const before = sayContext().dials.spacing
     const h = (await hear('roomier'))!
     expect(h.action).toMatchObject({ command: 'set_dial', input: { dial: 'spacing', value: Math.min(100, before + 15) }, words: 'Roomier' })
+  })
+
+  it('lightens a visible dark band even when the page palette is already light, and undoes the edit in one step', async () => {
+    const fake = fakeJev(undefined, { off: true })
+    const pricing = sayContext().sections.find((s) => s.type === 'pricing')!
+    useStore.getState().setSurface(pricing.id, 'inverse')
+    useStore.temporal.getState().clear()
+    const paintedTone = () => {
+      const ctx = sayContext()
+      return toneOfGuide(surfaceTokens(resolveGuide(useStore.getState().guide).tokens, ctx.sections.find((s) => s.id === pricing.id)!.surface))
+    }
+    const ctx = sayContext()
+    expect(ctx.tone).toBe('light')
+    expect(paintedTone()).toBe('dark')
+    const typed = await hear('Make the page light')
+    const guided = fillBar({ verb: [{ id: 'make', words: 'Make' }], section: [{ id: 'page', words: 'the page' }], how: [{ id: 'light', words: 'light' }] }, ctx)
+    expect(typed.action).toEqual(guided.action)
+    expect(typed.action?.command).toBe('set_tone')
+    await doSay(typed.action!, 'Make the page light')
+    expect(paintedTone()).toBe('light')
+    expect(useStore.temporal.getState().pastStates).toHaveLength(1)
+    undo()
+    expect(paintedTone()).toBe('dark')
+    expect(fake.requests).toHaveLength(0)
+  })
+
+  it('keeps dark and light section commands literal when the page palette is dark', async () => {
+    fakeJev(undefined, { off: true })
+    await runCommand('set_tone', { tone: 'dark' }, 'you')
+    const light = await hear('make pricing light')
+    expect(light.action).toMatchObject({ words: 'Pricing → light band', input: { surface: 'inverse' } })
+    await doSay(light.action!, 'make pricing light')
+    const dark = await hear('make pricing dark')
+    expect(dark.action).toMatchObject({ words: 'Pricing → dark band', input: { surface: 'page' } })
+  })
+
+  it('asks for a section number when a typed edit would match multiple sections', async () => {
+    const fake = fakeJev()
+    useStore.getState().addSlot('pricing')
+    const sections = sayContext().sections.filter((s) => s.type === 'pricing')
+    const ambiguous = await hear('remove pricing')
+    expect(ambiguous.action).toBeNull()
+    expect(ambiguous.message).toContain('More than one section')
+    const specific = await hear(`remove section ${sections[1].position}`)
+    expect(specific.action).toMatchObject({ command: 'remove_section', input: { section: sections[1].id }, words: 'Remove Pricing (2)' })
+    expect(fake.requests).toHaveLength(0)
   })
 
   it('reads “the third section” in code, whatever Jev picked', () => {

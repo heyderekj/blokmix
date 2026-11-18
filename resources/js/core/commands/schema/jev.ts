@@ -4,8 +4,7 @@ import { block, section } from './shared'
 
 /**
  * What Jev (TypeSafe's System One model) does on the board: it places, picks and checks real things (your words,
- * the page's sections, Blokmix's layouts and treatments) and never writes words. Each needs Jev on (the server has
- * a TypeSafe key and "Let Jev help" is on); when it's off they say so.
+ * the page's sections, Blokmix's layouts and treatments) and never writes words. Common edits in `understand` work locally.
  */
 export const JEV_COMMANDS = {
   place_links: {
@@ -79,7 +78,7 @@ export const JEV_COMMANDS = {
   },
   understand: {
     description:
-      'What Say it would do with these words ("roomier", "make pricing dark", "FAQ above pricing", "add a team section"): Jev picks one of Blokmix’s own commands and fills its arguments from this page’s real sections, dials and skins. Returns the command and input it would run (action, when sure) and what else the words might mean (options). Changes nothing: run the action yourself if it’s right.',
+      'Preview a request such as “roomier”, “make pricing dark”, “FAQ above pricing” or “add a team section”. Returns an action when the request is clear, possible actions when uncertain, or a message explaining the result. Run the proposed command separately to apply it.',
     input: z.object({ text: z.string().trim().min(1).max(200) }),
     write: false,
   },

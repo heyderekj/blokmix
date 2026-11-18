@@ -141,8 +141,8 @@ export const PAGE_COMMANDS = {
     write: true,
   },
   set_tone: {
-    description: 'Make the style guide light or dark: background and text trade places and the surface, border and muted colors follow. Accent stays.',
-    input: z.object({ tone: z.enum(['light', 'dark']) }),
+    description: 'Make the style guide light or dark. With a page specified, also bring its opposite-tone section bands into line with the page palette.',
+    input: z.object({ tone: z.enum(['light', 'dark']), page: page.optional() }),
     write: true,
   },
   set_brand: {

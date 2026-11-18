@@ -129,9 +129,10 @@ export const later = {
     prepare: async (i: CommandInput<'place_links'>) => {
       await needJev()
       const slots = i.section !== undefined ? [findSection(i.section, i.page)] : pageSlots(i.page)
-      return guessLinks(deadLinks(slots))
+      const dead = deadLinks(slots)
+      return { dead: dead.length, guesses: await guessLinks(dead) }
     },
-    apply: (i: CommandInput<'place_links'>, guesses: LinkGuess[]) => {
+    apply: (i: CommandInput<'place_links'>, { dead, guesses }: { dead: number; guesses: LinkGuess[] }) => {
       const st = useStore.getState()
       const set = guesses.filter((g) => g.target && (g.route === 'act' || (!i.sure_only && g.route === 'offer')))
       for (const g of set) st.editBlock(g.slotId, g.blockId, { link: g.target! })
@@ -141,12 +142,14 @@ export const later = {
         suggestions: rest.map(describeGuess),
         message: set.length
           ? `Pointed ${set.length} link${set.length === 1 ? '' : 's'} where ${set.length === 1 ? 'its' : 'their'} words lead.`
-          : guesses.length
-            ? 'There are ideas, but none sure enough to set; see suggestions.'
-            : `Every link here already leads somewhere${i.section !== undefined ? ` in ${TYPE_LABEL[findSection(i.section, i.page).type]}` : ''}.`,
+          : rest.length
+            ? 'Review suggested links in the Export checklist.'
+            : dead
+              ? 'No destinations were found for the unlinked buttons and links.'
+              : `Every link here already leads somewhere${i.section !== undefined ? ` in ${TYPE_LABEL[findSection(i.section, i.page).type]}` : ''}.`,
       }
     },
-  } satisfies AsyncCommand<LinkGuess[]>,
+  },
   five_second_test: {
     prepare: (i: CommandInput<'five_second_test'>) => fiveSecondTest(i.page),
     apply: (_i: CommandInput<'five_second_test'>, r: FiveSecond) => ({
@@ -231,13 +234,10 @@ export const later = {
     apply: (_i: CommandInput<'suggest_treatments'>, ideas: DressIdea[]) => ideas.map((d) => ({ does: d.label, command: d.command, input: d.input, fit: Math.round(d.fit * 100) / 100 })),
   } satisfies AsyncCommand<DressIdea[]>,
   understand: {
-    prepare: async (i: CommandInput<'understand'>) => {
-      await needJev()
-      return hear(i.text)
-    },
-    apply: (_i: CommandInput<'understand'>, h: Heard | null) => {
+    prepare: (i: CommandInput<'understand'>) => hear(i.text),
+    apply: (_i: CommandInput<'understand'>, h: Heard) => {
       const show = (a: NonNullable<Heard['action']>) => ({ does: a.words, command: a.command ?? null, input: a.input ?? null, opens: a.open ?? null, sure: Math.round(a.sure * 100) / 100 })
-      return { action: h?.action ? show(h.action) : null, options: (h?.options ?? []).map(show), contract: h?.kept ?? null }
+      return { action: h.action ? show(h.action) : null, options: h.options.map(show), contract: h.kept ?? null, ...(h.message ? { message: h.message } : {}) }
     },
   },
   find_subject: {

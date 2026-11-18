@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ImagePlus, Wand2 } from 'lucide-react'
 import type { Ranked } from '@/core/jev/palettes'
 import { swatchSvg } from '@/core/jev/swatch'
@@ -22,6 +22,7 @@ export function ColorsByFeel() {
   const [busy, setBusy] = useState(false)
   const [picks, setPicks] = useState<Ranked[] | null>(null)
   const [note, setNote] = useState<string | null>(null)
+  const panel = useRef<HTMLDivElement>(null)
   const preview = useTokenPreview((s) => s.setPatch)
 
   useEffect(() => {
@@ -47,12 +48,13 @@ export function ColorsByFeel() {
     if (!asked || !on) return
     setFeel(asked)
     useJevTools.setState({ open: null, text: undefined })
+    panel.current?.scrollIntoView({ block: 'nearest' })
     void find({ feel: asked })
   }, [asked, on])
 
   if (!on) return null
   return (
-    <div className="mt-3 border-t border-zinc-950/6 pt-3">
+    <div ref={panel} className="mt-3 border-t border-zinc-950/6 pt-3">
       <div className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-medium text-zinc-700">
         <Wand2 size={12} className="text-zinc-500" /> Find colors
       </div>

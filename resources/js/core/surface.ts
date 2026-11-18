@@ -1,6 +1,5 @@
-import type { Slot, TokenSet } from './types'
-import { mixHex } from './tokens'
-import { contrastRatio } from './tokens'
+import type { GuideState, Slot, TokenSet } from './types'
+import { contrastRatio, mixHex } from './tokens'
 import { setTone, toneOfGuide } from './dials'
 import { isBackdropId, readBackdrop } from './treatments'
 
@@ -44,6 +43,12 @@ export function surfaceTokens(t: TokenSet, surface: Surface | undefined): TokenS
     'color.primary': text,
     'color.onPrimary': bg,
   })
+}
+
+/** The guide-colored bands that would still have the opposite tone from the page. */
+export function opposingBands(tokens: TokenSet, slots: Slot[], defaults: GuideState['sections']): Slot[] {
+  const tone = toneOfGuide(tokens)
+  return slots.filter((slot) => !slot.keep.style && !slot.locked && toneOfGuide(surfaceTokens(tokens, slot.surface ?? defaults?.[slot.type]?.surface)) !== tone)
 }
 
 /**
