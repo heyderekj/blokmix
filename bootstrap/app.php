@@ -18,9 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             MarkSignedIn::class,
         ]);
-        // The signed-in flag is read at the edge, so it isn't encrypted (it holds nothing but "1").
+        // The public site's navigation uses this plain flag to decide when to check for an active session.
         $middleware->encryptCookies(except: [MarkSignedIn::COOKIE]);
         $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectUsersTo(fn () => route('mixes.index'));
         // Laravel Cloud terminates HTTPS in front of the app.
         $middleware->trustProxies(at: '*');
         // The website's waitlist form is static HTML on blokmix.com, so it has no CSRF token to send.

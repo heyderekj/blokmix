@@ -43,7 +43,7 @@ class WaitlistPageTest extends TestCase
         $this->actingAs($someone)->get('/waitlist')->assertNotFound();
         $this->actingAs($someone)->get('/waitlist/export')->assertNotFound();
         $this->actingAs($someone)->delete('/waitlist/1')->assertNotFound();
-        $this->actingAs($someone)->get('/')->assertInertia(fn (Assert $page) => $page->where('auth.owner', false));
+        $this->actingAs($someone)->get('/mixes')->assertInertia(fn (Assert $page) => $page->where('auth.owner', false));
     }
 
     public function test_signed_out_people_are_sent_to_sign_in(): void

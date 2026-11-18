@@ -7,10 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * A plain `blokmix_signed_in=1` cookie while someone is signed in, gone when they
- * aren't. It carries nothing secret (the session stays HTTP-only and encrypted):
- * it only tells the edge in front of blokmix.com whether `/` should be the app or
- * the website, the way notion.com works.
+ * A plain `blokmix_signed_in=1` cookie that tells the public site when to check
+ * for a session before showing My Mixes. Laravel's session determines access.
  */
 class MarkSignedIn
 {

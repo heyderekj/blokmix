@@ -210,7 +210,7 @@ class SitesTest extends TestCase
         $this->owned($me);
         $me->clips()->create(['clip_id' => 'hero.acme-one', 'files' => ['x' => 'y']]);
 
-        $this->actingAs($me)->get('/')->assertInertia(fn (Assert $page) => $page
+        $this->actingAs($me)->get('/mixes')->assertInertia(fn (Assert $page) => $page
             ->where('auth.billing.price', 30)
             ->where('auth.billing.buy', false)
             ->where('auth.billing.ships', false)

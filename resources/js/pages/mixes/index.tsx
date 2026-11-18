@@ -247,7 +247,9 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
       )}
       <header inert={guided} className="flex items-center gap-2.5 px-6 py-5">
         <span className="flex-1 text-[#17121A]">
-          <Wordmark height={18} />
+          <a href="/" aria-label="Blokmix website" className="inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF69B4]">
+            <Wordmark height={18} />
+          </a>
         </span>
         {user && (
           <>

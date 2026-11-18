@@ -18,6 +18,7 @@ use App\Http\Controllers\PublishedController;
 use App\Http\Controllers\ShareController;
 use App\Http\Controllers\WaitlistController as WaitlistPage;
 use App\Models\Mix;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // blok.page: published mixes, first so nothing else answers on that host. No web middleware: no session, no cookies, no
@@ -33,6 +34,11 @@ Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join
 
 Route::inertia('/mixes/sample', 'mixes/sample')->name('mixes.sample');
 
+// The public site's navigation confirms the session without exposing any account details.
+Route::get('/api/session', fn (Request $request) => response()
+    ->json(['signed_in' => $request->user() !== null])
+    ->header('Cache-Control', 'private, no-store'));
+
 // blokmix.com's waitlist form (signed out, no CSRF token: see WaitlistController).
 Route::post('/api/waitlist', [WaitlistController::class, 'store'])->middleware('throttle:6,1')->name('waitlist.store');
 
@@ -41,9 +47,9 @@ Route::post('/api/waitlist', [WaitlistController::class, 'store'])->middleware('
 Route::post('/api/polar/webhook', [BillingController::class, 'webhook'])->name('polar.webhook');
 
 Route::middleware('auth')->group(function () {
-    // Your mixes are the home page when you're signed in (signed out, blokmix.com's edge serves the website).
-    Route::get('/', [MixController::class, 'index'])->name('mixes.index');
-    Route::redirect('/mixes', '/');
+    // The public homepage lives at the edge. Direct visits to the Laravel origin or local app can still reach the workspace.
+    Route::redirect('/', '/mixes');
+    Route::get('/mixes', [MixController::class, 'index'])->name('mixes.index');
     Route::post('/mixes', [MixController::class, 'store'])->name('mixes.store');
     // A mix lives at its short address (blokmix.com/k3x9, the route last in this file); the old addresses forward there.
     Route::get('/local', [MixController::class, 'local'])->name('mixes.local');
