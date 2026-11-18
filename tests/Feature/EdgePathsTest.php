@@ -18,7 +18,7 @@ class EdgePathsTest extends TestCase
             }
             $path = '/'.ltrim($route->uri(), '/');
             if ($path === '/') {
-                continue; // The edge sends / here when the signed-in cookie is set.
+                continue; // The public homepage lives at the edge; the Laravel origin redirects to /mixes.
             }
             // A mix's short address is a whole path, matched by a pattern rather than a prefix.
             $sample = $path === '/{mix}' ? '/k3x9' : $path;

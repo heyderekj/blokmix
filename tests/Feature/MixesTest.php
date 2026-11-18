@@ -38,18 +38,28 @@ class MixesTest extends TestCase
         return ['id' => "v_$letter", 'letter' => $letter, 'title' => "Version $letter", 'snapshot' => ['site' => ['pages' => []]]];
     }
 
-    public function test_the_home_page_lists_your_mixes_and_marks_you_signed_in(): void
+    public function test_the_workspace_lists_your_mixes_and_marks_you_signed_in(): void
     {
-        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('mixes/index'))->assertCookie('blokmix_signed_in', '1', false);
-        $this->get('/mixes')->assertRedirect('/');
+        $this->get('/mixes')->assertOk()->assertInertia(fn (Assert $page) => $page->component('mixes/index'))->assertCookie('blokmix_signed_in', '1', false);
+        $this->get('/')->assertRedirect('/mixes');
     }
 
     public function test_signed_out_people_are_asked_to_sign_in(): void
     {
         auth()->logout();
-        $this->get('/')->assertRedirect('/login');
-        $this->withCookie('blokmix_signed_in', '1')->get('/login')->assertCookieExpired('blokmix_signed_in');
+        $this->get('/mixes')->assertRedirect('/login');
         $this->getJson('/api/mixes/x')->assertUnauthorized();
+    }
+
+    public function test_the_public_site_can_confirm_a_session_even_with_an_expired_hint(): void
+    {
+        $this->getJson('/api/session')->assertOk()->assertExactJson(['signed_in' => true])
+            ->assertHeader('Cache-Control', 'no-store, private');
+
+        auth()->logout();
+        $this->withCredentials()->withUnencryptedCookie('blokmix_signed_in', '1')->getJson('/api/session')
+            ->assertOk()->assertExactJson(['signed_in' => false])
+            ->assertHeader('Cache-Control', 'no-store, private')->assertCookieExpired('blokmix_signed_in');
     }
 
     public function test_other_peoples_mixes_stay_hidden(): void
@@ -57,7 +67,7 @@ class MixesTest extends TestCase
         $theirs = Mix::create(['name' => 'Theirs']);
         $theirs->admit(User::factory()->create(), MixRole::Owner);
 
-        $this->get('/')->assertInertia(fn (Assert $page) => $page->has('mixes', 0));
+        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page->has('mixes', 0));
         $this->get("/{$theirs->short}")->assertNotFound();
         $this->get("/mixes/{$theirs->id}")->assertNotFound();
         $this->getJson("/api/mixes/{$theirs->id}")->assertNotFound();
@@ -69,7 +79,7 @@ class MixesTest extends TestCase
         $this->mine(['name' => 'Older'])->forceFill(['updated_at' => now()->subDay()])->save();
         $this->mine(['name' => 'Newer'])->versions()->create(['key' => 'v_A', 'letter' => 'A', 'node' => $this->node('A')]);
 
-        $this->get('/')
+        $this->get('/mixes')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('mixes/index')
                 ->has('mixes', 2)
@@ -148,7 +158,7 @@ class MixesTest extends TestCase
         ]]);
         $mix->versions()->create(['key' => 'v_A', 'letter' => 'A', 'node' => [...$this->node('A'), 'status' => 'approved']]);
 
-        $this->get('/')->assertInertia(fn (Assert $page) => $page
+        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page
             ->where('mixes.0.short', $mix->short)
             ->where('mixes.0.sections', ['nav', 'hero', 'features'])
             ->where('mixes.0.pages', 1)
@@ -315,7 +325,7 @@ class MixesTest extends TestCase
         $copy = Mix::findOrFail($this->postJson("/api/mixes/{$mix->id}/duplicate")->assertCreated()->json('id'));
         $this->assertSame(2, $copy->drafts()->count());
 
-        $this->get('/')->assertInertia(fn (Assert $page) => $page
+        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page
             ->where('mixes.0.drafts', 2)
             ->where('mixes.0.heads.1.letter', 'B')
             ->where('mixes.0.heads.1.status', 'ready'));

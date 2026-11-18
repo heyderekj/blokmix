@@ -18,7 +18,7 @@ Inertia on Laravel Cloud later.
 
 Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The board still runs on its own:
 - `npm run dev:laravel` (or `composer dev`): `php artisan serve` on http://localhost:8000 plus Vite on 5174.
-  `/` is the gallery of your mixes (signed in), `/{short}` is a mix's board (`mixes.short`, e.g. `/k3x9`: 4+ letters and digits
+  `/mixes` is the gallery of your mixes (signed in), `/{short}` is a mix's board (`mixes.short`, e.g. `/k3x9`: 4+ letters and digits
   with at least one digit, `Mix::SHORT_PATTERN`; old `/mixes/{ulid}` addresses forward there), `/local` the browser-only mix. `resources/views/app.blade.php` marks the page
   (`<meta name="blokmix-host">`, `lib/host.ts` `isHosted()`), and `app.tsx` then mounts Inertia pages from
   `resources/js/pages/` instead of the bare board.
@@ -39,11 +39,11 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   CLI (`composer global` laravel/cloud-cli) is signed in: `cloud deploy blokmix production`, `cloud cmd:run`.
 - Accounts (Fortify: sign up, sign in, sign out; Inertia pages in `pages/auth/`). Sign-up is open. Password reset
   emails go through Resend (Cloud's Email resource, sender hello@notifications.blokmix.com; DNS on Cloudflare). The board takes your account's name for marks and versions.
-- `/` is your mixes when signed in (`/mixes` redirects there): a gallery of cards, each drawing its first page in its own
+- `/mixes` is your gallery of cards, each drawing its first page in its own
   style guide (`ui/mixes/MixThumb.tsx`, its main heading in the mix's display font) with its versions' status rings.
   Cards rename in place (`PATCH /api/mixes/{id}/name`, owners and editors, no lock bump) and duplicate
   (`POST /api/mixes/{id}/duplicate`: data, versions and uploads into a new mix you own); the gallery searches and sorts. `MarkSignedIn` sets a plain `blokmix_signed_in=1`
-  cookie while you're signed in, so the edge in front of blokmix.com can send `/` to the app or the website.
+  cookie while you're signed in. The website at `/` uses it to decide when to check `/api/session` and show My Mixes.
 - Password reset by email (Fortify): the "Forgot password?" link shows only when MAIL_MAILER is a real mailer
   (Cloud's Email resource connects Resend). Signing up from a share link names the mix you're invited to.
 - Uploads (`mix_assets`, `AssetController`) live on the uploads disk (Cloud bucket `blokmix_production`, disk
