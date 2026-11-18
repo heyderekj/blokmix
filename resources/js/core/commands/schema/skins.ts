@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { CONTRACT_AREAS, CONTRACT_SETTINGS } from '../../contract'
+import { STYLE_AREAS, CONTRACT_AREAS, CONTRACT_SETTINGS } from '../../contract'
 import { FORMATS, INDUSTRIES } from '../../brief'
 import { FEEL_WORDS, NUDGES } from '../../feel'
 
@@ -22,6 +22,21 @@ export const SKIN_COMMANDS = {
       count: z.number().int().min(1).max(10).optional(),
     }),
     write: false,
+  },
+  list_theme_parts: {
+    description: 'Available parts of a theme, with the current choice and kept areas.',
+    input: z.object({ area: z.enum(STYLE_AREAS).optional() }),
+    write: false,
+  },
+  set_theme_part: {
+    description: 'Apply one part from list_theme_parts in one undo step.',
+    input: z.object({ area: z.enum(STYLE_AREAS), part: z.string() }),
+    write: true,
+  },
+  set_theme_parts: {
+    description: 'Apply parts together. A kept or unknown part cancels the entire change.',
+    input: z.object({ parts: z.partialRecord(z.enum(STYLE_AREAS), z.string()).refine((v) => Object.keys(v).length > 0) }),
+    write: true,
   },
   nudge_look: {
     description:

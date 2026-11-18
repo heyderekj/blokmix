@@ -1,7 +1,8 @@
 import { rankThemes } from '@/core/themeRanking'
+import { listParts } from '@/core/themeParts'
 import type { CommandInput } from '@/core/commands/schema'
 import { contractMarkdown, emptyContract } from '@/core/contract'
-import { refId, skinById, skinList, skinRefOf } from '@/core/skins'
+import { refId, swapThemeParts, type ThemeParts, skinById, skinList, skinRefOf } from '@/core/skins'
 import { NUDGE_LABEL, nudgeTokens } from '@/core/feel'
 import { resolveGuide } from '@/core/guide'
 import { readDials, toneOfGuide } from '@/core/dials'
@@ -14,7 +15,18 @@ const contractNow = () => {
   return { ...contract, markdown: contractMarkdown(contract, st.guide.skin) }
 }
 
+function applyParts(parts: ThemeParts) {
+  const st = useStore.getState()
+  const guide = swapThemeParts(st.guide, parts, st.contract)
+  useStore.setState({ guide })
+  return { parts }
+}
+
 export const read = {
+  list_theme_parts: (i: CommandInput<'list_theme_parts'>) => {
+    const st = useStore.getState()
+    return listParts(st.guide, st.contract, i.area)
+  },
   list_skins: () => {
     const on = skinRefOf(useStore.getState().guide.skin)
     return {
@@ -50,6 +62,8 @@ export const read = {
 }
 
 export const write = {
+  set_theme_part: (i: CommandInput<'set_theme_part'>) => applyParts({ [i.area]: i.part }),
+  set_theme_parts: (i: CommandInput<'set_theme_parts'>) => applyParts(i.parts),
   apply_skin: (i: CommandInput<'apply_skin'>) => {
     const id = i.flavor ? `${i.skin}/${i.flavor}` : i.skin
     if (!skinById(id))

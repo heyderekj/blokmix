@@ -11,6 +11,7 @@ import { BrandColor } from './Dials'
 import { AllThemes, putSkin, SkinCard } from './Skins'
 import { runCommand } from '@/state/commands'
 import { rankThemes } from '@/core/themeRanking'
+import { PartPicker } from './PartPicker'
 import { FontLinks } from './shared'
 
 const TILE = 'rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)]'
@@ -39,6 +40,7 @@ export function Look() {
     <div className="grid gap-2 p-3">
       <Feel />
       <Themes />
+      <PartPicker />
       <Nudges />
       <div className={TILE}>
         <div className="mb-1 text-[12.5px] font-semibold text-zinc-900">Your color</div>
