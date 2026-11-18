@@ -9,7 +9,7 @@ import { changeLabel, type Bundle } from '@/core/iterations'
 import { packetInputFor } from '@/lib/packet'
 import { referenceHtml } from '@/core/export/reference-html'
 import { pickFile } from '@/lib/pickFile'
-import { canShip } from '@/state/shipping'
+import { canShip, useShippingPrice } from '@/state/shipping'
 import type { VersionNode } from '@/core/types'
 import { Dropdown } from '../controls/Dropdown'
 import { VisualChangePreview } from './VisualChangePreview'
@@ -55,6 +55,7 @@ export function IterationActions() {
   const [copy, setCopy] = useState('')
   const [sending, setSending] = useState(false)
   const editable = useAccount((s) => canEdit(s.role) && !s.archived)
+  const shippingPrice = useShippingPrice()
   const sent = useStore((s) => (s.head ? s.versions[s.head] : undefined))
   function download() {
     if (!sent || !canShip('Downloading the handoff')) return
@@ -93,6 +94,7 @@ export function IterationActions() {
           <Plug size={16} /> Agent tools <ChevronDown size={15} className="ml-auto" />
         </summary>
         <div className="grid gap-3 px-3 pb-3 text-sm">
+          {shippingPrice !== null && <p className="text-[12px] text-zinc-600">Agent handoff is ${shippingPrice} once per site, including every version.</p>}
           <div className="flex flex-wrap gap-2 [&>button]:min-h-9 [&>button]:rounded-lg [&>button]:border [&>button]:border-border [&>button]:px-3">
             <button disabled={sending} onClick={() => void send()} className="draft-primary">
               <Send size={14} /> {sending ? 'Preparing…' : 'Send my changes'}

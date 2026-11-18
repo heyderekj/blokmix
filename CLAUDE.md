@@ -87,8 +87,9 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   step folds away), a blank page or a mix file. Every mix keeps its own copy, so edits never spread.
 - Pricing (`config/blokmix.php` `site` and `upload_mb`, `docs/pricing.md`): free to make, $30 a site when you ship it. A
   site is one mix. Everything on the board is free for everyone (every layout, theme, control and treatment, any number
-  of mixes); shipping is paid for once per mix: downloading the export (Export's Download, Copy prompt and a file's Copy),
-  Copy for your agent in the Style guide, and `prepare_build`. `Mix` `isPaid` (`mixes.paid_at`, `paid_order_id`) and
+  of mixes). Shipping is paid for once per mix: downloading the full export, copying the build prompt or generated code,
+  and handing a version to an agent. The Style guide's Copy for your agent and copying `tokens.css` or `tokens.json`
+  are free. `/mixes/sample` offers a public download from the built-in demo with standalone prompts. `Mix` `isPaid` (`mixes.paid_at`, `paid_order_id`) and
   `ships` (paid, its owner `hasPlus`, or `waitlist_mode`); `toBoard` `ships` sets `useAccount` `ships`, and
   `state/shipping.ts` `canShip(what)` opens `ui/shell/BuySheet.tsx` (pay for this site at Polar; viewers hear it's an
   editor's call) while `shipRefusal()` is what `prepare_build` throws for an agent. Every version and re-export of a

@@ -68,6 +68,7 @@ function Pin({ mark, x, y, open }: { mark: PreviewMark; x: number; y: number; op
           useStore.getState().setUi({ openNoteId: open ? null : mark.id })
         }}
         title={`N${mark.number} · ${KIND_LABEL[mark.kind!]} · ${STATUS_LABEL[mark.status!]}: ${mark.text}`}
+        data-round-control
         className={`absolute grid h-6 min-w-6 place-items-center rounded-full rounded-bl-[4px] px-1.5 text-[11px] font-bold tabular-nums shadow-md ring-2 ring-white transition hover:scale-110 ${KIND_TONE[mark.kind!].pin} ${mark.status === 'verified' ? 'opacity-55' : ''}`}
         style={{ transform: 'translate(-30%, -70%) scale(min(calc(1 / var(--zl)), 3.4))', transformOrigin: '0 100%', left: 0, top: 0 }}
       >

@@ -75,6 +75,12 @@ class SitesTest extends TestCase
         $this->actingAs($editor)->getJson("/api/mixes/{$mix->id}")->assertJsonPath('ships', true);
     }
 
+    public function test_a_guest_can_open_the_sample_handoff(): void
+    {
+        $this->get('/mixes/sample')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('mixes/sample')->where('auth.user', null)->missing('mix'));
+    }
+
     public function test_paying_cant_be_saved_from_the_board(): void
     {
         $me = User::factory()->create();

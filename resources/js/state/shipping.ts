@@ -3,11 +3,14 @@ import { useAccount } from '@/lib/account'
 
 /**
  * Free to make, $30 a site when you ship it (docs/pricing.md). Everything on the board is free; shipping is what's
- * paid for, once per mix: downloading its code (blokmix.json, BLOKMIX.md, tokens, Astro, Next.js) and handing a version
- * to an agent. `useAccount` `ships` says whether the open mix can: it's paid for, its owner has Plus from before, Blokmix
+ * paid for, once per mix: exporting the full build packet and handing a version to an agent. Copying style tokens is free.
+ * `useAccount` `ships` says whether the open mix can ship: it's paid for, its owner has Plus from before, Blokmix
  * is on its waitlist, or there's no Laravel. After paying, every version and export of it is free.
  */
 export const ships = () => useAccount.getState().ships
+
+/** Show the one-time price alongside gated actions. An unlocked mix has no price to show. */
+export const useShippingPrice = () => useAccount((s) => (s.ships ? null : s.price))
 
 /** The buy sheet, open when someone tries to ship a mix that isn't paid for. `what` names the step ("Downloading the files"). */
 export const useBuySheet = create<{ open: boolean; what: string | null }>()(() => ({ open: false, what: null }))
