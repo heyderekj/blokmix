@@ -31,6 +31,7 @@ export function PartPicker() {
   const [alternatives, setAlternatives] = useState<ThemeParts[]>([])
   const [parts, setParts] = useState<ThemeParts | null>(null)
   const request = useRef(0)
+  const panel = useRef<HTMLElement>(null)
   const rows = useMemo(() => listParts(guide, contract), [guide, contract])
   const row = rows.find((r) => r.area === area)
   const result = useMemo(
@@ -64,18 +65,12 @@ export function PartPicker() {
       live = false
     }
   }, [enabled])
-  useEffect(() => {
-    if (asked) {
-      setText(asked)
-      useJevTools.setState({ open: null })
-    }
-  }, [asked])
-  const ask = async (check: boolean) => {
+  const ask = async (check: boolean, words = text) => {
     clear()
     setBusy(true)
     const id = request.current
     try {
-      const r = check ? await checkLook() : await restyle(text)
+      const r = check ? await checkLook() : await restyle(words)
       if (id !== request.current) return
       const options = 'options' in r ? r.options.map((o) => o.parts) : r.parts ? [r.parts] : []
       setAlternatives(options)
@@ -88,8 +83,15 @@ export function PartPicker() {
       if (id === request.current) setBusy(false)
     }
   }
+  useEffect(() => {
+    if (!asked) return
+    setText(asked)
+    useJevTools.setState({ open: null, text: undefined })
+    panel.current?.scrollIntoView({ block: 'nearest' })
+    void ask(false, asked)
+  }, [asked])
   return (
-    <section className="grid gap-3 rounded-2xl bg-[var(--lift)] p-3">
+    <section ref={panel} className="grid gap-3 rounded-2xl bg-[var(--lift)] p-3">
       <div className="grid gap-1.5 text-[13px] font-semibold">
         <span>Change one part</span>
         <Dropdown

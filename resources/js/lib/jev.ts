@@ -84,7 +84,7 @@ export const jevLog: { ms: number; inputTokens: number; questions: number; cache
 
 /** Ask Jev. Null when it's off, timed out, aborted or failed: the caller falls back. */
 export async function askJev(req: JevRequest, opts: AskOptions = {}): Promise<JevResponse | null> {
-  if (!(await jevOn())) return null
+  if (!(await jevOn()) || opts.signal?.aborted) return null
   const key = cacheKey(req)
   const hit = cache.get(key)
   if (hit) {
@@ -98,6 +98,7 @@ export async function askJev(req: JevRequest, opts: AskOptions = {}): Promise<Je
   const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now()
   try {
     const res = await transport(req, ctrl.signal)
+    if (ctrl.signal.aborted) return null
     const ms = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0
     jevLog.push({ ms, inputTokens: res.usage?.input_tokens ?? 0, questions: Object.keys(req.questions).length, cached: false })
     if (jevLog.length > 200) jevLog.shift()

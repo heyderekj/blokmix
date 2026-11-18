@@ -3,12 +3,13 @@ import type { Choice, Keep, TokenKey } from '@/core/types'
 import { PAIRINGS } from '@/core/colorPairs'
 import { type CommandInput } from '@/core/commands/schema'
 import { resolveGuide } from '@/core/guide'
-import { DIALS, readDials } from '@/core/dials'
+import { DIALS, readDials, toneOfGuide } from '@/core/dials'
+import { opposingBands } from '@/core/surface'
 import { library } from '@/data/library'
 import { findLibraryFont, fontStack } from '@/core/fonts'
 import { editedTextStyles, resolveTextStyles, TEXT_STYLE_LABEL, TEXT_STYLES } from '@/core/textStyles'
 import { useStore } from '../store'
-import { allSlots } from '@/core/site'
+import { allSlots, pageView } from '@/core/site'
 import { CommandError, findPage, findSection, findBlock, describeSection, clean, positionOf } from './refs'
 
 /** The page as a whole: its sections, what each keeps, and the style guide tokens. */
@@ -60,9 +61,14 @@ export const write = {
     return { dials: readDials(resolveGuide(useStore.getState().guide).tokens) }
   },
   set_tone: (i: CommandInput<'set_tone'>) => {
-    useStore.getState().setThemeTone(i.tone)
-    const tokens = resolveGuide(useStore.getState().guide).tokens
-    return { tone: i.tone, colors: Object.fromEntries(Object.entries(tokens).filter(([k]) => k.startsWith('color.'))) }
+    const st = useStore.getState()
+    const page = i.page !== undefined ? findPage(i.page) : null
+    const before = resolveGuide(st.guide).tokens
+    if (!page || toneOfGuide(before) !== i.tone) st.setThemeTone(i.tone)
+    const guide = useStore.getState().guide
+    const tokens = guide === st.guide ? before : resolveGuide(guide).tokens
+    if (page) for (const slot of opposingBands(tokens, pageView(st.site, page.id), guide.sections)) st.setSurface(slot.id, 'page')
+    return { tone: toneOfGuide(tokens), colors: Object.fromEntries(Object.entries(tokens).filter(([k]) => k.startsWith('color.'))) }
   },
   update_text_style: (i: CommandInput<'update_text_style'>) => {
     const { style, reset, ...patch } = i

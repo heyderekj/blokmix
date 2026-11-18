@@ -8,6 +8,7 @@
 import { SECTION_TYPES, type SectionType } from '../types'
 import { TYPE_LABEL } from '../content'
 import { DIAL_NAMES, type DialName } from '../dials'
+import { SECTION_WIDTHS, SURFACES, type SectionWidth, type Surface } from '../surface'
 import { choice, at } from './ask'
 import { clip } from './state'
 import { merged, shuffled } from './shuffle'
@@ -76,9 +77,12 @@ export type IntentId = keyof typeof INTENTS
 
 /** What Say it knows about the page: its sections in order (the shared nav and footer too), and the looks on offer. */
 export interface SayContext {
-  sections: { id: string; type: SectionType; position: number; heading?: string; locked?: boolean }[]
+  sections: { id: string; type: SectionType; position: number; heading?: string; locked?: boolean; originalStyle?: boolean; surface: Surface; width: SectionWidth }[]
+  pageId: string
   dials: Record<DialName, number>
   tone: 'light' | 'dark'
+  opposingBands: number
+  originalView: boolean
   skins: { id: string; name: string; words: string }[]
 }
 
@@ -113,7 +117,9 @@ export function sayRequest(text: string, ctx: SayContext): JevRequest {
       more_less: choice(`Does ${said} want more of it or less?`, { more: { what: 'More: roomier, bigger, rounder, bolder, wider' }, less: { what: 'Less: tighter, smaller, sharper, lighter, narrower' } }),
       tone: choice(`Does ${said} want the page dark or light?`, { dark: { what: 'Dark: light text on a dark page' }, light: { what: 'Light: dark text on a light page' } }),
       surface: choice(`What background band does ${said} want behind the section?`, {
-        inverse: { what: 'Dark, flipped, inverted, contrasting', examples: ['make it dark', 'black background'] },
+        dark: { what: 'Dark background', examples: ['make it dark', 'black background'] },
+        light: { what: 'Light background', examples: ['lighten the section', 'white background'] },
+        inverse: { what: 'Flipped, inverted, contrasting with the page' },
         brand: { what: 'The brand color', examples: ['in our color', 'pink band', 'colored'] },
         soft: { what: 'A soft, slightly tinted band', examples: ['subtle background', 'grey band', 'softer'] },
         page: { what: 'Plain again, like the rest of the page', examples: ['no background', 'reset it', 'plain'] },
@@ -147,7 +153,10 @@ export interface SayAction {
 export interface Understood {
   action: SayAction | null
   options: SayAction[]
+  message?: string
 }
+
+type Resolution = SayAction | { message: string; sure: number }
 
 const ORDINALS: Record<string, number> = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10 }
 
@@ -159,114 +168,121 @@ export function sectionByNumber(text: string, ctx: SayContext): string | null {
   return Number.isFinite(n) ? (ctx.sections.find((s) => s.position === n)?.id ?? null) : null
 }
 
-const nameOf = (ctx: SayContext, id: string | null | undefined) => {
+export const saySectionName = (ctx: SayContext, id: string) => {
   const s = ctx.sections.find((x) => x.id === id)
-  return s ? TYPE_LABEL[s.type] : ''
+  if (!s) return ''
+  const twins = ctx.sections.filter((x) => x.type === s.type)
+  return twins.length > 1 ? `${TYPE_LABEL[s.type]} (${twins.indexOf(s) + 1})` : TYPE_LABEL[s.type]
 }
 
 /** Turn one intent and the answers into an action, or null when an argument it needs isn't there. */
-export function buildAction(intent: IntentId, res: JevResponse, text: string, ctx: SayContext, pIntent: number): SayAction | null {
-  const arg = (name: Arg): { option: string; p: number } | null => {
-    const a = choiceOf(res, name)
-    if (!a) return null
-    const best = ranked(a)[0]
-    return best ? { option: best.option, p: best.p } : null
-  }
-  const numbered = sectionByNumber(text, ctx)
+function buildAction(intent: IntentId, arg: (name: Arg) => { option: string; p: number } | null, ctx: SayContext, pIntent: number): Resolution | null {
+  const nameOf = (id: string) => saySectionName(ctx, id)
   const sectionArg = () => {
-    if (numbered) return { id: numbered, p: 1 }
     const a = arg('section')
-    return a && a.option.startsWith('s_') ? { id: a.option.slice(2), p: a.p } : null
+    const slot = a && ctx.sections.find((s) => sectionKey(s.id) === a.option)
+    return slot && a ? { ...slot, p: a.p } : null
   }
-  const unlocked = (id: string) => !ctx.sections.find((s) => s.id === id)?.locked
-  const done = (a: Omit<SayAction, 'intent' | 'sure'>, ...ps: number[]): SayAction => ({ intent, sure: ps.reduce((x, y) => x * y, pIntent), ...a })
+  const confidence = (ps: number[]) => ps.reduce((x, y) => x * y, pIntent)
+  const done = (a: Omit<SayAction, 'intent' | 'sure'>, ...ps: number[]): SayAction => ({ intent, sure: confidence(ps), ...a })
+  const info = (message: string, ...ps: number[]): Resolution => ({ message, sure: confidence(ps) })
+  const locked = (s: NonNullable<ReturnType<typeof sectionArg>>, ...ps: number[]) => info(`Unlock ${nameOf(s.id)} to change it here.`, s.p, ...ps)
 
   switch (intent) {
     case 'dial': {
       const d = arg('dial')
       const m = arg('more_less')
-      if (!d || !m || !(DIAL_NAMES as readonly string[]).includes(d.option)) return null
+      if (!d || !m || !['more', 'less'].includes(m.option) || !(DIAL_NAMES as readonly string[]).includes(d.option)) return null
       const name = d.option as DialName
       const now = ctx.dials[name] ?? 50
       const value = Math.max(0, Math.min(100, now + (m.option === 'more' ? 1 : -1) * SAY_THRESHOLDS.step))
       const word = { spacing: ['Roomier', 'Tighter'], type: ['Bigger text', 'Smaller text'], roundness: ['Rounder corners', 'Sharper corners'], weight: ['Bolder', 'Lighter'], width: ['Wider columns', 'Narrower columns'] }[name][m.option === 'more' ? 0 : 1]
-      return value === now ? null : done({ command: 'set_dial', input: { dial: name, value }, words: word }, d.p, m.p)
+      return value === now ? info('That setting is already at its limit.', d.p, m.p) : done({ command: 'set_dial', input: { dial: name, value }, words: word }, d.p, m.p)
     }
     case 'tone': {
       const t = arg('tone')
-      if (!t) return null
-      return t.option === ctx.tone ? null : done({ command: 'set_tone', input: { tone: t.option }, words: t.option === 'dark' ? 'Dark page' : 'Light page' }, t.p)
+      if (!t || (t.option !== 'light' && t.option !== 'dark')) return null
+      if (t.option === ctx.tone && !ctx.opposingBands && !ctx.originalView) {
+        return info(`The page palette is already ${t.option}. Sections with their own backgrounds can be changed individually.`, t.p)
+      }
+      return done({ command: 'set_tone', input: { tone: t.option, page: ctx.pageId }, words: t.option === 'dark' ? 'Dark page' : 'Light page' }, t.p)
     }
     case 'surface': {
       const s = sectionArg()
       const f = arg('surface')
-      if (!s || !f || !unlocked(s.id)) return null
-      const band = { inverse: 'dark band', brand: 'brand-color band', soft: 'soft band', page: 'plain' }[f.option] ?? f.option
-      return done({ command: 'set_section_surface', input: { section: s.id, surface: f.option }, words: `${nameOf(ctx, s.id)} → ${band}`, slotId: s.id }, s.p, f.p)
+      if (!s || !f) return null
+      const tone = f.option === 'light' || f.option === 'dark' ? f.option : null
+      const surface: Surface | null = tone ? (tone === ctx.tone ? 'page' : 'inverse') : SURFACES.find((s) => s === f.option) ?? null
+      if (!surface) return null
+      if (s.locked) return locked(s, f.p)
+      const name = nameOf(s.id)
+      if (s.originalStyle) return info(`${name} is using its original style. Switch it to Your style to change its background.`, s.p, f.p)
+      const band = tone ? `${tone} band` : { inverse: ctx.tone === 'dark' ? 'light band' : 'dark band', brand: 'brand-color band', soft: 'soft band', page: 'page background' }[surface]
+      if (s.surface === surface && !ctx.originalView) return info(`${name} already uses this background.`, s.p, f.p)
+      return done({ command: 'set_section_surface', input: { section: s.id, surface }, words: `${name} → ${band}`, slotId: s.id }, s.p, f.p)
     }
     case 'width': {
       const s = sectionArg()
       const w = arg('section_width')
-      if (!s || !w || !unlocked(s.id)) return null
-      return done({ command: 'set_section_width', input: { section: s.id, width: w.option }, words: `${nameOf(ctx, s.id)} → ${w.option === 'full' ? 'full width' : w.option}`, slotId: s.id }, s.p, w.p)
+      if (!s || !w || !(SECTION_WIDTHS as readonly string[]).includes(w.option)) return null
+      if (s.locked) return locked(s, w.p)
+      if (s.width === w.option && !ctx.originalView) return info(`${nameOf(s.id)} is already at this width.`, s.p, w.p)
+      return done({ command: 'set_section_width', input: { section: s.id, width: w.option }, words: `${nameOf(s.id)} → ${w.option === 'full' ? 'full width' : w.option}`, slotId: s.id }, s.p, w.p)
     }
     case 'move': {
       const s = sectionArg()
-      // "Up top", "to the bottom": code reads the page's ends, as it reads section numbers.
-      const edge = /\b(up top|to the top|at the top|top of the page|first)\b/i.test(text) ? 'top_of_page' : /\b(bottom|at the end|to the end|last)\b/i.test(text) ? 'bottom_of_page' : null
-      const asked = arg('other')
-      const o = edge ? { option: edge, p: 1 } : asked
-      // "Above", "before", "below", "after": the words themselves say which side.
-      const side = /\b(above|before|over)\b/i.test(text) ? 'above' : /\b(below|after|under|beneath)\b/i.test(text) ? 'below' : null
-      const ab = side ? { option: side, p: 1 } : arg('above_below')
-      if (!s || !o || o.option === 'none' || !unlocked(s.id)) return null
+      const o = arg('other')
+      const ab = arg('above_below')
+      if (!s || !o || o.option === 'none') return null
+      const ps = [s.p, o.p, o.option.startsWith('s_') ? (ab?.p ?? 0) : 1]
+      if (s.locked) return locked(s, ...ps.slice(1))
       const order = ctx.sections.filter((x) => x.type !== 'nav' && x.type !== 'footer')
-      const from = order.findIndex((x) => x.id === s.id)
-      if (from < 0) return null
+      if (!order.some((x) => x.id === s.id)) return info(`${nameOf(s.id)} has a fixed position on the page.`, ...ps)
       const firstPos = order[0]?.position ?? 1
       const lastPos = order.at(-1)?.position ?? firstPos
       let to: number
       let words: string
       if (o.option === 'top_of_page') {
         to = firstPos
-        words = `Move ${nameOf(ctx, s.id)} to the top`
+        words = `Move ${nameOf(s.id)} to the top`
       } else if (o.option === 'bottom_of_page') {
         to = lastPos
-        words = `Move ${nameOf(ctx, s.id)} to the bottom`
+        words = `Move ${nameOf(s.id)} to the bottom`
       } else {
-        const target = ctx.sections.find((x) => x.id === o.option.slice(2))
-        if (!target || target.id === s.id || target.type === 'nav' || target.type === 'footer' || !ab) return null
-        const self = ctx.sections.find((x) => x.id === s.id)!
+        const target = order.find((x) => sectionKey(x.id) === o.option)
+        if (!target || !ab || !['above', 'below'].includes(ab.option)) return null
+        if (target.id === s.id) return info('Choose two different sections to move one next to the other.', ...ps)
         // Positions count the nav; moving down frees the spot it leaves.
         const above = ab.option === 'above'
-        to = above ? (target.position > self.position ? target.position - 1 : target.position) : target.position > self.position ? target.position : target.position + 1
-        words = `Move ${nameOf(ctx, s.id)} ${above ? 'above' : 'below'} ${TYPE_LABEL[target.type]}`
+        to = above ? (target.position > s.position ? target.position - 1 : target.position) : target.position > s.position ? target.position : target.position + 1
+        words = `Move ${nameOf(s.id)} ${ab.option} ${nameOf(target.id)}`
       }
-      const self = ctx.sections.find((x) => x.id === s.id)!
-      if (to === self.position) return null
-      return done({ command: 'move_section', input: { section: s.id, to }, words, slotId: s.id }, s.p, o.p, o.option.startsWith('s_') ? (ab?.p ?? 1) : 1)
+      if (to === s.position) return info(`${nameOf(s.id)} is already in that position.`, ...ps)
+      return done({ command: 'move_section', input: { section: s.id, to }, words, slotId: s.id }, ...ps)
     }
     case 'add': {
       const t = arg('section_type')
       if (!t || !(SECTION_TYPES as readonly string[]).includes(t.option)) return null
-      return done({ command: 'add_section', input: { type: t.option }, words: `Add a ${TYPE_LABEL[t.option as SectionType]} section` }, t.p)
+      if ((t.option === 'nav' || t.option === 'footer') && ctx.sections.some((s) => s.type === t.option)) return info(`This page already has a ${TYPE_LABEL[t.option]}.`, t.p)
+      return done({ command: 'add_section', input: { type: t.option, page: ctx.pageId }, words: `Add ${TYPE_LABEL[t.option as SectionType]} section` }, t.p)
     }
     case 'remove': {
       const s = sectionArg()
-      if (!s || !unlocked(s.id)) return null
-      return done({ command: 'remove_section', input: { section: s.id }, words: `Remove ${nameOf(ctx, s.id)}`, slotId: s.id }, s.p)
+      if (!s) return null
+      if (s.locked) return locked(s)
+      return done({ command: 'remove_section', input: { section: s.id }, words: `Remove ${nameOf(s.id)}`, slotId: s.id }, s.p)
     }
     case 'swap': {
       const s = sectionArg()
-      if (!s || !unlocked(s.id)) return null
+      if (!s) return null
+      if (s.locked) return locked(s)
       // The layout itself is picked when it runs (the next one that suits that spot), so the chip stays quick.
-      return done({ command: 'swap_section', input: { section: s.id }, words: `Another ${nameOf(ctx, s.id)} layout`, slotId: s.id }, s.p)
+      return done({ command: 'swap_section', input: { section: s.id }, words: `Another ${nameOf(s.id)} layout`, slotId: s.id }, s.p)
     }
     case 'skin': {
-      if (!ctx.skins.some((s) => text.toLowerCase().includes(s.name.toLowerCase()))) return done({ open: 'restyle', words: 'Preview theme changes' })
       const k = arg('skin')
       const skin = k && ctx.skins.find((x) => x.id === k.option)
-      if (!k || !skin) return null
+      if (!k || !skin) return done({ open: 'restyle', words: 'Preview theme changes' })
       return done({ command: 'apply_skin', input: { skin: skin.id }, words: `Use the ${skin.name} theme` }, k.p)
     }
     case 'surprise':
@@ -274,7 +290,7 @@ export function buildAction(intent: IntentId, res: JevResponse, text: string, ct
     case 'show': {
       const s = sectionArg()
       if (!s) return null
-      return done({ command: 'show', input: { section: s.id }, words: `Go to ${nameOf(ctx, s.id)}`, slotId: s.id }, s.p)
+      return done({ command: 'show', input: { section: s.id }, words: `Go to ${nameOf(s.id)}`, slotId: s.id }, s.p)
     }
     case 'links':
       return done({ command: 'place_links', input: {}, words: 'Point buttons where their words lead' })
@@ -284,7 +300,7 @@ export function buildAction(intent: IntentId, res: JevResponse, text: string, ct
       return done({ open: 'colors', words: 'Find colors' })
     case 'dress': {
       const s = sectionArg()
-      return done({ open: 'dress', words: s ? `Background ideas for ${nameOf(ctx, s.id)}` : 'Background ideas', slotId: s?.id }, s?.p ?? 1)
+      return done({ open: 'dress', words: s ? `Background ideas for ${nameOf(s.id)}` : 'Background ideas', slotId: s?.id }, s?.p ?? 1)
     }
     case 'pour':
       return done({ open: 'pour', words: 'Add your text to this page' })
@@ -295,17 +311,35 @@ export function buildAction(intent: IntentId, res: JevResponse, text: string, ct
   }
 }
 
+/** Explicit picks from the sentence builder or the built-in text commands. */
+export function pickedSay(intent: IntentId, picks: Record<string, string>, ctx: SayContext): Understood {
+  const result = buildAction(intent, (name) => picks[name] ? { option: picks[name], p: 1 } : null, ctx, 1)
+  if (result && 'message' in result) return { action: null, options: [], message: result.message }
+  return { action: result, options: [] }
+}
+
 /** What Enter would do, and what else you might have meant. */
 export function understand(res: JevResponse | null, text: string, ctx: SayContext): Understood {
   const m = merged(res, 'intent')
   if (!res || !m) return { action: null, options: [] }
   const T = SAY_THRESHOLDS
-  const intents = ranked(m).filter((x) => x.option in INTENTS && x.option !== 'none' && x.p >= T.offer)
-  const built = intents.map((x) => buildAction(x.option as IntentId, res, text, ctx, x.p)).filter((a): a is SayAction => !!a)
-  const [first] = built
+  const namedSkin = ctx.skins.find((s) => text.toLowerCase().includes(s.name.toLowerCase()))
+  const arg = (name: Arg) => {
+    if (name === 'skin') return namedSkin ? { option: namedSkin.id, p: 1 } : null
+    const answer = choiceOf(res, name)
+    return answer ? ranked(answer)[0] ?? null : null
+  }
+  const intents = ranked(m).filter((x): x is { option: IntentId; p: number } => Object.hasOwn(INTENTS, x.option) && x.option !== 'none' && x.p >= T.offer)
+  const built = intents.map(({ option, p }) => ({ intent: option, p, result: buildAction(option, arg, ctx, p) }))
+  const first = built.find((x) => x.intent === m.choice)
+  const options = built.flatMap(({ result }) => result && 'intent' in result ? [result] : [])
   // Each argument at `arg` on average (geometric mean): a move's three answers at 0.85 each read as 0.85, not 0.61.
-  const nArgs = first ? Math.max(1, INTENTS[first.intent].args.length) : 1
-  const argsSure = first ? (first.sure / (m.probabilities[first.intent] ?? 1)) ** (1 / nArgs) : 0
-  const sure = !!first && m.agree && first.intent === m.choice && (m.probabilities[first.intent] ?? 0) >= T.act && argsSure >= T.arg
-  return sure ? { action: first, options: built.slice(1, 3) } : { action: null, options: built.slice(0, 3) }
+  if (first?.result && m.agree && first.p >= T.act) {
+    const argsSure = (first.result.sure / first.p) ** (1 / Math.max(1, INTENTS[first.intent].args.length))
+    if (argsSure >= T.arg) {
+      if ('message' in first.result) return { action: null, options: [], message: first.result.message }
+      return { action: first.result, options: options.filter((a) => a !== first.result).slice(0, 2) }
+    }
+  }
+  return { action: null, options: options.slice(0, 3) }
 }

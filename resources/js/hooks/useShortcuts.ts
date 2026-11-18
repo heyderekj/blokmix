@@ -30,6 +30,11 @@ export function useShortcuts(onHelp: () => void) {
     }
     window.addEventListener('paste', onPaste)
     const onKey = (e: KeyboardEvent) => {
+      if (!e.defaultPrevented && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        if (!e.repeat) toggleSay()
+        return
+      }
       if (typing(e.target) || e.defaultPrevented) return
       // Enter on a focused button presses it; it doesn't save a version.
       if (e.key === 'Enter' && pressable(e.target)) return
@@ -64,12 +69,6 @@ export function useShortcuts(onHelp: () => void) {
         }
       }
 
-      // ⌘K: say what to change (Jev).
-      if (mod && k.toLowerCase() === 'k') {
-        e.preventDefault()
-        toggleSay()
-        return
-      }
       if (mod && k.toLowerCase() === 'z') {
         e.preventDefault()
         if (e.shiftKey) redo()

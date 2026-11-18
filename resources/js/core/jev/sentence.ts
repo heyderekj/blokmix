@@ -6,7 +6,7 @@
 //
 // Two sentences: the start ("I'm making a site for [a bakery] called [Fern & Co]…") and the
 // Jev bar's verb-led ones ("Make [Pricing] [darker]"), which build the same actions Say it
-// does (`buildAction`), from certain answers instead of guessed ones.
+// does (`pickedSay`), from certain answers instead of guessed ones.
 
 import { rankThemes } from '../themeRanking'
 import { SENTENCE_FEEL } from '../feel'
@@ -15,12 +15,12 @@ import { KINDS, SECTION_TYPES, type Kind, type SectionType } from '../types'
 import { TYPE_LABEL } from '../content'
 import { RECIPES } from '../start'
 import { placeSection } from './describe'
-import { buildAction, type IntentId, type SayAction, type SayContext } from './say'
+import { pickedSay, saySectionName, type IntentId, type SayContext, type Understood } from './say'
 import { choice } from './ask'
 import { clip } from './state'
 import { merged, shuffled } from './shuffle'
 import { choiceOf, ranked } from './read'
-import type { ChoiceAnswer, Criterion, JevRequest, JevResponse } from './types'
+import type { Criterion, JevRequest, JevResponse } from './types'
 
 export const SENTENCE_THRESHOLDS = {
   /** Your words count as an option (for the kind, sections, looks) at this, both orders agreeing. */
@@ -51,6 +51,8 @@ export interface Blank {
   many?: boolean
   /** Your own words only, no options (the name). */
   ownOnly?: boolean
+  /** Search existing choices without saving unmatched text. */
+  searchOnly?: boolean
 }
 
 export type Segment = { text: string } | { blank: Blank }
@@ -319,17 +321,24 @@ export const VERBS: Verb[] = [
   { id: 'add', label: 'Add', intent: 'add' },
   { id: 'remove', label: 'Remove', intent: 'remove' },
   { id: 'swap', label: 'Try another', intent: 'swap' },
+  { id: 'show', label: 'Go to', intent: 'show' },
   { id: 'colors', label: 'Change the colors to feel', intent: 'colors' },
   { id: 'dress', label: 'Find backgrounds for', intent: 'dress' },
+  { id: 'links', label: 'Fix unlinked buttons', intent: 'links' },
+  { id: 'check', label: 'Check if it’s clear', intent: 'check' },
 ]
+
+const LOCAL_VERBS = VERBS.filter((v) => !['colors', 'dress', 'links', 'check'].includes(v.id))
 
 /** How a section can change: its band or its width. */
 export const SECTION_HOWS: (Choice & { intent: IntentId; arg: 'surface' | 'section_width'; value: string })[] = [
-  { id: 'darker', label: 'darker', intent: 'surface', arg: 'surface', value: 'inverse' },
+  { id: 'darker', label: 'dark', intent: 'surface', arg: 'surface', value: 'dark' },
+  { id: 'lighter', label: 'light', intent: 'surface', arg: 'surface', value: 'light' },
   { id: 'softer', label: 'softer', intent: 'surface', arg: 'surface', value: 'soft' },
   { id: 'brand', label: 'the brand color', intent: 'surface', arg: 'surface', value: 'brand' },
   { id: 'plain', label: 'plain', intent: 'surface', arg: 'surface', value: 'page' },
   { id: 'narrower', label: 'narrower', intent: 'width', arg: 'section_width', value: 'narrow' },
+  { id: 'standard', label: 'standard width', intent: 'width', arg: 'section_width', value: 'standard' },
   { id: 'wider', label: 'wider', intent: 'width', arg: 'section_width', value: 'wide' },
   { id: 'full', label: 'full width', intent: 'width', arg: 'section_width', value: 'full' },
 ]
@@ -338,8 +347,8 @@ export const SECTION_HOWS: (Choice & { intent: IntentId; arg: 'surface' | 'secti
 export const PAGE_HOWS: (Choice & { intent: IntentId; answers: Record<string, string> })[] = [
   { id: 'roomier', label: 'roomier', intent: 'dial', answers: { dial: 'spacing', more_less: 'more' } },
   { id: 'tighter', label: 'tighter', intent: 'dial', answers: { dial: 'spacing', more_less: 'less' } },
-  { id: 'bigger', label: 'bigger text', intent: 'dial', answers: { dial: 'type', more_less: 'more' } },
-  { id: 'smaller', label: 'smaller text', intent: 'dial', answers: { dial: 'type', more_less: 'less' } },
+  { id: 'bigger', label: 'use bigger text', intent: 'dial', answers: { dial: 'type', more_less: 'more' } },
+  { id: 'smaller', label: 'use smaller text', intent: 'dial', answers: { dial: 'type', more_less: 'less' } },
   { id: 'rounder', label: 'rounder', intent: 'dial', answers: { dial: 'roundness', more_less: 'more' } },
   { id: 'sharper', label: 'sharper', intent: 'dial', answers: { dial: 'roundness', more_less: 'less' } },
   { id: 'bolder', label: 'bolder', intent: 'dial', answers: { dial: 'weight', more_less: 'more' } },
@@ -360,37 +369,32 @@ const PAGE: Choice = { id: 'page', label: 'the page' }
 /** The page's sections as options, named as people see them ("Features", "Features (2)" when there are two). */
 export function sectionChoices(ctx: SayContext, opts: { chrome?: boolean; except?: string } = {}): Choice[] {
   const list = ctx.sections.filter((s) => (opts.chrome || (s.type !== 'nav' && s.type !== 'footer')) && `s_${s.id}` !== opts.except)
-  const seen = new Map<SectionType, number>()
-  return list.map((s) => {
-    const n = (seen.get(s.type) ?? 0) + 1
-    seen.set(s.type, n)
-    const twin = ctx.sections.filter((x) => x.type === s.type).length > 1
-    return { id: `s_${s.id}`, label: twin ? `${TYPE_LABEL[s.type]} (${n})` : TYPE_LABEL[s.type] }
-  })
+  return list.map((s) => ({ id: `s_${s.id}`, label: saySectionName(ctx, s.id) }))
 }
 
-const ADDABLE: Choice[] = SECTION_TYPES.filter((t) => t !== 'nav' && t !== 'footer').map((t) => ({ id: t, label: `a ${TYPE_LABEL[t]} section` }))
+const ADDABLE: Choice[] = SECTION_TYPES.map((t) => ({ id: t, label: `${t === 'faq' ? 'an' : 'a'} ${TYPE_LABEL[t]} section` }))
 
 /** The bar's sentence for the verb you picked: "Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]". */
-export function barSentence(picks: Picks, ctx: SayContext): Segment[] {
-  const verb: Blank = { id: 'verb', ask: 'do what', placeholder: 'Make', options: VERBS }
+export function barSentence(picks: Picks, ctx: SayContext, suggestions = true): Segment[] {
+  const verb: Blank = { id: 'verb', ask: 'do what', placeholder: 'Make', options: suggestions ? VERBS : LOCAL_VERBS, searchOnly: true }
   const v = picks.verb?.[0]?.id
   const out: Segment[] = [{ blank: verb }]
-  const section = (id = 'section', except?: string): Blank => ({ id, ask: 'which section', placeholder: 'Pricing', options: sectionChoices(ctx, { except }) })
+  const section = (id = 'section', except?: string, chrome = true): Blank => ({ id, ask: 'which section', placeholder: 'Pricing', options: sectionChoices(ctx, { except, chrome }), searchOnly: true })
   switch (v) {
     case 'make': {
-      const target: Blank = { id: 'section', ask: 'what', placeholder: 'Pricing', options: [PAGE, ...sectionChoices(ctx)] }
+      const target: Blank = { id: 'section', ask: 'what', placeholder: 'Pricing', options: [PAGE, ...sectionChoices(ctx, { chrome: true })], searchOnly: true }
       const page = picks.section?.[0]?.id === 'page'
-      return [...out, { blank: target }, { blank: { id: 'how', ask: 'how', placeholder: page ? 'roomier' : 'darker', options: page ? PAGE_HOWS : SECTION_HOWS } }]
+      return [...out, { blank: target }, { blank: { id: 'how', ask: 'how', placeholder: page ? 'roomier' : 'dark', options: page ? PAGE_HOWS : SECTION_HOWS, searchOnly: true } }]
     }
     case 'move': {
-      out.push({ blank: section() }, { blank: { id: 'where', ask: 'where', placeholder: 'above', options: WHERE } })
+      out.push({ blank: section('section', undefined, false) }, { blank: { id: 'where', ask: 'where', placeholder: 'above', options: WHERE, searchOnly: true } })
       const w = picks.where?.[0]?.id
-      return w === 'above' || w === 'below' ? [...out, { blank: section('other', picks.section?.[0]?.id) }] : out
+      return w === 'above' || w === 'below' ? [...out, { blank: section('other', picks.section?.[0]?.id, false) }] : out
     }
     case 'add':
-      return [...out, { blank: { id: 'type', ask: 'what kind', placeholder: 'a FAQ section', options: ADDABLE } }]
+      return [...out, { blank: { id: 'type', ask: 'what kind', placeholder: 'an FAQ section', options: ADDABLE.filter((a) => (a.id !== 'nav' && a.id !== 'footer') || !ctx.sections.some((s) => s.type === a.id)), searchOnly: true } }]
     case 'remove':
+    case 'show':
       return [...out, { blank: section() }]
     case 'swap':
       return [...out, { blank: section() }, { text: 'layout' }]
@@ -403,20 +407,16 @@ export function barSentence(picks: Picks, ctx: SayContext): Segment[] {
   }
 }
 
-/** A certain answer, shaped like Jev's, so the bar's sentences build actions the way Say it does. */
-const sure = (option: string): ChoiceAnswer => ({ type: 'choice', choice: option, confidence: 1, probabilities: { [option]: 1 } })
-
-export interface BarFill {
-  action: SayAction | null
+export interface BarFill extends Understood {
   /** What to hand the action: the feel's words for colors and dress, else the sentence. */
   text: string
 }
 
 /** A finished bar sentence as one ordinary action (the same one Say it would build), or null while a blank is empty. */
-export function fillBar(picks: Picks, ctx: SayContext): BarFill {
-  const segs = barSentence(picks, ctx)
+export function fillBar(picks: Picks, ctx: SayContext, suggestions = true): BarFill {
+  const segs = barSentence(picks, ctx, suggestions)
   const text = sentenceText(segs, picks)
-  const none = { action: null, text }
+  const none = { action: null, options: [], text }
   if (openBlanks(segs, picks).length) return none
   const id = (b: string) => picks[b]?.[0]?.id
   const verb = byId(VERBS, id('verb'))
@@ -462,9 +462,7 @@ export function fillBar(picks: Picks, ctx: SayContext): BarFill {
       hand = picks.feel?.[0]?.words.trim() || text
       break
   }
-  const res: JevResponse = { model: 'sentence', answers: Object.fromEntries(Object.entries(answers).map(([k, v]) => [k, sure(v)])), usage: { input_tokens: 0, output_tokens: 0 } }
-  // The words carry no "top", "first" or "above" the blanks didn't put there, so buildAction reads the move as picked.
-  return { action: buildAction(intent, res, text, ctx, 1), text: hand }
+  return { ...pickedSay(intent, answers, ctx), text: hand }
 }
 
 // ---- Shared: the words, what's open, the order, Jev's ranking and matching ----
@@ -484,7 +482,12 @@ export const listWords = (w: string[]) => (w.length < 2 ? (w[0] ?? '') : `${w.sl
 
 /** The blanks still empty, in order (a many-blank counts as open until it has one pick). */
 export function openBlanks(segs: Segment[], picks: Picks): Blank[] {
-  return segs.flatMap((s) => ('blank' in s && !filled(picks, s.blank.id) ? [s.blank] : []))
+  return segs.flatMap((s) => {
+    if (!('blank' in s)) return []
+    const b = s.blank
+    const valid = b.searchOnly ? b.options.some((o) => o.id === picks[b.id]?.[0]?.id) : filled(picks, b.id)
+    return valid ? [] : [b]
+  })
 }
 
 /** Before Jev answers (or with Jev off): options for this kind of site first, the rest as listed. */

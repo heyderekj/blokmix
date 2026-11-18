@@ -63,6 +63,7 @@ export function Sentence({
     if (!w) return
     const exact = b.options.find((o) => o.label.toLowerCase() === w.toLowerCase())
     if (exact) return choose(b, exact)
+    if (b.searchOnly) return
     const mine = { words: w }
     const list = b.many ? [...(picks[b.id] ?? []), mine] : [mine]
     set(b.id, list, !b.many)
@@ -130,7 +131,7 @@ export const blankLook = (on: boolean, filled: boolean, own = false) =>
 
 /** A blank in the sentence: its words once filled, what it asks for while empty; several picks read as a list. */
 function BlankWords({ blank, picks, open, onOpen, onDrop }: { blank: Blank; picks: Picks; open: boolean; onOpen: () => void; onDrop: (i: number) => void }) {
-  const list = (picks[blank.id] ?? []).filter((p) => p.words.trim())
+  const list = (picks[blank.id] ?? []).filter((p) => p.words.trim() && (!blank.searchOnly || blank.options.some((o) => o.id === p.id)))
   const base = BLANK
   const look = blankLook
   const own = (p: { id?: string }) => !p.id
@@ -217,7 +218,7 @@ function Options({
   const selected = picks[blank.id] ?? []
   const chosen = new Set(selected.map((p) => p.id).filter(Boolean))
   const q = words.trim().toLowerCase()
-  const list = shown.filter((o) => o.label.toLowerCase().includes(q))
+  const list = (big ? shown : sorted).filter((o) => o.label.toLowerCase().includes(q))
   const near = closest.map((id) => blank.options.find((o) => o.id === id)).filter((o): o is Choice => !!o)
   const grouped = big && !!blank.groups?.length
   const groups = grouped ? groupsOf(blank, shown.map((o) => o.id)) : []
@@ -238,15 +239,17 @@ function Options({
   )
   const label = (text: string) => <span className={`font-semibold text-zinc-500 ${big ? 'text-[12px]' : 'text-[11.5px]'}`}>{text}</span>
   const ask = blank.ask ?? blank.placeholder
+  const submitted = blank.searchOnly ? list.find((o) => o.label.toLowerCase() === q) ?? (list.length === 1 ? list[0] : undefined) : undefined
 
   const own = (
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        if (words.trim()) {
+        if (submitted) onChoose(submitted)
+        else if (words.trim() && !blank.searchOnly) {
           onOwn(words)
           setQuery('')
-        } else onDone()
+        } else if (!words.trim()) onDone()
       }}
       className={`flex items-center gap-2 ${blank.ownOnly || grouped ? '' : 'mt-2'}`}
     >
@@ -259,12 +262,12 @@ function Options({
           setShowAll(false)
         }}
         onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), onDone())}
-        placeholder={blank.ownOnly ? `Type ${ask}` : grouped ? 'Search or type your own' : 'or say it your way'}
-        aria-label={blank.ownOnly ? ask : grouped ? 'Search or type your own' : 'Your own words'}
+        placeholder={blank.ownOnly ? `Type ${ask}` : blank.searchOnly ? 'Search options' : grouped ? 'Search or type your own' : 'or say it your way'}
+        aria-label={blank.ownOnly ? ask : blank.searchOnly ? `Search options for ${ask}` : grouped ? 'Search or type your own' : 'Your own words'}
         className={`min-w-0 flex-1 rounded-full bg-white outline-none shadow-[0_0_0_1px_rgb(0_0_0/0.1)] placeholder:text-zinc-400 focus:shadow-[0_0_0_2px_#FF69B4] ${big ? 'h-10 px-4 text-[14.5px]' : 'h-8 px-3 text-[12.5px]'}`}
       />
-      {words.trim() && (
-        <button type="submit" aria-label="Use my words" className={`grid shrink-0 cursor-pointer place-items-center rounded-full bg-zinc-900 text-white transition-[scale] active:scale-[0.97] ${grouped ? 'h-10 px-3 text-[13px] font-semibold' : big ? 'size-10' : 'size-8'}`}>
+      {words.trim() && (!blank.searchOnly || submitted) && (
+        <button type="submit" aria-label={blank.searchOnly ? `Choose ${submitted?.label}` : 'Use my words'} className={`grid shrink-0 cursor-pointer place-items-center rounded-full bg-zinc-900 text-white transition-[scale] active:scale-[0.97] ${grouped ? 'h-10 px-3 text-[13px] font-semibold' : big ? 'size-10' : 'size-8'}`}>
           {grouped ? 'Use' : <CornerDownLeft size={big ? 15 : 13} />}
         </button>
       )}
@@ -326,6 +329,18 @@ function Options({
           )}
           {blank.many && selected.length > 0 && <button type="button" onClick={onDone} className={`${link} justify-self-end`}>Done</button>}
         </div>
+      </div>
+    )
+  }
+
+  if (!big) {
+    return (
+      <div className="mt-2">
+        <div className="flex max-h-36 flex-wrap gap-1.5 overflow-y-auto p-1" role="group" aria-label={ask}>
+          {list.map((o) => chip(o))}
+          {!list.length && <span role="status" className="px-1 text-[12px] text-zinc-600">{q ? 'No matching options.' : 'No options available.'}</span>}
+        </div>
+        {blank.options.length > 5 || !blank.searchOnly ? own : null}
       </div>
     )
   }
