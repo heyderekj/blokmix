@@ -74,7 +74,12 @@ export async function readMixFile(file: Blob): Promise<MixFile> {
   } catch {
     throw new Error('That isn’t a Blokmix mix file.')
   }
-  if (parsed.format !== MIX_FILE_FORMAT || !parsed.data || typeof parsed.name !== 'string') throw new Error('That isn’t a Blokmix mix file.')
+  if ((parsed as { format?: string } | null)?.format === 'blokmix.return/v1') {
+    if (file.size > 60000) throw new Error('This return exceeds 60 KB.')
+    const { newMixFromReturn } = await import('./iterations')
+    return { ...newMixFromReturn(parsed), format: MIX_FILE_FORMAT, exportedAt: new Date().toISOString(), assets: [] }
+  }
+  if (parsed?.format !== MIX_FILE_FORMAT || !parsed.data || typeof parsed.name !== 'string') throw new Error('That isn’t a Blokmix mix file.')
   const assets = (parsed.assets ?? []).map((a) => ({ ...a, bytes: a.bytes ? fromBase64(a.bytes) : undefined }) as Asset)
   await putAssets(assets)
   return { ...(parsed as MixFile), versions: parsed.versions ?? {}, assets: parsed.assets ?? [], clips: parsed.clips ?? [] }

@@ -1,3 +1,4 @@
+import { returnSchema } from '../../iterations'
 import { z } from 'zod'
 import { STATUSES } from '../../types'
 
@@ -6,6 +7,8 @@ const url = z.string().regex(/^https?:\/\/\S+$/, 'an http(s) URL')
 
 /** Versions of the mix, and building them with an agent. */
 export const VERSION_COMMANDS = {
+  get_handoff: { description:'Read an explicitly sent version and the edits to implement.', input:z.object({version,file:z.string().optional(),offset:z.number().int().nonnegative().optional()}), write:false },
+  submit_changes: { description:'Return changes for the person to review in the originating draft.', input:z.object({bundle:returnSchema}), write:true },
   save_version: { description: 'Save the current mix as a version.', input: z.object({ title: z.string().optional() }), write: true },
   list_versions: {
     description:

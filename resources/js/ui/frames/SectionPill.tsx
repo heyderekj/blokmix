@@ -1,3 +1,4 @@
+import { RecipeControls } from '../drafts/SharedRecipes'
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowUpRight, ChevronDown, Eye, ChevronLeft, ChevronRight, GripVertical, Link2, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
@@ -233,6 +234,7 @@ export function StyleTab({ slot }: { slot: Slot }) {
   const t = clip.tokens
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      {slot.recipe && <RecipeControls key={slot.id} slot={slot}/>}
       <PanelGroup title="Background">
         {clip.origin !== 'layout' && (
           <div className="mb-1.5 flex min-h-8 items-center justify-between gap-3 text-[12px] font-medium text-zinc-600">

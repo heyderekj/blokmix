@@ -1,3 +1,4 @@
+import { openMixId } from './mixSync'
 import { snapshotOf } from '@/state/snapshot'
 import type { BuildTarget, MixSnapshot, Note, VersionNode } from '@/core/types'
 import { bindContextFor } from '@/state/collections'
@@ -60,6 +61,8 @@ export function packetInputFor(st: Pick<MixData, 'mixName' | 'site' | 'guide' | 
     guideState: snap.guide,
     library,
     mixName: st.mixName,
+    mixId: openMixId(),
+    draftId: version?.draftId,
     // What the site is for is the mix's, not a version's: the brief is shared.
     about: { brand: snap.content.brand, brief: st.content.brief ?? snap.content.brief, kind: snap.content.kind },
     version: version ? { id: version.id, letter: version.letter, title: version.title, status: version.status, parentLetter: parent?.letter } : null,

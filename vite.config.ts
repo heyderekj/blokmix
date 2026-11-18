@@ -12,7 +12,7 @@ const hosted = process.env.BLOKMIX_HOST === 'laravel'
 
 export default defineConfig({
   // Hosted, Laravel answers /api/jev; the Vite-only dev server proxies it itself (the key stays on this machine).
-  plugins: [...(hosted ? [laravel({ input: ['resources/js/app.tsx'], refresh: true })] : [jevDevProxy()]), react(), tailwindcss()],
+  plugins: [...(hosted ? [laravel({ input: ['resources/js/app.tsx', 'resources/css/app.css'], refresh: true })] : [jevDevProxy()]), react(), tailwindcss()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./resources/js', import.meta.url)),

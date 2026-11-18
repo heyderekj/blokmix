@@ -53,6 +53,11 @@ function describeVersion(v: VersionNode) {
 }
 
 export const read = {
+  get_handoff: async (i: CommandInput<'get_handoff'>) => {
+    const v = findVersion(i.version)
+    if (!v.handoff) throw new CommandError('Choose Send my changes on the draft first.')
+    return (await import('@/lib/iterations')).readHandoff(v,i.file,i.offset)
+  },
   list_versions: () => {
     const st = useStore.getState()
     return { head: st.head ? st.versions[st.head]?.letter : null, versions: dfsOrder(st.versions).map(({ node, depth }) => ({ ...describeVersion(node), depth })) }
@@ -132,6 +137,10 @@ const prepare_build: AsyncCommand<Prepared> = {
     const st = useStore.getState()
     const id = st.startBuild(p.versionId, p.target, p.agentName)
     st.updateBuild(id, { by: 'agent', dir: p.dir })
+    const base = useStore.getState().versions[p.versionId]
+    if (!base.handoff) {
+      useStore.setState(s => ({ versions: { ...s.versions, [base.id]: { ...base, handoff: { by: p.agentName, at: Date.now() } } } }))
+    }
     const b = useStore.getState().versions[id]
     return { build: b.letter, id, version: st.versions[p.versionId].letter, target: p.target, dir: p.dir, files: p.files, prompt: p.prompt }
   }) as AsyncCommand<Prepared>['apply'],
@@ -175,7 +184,11 @@ const unpublish: AsyncCommand<Publication | null> = {
   }) as AsyncCommand<Publication | null>['apply'],
 }
 
-export const later = { prepare_build, publish, get_publication, unpublish }
+const submit_changes: AsyncCommand = {
+  prepare: async () => (await import('@/lib/iterations')).stageReturn,
+  apply: (i: CommandInput<'submit_changes'>, stage) => (stage as typeof import('@/lib/iterations').stageReturn)(i.bundle),
+}
+export const later = { submit_changes, prepare_build, publish, get_publication, unpublish }
 
 function toBase64(bytes: Uint8Array): string {
   let s = ''

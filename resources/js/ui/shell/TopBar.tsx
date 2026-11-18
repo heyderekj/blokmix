@@ -85,7 +85,8 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
   return (
     <Island
       open={open}
-      width={sheet === 'pages' ? 340 : sheet === 'drafts' ? 380 : 300}
+      width={sheet === 'pages' ? 340 : sheet === 'drafts' ? 510 : 300}
+      maxBody={sheet === 'drafts' ? 'min(74vh, 760px)' : undefined}
       onClose={() => useStore.getState().setUi({ sheet: 'none' })}
       bar={
         <>

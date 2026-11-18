@@ -1,3 +1,4 @@
+import { fromSavedIteration, layoutClip, recipeSchema } from '@/core/iterations'
 import { briefOf, kindOf, patchBrief, type Brief } from '@/core/brief'
 import { create } from 'zustand'
 import { createJSONStorage, persist, type PersistStorage, type StorageValue } from 'zustand/middleware'
@@ -972,6 +973,19 @@ export const useStore = create<State>()(
         if (merged.guide?.base) merged.guide = { ...merged.guide, base: { ...BASE_TOKENS, ...merged.guide.base } }
         // Drop anything that points at clips that no longer exist in the sample library. A built-in layout shows your
         // words and style: switches only captured clips have, left on from one, are turned off (withClip does this now).
+        for (const site of [...draftSites(merged), ...Object.values(merged.versions).map(v => v.snapshot.site)]) {
+          for (const slot of allSlots(site)) {
+            if (slot.recipe) {
+              const recipe = recipeSchema.safeParse(fromSavedIteration(slot.recipe))
+              if (recipe.success) {
+                try { layoutClip(recipe.data, library); slot.recipe = recipe.data } catch { delete slot.recipe }
+              } else delete slot.recipe
+            }
+          }
+        }
+        for (const version of Object.values(merged.versions)) {
+          if (version.returns) version.returns = fromSavedIteration(version.returns)
+        }
         merged.site = mapSlots(merged.site, (s) =>
           !library.clips[s.clipId] ? null : library.clips[s.clipId].origin === 'layout' && (s.keep?.style || s.keep?.content) ? { ...s, keep: { ...s.keep, style: false, content: false } } : s,
         )
