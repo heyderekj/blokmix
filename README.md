@@ -14,6 +14,8 @@ Blokmix is a visual workspace for designing websites. Try layouts from the libra
 2. **Explore and share.** Try different directions in separate drafts, save versions, and share a preview for feedback. Notes stay with the design.
 3. **Hand it to your agent.** Send a build packet with your design, notes, and style guide using the MCP connector, or download a starter project for Astro or Next.js. Review changes your agent sends back and choose which ones to apply.
 
+[Try a free sample handoff](https://blokmix.com/mixes/sample)
+
 ## What’s next
 
 - Capture individual elements like buttons and cards, and save clips straight to your Blokmix account.

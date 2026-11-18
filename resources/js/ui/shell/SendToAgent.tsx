@@ -2,7 +2,7 @@ import { Bot } from 'lucide-react'
 import type { BuildTarget, VersionNode } from '@/core/types'
 import { versionBuildPrompt } from '@/core/export/packet'
 import { useAgentLink } from '@/lib/agentLink'
-import { canShip } from '@/state/shipping'
+import { canShip, useShippingPrice } from '@/state/shipping'
 import { useStore } from '@/state/store'
 import { Dropdown, type DropdownOption } from '../controls/Dropdown'
 
@@ -15,9 +15,11 @@ export function SendToAgent({ version, onReference, className }: {
 }) {
   const connected = useAgentLink((s) => s.status === 'connected')
   const busy = useStore((s) => !!s.agent.versionId)
+  const shippingPrice = useShippingPrice()
+  const group = shippingPrice === null ? undefined : `$${shippingPrice} once per site`
   const options: DropdownOption<Action>[] = [
-    { v: 'astro', label: connected ? 'Copy Astro prompt' : 'Astro files and prompt' },
-    { v: 'next', label: connected ? 'Copy Next.js prompt' : 'Next.js files and prompt' },
+    { v: 'astro', label: connected ? 'Copy Astro prompt' : 'Astro files and prompt', group },
+    { v: 'next', label: connected ? 'Copy Next.js prompt' : 'Next.js files and prompt', group },
   ]
   if (onReference) {
     options.push(

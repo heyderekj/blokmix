@@ -161,6 +161,7 @@ export function ColorPicker({ value, anchor, title = 'Color', palette, variant: 
             title={`${c.name} ${c.hex.toUpperCase()}`}
             aria-label={c.name}
             onClick={() => setFromHex(c.hex)}
+            data-round-control
             className={`size-6 rounded-full ${PRESS} ${c.hex === hex ? 'shadow-[0_0_0_2px_var(--lift,#fff),0_0_0_4px_#17121A]' : 'shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] hover:scale-110'}`}
             style={{ background: c.hex }}
           />
@@ -413,6 +414,7 @@ export function ColorButton({ value, onPick, live, palette, variant, title, clas
       <button
         ref={ref}
         type="button"
+        data-round-control
         aria-label={title ?? 'Pick a color'}
         aria-expanded={open}
         title={title}

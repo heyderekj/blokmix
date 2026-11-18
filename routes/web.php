@@ -31,6 +31,8 @@ Route::domain(config('blokmix.publish_host'))->withoutMiddleware('web')->group(f
 // Share links work for people who aren't signed in yet (they sign up, then come back here).
 Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join');
 
+Route::inertia('/mixes/sample', 'mixes/sample')->name('mixes.sample');
+
 // blokmix.com's waitlist form (signed out, no CSRF token: see WaitlistController).
 Route::post('/api/waitlist', [WaitlistController::class, 'store'])->middleware('throttle:6,1')->name('waitlist.store');
 
