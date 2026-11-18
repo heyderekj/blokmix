@@ -12,6 +12,7 @@ import { pickFile } from '@/lib/pickFile'
 import { canShip } from '@/state/shipping'
 import type { VersionNode } from '@/core/types'
 import { Dropdown } from '../controls/Dropdown'
+import { VisualChangePreview } from './VisualChangePreview'
 import { SharedRecipes } from './SharedRecipes'
 
 export function useReturns(mix: string) {
@@ -258,40 +259,52 @@ export function ReviewItem({ base, bundle }: { base: VersionNode; bundle: Bundle
           const r = review.rows[i]
           const name = changeLabel(c).replace(/([a-z])([A-Z])/g, '$1 $2')
           return (
-            <label key={i} className="draft-change">
-              <input
-                type="checkbox"
-                disabled={!!r.issue || !editor}
-                checked={selected.has(i)}
-                onChange={(e) => {
-                  const next = new Set(selected)
-                  if (e.target.checked) next.add(i)
-                  else next.delete(i)
-                  select(next)
-                }}
-              />
-              <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center justify-between gap-2">
-                  <strong className="text-[15px] leading-snug">{name.charAt(0).toUpperCase() + name.slice(1)}</strong>
-                  {r.conflict && <span className="draft-conflict">Edited in your draft</span>}
-                </span>
-                {r.conflict ? (
-                  <span className="draft-values">
-                    <span>
-                      <small>Your draft</small>
-                      {valueLabel(r.here)}
-                    </span>
-                    <span>
-                      <small>Agent proposal</small>
-                      {valueLabel(r.incoming)}
-                    </span>
+            <div key={i} className="draft-change-row">
+              <label className="draft-change">
+                <input
+                  type="checkbox"
+                  disabled={!!r.issue || !editor}
+                  checked={selected.has(i)}
+                  onChange={(e) => {
+                    const next = new Set(selected)
+                    if (e.target.checked) next.add(i)
+                    else next.delete(i)
+                    select(next)
+                  }}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center justify-between gap-2">
+                    <strong className="text-[15px] leading-snug">{name.charAt(0).toUpperCase() + name.slice(1)}</strong>
+                    {r.conflict && <span className="draft-conflict">Edited in your draft</span>}
                   </span>
-                ) : (
-                  !r.issue && c.kind !== 'add' && <span className="mt-1 block text-sm text-muted-foreground">{valueLabel(r.incoming)}</span>
-                )}
-                {r.issue && <span className="block text-sm text-problem-ink">{r.issue}</span>}
-              </span>
-            </label>
+                  {r.conflict ? (
+                    <span className="draft-values">
+                      <span>
+                        <small>Your draft</small>
+                        {valueLabel(r.here)}
+                      </span>
+                      <span>
+                        <small>Agent proposal</small>
+                        {valueLabel(r.incoming)}
+                      </span>
+                    </span>
+                  ) : (
+                    !r.issue &&
+                    c.kind !== 'add' && <span className="mt-1 block text-sm text-muted-foreground">{valueLabel(r.incoming)}</span>
+                  )}
+                  {r.issue && <span className="block text-sm text-problem-ink">{r.issue}</span>}
+                </span>
+              </label>
+              {c.kind !== 'word' && (
+                <VisualChangePreview
+                  change={c}
+                  before={base}
+                  after={{ ...base, snapshot: review.proposed }}
+                  mode="proposal"
+                  initiallyOpen={i === bundle.changes.findIndex((change) => change.kind !== 'word')}
+                />
+              )}
+            </div>
           )
         })}
       </div>

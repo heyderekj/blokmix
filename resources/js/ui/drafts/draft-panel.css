@@ -124,7 +124,7 @@
   display: none;
 }
 .draft-versions > li + li,
-.draft-change + .draft-change {
+.draft-change-row + .draft-change-row {
   border-top: 1px solid var(--n-150);
 }
 .draft-version {
@@ -277,4 +277,104 @@
   padding: 12px 14px 5px;
   border-radius: 10px;
   background: var(--card);
+}
+
+.version-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.version-actions .version-send,
+.version-actions .version-more {
+  min-height: 36px;
+  font-size: 14px;
+}
+.version-actions .version-more {
+  margin-inline-start: auto;
+  color: var(--n-600);
+  box-shadow: none;
+}
+.version-actions .version-more:hover {
+  background: var(--card);
+}
+.version-visual {
+  margin-block: 8px 2px;
+}
+.draft-change-row > .version-visual {
+  margin: -4px 14px 14px;
+}
+.version-visual > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--n-600);
+  cursor: pointer;
+}
+.version-preview-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.version-preview-tile {
+  overflow: hidden;
+  border-radius: 9px;
+  border: 1px solid var(--n-200);
+  background: var(--background);
+}
+.version-preview-tile figcaption {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+.version-preview-tile figcaption span {
+  color: var(--muted-foreground);
+  text-transform: capitalize;
+}
+.version-preview-window {
+  height: 94px;
+  overflow: hidden;
+  position: relative;
+  display: grid;
+  align-items: center;
+  text-align: center;
+  background: var(--well);
+}
+.version-preview-window iframe {
+  position: absolute;
+  inset: 0;
+  width: 300%;
+  max-width: none;
+  height: 300%;
+  transform: scale(0.333333);
+  transform-origin: top left;
+  pointer-events: none;
+  border: 0;
+}
+@container (max-width: 360px) {
+  .version-actions {
+    gap: 4px;
+  }
+  .version-actions .draft-secondary,
+  .version-actions .version-send,
+  .version-actions .version-more {
+    font-size: 13px;
+    gap: 4px;
+    padding-inline: 7px;
+  }
+}
+
+.version-more-icon { display: none; }
+@container (max-width: 400px) {
+  .version-actions .version-more { min-width: 36px; justify-content: center; }
+  .version-more .version-more-icon { display: block; }
+  .version-more > span, .version-more > svg:last-child { display: none; }
 }

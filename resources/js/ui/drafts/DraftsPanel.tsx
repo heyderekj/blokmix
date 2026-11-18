@@ -10,15 +10,13 @@ import {
   ChevronDown,
   ChevronRight,
   Columns2,
+  Ellipsis,
   Copy,
-  Eye,
-  EyeOff,
   GitBranch,
   Layers,
   Package,
   Pencil,
   Plus,
-  RotateCcw,
   Trash2,
 } from 'lucide-react'
 import { draftList, newestVersionFirst, versionsOf, type Draft } from '@/core/drafts'
@@ -28,6 +26,8 @@ import { TYPE_LABEL } from '@/core/content'
 import type { VersionNode } from '@/core/types'
 import { useStore } from '@/state/store'
 import { canAddDraft } from '@/state/slices/drafts'
+import { Dropdown } from '../controls/Dropdown'
+import { VisualChangePreview } from './VisualChangePreview'
 import { StatusRing } from '../frames/FrameHeader'
 import { SendToAgent } from '../shell/SendToAgent'
 import { toggleSheet } from '../shell/TopBar'
@@ -285,6 +285,8 @@ function appliedCount(record: ReturnRecord) {
 }
 
 function ReviewReceipt({ record, base, showTitle }: { record: ReturnRecord; base: VersionNode; showTitle?: boolean }) {
+  const result = useStore((s) => (record.version ? s.versions[record.version] : undefined))
+  const before = useStore((s) => (result?.parentId ? s.versions[result.parentId] : undefined))
   const { bundle, decisions } = record
   if (!decisions)
     return (
@@ -308,24 +310,35 @@ function ReviewReceipt({ record, base, showTitle }: { record: ReturnRecord; base
           const label = changeLabel(change).replace(/([a-z])([A-Z])/g, '$1 $2')
           const status = decision.applied ? 'Applied' : decision.value !== undefined ? 'Kept yours' : 'Skipped'
           return (
-            <li key={i} className="flex items-start justify-between gap-3 py-2">
-              <div className="min-w-0">
-                <span className="block text-sm font-medium">
-                  {label.charAt(0).toUpperCase() + label.slice(1)}
-                  {section && <span className="font-normal text-muted-foreground"> · {TYPE_LABEL[section.type]}</span>}
+            <li key={i} className="py-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="block text-sm font-medium">
+                    {label.charAt(0).toUpperCase() + label.slice(1)}
+                    {section && <span className="font-normal text-muted-foreground"> · {TYPE_LABEL[section.type]}</span>}
+                  </span>
+                  {decision.value !== undefined && (
+                    <span className="block whitespace-pre-wrap text-sm text-muted-foreground">{decision.value || 'Empty'}</span>
+                  )}
+                </div>
+                <span
+                  className={
+                    'inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold ' +
+                    (decision.applied ? 'text-done-ink' : 'text-zinc-600')
+                  }
+                >
+                  {decision.applied && <Check size={13} />} {status}
                 </span>
-                {decision.value !== undefined && (
-                  <span className="block whitespace-pre-wrap text-sm text-muted-foreground">{decision.value || 'Empty'}</span>
-                )}
               </div>
-              <span
-                className={
-                  'inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold ' +
-                  (decision.applied ? 'text-done-ink' : 'text-zinc-600')
-                }
-              >
-                {decision.applied && <Check size={13} />} {status}
-              </span>
+              {before && result && decision.applied && change.kind !== 'word' && (
+                <VisualChangePreview
+                  change={change}
+                  before={before}
+                  after={result}
+                  mode="saved"
+                  initiallyOpen={i === bundle.changes.findIndex((c, n) => c.kind !== 'word' && decisions[n]?.applied)}
+                />
+              )}
             </li>
           )
         })}
@@ -334,13 +347,65 @@ function ReviewReceipt({ record, base, showTitle }: { record: ReturnRecord; base
   )
 }
 
-function History({ versions, wide }: { versions: VersionNode[]; wide: boolean }) {
+function VersionActions({ version, compare }: { version: VersionNode; compare?: () => void }) {
+  const current = useStore((s) => s.head === version.id)
+  const pinned = useStore((s) => s.ui.pinnedVersions.includes(version.id))
+  const room = useStore(canAddDraft)
   const st = useStore.getState
+  const openExport = () => st().setUi({ packetSource: version.id, sheet: 'packet' })
+  if (version.kind === 'build')
+    return (
+      <button className="draft-secondary" onClick={openExport}>
+        <Package size={15} /> Export build
+      </button>
+    )
+  return (
+    <div className="version-actions" role="group" aria-label={`Actions for ${version.letter}`}>
+      {compare && (
+        <button className="draft-secondary" onClick={compare}>
+          <Columns2 size={15} /> Compare
+        </button>
+      )}
+      <SendToAgent version={version} className="version-send" />
+      <Dropdown
+        label="More actions"
+        lead={<Ellipsis size={18} aria-hidden className="version-more-icon" />}
+        className="version-more"
+        options={[
+          { v: 'pin', label: pinned ? 'Hide from canvas' : 'Show on canvas' },
+          ...(room ? [{ v: 'branch', label: 'Start a new draft' }] : []),
+          { v: 'export', label: 'Export version' },
+          ...(current ? [] : [{ v: 'restore', label: 'Restore draft to ' + version.letter }]),
+        ]}
+        onChange={(action) => {
+          switch (action) {
+            case 'pin': {
+              const ids = st().ui.pinnedVersions
+              st().setUi({ pinnedVersions: ids.includes(version.id) ? ids.filter((id) => id !== version.id) : [...ids, version.id] })
+              break
+            }
+            case 'branch':
+              newDraft({ version: version.id })
+              st().setUi({ sheet: 'none' })
+              break
+            case 'export':
+              openExport()
+              break
+            case 'restore':
+              st().restoreVersion(version.id)
+              st().showFlash('Back to ' + version.letter, { undo: true })
+              break
+          }
+        }}
+      />
+    </div>
+  )
+}
+
+function History({ versions, wide }: { versions: VersionNode[]; wide: boolean }) {
   const drafts = useStore((s) => s.drafts)
-  const pinned = useStore((s) => s.ui.pinnedVersions)
   const head = useStore((s) => s.head)
   const saved = useStore((s) => s.versions)
-  const room = useStore(canAddDraft)
   const [all, setAll] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [compare, setCompare] = useState<VersionNode | null>(null)
@@ -369,7 +434,6 @@ function History({ versions, wide }: { versions: VersionNode[]; wide: boolean })
         {shown.map((v) => {
           const origin = v.acceptedFrom && saved[v.acceptedFrom.base]
           const receipt = origin?.returns?.find((r) => r.bundle.id === v.acceptedFrom?.submission)
-          const on = pinned.includes(v.id)
           const isOpen = expanded === v.id && !compare
           const title =
             v.kind === 'build'
@@ -415,51 +479,17 @@ function History({ versions, wide }: { versions: VersionNode[]; wide: boolean })
                   {v.returns?.map((r) => (
                     <ReviewReceipt key={r.bundle.id} record={r} base={v} showTitle />
                   ))}
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {v.kind === 'snapshot' && versions.some((other) => other.kind === 'snapshot' && other.id !== v.id) && (
-                      <button
-                        className={ROW_BUTTON}
-                        onClick={() => {
-                          setCompare(v)
-                          setAll(true)
-                        }}
-                      >
-                        <Columns2 size={14} /> Compare
-                      </button>
-                    )}
-                    {v.kind === 'snapshot' && <SendToAgent version={v} className="min-h-7 rounded-full text-[12px]" />}
-                    {v.kind === 'snapshot' && v.id !== head && (
-                      <button
-                        type="button"
-                        className={ROW_BUTTON}
-                        title="The open draft goes back to this. Unsaved changes are saved first; ⌘Z undoes it."
-                        onClick={() => (st().restoreVersion(v.id), st().showFlash(`Back to ${v.letter}`, { undo: true }))}
-                      >
-                        <RotateCcw size={12} /> Go back to this
-                      </button>
-                    )}
-                    {v.kind === 'snapshot' && room && (
-                      <button
-                        type="button"
-                        className={ROW_BUTTON}
-                        onClick={() => (newDraft({ version: v.id }), st().setUi({ sheet: 'none' }))}
-                      >
-                        <Copy size={12} /> New draft
-                      </button>
-                    )}
-                    <button type="button" className={ROW_BUTTON} onClick={() => st().setUi({ packetSource: v.id, sheet: 'packet' })}>
-                      <Package size={12} /> Export
-                    </button>
-                    {v.kind === 'snapshot' && (
-                      <button
-                        type="button"
-                        className={ROW_BUTTON}
-                        onClick={() => st().setUi({ pinnedVersions: on ? pinned.filter((x) => x !== v.id) : [...pinned, v.id] })}
-                      >
-                        {on ? <EyeOff size={12} /> : <Eye size={12} />} {on ? 'Hide from canvas' : 'Show on canvas'}
-                      </button>
-                    )}
-                  </div>
+                  <VersionActions
+                    version={v}
+                    compare={
+                      versions.some((other) => other.kind === 'snapshot' && other.id !== v.id)
+                        ? () => {
+                            setCompare(v)
+                            setAll(true)
+                          }
+                        : undefined
+                    }
+                  />
                 </div>
               )}
             </li>
