@@ -89,8 +89,9 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   site is one mix. Everything on the board is free for everyone (every layout, theme, control and treatment, any number
   of mixes). Shipping is paid for once per mix: downloading the full export, copying the build prompt or generated code,
   and handing a version to an agent. The Style guide's Copy for your agent and copying `tokens.css` or `tokens.json`
-  are free. `/mixes/sample` offers a public download from the built-in demo with standalone prompts. `Mix` `isPaid` (`mixes.paid_at`, `paid_order_id`) and
-  `ships` (paid, its owner `hasPlus`, or `waitlist_mode`); `toBoard` `ships` sets `useAccount` `ships`, and
+  are free. `/mixes/sample` offers a public download from the built-in demo with standalone prompts.
+  `Mix` `isPaid` (`mixes.paid_at`, `paid_order_id`) and `ships` (paid, its owner `hasPlus`, or `waitlist_mode`);
+  `toBoard` `ships` sets `useAccount` `ships`, and
   `state/shipping.ts` `canShip(what)` opens `ui/shell/BuySheet.tsx` (pay for this site at Polar; viewers hear it's an
   editor's call) while `shipRefusal()` is what `prepare_build` throws for an agent. Every version and re-export of a
   paid mix is free; a duplicate is a new, unpaid site. `hasPlus` stays only for grandfathering: `users.plan = plus` (the

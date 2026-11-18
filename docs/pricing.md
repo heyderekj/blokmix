@@ -60,4 +60,4 @@ the same mix still holds it.
 - blokmix.com — the product and marketing
 - blok.page — published, noindex, account-linked snapshots of mixes + style guide
 
-Last updated: 2026-11-12
+Last updated: 2026-11-18
