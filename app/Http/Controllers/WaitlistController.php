@@ -31,9 +31,9 @@ class WaitlistController extends Controller
 
         return response()->streamDownload(function () {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['email', 'source', 'joined']);
+            fputcsv($out, ['email', 'source', 'joined'], escape: '');
             foreach (DB::table('waitlist')->oldest()->cursor() as $row) {
-                fputcsv($out, [$row->email, $row->source, $row->created_at]);
+                fputcsv($out, [$row->email, $row->source, $row->created_at], escape: '');
             }
             fclose($out);
         }, 'blokmix-waitlist-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);

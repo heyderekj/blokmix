@@ -7,6 +7,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +25,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Laravel Cloud receives the Worker's requests on its upstream hostname.
+        if ($this->app->isProduction()) {
+            URL::useOrigin(config('blokmix.home_url'));
+        }
+
         // The people who run Blokmix (config blokmix.owners): they see the waitlist.
         Gate::define('run-blokmix', fn (User $user) => in_array(strtolower($user->email), config('blokmix.owners'), true));
 
