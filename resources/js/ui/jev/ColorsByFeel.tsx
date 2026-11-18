@@ -95,7 +95,7 @@ export function ColorsByFeel() {
               onFocus={() => preview(p.palette)}
               onClick={() => {
                 preview(null)
-                runCommand('set_palette', { colors: p.palette }, 'you')
+                runCommand('set_palette', { colors: p.palette, brand: p.brand, variant: p.variant, mode: p.mode }, 'you')
                 useStore.getState().showFlash(`New colors: ${p.words}`, { undo: true })
               }}
               title={p.words}

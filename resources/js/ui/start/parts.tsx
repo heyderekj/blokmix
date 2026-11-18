@@ -1,14 +1,11 @@
 // Pieces the guided start draws with: start cards, theme cards, the score ring and the kind tile.
-import { Children, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Children, useCallback, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowRight, Check, ChevronLeft, ChevronRight, type LucideIcon } from 'lucide-react'
-import type { Kind, SectionType } from '@/core/types'
-import { guideFor } from '@/core/start'
-import { KIND_FEEL, themesFor } from '@/core/feel'
+import type { GuideState, Kind, SectionType } from '@/core/types'
+import { KIND_FEEL } from '@/core/feel'
+import { themesFor } from '@/core/themeRanking'
 import { skinList, WIREFRAME, type Skin } from '@/core/skins'
-import { resolveGuide } from '@/core/guide'
-import { fontHrefs, fontsForTokens } from '@/core/tokens'
 import type { ScoredStart } from '@/lib/start'
-import type { Palette as Colors } from '@/core/palette'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 
 export const INK = '#17121A'
@@ -22,8 +19,7 @@ export const PRIMARY = `btn-lit flex h-11 items-center gap-2 rounded-full px-5 t
 export const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-medium text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`
 
 /** A skin, drawn as your actual page in it. */
-export function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPick }: { skin: Skin; on: boolean; start: Pick<ScoredStart, 'site' | 'content'>; brand: string | null; palette: Colors | null; mode: 'light' | 'dark' | undefined; jevPick: boolean; onPick: () => void }) {
-  const guide = useMemo(() => guideFor({ skin: skin.id, brand, mode, palette }), [skin.id, brand, mode, palette])
+export function SkinCard({ skin, on, start, guide, reason, jevPick, onPick }: { skin: Skin; on: boolean; start: Pick<ScoredStart, 'site' | 'content'>; guide: GuideState; reason: string; jevPick: boolean; onPick: () => void }) {
   return (
     <button type="button" onClick={onPick} aria-pressed={on} className={`${CARD} overflow-hidden ${on ? ON : `${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.16)]`}`}>
       <span className="block border-b border-zinc-950/5">
@@ -33,10 +29,11 @@ export function SkinCard({ skin, on, start, brand, palette, mode, jevPick, onPic
         <span className="flex items-center justify-between gap-2 text-[15px] font-semibold">
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate">{skin.name}</span>
-            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Best fit</span>}
+            {jevPick && <span className="shrink-0 rounded-full bg-[#FFE4F2] px-2 py-0.5 font-sans text-[10.5px] font-semibold text-[#B0186A]">Suggested</span>}
           </span>
           {on && <Check size={16} style={{ color: PINK }} />}
         </span>
+        <span className="mt-1 block text-xs text-zinc-600">{reason}</span>
       </span>
     </button>
   )
@@ -64,17 +61,17 @@ export function Carousel({ children, label, min = 280 }: { children: ReactNode; 
   }, [check, children])
   const step = (dir: 1 | -1) => {
     const el = row.current
-    if (el) el.scrollBy({ left: dir * (min + 12), behavior: 'smooth' })
+    if (el) el.scrollBy({ left: dir * (min + 12), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
   const arrow = `absolute top-[80px] z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white text-[#17121A] shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_6px_16px_-6px_rgb(23_18_26/0.35)] ${PRESS}`
   return (
-    <div className="relative -mx-1">
+    <div className="relative -mx-5 sm:-mx-7">
       <div
         ref={row}
         role="group"
         aria-label={label}
         onScroll={check}
-        className="flex snap-x snap-mandatory scroll-px-1 gap-3 overflow-x-auto px-1 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 sm:scroll-px-7 sm:px-7 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {Children.map(children, (child) => (
           <div className="flex shrink-0 snap-start [&>*]:w-full" style={{ width: `max(${min}px, calc((100% - 24px) / 3))` }}>
@@ -83,12 +80,12 @@ export function Carousel({ children, label, min = 280 }: { children: ReactNode; 
         ))}
       </div>
       {more.back && (
-        <button type="button" aria-label="Back" onClick={() => step(-1)} className={`${arrow} -left-2`}>
+        <button type="button" aria-label="Back" onClick={() => step(-1)} className={`${arrow} left-1`}>
           <ChevronLeft size={18} />
         </button>
       )}
       {more.on && (
-        <button type="button" aria-label="More" onClick={() => step(1)} className={`${arrow} -right-2`}>
+        <button type="button" aria-label="More" onClick={() => step(1)} className={`${arrow} right-1`}>
           <ChevronRight size={18} />
         </button>
       )}
@@ -179,20 +176,6 @@ export function Score({ value }: { value: number }) {
       <span className="text-[11px] font-bold tabular-nums">{value}</span>
     </span>
   )
-}
-
-/** Every skin's fonts, so the cards draw in them. */
-export function useSkinFonts() {
-  useEffect(() => {
-    const hrefs = new Set(skinList().flatMap((v) => fontHrefs(fontsForTokens(resolveGuide(guideFor({ skin: v.id })).tokens, []))))
-    for (const href of hrefs) {
-      if (document.head.querySelector(`link[href="${CSS.escape(href)}"]`)) continue
-      const link = document.createElement('link')
-      link.rel = 'stylesheet'
-      link.href = href
-      document.head.appendChild(link)
-    }
-  }, [])
 }
 
 /** A kind's icon in a slot carved into the paper; picked, it lifts out as the pink block, tilted, the icon in white. */

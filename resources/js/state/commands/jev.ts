@@ -1,3 +1,5 @@
+import { resolveGuide } from '@/core/guide'
+import { toneOfGuide } from '@/core/dials'
 // Jev's commands: each asks first (async prepare), then lands as one undo step (apply).
 
 import type { CommandInput } from '@/core/commands/schema'
@@ -83,6 +85,10 @@ export async function fiveSecondTest(page?: string): Promise<FiveSecond> {
 export const write = {
   set_palette: (i: CommandInput<'set_palette'>) => {
     useStore.getState().chooseTokens(i.colors as Partial<Record<TokenKey, string>>)
+    if (i.brand) {
+      const guide = useStore.getState().guide
+      useStore.setState({ guide: { ...guide, brand: { color: i.brand, variant: i.variant }, mode: i.mode ?? toneOfGuide(resolveGuide(guide).tokens) } })
+    }
     return { colors: i.colors }
   },
   retype_section: (i: CommandInput<'retype_section'>) => {
@@ -204,7 +210,7 @@ export const later = {
       if (!r) throw new CommandError('No answer that time; try again.')
       return r
     },
-    apply: (_i: CommandInput<'suggest_palettes'>, r: Ranked[]) => r.map((p, n) => ({ pick: n + 1, colors: p.palette, words: p.words, from: p.from, fit: p.score })),
+    apply: (_i: CommandInput<'suggest_palettes'>, r: Ranked[]) => r.map((p, n) => ({ pick: n + 1, colors: p.palette, brand: p.brand, variant: p.variant, mode: p.mode, words: p.words, from: p.from, fit: p.score })),
   } satisfies AsyncCommand<Ranked[]>,
   suggest_treatments: {
     prepare: async (i: CommandInput<'suggest_treatments'>): Promise<DressIdea[]> => {

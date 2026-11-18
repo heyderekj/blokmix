@@ -28,8 +28,10 @@
     "shadow.card": "none",
     "space.base": "4px",
     "space.section": "128px",
-    "motion.duration": "600ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+    "motion.duration": "280ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1308px",
+    "space.text": "716px"
   },
   "effects": {
     "shadow": {
@@ -51,6 +53,15 @@
       "font": "mono",
       "weight": 400,
       "tracking": 0.16
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
     }
   },
   "components": {
@@ -67,6 +78,12 @@
     },
     "icon": {
       "variant": "bare"
+    },
+    "link": {
+      "variant": "sweep"
+    },
+    "input": {
+      "variant": "underline"
     }
   },
   "sections": {
@@ -116,10 +133,7 @@
     },
     "faq": {
       "motion": {
-        "mode": "preset",
-        "enter": "fade",
-        "onScroll": true,
-        "speed": "slow"
+        "mode": "none"
       }
     },
     "cta": {
@@ -173,17 +187,13 @@
     "content": {
       "motion": {
         "mode": "preset",
-        "enter": "fade",
-        "onScroll": true,
-        "speed": "slow"
+        "enter": "fade"
       }
     },
     "logos": {
       "motion": {
         "mode": "preset",
-        "enter": "fade",
-        "onScroll": true,
-        "speed": "slow"
+        "enter": "fade"
       }
     }
   },
@@ -196,5 +206,9 @@
       "angle": 200,
       "grain": 40
     }
-  }
+  },
+  "industries": [
+    "architecture",
+    "media"
+  ]
 }

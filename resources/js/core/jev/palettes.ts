@@ -27,13 +27,14 @@ export interface Candidate {
   /** What it's made from, in words: "terracotta, accent a third round". */
   from: string
   brand: string
+  mode?: Mode
   variant: PaletteVariant
 }
 
 /** Round one, with no brand color: one palette per hue, vivid and muted, light or dark. */
 export function hueCandidates(mode: Mode, count = 18): Candidate[] {
   const out: Candidate[] = []
-  const hues = 12
+  const hues = Math.max(1, Math.ceil(count / 2))
   for (let i = 0; i < hues; i++) {
     const h = i * (360 / hues) + 10
     for (const [l, c, name] of [
@@ -41,7 +42,7 @@ export function hueCandidates(mode: Mode, count = 18): Candidate[] {
       [0.48, 0.08, 'muted'],
     ] as const) {
       const brand = oklchToHex(l, c, h)
-      out.push({ id: `h${i}${name[0]}`, palette: paletteFrom(brand, mode), from: `${name} ${colorName(brand)}`, brand, variant: {} })
+      out.push({ id: `h${i}${name[0]}`, palette: paletteFrom(brand, mode), from: `${name} ${colorName(brand)}`, brand, mode, variant: {} })
     }
   }
   // Interleave vivid and muted, then keep an even spread of hues within the count.
@@ -62,7 +63,7 @@ const VARIANTS: { variant: PaletteVariant; words: string }[] = [
 
 /** Round two: variations on a brand color (yours, or round one's best). */
 export function variantCandidates(brand: string, mode: Mode, prefix = 'v'): Candidate[] {
-  return VARIANTS.map(({ variant, words }, i) => ({ id: `${prefix}${i}`, palette: paletteFrom(brand, mode, variant), from: `${colorName(brand)}, ${words}`, brand, variant }))
+  return VARIANTS.map(({ variant, words }, i) => ({ id: `${prefix}${i}`, palette: paletteFrom(brand, mode, variant), from: `${colorName(brand)}, ${words}`, brand, mode, variant }))
 }
 
 export interface PaletteBrief {

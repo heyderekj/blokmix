@@ -3,13 +3,16 @@
 // keeps its own copy and everything stays tweakable; the contract says what a swap leaves alone. Pure: the files in
 // samples/skins/ are loaded by data/skins.ts.
 
+import { PART_RECIPES } from './partRecipes'
+import { PAIRINGS } from './colorPairs'
+import { FORMATS, INDUSTRIES, type Format, type Industry } from './brief'
 import { z } from 'zod'
 import type { GuideState, Library, PictureDefault, SectionDefault, SectionType, Site, TokenKey, TokenSet, VersionNode } from './types'
 import { allSlots } from './site'
 import { PLACEHOLDER_STYLES, SECTION_TYPES, TOKEN_KEYS } from './types'
 import { resolveGuide } from './guide'
 import { BASE_TOKENS, CONTRAST_PAIRS, contrastRatio, hexToRgb, primaryFamily, TOKEN_GROUP_OF } from './tokens'
-import { toneOfGuide } from './dials'
+import { setTone, toneOfGuide } from './dials'
 import { paletteFrom } from './palette'
 import { cleanTreatment, EFFECT_IDS, isBackdropId, shadowToken, type EffectId, type EffectsState } from './treatments'
 import type { TextStyleEdits } from './textStyles'
@@ -18,6 +21,10 @@ import { emptyContract, isKept, settingOf, STYLE_AREAS, type Contract, type Styl
 
 export interface Skin {
   id: string
+  baseId?: string
+  industries?: Industry[]
+  formats?: Format[]
+  flavors?: { id: string; name: string; industry: Industry; parts: Partial<Record<StyleArea, string>> }[]
   name: string
   /** One line a non-designer can picture. */
   words: string
@@ -37,11 +44,21 @@ export const WIREFRAME = 'wireframe'
 
 const shape = z.object({
   name: z.string(),
+  industries: z.array(z.enum(INDUSTRIES)).optional(),
+  formats: z.array(z.enum(FORMATS)).optional(),
+  flavors: z
+    .array(z.object({ id: z.string(), name: z.string(), industry: z.enum(INDUSTRIES), parts: z.partialRecord(z.enum(STYLE_AREAS), z.string()) }))
+    .optional(),
   words: z.string().default(''),
   mode: z.enum(['light', 'dark']).default('light'),
   feel: z.array(z.enum(FEEL_WORDS)).default([]),
   tokens: z.record(z.string(), z.string()).default({}),
-  effects: z.record(z.string(), z.object({ id: z.string().optional(), preset: z.string().optional(), params: z.record(z.string(), z.any()).optional(), seed: z.number().optional() })).optional(),
+  effects: z
+    .record(
+      z.string(),
+      z.object({ id: z.string().optional(), preset: z.string().optional(), params: z.record(z.string(), z.any()).optional(), seed: z.number().optional() }),
+    )
+    .optional(),
   textStyles: z.record(z.string(), z.any()).optional(),
   components: z.record(z.string(), z.any()).optional(),
   sections: z.record(z.string(), z.any()).optional(),
@@ -69,6 +86,9 @@ export function parseSkin(id: string, json: unknown): Skin {
   return {
     id,
     name: r.name,
+    industries: r.industries,
+    formats: r.formats,
+    flavors: r.flavors,
     words: r.words,
     mode: r.mode,
     feel: r.feel,
@@ -103,13 +123,33 @@ export const RETIRED_SKINS: Record<string, string> = {
 export const canonicalSkinId = (id: string): string => RETIRED_SKINS[id] ?? id
 export const skinById = (id: string): Skin | undefined => {
   const want = canonicalSkinId(id)
-  return skins.find((s) => s.id === want)
+  const [base, flavor, extra] = want.split('/')
+  if (extra !== undefined || flavor === '') return undefined
+  const skin = skins.find((s) => s.id === base)
+  if (!flavor || !skin) return skin
+  const recipe = skin.flavors?.find((f) => f.id === flavor)
+  if (!recipe) return undefined
+  const guide = swapThemeParts(applySkin({ base: BASE_TOKENS, choices: {}, candidates: [] }, skin), recipe.parts)
+  return {
+    ...skin,
+    components: guide.components,
+    sections: guide.sections,
+    textStyles: guide.textStyles,
+    picture: guide.picture,
+    effects: guide.effects,
+    tokens: guide.base,
+    id: want,
+    baseId: base,
+    name: recipe.name,
+    industries: [recipe.industry],
+    flavors: undefined,
+  }
 }
 /** The theme a guide says it wears, by today's id and name (a mix saved in "Calm" reads "Studio"); its values stay its own. */
 export function skinRefOf(ref: GuideState['skin']): GuideState['skin'] {
   if (!ref || !RETIRED_SKINS[ref.id]) return ref
   const now = skinById(ref.id)
-  return now ? { id: now.id, name: now.name } : ref
+  return now ? { ...ref, id: now.id, name: now.name } : ref
 }
 
 /** A skin's whole token set: the neutral base with its choices on top. */
@@ -125,49 +165,114 @@ export function contrastFailures(t: TokenSet): string[] {
  * candidates and swatches stay too: a clipped section's values remain on offer, and `x:` colors keep their definition.
  */
 export function applySkin(guide: GuideState, skin: Skin, contract: Contract = emptyContract()): GuideState {
-  const now = resolveGuide(guide).tokens
-  const next = skinTokens(skin)
-  // The skin's shadow effect is its card shadow, the way setEffects keeps them in step.
-  if (skin.effects?.shadow) next['shadow.card'] = shadowToken(skin.effects.shadow)
-  const base = { ...next }
-  const choices: GuideState['choices'] = {}
-  for (const key of TOKEN_KEYS) {
-    if (isKept(contract, TOKEN_GROUP_OF[key])) {
-      base[key] = now[key]
-      choices[key] = { kind: 'custom', value: now[key] }
-    } else if ((guide.candidates ?? []).some((c) => c.values[key] != null)) {
-      // A candidate beats the base when nothing's chosen, so the skin has to say it out loud.
-      choices[key] = { kind: 'custom', value: next[key] }
+  const picks = STYLE_AREAS.filter((area) => !isKept(contract, area)).map((area) => ({ area, skin }))
+  return {
+    ...writeParts(guide, picks, contract),
+    skin: { id: skin.baseId ?? skin.id, name: skin.name, ...(skin.baseId ? { flavor: skin.id.split('/')[1] } : {}) },
+  }
+}
+
+export type ThemeParts = Partial<Record<StyleArea, string>>
+
+/** A part owns whole token groups but only its own fields in shared effects and section defaults. */
+function writeParts(guide: GuideState, picks: { area: StyleArea; skin: Skin }[], contract: Contract): GuideState {
+  const out = { ...guide, base: { ...guide.base }, choices: { ...guide.choices } }
+  for (const { area, skin } of picks) {
+    const tokens = skinTokens(skin)
+    if (area === 'color' && settingOf(contract, area) === 'tweak') {
+      const tone = guide.mode ?? skin.mode
+      if (guide.brand) Object.assign(tokens, paletteFrom(guide.brand.color, tone, guide.brand.variant))
+      else if (guide.mode) Object.assign(tokens, setTone(tokens, tone))
+    }
+    if (area === 'shape' && skin.effects?.shadow) tokens['shadow.card'] = shadowToken(skin.effects.shadow)
+    for (const key of TOKEN_KEYS) {
+      if (TOKEN_GROUP_OF[key] !== area) continue
+      out.base[key] = tokens[key]
+      if (guide.candidates?.some((c) => c.values[key] != null)) out.choices[key] = { kind: 'custom', value: tokens[key] }
+      else delete out.choices[key]
+    }
+    if (area === 'shape' || area === 'looks') {
+      const effects = { ...out.effects }
+      for (const key of EFFECT_IDS) {
+        if ((key === 'shadow') !== (area === 'shape')) continue
+        if (skin.effects?.[key]) effects[key] = skin.effects[key]
+        else delete effects[key]
+      }
+      if (Object.keys(effects).length) out.effects = effects
+      else delete out.effects
+    }
+    if (area === 'type') out.textStyles = skin.textStyles
+    if (area === 'looks') out.components = skin.components
+    if (area === 'pictures') out.picture = skin.picture
+    if (area === 'motion' || area === 'sections') {
+      const sections = { ...out.sections }
+      for (const type of SECTION_TYPES) {
+        const current = sections[type] ?? {}
+        const incoming = skin.sections?.[type] ?? {}
+        const { motion, ...rest } = area === 'motion' ? current : incoming
+        const enter = area === 'motion' ? incoming.motion : current.motion
+        const next = enter ? { ...rest, motion: enter } : rest
+        if (Object.keys(next).length) sections[type] = next
+        else delete sections[type]
+      }
+      out.sections = Object.keys(sections).length ? sections : undefined
     }
   }
-  const looksKept = isKept(contract, 'looks')
-  const out: GuideState = {
-    ...guide,
-    base,
-    candidates: guide.candidates ?? [],
-    choices,
-    effects: looksKept ? guide.effects : skin.effects,
-    textStyles: looksKept ? guide.textStyles : skin.textStyles,
-    components: looksKept ? guide.components : skin.components,
-    sections: isKept(contract, 'sections') ? guide.sections : skin.sections,
-    picture: isKept(contract, 'pictures') ? guide.picture : skin.picture,
-    skin: { id: skin.id, name: skin.name },
-  }
-  // Your brand color comes along: the theme's palette is remade from it, unless color is Kept (it stays as it is) or
-  // set to Surprise (the theme's own colors win).
-  if (guide.brand && settingOf(contract, 'color') === 'tweak') {
-    const colors = paletteFrom(guide.brand.color, skin.mode, guide.brand.variant)
-    for (const [k, v] of Object.entries(colors) as [TokenKey, string][]) {
-      out.base[k] = v
-      if (out.choices[k]) out.choices[k] = { kind: 'custom', value: v }
-    }
-  }
-  // Unset fields stay out of the saved mix.
-  for (const k of ['effects', 'textStyles', 'components', 'sections', 'picture'] as const) if (out[k] === undefined) delete out[k]
+  for (const key of ['components', 'sections', 'effects', 'textStyles', 'picture'] as const) if (out[key] === undefined) delete out[key]
   return out
 }
 
-const AREA_WORD: Record<StyleArea, string> = { color: 'color', type: 'type', shape: 'shapes', space: 'spacing', motion: 'motion', looks: 'block looks', sections: 'sections', pictures: 'pictures' }
+export const refId = (ref: GuideState['skin']) => (ref?.flavor ? `${ref.id}/${ref.flavor}` : ref?.id)
+export const themeList = () => skins.flatMap((skin) => [skin, ...(skin.flavors ?? []).map((f) => skinById(`${skin.id}/${f.id}`)!)])
+export function partSource(area: StyleArea, id: string): Skin | undefined {
+  const recipe = PART_RECIPES.find((p) => p.area === area && p.id === id)
+  if (!recipe) return skins.find((s) => s.id === id)
+  const skin = skins.find((s) => s.id === recipe.from)
+  if (!skin) return undefined
+  return {
+    ...skin,
+    ...recipe.overrides,
+    tokens: { ...skin.tokens, ...(recipe.overrides && 'tokens' in recipe.overrides ? recipe.overrides.tokens : {}) },
+    id,
+    name: recipe.name,
+  }
+}
+
+export function swapThemeParts(guide: GuideState, parts: ThemeParts, contract: Contract = emptyContract()): GuideState {
+  let source = guide
+  const picks = Object.entries(parts).map(([key, id]) => {
+    const area = key as StyleArea
+    if (isKept(contract, area)) throw new Error(`The contract says Keep for ${area}.`)
+    if (area === 'color') {
+      const [kind, pairing, mode] = id.split('/')
+      if (kind === 'brand') {
+        const pair = PAIRINGS.find((p) => p.id === pairing)
+        if (!guide.brand || !pair || (mode !== 'light' && mode !== 'dark')) throw new Error('Unknown brand pairing')
+        const tokens = paletteFrom(guide.brand.color, mode, pair.variant)
+        source = { ...guide, mode, brand: { ...guide.brand, variant: pair.variant } }
+        return { area, skin: { id, name: pair.name, words: '', feel: [], mode, tokens } satisfies Skin }
+      }
+      source = { ...guide }
+      delete source.brand
+      delete source.mode
+    }
+    const skin = partSource(area, id)
+    if (!skin) throw new Error(`Unknown theme part: ${id}`)
+    return { area, skin }
+  })
+  return writeParts(source, picks, contract)
+}
+
+const AREA_WORD: Record<StyleArea, string> = {
+  color: 'color',
+  type: 'type',
+  shape: 'shapes',
+  space: 'spacing',
+  motion: 'motion',
+  looks: 'block looks',
+  sections: 'sections',
+  pictures: 'pictures',
+}
 
 const mix = (...parts: (string | number)[]) => {
   let h = 2166136261
@@ -194,31 +299,9 @@ export function surpriseMe(guide: GuideState, contract: Contract, seed: number, 
   const others = pool.filter((s) => s.id !== WIREFRAME && s.id !== guide.skin?.id)
   if (!rolled.length || !others.length) return null
   const picks = rolled.map((area, i) => ({ area, skin: others[mix(seed, area, i) % others.length] }))
-  const pickFor = (a: StyleArea) => picks.find((p) => p.area === a)?.skin
-
-  const now = resolveGuide(guide).tokens
-  const tokens = { ...now }
-  for (const key of TOKEN_KEYS) {
-    const from = pickFor(TOKEN_GROUP_OF[key])
-    if (from) tokens[key] = skinTokens(from)[key]
-  }
-  const remix: Skin = {
-    id: 'remix',
-    name: `Mix of ${[...new Set(picks.map((p) => p.skin.name))].join(', ')}`,
-    words: '',
-    mode: 'light',
-    feel: [],
-    tokens,
-    effects: pickFor('looks') ? pickFor('looks')!.effects : guide.effects,
-    textStyles: pickFor('looks') ? pickFor('looks')!.textStyles : guide.textStyles,
-    components: pickFor('looks') ? pickFor('looks')!.components : guide.components,
-    sections: pickFor('sections') ? pickFor('sections')!.sections : guide.sections,
-    picture: pickFor('pictures') ? pickFor('pictures')!.picture : guide.picture,
-  }
-  // Everything that didn't roll keeps its exact value, candidates and all.
-  const hold: Contract = { areas: Object.fromEntries(STYLE_AREAS.filter((a) => !rolled.includes(a)).map((a) => [a, 'keep'])), keep: [], surprise: [] }
+  const name = `Mix of ${[...new Set(picks.map((p) => p.skin.name))].join(', ')}`
   const words = `${picks.map((p, i) => `${i ? AREA_WORD[p.area] : AREA_WORD[p.area].replace(/^./, (c) => c.toUpperCase())} from ${p.skin.name}`).join(', ')}.`
-  return { guide: applySkin(guide, remix, hold), picks, words }
+  return { guide: { ...writeParts(guide, picks, contract), skin: { id: 'remix', name } }, picks, words }
 }
 
 /** A guide that came from no skin (your own values), so a mix made with one isn't taken for one saved before skins. */
@@ -281,11 +364,22 @@ export function dressOldGuide(guide: GuideState, pool: Skin[]): GuideState {
  * A mix as it opens: one saved before skins, with built-in layouts, gets dressed, versions too. One with none yet is only
  * marked as your own look, so it isn't dressed later for having no skin. Anything that has a skin is left exactly as it is.
  */
-export function dressSavedMix<M extends { guide: GuideState; site: Site; versions?: Record<string, VersionNode> }>(mix: M, lib: Pick<Library, 'clips'>, pool: Skin[]): M {
+export function dressSavedMix<M extends { guide: GuideState; site: Site; versions?: Record<string, VersionNode> }>(
+  mix: M,
+  lib: Pick<Library, 'clips'>,
+  pool: Skin[],
+): M {
   const dressed = (guide: GuideState, site: Site): GuideState => {
     if (guide.skin) return guide
     return allSlots(site).some((s) => lib.clips[s.clipId]?.origin === 'layout') ? dressOldGuide(guide, pool) : { ...guide, skin: OWN_LOOK }
   }
-  const versions = mix.versions && Object.fromEntries(Object.entries(mix.versions).map(([id, v]) => [id, v.snapshot?.guide && !v.snapshot.guide.skin ? { ...v, snapshot: { ...v.snapshot, guide: dressed(v.snapshot.guide, v.snapshot.site) } } : v]))
+  const versions =
+    mix.versions &&
+    Object.fromEntries(
+      Object.entries(mix.versions).map(([id, v]) => [
+        id,
+        v.snapshot?.guide && !v.snapshot.guide.skin ? { ...v, snapshot: { ...v.snapshot, guide: dressed(v.snapshot.guide, v.snapshot.site) } } : v,
+      ]),
+    )
   return { ...mix, guide: dressed(mix.guide, mix.site), ...(versions ? { versions } : {}) }
 }

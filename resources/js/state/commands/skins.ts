@@ -1,7 +1,8 @@
+import { rankThemes } from '@/core/themeRanking'
 import type { CommandInput } from '@/core/commands/schema'
 import { contractMarkdown, emptyContract } from '@/core/contract'
-import { skinById, skinList, skinRefOf } from '@/core/skins'
-import { NUDGE_LABEL, nudgeTokens, themesFor } from '@/core/feel'
+import { refId, skinById, skinList, skinRefOf } from '@/core/skins'
+import { NUDGE_LABEL, nudgeTokens } from '@/core/feel'
 import { resolveGuide } from '@/core/guide'
 import { readDials, toneOfGuide } from '@/core/dials'
 import { useStore } from '../store'
@@ -18,27 +19,54 @@ export const read = {
     const on = skinRefOf(useStore.getState().guide.skin)
     return {
       current: on ?? null,
-      skins: skinList().map((s) => ({ id: s.id, name: s.name, words: s.words, mode: s.mode, on: on?.id === s.id })),
+      skins: skinList().map((s) => ({
+        id: s.id,
+        name: s.name,
+        words: s.words,
+        mode: s.mode,
+        industries: s.industries,
+        formats: s.formats,
+        feel: s.feel,
+        flavors: s.flavors,
+        on: on?.id === s.id,
+      })),
     }
   },
   get_contract: () => contractNow(),
   suggest_themes: (i: CommandInput<'suggest_themes'>) => {
-    const on = skinRefOf(useStore.getState().guide.skin)
-    return { themes: themesFor(i.words, skinList(), { different: i.different, count: i.count }).map((s) => ({ id: s.id, name: s.name, words: s.words, feel: s.feel, on: on?.id === s.id })) }
+    const st = useStore.getState()
+    const brief = { ...st.content.brief, ...(i.industry && { industry: i.industry }), ...(i.format && { format: i.format }) }
+    return {
+      themes: rankThemes({ ...i, brief, guide: st.guide, contract: st.contract }).map(({ skin, reason }) => ({
+        id: skin.id,
+        name: skin.name,
+        words: skin.words,
+        feel: skin.feel,
+        reason,
+        on: refId(st.guide.skin) === skin.id,
+      })),
+    }
   },
 }
 
 export const write = {
   apply_skin: (i: CommandInput<'apply_skin'>) => {
-    if (!skinById(i.skin)) throw new CommandError(`No skin called "${i.skin}". Skins: ${skinList().map((s) => s.id).join(', ')}`)
-    useStore.getState().applySkin(i.skin)
+    const id = i.flavor ? `${i.skin}/${i.flavor}` : i.skin
+    if (!skinById(id))
+      throw new CommandError(
+        `No skin called "${i.skin}". Skins: ${skinList()
+          .map((s) => s.id)
+          .join(', ')}`,
+      )
+    useStore.getState().applySkin(id)
     return { skin: skinRefOf(useStore.getState().guide.skin) ?? null, contract: useStore.getState().contract?.areas ?? {} }
   },
   nudge_look: (i: CommandInput<'nudge_look'>) => {
     const st = useStore.getState()
     const values = nudgeTokens(resolveGuide(st.guide).tokens, i.nudge)
     if (!values) throw new CommandError(`Can’t go any ${NUDGE_LABEL[i.nudge].toLowerCase()}: it’s already as far as it goes.`)
-    st.chooseTokens(values)
+    if (i.nudge === 'darker' || i.nudge === 'lighter') st.setThemeTone(i.nudge === 'darker' ? 'dark' : 'light')
+    else st.chooseTokens(values)
     const tokens = resolveGuide(useStore.getState().guide).tokens
     return { nudge: i.nudge, dials: readDials(tokens), tone: toneOfGuide(tokens) }
   },

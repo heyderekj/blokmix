@@ -28,8 +28,10 @@
     "shadow.card": "0 1px 0 #d6c9b1",
     "space.base": "4px",
     "space.section": "112px",
-    "motion.duration": "700ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+    "motion.duration": "280ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1236px",
+    "space.text": "692px"
   },
   "effects": {
     "shadow": {
@@ -61,6 +63,15 @@
       "font": "mono",
       "weight": 500,
       "tracking": 0.12
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
     }
   },
   "components": {
@@ -80,6 +91,12 @@
     },
     "icon": {
       "variant": "bare"
+    },
+    "link": {
+      "variant": "sweep"
+    },
+    "input": {
+      "variant": "underline"
     }
   },
   "sections": {
@@ -121,10 +138,7 @@
     },
     "faq": {
       "motion": {
-        "mode": "preset",
-        "enter": "fade",
-        "onScroll": true,
-        "speed": "slow"
+        "mode": "none"
       }
     },
     "cta": {
@@ -179,17 +193,13 @@
     "content": {
       "motion": {
         "mode": "preset",
-        "enter": "fade",
-        "onScroll": true,
-        "speed": "slow"
+        "enter": "fade"
       }
     },
     "logos": {
       "motion": {
         "mode": "preset",
-        "enter": "fade",
-        "onScroll": true,
-        "speed": "slow"
+        "enter": "fade"
       }
     },
     "nav": {
@@ -200,5 +210,9 @@
   },
   "picture": {
     "style": "topo"
-  }
+  },
+  "industries": [
+    "media",
+    "nonprofit"
+  ]
 }

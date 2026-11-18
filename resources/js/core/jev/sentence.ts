@@ -8,6 +8,9 @@
 // Jev bar's verb-led ones ("Make [Pricing] [darker]"), which build the same actions Say it
 // does (`buildAction`), from certain answers instead of guessed ones.
 
+import { rankThemes } from '../themeRanking'
+import { SENTENCE_FEEL } from '../feel'
+import { guessBrief } from '../brief'
 import { KINDS, SECTION_TYPES, type Kind, type SectionType } from '../types'
 import { TYPE_LABEL } from '../content'
 import { RECIPES } from '../start'
@@ -92,10 +95,7 @@ export const BUSINESSES: Business[] = [
   ...biz('writing', 'a newsletter', 'a blog', 'a podcast', 'a magazine', 'a recipe site'),
 ]
 
-export interface Feel extends Choice {
-  /** Skins that suit it, best first (samples/skins/*.json). */
-  skins: string[]
-}
+export type Feel = Choice
 
 export const FEEL_GROUPS: Record<string, string[]> = {
   'Warm & friendly': ['cozy', 'warm', 'friendly', 'earthy', 'simple'],
@@ -107,34 +107,34 @@ export const FEEL_GROUPS: Record<string, string[]> = {
 }
 
 export const FEELS: Feel[] = inGroups<Feel>([
-  { id: 'cozy', label: 'cozy', skins: ['lofi', 'liner-notes'], kinds: ['local', 'writing'] },
-  { id: 'warm', label: 'warm', skins: ['lofi', 'liner-notes'], kinds: ['local', 'studio', 'personal'] },
-  { id: 'friendly', label: 'friendly', skins: ['lofi', 'dreampop'], kinds: ['local', 'product', 'event'] },
-  { id: 'playful', label: 'playful', skins: ['dreampop', 'lofi'], kinds: ['product', 'event', 'personal'] },
-  { id: 'calm', label: 'calm', skins: ['studio', 'liner-notes'], kinds: ['studio', 'local', 'writing'] },
-  { id: 'clean', label: 'clean', skins: ['studio', 'afterhours'], kinds: ['product', 'studio'] },
-  { id: 'minimal', label: 'minimal', skins: ['studio', 'vinyl'], kinds: ['studio', 'personal'] },
-  { id: 'bold', label: 'bold', skins: ['flyer', 'studio'], kinds: ['product', 'event'] },
-  { id: 'loud', label: 'loud', skins: ['flyer', 'dreampop'], kinds: ['event'] },
-  { id: 'confident', label: 'confident', skins: ['flyer', 'studio'], kinds: ['product', 'studio'] },
-  { id: 'premium', label: 'premium', skins: ['vinyl', 'liner-notes'], kinds: ['studio', 'local'] },
-  { id: 'elegant', label: 'elegant', skins: ['vinyl', 'liner-notes'], kinds: ['studio', 'event'] },
-  { id: 'editorial', label: 'like a magazine', skins: ['liner-notes', 'vinyl'], kinds: ['writing', 'personal'] },
-  { id: 'bookish', label: 'bookish', skins: ['liner-notes', 'lofi'], kinds: ['writing'] },
-  { id: 'classic', label: 'classic', skins: ['liner-notes', 'vinyl'], kinds: ['studio', 'local'] },
-  { id: 'earthy', label: 'earthy', skins: ['lofi', 'liner-notes'], kinds: ['local'] },
-  { id: 'retro', label: 'retro', skins: ['flyer', 'lofi'], kinds: ['local', 'event'] },
-  { id: 'techy', label: 'techy', skins: ['afterhours', 'studio'], kinds: ['product'] },
-  { id: 'precise', label: 'precise', skins: ['studio', 'afterhours'], kinds: ['product', 'studio'] },
-  { id: 'nerdy', label: 'nerdy', skins: ['afterhours', 'studio'], kinds: ['product', 'personal'] },
-  { id: 'dark', label: 'dark and moody', skins: ['vinyl', 'afterhours'], kinds: ['event', 'personal'] },
-  { id: 'industrial', label: 'industrial', skins: ['flyer', 'afterhours'], kinds: ['local', 'studio'] },
-  { id: 'raw', label: 'raw', skins: ['flyer', 'studio'], kinds: ['studio', 'personal'] },
-  { id: 'soft', label: 'soft', skins: ['dreampop', 'lofi'], kinds: ['local', 'personal'] },
-  { id: 'dreamy', label: 'dreamy', skins: ['dreampop', 'vinyl'], kinds: ['event', 'personal'] },
-  { id: 'fun', label: 'fun', skins: ['dreampop', 'flyer'], kinds: ['event', 'product'] },
-  { id: 'trustworthy', label: 'trustworthy', skins: ['studio', 'liner-notes'], kinds: ['studio', 'product'] },
-  { id: 'simple', label: 'simple', skins: ['studio', 'lofi'], kinds: ['local', 'personal', 'writing'] },
+  { id: 'cozy', label: 'cozy', kinds: ['local', 'writing'] },
+  { id: 'warm', label: 'warm', kinds: ['local', 'studio', 'personal'] },
+  { id: 'friendly', label: 'friendly', kinds: ['local', 'product', 'event'] },
+  { id: 'playful', label: 'playful', kinds: ['product', 'event', 'personal'] },
+  { id: 'calm', label: 'calm', kinds: ['studio', 'local', 'writing'] },
+  { id: 'clean', label: 'clean', kinds: ['product', 'studio'] },
+  { id: 'minimal', label: 'minimal', kinds: ['studio', 'personal'] },
+  { id: 'bold', label: 'bold', kinds: ['product', 'event'] },
+  { id: 'loud', label: 'loud', kinds: ['event'] },
+  { id: 'confident', label: 'confident', kinds: ['product', 'studio'] },
+  { id: 'premium', label: 'premium', kinds: ['studio', 'local'] },
+  { id: 'elegant', label: 'elegant', kinds: ['studio', 'event'] },
+  { id: 'editorial', label: 'like a magazine', kinds: ['writing', 'personal'] },
+  { id: 'bookish', label: 'bookish', kinds: ['writing'] },
+  { id: 'classic', label: 'classic', kinds: ['studio', 'local'] },
+  { id: 'earthy', label: 'earthy', kinds: ['local'] },
+  { id: 'retro', label: 'retro', kinds: ['local', 'event'] },
+  { id: 'techy', label: 'techy', kinds: ['product'] },
+  { id: 'precise', label: 'precise', kinds: ['product', 'studio'] },
+  { id: 'nerdy', label: 'nerdy', kinds: ['product', 'personal'] },
+  { id: 'dark', label: 'dark and moody', kinds: ['event', 'personal'] },
+  { id: 'industrial', label: 'industrial', kinds: ['local', 'studio'] },
+  { id: 'raw', label: 'raw', kinds: ['studio', 'personal'] },
+  { id: 'soft', label: 'soft', kinds: ['local', 'personal'] },
+  { id: 'dreamy', label: 'dreamy', kinds: ['event', 'personal'] },
+  { id: 'fun', label: 'fun', kinds: ['event', 'product'] },
+  { id: 'trustworthy', label: 'trustworthy', kinds: ['studio', 'product'] },
+  { id: 'simple', label: 'simple', kinds: ['local', 'personal', 'writing'] },
 ], FEEL_GROUPS)
 
 export interface Goal extends Choice {
@@ -297,7 +297,7 @@ export function fillStart(picks: Picks): StartFill {
     kind,
     name: one('name')?.words.trim() ?? '',
     sections,
-    looks: feel?.skins ?? [],
+    looks: feel ? rankThemes({brief:guessBrief(businessWords ?? ''), words:[SENTENCE_FEEL[feel.id]]}).map((r) => r.skin.id) : [],
     button: goal?.button ?? (one('goal')?.words.trim() ? capital(one('goal')!.words.trim()) : undefined),
     feel: feelWords ? `${feelWords}${businessWords ? ` ${businessWords}` : ''}` : undefined,
     wants: shows.filter(({ s }) => !s?.section).map(({ p }) => p.words.trim()).filter(Boolean),

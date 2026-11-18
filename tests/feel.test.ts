@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import '@/data/skins'
-import { FEEL_WORDS, NUDGES, nudgesFor, nudgeTokens, themesFor } from '@/core/feel'
+import { FEEL_WORDS, NUDGES, nudgesFor, nudgeTokens } from '@/core/feel'
+import { themesFor } from '@/core/themeRanking'
 import { skinList, skinTokens } from '@/core/skins'
 import { readDials, toneOfGuide } from '@/core/dials'
 import { areasOfCommand, emptyContract } from '@/core/contract'

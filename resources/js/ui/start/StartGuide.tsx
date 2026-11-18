@@ -5,12 +5,14 @@ import { create } from 'zustand'
 import type { GuideState, SectionType } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { startCandidates, type StartCandidate, type StartInput } from '@/core/start'
-import { FEEL_WORDS, themesFor, type FeelWord } from '@/core/feel'
-import { skinById, skinList, WIREFRAME, type Skin } from '@/core/skins'
+import { FEEL_WORDS, type FeelWord } from '@/core/feel'
+import { skinById, WIREFRAME } from '@/core/skins'
 import { actionChoices, FORMAT_LABEL, FORMATS, GOAL_LABEL, GOALS, INDUSTRIES, INDUSTRY_LABEL, patchBrief, type Brief, type Goal } from '@/core/brief'
 import { OPTIONAL, placeSection, textMode } from '@/core/jev/describe'
 import { answer, answersFromSentence, briefFrom, emptyAnswers, heardFromSentence, feelFrom, folded, kindFrom, nextQuestion, QUESTIONS, reopen, sectionsFrom, skipToPages, type Answers, type Question } from '@/core/startFlow'
-import { paletteFrom, type Palette as Colors } from '@/core/palette'
+import { rankThemes } from '@/core/themeRanking'
+import { emptyGuide } from '@/core/guide'
+import type { PaletteVariant } from '@/core/palette'
 import type { Starter } from '@/core/starters'
 import { library, starters } from '@/data/library'
 import { askJev, askLatest, jevOn } from '@/lib/jev'
@@ -21,7 +23,7 @@ import { scoredStarts, type ScoredStart } from '@/lib/start'
 import { guessHeard, hearStart, startsFromText, wordsCandidates, type Heard } from '@/lib/startFromText'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 import { GuideOption, StarterOption, useDisplayFonts, type GuideChoice } from './StartFrom'
-import { Carousel, HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, firstPage, sectionWords, useSkinFonts } from './parts'
+import { Carousel, HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, firstPage, sectionWords } from './parts'
 
 /** Whether the guided start is showing over the board (the browser-only mix opens on it the first time). */
 export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
@@ -59,13 +61,13 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const [jev, setJev] = useState(false)
   const [skin, setSkin] = useState<string | null>(null)
   const [brand, setBrand] = useState<string | null>(null)
-  const [palette, setPalette] = useState<Colors | null>(null)
+  const [variant, setVariant] = useState<PaletteVariant>()
   const [mode, setMode] = useState<'light' | 'dark' | undefined>(undefined)
   const [fixed, setFixed] = useState<{ name: string; guide?: GuideState } | null>(null)
   const [seed, setSeed] = useState(0)
   const [starts, setStarts] = useState<ScoredStart[] | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
-  useSkinFonts()
+
   useDisplayFonts(guides ?? null)
 
   useEffect(() => {
@@ -94,24 +96,22 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const sections = sectionsFrom(va, vh)
   const feel = feelFrom(va, vh)
   const name = va.name.trim() || 'Your site'
-  const open = useMemo(() => skinList().filter((x) => x.id !== WIREFRAME), [])
-  // The look on show: yours, else the best fit (the read's, then the feel's), never the grey sketch.
-  const themes = useMemo(() => {
-    const read = (vh?.looks ?? []).flatMap((id) => open.filter((x) => x.id === id))
-    return [...new Set([...read, ...themesFor(feel, open, { count: 3 })])].slice(0, 3)
-  }, [vh?.looks, feel, open])
-  // "Show me different ones": themes that match none of the feel words (topped up when too few do).
   const [other, setOther] = useState(false)
-  const shownThemes = useMemo(() => {
-    if (!other) return themes
-    const away = themesFor(feel, open, { different: true, count: 6 })
-    return [...new Set([...away, ...open])].filter((x) => !themes.includes(x)).slice(0, 3)
-  }, [other, themes, feel, open])
+  const rankingKey = JSON.stringify([brief, brand, variant, mode, other, name, skin])
+  const shown = useMemo(() => {
+    const guide = { ...emptyGuide(), mode, ...(brand ? { brand: { color: brand, variant } } : {}) }
+    const best = rankThemes({ brief, guide })
+    const ranked = other ? rankThemes({ brief, guide, different: true, exclude: best.map((r) => r.skin.id) }) : best
+    const selected = skin && skinById(skin)
+    if (!selected || ranked.some((r) => r.skin.id === skin)) return ranked
+    return [...ranked.slice(0,2), ...rankThemes({brief,guide,pool:[selected],count:1})]
+  }, [rankingKey, skin])
+  const shownThemes = shown.map((r) => r.skin)
   const theme = skin ?? shownThemes[0]?.id ?? WIREFRAME
   const paste = heard?.mode === 'paste' && !!heard.plan
   /** The feeling the sentence gave, in your words ("cozy"), for the look step's lead. */
   const said = paste ? '' : listWords((picks.feel ?? []).map((p) => p.words.trim()).filter(Boolean))
-  const input: StartInput = { kind, name, seed, skin: theme, brand, palette, mode, brief, ...(paste ? {} : { sections }) }
+  const input: StartInput = { kind, name, seed, skin: theme, brand, variant, mode, brief, ...(paste ? {} : { sections }) }
   const key = JSON.stringify({ input, fixed: fixed?.name })
 
   // The page on the right: the first start for the answers so far, drawn at once (measuring waits for the end).
@@ -202,7 +202,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
     goals: [...(brief.goals ?? []).map((g) => GOAL_LABEL[g]), ...(brief.goalsOther ? [brief.goalsOther] : [])].join(', ') || 'Skipped',
     action: brief.mainAction ?? 'Skipped',
     sections: paste && !a.sections ? 'Your words decide the sections' : cap(sectionWords(sections, 6)),
-    look: fixed ? fixed.name : `${skinById(theme)?.name ?? 'A theme'}${brand || palette ? ', your colors' : ''}`,
+    look: fixed ? fixed.name : `${skinById(theme)?.name ?? 'A theme'}${brand ? ', your colors' : ''}`,
   }
 
   const answered = QUESTIONS.filter((x) => x !== 'drafts' && x !== q && (a.done.includes(x) || skip[x] || (x === 'name' && a.name.trim())))
@@ -316,7 +316,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
               )}
 
               {q === 'look' && preview && (
-                <Ask title="Pick a look" lead={other ? 'Three in another direction. You can change any of it later.' : said ? `Three themes that feel ${said}. You can change any of it later.` : 'Three themes to start from. You can change any of it later.'} onNext={() => go('look', { feel })}>
+                <Ask title="Pick a look" lead={other ? 'Try a different direction.' : said ? `Themes that feel ${said}.` : 'Choose a theme for your page.'} onNext={() => go('look')}>
                   {!said && (
                     <Chips label="How should it feel?">
                       {FEEL_WORDS.map((w) => {
@@ -330,8 +330,8 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                     </Chips>
                   )}
                   <Carousel label="Themes">
-                    {shownThemes.map((x: Skin) => (
-                      <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} brand={brand} palette={x.id === theme ? palette : null} mode={x.id === theme ? mode : undefined} jevPick={!other && !!vh?.looks.includes(x.id)} onPick={() => (setSkin(x.id), setMode(undefined))} />
+                    {shown.map(({ skin: x, guide, reason }) => (
+                      <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} guide={guide} reason={reason} jevPick={false} onPick={() => setSkin(x.id)} />
                     ))}
                   </Carousel>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
@@ -342,8 +342,8 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                     <span className="flex items-center rounded-full bg-white p-1 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">
                       <ColorButton
                         value={brand ?? skinById(theme)?.tokens['color.primary'] ?? '#404040'}
-                        live={(h, v) => (setBrand(h), setPalette(v ? paletteFrom(h, mode ?? skinById(theme)?.mode ?? 'light', v) : null))}
-                        onPick={(h, v) => (setBrand(h), setPalette(v ? paletteFrom(h, mode ?? skinById(theme)?.mode ?? 'light', v) : null))}
+                        live={(h, v) => (setBrand(h), setVariant(v))}
+                        onPick={(h, v) => (setBrand(h), setVariant(v))}
                         palette={mode ?? skinById(theme)?.mode ?? 'light'}
                         title="Brand color"
                         className={`flex h-8 items-center gap-2 rounded-full pl-1 pr-3 text-[13px] font-medium text-[#6B5F68] ${PRESS}`}
@@ -351,8 +351,8 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                         <span className="size-6 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: brand ?? skinById(theme)?.tokens['color.primary'] ?? '#404040' }} />
                         {brand ? <span className="font-mono text-[12px] uppercase">{brand}</span> : 'Brand color'}
                       </ColorButton>
-                      {(brand || palette) && (
-                        <button type="button" onClick={() => (setBrand(null), setPalette(null))} aria-label="Use the theme’s own colors" title="Use the theme’s own colors" className={`grid size-8 place-items-center rounded-full text-[#6B5F68] hover:text-[#17121A] ${PRESS}`}>
+                      {(brand) && (
+                        <button type="button" onClick={() => (setBrand(null), setVariant(undefined))} aria-label="Use the theme’s own colors" title="Use the theme’s own colors" className={`grid size-8 place-items-center rounded-full text-[#6B5F68] hover:text-[#17121A] ${PRESS}`}>
                           <X size={14} />
                         </button>
                       )}
@@ -361,7 +361,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                         {(['light', 'dark'] as const).map((m) => {
                           const on = (mode ?? skinById(theme)?.mode ?? 'light') === m
                           return (
-                            <button key={m} type="button" role="radio" aria-checked={on} aria-label={m === 'light' ? 'Light' : 'Dark'} title={m === 'light' ? 'Light' : 'Dark'} onClick={() => (setMode(m), setPalette(null))} className={`grid size-8 place-items-center rounded-full ${PRESS} ${on ? 'bg-[#17121A] text-white' : 'text-[#6B5F68]'}`}>
+                            <button key={m} type="button" role="radio" aria-checked={on} aria-label={m === 'light' ? 'Light' : 'Dark'} title={m === 'light' ? 'Light' : 'Dark'} onClick={() => setMode(m)} className={`grid size-8 place-items-center rounded-full ${PRESS} ${on ? 'bg-[#17121A] text-white' : 'text-[#6B5F68]'}`}>
                               {m === 'light' ? <Sun size={14} /> : <Moon size={14} />}
                             </button>
                           )

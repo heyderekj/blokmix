@@ -17,6 +17,7 @@ export const GOALS = ['sell', 'signups', 'waitlist', 'bookings', 'calls', 'order
 export type Goal = (typeof GOALS)[number]
 
 export interface Brief {
+  feel?: FeelWord[]
   /** What it is, in their words (the start's sentence). Context only. */
   what?: string
   /** Who it's for, in their words. Context only. */
@@ -110,6 +111,8 @@ export const GOAL_ACTIONS: Record<Goal, Partial<Record<Industry | '*', string[]>
 
 /** How an industry tends to feel, so the first themes on offer fit (added to the kind's own). */
 export const INDUSTRY_FEEL: Partial<Record<Industry, FeelWord[]>> = {
+  services: ['calm', 'serious'],
+  other: [],
   saas: ['modern', 'calm'],
   ai: ['modern', 'dark'],
   devtools: ['modern', 'dark'],
@@ -278,7 +281,7 @@ export function goalSections(b: Brief): SectionType[] {
 }
 
 /** The feel words that suit this brief, to put the first themes on offer. */
-export const briefFeel = (b: Brief): FeelWord[] => (b.industry ? (INDUSTRY_FEEL[b.industry] ?? []) : [])
+export const briefFeel = (b: Brief): FeelWord[] => b.feel ?? (b.industry ? (INDUSTRY_FEEL[b.industry] ?? []) : [])
 
 const lower = (s: string) => s.replace(/^./, (c) => c.toLowerCase())
 

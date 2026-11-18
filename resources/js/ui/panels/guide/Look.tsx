@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react'
 import { ChevronRight, RefreshCw } from 'lucide-react'
-import { FEEL_WORDS, NUDGE_LABEL, nudgesFor, nudgeTokens, themesFor, type FeelWord, type Nudge } from '@/core/feel'
+import { FEEL_WORDS, NUDGE_LABEL, nudgesFor, nudgeTokens, type FeelWord, type Nudge } from '@/core/feel'
 import { emptyContract } from '@/core/contract'
 import { openGroups, resolveGuide } from '@/core/guide'
-import { skinList, skinRefOf, surpriseMe } from '@/core/skins'
+import { refId, skinList, surpriseMe } from '@/core/skins'
 import { useResolvedGuide } from '@/state/derived'
 import { useStore } from '@/state/store'
 import { ColorsByFeel } from '../../jev/ColorsByFeel'
 import { BrandColor } from './Dials'
-import { AllThemes, putSkin, SkinCard, useSkinLooks } from './Skins'
+import { AllThemes, putSkin, SkinCard } from './Skins'
+import { runCommand } from '@/state/commands'
+import { rankThemes } from '@/core/themeRanking'
 import { FontLinks } from './shared'
 
 const TILE = 'rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)]'
@@ -49,8 +51,8 @@ export function Look() {
 }
 
 function Feel() {
-  const words = useStore((s) => s.ui.feelWords) ?? []
-  const toggle = (w: FeelWord) => useStore.getState().setUi({ feelWords: words.includes(w) ? words.filter((x) => x !== w) : [...words, w] })
+  const words = useStore((s) => s.content.brief?.feel) ?? []
+  const toggle = (w: FeelWord) => runCommand('set_brief', { feel: words.includes(w) ? words.filter((x) => x !== w) : [...words, w] }, 'you')
   return (
     <div className={TILE}>
       <div className="text-[12.5px] font-semibold text-zinc-900">How should it feel?</div>
@@ -74,27 +76,30 @@ function Feel() {
  * (what Surprise me was), drawn before anything changes. Every theme is a tap away.
  */
 function Themes() {
-  const words = useStore((s) => s.ui.feelWords) ?? []
   const on = useStore((s) => s.guide.skin)
   const guide = useStore((s) => s.guide)
   const contract = useStore((s) => s.contract)
-  const looks = useSkinLooks()
+  const content = useStore((s) => s.content)
+  const draft = useStore((s) => s.draftId)
   const [different, setDifferent] = useState(false)
   const [all, setAll] = useState(false)
   const [seed, setSeed] = useState(() => Date.now() % 100000)
 
-  const away = different && words.length > 0
-  const picked = themesFor(words, skinList(), { different: away, count: away ? 2 : 3 })
-  const shown = picked.map((s) => looks.find((l) => l.skin.id === s.id)!).filter(Boolean)
+  const away = different
+  const shown = useMemo(() => {
+    const input = { brief:content.brief, guide, contract }
+    const best = rankThemes(input)
+    return away ? rankThemes({ ...input, different:true, count:2, exclude:best.map((r) => r.skin.id) }) : best
+  }, [content, guide, contract, away, draft])
   // The mix, as it would land: the same pure roll the store runs with this seed.
   const mix = useMemo(() => {
     if (!away) return null
     const out = surpriseMe(guide, contract ?? emptyContract(), seed, skinList())
-    return out && { words: shortMix(out.picks), tokens: resolveGuide(out.guide).tokens, components: out.guide.components }
+    return out && { words: shortMix(out.picks), tokens: resolveGuide(out.guide).tokens, guide: out.guide }
   }, [away, guide, contract, seed])
   const putMix = () => {
     const st = useStore.getState()
-    if (st.surpriseMe(seed) && mix) {
+    if (mix && runCommand('surprise_me', {seed}, 'you')) {
       st.showFlash(`Mashup on: ${mix.words.replace(/^./, (c) => c.toLowerCase())}`, { undo: true })
       setSeed((n) => n + 1)
     }
@@ -104,18 +109,16 @@ function Themes() {
     <div className={TILE}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="min-w-0 truncate text-[12.5px] font-semibold text-zinc-900">Theme{on ? `: ${on.id === 'remix' ? 'a mashup' : on.name}` : ''}</span>
-        {words.length > 0 && (
-          <button type="button" onClick={() => setDifferent((d) => !d)} className={LINK}>
+        <button type="button" onClick={() => setDifferent((d) => !d)} className={LINK}>
             {away ? '‹ Back to my words' : 'Something different'}
           </button>
-        )}
       </div>
-      <FontLinks tokens={[...shown.map((l) => l.tokens), ...(mix ? [mix.tokens] : [])]} />
-      <div className="grid grid-cols-3 gap-x-2 gap-y-2.5">
-        {shown.map(({ skin, tokens, components }) => (
-          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={skinRefOf(on)?.id === skin.id} onPick={() => putSkin(skin)} />
+      <FontLinks tokens={[...shown.map((l) => resolveGuide(l.guide).tokens), ...(mix ? [mix.tokens] : [])]} />
+      <div className="grid grid-cols-2 gap-x-2 gap-y-2.5">
+        {shown.map(({ skin, guide, reason }) => (
+          <SkinCard key={skin.id} label={skin.name} words={reason} guide={guide} here={refId(on) === skin.id} onPick={() => putSkin(skin)} />
         ))}
-        {mix && <SkinCard label="Mashup" words={mix.words} tokens={mix.tokens} components={mix.components} here={false} onPick={putMix} />}
+        {mix && <SkinCard label="Mashup" words={mix.words} guide={mix.guide} here={false} onPick={putMix} />}
       </div>
       {mix && (
         <div className="mt-2 flex items-start justify-between gap-2 text-[11px] leading-snug text-zinc-500">
@@ -126,7 +129,7 @@ function Themes() {
         </div>
       )}
       <button type="button" onClick={() => setAll((a) => !a)} aria-expanded={all} className={`mt-2.5 flex w-full items-center justify-between ${LINK}`}>
-        <span>{all ? 'Fewer themes' : `All ${skinList().length} themes`}</span>
+        <span>{all ? 'Fewer themes' : 'All themes'}</span>
         <ChevronRight size={13} className={`transition-[rotate] duration-200 ${all ? 'rotate-90' : ''}`} />
       </button>
       {all && (
@@ -146,7 +149,7 @@ function Nudges() {
     const values = nudgeTokens(tokens, n)
     const st = useStore.getState()
     if (!values) return st.showFlash(`It’s as ${NUDGE_LABEL[n].toLowerCase().replace(/er$/, '')} as it goes`)
-    st.chooseTokens(values)
+    runCommand('nudge_look', {nudge:n}, 'you')
     st.showFlash(NUDGE_LABEL[n], { undo: true })
   }
   return (

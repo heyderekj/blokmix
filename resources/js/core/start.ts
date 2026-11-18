@@ -13,9 +13,7 @@ import { siteFromSlots } from './site'
 import { suggestClip, suggestTypes } from './suggest'
 import { pickable, shelfOf } from './library'
 import { applySkin, skinById, skinList, WIREFRAME } from './skins'
-import { setTone } from './dials'
-import { paletteFrom, type Mode, type Palette } from './palette'
-import { resolveGuide } from './guide'
+import type { Mode, PaletteVariant, Palette } from './palette'
 import { mineKey } from './ownWords'
 import { FORMATS, GOAL_SECTIONS, goalsOf, INDUSTRIES, MAIN_ACTION_FIELDS, type Brief } from './brief'
 import { placeSection, sectionsFor } from './jev/describe'
@@ -31,6 +29,7 @@ export interface StartInput {
   /** One brand color (hex); the skin's own when left out. */
   brand?: string | null
   /** A whole palette (colors by feel), in place of one made from the brand color. */
+  variant?: PaletteVariant
   palette?: Palette | null
   mode?: Mode
   /** Shuffle: a different seed gives different picks. */
@@ -91,14 +90,14 @@ export function recipeFor(brief: Brief, kind: Kind, want: Partial<Record<Section
 }
 
 /** The style guide for a start: a skin, with a palette from your brand color, or turned the other way, if you asked. */
-export function guideFor(input: Pick<StartInput, 'skin' | 'brand' | 'mode' | 'palette'>): GuideState {
+export function guideFor(input: Pick<StartInput, 'skin' | 'brand' | 'mode' | 'palette' | 'variant'>): GuideState {
   const skin = skinById(input.skin ?? WIREFRAME) ?? skinList()[0]
   if (!skin) return emptyGuide()
-  const guide = applySkin(emptyGuide(), skin)
-  const mode = input.mode ?? skin.mode
-  const colors = input.palette ? input.palette : input.brand ? paletteFrom(input.brand, mode) : mode !== skin.mode ? setTone(resolveGuide(guide).tokens, mode) : null
-  // A brand color is remembered, so trying another theme later keeps it.
-  return colors ? { ...guide, base: { ...guide.base, ...colors }, ...(input.brand ? { brand: { color: input.brand } } : {}) } : guide
+  const base = emptyGuide()
+  if (input.mode) base.mode = input.mode
+  if (input.brand) base.brand = {color:input.brand, ...(input.variant ? {variant:input.variant} : {})}
+  const guide = applySkin(base, skin)
+  return input.palette ? {...guide, base:{...guide.base, ...input.palette}} : guide
 }
 
 /** An address for the contact section, made from the site's name: "Fern & Co" → hello@fernco.com. */

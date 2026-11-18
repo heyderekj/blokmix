@@ -29,13 +29,24 @@
     "space.base": "4px",
     "space.section": "96px",
     "motion.duration": "240ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1152px",
+    "space.text": "664px"
   },
   "textStyles": {
     "label": {
       "font": "mono",
       "weight": 500,
       "tracking": 0.06
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
     }
   },
   "components": {
@@ -52,6 +63,12 @@
     },
     "icon": {
       "variant": "bare"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "filled"
     }
   },
   "sections": {
@@ -96,11 +113,7 @@
     },
     "faq": {
       "motion": {
-        "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "quick"
+        "mode": "none"
       }
     },
     "cta": {
@@ -170,19 +183,13 @@
     "content": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "quick"
+        "enter": "fade"
       }
     },
     "logos": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "quick"
+        "enter": "fade"
       }
     },
     "nav": {
@@ -193,5 +200,9 @@
   },
   "picture": {
     "style": "dither"
-  }
+  },
+  "industries": [
+    "devtools",
+    "ai"
+  ]
 }

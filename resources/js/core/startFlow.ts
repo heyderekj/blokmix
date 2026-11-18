@@ -4,7 +4,7 @@
 
 import { actionChoices, briefFeel, briefFromKind, FORMAT_LABEL, goalsOf, guessBrief, INDUSTRY_LABEL, kindOf, patchBrief, type Brief, type Format, type Goal, type Industry } from './brief'
 import type { Picks, StartFill } from './jev/sentence'
-import { KIND_FEEL, type FeelWord } from './feel'
+import { SENTENCE_FEEL, KIND_FEEL, type FeelWord } from './feel'
 import { recipeFor, RECIPES } from './start'
 import type { Kind, SectionType } from './types'
 
@@ -58,7 +58,7 @@ export function briefFrom(a: Answers, heard: HeardBrief | null): Brief {
       : {}
   // A description is context worth keeping; pasted copy is already on the page.
   const what = heard?.mode !== 'paste' && a.text.trim() && a.text.trim().length <= 600 ? { what: a.text.trim() } : {}
-  return patchBrief({ ...fromHeard, ...what }, a.brief)
+  return patchBrief({ ...fromHeard, ...what, ...(a.feel.length ? { feel: a.feel } : {}) }, a.brief)
 }
 
 /** The kind of site the answers add up to. */
@@ -150,17 +150,6 @@ export const SENTENCE_GOAL: Record<string, Goal> = {
   read: 'subscribers',
   donate: 'donate',
   listen: 'subscribers',
-}
-
-/** The sentence's feels as the Look panel's feel words. */
-export const SENTENCE_FEEL: Record<string, FeelWord> = {
-  cozy: 'warm', warm: 'warm', earthy: 'warm', soft: 'warm',
-  friendly: 'playful', playful: 'playful', fun: 'playful', dreamy: 'playful',
-  calm: 'calm', clean: 'calm', minimal: 'calm', simple: 'calm', trustworthy: 'calm',
-  bold: 'bold', loud: 'bold', confident: 'bold', industrial: 'bold', raw: 'bold', retro: 'bold',
-  premium: 'classic', elegant: 'classic', classic: 'classic', editorial: 'classic', bookish: 'classic',
-  techy: 'modern', precise: 'modern', nerdy: 'modern',
-  dark: 'dark',
 }
 
 /** What the sentence says, read like a description: certain where a blank came from Blokmix's own lists. */

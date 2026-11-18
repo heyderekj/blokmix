@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { applySkin, closestSkin, contrastFailures, dressOldGuide, dressSavedMix, parseSkin, RETIRED_SKINS, skinById, skinList, skinRefOf, skinTokens, surpriseMe, type Skin } from '@/core/skins'
-import { FEEL_WORDS, themesFor } from '@/core/feel'
+import { FEEL_WORDS } from '@/core/feel'
+import { themesFor } from '@/core/themeRanking'
 import { VARIANTS } from '@/core/blocks/variants'
 import { TEXT_STYLES } from '@/core/textStyles'
 import { areasOfCommand, cleanContract, contractMarkdown, contractRefusal, emptyContract, type Contract } from '@/core/contract'

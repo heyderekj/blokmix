@@ -255,8 +255,8 @@ export interface GuideState {
   /** What empty pictures in built-in layouts show; unset is the layout's own wireframe box. */
   picture?: PictureDefault
   /** The skin this guide came from (core/skins.ts), so the board and the packet can name it. */
-  skin?: { id: string; name: string }
-  /** Your brand color: the palette is made from it, and trying another theme keeps it (unless color is set to Surprise). */
+  skin?: { id: string; name: string; flavor?: string }
+  mode?: 'light' | 'dark'
   /** One brand color the palette is made from, and how it pairs (`core/colorPairs.ts`; the accent and the greys). */
   brand?: { color: string; variant?: import('./palette').PaletteVariant }
 }

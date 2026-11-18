@@ -1,69 +1,27 @@
-import type { CSSProperties } from 'react'
-import type { GuideState, TokenSet } from '@/core/types'
+import { useMemo } from 'react'
+import { themeScene, type ThemeScene } from '@/core/themeScene'
+import type { GuideState } from '@/core/types'
 
-const px = (v: string | undefined, fallback = 0) => (Number.isFinite(parseFloat(v ?? '')) ? parseFloat(v!) : fallback)
-const isDark = (hex: string) => {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
-  if (!m) return false
-  const n = parseInt(m[1], 16)
-  return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 128
+export function SceneDrawing({scene: s, lettering = true}: {scene: ThemeScene; lettering?: boolean}) {
+  const { hero, band, radius, inset } = s
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" aria-hidden="true" className="block h-auto w-full rounded-xl">
+    <rect width="600" height="300" fill={hero['color.bg']} />
+    <rect y="230" width="600" height="70" fill={band['color.bg']} />
+    <rect x={inset} y="161" width="132" height="44" rx={s.pill ? 22 : radius} fill={hero['color.primary']} />
+    {s.outline && <rect x={inset + 140} y="161" width="133" height="44" rx={radius} stroke={hero['color.text']} fill="none" />}
+    {s.card === 'offset' && <rect x="386" y="51" width="188" height="156" rx={radius} fill={hero['color.text']}/>}
+    <rect x="380" y="45" width="188" height="156" rx={radius} fill={hero['color.surface']} stroke={s.card === 'bordered' || s.card === 'offset' ? hero['color.text'] : 'none'} />
+    {s.art && <image href={s.art} x="390" y="55" width="168" height="102" preserveAspectRatio="xMidYMid slice" />}
+    <rect x="392" y="172" width="77" height="6" rx="3" fill={hero['color.text']} />
+    <rect x={inset} y="259" width="92" height="7" rx="3" fill={band['color.text']} />
+    <circle cx="554" cy="263" r="12" fill={band['color.accent']} />
+    {lettering && s.lines.map((l) => <svg key={l.y + l.x} x={l.x} y={l.y - l.size} width={l.width} height={l.size * 1.3} overflow="hidden">
+      <text y={l.size} fontFamily={l.family} fontWeight={l.weight} fontSize={l.size} fill={l.color}>{l.text}</text>
+    </svg>)}
+  </svg>
 }
 
-/** A card in its look, small: the card variants a skin can pick, drawn from its own colors. */
-function cardStyle(t: TokenSet, variant: string | undefined, r: number): CSSProperties {
-  const stroke = px(t['stroke.width'], 1)
-  const hair = `color-mix(in oklab, ${t['color.text']} ${isDark(t['color.bg']) ? 22 : 16}%, transparent)`
-  switch (variant) {
-    case 'offset':
-      return { background: t['color.surface'], borderRadius: r, boxShadow: `3px 3px 0 ${t['color.text']}`, outline: `${stroke}px solid ${t['color.text']}` }
-    case 'bordered':
-      return { background: t['color.surface'], borderRadius: r, outline: `1px solid ${hair}` }
-    case 'rule':
-      return { background: 'transparent', borderRadius: 0, borderTop: `1.5px solid ${t['color.text']}` }
-    case 'raised':
-      return { background: t['color.bg'], borderRadius: r, boxShadow: '0 4px 10px -2px rgb(30 27 58 / 0.18)' }
-    case 'glass':
-      return { background: `color-mix(in oklab, ${t['color.surface']} 80%, transparent)`, borderRadius: r, outline: '1px solid rgb(255 255 255 / 0.7)', boxShadow: `0 4px 10px -3px color-mix(in oklab, ${t['color.primary']} 30%, transparent)` }
-    case 'glow':
-      return { background: t['color.surface'], borderRadius: r, outline: `1px solid color-mix(in oklab, ${t['color.primary']} 35%, transparent)`, boxShadow: `0 0 8px color-mix(in oklab, ${t['color.primary']} 40%, transparent)` }
-    default:
-      return { background: t['color.surface'], borderRadius: r }
-  }
-}
-
-/**
- * A theme at a glance: your site's name in its display face and weight, its main button and a card in its look, on its
- * background. Drawn from the guide a swap would really leave, so what you keep shows on every card. Decorative; the
- * button around it names the theme.
- */
-export function SkinSpecimen({ tokens: t, components, name }: { tokens: TokenSet; components?: GuideState['components']; name: string }) {
-  const r = px(t['radius.base'], 8)
-  const caps = components?.button?.variant === 'caps'
-  return (
-    <span
-      aria-hidden
-      className="@container grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 overflow-hidden rounded-[11px] px-2.5 pb-2 pt-2.5 transition-[background-color] duration-200"
-      style={{ background: t['color.bg'], boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${t['color.text']} 10%, transparent)` }}
-    >
-      <span className="truncate leading-[1.05] tracking-[-0.01em]" style={{ fontSize: 'min(16px, 14cqw)', fontFamily: t['font.display'], fontWeight: Number(t['type.displayWeight']) || 700, color: t['color.text'] }}>
-        {name}
-      </span>
-      <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-        <span
-          className="min-w-0 truncate whitespace-nowrap px-2 py-[3px] font-semibold"
-          style={{
-            fontSize: 'min(9.5px, 9cqw)',
-            background: t['color.primary'],
-            color: t['color.onPrimary'],
-            fontFamily: t['font.body'],
-            borderRadius: r >= 12 ? 999 : r,
-            ...(caps ? { textTransform: 'uppercase', letterSpacing: '0.04em', outline: `${px(t['stroke.width'], 1)}px solid ${t['color.text']}` } : {}),
-          }}
-        >
-          Get started
-        </span>
-        <span className="h-[15px] w-[26px] shrink-0 @max-[118px]:hidden" style={cardStyle(t, components?.card?.variant, Math.min(r, 8))} />
-      </span>
-    </span>
-  )
+export function SkinSpecimen({guide, name}: {guide: GuideState; name: string}) {
+  const scene = useMemo(() => themeScene(guide, name), [guide, name])
+  return <SceneDrawing scene={scene} />
 }

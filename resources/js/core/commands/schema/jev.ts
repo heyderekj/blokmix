@@ -66,7 +66,7 @@ export const JEV_COMMANDS = {
   },
   set_palette: {
     description: 'Put a whole palette on the style guide in one undo step (color.bg, color.surface, color.text, color.muted, color.border, color.primary, color.onPrimary, color.accent), as suggest_palettes returns them. Your own swatches stay.',
-    input: z.object({ colors: z.record(z.enum(['color.bg', 'color.surface', 'color.text', 'color.muted', 'color.border', 'color.primary', 'color.onPrimary', 'color.accent']), z.string().regex(/^#[0-9a-f]{6}$/i)) }),
+    input: z.object({ brand: z.string().regex(/^#[0-9a-f]{6}$/i).optional(), variant: z.object({ accentTurn: z.number().optional(), tint: z.number().optional() }).optional(), mode: z.enum(['light', 'dark']).optional(), colors: z.record(z.enum(['color.bg', 'color.surface', 'color.text', 'color.muted', 'color.border', 'color.primary', 'color.onPrimary', 'color.accent']), z.string().regex(/^#[0-9a-f]{6}$/i)) }),
     write: true,
   },
   suggest_treatments: {
