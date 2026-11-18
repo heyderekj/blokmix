@@ -101,6 +101,7 @@ const StickyNote = memo(function StickyNote({ note, x, y, placements }: { note: 
                 type="button"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => st().updateNote(note.id, { color: k })}
+                data-round-control
                 className={`size-3 rounded-full border border-black/15 transition hover:scale-125 ${note.color === k ? 'ring-1 ring-black/50 ring-offset-1' : 'opacity-0 group-hover:opacity-100'}`}
                 style={{ background: NOTE_COLORS[k].bg }}
                 aria-label={`${k} note`}

@@ -6,6 +6,7 @@ import { useBuySheet } from '@/state/shipping'
 import { useStore } from '@/state/store'
 import { canEdit, useAccount } from '@/lib/account'
 import { openMixId } from '@/lib/mixSync'
+import paintUrl from '@/assets/pricing-paint.webp'
 
 const close = () => useBuySheet.setState({ open: false, what: null })
 
@@ -34,7 +35,7 @@ function Block({ size, tilt = 0 }: { size: number; tilt?: number }) {
 
 /**
  * Paying for this site, when someone tries to ship a mix that isn't paid for yet (state/shipping.ts `canShip`): the
- * pricing ticket from blokmix.com on its pink paint (public/paint/pricing.webp). Free to make, $30 a site when you ship
+ * pricing ticket from blokmix.com on its pink paint. Free to make, $30 a site when you ship
  * it. Anyone who can edit the mix can pay at Polar; a viewer hears that it's an editor's call.
  */
 export function BuySheet() {
@@ -88,7 +89,7 @@ export function BuySheet() {
             animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, transition: { duration: 0.12, ease: [0.23, 1, 0.32, 1] } }}
           >
-            <img src="/paint/pricing.webp" alt="" aria-hidden className="pointer-events-none absolute inset-0 size-full object-cover" />
+            <img src={paintUrl} alt="" aria-hidden className="pointer-events-none absolute inset-0 size-full object-cover" />
             <div className="relative grid max-h-[calc(100dvh-64px)] gap-5 overflow-y-auto rounded-[18px] bg-[var(--lift)] p-6 shadow-[0_0_0_1px_rgb(23_18_26/0.1),0_24px_48px_-24px_rgb(194_24_91/0.7)]">
               <span className="inline-flex min-w-0 items-center gap-1.5 text-[16px] font-bold text-[#C2185B]">
                 <Block size={14} tilt={-6} /> <span className="truncate">{name || 'This site'}</span>

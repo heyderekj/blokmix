@@ -261,6 +261,12 @@
   }
 }
 
+/* Use a tighter corner on pill-shaped actions across the app chrome. */
+:is(button, a[href], [role='button']).rounded-full:not(:where([role='switch'], [data-round-control])) {
+  border-radius: var(--radius);
+  corner-shape: squircle;
+}
+
 @layer base {
   /* Tailwind 4 leaves buttons with the default arrow; everything you can press gets a pointer. */
   /* Everything pressable says so (the craft rules): buttons and links, controls the browser leaves on the arrow, and

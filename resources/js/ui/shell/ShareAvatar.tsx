@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
 import type { ShaderMount } from '@paper-design/shaders'
 import { hash } from '@/core/hash'
+import paintUrl from '@/assets/pricing-paint.webp'
 
 const GUEST_HUES = [48, 90, 145, 190, 230, 275]
-const PAINT = '/paint/pricing.webp'
 const CROP = { x: 178, y: 16, size: 320 }
 
 // Bend the color bands with two traveling waves. The center and rim stay anchored to the crop.
@@ -61,7 +61,7 @@ export function ShareAvatar({ name, mixId, memberId, owner, size = 32, live = fa
 
     void (async () => {
       const image = new Image()
-      image.src = PAINT
+      image.src = paintUrl
       try {
         const [{ ShaderMount }] = await Promise.all([import('@paper-design/shaders'), image.decode()])
         if (cancelled) return
@@ -98,7 +98,7 @@ export function ShareAvatar({ name, mixId, memberId, owner, size = 32, live = fa
       >
         <svg viewBox="0 0 100 100" className="block size-full">
           <image
-            href={PAINT}
+            href={paintUrl}
             x={-CROP.x} y={-CROP.y} width={CROP.size} height={CROP.size}
             preserveAspectRatio="none"
             transform={rotation ? `rotate(${rotation} 50 50)` : undefined}
