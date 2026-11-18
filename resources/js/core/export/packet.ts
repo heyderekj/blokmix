@@ -473,9 +473,12 @@ If the ReviseMy MCP server is connected, have the page reviewed and bring the ma
 `
 
 export function packetFiles(i: PacketInput, options: { mcp?: boolean } = {}): FileMap {
+  const returnInstructions = i.mixId
+    ? 'Copy mix.id and mix.draft as mix and draft, and the saved version ID as base. A design created outside Blokmix can omit base and use page /.'
+    : 'To start a new mix, use page / and choose Bring into Blokmix on the mixes page.'
   const files: FileMap = {
     'blokmix.json': JSON.stringify(packetJson(i), null, 2) + '\n',
-    'BLOKMIX.md': buildNotes(i) + '\nTo bring your implementation back, send a JSON file matching blokmix-return.schema.json. Copy mix.id and mix.draft as mix and draft, and the saved version ID as base. A design created outside Blokmix can omit base and use page /.\n',
+    'BLOKMIX.md': buildNotes(i) + `\nTo bring your implementation back, create a JSON file matching blokmix-return.schema.json. ${returnInstructions}\n`,
     'blokmix-return.schema.json': JSON.stringify(wireReturnSchema,null,2),
     'CONTRACT.md': contractMarkdown(i.contract, i.guideState?.skin),
     'tokens.css': tokensCss(i.page),
