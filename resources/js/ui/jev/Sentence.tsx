@@ -268,7 +268,7 @@ function Options({
 
   if (grouped) {
     const ranked = !!kind || !!order?.length
-    const examples = ranked ? shown : groups.map((group) => group.options[0])
+    const examples = ranked && blank.id !== 'business' ? shown : groups.map((group) => group.options[0])
     const top = [...near, ...examples.filter((o) => !near.some((n) => n.id === o.id))].slice(0, 6)
     const browsing = !q && category !== null
     const options = q ? list : browsing ? groups.find((group) => group.name === category)?.options ?? [] : top

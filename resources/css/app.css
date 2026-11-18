@@ -285,8 +285,8 @@ body {
   background: var(--canvas-bg);
   overscroll-behavior: none;
 }
-/* The canvas board pans and zooms on its own, so the window never scrolls under it; every other page (your mixes, the
-   waitlist, sign-in on a short screen) scrolls as usual. */
+/* The board handles its own panning. New mix keeps the page in place while its form scrolls. */
+html:has([data-start-guide]),
 body:has([data-board]) { overflow: hidden; }
 
 ::selection { background-color: var(--highlight); color: var(--foreground); }
