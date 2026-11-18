@@ -1,5 +1,5 @@
 import { Dropdown } from '@/ui/controls/Dropdown'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Archive, ArchiveRestore, Copy, CloudUpload, Library, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react'
 import { readMixFile } from '@/lib/mixFile'
@@ -172,7 +172,17 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
 
   // New mix opens the guided start; the start you pick becomes the mix, the others its versions.
   const [guided, setGuided] = useState(false)
-  const startGuided = () => (setProblem(null), setGuided(true))
+  const newMixTrigger = useRef<HTMLButtonElement>(null)
+  const startGuided = (event: MouseEvent<HTMLButtonElement>) => {
+    newMixTrigger.current = event.currentTarget
+    setProblem(null)
+    setGuided(true)
+  }
+  useEffect(() => {
+    if (guided) return
+    newMixTrigger.current?.focus({ preventScroll: true })
+    newMixTrigger.current = null
+  }, [guided])
   // Saved style guides, and other mixes' guides, to start from (asked for once the start opens).
   const [saved, setSaved] = useState<SavedGuide[] | null>(null)
   useEffect(() => {
@@ -234,7 +244,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
           onDone={saveStart}
         />
       )}
-      <header className="flex items-center gap-2.5 px-6 py-5">
+      <header inert={guided} className="flex items-center gap-2.5 px-6 py-5">
         <span className="flex-1 text-[#17121A]">
           <Wordmark height={18} />
         </span>
@@ -258,7 +268,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         )}
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 pb-24 pt-6">
+      <main inert={guided} className="mx-auto max-w-6xl px-6 pb-24 pt-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-[30px] font-bold tracking-tight text-[#17121A]">Your mixes</h1>
@@ -399,7 +409,7 @@ const CARD =
 
 /** The first tile: a slot in the paper with the pink block lifted out of it, like the sign-in page. It opens the guided
  * start, which also offers a starter, a saved style guide, a blank page or a mix file. */
-function NewMix({ onOpen }: { onOpen: () => void }) {
+function NewMix({ onOpen }: { onOpen: (event: MouseEvent<HTMLButtonElement>) => void }) {
   return (
     <div className="group/new relative grid h-full min-h-[260px] w-full place-items-center rounded-[22px] border-2 border-dashed border-[#E4D9DF] transition-[border-color,background-color] duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-[#FF69B4]/60 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/60">
       <button type="button" onClick={onOpen} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />

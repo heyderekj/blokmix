@@ -1,7 +1,7 @@
-import { Dropdown } from '@/ui/controls/Dropdown'
+import { Dropdown, type DropdownOption } from '@/ui/controls/Dropdown'
 import { ColorButton } from '@/ui/color/ColorPicker'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ArrowRight, Check, FileText, Moon, Plus, Shuffle, Sun, Upload, X } from 'lucide-react'
+import { ArrowRight, Check, Moon, Plus, Shuffle, Sun, X } from 'lucide-react'
 import { create } from 'zustand'
 import type { GuideState, SectionType } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -88,6 +88,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const segments = useMemo(() => startSentence(picks), [picks])
   const fill = useMemo(() => fillStart(picks), [picks])
   const q = nextQuestion(a, heard)
+  const starting = q === 'name' || q === 'what'
   const skip = folded(a, heard)
   // While the sentence is being filled in, the page on the right already follows it.
   const filling = !a.done.includes('what') && Object.values(picks).some((ps) => ps.some((p) => p.words.trim()))
@@ -167,7 +168,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
 
   // The open blanks' options, in the order that fits what's filled so far.
   useEffect(() => {
-    if (!jev) return
+    if (!jev || !fill.text) return
     const open = openBlanks(segments, picks)
     if (!open.some((b) => !b.ownOnly)) return
     let live = true
@@ -203,6 +204,11 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const setBrief = (patch: Partial<Brief>) => setA((x) => ({ ...x, brief: patchBrief(x.brief, patch) }))
   const pick = (s: ScoredStart) => onDone({ ...input }, starts!, s.id)
 
+  const dialog = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    dialog.current?.focus({ preventScroll: true })
+  }, [])
+
   // Each new question scrolls into view.
   const asking = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -226,10 +232,12 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   ))
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#17121A]/30 p-3 backdrop-blur-[2px] sm:p-6" onClick={onClose}>
+    <div data-start-guide className="fixed inset-0 z-50 grid place-items-center bg-[#17121A]/30 p-3 backdrop-blur-[2px] sm:p-6" onClick={onClose}>
       <div
+        ref={dialog}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="flex h-[min(880px,100%)] w-full max-w-[1200px] flex-col overflow-hidden rounded-[22px] bg-[#FBF8F9] shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_40px_80px_-32px_rgb(23_18_26/0.45)]"
+        className="flex h-[min(880px,100%)] w-full max-w-[1200px] flex-col overflow-hidden rounded-[22px] bg-[#FBF8F9] shadow-[0_0_0_1px_rgb(23_18_26/0.06),0_40px_80px_-32px_rgb(23_18_26/0.45)] outline-none"
         style={{ color: INK }}
         role="dialog"
         aria-modal="true"
@@ -250,8 +258,8 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
           )}
         </header>
 
-        <div className="flex min-h-0 flex-1">
-          <main className={`min-h-0 overflow-y-auto px-5 py-6 sm:px-7 ${wide ? 'flex-1' : 'w-full lg:w-[540px] lg:shrink-0'}`}>
+        <div className={`grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] ${wide ? '' : 'lg:grid-cols-[540px_minmax(0,1fr)]'}`}>
+          <main className="col-start-1 row-start-1 min-w-0 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7">
             {wide && answered.length ? (
               <details className="mb-4 rounded-xl border border-zinc-950/[0.06] bg-white">
                 <summary className="cursor-pointer px-3 py-2 text-[13px] font-medium text-[#6B5F68]">Site details</summary>
@@ -265,13 +273,11 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
               </div>
             )}
 
-            <div ref={asking} className={answered.length && !wide ? 'mt-5' : ''}>
-              {(q === 'name' || q === 'what') && (
+            <div ref={asking} className={`scroll-mt-6 ${answered.length && !wide ? 'mt-5' : ''}`}>
+              {starting && (
                 <Ask
                   title="What are you making?"
                   lead="Fill in the blanks: pick from the list or type your own words. Or paste what you already have below; your words are never rewritten."
-                  busy={hearing}
-                  onNext={startNext}
                 >
                   <div className="min-w-0">
                     <Sentence segments={segments} picks={picks} onPicks={setPicks} order={order} kind={fill.kind} match={jev ? match : undefined} />
@@ -287,8 +293,6 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                   {pasted.trim() && textMode(pasted) === 'paste' && <p className="text-[13px] text-[#6B5F68]">Your words go on the page as written. Lines that don’t fit wait for you to place.</p>}
                 </Ask>
               )}
-
-              {(q === 'name' || q === 'what') && <StartFrom guides={guides} fixed={fixed} onBlank={() => onBlank(name)} onStarter={onStarter && ((s) => onStarter(s, name))} onImport={onImport} onGuide={(g) => (setFixed(g), setA((x) => ({ ...x, fixedGuide: !!g })))} />}
 
               {q === 'confirm' && (
                 <Ask
@@ -436,8 +440,21 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
             </div>
           </main>
 
+          {starting && (
+            <StartFrom
+              busy={hearing}
+              onNext={startNext}
+              guides={guides}
+              fixed={fixed}
+              onBlank={() => onBlank(name)}
+              onStarter={onStarter && ((s) => onStarter(s, name))}
+              onImport={onImport}
+              onGuide={(g) => (setFixed(g), setA((x) => ({ ...x, fixedGuide: !!g })))}
+            />
+          )}
+
           {!wide && (
-            <aside className="hidden min-w-0 flex-1 border-l border-zinc-950/[0.06] p-6 lg:block" style={{ backgroundImage: 'radial-gradient(#E4D9DF 1.1px, transparent 1.2px)', backgroundSize: '22px 22px' }}>
+            <aside className="col-start-2 row-span-2 row-start-1 hidden min-w-0 border-l border-zinc-950/[0.06] p-6 lg:block" style={{ backgroundImage: 'radial-gradient(#E4D9DF 1.1px, transparent 1.2px)', backgroundSize: '22px 22px' }}>
               {preview ? (
                 <>
                   <div className="group sticky top-0 overflow-hidden rounded-[16px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_24px_48px_-28px_rgb(23_18_26/0.35)]">
@@ -491,8 +508,8 @@ function Answered({ label, value, onChange }: { label: string; value: string; on
   )
 }
 
-/** The question being asked: a heading, a line under it, the answers, and Next. */
-function Ask({ title, lead, busy, onNext, onSkip, children }: { title: string; lead?: string; busy?: boolean; onNext: () => void; onSkip?: () => void; children: ReactNode }) {
+/** The question being asked and its answers. */
+function Ask({ title, lead, busy, onNext, onSkip, children }: { title: string; lead?: string; busy?: boolean; onNext?: () => void; onSkip?: () => void; children: ReactNode }) {
   return (
     <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <div>
@@ -500,20 +517,21 @@ function Ask({ title, lead, busy, onNext, onSkip, children }: { title: string; l
         {lead && <p className="mt-1.5 min-h-[2lh] text-[15px] text-[#6B5F68] [text-wrap:pretty]">{lead}</p>}
       </div>
       {children}
-      {/* Next stays on screen however long the question runs: it sticks to the panel's bottom, above a hairline. */}
-      <div className="sticky -bottom-6 z-10 -mx-5 -mb-6 flex items-center gap-2 border-t border-zinc-950/[0.06] bg-[#FBF8F9] px-5 pb-6 pt-4 sm:-mx-7 sm:px-7">
-
-        <button type="button" onClick={onNext} className={PRIMARY}>
-          Next <ArrowRight size={16} />
-        </button>
-        {onSkip && (
-          <button type="button" onClick={onSkip} className={QUIET}>
-            Skip
-          </button>
-        )}
-        {busy && <span className="text-[13px] text-[#6B5F68] motion-safe:animate-pulse">Reading…</span>}
-      </div>
+      {onNext && <AskActions busy={busy} onNext={onNext} onSkip={onSkip} className="sticky -bottom-6 z-10 -mx-5 -mb-6 border-t border-zinc-950/[0.06] bg-[#FBF8F9] px-5 pb-6 pt-4 sm:-mx-7 sm:px-7" />}
     </section>
+  )
+}
+
+function AskActions({ busy, onNext, onSkip, children, className = '' }: { busy?: boolean; onNext: () => void; onSkip?: () => void; children?: ReactNode; className?: string }) {
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <button type="button" onClick={onNext} className={PRIMARY}>
+        Next <ArrowRight size={16} />
+      </button>
+      {onSkip && <button type="button" onClick={onSkip} className={QUIET}>Skip</button>}
+      {children}
+      {busy && <span className="text-[13px] text-[#6B5F68] motion-safe:animate-pulse">Reading…</span>}
+    </div>
   )
 }
 
@@ -589,8 +607,12 @@ function SectionChips({ sections, onChange }: { sections: SectionType[]; onChang
   )
 }
 
-/** The quiet ways in: a starter, a saved style guide, a blank page, a mix file. */
-function StartFrom({ guides, fixed, onBlank, onStarter, onImport, onGuide }: {
+type StartSource = 'starter' | 'guide' | 'blank' | 'file'
+
+/** The first step's footer, with Next and the alternative ways to start. */
+function StartFrom({ busy, onNext, guides, fixed, onBlank, onStarter, onImport, onGuide }: {
+  busy?: boolean
+  onNext: () => void
   guides?: GuideChoice[] | null
   fixed: { name: string; guide?: GuideState } | null
   onBlank: () => void
@@ -599,56 +621,61 @@ function StartFrom({ guides, fixed, onBlank, onStarter, onImport, onGuide }: {
   onGuide: (g: { name: string; guide?: GuideState } | null) => void
 }) {
   const [show, setShow] = useState<'starter' | 'guide' | null>(null)
-  const LINK = `rounded-full px-2 py-1 text-[13px] font-medium text-[#3F363D] underline decoration-zinc-300 underline-offset-4 ${HOVER}decoration-zinc-600 ${PRESS}`
+  const sources: DropdownOption<StartSource>[] = []
+  if (onStarter) sources.push({ v: 'starter', label: 'A starter' })
+  if (guides !== undefined) sources.push({ v: 'guide', label: 'A saved style guide' })
+  sources.push({ v: 'blank', label: 'A blank page' })
+  if (onImport) sources.push({ v: 'file', label: 'A mix file' })
+
+  const chooseSource = (source: StartSource) => {
+    if (source === 'starter' || source === 'guide') {
+      setShow((current) => current === source ? null : source)
+      return
+    }
+    setShow(null)
+    if (source === 'blank') onBlank()
+    else onImport?.()
+  }
+
   return (
-    <div className="mt-8 border-t border-zinc-950/[0.06] pt-4">
+    <footer className="col-start-1 row-start-2 flex min-w-0 flex-col gap-2 border-t border-zinc-950/[0.06] bg-[#FBF8F9] px-5 py-3 sm:px-7 sm:py-4">
+      <AskActions busy={busy} onNext={onNext} className="flex-wrap">
+        {!fixed && (
+          <Dropdown label="Start from" options={sources} onChange={chooseSource} placement="above" className="btn-quiet h-11 rounded-full! px-4 text-[14px] font-semibold" />
+        )}
+      </AskActions>
       {fixed ? (
         <p className="flex flex-wrap items-center gap-2 text-[13px] text-[#6B5F68]">
           Starting from the style guide <span className="font-semibold text-[#17121A]">{fixed.name}</span>
-          <button type="button" onClick={() => onGuide(null)} className={LINK}>
+          <button type="button" onClick={() => onGuide(null)} className={`rounded-full px-2 py-1 text-[13px] font-medium text-[#3F363D] underline decoration-zinc-300 underline-offset-4 ${HOVER}decoration-zinc-600 ${PRESS}`}>
             Use a theme instead
           </button>
         </p>
-      ) : (
-        <p className="flex flex-wrap items-center gap-x-1 gap-y-1 text-[13px] text-[#6B5F68]">
-          Or start from:
-          {onStarter && (
-            <button type="button" aria-expanded={show === 'starter'} onClick={() => setShow(show === 'starter' ? null : 'starter')} className={LINK}>
-              a starter
+      ) : show && (
+        <div className="order-first grid gap-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[13px] font-semibold">{show === 'starter' ? 'Choose a starter' : 'Choose a saved style guide'}</h3>
+            <button type="button" onClick={() => setShow(null)} aria-label="Close choices" className={`grid size-8 place-items-center rounded-full text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`}>
+              <X size={15} />
             </button>
-          )}
-          {guides !== undefined && (
-            <button type="button" aria-expanded={show === 'guide'} onClick={() => setShow(show === 'guide' ? null : 'guide')} className={LINK}>
-              a saved style guide
-            </button>
-          )}
-          <button type="button" onClick={onBlank} className={`${LINK} inline-flex items-center gap-1`}>
-            <FileText size={13} /> a blank page
-          </button>
-          {onImport && (
-            <button type="button" onClick={onImport} className={`${LINK} inline-flex items-center gap-1`}>
-              <Upload size={13} /> a mix file
-            </button>
-          )}
-        </p>
-      )}
-      {show === 'starter' && onStarter && (
-        <div className="mt-3 grid gap-2">
-          {starters.map((s) => (
-            <StarterOption key={s.id} starter={s} picked={false} onPick={() => onStarter(s)} />
-          ))}
+          </div>
+          <div className="grid max-h-[min(30dvh,16rem)] gap-2 overflow-y-auto overscroll-contain pb-1">
+            {show === 'starter' && onStarter && starters.map((s) => (
+              <StarterOption key={s.id} starter={s} picked={false} onPick={() => onStarter(s)} />
+            ))}
+            {show === 'guide' && (
+              <>
+                {guides === null && <p className="px-1 py-2 text-[13px] text-[#6B5F68]">Loading your style guides…</p>}
+                {guides?.length === 0 && <p className="px-1 py-2 text-[13px] text-[#6B5F68]">No saved style guides yet. Save one from a mix’s Style guide.</p>}
+                {guides?.map((g) => (
+                  <GuideOption key={g.key} name={g.name} note={g.note} guide={g.guide} picked={false} onPick={() => (onGuide({ name: g.name, guide: g.guide }), setShow(null))} />
+                ))}
+              </>
+            )}
+          </div>
         </div>
       )}
-      {show === 'guide' && (
-        <div className="mt-3 grid gap-2">
-          {guides === null && <p className="px-1 py-2 text-[13px] text-[#6B5F68]">Loading your style guides…</p>}
-          {guides?.length === 0 && <p className="px-1 py-2 text-[13px] text-[#6B5F68]">No saved style guides yet. Save one from a mix’s Style guide.</p>}
-          {guides?.map((g) => (
-            <GuideOption key={g.key} name={g.name} note={g.note} guide={g.guide} picked={false} onPick={() => (onGuide({ name: g.name, guide: g.guide }), setShow(null))} />
-          ))}
-        </div>
-      )}
-    </div>
+    </footer>
   )
 }
 

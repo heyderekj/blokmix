@@ -22,7 +22,7 @@ export const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.
 /** A quiet outline for the questions before Blokmix asks about visual style. */
 export function StartOutline({ name, action, sections }: { name: string; action?: string; sections: string[] }) {
   return (
-    <figure className="mx-auto max-w-[520px]">
+    <figure aria-label="Page outline" className="mx-auto max-w-[520px]">
       <div className="overflow-hidden rounded-[16px] border border-zinc-200 bg-white text-zinc-600">
         <div className="border-b border-zinc-200 bg-zinc-50 px-6 py-4 text-sm font-medium [overflow-wrap:anywhere]">
           {name || 'Site name'}
@@ -46,7 +46,6 @@ export function StartOutline({ name, action, sections }: { name: string; action?
           )}
         </div>
       </div>
-      <figcaption className="mt-3 text-center text-[12.5px] text-[#6B5F68]">Page outline</figcaption>
     </figure>
   )
 }

@@ -1,4 +1,4 @@
-import { Check, ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { Fragment, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { useEscape } from '@/ui/shell/keys'
 
@@ -10,12 +10,13 @@ export interface DropdownOption<T extends string = string> {
 
 interface DropdownProps<T extends string> {
   label: string
-  value: T
+  value?: T
   options: readonly DropdownOption<T>[]
   onChange: (value: T) => void
   className?: string
   lead?: ReactNode
   disabled?: boolean
+  placement?: 'auto' | 'above'
 }
 
 const GAP = 5
@@ -23,7 +24,7 @@ const EDGE = 8
 const MAX_HEIGHT = 360
 
 /** A select-only combobox. Its listbox sits in the top layer so sidebars and dialogs cannot clip it. */
-export function Dropdown<T extends string>({ label, value, options, onChange, className = '', lead, disabled }: DropdownProps<T>) {
+export function Dropdown<T extends string>({ label, value, options, onChange, className = '', lead, disabled, placement = 'auto' }: DropdownProps<T>) {
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
   const list = useRef<HTMLDivElement>(null)
@@ -51,7 +52,7 @@ export function Dropdown<T extends string>({ label, value, options, onChange, cl
       const below = bottomEdge - rect.bottom - GAP - EDGE
       const above = rect.top - topEdge - GAP - EDGE
       const needed = Math.min(popup.scrollHeight, MAX_HEIGHT)
-      const up = below < needed && above > below
+      const up = placement === 'above' || (below < needed && above > below)
       const height = Math.max(0, Math.min(MAX_HEIGHT, up ? above : below))
       popup.style.width = `${width}px`
       popup.style.maxHeight = `${height}px`
@@ -84,7 +85,7 @@ export function Dropdown<T extends string>({ label, value, options, onChange, cl
       viewport?.removeEventListener('resize', place)
       viewport?.removeEventListener('scroll', place)
     }
-  }, [open])
+  }, [open, placement])
 
   useLayoutEffect(() => {
     if (open) document.getElementById(optionId(active))?.scrollIntoView({ block: 'nearest' })
@@ -137,6 +138,8 @@ export function Dropdown<T extends string>({ label, value, options, onChange, cl
     event.stopPropagation()
   }
 
+  const Chevron = placement === 'above' ? ChevronUp : ChevronDown
+
   return (
     <span className="contents">
       <button
@@ -160,8 +163,8 @@ export function Dropdown<T extends string>({ label, value, options, onChange, cl
         className={`flex min-h-8 min-w-0 cursor-pointer items-center gap-2 rounded-lg bg-white px-2.5 text-left text-[13px] font-medium text-zinc-800 shadow-[inset_0_0_0_1px_rgb(24_24_27/0.12)] outline-none transition-shadow hover:shadow-[inset_0_0_0_1px_rgb(24_24_27/0.24)] focus-visible:ring-2 focus-visible:ring-[#da397e]/60 aria-expanded:ring-2 aria-expanded:ring-[#da397e]/45 disabled:cursor-default disabled:opacity-50 ${className}`}
       >
         {lead}
-        <span className="min-w-0 flex-1 truncate">{options[selected]?.label ?? value}</span>
-        <ChevronDown size={14} aria-hidden className={`shrink-0 text-zinc-500 motion-safe:transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className="min-w-0 flex-1 truncate">{options[selected]?.label ?? value ?? label}</span>
+        <Chevron size={14} aria-hidden className={`shrink-0 text-zinc-500 motion-safe:transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <div
