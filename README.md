@@ -1,43 +1,61 @@
 # Blokmix
 
-Start a website from layouts, skins and palettes that already work, mix them into something that's yours, and hand a packet to your agent to build in Astro or Next.js.
+**Remix website layouts and styles, then hand your design to an agent to build.**
 
-This is the clickable prototype: the core loop runs end to end on 18 sample clips from four fictional sites. The capture extension, backend and MCP server come later (see the plan below).
+[![License: O'Saasy](https://img.shields.io/badge/license-O%27Saasy-ffc53d)](LICENSE)
+
+Blokmix is a visual workspace for designing websites. Start with a theme, mix built-in layouts with sections you capture, and pull the site together with one style guide. When the design is ready, export a build packet for your agent or download a starter project for Astro or Next.js.
+
+[Visit Blokmix](https://blokmix.com)
+
+## What you can do
+
+- Try layouts and styles on the canvas while keeping your own copy and branding.
+- Capture sections from live sites with the [Blokmix Chrome extension](extension/README.md) and add them to your mix.
+- Explore different directions in separate drafts, save versions, and share a mix for editing or feedback.
+- Export `BLOKMIX.md`, structured project data, design tokens, and runnable Astro or Next.js starter projects. Notes on the design travel with the build packet.
+- Connect an agent through the local MCP bridge to inspect or edit a mix with your permission.
+
+## Run locally
+
+### Browser-only demo
+
+With Node.js 22 and npm installed, run:
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Open http://localhost:5173.
+Open [localhost:5173](http://localhost:5173) to try the editor with sample content. This mode saves the mix in your browser.
 
-## The loop
+### Laravel app
 
-1. **Try layouts.** Each section of the working mix steps through the built-in layouts of its type and this mix's own clips (← →, or ‹ › in the bar below the section), always in your words and your style. Space shuffles unlocked sections; L locks one.
-2. **Keep.** Per section: layout, own style, source copy, motion (1–4).
-3. **Resolve.** Promote a clip's design (P, or "Use design") and settle contradictions per group in the Style guide. Flip **Original / Your style** (U) to see the difference.
-4. **Save version.** Enter (or ⌘S) snapshots the mix as a lettered version (A, B…). Work from any version to branch (B.1, B.2).
-5. **Export.** Send a version to the agent with Build, or open Export: `blokmix.json`, `BLOKMIX.md` build notes, tokens (CSS + W3C DTCG), and runnable `astro/` and `next/` projects.
+The full app uses Laravel 13, Inertia, React, and TypeScript. Install PHP 8.5 with SQLite support, Composer, and Node.js 22. On a fresh checkout, run:
 
-Sticky notes (S) dropped on a section or a version become instructions in the packet. Version frames carry review statuses (in progress → ready for review → changes requested / approved).
+```bash
+touch database/database.sqlite
+composer setup
+npm run dev:laravel
+```
 
-## Commands
+Open [localhost:8000](http://localhost:8000) and create a local account to use saved mixes and sharing.
+
+## Development commands
 
 | Command | What it does |
-|---|---|
-| `npm run dev` | Dev server |
-| `npm test` | Core tests: guide resolution, clip lint, every clip through both exporters |
-| `npm run typecheck` / `npm run build` | Types / production build |
-| `npm run export:demo` | Writes the seeded demo packet to `.out/packet` (then `npm i && npm run build` inside `astro/` or `next/`) |
+| --- | --- |
+| `npm run typecheck` | Check TypeScript for the app and extension |
+| `npm test` | Run the JavaScript tests |
+| `php artisan test` | Run the Laravel tests |
+| `npm run build` | Build the browser-only app |
+| `npm run build:laravel` | Build the Laravel app's frontend assets |
+| `npm run extension:build` | Build the Chrome extension into `extension/dist` |
+| `npm run mcp` | Start the local MCP bridge. Enable **Let agents edit this mix** in the board menu to connect |
+| `npm run export:demo` | Write a sample build packet to `.out/packet` |
 
-## Layout
+The editor lives in `resources/js`, the capture extension in `extension`, and the Laravel backend in `app` and `routes`. See [CLAUDE.md](CLAUDE.md) for implementation details and clip authoring rules.
 
-`resources/js` mirrors the Laravel React starter kit (`pages/`, `components`-style folders, `@/` alias), so the app can move into Laravel + Inertia on Laravel Cloud without restructuring. `resources/js/core` is framework-free so the capture extension and MCP server can reuse it. Clip authoring rules live in `CLAUDE.md`.
+## License
 
-## Next phases
-
-1. Laravel + Inertia on Laravel Cloud: projects, clip storage, auth, share links
-2. Chrome MV3 "Clip section" extension that emits this clip format
-3. MCP server (`laravel/mcp`): `get_packet`, `list_versions`, `set_status`, `submit_version`, `add_note`; agent presence driven by real calls
-4. ReviseMy reviews from version frames (statuses + marks as stickies) and "Open in Koati"
-5. Bookmark-app and gallery imports
+Blokmix uses the [O'Saasy License](LICENSE), the same license as ReviseMy. It allows use, modification, and redistribution under its terms. The license restricts offering Blokmix or a derivative as a directly competing hosted service.
