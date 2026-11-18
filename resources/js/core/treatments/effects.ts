@@ -27,8 +27,8 @@ export function layeredShadow(p: ParamValues, scale = 1): string {
   const layers = p.layers as number
   const rad = (((p.angle as number) - 90) * Math.PI) / 180
   // Light from above (180°) throws the shadow down.
-  const dx = -Math.cos(rad)
-  const dy = -Math.sin(rad)
+  const dx = Math.cos(rad)
+  const dy = Math.sin(rad)
   const total = p.opacity as number
   const out: string[] = []
   for (let i = 1; i <= layers; i++) {

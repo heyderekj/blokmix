@@ -1,14 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, X } from 'lucide-react'
 import type { GuideState, TokenSet } from '@/core/types'
-import { applySkin, skinList, skinRefOf, type Skin } from '@/core/skins'
+import { applySkin, themeList, refId, type Skin } from '@/core/skins'
 import { emptyContract } from '@/core/contract'
 import { resolveGuide } from '@/core/guide'
 import { pageOf } from '@/core/site'
 import { useStore } from '@/state/store'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 import { SkinSpecimen } from '@/ui/skins/SkinSpecimen'
+import { runCommand } from '@/state/commands'
+import { themeReason } from '@/core/themeRanking'
 import { FontLinks } from './shared'
 
 const PRESS = 'cursor-pointer transition-[background-color,box-shadow,scale] duration-150 active:scale-[0.97]'
@@ -16,7 +18,7 @@ const PRESS = 'cursor-pointer transition-[background-color,box-shadow,scale] dur
 export interface SkinLook {
   skin: Skin
   tokens: TokenSet
-  components: GuideState['components']
+  guide: GuideState
 }
 
 /** Every theme as a swap would leave this mix: what you keep (your brand color, kept areas) shows on every card. */
@@ -25,9 +27,9 @@ export function useSkinLooks(): SkinLook[] {
   const contract = useStore((s) => s.contract)
   return useMemo(
     () =>
-      skinList().map((skin) => {
+      themeList().map((skin) => {
         const g = applySkin(guide, skin, contract ?? emptyContract())
-        return { skin, tokens: resolveGuide(g).tokens, components: g.components }
+        return { skin, tokens: resolveGuide(g).tokens, guide: g }
       }),
     [guide, contract],
   )
@@ -36,11 +38,12 @@ export function useSkinLooks(): SkinLook[] {
 /** Put a theme on, as one undo step. */
 export function putSkin(skin: Skin) {
   const st = useStore.getState()
-  if (st.applySkin(skin.id)) st.showFlash(`${skin.name} is on`, { undo: true })
+  runCommand('apply_skin', { skin: skin.id }, 'you')
+  st.showFlash(`${skin.name} is on`, { undo: true })
 }
 
 /** A theme drawn in its own look, with its name under it. Also used for a mix, which has no skin of its own. */
-export function SkinCard({ label, words, tokens, components, here, onPick }: { label: string; words: string; tokens: TokenSet; components?: GuideState['components']; here: boolean; onPick: () => void }) {
+export function SkinCard({ label, words, guide, here, onPick, suggested }: { label: string; words: string; guide: GuideState; suggested?: boolean; here: boolean; onPick: () => void }) {
   const brand = useStore((s) => s.content.brand)
   return (
     <button
@@ -52,12 +55,13 @@ export function SkinCard({ label, words, tokens, components, here, onPick }: { l
       className="group/skin grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)] gap-1 rounded-[13px] text-left transition-[scale] duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent,#ff69b4)]"
     >
       <span className={`block min-w-0 rounded-[12px] transition-[box-shadow] duration-150 ${here ? 'shadow-[0_0_0_2px_var(--color-accent,#ff69b4)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.06)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/skin:shadow-[0_0_0_1px_rgb(0_0_0/0.18)]'}`}>
-        <SkinSpecimen tokens={tokens} components={components} name={brand?.trim() || 'Your site'} />
+        <SkinSpecimen guide={guide} name={brand?.trim() || 'Your site'} />
       </span>
       <span className="flex items-center justify-between gap-1 px-1 text-[11.5px] font-semibold text-zinc-800">
         <span className="truncate">{label}</span>
         {here && <Check size={12} className="shrink-0" />}
       </span>
+      <span className="px-1 text-[11px] leading-snug text-zinc-600">{suggested && <strong>Suggested · </strong>}{words}</span>
     </button>
   )
 }
@@ -69,8 +73,8 @@ export function SkinGrid({ looks, cols = 2 }: { looks: SkinLook[]; cols?: 2 | 3 
     <>
       <FontLinks tokens={looks.map((l) => l.tokens)} />
       <div className={`grid gap-x-2 gap-y-2.5 ${cols === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-        {looks.map(({ skin, tokens, components }) => (
-          <SkinCard key={skin.id} label={skin.name} words={skin.words} tokens={tokens} components={components} here={skinRefOf(on)?.id === skin.id} onPick={() => putSkin(skin)} />
+        {looks.map(({ skin, guide }) => (
+          <SkinCard key={skin.id} label={skin.name} words={themeReason(guide)} guide={guide} here={refId(on) === skin.id} onPick={() => putSkin(skin)} />
         ))}
       </div>
     </>
@@ -93,6 +97,20 @@ export function AllThemes() {
 }
 
 /** This page under every skin, side by side, as a swap would really leave it. */
+function LazyPreview(props: Parameters<typeof SkinPreview>[0]) {
+  const el = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    if (!el.current) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setVisible(true); observer.disconnect() }
+    }, { rootMargin: '120px' })
+    observer.observe(el.current)
+    return () => observer.disconnect()
+  }, [])
+  return <div ref={el} style={{height: props.height}}>{visible && <SkinPreview {...props} />}</div>
+}
+
 function Compare({ onClose, onPick }: { onClose: () => void; onPick: (s: Skin) => void }) {
   const site = useStore((s) => s.site)
   const pageId = useStore((s) => s.ui.pageId)
@@ -113,9 +131,9 @@ function Compare({ onClose, onPick }: { onClose: () => void; onPick: (s: Skin) =
           <button type="button" onClick={onClose} aria-label="Close" className={`grid size-11 place-items-center rounded-full text-zinc-500 ${PRESS}`}><X size={18} /></button>
         </header>
         <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-1 content-start gap-3 overflow-y-auto p-4 sm:grid-cols-2 lg:grid-cols-3">
-          {skinList().map((skin) => (
+          {themeList().map((skin) => (
             <button key={skin.id} type="button" onClick={() => onPick(skin)} className={`overflow-hidden rounded-2xl bg-white text-left shadow-[0_0_0_1px_rgb(0_0_0/0.08)] ${PRESS}`}>
-              <SkinPreview site={shown} guide={applySkin(guide, skin, contract ?? emptyContract())} content={content} title={skin.name} height={200} />
+              <LazyPreview site={shown} guide={applySkin(guide, skin, contract ?? emptyContract())} content={content} title={skin.name} height={200} />
               <span className="block p-3">
                 <span className="flex items-center gap-1.5 text-[13.5px] font-semibold text-zinc-900">{skin.name}</span>
                 <span className="mt-0.5 line-clamp-3 text-[12px] leading-snug text-zinc-500 [text-wrap:pretty]">{skin.words}</span>

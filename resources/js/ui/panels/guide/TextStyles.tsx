@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { TokenKey } from '@/core/types'
@@ -80,59 +81,45 @@ export function TextStylesPanel({ tokens }: { tokens: Tokens }) {
   )
 }
 
-const sel = 'h-8 w-full cursor-pointer rounded-lg bg-white px-2 text-[12.5px] text-zinc-800 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)] outline-none'
-
 function StyleEditor({ id, def, edited, px }: { id: TextStyleId; def: TextStyleDef; edited: boolean; px: (s: TypeStep) => number }) {
   const set = (patch: Partial<TextStyleDef>) => useStore.getState().setTextStyle(id, patch)
   const field = (label: string, el: React.ReactNode) => (
-    <label className="grid gap-1">
+    <div className="grid gap-1">
       <span className="text-[11px] font-semibold text-zinc-500">{label}</span>
       {el}
-    </label>
+    </div>
   )
-  const steps = (value: TypeStep, on: (s: TypeStep) => void) => (
-    <select value={value} onChange={(e) => on(e.target.value as TypeStep)} className={sel}>
-      {TYPE_STEPS.map((s) => (
-        <option key={s} value={s}>
-          {Math.round(px(s))}px · {s}
-        </option>
-      ))}
-    </select>
+  const steps = (label: string, value: TypeStep, onChange: (s: TypeStep) => void) => (
+    <Dropdown label={label} value={value} onChange={onChange} options={TYPE_STEPS.map((v) => ({ v, label: `${Math.round(px(v))}px · ${v}` }))} />
   )
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 px-2.5 pb-3 pt-1">
       {field(
         'Font',
-        <select value={def.font} onChange={(e) => set({ font: e.target.value as TextStyleDef['font'] })} className={sel}>
-          <option value="display">Display font</option>
-          <option value="body">Body font</option>
-          <option value="mono">Mono</option>
-        </select>,
+        <Dropdown label="Font" value={def.font} onChange={(font) => set({ font })} options={[
+          { v: 'display', label: 'Display font' }, { v: 'body', label: 'Body font' }, { v: 'mono', label: 'Mono' },
+        ]} />,
       )}
       {field(
         'Weight',
-        <select value={String(def.weight)} onChange={(e) => set({ weight: e.target.value === 'display' ? 'display' : Number(e.target.value) })} className={sel}>
-          <option value="display">Display weight</option>
-          {[300, 400, 500, 600, 700, 800, 900].map((w) => (
-            <option key={w} value={w}>
-              {w}
-            </option>
-          ))}
-        </select>,
+        <Dropdown label="Weight" value={String(def.weight)} onChange={(next) => set({ weight: next === 'display' ? 'display' : Number(next) })} options={[
+          { v: 'display', label: 'Display weight' },
+          ...[300, 400, 500, 600, 700, 800, 900].map((w) => ({ v: String(w), label: String(w) })),
+        ]} />,
       )}
       {field(
         'Size',
         // The line height follows the size until you set it yourself.
-        steps(def.size, (s) => set({ size: s, ...(useStore.getState().guide.textStyles?.[id]?.leading === undefined ? { leading: leadingFor(s) } : {}) })),
+        steps('Size', def.size, (s) => set({ size: s, ...(useStore.getState().guide.textStyles?.[id]?.leading === undefined ? { leading: leadingFor(s) } : {}) })),
       )}
-      {field('On phones', steps(def.phone ?? def.size, (s) => set({ phone: s })))}
+      {field('On phones', steps('On phones', def.phone ?? def.size, (s) => set({ phone: s })))}
       {field(
         `Line height · ${def.leading.toFixed(2)}`,
-        <input type="range" min={0.9} max={2} step={0.05} value={def.leading} onChange={(e) => set({ leading: Number(e.target.value) })} />,
+        <input aria-label="Line height" type="range" min={0.9} max={2} step={0.05} value={def.leading} onChange={(e) => set({ leading: Number(e.target.value) })} />,
       )}
       {field(
         `Letter spacing · ${def.tracking.toFixed(2)}em`,
-        <input type="range" min={-0.06} max={0.2} step={0.01} value={def.tracking} onChange={(e) => set({ tracking: Number(e.target.value) })} />,
+        <input aria-label="Letter spacing" type="range" min={-0.06} max={0.2} step={0.01} value={def.tracking} onChange={(e) => set({ tracking: Number(e.target.value) })} />,
       )}
       <label className="col-span-2 flex cursor-pointer items-center gap-2 text-[12.5px] text-zinc-700">
         <input type="checkbox" checked={!!def.upper} onChange={(e) => set({ upper: e.target.checked })} />

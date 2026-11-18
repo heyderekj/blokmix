@@ -16,7 +16,7 @@
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-3xl), 5vw, var(--mx-text-6xl));
+    font-size: clamp(min(var(--mx-text-2xl), 1.75rem), 4.75cqi, min(var(--mx-text-6xl), 4.5rem));
     line-height: 1.04;
     letter-spacing: -0.03em;
   }
@@ -83,5 +83,12 @@
   @container (max-width: 616px) {
     & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; justify-self: stretch; }
+  }
+
+  @container (max-width: 480px) {
+    & .heading {
+      font-size: clamp(min(var(--mx-text-xl), 1.5rem), 7.5cqi, min(var(--mx-text-4xl), 2.375rem));
+      line-height: 1.08;
+    }
   }
 }

@@ -142,7 +142,7 @@ export function frameStateFor(
     outline: !slot.keep.layout,
     slider: slot.slider ?? NO_SLIDER,
     blocks: withExtrasCss(withBanner(blocksFor(clip, slot.edits?.[clip.id], page?.components, slot.spacing, slot.motion, backdrop, band, page?.textStyles, !!reading?.ink), clip.extras?.banner ? bannerMoves(slot) : null), !!clip.extras?.inserts?.length),
-    media: mediaFor(clip, slot.edits?.[clip.id], tokens, page?.picture, slot.keep.style, page?.logo),
+    media: mediaFor(clip, slot.edits?.[clip.id], tokens, page?.picture, slot.keep.style, page?.logo, content.brief?.industry),
     backdrop: backdropShader(backdrop, band),
     // A section keeping its own captured look keeps its own icons too.
     icons: slot.keep.style ? iconsFor(clip, slot.edits?.[clip.id], library.sources[clip.sourceId]?.tokens['icon.set'] ?? guide['icon.set'], true) : iconsFor(clip, slot.edits?.[clip.id], guide['icon.set']),
@@ -205,11 +205,11 @@ function iconsFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, set:
 
 const mediaCache = new Map<string, FrameState['media'][string]>()
 /** Pictures for image blocks; placeholders are redrawn from the current palette. */
-function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet, picture: PageStyle['picture'], keepsStyle: boolean, logo?: MediaFill): FrameState['media'] {
+function mediaFor(clip: Clip, edits: Record<string, BlockEdit> | undefined, tokens: TokenSet, picture: PageStyle['picture'], keepsStyle: boolean, logo?: MediaFill, industry?: NonNullable<ProjectContent['brief']>['industry']): FrameState['media'] {
   if (!edits && !picture && !logo) return NO_MEDIA
   const out: FrameState['media'] = {}
   for (const b of clip.blocks) {
-    const fill = pictureFor(edits?.[b.id]?.media, b, picture, clip.origin, keepsStyle, { type: clip.type, logo })
+    const fill = pictureFor(edits?.[b.id]?.media, b, picture, clip.origin, keepsStyle, { type: clip.type, logo, industry })
     if (!fill || b.kind !== 'image') continue
     const key = JSON.stringify([fill, b.ratio, fill.source === 'placeholder' || fill.source === 'mock' || fill.source === 'shader' ? tokens : null])
     let m = mediaCache.get(key)
@@ -296,7 +296,7 @@ function blocksFor(
     canvas: true,
   })
   const behind = backdrop && tokens ? backdropCss(backdrop, tokens, '[data-mx-section]', solidBackdrop) : ''
-  const css = [behind, blockCss({ blocks: clip.blocks, edits, components, textStyles, select }), sectionSpacingCss(spacing, '[data-mx-section]'), moving]
+  const css = [behind, blockCss({ blocks: clip.blocks, edits, components, textStyles, layout: clip.origin === 'layout', select }), sectionSpacingCss(spacing, '[data-mx-section]'), moving]
     .filter(Boolean)
     .join('\n')
   return css || Object.keys(variants).length ? { css, variants } : NO_BLOCKS

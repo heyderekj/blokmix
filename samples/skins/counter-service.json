@@ -1,0 +1,102 @@
+{
+  "name": "Counter Service",
+  "words": "Butter paper, tomato ink and pickup tickets from the bakery counter.",
+  "mode": "light",
+  "feel": [
+    "warm",
+    "classic"
+  ],
+  "tokens": {
+    "icon.set": "iconoir:light",
+    "color.bg": "#fff6d7",
+    "color.surface": "#ffebaf",
+    "color.text": "#322318",
+    "color.muted": "#735644",
+    "color.border": "#c4a871",
+    "color.primary": "#ad331d",
+    "color.onPrimary": "#fff9e7",
+    "color.accent": "#d95021",
+    "font.display": "'Fraunces', Georgia, serif",
+    "font.body": "'DM Sans', sans-serif",
+    "font.mono": "'IBM Plex Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "650",
+    "radius.base": "3px",
+    "stroke.width": "1px",
+    "shadow.card": "2px 3px 0 #dcc596",
+    "space.base": "4px",
+    "space.section": "80px",
+    "motion.duration": "280ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1160px",
+    "space.text": "650px"
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0.12
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
+    }
+  },
+  "industries": [
+    "food",
+    "ecommerce"
+  ],
+  "components": {
+    "badge": {
+      "variant": "outline"
+    },
+    "card": {
+      "variant": "bordered"
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "button": {
+      "secondary": {
+        "variant": "arrow"
+      }
+    },
+    "input": {
+      "variant": "underline"
+    }
+  },
+  "sections": {
+    "hero": {
+      "spacing": {
+        "top": "roomy"
+      }
+    },
+    "nav": {
+      "surface": "soft"
+    },
+    "features": {
+      "surface": "soft"
+    },
+    "gallery": {
+      "surface": "page"
+    },
+    "cta": {
+      "surface": "brand"
+    }
+  },
+  "picture": {
+    "style": "grain-gradient",
+    "subjects": [
+      "bread-counter",
+      "bakery",
+      "table-setting"
+    ],
+    "mode": "combined"
+  }
+}

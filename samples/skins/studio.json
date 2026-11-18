@@ -29,7 +29,9 @@
     "space.base": "4px",
     "space.section": "112px",
     "motion.duration": "280ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1296px",
+    "space.text": "712px"
   },
   "effects": {
     "gradient": {
@@ -48,6 +50,15 @@
       "font": "mono",
       "weight": 500,
       "tracking": 0.08
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
     }
   },
   "components": {
@@ -64,6 +75,12 @@
     },
     "icon": {
       "variant": "tinted"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "filled"
     }
   },
   "sections": {
@@ -115,11 +132,7 @@
     },
     "faq": {
       "motion": {
-        "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "mode": "none"
       }
     },
     "cta": {
@@ -180,19 +193,13 @@
     "content": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "enter": "fade"
       }
     },
     "logos": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "enter": "fade"
       }
     }
   },
@@ -204,6 +211,24 @@
       "c": "bg",
       "angle": 160,
       "grain": 18
+    },
+    "subjects": [
+      "print-edition",
+      "print-studio",
+      "cards",
+      "courtyard"
+    ],
+    "mode": "combined",
+    "mockParams": {
+      "tint": true,
+      "chrome": "browser",
+      "inset": 6,
+      "shadow": true
     }
-  }
+  },
+  "industries": [
+    "agency",
+    "saas",
+    "services"
+  ]
 }

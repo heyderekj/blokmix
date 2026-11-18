@@ -86,7 +86,7 @@
     min-height: 44px;
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    font-size: clamp(min(var(--mx-text-xl), 1.25rem), 2.75cqi, 2rem);
     line-height: 1.1;
     letter-spacing: -0.02em;
     cursor: pointer;

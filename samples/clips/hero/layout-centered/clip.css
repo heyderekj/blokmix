@@ -4,7 +4,7 @@
   padding: calc(var(--mx-space-section) * 1.25) var(--mx-space-8) var(--mx-space-section);
 
   & .container {
-    max-width: var(--mx-width-text);
+    max-width: min(var(--mx-width-content), max(var(--mx-width-text), 60rem));
     margin-inline: auto;
     display: flex;
     flex-direction: column;
@@ -21,10 +21,10 @@
   }
   & .heading {
     margin-top: var(--mx-space-6);
-    max-width: 16ch;
+    max-width: 24ch;
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-4xl), 6.2vw, calc(var(--mx-text-6xl) * 1.15));
+    font-size: clamp(min(var(--mx-text-3xl), 2rem), 6cqi, min(var(--mx-text-6xl), 5.25rem));
     line-height: 1.02;
     letter-spacing: -0.03em;
   }
@@ -74,8 +74,15 @@
     padding: var(--mx-space-9) var(--mx-space-5);
   }
   @container (max-width: 616px) {
-    & .heading { font-size: clamp(var(--mx-text-3xl), 10vw, var(--mx-text-4xl)); }
+    & .heading { font-size: clamp(min(var(--mx-text-xl), 1.5rem), 7.5cqi, min(var(--mx-text-4xl), 2.375rem)); }
     & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-self: stretch; }
+  }
+
+  @container (max-width: 480px) {
+    & .heading {
+      font-size: clamp(min(var(--mx-text-xl), 1.5rem), 7.5cqi, min(var(--mx-text-4xl), 2.375rem));
+      line-height: 1.08;
+    }
   }
 }

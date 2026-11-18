@@ -20,7 +20,7 @@ import { wordsFor } from './commands/refs'
 
 /** Which of Jev's tools Say it (or anything else) asked to open, and on what. */
 export const useJevTools = create<{
-  open: 'pour' | 'page' | 'colors' | 'dress' | null
+  open: 'pour' | 'page' | 'colors' | 'dress' | 'restyle' | null
   slotId?: string
   text?: string
   into?: 'new_page' | 'this_page'
@@ -85,7 +85,7 @@ export async function doSay(a: SayAction, text: string): Promise<string | null> 
   if (a.open) {
     useJevTools.setState({ open: a.open, slotId: a.slotId, text })
     // Bring the tool into view: colors live in the Style guide's Feel tile, dressing up in the section's Style panel.
-    if (a.open === 'colors') st.setUi({ leftPanel: 'look', guideView: 'look' })
+    if (a.open === 'colors' || a.open === 'restyle') st.setUi({ leftPanel: 'look', guideView: 'look' })
     if (a.open === 'dress') {
       const target = a.slotId ?? currentSlots(st).find((s) => s.type === 'hero')?.id
       if (target) {

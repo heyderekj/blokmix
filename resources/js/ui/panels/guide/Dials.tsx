@@ -2,7 +2,7 @@ import { ColorButton } from '@/ui/color/ColorPicker'
 import type { PaletteVariant } from '@/core/palette'
 import { useResolvedGuide } from '@/state/derived'
 import { Moon, Sun, X } from 'lucide-react'
-import { DIAL_NAMES, DIALS, readDials, setTone, toneOfGuide } from '@/core/dials'
+import { DIAL_NAMES, DIALS, readDials, toneOfGuide } from '@/core/dials'
 import { useStore } from '@/state/store'
 import { useGuideData } from './shared'
 import { ColorsByFeel } from '../../jev/ColorsByFeel'
@@ -27,7 +27,7 @@ export function Dials() {
               type="button"
               role="radio"
               aria-checked={tone === t}
-              onClick={() => st().chooseTokens(setTone(tokens, t))}
+              onClick={() => st().setThemeTone(t)}
               className={`flex h-6 cursor-pointer items-center gap-1 rounded-full px-2.5 text-[11.5px] font-semibold transition-[background-color,color,scale] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 ${
                 tone === t ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 [@media(hover:hover)_and_(pointer:fine)]:hover:text-zinc-800'
               }`}

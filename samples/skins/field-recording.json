@@ -1,0 +1,224 @@
+{
+  "name": "Field Recording",
+  "words": "Olive ink, contour lines and broad picture spaces.",
+  "mode": "light",
+  "feel": [
+    "warm",
+    "classic"
+  ],
+  "tokens": {
+    "icon.set": "iconoir:light",
+    "color.bg": "#f6f1e7",
+    "color.surface": "#ece4d3",
+    "color.text": "#1f1a14",
+    "color.muted": "#6b6155",
+    "color.border": "#d6c9b1",
+    "color.primary": "#4b5131",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#935533",
+    "font.display": "'Spectral', serif",
+    "font.body": "'Work Sans', sans-serif",
+    "font.mono": "'IBM Plex Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "500",
+    "radius.base": "3px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 0 #d6c9b1",
+    "space.base": "4px",
+    "space.section": "124px",
+    "motion.duration": "224ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1320px",
+    "space.text": "680px"
+  },
+  "effects": {
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 0
+      }
+    },
+    "grain": {
+      "id": "grain",
+      "params": {
+        "amount": 10,
+        "size": 0.7
+      }
+    },
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "stops": [
+          "surface",
+          "bg"
+        ],
+        "angle": 180
+      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0.12
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "line"
+    },
+    "card": {
+      "variant": "flat"
+    },
+    "button": {
+      "secondary": {
+        "variant": "arrow"
+      }
+    },
+    "heading": {
+      "variant": "light"
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "sweep"
+    },
+    "input": {
+      "variant": "filled"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "topo",
+        "params": {
+          "strength": 8
+        }
+      }
+    },
+    "features": {
+      "surface": "soft"
+    },
+    "testimonials": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "inverse"
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "nav": {
+      "backdrop": {
+        "id": "grain"
+      }
+    }
+  },
+  "picture": {
+    "style": "topo",
+    "subjects": [
+      "trail-map",
+      "mountain-trail",
+      "courtyard",
+      "calendar"
+    ],
+    "mode": "combined",
+    "photo": true
+  },
+  "industries": [
+    "travel",
+    "nonprofit"
+  ],
+  "formats": [
+    "portfolio"
+  ],
+  "flavors": [
+    {
+      "id": "field-journal",
+      "name": "Field Recording · Field Journal",
+      "industry": "nonprofit",
+      "parts": {
+        "type": "liner-notes"
+      }
+    }
+  ]
+}

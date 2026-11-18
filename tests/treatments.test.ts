@@ -158,7 +158,7 @@ describe('exports', () => {
     expect(page.vars['--mx-gradient']).toContain('var(--mx-color-primary)')
     expect(page.vars['--mx-shadow-lg']).toBeTruthy()
     const s = page.sections[0]
-    expect(s.css).toMatch(/^@layer base, clip, effects, motion, blocks;/)
+    expect(s.css).toMatch(/^@layer base, clip, effects, motion, navigation, blocks;/)
     expect(s.css).toContain('/* Backdrop */\n@layer effects {')
     expect(s.css).toContain('/* Mockups */')
     expect(s.backdrop?.label).toBe('Grid')

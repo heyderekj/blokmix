@@ -5,7 +5,7 @@ import type { MediaFill, Slot, StockPhoto } from '@/core/types'
 import { imageRef } from '@/core/jev'
 import { focusFrom, jevPhotoUrl, jevThumbUrl, rankRequest, rankedOrder, subjectRequest, type PhotoBrief } from '@/core/jev/photos'
 import { briefContext } from '@/core/brief'
-import { skinById } from '@/core/skins'
+import { refId, skinById } from '@/core/skins'
 import { slotClip } from '@/data/library'
 import { askJev } from '@/lib/jev'
 import { assetUrl } from '@/lib/assets'
@@ -69,7 +69,7 @@ export function photoBrief(slot: Slot, query?: string): PhotoBrief {
     .map((b) => words[b.field!])
     .slice(0, 4)
     .join(' · ')
-  const skin = st.guide.skin?.id ? skinById(st.guide.skin.id) : null
+  const skin = st.guide.skin?.id ? skinById(refId(st.guide.skin)!) : null
   return { words: text, site: briefContext(st.content), look: skin?.words, query }
 }
 

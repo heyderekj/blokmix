@@ -8,27 +8,36 @@ export const SLIDER_JS = `(function () {
   if (window.__mxSlider) return;
   window.__mxSlider = true;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function parts(root) {
-    var track = root.querySelector('[data-slider-track]');
-    return track && { track: track, slides: Array.prototype.slice.call(track.children) };
+  function measure(root) {
+    var track = root && root.querySelector('[data-slider-track]');
+    if (!track || !track.clientWidth) return null;
+    var direction = getComputedStyle(track).direction === 'rtl' ? -1 : 1;
+    var slides = Array.prototype.filter.call(track.children, function (slide) { return slide.offsetWidth > 0; });
+    var end = track.scrollWidth - track.clientWidth;
+    var stops = [0];
+    if (slides.length && end > 1) {
+      var start = slides[0].offsetLeft;
+      slides.slice(1).forEach(function (slide) {
+        var stop = direction * (slide.offsetLeft - start);
+        if (stop > stops[stops.length - 1] + 1 && stop < end - 1) stops.push(stop);
+      });
+      stops.push(end);
+    }
+    var offset = direction * track.scrollLeft;
+    var at = stops.reduce(function (closest, stop, i) {
+      return Math.abs(stop - offset) < Math.abs(stops[closest] - offset) ? i : closest;
+    }, 0);
+    return { track: track, direction: direction, stops: stops, pages: stops.length, at: at };
   }
-  function measure(p) {
-    var n = p.slides.length;
-    var step = n > 1 ? p.slides[1].offsetLeft - p.slides[0].offsetLeft : p.track.clientWidth;
-    if (!(step > 0)) return null;
-    var show = Math.max(1, Math.round((p.track.clientWidth + (step - (p.slides[0] ? p.slides[0].offsetWidth : 0))) / step));
-    var pages = Math.max(1, n - show + 1);
-    return { step: step, pages: pages, at: Math.min(pages - 1, Math.round(p.track.scrollLeft / step)) };
-  }
-  function go(root, i) {
-    var p = parts(root); var m = p && measure(p);
-    if (!m) return;
-    p.track.scrollTo({ left: Math.max(0, Math.min(m.pages - 1, i)) * m.step, behavior: reduce ? 'auto' : 'smooth' });
+  function go(m, i) {
+    var at = Math.max(0, Math.min(m.pages - 1, i));
+    m.track.scrollTo({ left: m.stops[at] * m.direction, behavior: reduce ? 'auto' : 'smooth' });
   }
   function sync(root) {
-    var p = parts(root); var m = p && measure(p);
+    var m = measure(root);
     if (!m) return;
     root.setAttribute('data-slider-ready', '');
+    if (m.pages > 1 && !m.track.hasAttribute('tabindex')) m.track.tabIndex = 0;
     root.toggleAttribute('data-slider-fits', m.pages < 2);
     var dots = root.querySelector('[data-slider-dots]');
     if (dots) {
@@ -36,7 +45,7 @@ export const SLIDER_JS = `(function () {
         dots.textContent = '';
         for (var i = 0; i < m.pages; i++) {
           var b = document.createElement('button');
-          b.type = 'button'; b.className = 'dot'; b.setAttribute('data-slider-dot', String(i)); b.setAttribute('aria-label', 'Show slide ' + (i + 1));
+          b.type = 'button'; b.className = 'dot'; b.setAttribute('data-slider-dot', String(i)); b.setAttribute('aria-label', 'Go to position ' + (i + 1) + ' of ' + m.pages);
           var pip = document.createElement('span'); pip.className = 'pip'; b.appendChild(pip);
           dots.appendChild(b);
         }
@@ -60,12 +69,23 @@ export const SLIDER_JS = `(function () {
     var t = e.target.closest && e.target.closest('[data-slider-prev], [data-slider-next], [data-slider-dot]');
     var root = t && t.closest('[data-slider]');
     if (!root) return;
-    var p = parts(root); var m = p && measure(p);
+    var m = measure(root);
     if (!m) return;
-    if (t.hasAttribute('data-slider-dot')) go(root, Number(t.getAttribute('data-slider-dot')));
-    else go(root, m.at + (t.hasAttribute('data-slider-next') ? 1 : -1));
+    if (t.hasAttribute('data-slider-dot')) go(m, Number(t.getAttribute('data-slider-dot')));
+    else go(m, m.at + (t.hasAttribute('data-slider-next') ? 1 : -1));
   });
-  document.addEventListener('scroll', later, true);
+  document.addEventListener('keydown', function (e) {
+    if (!e.target.matches || !e.target.matches('[data-slider-track]')) return;
+    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].indexOf(e.key) === -1) return;
+    var m = measure(e.target.closest('[data-slider]'));
+    if (!m || m.pages < 2) return;
+    e.preventDefault();
+    var at = e.key === 'Home' ? 0 : e.key === 'End' ? m.pages - 1 : m.at + (e.key === 'ArrowRight' ? m.direction : -m.direction);
+    go(m, at);
+  });
+  document.addEventListener('scroll', function (e) {
+    if (e.target.matches && e.target.matches('[data-slider-track]')) later();
+  }, true);
   window.addEventListener('resize', later);
   window.addEventListener('load', later);
   /* Slides added, or the number shown changed: count again. */

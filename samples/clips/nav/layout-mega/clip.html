@@ -1,10 +1,11 @@
-<nav class="mx-nav-layout-mega" data-mx-section="nav">
-  <div class="container bar">
-    <a href="#" class="brand" data-mx-block="image" data-mx-media="logo" data-mx-ratio="4/1">
+<nav class="mx-nav-layout-mega" data-mx-section="nav" data-site-nav aria-label="Primary navigation">
+  <div class="container bar" data-nav-bar>
+    <a href="#" class="brand" data-nav-brand data-mx-block="image" data-mx-media="logo" data-mx-ratio="4/1">
       <span class="name" data-mx-field="brand">Fieldwork</span>
     </a>
-    <div class="drawer">
-      <details class="mega">
+    <button type="button" data-nav-toggle aria-expanded="false"><span>Menu</span><span class="nav-toggle-icon" aria-hidden="true"></span></button>
+    <div class="drawer" data-nav-panel>
+      <details class="mega" data-nav-disclosure>
         <summary class="trigger">
           <span class="label" data-mx-block="link" data-mx-field="link1">Product</span>
           <svg class="chev" data-mx-icon="chevron-down" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
@@ -34,12 +35,6 @@
         <li data-mx-block="item" data-mx-label="Link"><a href="#" class="link" data-mx-block="link" data-mx-field="link4">Customers</a></li>
       </ul>
     </div>
-    <a href="#" class="btn primary" data-mx-block="button" data-mx-field="cta">Start free</a>
-    <label class="burger">
-      <input class="sr" type="checkbox">
-      <span class="sr">Menu</span>
-      <svg class="open-icon" data-mx-icon="menu" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /></svg>
-      <svg class="close-icon" data-mx-icon="x" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /> <path d="m6 6 12 12" /></svg>
-    </label>
+    <a href="#" class="btn primary" data-nav-action data-mx-block="button" data-mx-field="cta">Start free</a>
   </div>
 </nav>

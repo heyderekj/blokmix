@@ -4,6 +4,7 @@
 
 import type { TokenGroup, TokenKey } from './types'
 import { TOKEN_GROUP_OF } from './tokens'
+import { lookList } from './treatments'
 import { NUDGE_AREAS, type Nudge } from './feel'
 
 export const CONTRACT_AREAS = ['color', 'type', 'shape', 'space', 'motion', 'looks', 'sections', 'pictures', 'layout', 'words'] as const
@@ -23,12 +24,12 @@ export interface Contract {
 
 export const AREA_LABEL: Record<ContractArea, { name: string; words: string }> = {
   color: { name: 'Color', words: 'The palette' },
-  type: { name: 'Type', words: 'Fonts and the type scale' },
+  type: { name: 'Type', words: 'Fonts, type scale and text styles' },
   shape: { name: 'Shape', words: 'Corners, lines, card shadows, icons' },
   space: { name: 'Spacing', words: 'The spacing scale and section padding' },
-  motion: { name: 'Motion', words: 'Timing and easing' },
-  looks: { name: 'Block looks', words: 'Buttons, cards, badges, text styles and effects' },
-  sections: { name: 'Sections', words: 'Bands, backdrops and section motion' },
+  motion: { name: 'Motion', words: 'Timing, easing and section entrances' },
+  looks: { name: 'Block looks', words: 'Buttons, cards, badges and surface effects' },
+  sections: { name: 'Sections', words: 'Bands, backdrops and section spacing' },
   pictures: { name: 'Pictures', words: 'What empty pictures show' },
   layout: { name: 'Layout', words: 'Which sections, in what order and arrangement' },
   words: { name: 'Words', words: 'The copy' },
@@ -79,13 +80,20 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'set_dial': {
       // Each dial moves a few tokens: spacing and width are space, type and weight are type, roundness is shape.
       const dial = String(input.dial)
-      return dial === 'spacing' || dial === 'width' ? ['space'] : dial === 'roundness' ? ['shape'] : ['type']
+      return dial === 'spacing' || dial === 'width' ? ['space'] : dial === 'roundness' ? ['shape'] : dial === 'weight' ? ['type', 'shape'] : ['type']
     }
-    case 'set_effect':
-    case 'apply_look':
+    case 'update_text_style': return ['type']
+    case 'set_theme_part': return [input.area as StyleArea]
+    case 'set_theme_parts': return Object.keys(input.parts as object) as StyleArea[]
+    case 'set_effect': return input.effect === 'shadow' ? ['shape'] : ['looks']
+    case 'apply_look': {
+      if (input.replace !== false) return ['shape','looks']
+      const effects = input.look ? lookList().find((look) => look.id === input.look)?.effects : input.effects
+      const keys = Object.keys(effects ?? {})
+      return STYLE_AREAS.filter((a) => (a === 'shape' && keys.includes('shadow')) || (a === 'looks' && keys.some((k) => k !== 'shadow')))
+    }
     case 'use_look_for_all':
     case 'set_look_for_all':
-    case 'update_text_style':
     case 'set_text_style':
       return ['looks']
     case 'set_block':
@@ -94,8 +102,8 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'set_section_width':
     case 'set_section_backdrop':
     case 'set_section_spacing':
-    case 'set_section_motion':
       return ['sections']
+    case 'set_section_motion': return ['motion']
     case 'set_slider':
     case 'add_block':
     case 'add_section':

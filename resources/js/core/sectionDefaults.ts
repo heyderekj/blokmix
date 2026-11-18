@@ -3,6 +3,9 @@
 // the exports.
 
 import type { BlockInfo, GuideState, MediaFill, PictureDefault, SectionDefault, SectionType, Slot } from './types'
+import type { Industry } from './brief'
+import { isSketch, SKETCH_PHOTO } from './sketchCatalog'
+import { isMockId } from './treatments/mocks'
 import type { TreatmentValue } from './treatments'
 
 /** A section that chose "no backdrop" while its skin offers one. */
@@ -39,13 +42,23 @@ const seedOf = (id: string) => {
 /** Picture styles soft enough to sit behind words; any other (shapes, lines, dots, blocks, type) would cross them. */
 const SOFT: string[] = ['mesh', 'grain-gradient']
 
+type Subjects = NonNullable<PictureDefault['subjects']>
+const subjectByIndustry: Partial<Record<Industry, Subjects>> = {
+  fintech: ['balance-book', 'analytics', 'table'],
+  saas: ['dashboard', 'cards', 'analytics'], ai: ['chat', 'code', 'dashboard'], devtools: ['code', 'dashboard', 'table'],
+  food: ['bread-counter', 'table-setting', 'bakery'], ecommerce: ['pottery-shelf', 'ceramics', 'cards'],
+  travel: ['trail-map', 'mountain-trail', 'calendar'], events: ['day-ticket', 'calendar', 'form'],
+  agency: ['print-edition', 'print-studio', 'cards'], media: ['print-edition', 'reading-room', 'print-studio'],
+  architecture: ['courtyard', 'reading-room', 'print-studio'], education: ['calendar', 'day-ticket', 'cards'],
+}
+
 export function pictureFor(
   own: MediaFill | undefined,
   b: Pick<BlockInfo, 'id' | 'kind' | 'media' | 'field'>,
   picture: PictureDefault | undefined,
   origin: 'clip' | 'layout',
   keepsStyle: boolean,
-  site?: { type: SectionType; logo?: MediaFill },
+  site?: { type: SectionType; logo?: MediaFill; industry?: Industry },
 ): MediaFill | undefined {
   // Your logo fills the nav's and footer's own logo (not a logo strip's customer logos), clipped or built in.
   if (!own && !keepsStyle && site?.logo && isSiteLogo(b, site.type)) return site.logo
@@ -54,6 +67,26 @@ export function pictureFor(
   if (/^logo/i.test(b.media ?? '') || b.field) return own
   // A picture behind the words (a hero's backdrop) gets soft art: the theme's shapes and lines would cross the words.
   if (/^backdrop$/i.test(b.media ?? '') && !SOFT.includes(picture.style)) return { source: 'placeholder', style: 'mesh', seed: seedOf(b.id) }
+  const defaults = picture.subjects
+  if (defaults?.length && site && !/^backdrop$/i.test(b.media ?? '')) {
+    const contextual = site.industry && subjectByIndustry[site.industry]
+    const subjects = contextual ? [...defaults.filter((id) => contextual.includes(id)), ...contextual.filter((id) => !defaults.includes(id))] : defaults
+    const seed = seedOf(b.id)
+    const media = b.media ?? ''
+    if (site.type === 'team' || /avatar|portrait/i.test(media)) return { source: 'placeholder', style: 'portrait', seed }
+    const screens = subjects.filter(isMockId)
+    const options = site.type === 'features' && screens.length ? screens : subjects
+    const number = media.match(/\d+/)?.[0]
+    const offset = site.type === 'hero' || site.type === 'gallery' ? 0 : 1
+    const index = Math.max(0, Number(number ?? 1) - 1) + offset
+    const subject = options[index % options.length]
+    if (isMockId(subject)) return { source: 'mock', mock: subject, seed, params: picture.mockParams }
+    if (isSketch(subject)) {
+      const mode = site.type === 'features' ? 'ui' : site.type === 'gallery' && index % 2 === 0 ? 'image' : picture.mode ?? 'combined'
+      return { source: 'placeholder', style: subject, seed, params: { mode, ...(picture.photo && SKETCH_PHOTO[subject] && mode !== 'ui' ? { photo: true } : {}) } }
+    }
+    return { source: 'placeholder', style: subject, seed }
+  }
   return { source: 'placeholder', style: picture.style, seed: seedOf(b.id), ...(picture.params ? { params: picture.params } : {}) }
 }
 

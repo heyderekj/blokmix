@@ -45,12 +45,10 @@ not add to; saved style guides have no agent command.
 
 ## Theming
 
-Themes that fit the site you're making, and ways to steer them. Today there are seven themes, offered by counting
-feel words, so a bakery gets Lo-fi, Dream Pop and Flyer; industry barely reaches them and Jev only reads their names.
-The plan: a kit of parts (the eight style areas Rules for your agent already uses), about sixteen themes with industry
-flavors, "Change one part", and Jev to rank themes for your brief, change the look from words, and check how it reads.
-Phased PRs: fixes and the kit, then industry themes, then Jev. The full plan, with what's wrong today, is in
-`docs/theming.md`.
+The guided start and Design panel rank resolved themes using the brief, feel, brand colors, and kept areas.
+The catalog includes 15 finished themes, Wireframe, and eight industry variants. Change one part previews a swap
+on the open page. Optional visual suggestions check fit and translate a restyling request into editable parts.
+The implementation and verification notes are in `docs/theming.md`.
 
 ## Capture straight to your account
 

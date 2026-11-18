@@ -23,6 +23,32 @@ describe('placeholders', () => {
   })
 })
 
+describe('subject sketches', () => {
+  it('renders distinct image, UI and combined compositions and fits tall slots', () => {
+    const draw = (mode: string) => placeholderSvg('bread-counter', 3, tokens, '3/4', { mode })
+    const card = 'PICKUP TICKET'
+    expect(draw('image')).not.toContain(card)
+    expect(draw('ui')).toContain(card)
+    expect(draw('combined')).toContain(card)
+    expect(draw('ui')).not.toBe(draw('combined'))
+    expect(draw('combined')).toContain('viewBox="0 0 600 800"')
+    expect(placeholderSvg('bread-counter', 3, tokens, '4/3', { mode: 'combined', photo: true })).toContain('data:image/webp;base64,')
+  })
+
+  it('bundles a single portable sample photograph for repeated uses', () => {
+    const clip = library.clips['gallery.layout-filmstrip']
+    const page = composePage({
+      slots: [{ id: 's', type: 'gallery', clipId: clip.id, locked: false, keep: { ...DEFAULT_KEEP } }],
+      page: { ...emptyGuide(), picture: { style: 'mesh', subjects: ['bakery'] } },
+      guide: resolveGuide(emptyGuide()), content: DEFAULT_CONTENT, library,
+    })
+    expect(Object.keys(page.mediaFiles)).toEqual(['media/example-bakery.webp'])
+    const bytes = page.mediaFiles['media/example-bakery.webp'] as Uint8Array
+    expect(new TextDecoder().decode(bytes.slice(0, 4))).toBe('RIFF')
+    expect(page.sections[0].media.length).toBeGreaterThan(1)
+  })
+})
+
 describe('stock and uploads', () => {
   it('reads Unsplash results with credit and download tracking, and hotlinks sized URLs', () => {
     const [p] = parseUnsplash({

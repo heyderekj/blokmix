@@ -54,14 +54,14 @@ export const INTENTS = {
     criterion: { what: 'Try a different layout for a section, keeping its words', not_for: 'Changing its colors or band', examples: ['another hero', 'try a different features layout', 'show the pricing as a table'] },
     args: ['section'],
   },
-  skin: { criterion: { what: 'Put a whole different look (skin) on the page by name or mood', examples: ['make it look like riso print', 'go editorial', 'something more playful'] }, args: ['skin'] },
+  skin: { criterion: { what: 'Put a whole different look (skin) on the page by name or mood', examples: ['make it look like riso print', 'go editorial', 'something more playful', 'more premium'] }, args: ['skin'] },
   surprise: { criterion: { what: 'Surprise me: shuffle the look into something new', examples: ['surprise me', 'shuffle the style', 'something different'] }, args: [] },
   colors: {
     criterion: { what: 'Change the colors to a feel or mood, or match a brand color or a logo', not_for: 'Dark or light only', examples: ['warmer colors', 'cozy bakery colors', 'colors like the ocean', 'match my logo'] },
     args: [],
   },
   dress: {
-    criterion: { what: 'Make a section or the page more striking: a background, texture, glow, glass or other effect', examples: ['make the hero pop', 'add some texture', 'a gradient behind the CTA', 'more premium'] },
+    criterion: { what: 'Make a section or the page more striking: a background, texture, glow, glass or other effect', examples: ['make the hero pop', 'add some texture', 'a gradient behind the CTA'] },
     args: ['section'],
   },
   pour: { criterion: { what: 'Put my own words or text into the page', examples: ['here’s my copy', 'use my about text', 'fill it with my words'] }, args: [] },
@@ -136,7 +136,7 @@ export interface SayAction {
   /** A command to run, or a tool to open (`open`). */
   command?: string
   input?: Record<string, unknown>
-  open?: 'pour' | 'page' | 'colors' | 'dress'
+  open?: 'pour' | 'page' | 'colors' | 'dress' | 'restyle'
   words: string
   /** The section it acts on, to reveal while you type. */
   slotId?: string
@@ -263,6 +263,7 @@ export function buildAction(intent: IntentId, res: JevResponse, text: string, ct
       return done({ command: 'swap_section', input: { section: s.id }, words: `Another ${nameOf(ctx, s.id)} layout`, slotId: s.id }, s.p)
     }
     case 'skin': {
+      if (!ctx.skins.some((s) => text.toLowerCase().includes(s.name.toLowerCase()))) return done({ open: 'restyle', words: 'Preview theme changes' })
       const k = arg('skin')
       const skin = k && ctx.skins.find((x) => x.id === k.option)
       if (!k || !skin) return null

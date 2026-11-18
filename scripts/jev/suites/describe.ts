@@ -1,3 +1,4 @@
+import '@/data/skins'
 // Starting from a sentence: what kind of site it is, and which sections it clearly needs or
 // doesn't. Hand-labelled descriptions, the way people type them into the start box; the
 // rule before Jev was no kind at all (you picked it), so there's no baseline.

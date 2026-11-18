@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { Dropdown } from '@/ui/controls/Dropdown'
 import type { CSSProperties, ReactNode } from 'react'
 
 /** One compact option: its name on the left, its control on the right. */
@@ -11,22 +11,9 @@ export function StyleRow({ label, children }: { label: ReactNode; children: Reac
   )
 }
 
-/** A dropdown showing the one current choice, with a swatch beside it if it has one. Native, so it's quick and accessible. */
+/** A compact dropdown with an optional swatch for the current choice. */
 export function StyleSelect<T extends string>({ label, value, options, lead, onChange }: { label: string; value: T; options: readonly { v: T; label: string }[]; lead?: ReactNode; onChange: (v: T) => void }) {
-  return (
-    <label className="relative flex h-8 cursor-pointer items-center gap-2 rounded-lg bg-lift pl-2.5 pr-2 text-[12px] font-medium text-zinc-900 shadow-[0_0_0_1px_rgb(0_0_0/0.08)] transition-shadow hover:shadow-[0_0_0_1px_rgb(0_0_0/0.2)] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-zinc-900">
-      {lead}
-      <span className="min-w-0 flex-1 truncate">{options.find((o) => o.v === value)?.label}</span>
-      <ChevronDown size={14} className="shrink-0 text-zinc-400" />
-      <select aria-label={label} value={value} onClick={(e) => e.stopPropagation()} onChange={(e) => onChange(e.target.value as T)} className="absolute inset-0 cursor-pointer opacity-0">
-        {options.map((o) => (
-          <option key={o.v} value={o.v}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  )
+  return <Dropdown label={label} value={value} options={options} lead={lead} onChange={onChange} className="w-full bg-lift text-[12px]" />
 }
 
 /** The panel's slider: a thin track filled to the thumb, light enough to sit in a list of options. */

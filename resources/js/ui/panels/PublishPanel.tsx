@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useEffect, useMemo, useState } from 'react'
 import { Check, Copy, EyeOff, ExternalLink, Globe, Link2, Loader2 } from 'lucide-react'
 import { useStore } from '@/state/store'
@@ -139,27 +140,14 @@ export function PublishPanel() {
 
         {busy === 'publish' && step && <PublishProgress step={step} />}
         {editable && (snapshots.length > 0 || others.length > 0) && busy !== 'publish' && (
-          <label className="flex items-center gap-2 px-0.5 text-[12.5px] text-zinc-500">
-            From
-            <select
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              className="h-8 min-w-0 flex-1 cursor-pointer rounded-lg bg-white px-2 text-[13px] text-zinc-900 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] outline-none"
-            >
-              <option value="working">{drafts[draftId]?.name ?? 'The mix'}, as it is now</option>
-              {others.map((d) => (
-                <option key={d.id} value={`draft:${d.id}`}>
-                  {d.name}
-                </option>
-              ))}
-              {snapshots.map((v) => (
-                <option key={v.id} value={v.id}>
-                  Version {v.letter}
-                  {v.title ? `: ${v.title}` : ''}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="flex items-center gap-2 px-0.5 text-[12.5px] text-zinc-500">
+            <span>From</span>
+            <Dropdown label="Which draft or version to publish" value={source} onChange={setSource} className="flex-1" options={[
+              { v: 'working', label: `${drafts[draftId]?.name ?? 'The mix'}, as it is now` },
+              ...others.map((d) => ({ v: `draft:${d.id}`, label: d.name })),
+              ...snapshots.map((v) => ({ v: v.id, label: `Version ${v.letter}${v.title ? `: ${v.title}` : ''}` })),
+            ]} />
+          </div>
         )}
         {error && <p className="rounded-lg bg-problem/10 px-2.5 py-2 text-[12.5px] text-pretty text-problem">{error}</p>}
         {editable && (

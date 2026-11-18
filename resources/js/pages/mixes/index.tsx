@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Archive, ArchiveRestore, Copy, CloudUpload, Library, MessageSquare, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react'
@@ -275,23 +276,11 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
                 className="h-full min-w-0 flex-1 bg-transparent text-[13.5px] text-zinc-900 outline-none placeholder:text-zinc-400"
               />
             </label>
-            <label className="relative flex h-10 items-center rounded-full bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08)] focus-within:ring-2 focus-within:ring-[#FF69B4]/45">
-              <span className="sr-only">Sort mixes</span>
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as Sort)}
-                className="h-full cursor-pointer appearance-none rounded-full bg-transparent pl-4 pr-8 text-[13.5px] font-medium text-zinc-700 outline-none"
-              >
-                {(Object.keys(SORTS) as Sort[]).map((k) => (
-                  <option key={k} value={k}>
-                    {SORTS[k].label}
-                  </option>
-                ))}
-              </select>
-              <svg viewBox="0 0 24 24" className="pointer-events-none absolute right-3 size-3.5 text-zinc-500" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </label>
+            <Dropdown
+              label="Sort mixes" value={sort} onChange={setSort}
+              options={(Object.keys(SORTS) as Sort[]).map((v) => ({ v, label: SORTS[v].label }))}
+              className="h-10 rounded-full px-4"
+            />
             <button type="button" disabled={moving} onClick={importFile} className={QUIET + ' h-10 px-4 text-[13.5px] font-semibold'}>
               <Upload size={15} /> Import
             </button>

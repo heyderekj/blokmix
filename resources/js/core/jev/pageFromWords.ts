@@ -5,6 +5,7 @@
 // Three arrangements of the same words: the same sections in contrasting layouts.
 
 import { KINDS, type Kind, type Library, type SectionType } from '../types'
+import { diverseHeroes } from '../heroLayouts'
 import { suggestClip } from '../suggest'
 import { TYPE_LABEL } from '../content'
 import { choice, noul, at } from './ask'
@@ -150,7 +151,8 @@ export function chooseLayouts(sections: ReturnType<typeof pageSections>, read: P
     const builtIn = all.filter((id) => library.clips[id]?.sourceId === 'layout')
     const pool = (builtIn.length ? builtIn : all).filter((id) => capacity(id, lead) >= need)
     const options = pool.length ? pool : builtIn.length ? builtIn : all
-    const clipId = options[pick % Math.max(1, options.length)] ?? options[0]
+    const ranked = s.type === 'hero' ? diverseHeroes(options, library) : options
+    const clipId = ranked[pick % Math.max(1, ranked.length)] ?? ranked[0]
     placed.push({ type: s.type, clipId, id: `p${i}` })
     return clipId
   })

@@ -8,7 +8,7 @@
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-4xl), 7.2vw, calc(var(--mx-text-6xl) * 1.25));
+    font-size: clamp(min(var(--mx-text-3xl), 1.875rem), 5.75cqi, min(var(--mx-text-6xl), 5rem));
     line-height: 0.98;
     letter-spacing: -0.035em;
   }
@@ -38,7 +38,7 @@
 
   /* Title: the heading runs wide; a round badge overlaps its top-right corner. */
   & .title { position: relative; z-index: 1; width: fit-content; max-width: calc(100% - clamp(80px, 10vw, 150px)); }
-  & .heading { max-width: 13ch; }
+  & .heading { max-width: 18ch; }
   & .sticker {
     position: absolute;
     top: calc(var(--mx-space-7) * -1);
@@ -89,7 +89,7 @@
   }
   @container (max-width: 616px) {
     & .title { width: auto; max-width: none; padding-top: var(--mx-space-9); }
-    & .heading { font-size: clamp(var(--mx-text-3xl), 12vw, var(--mx-text-5xl)); }
+    & .heading { font-size: clamp(min(var(--mx-text-3xl), 1.875rem), 6cqi, min(var(--mx-text-5xl), 3.5rem)); }
     & .sticker { top: calc(var(--mx-space-7) * -1); right: var(--mx-space-1); width: 112px; }
     & .heading { max-width: none; }
     & .sticker-text { font-size: var(--mx-text-xs); }

@@ -3,7 +3,6 @@
 
 import type { Kind, TokenKey, TokenSet } from './types'
 import { DIALS, readDials, setTone, toneOfGuide, type DialName } from './dials'
-import type { Skin } from './skins'
 
 export const FEEL_WORDS = ['warm', 'calm', 'bold', 'playful', 'serious', 'classic', 'modern', 'dark'] as const
 export type FeelWord = (typeof FEEL_WORDS)[number]
@@ -17,24 +16,6 @@ export const KIND_FEEL: Record<Kind, FeelWord[]> = {
   event: ['bold', 'playful'],
   personal: ['calm', 'warm'],
   writing: ['classic', 'serious'],
-}
-
-/** How many of these words a theme answers to. */
-const fit = (skin: Pick<Skin, 'feel'>, words: readonly string[]) => (skin.feel ?? []).filter((w) => words.includes(w)).length
-
-/**
- * Themes for some feel words, best first: the most words matched, then the order themes are listed in. With no words,
- * every theme but the sketch counts the same. `different` gives the ones that match none of the words, to show
- * something you wouldn't have asked for. Wireframe is a sketch, not a feel, so it never comes up.
- */
-export function themesFor(words: readonly string[], pool: Skin[], opts: { different?: boolean; count?: number } = {}): Skin[] {
-  const count = opts.count ?? 3
-  const ranked = pool
-    .filter((s) => s.id !== 'wireframe')
-    .map((s, i) => ({ s, i, n: fit(s, words) }))
-    .filter((x) => (opts.different ? words.length > 0 && x.n === 0 : true))
-    .sort((a, b) => b.n - a.n || a.i - b.i)
-  return ranked.slice(0, count).map((x) => x.s)
 }
 
 export const NUDGES = ['bolder', 'quieter', 'rounder', 'sharper', 'roomier', 'tighter', 'darker', 'lighter'] as const
@@ -66,8 +47,8 @@ const MOVES: Partial<Record<Nudge, [DialName, 1 | -1][]>> = {
 
 /** Which style areas a nudge writes to, so the contract can keep them. */
 export const NUDGE_AREAS: Record<Nudge, ('type' | 'shape' | 'space' | 'color')[]> = {
-  bolder: ['type'],
-  quieter: ['type', 'space'],
+  bolder: ['type', 'shape'],
+  quieter: ['type', 'shape', 'space'],
   rounder: ['shape'],
   sharper: ['shape'],
   roomier: ['space'],
@@ -99,4 +80,15 @@ export function nudgeTokens(t: TokenSet, nudge: Nudge): Partial<Record<TokenKey,
 export function nudgesFor(t: TokenSet): Nudge[] {
   const tone = toneOfGuide(t)
   return NUDGES.filter((n) => (n === 'darker' ? tone !== 'dark' : n === 'lighter' ? tone !== 'light' : true))
+}
+
+/** The sentence's feels as the Look panel's feel words. */
+export const SENTENCE_FEEL: Record<string, FeelWord> = {
+  cozy: 'warm', warm: 'warm', earthy: 'warm', soft: 'calm',
+  friendly: 'playful', playful: 'playful', fun: 'playful', dreamy: 'playful',
+  calm: 'calm', clean: 'calm', minimal: 'calm', simple: 'calm', trustworthy: 'serious',
+  bold: 'bold', loud: 'bold', confident: 'bold', industrial: 'bold', raw: 'bold', retro: 'classic',
+  premium: 'classic', elegant: 'classic', classic: 'classic', editorial: 'classic', bookish: 'classic',
+  techy: 'modern', precise: 'serious', nerdy: 'modern',
+  dark: 'dark',
 }

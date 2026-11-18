@@ -86,12 +86,4 @@
   @media (max-width: 760px) {
     padding: var(--mx-space-3) var(--mx-space-5) var(--mx-space-1);
   }
-  @container (max-width: 616px) {
-    & .bar { flex-wrap: wrap; row-gap: 0; column-gap: var(--mx-space-2); }
-    & .group { display: contents; }
-    & .brand { min-width: 0; min-height: 44px; margin-right: auto; font-size: var(--mx-text-base); white-space: normal; }
-    & .tools { gap: var(--mx-space-1); }
-    & .tools .btn { min-height: 44px; }
-    & .links { order: 3; flex-basis: 100%; justify-content: flex-start; gap: var(--mx-space-6); }
-  }
 }

@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useEffect, useMemo, useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
 import { ArrowLeft, ExternalLink, Eye, EyeOff, Search, Trash2 } from 'lucide-react'
@@ -323,13 +324,8 @@ function SiteView({ site: initial, types }: { site: Site; types: string[] }) {
               >
                 <div className="flex items-center gap-2">
                   <span className="w-5 text-[12px] tabular-nums text-zinc-400">{s.order + 1}</span>
-                  <select value={s.type} onChange={(e) => patchSection(s.id, { type: e.target.value })} className={`${FIELD} w-32 cursor-pointer`} aria-label="Type">
-                    {types.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
+                  <Dropdown label="Type" value={s.type} onChange={(next) => patchSection(s.id, { type: next })}
+                    className="w-32" options={types.map((v) => ({ v, label: v }))} />
                   <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_TONE[s.status]}`}>{STATUS_LABEL[s.status]}</span>
                   <span className="ml-auto text-[12px] tabular-nums text-zinc-400" title="Match score">
                     {s.score === null ? '–' : s.score.toFixed(2)}
@@ -344,18 +340,8 @@ function SiteView({ site: initial, types }: { site: Site; types: string[] }) {
                     onBlur={(e) => e.target.value.trim() !== (s.layoutId ?? '') && patchSection(s.id, { layout_id: e.target.value.trim() || null })}
                     className={`${FIELD} flex-1 font-mono text-[12px]`}
                   />
-                  <select
-                    value={s.status}
-                    onChange={(e) => patchSection(s.id, { status: e.target.value as SectionStatus })}
-                    className={`${FIELD} w-36 cursor-pointer`}
-                    aria-label="Status"
-                  >
-                    {(Object.keys(STATUS_LABEL) as SectionStatus[]).map((k) => (
-                      <option key={k} value={k}>
-                        {STATUS_LABEL[k]}
-                      </option>
-                    ))}
-                  </select>
+                  <Dropdown label="Status" value={s.status} onChange={(next) => patchSection(s.id, { status: next })}
+                    className="w-36" options={(Object.keys(STATUS_LABEL) as SectionStatus[]).map((v) => ({ v, label: STATUS_LABEL[v] }))} />
                 </div>
               </li>
             ))}

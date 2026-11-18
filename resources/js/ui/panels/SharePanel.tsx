@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { useCallback, useEffect, useState } from 'react'
 import { Check, Copy, Link2, Trash2, X } from 'lucide-react'
 import { api, useSave } from '@/lib/mixSync'
@@ -154,18 +155,12 @@ export function SharePanel() {
                 </span>
                 {owner && !m.you ? (
                   <>
-                    <select
+                    <Dropdown
+                      label={`${m.name}’s role`}
                       value={m.role}
-                      onChange={(e) => void setRole(m, e.target.value as MixRole)}
-                      aria-label={`${m.name}’s role`}
-                      className="h-8 cursor-pointer rounded-lg bg-zinc-950/[0.04] px-2 text-[12px] font-medium text-zinc-700 outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/15"
-                    >
-                      {(['owner', 'editor', 'viewer'] as const).map((r) => (
-                        <option key={r} value={r}>
-                          {ROLE_LABEL[r]}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(next) => void setRole(m, next)}
+                      options={(['owner', 'editor', 'viewer'] as const).map((v) => ({ v, label: ROLE_LABEL[v] }))}
+                    />
                     <IconBtn label={`Remove ${m.name}`} onClick={() => void remove(m)}>
                       <Trash2 size={13} />
                     </IconBtn>

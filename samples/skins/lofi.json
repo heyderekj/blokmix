@@ -28,8 +28,10 @@
     "shadow.card": "0 1px 2px rgb(43 33 25 / 0.06), 0 10px 30px rgb(43 33 25 / 0.08)",
     "space.base": "4px",
     "space.section": "104px",
-    "motion.duration": "360ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+    "motion.duration": "280ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1248px",
+    "space.text": "696px"
   },
   "effects": {
     "grain": {
@@ -46,6 +48,15 @@
       "tracking": 0.02,
       "upper": false,
       "size": "sm"
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
     }
   },
   "components": {
@@ -63,6 +74,12 @@
     },
     "icon": {
       "variant": "circle"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "outlined"
     }
   },
   "sections": {
@@ -116,11 +133,7 @@
     },
     "faq": {
       "motion": {
-        "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "mode": "none"
       }
     },
     "cta": {
@@ -181,23 +194,28 @@
     "content": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "enter": "fade"
       }
     },
     "logos": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "enter": "fade"
       }
     }
   },
   "picture": {
-    "style": "shapes"
-  }
+    "style": "shapes",
+    "subjects": [
+      "bread-counter",
+      "bakery",
+      "table-setting",
+      "pottery-shelf"
+    ],
+    "mode": "image"
+  },
+  "industries": [
+    "food",
+    "health"
+  ]
 }

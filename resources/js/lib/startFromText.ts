@@ -5,6 +5,7 @@
 
 import type { Kind, SectionType, Slot } from '@/core/types'
 import { DEFAULT_KEEP } from '@/core/types'
+import { navForStart } from '@/core/startNav'
 import { chromeFor, contentFor, guideFor, RECIPES, type StartCandidate, type StartInput } from '@/core/start'
 import { describeRequest, readDescribe, sectionsFor, sureGoals, textMode, type Look, type TextMode } from '@/core/jev/describe'
 import { briefFromKind, guessBrief, kindOf } from '@/core/brief'
@@ -135,9 +136,8 @@ export function wordsCandidates(input: StartInput, plan: PagePlan): StartCandida
       // The sections are the same in every arrangement: the hero's layout tells them apart.
       label: library.clips[made.slots.find((x) => x.type === 'hero')?.clipId ?? '']?.title ?? describeSections(made.types),
       from: 'words',
-      site: siteFromSlots(slots),
+      ...navForStart(siteFromSlots(slots), made.tray.length ? { ...content, tray: made.tray } : content, library),
       guide,
-      content: made.tray.length ? { ...content, tray: made.tray } : content,
       shelves: { plain: slots.length, real: 0 },
     })
   }

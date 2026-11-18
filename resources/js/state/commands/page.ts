@@ -1,8 +1,9 @@
 import { briefContext, briefOf, type Brief } from '@/core/brief'
 import type { Choice, Keep, TokenKey } from '@/core/types'
+import { PAIRINGS } from '@/core/colorPairs'
 import { type CommandInput } from '@/core/commands/schema'
 import { resolveGuide } from '@/core/guide'
-import { DIALS, readDials, setTone } from '@/core/dials'
+import { DIALS, readDials } from '@/core/dials'
 import { library } from '@/data/library'
 import { findLibraryFont, fontStack } from '@/core/fonts'
 import { editedTextStyles, resolveTextStyles, TEXT_STYLE_LABEL, TEXT_STYLES } from '@/core/textStyles'
@@ -59,7 +60,7 @@ export const write = {
     return { dials: readDials(resolveGuide(useStore.getState().guide).tokens) }
   },
   set_tone: (i: CommandInput<'set_tone'>) => {
-    useStore.getState().chooseTokens(setTone(resolveGuide(useStore.getState().guide).tokens, i.tone))
+    useStore.getState().setThemeTone(i.tone)
     const tokens = resolveGuide(useStore.getState().guide).tokens
     return { tone: i.tone, colors: Object.fromEntries(Object.entries(tokens).filter(([k]) => k.startsWith('color.'))) }
   },
@@ -87,6 +88,7 @@ export const write = {
   },
   set_brief: (i: CommandInput<'set_brief'>) => {
     const patch: Partial<Brief> = {}
+    if (i.feel !== undefined) patch.feel = i.feel
     if (i.format !== undefined) patch.format = i.format
     if (i.industry !== undefined) patch.industry = i.industry
     if (i.industry_words !== undefined) patch.industryWords = i.industry_words
@@ -99,7 +101,7 @@ export const write = {
     return briefOut()
   },
   set_brand_color: (i: CommandInput<'set_brand_color'>) => {
-    useStore.getState().setBrandColor(i.color)
+    useStore.getState().setBrandColor(i.color, PAIRINGS.find((p) => p.id === i.pairing)?.variant)
     const t = resolveGuide(useStore.getState().guide).tokens
     return { brand: i.color, primary: t['color.primary'], onPrimary: t['color.onPrimary'], text: t['color.text'], bg: t['color.bg'] }
   },
@@ -136,6 +138,7 @@ export function briefOut() {
   const c = useStore.getState().content
   const b = briefOf(c)
   return {
+    feel: b.feel ?? [],
     format: b.format ?? null,
     industry: b.industry ?? null,
     industry_words: b.industryWords ?? null,

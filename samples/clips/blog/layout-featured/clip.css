@@ -124,13 +124,6 @@
     border: var(--mx-stroke) solid var(--mx-color-border);
   }
   & .title { transition: color var(--mx-motion-duration) var(--mx-motion-ease); }
-  & .item .body {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-  }
-
   & a:focus-visible { outline: 2px solid var(--mx-color-text); outline-offset: 3px; }
 
   /* A picture, unfilled: a box with a cross. A skin or a real image takes its place. */

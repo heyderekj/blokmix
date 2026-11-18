@@ -1,3 +1,5 @@
+import { resolveGuide } from '@/core/guide'
+import { toneOfGuide } from '@/core/dials'
 // Jev's commands: each asks first (async prepare), then lands as one undo step (apply).
 
 import type { CommandInput } from '@/core/commands/schema'
@@ -19,6 +21,7 @@ import { findFocus } from '../jevPhotos'
 import { hear, type Heard } from '../jevSay'
 import { applyPour, planPour, setTray, trayFrom, type Poured } from '../jevPour'
 import { buildPage, planPage, type PagePlan } from '../jevPage'
+import { checkLook, rankByEye, restyle } from '../jevThemes'
 import { suggestPalettes } from '../jevColors'
 import { dressPage, dressSection, type DressIdea } from '../jevDress'
 import { noteWants } from '@/lib/jevWants'
@@ -83,6 +86,10 @@ export async function fiveSecondTest(page?: string): Promise<FiveSecond> {
 export const write = {
   set_palette: (i: CommandInput<'set_palette'>) => {
     useStore.getState().chooseTokens(i.colors as Partial<Record<TokenKey, string>>)
+    if (i.brand) {
+      const guide = useStore.getState().guide
+      useStore.setState({ guide: { ...guide, brand: { color: i.brand, variant: i.variant }, mode: i.mode ?? toneOfGuide(resolveGuide(guide).tokens) } })
+    }
     return { colors: i.colors }
   },
   retype_section: (i: CommandInput<'retype_section'>) => {
@@ -98,6 +105,9 @@ export const write = {
 type LayoutsRead = { view: ReturnType<typeof pageSlots>; reads: Awaited<ReturnType<typeof readsAs>> }
 
 export const later = {
+  rank_themes: { prepare: (i:CommandInput<'rank_themes'>) => rankByEye(i.count,i.flavors), apply: (_:unknown, r:Awaited<ReturnType<typeof rankByEye>>) => r },
+  check_look: { prepare: checkLook, apply: (_:unknown, r:Awaited<ReturnType<typeof checkLook>>) => r },
+  restyle: { prepare: (i:CommandInput<'restyle'>) => restyle(i.text), apply: (_:unknown, r:Awaited<ReturnType<typeof restyle>>) => r },
   suggest_layouts_for_words: {
     prepare: async (i: CommandInput<'suggest_layouts_for_words'>): Promise<LayoutsRead> => {
       const view = pageSlots(i.page)
@@ -204,7 +214,7 @@ export const later = {
       if (!r) throw new CommandError('No answer that time; try again.')
       return r
     },
-    apply: (_i: CommandInput<'suggest_palettes'>, r: Ranked[]) => r.map((p, n) => ({ pick: n + 1, colors: p.palette, words: p.words, from: p.from, fit: p.score })),
+    apply: (_i: CommandInput<'suggest_palettes'>, r: Ranked[]) => r.map((p, n) => ({ pick: n + 1, colors: p.palette, brand: p.brand, variant: p.variant, mode: p.mode, words: p.words, from: p.from, fit: p.score })),
   } satisfies AsyncCommand<Ranked[]>,
   suggest_treatments: {
     prepare: async (i: CommandInput<'suggest_treatments'>): Promise<DressIdea[]> => {

@@ -5,9 +5,11 @@ import { ImagePlus, Search, Shuffle, Trash2, Upload, Wand2 } from 'lucide-react'
 import type { BlockInfo, MediaFill, MediaPlay, PlaceholderStyle, Slot, StockPhoto, TokenSet } from '@/core/types'
 import { jevOn } from '@/lib/jev'
 import { findFocus, photoBrief, rankPhotos } from '@/state/jevPhotos'
-import { PLACEHOLDER_STYLES } from '@/core/types'
+import { isSketch, SKETCH_IDS, SKETCH_PHOTO, SKETCH_MODES, MODE_LABEL, type SketchMode } from '@/core/sketchCatalog'
+import { sketchMode } from '@/core/pictureSketch'
+import { isSamplePhoto, SAMPLE_PHOTOS, PLACEHOLDER_STYLES } from '@/core/types'
 import { briefOf, INDUSTRY_PHOTO } from '@/core/brief'
-import { PLACEHOLDER_LABEL, detectLink, embedPoster, parseUnsplash, placeholderSvg, shaderFor, svgDataUri, unsplashSearchUrl } from '@/core/media'
+import { PLACEHOLDER_LABEL, samplePhotoSrc, detectLink, embedPoster, parseUnsplash, placeholderSvg, shaderFor, svgDataUri, unsplashSearchUrl } from '@/core/media'
 import { MOCK_BASE_CSS, SHADERS, SHADER_IDS, isFillId, mockRender, mockSources, treatmentInfo, type ShaderId, type TreatmentValue } from '@/core/treatments'
 import { useShaderThumb } from '@/lib/shaderPosters'
 import { useResolvedGuide } from '@/state/derived'
@@ -33,12 +35,14 @@ const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY as string | undefi
 export function ImageMenu({
   block,
   fill,
+  canReset,
   slot,
   onHover,
   onPick,
 }: {
   block: BlockInfo
   fill?: MediaFill
+  canReset: boolean
   /** The section, so Jev can judge stock photos against its words. */
   slot?: Slot
   onHover: (m: MediaFill | null) => void
@@ -102,9 +106,9 @@ export function ImageMenu({
                 onPick={(v) => set({ fit: v === 'cover' ? undefined : v })}
               />
             </div>
-            <button type="button" onClick={() => onPick(null)} title="Back to the clip’s own art" className="grid size-7 place-items-center rounded-full text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-900">
+            {canReset && <button type="button" onClick={() => onPick(null)} title="Reset picture" className="grid size-7 place-items-center rounded-full text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-900">
               <Trash2 size={13} />
-            </button>
+            </button>}
           </div>
           {(fill.source === 'upload' || fill.source === 'stock') && (fill.fit ?? 'cover') === 'cover' && <KeepInFrame fill={fill} set={set} />}
         </div>
@@ -116,8 +120,12 @@ export function ImageMenu({
 function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill?: MediaFill; onHover: (m: MediaFill | null) => void; onPick: (m: MediaFill) => void }) {
   const tokens = useResolvedGuide().tokens
   const [seed, setSeed] = useState(fill?.source === 'placeholder' || fill?.source === 'shader' ? (fill.seed ?? 1) : 1)
+  const [mode, setMode] = useState<SketchMode>(sketchMode(fill?.params))
+  const selectedMode = isSketch(fill?.style) ? sketchMode(fill?.params) : mode
+  const [photo, setPhoto] = useState(fill?.params?.photo === true)
+  const usePhoto = isSketch(fill?.style) ? fill?.params?.photo === true : photo
   const styles = useMemo(() => {
-    const simple = PLACEHOLDER_STYLES.filter((s) => !isFillId(s))
+    const simple = PLACEHOLDER_STYLES.filter((s) => !isFillId(s) && !isSamplePhoto(s) && !isSketch(s))
     // Portraits first for avatars and people; scenes first elsewhere.
     const people = /avatar|portrait|photo|member/i.test(block.media ?? '') || block.ratio === '1/1'
     return { simple: people ? (['portrait', ...simple.filter((s) => s !== 'portrait')] as PlaceholderStyle[]) : simple, generative: PLACEHOLDER_STYLES.filter(isFillId) as PlaceholderStyle[] }
@@ -126,7 +134,7 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
     source: 'placeholder',
     style,
     seed,
-    params: fill?.source === 'placeholder' && fill.style === style ? fill.params : undefined,
+    params: isSketch(style) ? { mode: selectedMode, ...(SKETCH_PHOTO[style] && usePhoto ? { photo: true } : {}) } : fill?.source === 'placeholder' && fill.style === style ? fill.params : undefined,
     alt: fill?.source === 'placeholder' ? fill.alt : undefined,
     fit: fill?.fit,
   })
@@ -148,7 +156,7 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
       <button key={style} type="button" onMouseEnter={() => onHover(make(style))} onClick={() => onPick(make(style))} className="group flex flex-col gap-1 text-left active:scale-[0.97]">
         <img
           alt=""
-          src={svgDataUri(placeholderSvg(style, seed, tokens, '4/3', on ? fill?.params : undefined))}
+          src={isSamplePhoto(style) ? samplePhotoSrc[style] : svgDataUri(placeholderSvg(style, seed, tokens, '4/3', make(style).params))}
           className={`aspect-[4/3] w-full rounded-lg object-cover transition ${on ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/10 group-hover:ring-zinc-950/30'}`}
         />
         <span className={`truncate px-0.5 text-[11px] ${on ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-600'}`}>{PLACEHOLDER_LABEL[style]}</span>
@@ -157,6 +165,31 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
   }
   return (
     <div>
+      <div className="mb-1.5 px-0.5 text-[11px] font-semibold text-zinc-500">Subject sketches</div>
+      <div className="mb-2 flex rounded-lg bg-chip p-0.5" role="group" aria-label="Sketch treatment">
+        {SKETCH_MODES.map((v) => <button type="button" key={v} aria-pressed={v === selectedMode}
+          className={`h-7 flex-1 rounded-md text-xs font-medium ${v === selectedMode ? 'bg-white shadow-sm' : 'text-zinc-600'}`}
+          onClick={() => {
+            setMode(v)
+            if (fill?.source === 'placeholder' && isSketch(fill.style)) onPick({ ...fill, params: { ...fill.params, mode: v } })
+          }}>{MODE_LABEL[v]}</button>)}
+      </div>
+      <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>{SKETCH_IDS.map(tile)}</div>
+      {selectedMode !== 'ui' && fill?.source === 'placeholder' && isSketch(fill.style) && SKETCH_PHOTO[fill.style] && (
+        <div className="mt-2 flex items-center justify-between px-1 text-xs">
+          Use sample photograph
+          <Switch label="Use sample photograph" on={usePhoto} onChange={() => {
+            setPhoto(!usePhoto)
+            onPick({ ...fill, params: { ...fill.params, photo: !usePhoto } })
+          }} />
+        </div>
+      )}
+      <details className="mt-2" open={isSamplePhoto(fill?.style) || undefined}>
+        <summary className="cursor-pointer px-0.5 py-1.5 text-xs font-semibold text-zinc-600">Sample photos</summary>
+      <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>{SAMPLE_PHOTOS.map((style) => tile(style))}</div>
+      </details>
+      <details className="mt-1" open={(!!fill && (fill.source === 'shader' || (fill.source === 'placeholder' && !isSketch(fill.style) && !isSamplePhoto(fill.style)))) || undefined}>
+        <summary className="cursor-pointer px-0.5 py-1.5 text-xs font-semibold text-zinc-600">Illustrations and patterns</summary>
       <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => onHover(null)}>
         {styles.simple.map(tile)}
       </div>
@@ -170,6 +203,7 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
           <ShaderTile key={id} id={id} fill={live(id)} on={fill?.source === 'shader' && fill.shader === id} tokens={tokens} onHover={onHover} onPick={onPick} />
         ))}
       </div>
+      </details>
       {current && info ? (
         <div className="mt-2.5 rounded-xl bg-white/60 p-2.5 shadow-[0_0_0_1px_rgb(0_0_0/0.05)]">
           <DialPanel
@@ -183,7 +217,7 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
             }}
           />
         </div>
-      ) : (
+      ) : fill?.source !== 'placeholder' || isSamplePhoto(fill.style) || isSketch(fill.style) ? null : (
         <button
           type="button"
           onClick={() => {
@@ -196,7 +230,7 @@ function Placeholders({ block, fill, onHover, onPick }: { block: BlockInfo; fill
           <Shuffle size={12} /> Shuffle
         </button>
       )}
-      <p className="px-1 pt-1 text-[11px] leading-snug text-zinc-400">Drawn from your palette, so they change with your style guide.</p>
+      <p className="px-1 pt-1 text-[11px] leading-snug text-zinc-400">Illustrations and moving patterns follow your palette.</p>
     </div>
   )
 }

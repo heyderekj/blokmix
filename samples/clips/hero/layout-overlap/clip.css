@@ -8,7 +8,7 @@
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-3xl), 4.6vw, var(--mx-text-5xl));
+    font-size: clamp(min(var(--mx-text-2xl), 1.625rem), 3.75cqi, min(var(--mx-text-5xl), 3.375rem));
     line-height: 1.04;
     letter-spacing: -0.03em;
   }
@@ -91,7 +91,7 @@
     & .shot, & .panel { grid-column: 1; grid-row: auto; }
     & .shot { margin: 0; }
     & .panel { margin: calc(var(--mx-space-8) * -1) var(--mx-space-2) 0; padding: var(--mx-space-6) var(--mx-space-5); }
-    & .heading { font-size: clamp(var(--mx-text-2xl), 9vw, var(--mx-text-4xl)); }
+    & .heading { font-size: clamp(min(var(--mx-text-xl), 1.5rem), 7.5cqi, min(var(--mx-text-4xl), 2.375rem)); }
     & .lead { font-size: var(--mx-text-base); }
     & .actions { flex-direction: column; align-items: stretch; align-self: stretch; justify-self: stretch; }
   }

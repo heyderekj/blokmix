@@ -26,10 +26,10 @@ describe('scorePage', () => {
     expect(s.checks.find((c) => c.id === 'no-spill')).toMatchObject({ ok: false, words: 'Something spills off the side at 360px' })
   })
 
-  it('flags a tall nav and a long headline', () => {
+  it('flags a tall nav and reports a long headline without penalizing its line count', () => {
     const s = scorePage({ 1280: laptop({ navBottom: 240 }), 390: phone({ headline: { top: 100, bottom: 600, lines: 7 } }) })
     expect(s.checks.find((c) => c.id === 'nav-laptop')?.ok).toBe(false)
-    expect(s.checks.find((c) => c.id === 'headline-lines')?.words).toMatch(/7 lines/)
+    expect(s.checks.find((c) => c.id === 'headline-lines')).toMatchObject({ ok: true, weight: 0, words: expect.stringContaining('7 lines') })
   })
 
   it('scores nothing without measurements', () => {

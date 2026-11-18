@@ -405,7 +405,7 @@ export interface BackdropReading {
 export function readBackdrop(v: TreatmentValue, tokens: TokenSet): BackdropReading {
   const start = clampParams(backdropParams(v.id as BackdropId), v.params).strength as number | undefined
   const inks = [tokens['color.text'], tokens['color.bg']]
-  const plain = [...inks, '#ffffff', '#111111']
+  const plain = [...inks, '#ffffff', '#000000']
   let strength = start ?? 100
   for (let i = 0; ; i++) {
     const behind = colorsBehind({ ...v, params: { ...v.params, strength } }, tokens, strength)

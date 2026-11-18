@@ -1,0 +1,160 @@
+{
+  "name": "Mixtape",
+  "words": "Tomato red, chunky lettering and offset cards give a shop a lively face.",
+  "mode": "light",
+  "feel": [
+    "playful",
+    "warm"
+  ],
+  "tokens": {
+    "icon.set": "tabler:bold",
+    "color.bg": "#ffffff",
+    "color.surface": "#f2f2ee",
+    "color.text": "#000000",
+    "color.muted": "#555555",
+    "color.border": "#000000",
+    "color.primary": "#89301f",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#605422",
+    "font.display": "'Bricolage Grotesque', sans-serif",
+    "font.body": "'Figtree', sans-serif",
+    "font.mono": "'Space Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "800",
+    "radius.base": "14px",
+    "stroke.width": "2px",
+    "shadow.card": "6px 6px 0 #000000",
+    "space.base": "4px",
+    "space.section": "88px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1240px",
+    "space.text": "660px"
+  },
+  "effects": {
+    "grain": {
+      "id": "grain",
+      "params": {
+        "amount": 36,
+        "size": 1.8,
+        "color": "primary"
+      }
+    },
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 6,
+        "softness": 0,
+        "layers": 1,
+        "opacity": 60,
+        "tighten": 0,
+        "angle": 135,
+        "tint": "primary"
+      }
+    },
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "stops": [
+          "accent",
+          "primary"
+        ],
+        "angle": 90,
+        "smooth": false
+      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 700,
+      "tracking": 0.04,
+      "size": "sm"
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "square"
+    },
+    "card": {
+      "variant": "offset"
+    },
+    "button": {
+      "variant": "caps",
+      "secondary": {
+        "variant": "outline"
+      }
+    },
+    "heading": {
+      "variant": "caps"
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "underline"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "dots",
+        "params": {
+          "strength": 8
+        }
+      }
+    },
+    "testimonials": {
+      "surface": "inverse"
+    },
+    "nav": {
+      "surface": "brand"
+    },
+    "features": {
+      "surface": "soft"
+    },
+    "cta": {
+      "surface": "inverse"
+    }
+  },
+  "picture": {
+    "style": "shapes",
+    "subjects": [
+      "pottery-shelf",
+      "ceramics",
+      "bread-counter",
+      "cards"
+    ],
+    "mode": "combined"
+  },
+  "industries": [
+    "food",
+    "ecommerce"
+  ],
+  "formats": [
+    "business"
+  ],
+  "flavors": [
+    {
+      "id": "market-day",
+      "name": "Mixtape · Market Day",
+      "industry": "ecommerce",
+      "parts": {
+        "sections": "flyer"
+      }
+    }
+  ]
+}

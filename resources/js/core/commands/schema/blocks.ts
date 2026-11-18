@@ -88,7 +88,7 @@ export const BLOCK_COMMANDS = {
       shader: z.enum(SHADER_IDS).optional().describe('A live WebGL shader instead of a placeholder (list_treatments surface "fill" lists its dials and presets)'),
       preset: z.string().optional().describe('Shaders: a preset id from list_treatments; params given alongside override it'),
       seed: z.number().int().optional().describe('Another seed draws a different version of the same style'),
-      params: z.record(z.string(), z.any()).optional().describe('Generative placeholders and shaders: dials by name (list_treatments); colors are palette roles or hex'),
+      params: z.record(z.string(), z.any()).optional().describe('Subject sketches take mode (image, ui, combined) and a photo toggle for subjects with a sample photograph. Generative placeholders and shaders take dials by name (list_treatments); colors are palette roles or hex'),
       alt: z.string().optional(),
       fit: z.enum(['cover', 'contain']).optional(),
       focus: z

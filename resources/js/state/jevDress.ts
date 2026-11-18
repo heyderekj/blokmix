@@ -4,7 +4,7 @@
 
 import { treatmentList, lookList, MOCK_IDS, mockSource } from '@/core/treatments'
 import { backdropShaderId } from '@/core/treatments/backdrops'
-import { skinById } from '@/core/skins'
+import { refId, skinById } from '@/core/skins'
 import { toneOfGuide } from '@/core/dials'
 import { resolveGuide } from '@/core/guide'
 import { backdropCandidates, dressRequest, readDress, type DressBrief, type Dressed } from '@/core/jev/dress'
@@ -37,7 +37,7 @@ export async function dressSection(slotId: string, feel?: string): Promise<{ ide
   const liveElsewhere = slots.some((s) => s.id !== slot.id && !!backdropShaderId(s.backdrop))
   const cands = backdropCandidates(treatmentList(), liveElsewhere)
   const empty = clip.blocks.find((b) => b.kind === 'image' && !slot.edits?.[slot.clipId]?.[b.id]?.media && !(b.media ?? '').startsWith('logo'))
-  const skin = st.guide.skin?.id ? skinById(st.guide.skin.id) : null
+  const skin = st.guide.skin?.id ? skinById(refId(st.guide.skin)!) : null
   const brief: DressBrief = {
     type: slot.type,
     words: text,

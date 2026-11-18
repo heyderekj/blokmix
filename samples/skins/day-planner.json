@@ -1,0 +1,110 @@
+{
+  "name": "Day Planner",
+  "words": "Cobalt type, lilac paper and compact program cards for a day of events.",
+  "mode": "light",
+  "feel": [
+    "modern",
+    "playful"
+  ],
+  "tokens": {
+    "icon.set": "material:bold",
+    "color.bg": "#f6f3ff",
+    "color.surface": "#e7dfff",
+    "color.text": "#22234a",
+    "color.muted": "#575579",
+    "color.border": "#aaa1cb",
+    "color.primary": "#323fa7",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#6b43dd",
+    "font.display": "'Big Shoulders Display', sans-serif",
+    "font.body": "'Inter', sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "800",
+    "radius.base": "5px",
+    "stroke.width": "1px",
+    "shadow.card": "0 2px 0 #c9bfeb",
+    "space.base": "4px",
+    "space.section": "72px",
+    "motion.duration": "272ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1280px",
+    "space.text": "640px"
+  },
+  "textStyles": {
+    "label": {
+      "weight": 700,
+      "tracking": 0.01,
+      "upper": false
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
+    }
+  },
+  "industries": [
+    "events",
+    "education"
+  ],
+  "components": {
+    "badge": {
+      "variant": "square"
+    },
+    "card": {
+      "variant": "tinted"
+    },
+    "icon": {
+      "variant": "tinted"
+    },
+    "button": {
+      "variant": "caps",
+      "secondary": {
+        "variant": "outline"
+      }
+    },
+    "input": {
+      "variant": "filled"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "grid",
+        "params": {
+          "gap": 50,
+          "strength": 8
+        }
+      }
+    },
+    "stats": {
+      "surface": "brand"
+    },
+    "features": {
+      "surface": "soft"
+    },
+    "cta": {
+      "surface": "inverse"
+    }
+  },
+  "picture": {
+    "style": "blocks",
+    "subjects": [
+      "day-ticket",
+      "calendar",
+      "print-edition",
+      "form"
+    ],
+    "mode": "ui",
+    "mockParams": {
+      "chrome": "none",
+      "tint": true,
+      "shadow": false
+    }
+  }
+}

@@ -86,7 +86,10 @@ export function setTone(t: TokenSet, tone: Tone): Partial<Record<TokenKey, strin
   // A brand primary that would vanish on the new background is lifted toward the text color until it stands out.
   let primary = followsText ? text : t['color.primary']
   for (let i = 0; i < 8 && (contrastRatio(primary, bg) ?? 99) < 3; i++) primary = mixHex(primary, text, 0.15)
-  const onPrimary = (contrastRatio(bg, primary) ?? 0) >= (contrastRatio(text, primary) ?? 0) ? bg : text
+  let onPrimary = (contrastRatio(bg, primary) ?? 0) >= (contrastRatio(text, primary) ?? 0) ? bg : text
+  if ((contrastRatio(onPrimary, primary) ?? 0) < 4.5) {
+    onPrimary = (contrastRatio('#000000', primary) ?? 0) > (contrastRatio('#ffffff', primary) ?? 0) ? '#000000' : '#ffffff'
+  }
   return {
     'color.bg': bg,
     'color.text': text,

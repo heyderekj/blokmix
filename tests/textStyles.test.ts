@@ -59,6 +59,11 @@ describe('text styles', () => {
     const guide = { ...emptyGuide(), textStyles: { display: { tracking: -0.05 } } }
     const page = composePage({ slots: [slot], guide: resolveGuide(guide), content: DEFAULT_CONTENT, library, page: guide })
     expect(page.sections[0].css).toContain('letter-spacing: -0.05em;')
+    const auto = blockCss({ blocks: hero.blocks, edits: undefined, layout: true, textStyles: guide.textStyles, select })
+    expect(auto).toContain('letter-spacing: -0.05em;')
+    expect(auto).not.toContain('font-size:')
+    const explicit = blockCss({ blocks: hero.blocks, edits: { [headline.id]: { style: { text: 'display' } } }, layout: true, textStyles: guide.textStyles, select })
+    expect(explicit).toContain('font-size: var(--mx-text-6xl);')
   })
 
   it('commands: edit a style, pick one for a block, size a block', () => {

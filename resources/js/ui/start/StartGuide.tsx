@@ -1,3 +1,4 @@
+import { Dropdown } from '@/ui/controls/Dropdown'
 import { ColorButton } from '@/ui/color/ColorPicker'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowRight, Check, FileText, Moon, Plus, Shuffle, Sun, Upload, X } from 'lucide-react'
@@ -5,12 +6,16 @@ import { create } from 'zustand'
 import type { GuideState, SectionType } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { startCandidates, type StartCandidate, type StartInput } from '@/core/start'
-import { FEEL_WORDS, themesFor, type FeelWord } from '@/core/feel'
-import { skinById, skinList, WIREFRAME, type Skin } from '@/core/skins'
+import { FEEL_WORDS, type FeelWord } from '@/core/feel'
+import { skinById, WIREFRAME } from '@/core/skins'
 import { actionChoices, FORMAT_LABEL, FORMATS, GOAL_LABEL, GOALS, INDUSTRIES, INDUSTRY_LABEL, patchBrief, type Brief, type Goal } from '@/core/brief'
 import { OPTIONAL, placeSection, textMode } from '@/core/jev/describe'
 import { answer, answersFromSentence, briefFrom, emptyAnswers, heardFromSentence, feelFrom, folded, kindFrom, nextQuestion, QUESTIONS, reopen, sectionsFrom, skipToPages, type Answers, type Question } from '@/core/startFlow'
-import { paletteFrom, type Palette as Colors } from '@/core/palette'
+import { suggestedIndex } from '@/core/jev/themes'
+import { scoreLooks } from '@/state/jevThemes'
+import { rankThemes } from '@/core/themeRanking'
+import { emptyGuide } from '@/core/guide'
+import type { PaletteVariant } from '@/core/palette'
 import type { Starter } from '@/core/starters'
 import { library, starters } from '@/data/library'
 import { askJev, askLatest, jevOn } from '@/lib/jev'
@@ -21,7 +26,7 @@ import { scoredStarts, type ScoredStart } from '@/lib/start'
 import { guessHeard, hearStart, startsFromText, wordsCandidates, type Heard } from '@/lib/startFromText'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
 import { GuideOption, StarterOption, useDisplayFonts, type GuideChoice } from './StartFrom'
-import { Carousel, HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, firstPage, sectionWords, useSkinFonts } from './parts'
+import { Carousel, HOVER, INK, PINK, PRESS, PRIMARY, QUIET, SkinCard, StartCard, StartOutline, firstPage, startHeroTitle, sectionWords } from './parts'
 
 /** Whether the guided start is showing over the board (the browser-only mix opens on it the first time). */
 export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
@@ -37,7 +42,7 @@ const FIXED: SectionType[] = ['nav', 'hero', 'footer']
 /**
  * New mix, a question at a time. What it's called, what it is (a sentence, or the words you already have), then what
  * was read from that, to confirm: the kind of site and its industry, what it should do, the main button, the sections
- * and the look. Each answer shows at once in the page on the right; anything the first sentence already settled folds
+ * and the look. The sidebar shows a neutral outline until the look step; anything the first sentence already settled folds
  * away, and "Skip, show me pages" takes every suggestion. Last come three ways to lay it out: the one you open is the
  * mix, the other two come along. Jev only ranks the answers on offer; nothing here is written for you.
  */
@@ -59,13 +64,13 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const [jev, setJev] = useState(false)
   const [skin, setSkin] = useState<string | null>(null)
   const [brand, setBrand] = useState<string | null>(null)
-  const [palette, setPalette] = useState<Colors | null>(null)
+  const [variant, setVariant] = useState<PaletteVariant>()
   const [mode, setMode] = useState<'light' | 'dark' | undefined>(undefined)
   const [fixed, setFixed] = useState<{ name: string; guide?: GuideState } | null>(null)
   const [seed, setSeed] = useState(0)
   const [starts, setStarts] = useState<ScoredStart[] | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
-  useSkinFonts()
+
   useDisplayFonts(guides ?? null)
 
   useEffect(() => {
@@ -94,32 +99,41 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   const sections = sectionsFrom(va, vh)
   const feel = feelFrom(va, vh)
   const name = va.name.trim() || 'Your site'
-  const open = useMemo(() => skinList().filter((x) => x.id !== WIREFRAME), [])
-  // The look on show: yours, else the best fit (the read's, then the feel's), never the grey sketch.
-  const themes = useMemo(() => {
-    const read = (vh?.looks ?? []).flatMap((id) => open.filter((x) => x.id === id))
-    return [...new Set([...read, ...themesFor(feel, open, { count: 3 })])].slice(0, 3)
-  }, [vh?.looks, feel, open])
-  // "Show me different ones": themes that match none of the feel words (topped up when too few do).
   const [other, setOther] = useState(false)
-  const shownThemes = useMemo(() => {
-    if (!other) return themes
-    const away = themesFor(feel, open, { different: true, count: 6 })
-    return [...new Set([...away, ...open])].filter((x) => !themes.includes(x)).slice(0, 3)
-  }, [other, themes, feel, open])
+  const rankingKey = JSON.stringify([brief, brand, variant, mode, other, name, skin])
+  const shown = useMemo(() => {
+    const guide = { ...emptyGuide(), mode, ...(brand ? { brand: { color: brand, variant } } : {}) }
+    const best = rankThemes({ brief, guide })
+    const ranked = other ? rankThemes({ brief, guide, different: true, exclude: best.map((r) => r.skin.id) }) : best
+    const selected = skin && skinById(skin)
+    if (!selected || ranked.some((r) => r.skin.id === skin)) return ranked
+    return [...ranked.slice(0,2), ...rankThemes({brief,guide,pool:[selected],count:1})]
+  }, [rankingKey, skin])
+  const [visualPick, setVisualPick] = useState<{ key:string; id:string } | null>(null)
+  useEffect(() => {
+    const ctrl = new AbortController()
+    if (q === 'look' && jev && !other) scoreLooks(shown.map((r) => r.guide), JSON.stringify(brief), name, undefined, ctrl.signal).then((scores) => {
+      const i = suggestedIndex(scores)
+      if (!ctrl.signal.aborted && i >= 0) setVisualPick({key:rankingKey, id:shown[i].skin.id})
+    })
+    return () => ctrl.abort()
+  }, [shown, q, jev, name])
+  const shownThemes = shown.map((r) => r.skin)
   const theme = skin ?? shownThemes[0]?.id ?? WIREFRAME
   const paste = heard?.mode === 'paste' && !!heard.plan
   /** The feeling the sentence gave, in your words ("cozy"), for the look step's lead. */
   const said = paste ? '' : listWords((picks.feel ?? []).map((p) => p.words.trim()).filter(Boolean))
-  const input: StartInput = { kind, name, seed, skin: theme, brand, palette, mode, brief, ...(paste ? {} : { sections }) }
+  const input: StartInput = { kind, name, seed, skin: theme, brand, variant, mode, brief, ...(paste ? {} : { sections }) }
   const key = JSON.stringify({ input, fixed: fixed?.name })
 
-  // The page on the right: the first start for the answers so far, drawn at once (measuring waits for the end).
-  const preview = useMemo<StartCandidate | null>(() => {
-    const c = paste && heard?.plan ? wordsCandidates(input, heard.plan)[0] : startCandidates(input, library, 1)[0]
-    return c && fixed ? { ...c, guide: fixed.guide ?? c.guide } : (c ?? null)
+  // Real page previews are only needed while comparing themes. The questions render a neutral outline.
+  const [previewHero, setPreviewHero] = useState(0)
+  const previews = useMemo<StartCandidate[]>(() => {
+    if (q !== 'look') return []
+    return paste && heard?.plan ? wordsCandidates(input, heard.plan) : startCandidates(input, library)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, heard])
+  }, [key, heard, q])
+  const preview = previews[previewHero] ?? previews[0]
 
   // The three ways to lay it out, measured, once every question is answered.
   useEffect(() => {
@@ -202,11 +216,14 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
     goals: [...(brief.goals ?? []).map((g) => GOAL_LABEL[g]), ...(brief.goalsOther ? [brief.goalsOther] : [])].join(', ') || 'Skipped',
     action: brief.mainAction ?? 'Skipped',
     sections: paste && !a.sections ? 'Your words decide the sections' : cap(sectionWords(sections, 6)),
-    look: fixed ? fixed.name : `${skinById(theme)?.name ?? 'A theme'}${brand || palette ? ', your colors' : ''}`,
+    look: fixed ? fixed.name : `${skinById(theme)?.name ?? 'A theme'}${brand ? ', your colors' : ''}`,
   }
 
   const answered = QUESTIONS.filter((x) => x !== 'drafts' && x !== q && (a.done.includes(x) || skip[x] || (x === 'name' && a.name.trim())))
   const wide = q === 'drafts'
+  const answerRows = answered.map((x) => (
+    <Answered key={x} label={LABEL[x]} value={skip[x] && !a.done.includes(x) ? skip[x]! : (summary[x] ?? '')} onChange={() => setA((y) => reopen(y, x))} />
+  ))
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#17121A]/30 p-3 backdrop-blur-[2px] sm:p-6" onClick={onClose}>
@@ -235,13 +252,20 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
 
         <div className="flex min-h-0 flex-1">
           <main className={`min-h-0 overflow-y-auto px-5 py-6 sm:px-7 ${wide ? 'flex-1' : 'w-full lg:w-[540px] lg:shrink-0'}`}>
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
-              {answered.map((x) => (
-                <Answered key={x} label={LABEL[x]} value={skip[x] && !a.done.includes(x) ? skip[x]! : (summary[x] ?? '')} onChange={() => setA((y) => reopen(y, x))} />
-              ))}
-            </div>
+            {wide && answered.length ? (
+              <details className="mb-4 rounded-xl border border-zinc-950/[0.06] bg-white">
+                <summary className="cursor-pointer px-3 py-2 text-[13px] font-medium text-[#6B5F68]">Site details</summary>
+                <div className="grid gap-2 px-2 pb-2">
+                  {answerRows}
+                </div>
+              </details>
+            ) : (
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
+                {answerRows}
+              </div>
+            )}
 
-            <div ref={asking} className={answered.length ? 'mt-5' : ''}>
+            <div ref={asking} className={answered.length && !wide ? 'mt-5' : ''}>
               {(q === 'name' || q === 'what') && (
                 <Ask
                   title="What are you making?"
@@ -316,7 +340,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
               )}
 
               {q === 'look' && preview && (
-                <Ask title="Pick a look" lead={other ? 'Three in another direction. You can change any of it later.' : said ? `Three themes that feel ${said}. You can change any of it later.` : 'Three themes to start from. You can change any of it later.'} onNext={() => go('look', { feel })}>
+                <Ask title="Pick a look" lead={other ? 'Try a different direction.' : said ? `Themes that feel ${said}.` : 'Choose a theme for your page.'} onNext={() => go('look')}>
                   {!said && (
                     <Chips label="How should it feel?">
                       {FEEL_WORDS.map((w) => {
@@ -329,9 +353,21 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                       })}
                     </Chips>
                   )}
+                  {previews.length > 1 && (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-medium text-[#6B5F68]">
+                      <span>Preview hero</span>
+                      <Dropdown
+                        label="Preview hero"
+                        value={String(previews[previewHero] ? previewHero : 0)}
+                        options={previews.map((p, i) => ({ v: String(i), label: startHeroTitle(p) ?? p.label }))}
+                        onChange={(next) => setPreviewHero(Number(next))}
+                        className="max-w-full"
+                      />
+                    </div>
+                  )}
                   <Carousel label="Themes">
-                    {shownThemes.map((x: Skin) => (
-                      <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} brand={brand} palette={x.id === theme ? palette : null} mode={x.id === theme ? mode : undefined} jevPick={!other && !!vh?.looks.includes(x.id)} onPick={() => (setSkin(x.id), setMode(undefined))} />
+                    {shown.map(({ skin: x, guide, reason }) => (
+                      <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} guide={guide} reason={reason} jevPick={jev && visualPick?.key === rankingKey && visualPick.id === x.id} onPick={() => setSkin(x.id)} />
                     ))}
                   </Carousel>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
@@ -342,8 +378,8 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                     <span className="flex items-center rounded-full bg-white p-1 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">
                       <ColorButton
                         value={brand ?? skinById(theme)?.tokens['color.primary'] ?? '#404040'}
-                        live={(h, v) => (setBrand(h), setPalette(v ? paletteFrom(h, mode ?? skinById(theme)?.mode ?? 'light', v) : null))}
-                        onPick={(h, v) => (setBrand(h), setPalette(v ? paletteFrom(h, mode ?? skinById(theme)?.mode ?? 'light', v) : null))}
+                        live={(h, v) => (setBrand(h), setVariant(v))}
+                        onPick={(h, v) => (setBrand(h), setVariant(v))}
                         palette={mode ?? skinById(theme)?.mode ?? 'light'}
                         title="Brand color"
                         className={`flex h-8 items-center gap-2 rounded-full pl-1 pr-3 text-[13px] font-medium text-[#6B5F68] ${PRESS}`}
@@ -351,8 +387,8 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                         <span className="size-6 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: brand ?? skinById(theme)?.tokens['color.primary'] ?? '#404040' }} />
                         {brand ? <span className="font-mono text-[12px] uppercase">{brand}</span> : 'Brand color'}
                       </ColorButton>
-                      {(brand || palette) && (
-                        <button type="button" onClick={() => (setBrand(null), setPalette(null))} aria-label="Use the theme’s own colors" title="Use the theme’s own colors" className={`grid size-8 place-items-center rounded-full text-[#6B5F68] hover:text-[#17121A] ${PRESS}`}>
+                      {(brand) && (
+                        <button type="button" onClick={() => (setBrand(null), setVariant(undefined))} aria-label="Use the theme’s own colors" title="Use the theme’s own colors" className={`grid size-8 place-items-center rounded-full text-[#6B5F68] hover:text-[#17121A] ${PRESS}`}>
                           <X size={14} />
                         </button>
                       )}
@@ -361,7 +397,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                         {(['light', 'dark'] as const).map((m) => {
                           const on = (mode ?? skinById(theme)?.mode ?? 'light') === m
                           return (
-                            <button key={m} type="button" role="radio" aria-checked={on} aria-label={m === 'light' ? 'Light' : 'Dark'} title={m === 'light' ? 'Light' : 'Dark'} onClick={() => (setMode(m), setPalette(null))} className={`grid size-8 place-items-center rounded-full ${PRESS} ${on ? 'bg-[#17121A] text-white' : 'text-[#6B5F68]'}`}>
+                            <button key={m} type="button" role="radio" aria-checked={on} aria-label={m === 'light' ? 'Light' : 'Dark'} title={m === 'light' ? 'Light' : 'Dark'} onClick={() => setMode(m)} className={`grid size-8 place-items-center rounded-full ${PRESS} ${on ? 'bg-[#17121A] text-white' : 'text-[#6B5F68]'}`}>
                               {m === 'light' ? <Sun size={14} /> : <Moon size={14} />}
                             </button>
                           )
@@ -402,14 +438,23 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
 
           {!wide && (
             <aside className="hidden min-w-0 flex-1 border-l border-zinc-950/[0.06] p-6 lg:block" style={{ backgroundImage: 'radial-gradient(#E4D9DF 1.1px, transparent 1.2px)', backgroundSize: '22px 22px' }}>
-              <div className="sticky top-0 overflow-hidden rounded-[16px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_24px_48px_-28px_rgb(23_18_26/0.35)]">
-                {preview ? (
-                  <SkinPreview site={preview.site} guide={fixed?.guide ?? preview.guide} content={preview.content} title="Your page so far" height={620} peek />
-                ) : (
-                  <div className="grid h-[620px] place-items-center text-[13.5px] text-[#6B5F68]">Your page shows here as you fill in the blanks.</div>
-                )}
-              </div>
-              <p className="mt-3 text-center text-[12.5px] text-[#6B5F68]">{hearing ? 'Reading what you wrote…' : 'Your page so far. Hover to scroll it.'}</p>
+              {preview ? (
+                <>
+                  <div className="group sticky top-0 overflow-hidden rounded-[16px] bg-white shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_24px_48px_-28px_rgb(23_18_26/0.35)]">
+                    <SkinPreview site={preview.site} guide={preview.guide} content={preview.content} title="Theme preview" height={620} peek />
+                  </div>
+                  <p className="mt-3 text-center text-[12.5px] text-[#6B5F68]">Theme preview. Hover to see more.</p>
+                </>
+              ) : (
+                <StartOutline
+                  name={va.name.trim()}
+                  action={va.brief.mainAction}
+                  sections={a.sections && (q === 'sections' || !picks.show?.length)
+                    ? a.sections.filter((type) => !FIXED.includes(type)).map((type) => TYPE_LABEL[type])
+                    : (picks.show ?? []).map((pick) => pick.words.trim()).filter(Boolean)}
+                />
+              )}
+              {hearing && <p role="status" className="mt-3 text-center text-[12.5px] text-[#6B5F68]">Reading what you wrote…</p>}
             </aside>
           )}
         </div>

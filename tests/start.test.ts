@@ -1,3 +1,4 @@
+import { heroFamily } from '@/core/heroLayouts'
 import { describe, expect, it } from 'vitest'
 import { library } from '@/data/library'
 import { checkStarters, contentFor, guideFor, RECIPES, startCandidates, startersFor } from '@/core/start'
@@ -71,6 +72,8 @@ describe('guided start', () => {
         expect(starts.length, `${kind}/${seed}`).toBe(3)
         const sigs = new Set(starts.map((s) => allSlots(s.site).map((x) => x.clipId).join(',')))
         expect(sigs.size, `${kind}/${seed}`).toBe(3)
+        const heroes = starts.map((start) => start.site.pages[0].slots.find((s) => s.type === 'hero')!.clipId)
+        expect(new Set(heroes.map((id) => heroFamily(id, library))).size, `${kind}/${seed} hero compositions`).toBe(3)
         for (const s of starts) {
           for (const slot of allSlots(s.site)) expect(library.clips[slot.clipId], slot.clipId).toBeTruthy()
           expect(s.site.shared.nav).toBeTruthy()

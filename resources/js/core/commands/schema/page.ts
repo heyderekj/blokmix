@@ -1,3 +1,5 @@
+import { FEEL_WORDS } from '../../feel'
+import { PAIRINGS } from '../../colorPairs'
 import { z } from 'zod'
 import { DIAL_NAMES } from '../../dials'
 import { FORMATS, GOALS, INDUSTRIES } from '../../brief'
@@ -161,6 +163,7 @@ export const PAGE_COMMANDS = {
     input: z.object({
       format: z.enum(FORMATS).optional(),
       industry: z.enum(INDUSTRIES).optional(),
+      feel: z.array(z.enum(FEEL_WORDS)).optional(),
       industry_words: z.string().max(80).optional().describe('The industry as the owner put it, when more specific than the list'),
       goals: z.array(z.enum(GOALS)).max(4).optional(),
       goals_other: z.string().max(120).optional(),
@@ -173,7 +176,7 @@ export const PAGE_COMMANDS = {
   set_brand_color: {
     description:
       'Set the brand color: a whole readable palette is made from it (text, muted, borders, buttons and the text on them all pass AA), and trying another skin keeps it unless the contract sets color to Surprise. null forgets it (the colors stay as they are).',
-    input: z.object({ color: z.string().regex(/^#[0-9a-f]{3,8}$/i).nullable() }),
+    input: z.object({ color: z.string().regex(/^#[0-9a-f]{3,8}$/i).nullable(), pairing: z.enum(PAIRINGS.map((p) => p.id)).optional() }),
     write: true,
   },
   set_logo: {

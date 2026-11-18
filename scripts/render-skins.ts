@@ -9,7 +9,7 @@ import { DEFAULT_KEEP, type Slot } from '../resources/js/core/types'
 import { DEFAULT_CONTENT } from '../resources/js/core/content'
 import { composeSite } from '../resources/js/core/compose'
 import { emptyGuide, resolveGuide } from '../resources/js/core/guide'
-import { applySkin, skinById, skinList } from '../resources/js/core/skins'
+import { applySkin, skinById, skinList, themeList } from '../resources/js/core/skins'
 import { siteFromSlots } from '../resources/js/core/site'
 import { referenceHtml } from '../resources/js/core/export/reference-html'
 import { library } from '../resources/js/data/library'
@@ -30,7 +30,7 @@ const starter = JSON.parse(readFileSync(join('samples/starters', starterFile), '
 const clipIds = starter.pages[0].sections
 for (const id of clipIds) if (!library.clips[id]) throw new Error(`No clip "${id}"`)
 
-const skins = wanted ? wanted.split(',').map((id) => skinById(id) ?? (() => { throw new Error(`No skin "${id}"`) })()) : skinList()
+const skins = wanted ? wanted.split(',').map((id) => skinById(id) ?? (() => { throw new Error(`No skin "${id}"`) })()) : args.includes('--flavors') ? themeList() : skinList()
 
 const browser = await launchBrowser()
 if (!browser) throw new Error('No Chrome or Chromium found for playwright-core')
@@ -50,7 +50,7 @@ for (const skin of skins) {
     await tab.addStyleTag({ content: '*, *::before, *::after { animation-timeline: auto !important; animation-range: normal !important; }' })
     await tab.waitForTimeout(1600)
     const overflow = await tab.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
-    const file = join(out, `${skin.id}-${width}.png`)
+    const file = join(out, `${skin.id.replaceAll('/', '-')}-${width}.png`)
     await tab.screenshot({ path: file, fullPage: true })
     console.log(`${file}${overflow > 0 ? `  ⚠ ${overflow}px horizontal overflow` : ''}`)
     await tab.close()

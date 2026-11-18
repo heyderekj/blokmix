@@ -1,3 +1,4 @@
+import { isSketch, SKETCH_MODES } from '@/core/sketchCatalog'
 import type { LinkTarget, BlockEdit, BlockMotion, BlockStyle, MediaFill, SectionSpacing } from '@/core/types'
 import { detectLink } from '@/core/media'
 import { ICON_NAMES, blockIconName } from '@/core/icons'
@@ -106,11 +107,13 @@ export const write = {
     if (i.preset) throw new CommandError('Presets are for shaders here; generative placeholders take params')
     const style = i.placeholder ?? (cur?.source === 'placeholder' ? cur.style : undefined)
     // Generative placeholders take dials, checked against their spec.
-    const params =
+    const sketch = isSketch(style)
+    if (sketch && i.params && (Object.keys(i.params).some((k) => k !== 'mode' && k !== 'photo') || (i.params.mode !== undefined && !SKETCH_MODES.includes(i.params.mode)) || (i.params.photo !== undefined && typeof i.params.photo !== 'boolean'))) throw new CommandError('Sketches take mode (image, ui, combined) and an optional photo toggle')
+    const params = sketch ? { ...(cur?.style === style ? cur?.params : {}), ...i.params } :
       style && isFillId(style) && (i.params || cur?.params)
         ? treatmentFrom('fill', style, { params: i.params }, cur?.source === 'placeholder' && cur.style === style ? { id: style, params: cur.params } : undefined).params
         : undefined
-    if (i.params && !(style && isFillId(style))) throw new CommandError('Only the generative placeholders have dials (grain-gradient, dither, halftone, topo, flow, blocks, ascii, op-art, marble)')
+    if (i.params && !sketch && !(style && isFillId(style))) throw new CommandError('Only the generative placeholders have dials (grain-gradient, dither, halftone, topo, flow, blocks, ascii, op-art, marble)')
     const next: MediaFill = i.placeholder
       ? { source: 'placeholder', style: i.placeholder, seed: i.seed ?? 1, params, alt: i.alt ?? cur?.alt, fit: i.fit ?? cur?.fit }
       : cur

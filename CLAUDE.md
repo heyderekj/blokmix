@@ -154,9 +154,9 @@ page they add up to on the right (`startCandidates`' first, drawn at once; measu
 a sentence to fill in, whole from the start, each empty blank naming what it asks for (`Blank.ask`, never a sample
 answer): "I'm making a site for [what it is] called [its name]. It should feel [a feeling] and help people [do what].
 Show [what to show]." (`core/jev/sentence.ts` `startSentence`, `fillStart`, `startText` for what's filled; `ui/jev/Sentence.tsx`:
-each blank's options in groups, `BUSINESS_GROUPS`/`FEEL_GROUPS`/`GOAL_GROUPS`/`SHOW_GROUPS` and `groupsOf`, under "Try one of
-these", `suggestedFor`, once Jev's order, `rankRequest`, or the kind gives something to go on; or your own
-words, matched to the nearest, `matchRequest`), with a box under it to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
+each blank opens a shortlist and a field that searches all options or takes your own words. Browse categories
+shows one group at a time. Jev's order (`rankRequest`) or the kind informs the shortlist and `matchRequest`
+matches your words to an option), with a box under it to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
 those questions and folds them (`answersFromSentence`, `heardFromSentence`, `SENTENCE_GOAL`, `SENTENCE_FEEL`). Answered
 questions fold into one line each with Change; "Skip, show me pages" takes every suggestion. The questions
 (`core/startFlow.ts`, pure: `QUESTIONS`, `nextQuestion`, `folded`, `skipToPages`, `briefFrom`, `sectionsFrom`):
@@ -197,16 +197,18 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 (`core/sectionDefaults.ts`, used by both `composePage` and `frameStateFor`), so a swap never rewrites a slot. Words stay readable
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
-pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) mixes
+pass AA and load its fonts (`tests/skins.test.ts`). Surprise me (`surpriseMe`) mixes
 skins: areas come whole from other skins; on screen it's "Mashup" (so "mix" only ever means the project), drawn before it lands.
 Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers: How should it feel?
-(`core/feel.ts` `FEEL_WORDS`, a skin's `feel` in its JSON, `ui.feelWords`) brings up three themes that fit (`themesFor`), or with
-"Something different" two that match none of the words plus a mix (the same `surpriseMe` roll, drawn first); every theme is a card in
-its own look (`ui/skins/SkinSpecimen.tsx`, drawn as `applySkin` would leave this mix, so kept parts and your brand color show).
+(`core/feel.ts` `FEEL_WORDS`, stored in `content.brief.feel`) ranks the resolved themes for the mix's industry, format,
+brand and feel. The catalog has 15 finished themes plus Wireframe and eight industry variants. The guided start
+previews the actual page. Catalog specimens and visual scoring share a scene. Change one part previews locally and
+commits with `set_theme_parts` in one undo step. Shape owns shadows, type owns text styles, and motion owns section entrances.
+The command catalog includes `list_theme_parts`, `set_theme_part`, `rank_themes`, `check_look`, and `restyle`.
 Nudge it (`NUDGES`, `nudgeTokens`: Bolder, Rounder, Darker…) turns Feel dials a step, one undo step each. Your color is the brand
 color. The Style guide door opens everything else (`GuideBoard`: Feel, the group tiles, text styles, effects, contrast, Rules for
 your agent, Copy for your agent).
-A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the closest skin (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
+A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the frozen original definitions in `samples/legacy/themes.json` (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
 The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus
 your own lines. Swaps and Surprise me leave Keep alone; agent commands that write to a kept area are refused
 (`areasOfCommand`, `contractRefusal`); your own controls aren't. Exports write `CONTRACT.md`, and `agentRules` opens or closes
@@ -630,7 +632,7 @@ packet text (`describeParams`) and the defaults. Colors are palette roles (`prim
   buttons and headings, glass/grain/glow cards, lifted shadow, glow hover). Curated sets: `samples/treatments/*.json`.
 - **Backdrops** (`backdrops.ts`, `slot.backdrop`, the Style panel): each sits where `anchor` says (the whole section, or a spot on a 3×3 pad) and fades out by `reach`, on a masked `::before` (a live one masks its `.mx-backdrop`); new picks start at `backdropPlace`. They are: gradient, mesh, grain, dots, grid, lines, topo,
   halftone, op-art stripes, spotlight, orb, as background layers on the section root in `@layer effects`
-  (`LAYER_ORDER` is `base, clip, effects, motion, blocks`). Inverse flips the section to primary.
+  (`LAYER_ORDER` is `base, clip, effects, motion, navigation, blocks`). Inverse flips the section to primary.
 - **Generative fills** (`fills.ts`): more `PLACEHOLDER_STYLES` (dither, halftone, topo, flow, blocks, ascii, op-art,
   marble, grain-gradient) drawn as small SVGs; `MediaFill.params` holds their dials.
 - **UI mockups** (`mocks.ts`, `samples/mocks/<id>/mock.{html,css,json}`, `lintMock`): small screens in HTML/CSS

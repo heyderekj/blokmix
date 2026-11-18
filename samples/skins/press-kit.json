@@ -1,0 +1,206 @@
+{
+  "name": "Press Kit",
+  "words": "Gold on black, poster headlines and an editorial serif for the story.",
+  "mode": "dark",
+  "feel": [
+    "dark",
+    "bold",
+    "classic"
+  ],
+  "tokens": {
+    "icon.set": "iconoir:light",
+    "color.bg": "#0f0e0c",
+    "color.surface": "#1a1815",
+    "color.text": "#f2ece0",
+    "color.muted": "#a39a8b",
+    "color.border": "#322d26",
+    "color.primary": "#ffd573",
+    "color.onPrimary": "#171717",
+    "color.accent": "#edd0ae",
+    "font.display": "'Archivo Black', sans-serif",
+    "font.body": "'Newsreader', serif",
+    "font.mono": "'DM Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "400",
+    "radius.base": "0px",
+    "stroke.width": "1px",
+    "shadow.card": "none",
+    "space.base": "4px",
+    "space.section": "100px",
+    "motion.duration": "256ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1360px",
+    "space.text": "720px"
+  },
+  "effects": {
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 0
+      }
+    },
+    "grain": {
+      "id": "grain",
+      "params": {
+        "amount": 8,
+        "size": 0.8
+      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 400,
+      "tracking": 0.16
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "line"
+    },
+    "card": {
+      "variant": "rule"
+    },
+    "button": {
+      "secondary": {
+        "variant": "arrow"
+      }
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "sweep"
+    },
+    "input": {
+      "variant": "outlined"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "spotlight",
+        "params": {
+          "strength": 8
+        }
+      }
+    },
+    "features": {
+      "surface": "soft"
+    },
+    "testimonials": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "inverse"
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    }
+  },
+  "picture": {
+    "style": "halftone",
+    "subjects": [
+      "day-ticket",
+      "calendar",
+      "print-studio",
+      "cards"
+    ],
+    "mode": "combined"
+  },
+  "industries": [
+    "media",
+    "events"
+  ],
+  "formats": [
+    "blog"
+  ],
+  "flavors": [
+    {
+      "id": "late-show",
+      "name": "Press Kit · Late Show",
+      "industry": "events",
+      "parts": {
+        "looks": "flyer"
+      }
+    }
+  ]
+}

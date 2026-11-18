@@ -35,8 +35,8 @@ import type {
 } from '@/core/types'
 import { DEFAULT_KEEP, SECTION_TYPES, TOKEN_GROUPS } from '@/core/types'
 import { adoptDesign, choose, chooseGroup, emptyGuide, promote, promoteSource, removeCandidate, resolveGuide, SOURCE_PREFIX } from '@/core/guide'
-import { paletteFrom , type PaletteVariant } from '@/core/palette'
-import { toneOfGuide } from '@/core/dials'
+import { paletteFrom, type PaletteVariant, type Mode as PaletteMode } from '@/core/palette'
+import { setTone, toneOfGuide } from '@/core/dials'
 import { library, slotClip } from '@/data/library'
 import { cycleIds, withClip } from '@/core/library'
 import { BANNER_ID } from '@/core/banner'
@@ -49,6 +49,7 @@ import { listOpOnEntries } from './collections'
 import { BASE_TOKENS } from '@/core/tokens'
 import { cleanContract, emptyContract, isKept, type Contract } from '@/core/contract'
 import { NO_BACKDROP } from '@/core/sectionDefaults'
+import { legacyDressPool } from '@/data/skins'
 import { applySkin as applySkinTo, dressSavedMix, OWN_LOOK, skinById, skinList, surpriseMe as remix } from '@/core/skins'
 import type { TextStyleDef, TextStyleEdits, TextStyleId } from '@/core/textStyles'
 import { cleanTreatment, shadowToken, type EffectId, type EffectsState, type TreatmentValue } from '@/core/treatments'
@@ -61,7 +62,6 @@ import { draftActions } from './slices/drafts'
 import { draftsFromLegacy, draftSites, type Draft } from '@/core/drafts'
 import { noteActions } from './slices/notes'
 import { contentFor } from '@/core/start'
-import type { FeelWord } from '@/core/feel'
 
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
@@ -88,8 +88,6 @@ export interface UiState {
   guideTab: 'style' | 'content'
   /** The Look panel, or the full style guide behind it. */
   guideView: 'look' | 'guide'
-  /** How the site should feel, in the Look panel's words: which themes come up first. */
-  feelWords: FeelWord[]
   crateFilter: SectionType | 'all' | 'auto'
   /** Searching and filtering the Crate (`core/browse.ts`). */
   crateQuery: string
@@ -232,6 +230,7 @@ export interface State extends MixData {
   removeCandidate: (id: string) => void
   chooseToken: (key: TokenKey, choice: Choice | null) => void
   /** Set several tokens to your own values at once (a dial, light/dark): one undo step. */
+  setThemeTone: (mode: PaletteMode) => void
   chooseTokens: (values: Partial<Record<TokenKey, string>>) => void
   chooseGroup: (candidateId: string) => void
   /** Set (or clear, with null) one of the style guide's effects; the shadow effect is also the card shadow token. */
@@ -308,7 +307,6 @@ const DEFAULT_UI: UiState = {
   sheet: 'none',
   guideTab: 'style',
   guideView: 'look',
-  feelWords: [],
   crateFilter: 'auto',
   crateQuery: '',
   crateFacets: {},
@@ -877,6 +875,12 @@ export const useStore = create<State>()(
             return out.words
           },
           setContract: (patch) => set((st) => ({ contract: cleanContract({ ...(st.contract ?? emptyContract()), ...patch }) })),
+          setThemeTone: (mode) => set((st) => {
+            const brand = st.guide.brand
+            const patch = brand ? paletteFrom(brand.color, mode, brand.variant) : setTone(resolveGuide(st.guide).tokens, mode)
+            const guide = (Object.entries(patch) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, {kind:'custom', value}), st.guide)
+            return {guide:{...guide, mode}}
+          }),
           chooseTokens: (values) =>
             set((st) => ({ guide: (Object.entries(values) as [TokenKey, string][]).reduce((g, [k, value]) => choose(g, k, { kind: 'custom', value }), st.guide) })),
           chooseGroup: (candidateId) => set((st) => ({ guide: chooseGroup(st.guide, candidateId) })),
@@ -974,7 +978,7 @@ export const useStore = create<State>()(
         // A mix saved before mixes had their own clips starts with the clips it uses (never another mix's set).
         merged.clips = (Array.isArray(p.clips) ? p.clips : mixClipIds({ ...merged, clips: [] })).filter((id) => library.clips[id]?.origin === 'clip')
         // Mixes saved before skins: their layouts went bare, so they take the closest skin's looks, keeping their own values.
-        if (merged.guide && merged.site) Object.assign(merged, dressSavedMix(merged, library, skinList()))
+        if (merged.guide && merged.site) Object.assign(merged, dressSavedMix(merged, library, legacyDressPool))
         // Copy fields added since the mix was saved (a nav banner's messages) start from plain starter words, never
         // Blokmix's own demo copy.
         if (merged.content?.fields) {
@@ -999,7 +1003,7 @@ export const useStore = create<State>()(
             if (!d.body) return [id, d]
             const site = mapSlots(d.body.site, (s) => (library.clips[s.clipId] ? s : null))
             const guide = d.body.guide?.base ? { ...d.body.guide, base: { ...BASE_TOKENS, ...d.body.guide.base } } : d.body.guide
-            return [id, { ...d, body: { ...d.body, ...dressSavedMix({ ...d.body, site, guide }, library, skinList()), site } }]
+            return [id, { ...d, body: { ...d.body, ...dressSavedMix({ ...d.body, site, guide }, library, legacyDressPool), site } }]
           }),
         )
         for (const [id, v] of Object.entries(merged.versions ?? {})) {

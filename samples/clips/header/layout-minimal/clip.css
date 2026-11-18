@@ -9,7 +9,7 @@
   & .heading {
     font-family: var(--mx-font-display);
     font-weight: var(--mx-type-display-weight);
-    font-size: clamp(var(--mx-text-2xl), 3.4vw, var(--mx-text-4xl));
+    font-size: clamp(min(var(--mx-text-2xl), 1.5rem), 3.4cqi, min(var(--mx-text-4xl), 3rem));
     line-height: 1.1;
     letter-spacing: -0.02em;
   }
@@ -48,7 +48,7 @@
   & .crumb svg { flex: none; width: 1.25em; height: 1.25em; }
   & .crumb svg + svg { width: 1em; height: 1em; opacity: 0.6; }
   & .crumb span { color: var(--mx-color-text); font-weight: 600; }
-  & .heading { font-size: clamp(var(--mx-text-2xl), 3vw, var(--mx-text-3xl)); }
+  & .heading { font-size: clamp(min(var(--mx-text-2xl), 1.5rem), 3cqi, min(var(--mx-text-3xl), 2.375rem)); }
   & .lead { font-size: var(--mx-text-base); }
   & .head .actions { margin-top: var(--mx-space-3); }
 

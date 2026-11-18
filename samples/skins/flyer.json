@@ -20,7 +20,7 @@
     "font.body": "'Archivo', system-ui, sans-serif",
     "font.mono": "'Space Mono', ui-monospace, monospace",
     "type.base": "16px",
-    "type.ratio": "1.5",
+    "type.ratio": "1.25",
     "type.displayWeight": "400",
     "radius.base": "0px",
     "stroke.width": "2px",
@@ -28,7 +28,9 @@
     "space.base": "4px",
     "space.section": "80px",
     "motion.duration": "140ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1200px",
+    "space.text": "680px"
   },
   "effects": {
     "grain": {
@@ -69,6 +71,15 @@
       "weight": 700,
       "tracking": 0.04,
       "size": "sm"
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
     }
   },
   "components": {
@@ -89,6 +100,12 @@
     },
     "icon": {
       "variant": "bare"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "underline"
     }
   },
   "sections": {
@@ -103,6 +120,17 @@
     }
   },
   "picture": {
-    "style": "halftone"
-  }
+    "style": "halftone",
+    "subjects": [
+      "day-ticket",
+      "print-edition",
+      "calendar",
+      "cards"
+    ],
+    "mode": "image"
+  },
+  "industries": [
+    "events",
+    "agency"
+  ]
 }

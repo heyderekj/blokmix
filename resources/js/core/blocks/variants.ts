@@ -203,7 +203,7 @@ export const VARIANTS: Partial<Record<BlockKind, Variant[]>> = {
     },
     { id: 'hollow', label: 'Hollow', hint: 'Outlined letters; best at very large sizes', css: `color: transparent; -webkit-text-stroke: max(1px, 0.025em) ${ink('var(--mx-color-text)')};` },
     { id: 'italic', label: 'Italic', hint: 'A softer, editorial voice', css: `font-style: italic; letter-spacing: -0.01em; color: ${ink('inherit')};` },
-    { id: 'caps', label: 'Tight caps', hint: 'Loud and architectural', css: `text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.95; color: ${ink('inherit')};` },
+    { id: 'caps', label: 'Tight caps', hint: 'Loud and architectural', css: `text-transform: uppercase; letter-spacing: -0.02em; line-height: 1.06; color: ${ink('inherit')};` },
     { id: 'light', label: 'Light', hint: 'A thin, airy weight; elegant at large sizes', css: `font-weight: 300; letter-spacing: -0.03em; color: ${ink('inherit')};` },
     { id: 'heavy', label: 'Heavy', hint: 'Black weight and tight spacing: confident', css: `font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: ${ink('inherit')};` },
     { id: 'accent', label: 'Accent', hint: 'Set in your accent color; use once per page', css: `color: ${ink(fill('var(--mx-color-accent)'))};` },

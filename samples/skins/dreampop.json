@@ -28,8 +28,10 @@
     "shadow.card": "0 2px 4px #1e1b3a0d, 0 12px 32px #7c5cff1f",
     "space.base": "4px",
     "space.section": "104px",
-    "motion.duration": "420ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+    "motion.duration": "280ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1176px",
+    "space.text": "672px"
   },
   "effects": {
     "gradient": {
@@ -67,6 +69,15 @@
       "weight": 700,
       "tracking": 0.01,
       "upper": false
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
     }
   },
   "components": {
@@ -83,6 +94,12 @@
     },
     "icon": {
       "variant": "tile"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "outlined"
     }
   },
   "sections": {
@@ -124,11 +141,7 @@
     },
     "faq": {
       "motion": {
-        "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "mode": "none"
       }
     },
     "cta": {
@@ -195,23 +208,28 @@
     "content": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "enter": "fade"
       }
     },
     "logos": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "enter": "fade"
       }
     }
   },
   "picture": {
-    "style": "grain-gradient"
-  }
+    "style": "grain-gradient",
+    "subjects": [
+      "pottery-shelf",
+      "ceramics",
+      "print-edition",
+      "cards"
+    ],
+    "mode": "image"
+  },
+  "industries": [
+    "education",
+    "ecommerce"
+  ]
 }
