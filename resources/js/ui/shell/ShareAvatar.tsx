@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
 import type { ShaderMount } from '@paper-design/shaders'
 import { hash } from '@/core/hash'
-import paintUrl from '@/assets/pricing-paint.webp'
+// Bundle the small crop so the poster and shader share one texture without a separate request.
+import paintUrl from '@/assets/share-paint.webp?inline'
 
 const GUEST_HUES = [48, 90, 145, 190, 230, 275]
-const CROP = { x: 178, y: 16, size: 320 }
 
 // Bend the color bands with two traveling waves. The center and rim stay anchored to the crop.
 const PAINT_FLOW = `#version 300 es
@@ -13,7 +13,6 @@ precision highp float;
 uniform mediump vec2 u_resolution;
 uniform float u_time;
 uniform sampler2D u_paint;
-uniform vec3 u_crop;
 uniform float u_angle;
 out vec4 fragColor;
 
@@ -26,8 +25,7 @@ void main() {
   p += wave * strength * vec2(0.06, 0.095);
 
   float c = cos(u_angle), s = sin(u_angle);
-  vec2 crop = u_crop.xy + (mat2(c, s, -s, c) * p + 0.5) * u_crop.z;
-  fragColor = texture(u_paint, crop);
+  fragColor = texture(u_paint, mat2(c, s, -s, c) * p + 0.5);
 }`
 
 export function ShareAvatar({ name, mixId, memberId, owner, size = 32, live = false }: {
@@ -67,7 +65,6 @@ export function ShareAvatar({ name, mixId, memberId, owner, size = 32, live = fa
         if (cancelled) return
         mount = new ShaderMount(element, PAINT_FLOW, {
           u_paint: image,
-          u_crop: [CROP.x / CROP.size, CROP.y / CROP.size, 100 / CROP.size],
           u_angle: -rotation * Math.PI / 180,
         }, { antialias: false }, 0.5, 0, 1, 64 * 64, ['u_paint'])
         mount.canvasElement.addEventListener('webglcontextlost', dispose, { once: true })
@@ -96,15 +93,14 @@ export function ShareAvatar({ name, mixId, memberId, owner, size = 32, live = fa
         className="absolute inset-0 block"
         style={{ filter: hue ? `hue-rotate(${hue}deg)` : undefined }}
       >
-        <svg viewBox="0 0 100 100" className="block size-full">
-          <image
-            href={paintUrl}
-            x={-CROP.x} y={-CROP.y} width={CROP.size} height={CROP.size}
-            preserveAspectRatio="none"
-            transform={rotation ? `rotate(${rotation} 50 50)` : undefined}
-          />
-        </svg>
-        <span ref={host} className="absolute inset-0 block" />
+        <img
+          src={paintUrl}
+          alt=""
+          className="block size-full"
+          style={{ rotate: rotation ? `${rotation}deg` : undefined }}
+        />
+        {/* ShaderMount also sets position on its host. Keep the canvas over the poster. */}
+        <span ref={host} className="inset-0 block" style={{ position: 'absolute' }} />
       </span>
     </span>
   )
