@@ -2,8 +2,6 @@
 
 **Remix website layouts and styles, then hand your design to an agent to build.**
 
-[![License: O'Saasy](https://img.shields.io/badge/license-O%27Saasy-ffc53d)](LICENSE)
-
 Blokmix is a visual workspace for designing websites. Try layouts from the library or capture sections from sites you like. Your copy, colors, and type stay in place as you explore different layouts.
 
 [Visit blokmix.com](https://blokmix.com)
