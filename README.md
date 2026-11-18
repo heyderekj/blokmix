@@ -2,8 +2,6 @@
 
 **Remix website layouts and styles, then hand your design to an agent to build.**
 
-[![License: O'Saasy](https://img.shields.io/badge/license-O%27Saasy-ffc53d)](LICENSE)
-
 Blokmix is a visual workspace for designing websites. Try layouts from the library or capture sections from sites you like. Your copy, colors, and type stay in place as you explore different layouts.
 
 [Visit blokmix.com](https://blokmix.com)
@@ -13,6 +11,8 @@ Blokmix is a visual workspace for designing websites. Try layouts from the libra
 1. **Start a mix.** Pick a theme, try built-in layouts, or bring in sections you captured with the [Chrome clipper](extension/README.md).
 2. **Explore and share.** Try different directions in separate drafts, save versions, and share a preview for feedback. Notes stay with the design.
 3. **Hand it to your agent.** Send a build packet with your design, notes, and style guide using the MCP connector, or download a starter project for Astro or Next.js. Review changes your agent sends back and choose which ones to apply.
+
+[Try a free sample handoff](https://blokmix.com/mixes/sample)
 
 ## What’s next
 

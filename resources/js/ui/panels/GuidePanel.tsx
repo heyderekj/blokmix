@@ -3,7 +3,6 @@ import { ColorButton } from '@/ui/color/ColorPicker'
 import { useState } from 'react'
 import { TYPE_RATIOS } from '@/core/dials'
 import { Check, ClipboardCopy, Plus, RotateCcw, X } from 'lucide-react'
-import { canShip } from '@/state/shipping'
 import type { BlockKind, ComponentDefault, Conflict, TokenGroup, TokenKey } from '@/core/types'
 import { BLOCK_LABEL } from '@/core/blocks'
 import { findVariant } from '@/core/blocks/variants'
@@ -35,8 +34,6 @@ export function useCopyGuide() {
   const guide = useResolvedGuide()
   const [copied, setCopied] = useState(false)
   const copy = async () => {
-    // The style guide's tokens are part of what ships: a mix that isn't paid for asks first.
-    if (!canShip('Copying the style guide for your agent')) return
     const css = varsToCss(expandTokens(guide.tokens))
     const text = `Apply this style guide from Blokmix. Use only these CSS variables for color, type, radius, shadow, spacing and motion; replace hard-coded values with them.\n\n${css}\n`
     await navigator.clipboard.writeText(text)

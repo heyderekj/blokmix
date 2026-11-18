@@ -2,22 +2,21 @@
 
 Free to make. $30 a site when you ship it.
 
-A site is one mix. Everything in the app is free for everyone: every layout and theme, every style control, effects,
-backdrops and the other treatments, as many mixes as you like. You pay once, per mix, when you ship it. No
-subscription. Sold through Polar in Blokmix's own organization.
+A site is one mix. Design and share as many mixes as you like with every layout, theme, style control and effect.
+Pay once per site for code export and agent handoff. There is no subscription. Sold through Polar in Blokmix's own organization.
 
 ## How it works
 
-- **Shipping is what's paid for.** Downloading the export (blokmix.json, BLOKMIX.md, tokens, the Astro or Next.js
-  project), copying the style guide for your agent, and handing a version to an agent to build (Build, and
-  `prepare_build` over MCP). An unpaid mix asks for $30 at that moment, in the buy sheet.
+- **$30 once for code export and agent handoff.** Download the build packet with the Astro or Next.js project, or send a
+  version to your agent through the connector. The Export panel and agent controls show the price before checkout.
 - **Once paid, it stays shipped.** Every version, draft, branch and re-export of a paid mix is free from then on.
 - **Anyone who can edit may pay.** The owner or an editor; viewers hear it's an editor's call. The payment belongs to
   the mix, not the person.
 - **A copy is a new site.** Duplicating a mix makes an unpaid one; the gallery's Duplicate says so.
-- **Free, whatever you pay:** publishing to blok.page for feedback (with a Blokmix preview notice on every page),
-  share links, marks, versions, collections, the Crate and
-  capture. The mix file (Download a copy) is a backup, not an export, and stays free.
+- **Free on every mix.** Publish previews on blok.page, share links, leave marks, save versions, and use collections and
+  the Crate. Copy the style guide or its CSS and JSON token files. Download a copy of the mix as a project backup.
+- **Free sample handoff.** Anyone can download the [sample packet](https://blokmix.com/mixes/sample) with both framework
+  projects and standalone agent prompts.
 - **Nothing is taken away.** A full refund un-pays the mix: the mix, its versions and anything already downloaded stay;
   only shipping again asks to pay.
 - **Plus from before still counts.** Anyone who has Plus (the old $25 one-time unlock, `users.plan = plus`, bought or
@@ -61,4 +60,4 @@ the same mix still holds it.
 - blokmix.com — the product and marketing
 - blok.page — published, noindex, account-linked snapshots of mixes + style guide
 
-Last updated: 2026-11-12
+Last updated: 2026-11-18
