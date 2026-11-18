@@ -197,16 +197,18 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 (`core/sectionDefaults.ts`, used by both `composePage` and `frameStateFor`), so a swap never rewrites a slot. Words stay readable
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
-pass AA and load its fonts (`tests/skins.test.ts`). `tier` decides who gets one (`skinOpen`). Surprise me (`surpriseMe`) mixes
+pass AA and load its fonts (`tests/skins.test.ts`). Surprise me (`surpriseMe`) mixes
 skins: areas come whole from other skins; on screen it's "Mashup" (so "mix" only ever means the project), drawn before it lands.
 Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers: How should it feel?
-(`core/feel.ts` `FEEL_WORDS`, a skin's `feel` in its JSON, `ui.feelWords`) brings up three themes that fit (`themesFor`), or with
-"Something different" two that match none of the words plus a mix (the same `surpriseMe` roll, drawn first); every theme is a card in
-its own look (`ui/skins/SkinSpecimen.tsx`, drawn as `applySkin` would leave this mix, so kept parts and your brand color show).
+(`core/feel.ts` `FEEL_WORDS`, stored in `content.brief.feel`) ranks the resolved themes for the mix's industry, format,
+brand and feel. The catalog has 15 finished themes plus Wireframe and eight industry variants. The guided start
+previews the actual page. Catalog specimens and visual scoring share a scene. Change one part previews locally and
+commits with `set_theme_parts` in one undo step. Shape owns shadows, type owns text styles, and motion owns section entrances.
+The command catalog includes `list_theme_parts`, `set_theme_part`, `rank_themes`, `check_look`, and `restyle`.
 Nudge it (`NUDGES`, `nudgeTokens`: Bolder, Rounder, Darker…) turns Feel dials a step, one undo step each. Your color is the brand
 color. The Style guide door opens everything else (`GuideBoard`: Feel, the group tiles, text styles, effects, contrast, Rules for
 your agent, Copy for your agent).
-A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the closest skin (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
+A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the frozen original definitions in `samples/legacy/themes.json` (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
 The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus
 your own lines. Swaps and Surprise me leave Keep alone; agent commands that write to a kept area are refused
 (`areasOfCommand`, `contractRefusal`); your own controls aren't. Exports write `CONTRACT.md`, and `agentRules` opens or closes

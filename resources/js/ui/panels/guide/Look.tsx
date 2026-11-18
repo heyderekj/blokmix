@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronRight, RefreshCw } from 'lucide-react'
 import { FEEL_WORDS, NUDGE_LABEL, nudgesFor, nudgeTokens, type FeelWord, type Nudge } from '@/core/feel'
 import { emptyContract } from '@/core/contract'
@@ -12,6 +12,9 @@ import { AllThemes, putSkin, SkinCard } from './Skins'
 import { runCommand } from '@/state/commands'
 import { rankThemes } from '@/core/themeRanking'
 import { PartPicker } from './PartPicker'
+import { suggestedIndex } from '@/core/jev/themes'
+import { scoreLooks } from '@/state/jevThemes'
+import { briefContext } from '@/core/brief'
 import { FontLinks } from './shared'
 
 const TILE = 'rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)]'
@@ -78,11 +81,14 @@ function Feel() {
  * (what Surprise me was), drawn before anything changes. Every theme is a tap away.
  */
 function Themes() {
+  const words = useStore((s) => s.content.brief?.feel) ?? []
   const on = useStore((s) => s.guide.skin)
   const guide = useStore((s) => s.guide)
   const contract = useStore((s) => s.contract)
   const content = useStore((s) => s.content)
   const draft = useStore((s) => s.draftId)
+  const enabled = useStore((s) => s.ui.jev)
+  const [suggestion, setSuggestion] = useState<{key:object; id:string} | null>(null)
   const [different, setDifferent] = useState(false)
   const [all, setAll] = useState(false)
   const [seed, setSeed] = useState(() => Date.now() % 100000)
@@ -93,6 +99,14 @@ function Themes() {
     const best = rankThemes(input)
     return away ? rankThemes({ ...input, different:true, count:2, exclude:best.map((r) => r.skin.id) }) : best
   }, [content, guide, contract, away, draft])
+  useEffect(() => {
+    const ctrl = new AbortController()
+    if (enabled && !away) scoreLooks(shown.map((r) => r.guide), [briefContext(content), words.join(', ')].join('. '), content.brand, content.fields.hero?.headline, ctrl.signal).then((scores) => {
+      const i = suggestedIndex(scores)
+      if (!ctrl.signal.aborted && i >= 0) setSuggestion({key:shown, id:shown[i].skin.id})
+    })
+    return () => ctrl.abort()
+  }, [shown, enabled])
   // The mix, as it would land: the same pure roll the store runs with this seed.
   const mix = useMemo(() => {
     if (!away) return null
@@ -118,7 +132,7 @@ function Themes() {
       <FontLinks tokens={[...shown.map((l) => resolveGuide(l.guide).tokens), ...(mix ? [mix.tokens] : [])]} />
       <div className="grid grid-cols-2 gap-x-2 gap-y-2.5">
         {shown.map(({ skin, guide, reason }) => (
-          <SkinCard key={skin.id} label={skin.name} words={reason} guide={guide} here={refId(on) === skin.id} onPick={() => putSkin(skin)} />
+          <SkinCard key={skin.id} label={skin.name} words={reason} guide={guide} suggested={enabled && suggestion?.key === shown && suggestion.id === skin.id} here={refId(on) === skin.id} onPick={() => putSkin(skin)} />
         ))}
         {mix && <SkinCard label="Mashup" words={mix.words} guide={mix.guide} here={false} onPick={putMix} />}
       </div>

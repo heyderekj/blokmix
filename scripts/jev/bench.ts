@@ -11,6 +11,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { ask, jevKey, pool } from './client'
 import { describeMetrics, metrics, type Judged } from './metrics'
+import { localThemeBenchmark } from './suites/themes'
 import { SUITES } from './suites'
 
 const args = process.argv.slice(2)
@@ -19,6 +20,10 @@ const runs = runsAt >= 0 ? Number(args[runsAt + 1]) : 1
 const names = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--runs')
 const chosen = names.length ? SUITES.filter((s) => names.includes(s.name)) : SUITES
 
+if (args.includes('--local') && names.length === 1 && names[0] === 'themes') {
+  console.log(JSON.stringify(localThemeBenchmark(), null, 2))
+  process.exit(0)
+}
 if (!jevKey()) {
   console.error('No TYPESAFE_API_KEY: put it in .env.local (or export it) and run again.')
   process.exit(1)

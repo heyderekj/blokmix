@@ -1,9 +1,25 @@
 # Theming
 
-A plan, not built yet. Written 2026-11-13 after a read of the whole theming path (skins, feel, palettes, block looks,
+The original November 13 design follows the implementation notes below. Written 2026-11-13 after a read of the whole theming path (skins, feel, palettes, block looks,
 the start, Jev). Findings marked "today" describe the code as of that date. Delivery is phased PRs; each phase ships on
 its own. Copy on screen follows `docs/simple-vision.md` and the brand guide's voice: plain words, no "skin", "kit" or
 "Jev" in anything a person reads.
+
+## Implementation notes
+
+The catalog contains 15 finished themes, Wireframe, and eight curated variants. Both pickers rank the resolved guide.
+The saved brief carries explicit feel, and a saved guide carries the brand recipe, an optional explicit mode, and the
+base theme ID with its optional flavor. Existing mixes continue to store their resolved values. The legacy dressing
+pool lives in `samples/legacy/themes.json`.
+
+The Design panel previews parts on the open page. Apply commits through the same command boundary as agent edits.
+`list_theme_parts` supplies the valid IDs for each area. `set_theme_part` takes an area and part, and
+`set_theme_parts` takes a mapping of areas to parts. `rank_themes`, `restyle`, and `check_look` only suggest.
+Motion is judged in the live preview. The other areas can be compared as font-aware specimens.
+
+Run `npx vite-node scripts/render-skins.ts --flavors` for full-page comparisons.
+Run `npx vite-node scripts/jev/bench.ts themes --local` for the labeled local baseline.
+With TypeSafe credentials, run `npx vite-node scripts/jev/bench.ts themes` for the visual comparison.
 
 ## Why
 

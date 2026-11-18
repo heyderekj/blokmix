@@ -38,6 +38,21 @@ export const SKIN_COMMANDS = {
     input: z.object({ parts: z.partialRecord(z.enum(STYLE_AREAS), z.string()).refine((v) => Object.keys(v).length > 0) }),
     write: true,
   },
+  rank_themes: {
+    description: 'Rank distinct themes for this brief. Uses rendered previews when suggestions are available.',
+    input: z.object({ count: z.number().int().min(1).max(10).optional(), flavors: z.boolean().optional() }),
+    write: false,
+  },
+  restyle: {
+    description: 'Preview up to three part changes for a written request. Apply a returned parts object with set_theme_parts.',
+    input: z.object({ text: z.string().trim().min(1).max(300) }),
+    write: false,
+  },
+  check_look: {
+    description: 'Compare this look against its brief and offer one eligible change when it improves the fit.',
+    input: z.object({}),
+    write: false,
+  },
   nudge_look: {
     description:
       'Nudge the look in plain words, one undo step: bolder (bigger, heavier type), quieter (smaller, lighter type, more room), rounder, sharper, roomier, tighter, darker, lighter. Each moves the Feel dials a step or turns the page light or dark.',

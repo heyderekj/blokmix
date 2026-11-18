@@ -10,6 +10,8 @@ import { skinById, WIREFRAME } from '@/core/skins'
 import { actionChoices, FORMAT_LABEL, FORMATS, GOAL_LABEL, GOALS, INDUSTRIES, INDUSTRY_LABEL, patchBrief, type Brief, type Goal } from '@/core/brief'
 import { OPTIONAL, placeSection, textMode } from '@/core/jev/describe'
 import { answer, answersFromSentence, briefFrom, emptyAnswers, heardFromSentence, feelFrom, folded, kindFrom, nextQuestion, QUESTIONS, reopen, sectionsFrom, skipToPages, type Answers, type Question } from '@/core/startFlow'
+import { suggestedIndex } from '@/core/jev/themes'
+import { scoreLooks } from '@/state/jevThemes'
 import { rankThemes } from '@/core/themeRanking'
 import { emptyGuide } from '@/core/guide'
 import type { PaletteVariant } from '@/core/palette'
@@ -106,6 +108,15 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
     if (!selected || ranked.some((r) => r.skin.id === skin)) return ranked
     return [...ranked.slice(0,2), ...rankThemes({brief,guide,pool:[selected],count:1})]
   }, [rankingKey, skin])
+  const [visualPick, setVisualPick] = useState<{ key:string; id:string } | null>(null)
+  useEffect(() => {
+    const ctrl = new AbortController()
+    if (q === 'look' && jev && !other) scoreLooks(shown.map((r) => r.guide), JSON.stringify(brief), name, undefined, ctrl.signal).then((scores) => {
+      const i = suggestedIndex(scores)
+      if (!ctrl.signal.aborted && i >= 0) setVisualPick({key:rankingKey, id:shown[i].skin.id})
+    })
+    return () => ctrl.abort()
+  }, [shown, q, jev, name])
   const shownThemes = shown.map((r) => r.skin)
   const theme = skin ?? shownThemes[0]?.id ?? WIREFRAME
   const paste = heard?.mode === 'paste' && !!heard.plan
@@ -331,7 +342,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                   )}
                   <Carousel label="Themes">
                     {shown.map(({ skin: x, guide, reason }) => (
-                      <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} guide={guide} reason={reason} jevPick={false} onPick={() => setSkin(x.id)} />
+                      <SkinCard key={x.id} skin={x} on={x.id === theme} start={preview} guide={guide} reason={reason} jevPick={jev && visualPick?.key === rankingKey && visualPick.id === x.id} onPick={() => setSkin(x.id)} />
                     ))}
                   </Carousel>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-2">

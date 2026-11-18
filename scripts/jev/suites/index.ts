@@ -3,6 +3,7 @@
 
 import type { JevRequest, JevResponse } from '../../../resources/js/core/jev'
 import type { Judged } from '../metrics'
+import { themes } from './themes'
 import { types } from './types'
 import { describe } from './describe'
 
@@ -14,4 +15,4 @@ export interface Suite<C = unknown> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- each suite has its own case type
-export const SUITES: Suite<any>[] = [types, describe]
+export const SUITES: Suite<any>[] = [types, describe, themes]

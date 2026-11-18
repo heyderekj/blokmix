@@ -21,6 +21,7 @@ import { findFocus } from '../jevPhotos'
 import { hear, type Heard } from '../jevSay'
 import { applyPour, planPour, setTray, trayFrom, type Poured } from '../jevPour'
 import { buildPage, planPage, type PagePlan } from '../jevPage'
+import { checkLook, rankByEye, restyle } from '../jevThemes'
 import { suggestPalettes } from '../jevColors'
 import { dressPage, dressSection, type DressIdea } from '../jevDress'
 import { noteWants } from '@/lib/jevWants'
@@ -104,6 +105,9 @@ export const write = {
 type LayoutsRead = { view: ReturnType<typeof pageSlots>; reads: Awaited<ReturnType<typeof readsAs>> }
 
 export const later = {
+  rank_themes: { prepare: (i:CommandInput<'rank_themes'>) => rankByEye(i.count,i.flavors), apply: (_:unknown, r:Awaited<ReturnType<typeof rankByEye>>) => r },
+  check_look: { prepare: checkLook, apply: (_:unknown, r:Awaited<ReturnType<typeof checkLook>>) => r },
+  restyle: { prepare: (i:CommandInput<'restyle'>) => restyle(i.text), apply: (_:unknown, r:Awaited<ReturnType<typeof restyle>>) => r },
   suggest_layouts_for_words: {
     prepare: async (i: CommandInput<'suggest_layouts_for_words'>): Promise<LayoutsRead> => {
       const view = pageSlots(i.page)
