@@ -4,57 +4,27 @@
 
 [![License: O'Saasy](https://img.shields.io/badge/license-O%27Saasy-ffc53d)](LICENSE)
 
-Blokmix is a visual workspace for designing websites. Start with a theme, mix built-in layouts with sections you capture, and pull the site together with one style guide. When the design is ready, export a build packet for your agent or download a starter project for Astro or Next.js.
+Blokmix is a visual workspace for designing websites. Try layouts from the library or capture sections from sites you like. Your copy, colors, and type stay in place as you explore different layouts.
 
-[Visit Blokmix](https://blokmix.com)
+[Visit blokmix.com](https://blokmix.com)
 
-## What you can do
+## How it works
 
-- Try layouts and styles on the canvas while keeping your own copy and branding.
-- Capture sections from live sites with the [Blokmix Chrome extension](extension/README.md) and add them to your mix.
-- Explore different directions in separate drafts, save versions, and share a mix for editing or feedback.
-- Export `BLOKMIX.md`, structured project data, design tokens, and runnable Astro or Next.js starter projects. Notes on the design travel with the build packet.
-- Connect an agent through the local MCP bridge to inspect or edit a mix with your permission.
+1. **Start a mix.** Pick a theme, try built-in layouts, or bring in sections you captured with the [Chrome clipper](extension/README.md).
+2. **Explore and share.** Try different directions in separate drafts, save versions, and share a preview for feedback. Notes stay with the design.
+3. **Hand it to your agent.** Send a build packet with your design, notes, and style guide using the MCP connector, or download a starter project for Astro or Next.js. Review changes your agent sends back and choose which ones to apply.
 
-## Run locally
+## What’s next
 
-### Browser-only demo
+- Capture individual elements like buttons and cards, and save clips straight to your Blokmix account.
+- Start a mix from a website you already have or bring in its design tokens.
+- Edit a mix together in real time and launch a site on your own domain.
 
-With Node.js 22 and npm installed, run:
+See the [roadmap](docs/roadmap.md) for more.
 
-```bash
-npm ci
-npm run dev
-```
+## About this repository
 
-Open [localhost:5173](http://localhost:5173) to try the editor with sample content. This mode saves the mix in your browser.
-
-### Laravel app
-
-The full app uses Laravel 13, Inertia, React, and TypeScript. Install PHP 8.5 with SQLite support, Composer, and Node.js 22. On a fresh checkout, run:
-
-```bash
-touch database/database.sqlite
-composer setup
-npm run dev:laravel
-```
-
-Open [localhost:8000](http://localhost:8000) and create a local account to use saved mixes and sharing.
-
-## Development commands
-
-| Command | What it does |
-| --- | --- |
-| `npm run typecheck` | Check TypeScript for the app and extension |
-| `npm test` | Run the JavaScript tests |
-| `php artisan test` | Run the Laravel tests |
-| `npm run build` | Build the browser-only app |
-| `npm run build:laravel` | Build the Laravel app's frontend assets |
-| `npm run extension:build` | Build the Chrome extension into `extension/dist` |
-| `npm run mcp` | Start the local MCP bridge. Enable **Let agents edit this mix** in the board menu to connect |
-| `npm run export:demo` | Write a sample build packet to `.out/packet` |
-
-The editor lives in `resources/js`, the capture extension in `extension`, and the Laravel backend in `app` and `routes`. See [CLAUDE.md](CLAUDE.md) for implementation details and clip authoring rules.
+Blokmix is built with Laravel, Inertia, React, and TypeScript. See the [project notes](CLAUDE.md) for development details and the [agent handoff guide](docs/agent-iterations.md) for how the connector works.
 
 ## License
 
