@@ -39,9 +39,7 @@ marked where it came from ("From Claude"), can be dismissed, and taking it is on
   (`Puzzle.astro`, `HeroShot.astro`).
 - UI: one "What came back" list with Use / Dismiss, and a "New" chip where each addition lives.
 
-Today nothing reads a build back: `lib/mixFile.ts` imports only Blokmix's own file, and agents report progress only
-(`report_build`, `import_review_marks`). Skins, block looks and palettes are a fixed set agents can choose from but
-not add to; saved style guides have no agent command.
+Draft history now accepts structured agent returns through the hosted connector, local bridge and JSON import. Project-folder inference and account skins remain future work. See [agent iterations](agent-iterations.md).
 
 ## Theming
 
@@ -58,9 +56,7 @@ endpoint the Crate uses today (`ClipController`, linted in the browser, saved pe
 
 ## Agents without the local bridge
 
-A hosted MCP server, so agents can work on the live site from anywhere, not just on the machine running
-`npm run mcp`. It would relay the same commands (`core/commands/schema/`) to the open board, so agents keep one
-set of tools whether they connect locally or to the hosted app.
+The hosted connector delivers handoffs and queues returns while the board is closed. Live manipulation of the open canvas still uses the local bridge. See [agent iterations](agent-iterations.md).
 
 ## Live editing together
 

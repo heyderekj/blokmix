@@ -1,3 +1,4 @@
+import { SharedRecipes } from '@/ui/drafts/SharedRecipes'
 import { Dropdown } from '@/ui/controls/Dropdown'
 import { useEffect, useMemo, useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
@@ -117,6 +118,7 @@ export default function LibraryAdmin({ sites, site, types, wants = [] }: { sites
           <ArrowLeft size={15} /> {site ? 'All sites' : 'Your mixes'}
         </Link>
       </header>
+      {!site && <SharedRecipes curate/>}
       {!site && <Wants wants={wants} />}
       {site ? <SiteView key={site.slug} site={site} types={types} /> : <SiteList sites={sites} />}
     </div>

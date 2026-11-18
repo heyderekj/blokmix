@@ -1,3 +1,4 @@
+import { useAccount } from '@/lib/account'
 import type { VersionNode } from '@/core/types'
 import { autoTitle, descendants, nextLetter, snapshotKey } from '@/core/versions'
 import { nextVersionLetter } from '@/core/drafts'
@@ -25,6 +26,7 @@ export function versionActions(set: Set, get: Get): Pick<State, 'pressVersion' |
         letter: draft ? nextVersionLetter(st.versions, draft) : nextLetter(st.versions, parentId),
         parentId,
         ...(draft ? { draftId: draft.id } : {}),
+        author: useAccount.getState().user?.name ?? 'You',
         title: autoTitle(allSlots(st.site), library),
         status: 'in-progress',
         createdAt: Date.now(),

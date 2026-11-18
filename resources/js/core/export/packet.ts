@@ -1,3 +1,4 @@
+import wireReturnSchema from '../../../schemas/agent-return.json'
 import { briefContext, briefOf, FORMAT_LABEL, GOAL_LABEL, INDUSTRY_LABEL } from '../brief'
 import { AREA_LABEL, areasSetTo, contractMarkdown, emptyContract, type Contract, type ContractSetting } from '../contract'
 import type { Note } from '../types'
@@ -20,6 +21,8 @@ export const PACKET_SCHEMA = 'blokmix.packet/v1'
 export const PACKET_SCHEMA_SITE = 'blokmix.packet/v2'
 
 export interface PacketInput {
+  mixId?: string
+  draftId?: string
   page: ComposedPage
   guide: ResolvedGuide
   guideState: GuideState
@@ -114,6 +117,8 @@ export function packetJson(i: PacketInput) {
     generatedAt: i.generatedAt ?? new Date().toISOString(),
     mix: {
       name: i.mixName,
+      ...(i.mixId && {id:i.mixId}),
+      ...(i.draftId && {draft:i.draftId}),
       version: i.version ? { id: i.version.id, letter: i.version.letter, title: i.version.title, status: i.version.status, parent: i.version.parentLetter ?? null } : null,
     },
     targets: i.targets,
@@ -131,6 +136,8 @@ export function packetJson(i: PacketInput) {
     guidance: MARK_GUIDANCE,
     work_packets: packetsOf(i),
     sections: page.sections.map((s) => ({
+      slotId: s.slotId,
+      ...(s.recipe && {recipe:s.recipe}),
       position: s.position + 1,
       type: s.type,
       component: s.component,
@@ -452,6 +459,7 @@ With the blokmix MCP server connected${run ? '' : ' (start with prepare_build, w
 - As you go, call report_build {build: ${build}, step: "…"} with a few words per step, so the canvas shows progress.
 - Once the dev server runs, call report_build with preview_url (e.g. http://localhost:${target === 'astro' ? 4321 : 3000}) and preview_height: the page's full height in CSS px at each width, {"1440": …, "390": …}. The preview shows on the build's frame.
 - Call report_build with done: true when it's ready.
+- Submit the implemented changes with submit_changes using blokmix-return.schema.json. Use the saved version ID as base and include the working preview URL. The person reviews the return in that draft.
 
 ## Review loop (ReviseMy)
 
@@ -467,7 +475,8 @@ If the ReviseMy MCP server is connected, have the page reviewed and bring the ma
 export function packetFiles(i: PacketInput): FileMap {
   const files: FileMap = {
     'blokmix.json': JSON.stringify(packetJson(i), null, 2) + '\n',
-    'BLOKMIX.md': buildNotes(i),
+    'BLOKMIX.md': buildNotes(i) + '\nTo bring your implementation back, send a JSON file matching blokmix-return.schema.json. Copy mix.id and mix.draft as mix and draft, and the saved version ID as base. A design created outside Blokmix can omit base and use page /.\n',
+    'blokmix-return.schema.json': JSON.stringify(wireReturnSchema,null,2),
     'CONTRACT.md': contractMarkdown(i.contract, i.guideState?.skin),
     'tokens.css': tokensCss(i.page),
     'tokens.json': JSON.stringify(toDtcg(i.guide.tokens), null, 2) + '\n',

@@ -194,6 +194,11 @@ export const pickable = (lib: Library, type: SectionType): string[] => lib.byTyp
 export function cycleIds(lib: Library, type: SectionType, mixClips: Iterable<string>, current?: string): string[] {
   const mine = new Set(mixClips)
   const ids = pickable(lib, type).filter((id) => lib.clips[id]?.origin === 'layout' || mine.has(id))
+  // Generated layouts belong to the mix that brought them back.
+  for (const id of mine) {
+    const clip = lib.clips[id]
+    if (clip?.recipe && clip.type === type && !ids.includes(id)) ids.push(id)
+  }
   if (current && lib.clips[current]?.type === type && !ids.includes(current)) {
     // Where it would sit in the account's order, so stepping away and back lands in the same place.
     const order = lib.byType[type]
@@ -212,7 +217,7 @@ export function withClip<S extends { clipId: string; keep: Keep; edits?: SlotEdi
   if (slot.clipId === clipId) return slot
   const edits = carryEdits(slot.edits, lib.clips[slot.clipId], lib.clips[clipId])
   const inserts = carryInserts(slot.inserts, lib.clips[slot.clipId], lib.clips[clipId])
-  const next = { ...slot, clipId, prevClipId: slot.clipId, ...(edits !== slot.edits ? { edits } : {}), ...(inserts !== slot.inserts ? { inserts } : {}) }
+  const next = { ...slot, clipId, ...(lib.clips[clipId]?.recipe && { recipe: lib.clips[clipId].recipe }), prevClipId: slot.clipId, ...(edits !== slot.edits ? { edits } : {}), ...(inserts !== slot.inserts ? { inserts } : {}) }
   const toLayout = lib.clips[clipId]?.origin === 'layout'
   if (!toLayout || (!slot.keep.style && !slot.keep.content)) return next
   return { ...next, keep: { ...slot.keep, style: false, content: false } }

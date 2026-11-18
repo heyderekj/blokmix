@@ -110,11 +110,15 @@ export function forkDraft(st: DraftState, from: { draft?: string; version?: stri
   }
 }
 
+/** A review can save local edits and the accepted return in the same millisecond. */
+export const newestVersionFirst = (a: VersionNode, b: VersionNode): number =>
+  b.createdAt - a.createdAt || b.letter.localeCompare(a.letter, 'en', { numeric: true })
+
 /** A draft's saved versions, newest first (builds included). */
 export const versionsOf = (versions: Record<string, VersionNode>, draftId: string): VersionNode[] =>
   Object.values(versions)
     .filter((v) => v.draftId === draftId)
-    .sort((a, b) => b.createdAt - a.createdAt)
+    .sort(newestVersionFirst)
 
 /** The next version's letter in a draft: A1, A2… */
 export function nextVersionLetter(versions: Record<string, VersionNode>, draft: Pick<Draft, 'id' | 'letter'>): string {

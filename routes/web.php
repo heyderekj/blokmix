@@ -67,6 +67,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/mixes/{mix}/unarchive', [MixApiController::class, 'unarchive'])->name('mixes.unarchive');
         Route::post('/mixes/{mix}/duplicate', [MixApiController::class, 'duplicate'])->middleware('throttle:20,1')->name('mixes.duplicate');
 
+        Route::post('/mixes/{mix}/handoffs', [\App\Http\Controllers\Api\IterationController::class, 'send'])->middleware('throttle:20,1');
+        Route::get('/mixes/{mix}/returns', [\App\Http\Controllers\Api\IterationController::class, 'inbox']);
+
         Route::get('/mixes/{mix}/assets', [AssetController::class, 'index'])->name('assets.index');
         Route::post('/mixes/{mix}/assets', [AssetController::class, 'store'])->name('assets.store');
         Route::get('/mixes/{mix}/assets/{key}', [AssetController::class, 'show'])->name('assets.show');
@@ -103,6 +106,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');
 
         // The site library: signed-in people browse published sites; the people who run Blokmix upload and curate.
+        Route::get('/layout-suggestions', [\App\Http\Controllers\Api\LayoutSuggestionController::class, 'index']);
+        Route::post('/mixes/{mix}/layout-suggestions', [\App\Http\Controllers\Api\LayoutSuggestionController::class, 'store'])->middleware('throttle:10,1');
+        Route::patch('/layout-suggestions/{id}', [\App\Http\Controllers\Api\LayoutSuggestionController::class, 'review'])->whereNumber('id');
+
         Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
         Route::post('/library/sites', [LibraryController::class, 'store'])->middleware('throttle:30,1')->name('library.store');
         Route::get('/library/sites/{slug}', [LibraryController::class, 'show'])->name('library.show');

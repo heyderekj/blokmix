@@ -57,6 +57,13 @@ describe('drafts', () => {
     expect(versionsOf(st().versions, b).map((x) => x.id)).toEqual([v])
   })
 
+  it('shows a return above local edits saved in the same millisecond', () => {
+    const id = st().pressVersion()
+    const local = { ...st().versions[id], letter: 'A9' }
+    const accepted = { ...local, id: 'returned', letter: 'A10', parentId: id }
+    expect(versionsOf({ [id]: local, returned: accepted }, st().draftId)).toEqual([accepted, local])
+  })
+
   it('renaming the site reaches every draft when it opens', () => {
     const a = st().draftId
     const b = st().addDraft(undefined, { open: false })!

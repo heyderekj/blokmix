@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "nav",
+        "hero",
+        "header",
+        "logos",
+        "features",
+        "stats",
+        "content",
+        "gallery",
+        "team",
+        "testimonials",
+        "pricing",
+        "blog",
+        "faq",
+        "contact",
+        "cta",
+        "footer"
+      ]
+    },
+    "title": {
+      "$ref": "#/$defs/__schema0"
+    },
+    "layout": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "clip": {
+              "$ref": "#/$defs/__schema0"
+            }
+          },
+          "required": [
+            "clip"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "rows": {
+              "minItems": 1,
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/__schema1"
+              }
+            }
+          },
+          "required": [
+            "rows"
+          ]
+        }
+      ]
+    },
+    "controls": {
+      "default": [],
+      "maxItems": 12,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema4"
+      }
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "layout"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "__schema1": {
+      "minItems": 1,
+      "maxItems": 6,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema2"
+      }
+    },
+    "__schema2": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/__schema3"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "heading",
+            "text",
+            "badge",
+            "button"
+          ]
+        }
+      },
+      "required": [
+        "field",
+        "kind"
+      ]
+    },
+    "__schema3": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9]{0,45}$"
+    },
+    "__schema4": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "choice"
+            },
+            "label": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "options": {
+              "minItems": 2,
+              "maxItems": 12,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/__schema5"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "label",
+            "options"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "toggle"
+            },
+            "label": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "options": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/__schema5"
+                },
+                {
+                  "$ref": "#/$defs/__schema5"
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "kind",
+            "label",
+            "options"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "range"
+            },
+            "label": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "block": {
+              "type": "string",
+              "pattern": "^b\\d+$"
+            }
+          },
+          "required": [
+            "kind",
+            "label",
+            "block"
+          ]
+        }
+      ]
+    },
+    "__schema5": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "words": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/__schema3"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 3000
+          }
+        },
+        "blocks": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^b\\d+$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "fill": {
+                "$ref": "#/$defs/__schema6"
+              },
+              "ink": {
+                "$ref": "#/$defs/__schema6"
+              },
+              "radius": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "sm",
+                  "md",
+                  "lg",
+                  "pill"
+                ]
+              },
+              "shadow": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "soft",
+                  "lifted",
+                  "offset"
+                ]
+              }
+            }
+          }
+        },
+        "surface": {
+          "type": "string",
+          "enum": [
+            "page",
+            "brand",
+            "inverse",
+            "soft"
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "words"
+      ]
+    },
+    "__schema6": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "accent",
+        "surface",
+        "bg",
+        "text",
+        "muted",
+        "border",
+        "onPrimary"
+      ]
+    }
+  }
+}

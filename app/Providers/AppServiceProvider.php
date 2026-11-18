@@ -30,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
             URL::useOrigin(config('blokmix.home_url'));
         }
 
+        \Laravel\Passport\Passport::authorizationView('mcp::authorize');
+
         // The people who run Blokmix (config blokmix.owners): they see the waitlist.
         Gate::define('run-blokmix', fn (User $user) => in_array(strtolower($user->email), config('blokmix.owners'), true));
 

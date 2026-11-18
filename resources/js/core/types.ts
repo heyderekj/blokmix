@@ -93,6 +93,7 @@ export interface Capture {
 }
 
 export interface Clip {
+  recipe?: import('./iterations').Recipe
   id: string // 'hero.layout-split'
   type: SectionType
   sourceId: string
@@ -156,6 +157,7 @@ export interface Keep {
 export const DEFAULT_KEEP: Keep = { layout: true, style: false, content: false, motion: true }
 
 export interface Slot {
+  recipe?: import('./iterations').Recipe
   id: string
   type: SectionType
   clipId: string
@@ -429,6 +431,10 @@ export type Status = (typeof STATUSES)[number]
 export type BuildTarget = 'astro' | 'next'
 
 export interface VersionNode {
+  author?: string
+  handoff?: { at: number; by: string; id?: string }
+  returns?: import('./iterations').ReturnRecord[]
+  acceptedFrom?: { base: string; submission: string; agent: string }
   id: string
   letter: string // 'A', 'B.1'
   parentId: string | null

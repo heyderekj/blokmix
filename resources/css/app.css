@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@source '../../vendor/laravel/mcp/resources/views';
 
 /*
  * Blokmix's tokens: the studio's shared system (Koati's neutrals, signals,

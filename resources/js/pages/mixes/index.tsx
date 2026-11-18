@@ -119,6 +119,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
   const billing = auth?.billing ?? null
   const local = useMemo(readLocal, [])
   const [moving, setMoving] = useState(false)
+  const [importNotice,setImportNotice]=useState('')
   const [problem, setProblem] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<Sort>('edited')
@@ -291,12 +292,22 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
               options={(Object.keys(SORTS) as Sort[]).map((v) => ({ v, label: SORTS[v].label }))}
               className="h-10 rounded-full px-4"
             />
-            <button type="button" disabled={moving} onClick={importFile} className={QUIET + ' h-10 px-4 text-[13.5px] font-semibold'}>
-              <Upload size={15} /> Import
-            </button>
+            <Dropdown label="Bring into Blokmix" disabled={moving} lead={<Upload size={15}/>}
+              options={[{v:'file',label:'Choose a mix or AI return file'},{v:'prompt',label:'Copy instructions for my AI'}]}
+              onChange={async action=>{
+                if(action==='file') return importFile()
+                try {
+                  const { importInstructions } = await import('@/lib/iterations')
+                  await navigator.clipboard.writeText(importInstructions())
+                  setImportNotice('Instructions copied. Paste them into your AI, then bring back the file it creates.')
+                } catch { setProblem('Clipboard unavailable. Open this page in a secure browser window to copy the instructions.') }
+              }}
+              className={QUIET+' h-10 px-4 text-[13.5px] font-semibold'}
+            />
           </div>
         </div>
 
+        {importNotice && <p role="status" className="mt-2 text-sm">{importNotice}</p>}
         {problem && (
           <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-red-50 px-4 py-2.5 text-[13px] text-red-700">
             {problem}

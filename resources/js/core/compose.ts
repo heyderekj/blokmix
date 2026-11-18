@@ -23,6 +23,7 @@ import { allFonts } from './library'
 import { MOCK_BASE_CSS, backdropCss, backdropInfo, backdropShaderId, describeParams, effectsVars, isBackdropId, backdropParams, readBackdrop, type ShaderSpec, type TreatmentValue } from './treatments'
 
 export interface ComposedSection {
+  recipe?: Slot['recipe']
   slotId: string
   position: number
   type: SectionType
@@ -413,8 +414,10 @@ export function composePage(input: ComposeInput): ComposedPage {
     if (clip.extras?.banner) css += `\n\n/* Banner you added */\n${BANNER_CSS}`
     if (clip.extras?.inserts?.length) css += `\n\n/* Bloks you added */\n${INSERT_CSS}`
 
+    const recipe = clip.recipe ?? (slot.recipe && 'clip' in slot.recipe.layout && slot.recipe.layout.clip === clip.id ? slot.recipe : undefined)
     sections.push({
       slotId: slot.id,
+      ...(recipe && {recipe}),
       position,
       type: clip.type,
       component,
