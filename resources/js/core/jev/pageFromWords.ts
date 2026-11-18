@@ -31,18 +31,26 @@ export interface Chunk {
 
 const headingLike = (l: Line) => l.heading || (l.text.split(/\s+/).length <= 6 && !/[.!?:;,]$/.test(l.text) && !l.sure)
 
+/** Markdown headings start a section even without a blank line. Keep their following copy together. */
+export function paragraphChunks(lines: Line[]): Chunk[] {
+  const chunks: Chunk[] = []
+  const hasOutline = lines.filter((line) => line.heading).length > 1
+  for (const line of lines) {
+    const last = chunks.at(-1)
+    const underHeading = last?.lines[0].heading && (hasOutline || last.lines.length === 1)
+    if (last && !line.heading && (underHeading || last.lines.at(-1)!.group === line.group)) last.lines.push(line)
+    else chunks.push({ c: chunks.length, lines: [line] })
+  }
+  return chunks
+}
+
 /** Runs of lines (blank lines between them); a lone heading-like line joins the run after it. */
 export function chunkLines(lines: Line[]): Chunk[] {
-  const groups: Line[][] = []
-  for (const l of lines) {
-    const g = groups.at(-1)
-    if (g && g[0].group === l.group) g.push(l)
-    else groups.push([l])
-  }
+  const groups = paragraphChunks(lines).map((chunk) => chunk.lines)
   const chunks: Chunk[] = []
   for (let i = 0; i < groups.length; i++) {
     const g = groups[i]
-    if (g.length === 1 && headingLike(g[0]) && groups[i + 1]) {
+    if (g.length === 1 && headingLike(g[0]) && groups[i + 1] && !groups[i + 1][0].heading) {
       chunks.push({ c: chunks.length, lines: [g[0], ...groups[i + 1]] })
       i++
     } else chunks.push({ c: chunks.length, lines: g })
@@ -151,7 +159,21 @@ export function chooseLayouts(sections: ReturnType<typeof pageSections>, read: P
     const builtIn = all.filter((id) => library.clips[id]?.sourceId === 'layout')
     const pool = (builtIn.length ? builtIn : all).filter((id) => capacity(id, lead) >= need)
     const options = pool.length ? pool : builtIn.length ? builtIn : all
-    const ranked = s.type === 'hero' ? diverseHeroes(options, library) : options
+    let ranked = s.type === 'hero' ? diverseHeroes(options, library) : options
+    if (s.type === 'features' && need > 1 && s.chunk) {
+      const bodies = s.chunk.lines.filter((l) => read.roles[l.i]?.role === 'body')
+      // Long service descriptions get reading room in rows. Short entries can share a grid.
+      const preferred = bodies.some((l) => l.text.split(/\s+/).length >= 24) ? 'stack' : 'grid'
+      const ordered = [...options].sort((a, b) => Number(library.clips[b].rhythm === preferred) - Number(library.clips[a].rhythm === preferred))
+      const rhythms = new Set<string>()
+      const distinct = ordered.filter((id) => {
+        const rhythm = library.clips[id].rhythm ?? ''
+        if (rhythms.has(rhythm)) return false
+        rhythms.add(rhythm)
+        return true
+      })
+      ranked = [...distinct, ...ordered.filter((id) => !distinct.includes(id))]
+    }
     const clipId = ranked[pick % Math.max(1, ranked.length)] ?? ranked[0]
     placed.push({ type: s.type, clipId, id: `p${i}` })
     return clipId

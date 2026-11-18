@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { createContext, useContext, useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Copy, Minus, Plus, Type, Wand2, X } from 'lucide-react'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL, resolveFields } from '@/core/content'
@@ -89,25 +89,11 @@ export function PageDoc({ compact = false, onShowSection, extra, onFocusField, p
 
 const FocusField = createContext<((slotId: string, field: string) => void) | null>(null)
 
-/** "18 of 31 are yours" for the open page. */
+/** Count the personalized text fields on the open page. */
 export function useOwnership() {
   const slots = useStore(currentSlots)
   const content = useStore((s) => s.content)
   return useMemo(() => pageOwnership(slots, slotClip, content), [slots, content])
-}
-
-export function OwnershipCount() {
-  const { yours, total } = useOwnership()
-  if (!total) return null
-  const all = yours === total
-  return (
-    <span className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold tabular-nums ${all ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-950/[0.05] text-zinc-700'}`} title="Words on this page that are yours, of all it shows">
-      <span className="relative h-1.5 w-10 overflow-hidden rounded-full bg-zinc-950/10" aria-hidden>
-        <span className={`absolute inset-y-0 left-0 rounded-full ${all ? 'bg-emerald-500' : 'bg-zinc-800'}`} style={{ width: `${(yours / total) * 100}%` }} />
-      </span>
-      {yours} of {total} are yours
-    </span>
-  )
 }
 
 /** The fields a section hides (a hidden block, or one inside a hidden list item or card). */
@@ -182,6 +168,8 @@ function Field({ ctx, field, role, label }: { ctx: Ctx; field: string; role: Rol
   const focused = useContext(FocusField)
   const owner = fieldOwner(slot, clip, content, field)
   const mine = owner === 'yours'
+  const hintId = useId()
+  const source = owner === 'clipped' && clip.origin === 'clip' ? 'From saved clip' : 'Sample text'
   const choices = wordChoices(clip, slot, content, field)
   const now = currentWords(clip, slot, content, field)
   const at = choices.findIndex((c) => c.text.trim() === now.trim())
@@ -193,7 +181,11 @@ function Field({ ctx, field, role, label }: { ctx: Ctx; field: string; role: Rol
   const look = (compact && role ? COMPACT[role] : undefined) ?? (role ? LOOK[role] : undefined) ?? PLAIN
   const button = role === 'button'
   return (
-    <div className="group/f relative">
+    <div className="min-w-0">
+      <div className="flex flex-wrap items-baseline gap-x-1.5 px-1.5 text-[11px] [overflow-wrap:anywhere] leading-snug">
+        <span className="font-medium text-zinc-500">{label}</span>
+        {!mine && <span id={hintId} className="text-amber-800">{source}<span className="sr-only">. Type to replace.</span></span>}
+      </div>
       <div className="flex items-start gap-2">
         <textarea
           value={draft ?? value}
@@ -202,13 +194,14 @@ function Field({ ctx, field, role, label }: { ctx: Ctx; field: string; role: Rol
           aria-label={`${TYPE_LABEL[slot.type]}: ${label}`}
           onFocus={(e) => (!mine && e.currentTarget.select(), focused?.(slot.id, field))}
           data-field={`${slot.id}:${field}`}
+          aria-describedby={mine ? undefined : hintId}
           data-sample={mine ? undefined : ''}
           onChange={(e) => {
             setDraft(e.target.value)
             st().chooseWords(slot.id, field, e.target.value)
           }}
           onBlur={() => setDraft(null)}
-          title={mine ? label : owner === 'clipped' ? `${label}: the words it was clipped with` : `${label}: sample words, not yours yet. Type over them.`}
+          title={mine ? label : `${source}. Type to replace.`}
           className={`block min-w-0 resize-none rounded-md bg-transparent px-1.5 py-0.5 outline-none transition-[background-color,box-shadow] [@media(hover:hover)]:hover:bg-zinc-950/[0.035] focus:bg-white focus:shadow-[0_0_0_1px_rgb(0_0_0/0.1),0_0_0_4px_rgb(0_0_0/0.04)] ${look} ${
             button ? 'w-auto rounded-full border border-zinc-950/15 px-3.5 py-1 text-[13.5px] font-semibold' : 'w-full'
           } ${mine ? 'text-zinc-900' : 'text-zinc-400 underline decoration-zinc-300 decoration-dashed underline-offset-[5px]'}`}
@@ -226,10 +219,6 @@ function Field({ ctx, field, role, label }: { ctx: Ctx; field: string; role: Rol
           </span>
         )}
       </div>
-      <span className="pointer-events-none absolute -top-2 right-1 flex items-center gap-1 rounded-full bg-white px-1.5 text-[10.5px] font-semibold text-zinc-400 opacity-0 shadow-[0_0_0_1px_rgb(0_0_0/0.06)] transition-opacity group-focus-within/f:opacity-100 [@media(hover:hover)]:group-hover/f:opacity-100">
-        {label}
-        {!mine && <span className="text-amber-700">· {owner === 'clipped' ? 'clipped words' : 'not yours yet'}</span>}
-      </span>
     </div>
   )
 }
@@ -265,7 +254,7 @@ function ListDoc({ list, ctx }: { list: OutlineList; ctx: Ctx }) {
           )
           if (!it.nodes.some((x) => shows(x, ctx))) return null
           return (
-            <div key={it.id} className={`group/i relative flex items-start gap-1 ${it.plain ? '' : 'rounded-lg py-1 [@media(hover:hover)]:hover:bg-zinc-950/[0.02]'}`}>
+            <div key={it.id} className={`group/i relative flex max-w-full items-start gap-1 ${it.plain ? '' : 'rounded-lg py-1 [@media(hover:hover)]:hover:bg-zinc-950/[0.02]'}`}>
               <div className="min-w-0 flex-1">
                 <Nodes nodes={it.nodes} ctx={ctx} inItem />
               </div>

@@ -22,20 +22,32 @@ export const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.
 /** A quiet outline for the questions before Blokmix asks about visual style. */
 export function StartOutline({ name, action, sections }: { name: string; action?: string; sections: string[] }) {
   return (
-    <figure aria-label="Page outline" className="mx-auto max-w-[520px]">
-      <div className="overflow-hidden rounded-[16px] border border-zinc-200 bg-white text-zinc-600">
-        <div className="border-b border-zinc-200 bg-zinc-50 px-6 py-4 text-sm font-medium [overflow-wrap:anywhere]">
-          {name || 'Site name'}
-        </div>
-        <div className="px-6 py-7 sm:px-8 sm:py-9">
-          <div className="text-base font-medium">Heading</div>
-          <div aria-hidden="true" className="mt-4 grid gap-2">
-            <span className="h-1.5 w-3/5 rounded-full bg-zinc-200" />
-            <span className="h-1.5 w-2/5 rounded-full bg-zinc-200" />
+    <figure aria-label="Page outline" className="@container mx-auto max-w-[540px]">
+      <figcaption className="mb-2 text-xs font-semibold text-[#6B5F68]">Page outline</figcaption>
+      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-[0_8px_22px_-18px_rgb(23_18_26/0.35)]">
+        <div className="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-zinc-700">
+            <span aria-hidden="true" className="size-3 shrink-0 rounded-[4px] bg-[#EEC6DA]" />
+            <span className="[overflow-wrap:anywhere]">{name || 'Site name'}</span>
           </div>
-          {action && <div className="mt-5 w-fit max-w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm [overflow-wrap:anywhere]">{action}</div>}
-          <div className="mt-7 grid min-h-28 place-items-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-4 py-5 text-sm">
-            Main content
+          <div aria-hidden="true" className="flex shrink-0 gap-1.5">
+            <span className="h-1 w-5 rounded-full bg-zinc-200" />
+            <span className="h-1 w-5 rounded-full bg-zinc-200" />
+          </div>
+        </div>
+        <div className="p-4 @sm:p-5">
+          <div className="grid items-center gap-4 @sm:grid-cols-2 @sm:gap-6">
+            <div className="min-w-0">
+              <div className="text-base font-semibold">Heading</div>
+              <div aria-hidden="true" className="mt-2.5 grid gap-1.5">
+                <span className="h-1.5 w-4/5 rounded-full bg-zinc-200" />
+                <span className="h-1.5 w-3/5 rounded-full bg-zinc-200" />
+              </div>
+              {action && <div className="mt-4 w-fit max-w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm [overflow-wrap:anywhere]">{action}</div>}
+            </div>
+            <div className="grid min-h-16 place-items-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-xs @sm:min-h-24">
+              Main content
+            </div>
           </div>
           {sections.length > 0 && (
             <ul className="mt-4 grid list-none gap-2 p-0">
@@ -131,7 +143,7 @@ export function startHeroTitle(start: Pick<ScoredStart, 'site'>): string | undef
 }
 
 /** One start: its page on a laptop (hover pans down it), what's in it, and only what needs a look. The card is the pick. */
-export function StartCard({ start, letter, best, busy, sections, onPick }: { start: ScoredStart; letter: string; best: boolean; busy?: boolean; sections: boolean; onPick: () => void }) {
+export function StartCard({ start, copyLines, letter, best, busy, sections, onPick }: { start: ScoredStart; copyLines?: number; letter: string; best: boolean; busy?: boolean; sections: boolean; onPick: () => void }) {
   const { checks, phoneScreens, score } = start.score
   const misses = checks.filter((c) => !c.ok).sort((a, b) => b.weight - a.weight)
   const name = startHeroTitle(start) ?? start.label.replace(/^Starter: /, '')
@@ -142,7 +154,7 @@ export function StartCard({ start, letter, best, busy, sections, onPick }: { sta
       onClick={onPick}
       disabled={busy}
       aria-label={`Open ${letter}: ${name}${misses.length ? `. ${misses[0].words}` : ''}`}
-      className={`group flex flex-col overflow-hidden rounded-[16px] bg-white text-left shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_18px_36px_-26px_rgb(23_18_26/0.35)] ${PRESS} disabled:pointer-events-none disabled:opacity-60 ${HOVER}shadow-[0_0_0_2px_#FF69B4,0_18px_36px_-22px_rgb(255_105_180/0.55)]`}
+      className={`group flex flex-col overflow-hidden rounded-[16px] bg-white text-left shadow-[0_0_0_1px_rgb(23_18_26/0.08),0_18px_36px_-26px_rgb(23_18_26/0.35)] ${PRESS} disabled:pointer-events-none disabled:opacity-60 ${HOVER}shadow-[0_0_0_1px_rgb(23_18_26/0.24),0_18px_36px_-22px_rgb(23_18_26/0.45)]`}
     >
       <span className="block w-full border-b border-zinc-950/5">
         <SkinPreview site={start.site} guide={start.guide} content={start.content} title={`Start ${letter}`} height={260} peek />
@@ -153,6 +165,9 @@ export function StartCard({ start, letter, best, busy, sections, onPick }: { sta
           <span className="min-w-0 text-[14.5px] font-semibold leading-tight [text-wrap:balance]">{name}</span>
           {misses.length > 0 && <Score value={score} />}
         </span>
+        {copyLines !== undefined && <span className="text-[12.5px] leading-snug text-zinc-600">
+          {copyLines - (start.content.tray?.length ?? 0)} of {copyLines} lines placed{start.content.tray?.length ? ` · ${start.content.tray.length} saved in Content` : ''}
+        </span>}
         {best && <span className="self-start rounded-full bg-[#FFE4F2] px-2 py-0.5 text-[10.5px] font-semibold text-[#B0186A]">Holds up best</span>}
         {sections && <span className="text-[12.5px] leading-snug text-[#6B5F68] [text-wrap:pretty]">{sectionWords(types).replace(/^./, (c) => c.toUpperCase())}</span>}
         {misses.length > 0 && <span className="rounded-lg bg-amber-50 px-2 py-1.5 text-[12px] leading-snug text-amber-900 [text-wrap:pretty]">{misses[0].words}</span>}

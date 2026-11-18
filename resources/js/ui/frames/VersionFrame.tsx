@@ -1,9 +1,9 @@
 import { uploadData } from '@/lib/assets'
 import { bindContextFor, useCollections } from '@/state/collections'
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
-import { Bot, Copy, Eye, Link2, Package, Shuffle, Trash2 } from 'lucide-react'
-import type { BuildTarget, VersionNode } from '@/core/types'
+import { Eye, Link2, Package, Shuffle, Trash2 } from 'lucide-react'
+import type { VersionNode } from '@/core/types'
 import { resolveGuide } from '@/core/guide'
 import { composeSite } from '@/core/compose'
 import { allSlots, mapSlots } from '@/core/site'
@@ -14,7 +14,6 @@ import { useLayout } from '@/state/layout'
 import { VIEWPORT_VH } from '@/state/derived'
 import { PageFrame } from '@/frame/PageFrame'
 import { runReferenceBuild } from '@/lib/agent-sim'
-import { useAgentLink } from '@/lib/agentLink'
 import { REVIEW_WIDTHS } from '@/core/export/packet'
 import { PreviewMarksBar, PreviewPins } from '../notes/PreviewMarks'
 import { FlashTitle, FrameHeader, OverflowMenu, StatusMenu, StatusRing } from './FrameHeader'
@@ -22,14 +21,13 @@ import { Avatar, AvatarStack } from '../shell/Avatar'
 import { agent, useMe } from '@/lib/people'
 import { STATUS_INK, STATUS_META } from './status'
 import type { FramePlacement } from '../canvas/geometry'
-import { AstroIcon, NextIcon } from '../shell/FrameworkIcons'
+import { SendToAgent } from '../shell/SendToAgent'
 
 export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacement }) {
   const v = p.node
   const viewport = useStore((s) => s.ui.viewport)
   const selected = useStore((s) => s.ui.selectedFrameId === v.id)
   const previewing = useStore((s) => s.ui.previewFrameId === v.id)
-  const agentBusy = useStore((s) => !!s.agent.versionId)
   const isBranchBase = useStore((s) => s.branchFrom === v.id)
   const setFrameHeight = useLayout((s) => s.setFrameHeight)
   const setSections = useLayout((s) => s.setSections)
@@ -106,7 +104,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
         <button type="button" onClick={() => remix(v)} title="Make your mix match this version" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold active:scale-[0.97] @max-[420px]:hidden">
           <Shuffle size={13} /> Start from this
         </button>
-        {v.kind === 'snapshot' && <SendToAgent v={v} disabled={agentBusy} onReference={(t) => runReferenceBuild(v.id, t)} />}
+        {v.kind === 'snapshot' && <SendToAgent version={v} className="@max-[250px]:hidden" onReference={(t) => runReferenceBuild(v.id, t)} />}
         <OverflowMenu
           items={[
             { icon: Eye, label: previewing ? 'Stop interacting' : 'Interact with the page', onClick: () => st().setUi({ previewFrameId: previewing ? null : v.id }) },
@@ -203,85 +201,6 @@ function Title({ v }: { v: VersionNode }) {
   return (
     <div className="truncate text-[15px] font-semibold leading-tight text-zinc-900" onDoubleClick={() => setEditing(true)} title="Double-click to rename">
       {v.title}
-    </div>
-  )
-}
-
-function SendToAgent({ v, disabled, onReference }: { v: VersionNode; disabled: boolean; onReference: (t: BuildTarget) => void }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const link = useAgentLink((s) => s.status)
-  useEffect(() => {
-    if (!open) return
-    const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
-    window.addEventListener('pointerdown', close, true)
-    return () => window.removeEventListener('pointerdown', close, true)
-  }, [open])
-  const name = (t: BuildTarget) => (t === 'astro' ? 'Astro' : 'Next.js')
-  const ask = (t: BuildTarget) => {
-    setOpen(false)
-    const st0 = useStore.getState()
-    // No agent connected to Blokmix: the files and a prompt to paste are the way (Export, opened on this version).
-    if (link !== 'connected') return st0.setUi({ packetSource: v.id, packetTargets: [t], sheet: 'packet' })
-    const prompt = `Use blokmix to build version ${v.letter} in ${name(t)}`
-    const st = useStore.getState()
-    void navigator.clipboard?.writeText(prompt).catch(() => {})
-    st.showFlash(`Copied “${prompt}”: paste it to your agent`)
-  }
-  const Row = ({ t, onClick, icon }: { t: BuildTarget; onClick: () => void; icon?: React.ReactNode }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] font-medium text-zinc-800 transition hover:bg-zinc-950/5"
-    >
-      <span className="flex items-center gap-2">
-        {t === 'astro' ? <AstroIcon size={15} /> : <NextIcon size={15} />}
-        {name(t)}
-      </span>
-      <span className="text-zinc-400">{icon ?? '→'}</span>
-    </button>
-  )
-  return (
-    <div ref={ref} className="relative @max-[220px]:hidden">
-      <button
-        type="button"
-        // While the agent builds another one this waits, and its tooltip says so.
-        aria-disabled={disabled || undefined}
-        title={disabled ? 'Your agent is busy with another build' : 'Build this version'}
-        onClick={(e) => {
-          e.stopPropagation()
-          if (!disabled) setOpen((o) => !o)
-        }}
-        className={`btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold @max-[340px]:px-2 ${disabled ? 'cursor-default opacity-50' : 'active:scale-[0.97]'}`}
-      >
-        <Bot size={14} /> <span className="@max-[340px]:hidden">Build</span>
-      </button>
-      {open && (
-        <div className="glass-menu absolute right-0 top-full z-50 mt-2 w-72 animate-pop rounded-2xl p-2">
-          <div className="px-2 pb-1 pt-1 text-[12.5px] font-semibold text-zinc-900">Build with your agent</div>
-          <p className="px-2 pb-1.5 text-[12px] leading-snug text-zinc-500">
-            {link === 'connected'
-              ? 'Copies a prompt for your agent. It builds this version and shows it here.'
-              : 'Get the files and a prompt to paste into your AI tool.'}
-          </p>
-          {(['astro', 'next'] as const).map((t) => (
-            <Row key={t} t={t} onClick={() => ask(t)} icon={link === 'connected' ? <Copy size={13} /> : undefined} />
-          ))}
-          <div className="mx-2 my-1.5 border-t border-zinc-950/5" />
-          <div className="px-2 pb-1 pt-0.5 text-[12.5px] font-semibold text-zinc-900">Preview the code</div>
-          <p className="px-2 pb-1.5 text-[12px] leading-snug text-zinc-500">See the exported site right here, no agent needed.</p>
-          {(['astro', 'next'] as const).map((t) => (
-            <Row
-              key={t}
-              t={t}
-              onClick={() => {
-                setOpen(false)
-                onReference(t)
-              }}
-            />
-          ))}
-        </div>
-      )}
     </div>
   )
 }

@@ -86,6 +86,15 @@ describe('whose words are on the page', () => {
     expect(fieldOwner(hero, clip, start.content, 'subhead')).toBe('filler')
   })
 
+  it('counts editable brand text on an image block', () => {
+    const [start] = startCandidates({ kind: 'local', name: 'Mill Bakery' }, library)
+    const nav = allSlots(start.site).find((s) => s.type === 'nav')!
+    const clip = slotClip(nav)
+    const brand = clip.blocks.find((block) => block.kind === 'image' && block.field === 'brand')!
+    const typed = showWords(nav, clip, start.content, brand.field!, 'Mill Studio')
+    expect(ownership(typed, clip, start.content)).toContainEqual({ field: 'brand', owner: 'yours' })
+  })
+
   it('makes a field yours once you type into it, and counts a page', () => {
     const [start] = startCandidates({ kind: 'local', name: 'Mill Bakery' }, library)
     const slots = pageView(start.site, start.site.pages[0].id)
@@ -181,6 +190,22 @@ describe('the start box', () => {
     expect(new Set(starts.map((c) => c.site.pages[0].slots.map((s) => s.clipId).join())).size).toBe(starts.length)
     // Off the board: nothing changed on it.
     expect(useStore.temporal.getState().pastStates).toHaveLength(0)
+  })
+
+  it('uses a whole Markdown document when suggestions are offline, including lines past the reading batch', async () => {
+    fakeJev(undefined, { off: true })
+    const body = Array.from({ length: 84 }, (_, i) => `Garden note ${i + 1}.`)
+    const text = ['# Garden studio', '', 'Care for every season.', '## Our process', '', ...body].join('\n')
+    const read = (await hearStart(text, 'studio', 'paste'))!
+    expect(read.jev).toBe(false)
+    expect(read.sections).toEqual(['hero', 'content'])
+    expect(read.lines).toBe(87)
+    for (const candidate of wordsCandidates({ name: 'Garden studio', kind: 'local' }, read.plan!)) {
+      const shown = allSlots(candidate.site).flatMap((s) => Object.values(s.words ?? {}))
+      const saved = candidate.content.tray?.map((l) => l.text) ?? []
+      expect([...shown, ...saved]).toEqual(expect.arrayContaining(['Garden studio', 'Care for every season.', 'Our process', ...body]))
+      expect(saved).toContain('Garden note 84.')
+    }
   })
 
   it('builds the same page off the board as on it', async () => {

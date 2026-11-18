@@ -717,7 +717,7 @@ export function SectionRail({ slot, index, focused }: { slot: Slot; index: numbe
     >
       {/* the rail's line, drawn in page space so it spans the whole section */}
       <div
-        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${focused ? 'bg-key' : slot.locked ? 'bg-key/60' : 'bg-zinc-300 group-hover/row:bg-key/70 group-hover/rail:bg-key/70'}`}
+        className={`absolute inset-y-[calc(4px/var(--z))] right-[calc(8px/var(--z))] rounded-full transition-colors ${focused ? 'bg-key' : slot.locked ? 'bg-key/60' : 'bg-zinc-300 group-hover/row:bg-zinc-500 group-hover/rail:bg-zinc-500'}`}
         // Locked, the rail is a touch heavier and pink: the lock lives here, beside the design, never on it.
         style={{ width: slot.locked ? 'calc(3px / var(--z))' : 'calc(2px / var(--z))' }}
       />

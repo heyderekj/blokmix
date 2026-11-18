@@ -44,7 +44,7 @@ export function startedWords(name: string, mix: Pick<MixData, 'site' | 'content'
   const drafts = Object.keys(mix.drafts ?? {}).length
   const started = `Started ${who}${drafts > 1 ? ` with ${drafts} drafts` : ''}.`
   if (waiting) return `${started} ${waiting} of your lines aren’t placed yet; Content shows them.`
-  return left ? `${started} ${left} spots still hold sample words: Next in Content shows the first.` : `${started} Every word on Home is yours.`
+  return left ? `${started} Open Content to review ${left} text ${left === 1 ? 'field' : 'fields'}.` : `${started} Home’s text is ready.`
 }
 
 /** A start's name as a version: the starter's, else its hero's ("Photo backdrop"). */

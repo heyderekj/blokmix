@@ -320,7 +320,7 @@ function SiteView({ site: initial, types }: { site: Site; types: string[] }) {
                 key={s.id}
                 onMouseEnter={() => setFocus(s.id)}
                 onMouseLeave={() => setFocus(null)}
-                className={`rounded-xl bg-white p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06)] transition-shadow duration-150 ${focus === s.id ? 'shadow-[0_0_0_2px_rgb(255_105_180/0.6)]' : ''}`}
+                className={`rounded-xl p-3 transition-[background-color,box-shadow] duration-150 ${focus === s.id ? 'bg-zinc-50 shadow-[0_0_0_1px_rgb(0_0_0/0.24)]' : 'bg-white shadow-[0_0_0_1px_rgb(0_0_0/0.06)]'}`}
               >
                 <div className="flex items-center gap-2">
                   <span className="w-5 text-[12px] tabular-nums text-zinc-400">{s.order + 1}</span>
@@ -368,7 +368,7 @@ function Screenshot({ page, focus, onFocus }: { page: Page; focus: number | null
           type="button"
           onMouseEnter={() => onFocus(s.id)}
           onMouseLeave={() => onFocus(null)}
-          className={`absolute inset-x-0 cursor-pointer border-2 text-left transition-[background-color,border-color] duration-150 ${BOX_TONE[s.status]} ${focus === s.id ? 'border-[#FF69B4]' : ''}`}
+          className={`absolute inset-x-0 cursor-pointer border-2 text-left ${BOX_TONE[s.status]} ${focus === s.id ? 'outline-2 -outline-offset-2 outline-zinc-700' : ''}`}
           style={{ top: `${(s.box.y / height) * 100}%`, height: `${(s.box.h / height) * 100}%` }}
         >
           <span className="absolute left-2 top-2 rounded-md bg-zinc-900/85 px-1.5 py-0.5 font-mono text-[11px] text-white">

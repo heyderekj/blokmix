@@ -336,21 +336,26 @@ function FirstRunTip() {
   return (
     <AnimatePresence>
       {!dismissed && !sheetOpen && (
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 4 }}
-          className="glass flex items-center gap-2 rounded-full py-1 pl-1.5 pr-3 text-[12px] text-zinc-600 max-md:hidden"
+          className="@container w-full text-center [@media(max-width:767px)_and_(pointer:coarse)]:hidden"
         >
-          <span className="pl-1.5">Scroll to read</span>
-          <span className="text-zinc-300">·</span>
-          <span className="kbd">←</span>
-          <span className="kbd">→</span> try another layout
-          <span className="text-zinc-300">·</span>
-          <span className="kbd">Space</span> shuffle
-          <span className="text-zinc-300">·</span>
-          <span className="kbd">Enter</span> save a version
-        </motion.p>
+          <ul aria-label="Canvas shortcuts" className="glass m-0 hidden list-none items-center whitespace-nowrap rounded-full px-3 py-1.5 align-middle text-xs font-medium text-zinc-600 @min-[9rem]:inline-flex">
+            <li className="mr-3 hidden border-r border-zinc-950/10 pr-3 @min-[32rem]:block">Scroll to read</li>
+            <li className="flex items-center gap-1.5">
+              <span className="inline-flex gap-0.5"><kbd className="kbd">←</kbd><kbd className="kbd">→</kbd></span>
+              Try layouts
+            </li>
+            <li className="ml-3 hidden items-center gap-1.5 border-l border-zinc-950/10 pl-3 @min-[16.5rem]:flex">
+              <kbd className="kbd">Space</kbd> Shuffle
+            </li>
+            <li className="ml-3 hidden items-center gap-1.5 border-l border-zinc-950/10 pl-3 @min-[25.5rem]:flex">
+              <kbd className="kbd">Enter</kbd> Save version
+            </li>
+          </ul>
+        </motion.div>
       )}
     </AnimatePresence>
   )

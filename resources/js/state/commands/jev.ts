@@ -20,7 +20,7 @@ import { deadLinks, guessLinks } from '../jevLinks'
 import { findFocus } from '../jevPhotos'
 import { hear, type Heard } from '../jevSay'
 import { applyPour, planPour, setTray, trayFrom, type Poured } from '../jevPour'
-import { buildPage, planPage, type PagePlan } from '../jevPage'
+import { buildPage, paragraphPlan, planPage, type PageLayouts, type PagePlan } from '../jevPage'
 import { checkLook, rankByEye, restyle } from '../jevThemes'
 import { suggestPalettes } from '../jevColors'
 import { dressPage, dressSection, type DressIdea } from '../jevDress'
@@ -182,13 +182,14 @@ export const later = {
   } satisfies AsyncCommand<Poured>,
   page_from_words: {
     prepare: async (i: CommandInput<'page_from_words'>) => {
+      if (i.reading === 'paragraphs') return paragraphPlan(i.text)
       await needJev()
       const p = await planPage(i.text)
       if (!p) throw new CommandError('No answer that time, or there was no text to use. Try again.')
       return p
     },
-    apply: (i: CommandInput<'page_from_words'>, p: PagePlan) => {
-      const b = buildPage(p, i.arrangement, i.into, i.page)
+    apply: (i: CommandInput<'page_from_words'>, p: PagePlan, layouts?: PageLayouts) => {
+      const b = buildPage(p, i.arrangement, i.into, i.page, i.title, layouts)
       return {
         page: b.pageId,
         sections: b.sections,

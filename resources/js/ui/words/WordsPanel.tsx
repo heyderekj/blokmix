@@ -1,9 +1,9 @@
 import { Dropdown } from '@/ui/controls/Dropdown'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, Check, ChevronDown, Pencil, Type, Wand2 } from 'lucide-react'
+import { ArrowRight, ChevronDown, FileText, Type, Wand2 } from 'lucide-react'
 import type { SectionType, Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
-import { describeSections } from '@/core/jev/pageFromWords'
+import { openPageComposer } from './PageComposer'
 import { textMode } from '@/core/jev/describe'
 import { actionChoices, briefContext, briefOf, FORMAT_LABEL, FORMATS, GOAL_LABEL, GOALS, INDUSTRIES, INDUSTRY_LABEL, type Goal } from '@/core/brief'
 import { library, slotClip } from '@/data/library'
@@ -11,13 +11,12 @@ import { jevOn } from '@/lib/jev'
 import { useStore, currentSlots } from '@/state/store'
 import { useLayout } from '@/state/layout'
 import { runCommand } from '@/state/commands'
-import { planPage, wordsPage, type PagePlan } from '@/state/jevPage'
 import { fitsFor, readsAs } from '@/state/wordsFit'
 import { retypeSection } from '@/state/retype'
 import { canvasApi } from '@/ui/canvas/Canvas'
 import { Preview } from '@/ui/shell/Preview'
 import { CollectionsPanel } from '@/ui/panels/collections/CollectionsPanel'
-import { OwnershipCount, PageDoc, TrayColumn, useOwnership } from '@/ui/content/PageDoc'
+import { PageDoc, TrayColumn, useOwnership } from '@/ui/content/PageDoc'
 import { SiteLogo, SiteName } from '@/ui/content/SiteName'
 
 const PRESS = 'cursor-pointer transition-[background-color,box-shadow,scale,color] duration-150 active:scale-[0.97]'
@@ -48,8 +47,6 @@ export function WordsPanel() {
             </button>
           ))}
         </div>
-        <span className="flex-1" />
-        {view === 'words' && <NextSample />}
       </header>
       {view === 'collections' ? (
         <div className="thin-scroll min-h-0 flex-1 overflow-y-auto" data-scroll-ok>
@@ -57,13 +54,9 @@ export function WordsPanel() {
         </div>
       ) : (
         <div ref={scroller} className="thin-scroll relative min-h-0 flex-1 overflow-y-auto pb-24" data-scroll-ok data-words-scroll>
-          <div className="space-y-2 px-4 pt-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <SiteName brand={useStore((s) => s.content.brand)} className="min-w-0 rounded-md bg-transparent px-1.5 text-[14px] font-semibold text-zinc-900 outline-none [field-sizing:content] hover:bg-zinc-950/[0.04] focus:bg-zinc-950/[0.04]" />
-              <SiteLogo />
-            </div>
-            <BriefRow />
-            <OwnershipCount />
+          <div className="mx-4 mt-4 overflow-hidden rounded-xl border border-zinc-950/10 bg-white">
+            <SiteDetails />
+            <PageCopyProgress />
           </div>
           {slots.length ? (
             <PageDoc
@@ -98,48 +91,59 @@ function show(slotId: string, how: 'top' | 'nearest') {
   canvasApi.revealRow(slotId, how)
 }
 
-/** "Next" jumps to the first spot that still holds sample words, on the page and here. */
-function NextSample() {
-  const { yours, total } = useOwnershipLite()
-  if (!total || yours === total) return null
+function PageCopyProgress() {
+  const { yours, total } = useOwnership()
+  if (!total) return null
   const go = () => {
-    const el = document.querySelector<HTMLTextAreaElement>('[data-words-scroll] [data-sample]')
-    if (!el) return
-    el.scrollIntoView({ block: 'center', behavior: 'smooth' })
-    el.focus({ preventScroll: true })
+    const fields = document.querySelectorAll<HTMLTextAreaElement>('[data-words-scroll] [data-sample]')
+    const field = [...fields].find((el) => el.value.trim())
+    if (!field) return
+    field.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    field.focus({ preventScroll: true })
   }
   return (
-    <button type="button" onClick={go} title="The next spot that still holds sample words" className={`${SMALL} bg-zinc-900 text-white`}>
-      Next <ArrowRight size={12} />
-    </button>
+    <div className="border-t border-zinc-950/[0.07] bg-zinc-50 px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="text-[12px] font-semibold text-zinc-800">Page copy</h3>
+          <p className="text-[11.5px] leading-snug tabular-nums text-zinc-500">
+            {yours === 0 ? `${total} text ${total === 1 ? 'field' : 'fields'}` : `${yours} of ${total} personalized`}
+          </p>
+        </div>
+        {yours < total && <button type="button" onClick={go} className={`${SMALL} shrink-0 whitespace-nowrap bg-white text-zinc-800 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] hover:bg-zinc-100`}>
+          {yours ? 'Edit next' : 'Start editing'} <ArrowRight size={13} />
+        </button>}
+      </div>
+      {yours > 0 && <div aria-hidden className="mt-2 h-1 overflow-hidden rounded-full bg-zinc-200">
+        <div className="h-full rounded-full bg-key-ink" style={{ width: `${100 * yours / total}%` }} />
+      </div>}
+    </div>
   )
 }
 
-function useOwnershipLite() {
-  const { yours, total } = useOwnership()
-  return { yours, total }
-}
-
-/** What the site is for, in a line; Change opens the brief to edit (it steers suggestions and goes to your agent). */
-function BriefRow() {
+function SiteDetails() {
   const content = useStore((s) => s.content)
   const [open, setOpen] = useState(false)
   const b = briefOf(content)
   const st = useStore.getState
-  const line = briefContext(content).replace(/^[^:]+:\s*/, '')
+  const name = content.brand.trim() || 'The site'
+  const line = briefContext(content).slice(name.length).replace(/^:\s*|^\s+/, '')
+  const action = line ? 'Edit site brief' : 'Add site brief'
   return (
-    <div className="rounded-xl bg-zinc-950/[0.035] px-3 py-2">
-      <div className="flex items-start gap-2">
-        <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-zinc-600">
-          <span className="font-semibold text-zinc-800">What it’s for: </span>
-          {line && line !== content.brand ? line : 'Not said yet.'}
-        </span>
-        <button type="button" onClick={() => setOpen((x) => !x)} aria-expanded={open} className={`${SMALL} -mr-1 -mt-0.5 text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-900`}>
-          <Pencil size={11} /> {open ? 'Done' : 'Change'}
-        </button>
+    <div className="p-3">
+      <div className="flex items-center gap-3">
+        <SiteLogo />
+        <div className="min-w-0 flex-1">
+          <SiteName brand={content.brand} className="block w-full min-w-0 truncate rounded bg-transparent px-1 text-[17px] leading-tight font-semibold tracking-tight text-zinc-900 outline-none hover:bg-zinc-50 focus:bg-zinc-50 focus:ring-1 focus:ring-zinc-300" />
+          <button type="button" onClick={() => setOpen((x) => !x)} aria-expanded={open} className={`mt-0.5 inline-flex min-h-6 items-center gap-1.5 rounded px-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 ${PRESS}`}>
+            <FileText size={12} /> {open ? 'Close brief' : action}
+            <ChevronDown size={12} className={open ? 'rotate-180' : ''} />
+          </button>
+        </div>
       </div>
       {open && (
-        <div className="mt-2 grid gap-2 text-[12.5px]">
+        <div className="mt-3 grid gap-2.5 border-t border-zinc-950/[0.07] pt-3 text-[12.5px]">
+          {line && <p className="text-xs leading-relaxed text-zinc-600 [overflow-wrap:anywhere]">{line}</p>}
           <div className="grid gap-1">
             <span className="text-zinc-500">Kind of site</span>
             <Dropdown label="Kind of site" value={b.format ?? ''} onChange={(next) => st().setBrief({ format: next || undefined })}
@@ -279,12 +283,9 @@ function useReadsAs(slots: Slot[]) {
  */
 function WriteOrPaste({ empty }: { empty: boolean }) {
   const [text, setText] = useState('')
-  const [plan, setPlan] = useState<PagePlan | null>(null)
-  const [arrangement, setArrangement] = useState<1 | 2 | 3>(1)
   const [busy, setBusy] = useState<string | null>(null)
   const [note, setNote] = useState<string | null>(null)
   const st = useStore.getState
-  const preview = useMemo(() => (plan ? wordsPage(plan, arrangement, st().content, (i) => `preview${i}`) : null), [plan, arrangement, st])
   const run = async (what: string, name: string, input: Record<string, unknown>) => {
     setBusy(what)
     setNote(null)
@@ -292,20 +293,11 @@ function WriteOrPaste({ empty }: { empty: boolean }) {
       const out = (await runCommand(name, input, 'you')) as { message?: string }
       if (out?.message) st().showFlash(out.message, { undo: true })
       setText('')
-      setPlan(null)
     } catch (e) {
       setNote(e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(null)
     }
-  }
-  const read = async () => {
-    setBusy('read')
-    setNote(null)
-    const p = await planPage(text)
-    setBusy(null)
-    if (!p) return setNote('No answer this time. Try again, or place the lines into the sections already here.')
-    setPlan(p)
   }
   const many = text.trim() && textMode(text) === 'paste'
   return (
@@ -313,50 +305,21 @@ function WriteOrPaste({ empty }: { empty: boolean }) {
       {empty && <p className="px-1 pb-2 text-[14px] font-semibold text-zinc-900">Start with your words</p>}
       <textarea
         value={text}
-        onChange={(e) => (setText(e.target.value), setPlan(null))}
+        onChange={(e) => setText(e.target.value)}
         rows={empty ? 8 : 3}
         placeholder={empty ? 'Paste what you have: an About page, a menu, your old site, notes. Each part becomes a section; nothing is reworded.' : 'Write or paste more: notes, an About page, a menu…'}
         className="thin-scroll block w-full resize-y bg-transparent px-1 text-[14px] leading-relaxed text-zinc-900 outline-none placeholder:text-zinc-400"
       />
       {note && <p className="px-1 pt-1 text-[12.5px] text-problem-ink">{note}</p>}
-      {plan && preview && (
-        <div className="mt-2 rounded-xl bg-zinc-950/[0.035] p-2.5">
-          <div className="flex items-center gap-2 text-[12.5px]">
-            <span className="min-w-0 flex-1 font-semibold text-zinc-800">{describeSections(preview.types)}</span>
-            <span className="flex items-center gap-1 text-zinc-500">
-              <button type="button" onClick={() => setArrangement((a) => (((a + 1) % 3) + 1) as 1 | 2 | 3)} className={`${SMALL} hover:bg-zinc-950/5`} aria-label="Another arrangement">
-                ‹
-              </button>
-              {arrangement}/3
-              <button type="button" onClick={() => setArrangement((a) => ((a % 3) + 1) as 1 | 2 | 3)} className={`${SMALL} hover:bg-zinc-950/5`} aria-label="Another arrangement">
-                ›
-              </button>
-            </span>
-          </div>
-          <p className="pt-0.5 text-[11.5px] text-zinc-500">
-            {preview.placed} lines placed{preview.tray.length ? `, ${preview.tray.length} waiting for a spot` : ''}.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1">
-            {!empty && (
-              <button type="button" disabled={!!busy} onClick={() => run('page', 'page_from_words', { text, into: 'new_page', arrangement })} className={`${SMALL} bg-zinc-900 text-white`}>
-                <Check size={12} /> Add as a new page
-              </button>
-            )}
-            <button type="button" disabled={!!busy} onClick={() => run('replace', 'page_from_words', { text, into: 'this_page', arrangement })} className={`${SMALL} ${empty ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-800 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]'}`}>
-              {empty ? 'Make this page' : 'Replace this page'}
-            </button>
-          </div>
-        </div>
-      )}
       <div className="flex flex-wrap justify-end gap-1.5 pt-2">
         {!empty && text.trim() && (
           <button type="button" disabled={!!busy} onClick={() => run('pour', 'pour_words', { text })} className={`${SMALL} bg-white text-zinc-800 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]`}>
             <Type size={12} /> {busy === 'pour' ? 'Placing…' : 'Place into these sections'}
           </button>
         )}
-        {(many || empty) && !plan && (
-          <button type="button" disabled={!text.trim() || !!busy} onClick={read} className={`${SMALL} bg-zinc-900 text-white disabled:opacity-40`}>
-            <Wand2 size={12} className={busy === 'read' ? 'animate-pulse' : ''} /> {busy === 'read' ? 'Reading…' : 'Show me sections'}
+        {(many || empty) && (
+          <button type="button" disabled={!text.trim() || !!busy} onClick={() => openPageComposer(text, empty ? 'this_page' : 'choose')} className={`${SMALL} bg-zinc-900 text-white disabled:opacity-40`}>
+            <Wand2 size={12} className={busy === 'read' ? 'animate-pulse' : ''} /> Compare page layouts
           </button>
         )}
       </div>

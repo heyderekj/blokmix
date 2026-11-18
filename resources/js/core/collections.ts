@@ -220,6 +220,7 @@ export function inferSchema(clip: SectionClip, list: OutlineList, fields: Record
       else add(node.key, 'list')
     }
   if (itemImages(clip, first.id).length) add(out.some((f) => f.type === 'image') ? 'image2' : imageKey(clip, first.id, list.listKey, first.n), 'image')
+  if (!out.length) throw new CollectionError('This list has no editable fields to collect.')
   const titleField = out.find((f) => /^(title|name|q|heading|label)$/i.test(f.key))?.key ?? out.find((f) => f.type === 'text')?.key ?? out[0].key
   const title = out.find((f) => f.key === titleField)!
   title.required = true
@@ -454,7 +455,11 @@ export function applyBindings(slot: Slot, clip: Clip, ctx: BindContext, targets?
     const tpl = list.items[0]
     const top = Math.max(...own, ...list.items.map((i) => i.n))
     const refs: ListItemRef[] = entries.map((_, i) => (i < own.length ? { n: own[i] } : { n: top + i - own.length + 1, from: tpl.n }))
-    if (!refs.length) refs.push({ n: own[0] ?? tpl.n }) // a list keeps one item; it shows the layout's own words
+    if (!refs.length) {
+      // Layouts need a template item internally, but an empty collection must render no items.
+      refs.push({ n: own[0] ?? tpl.n })
+      forClip[listBlock.id] = { ...forClip[listBlock.id], hidden: true }
+    }
     lists[key] = refs
     targets?.items.set(key, { collection: c.slug, entries: entries.map((e) => e.id), sorted: !!b.sort })
     // Field suffixes from the template item: title → "Title" in p1Title.

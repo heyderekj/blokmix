@@ -39,6 +39,7 @@ interface CollectionsState {
   /** Put a collection in as it is (from the server, or a mix file). */
   put: (c: Collection) => void
   addField: (slug: string, label: string, type: FieldType) => void
+  updateFieldDetails: (slug: string, key: string, details: { label?: string; options?: string[] }) => void
   renameField: (slug: string, key: string, label: string) => void
   retypeField: (slug: string, key: string, type: FieldType) => void
   removeField: (slug: string, key: string) => void
@@ -77,6 +78,10 @@ export const useCollections = create<CollectionsState>()(
             }),
           put: (c) => set((s) => ({ bySlug: { ...s.bySlug, [c.slug]: c } })),
           addField: (slug, label, type) => edit(slug, (c) => addField(c, label, type)),
+          // Display labels and choices can change without invalidating field keys used by other mixes.
+          updateFieldDetails: (slug, key, details) => edit(slug, (c) => ({
+            ...c, schema: { ...c.schema, fields: c.schema.fields.map((f) => f.key === key ? { ...f, ...details } : f) },
+          })),
           renameField: (slug, key, label) => edit(slug, (c) => renameField(c, key, label)),
           retypeField: (slug, key, type) => edit(slug, (c) => retypeField(c, key, type)),
           removeField: (slug, key) => edit(slug, (c) => removeField(c, key)),

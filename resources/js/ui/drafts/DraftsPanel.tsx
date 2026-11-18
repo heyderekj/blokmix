@@ -7,6 +7,7 @@ import type { VersionNode } from '@/core/types'
 import { useStore } from '@/state/store'
 import { canAddDraft } from '@/state/slices/drafts'
 import { StatusRing } from '../frames/FrameHeader'
+import { SendToAgent } from '../shell/SendToAgent'
 import { toggleSheet } from '../shell/TopBar'
 import { newDraft, openDraft } from './open'
 
@@ -166,6 +167,7 @@ function History({ versions }: { versions: VersionNode[] }) {
                 </span>
               </div>
               <div className="mt-0.5 flex flex-wrap gap-0.5 pl-9">
+                {v.kind === 'snapshot' && <SendToAgent version={v} className="min-h-7 rounded-full text-[12px]" />}
                 {v.kind === 'snapshot' && v.id !== head && (
                   <button type="button" className={ROW_BUTTON} title="The open draft goes back to this. Unsaved changes are saved first; ⌘Z undoes it." onClick={() => (st().restoreVersion(v.id), st().showFlash(`Back to ${v.letter}`, { undo: true }))}>
                     <RotateCcw size={12} /> Go back to this

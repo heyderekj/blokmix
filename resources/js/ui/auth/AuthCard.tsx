@@ -77,7 +77,7 @@ export function Field({ label, error, ...input }: { label: string; error?: strin
   )
 }
 
-/** The one action: hot pink with ink text (never white), deep pink on hover. */
+/** The primary action uses the raised pink button. */
 export function Submit({ busy, children }: { busy: boolean; children: ReactNode }) {
   return (
     <button

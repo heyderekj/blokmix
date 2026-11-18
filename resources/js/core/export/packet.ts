@@ -49,7 +49,7 @@ export const AGENT_RULES = [
   'Keep each section as its own component, in this order.',
   'Start from the astro/ or next/ reference build and refine it; don’t regenerate from scratch.',
   'Where a section says “your copy”, the copy is already swapped in. Replace any fields listed as retained source copy with copy that fits the project.',
-  'Treat source sites as references: rewrite markup and copy rather than copying them, replace any logos or images, and substitute licensed fonts with the ones in tokens.css.',
+  'Treat source sites as references: write original markup and copy, replace source-site logos and images, and substitute licensed fonts with the ones in tokens.css. Preserve project logos and media selected in Blokmix.',
   'Layout marked “reference only” may be restructured to fit neighboring sections.',
   'Respect prefers-reduced-motion: motion lives in each section’s motion block and must stay optional.',
   'Keep source URLs as references in comments; don’t remove them.',
@@ -416,7 +416,15 @@ export function buildNotes(i: PacketInput): string {
   return lines.join('\n')
 }
 
-/** What a coding agent should do with this packet, ending in the review loop. `run` names the build when Blokmix started one. */
+/** The instruction copied from a saved version for an agent with the Blokmix MCP connection. */
+export function versionBuildPrompt(version: { id: string; letter: string }, target: BuildTarget): string {
+  return `Build Blokmix version ${version.letter} in the website repository I have open.
+
+Call the Blokmix MCP tool prepare_build with ${JSON.stringify({ version: version.id, target })}. If the tool can’t find the version, ask me to open its mix in Blokmix.
+
+Read the returned packet and build instructions. Integrate the saved pages into this repository using its existing conventions. If the repository is empty, start from the exported framework project. Preserve the selected section layouts, the placed copy, and project media. Check every route against its reference HTML at desktop and phone widths, then report the build preview back to Blokmix.`
+}
+
 /**
  * The prompt that goes with the files. The steps that report back to Blokmix (and the ReviseMy review loop) need an
  * agent connected to Blokmix: they're left out when `mcp` is false, so a plain copy-and-paste prompt has none.
@@ -426,13 +434,14 @@ export function agentPrompt(i: PacketInput, target: BuildTarget, run?: { build: 
   const t = target === 'astro' ? 'Astro' : 'Next.js (App Router)'
   const dir = target === 'astro' ? 'astro/' : 'next/'
   const build = run ? `"${run.build}"` : 'the build letter prepare_build returned'
-  return `Build the "${i.mixName}" landing page in ${t} from this Blokmix packet${i.version ? ` (version ${i.version.letter})` : ''}.
+  const hasPages = (i.page.site?.pages.length ?? 0) > 1
+  return `Build the "${i.mixName}" ${hasPages ? 'website' : 'page'} in ${t} from this Blokmix packet${i.version ? ` (version ${i.version.letter})` : ''}.
 
 1. Read CONTRACT.md first (what must be kept, where you're invited to surprise), then BLOKMIX.md (build notes) and blokmix.json.
-2. Start from the reference build in ${dir}; it already composes ${i.page.sections.length} section components with the resolved style guide in tokens.css.
+2. Use the reference build in ${dir}; it already composes ${i.page.sections.length} section components with the resolved style guide in tokens.css. If a destination repository was specified, integrate the design there using its conventions.
 3. Follow the per-section instructions (layout, style, copy, motion) and the rules at the end of BLOKMIX.md, especially: use only the tokens in tokens.css.
-4. Replace any copy listed as retained source copy, and any logos or imagery, with project-appropriate content. Words live in the content folder's JSON files; edit them there.
-5. Run the dev server, compare against reference.html, and fix any visual drift at 1440px and 390px.
+4. Keep the copy and media chosen for the project. Replace retained source copy, source-site branding, and placeholder images where BLOKMIX.md calls them out. Store words in the content folder's JSON files.
+5. Run the dev server and fix visual drift at 1440px and 390px. Compare the opening page against reference.html${hasPages ? ' and each other route against its own file (for example, /services uses reference/services.html)' : ''}.
 ${mcp ? AGENT_STEPS(build, run, target) : ''}`
 }
 

@@ -3,6 +3,7 @@ import { useCollections } from '@/state/collections'
 import { ChevronDown, Copy, FileText, MoreHorizontal, PanelBottom, PanelTop, Pencil, Plus, Trash2 } from 'lucide-react'
 import type { Page, SectionType } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
+import { openPageComposer } from '../words/PageComposer'
 import { MixMark } from '../brand/MixMark'
 import { PAGE_TEMPLATES, pageOf, type PageTemplate } from '@/core/site'
 import { useStore } from '@/state/store'
@@ -242,6 +243,13 @@ function AddPage({ onDone }: { onDone: () => void }) {
   return (
     <div className="px-1.5 pb-1">
       <div className="px-1 pb-1.5 pt-1 text-[11px] font-semibold text-zinc-400">Start from</div>
+      <button
+        type="button"
+        onClick={() => openPageComposer()}
+        className="mb-2 flex w-full cursor-pointer items-center gap-2 rounded-xl bg-white px-3 py-3 text-left text-sm font-semibold text-zinc-900 shadow-[0_0_0_1px_rgb(0_0_0/0.07)] transition-[background-color,scale] duration-150 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-500 active:scale-[0.97]"
+      >
+        <FileText size={16} className="text-zinc-600" /> Paste your content
+      </button>
       <div className="grid grid-cols-2 gap-1.5">
         {(Object.keys(PAGE_TEMPLATES) as PageTemplate[]).map((k) => {
           const types = PAGE_TEMPLATES[k].types as readonly SectionType[]

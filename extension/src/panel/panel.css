@@ -1,6 +1,5 @@
 :root {
   --key: #ff6aa8;
-  --key-hover: #ff559b;
   --key-ink: hsl(330 40% 9%);
   --bg: #fafafa;
   --card: #ffffff;
@@ -25,7 +24,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 14px; }
 .mark { width: 16px; height: 16px; border-radius: 4px; background: conic-gradient(var(--key) 0 25%, var(--ink) 0 50%, var(--key) 0 75%, var(--ink) 0); }
 .primary { background: var(--key); color: var(--key-ink); font-weight: 650; padding: 8px 12px; border-radius: 999px; min-height: 32px; }
-@media (hover: hover) and (pointer: fine) { .primary:hover { background: var(--key-hover); } .ghost:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); } }
+@media (hover: hover) and (pointer: fine) { .primary:hover { box-shadow: 0 2px 7px rgb(0 0 0 / 0.22); } .ghost:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); } }
 .ghost { padding: 6px 10px; border-radius: 8px; color: var(--muted); font-weight: 550; min-height: 30px; }
 .folder { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 14px 0; padding: 8px 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); color: var(--muted); }
 .folder b { color: var(--ink); font-weight: 600; }

@@ -16,7 +16,7 @@ import { skinList, WIREFRAME } from '@/core/skins'
 import { library } from '@/data/library'
 import { askJev } from './jev'
 import { scoreStart, scoredStarts, type ScoredStart } from './start'
-import { planPage, wordsPage, type PagePlan } from '@/state/jevPage'
+import { paragraphPlan, planPage, wordsPage, type PagePlan } from '@/state/jevPage'
 
 /** What Jev heard in the box (and, for the guided start, what the site is: format, industry, goals). */
 export interface Heard extends HeardBrief {
@@ -42,21 +42,20 @@ export const looksOnOffer = (): Look[] =>
     .filter((s) => s.id !== WIREFRAME)
     .map((s) => ({ id: s.id, name: s.name, words: s.words }))
 
-/** Ask Jev about the box's text. Null when Jev is off, slow, or there's nothing to read. */
-export async function hearStart(text: string, fallbackKind: Kind = 'studio'): Promise<Heard | null> {
+/** Read a description with Jev, or place supplied copy using its headings and paragraphs when Jev is unavailable. */
+export async function hearStart(text: string, fallbackKind: Kind = 'studio', mode = textMode(text)): Promise<Heard | null> {
   const t = text.trim()
-  if (t.length < 3) return null
-  const mode = textMode(t)
+  if (!t) return null
   if (mode === 'paste') {
-    const plan = await planPage(t)
-    if (!plan) return null
+    const suggested = await planPage(t)
+    const plan = suggested ?? paragraphPlan(t)
     const kind = plan.read.kind
     const made = wordsPage(plan, 1, contentFor({ kind: kind ?? fallbackKind, name: '' }), (i) => `preview${i}`)
     const b = briefFromKind(kind ?? undefined)
     const guess = guessBrief(t)
     return {
       mode,
-      jev: true,
+      jev: !!suggested,
       kind,
       kinds: kind ? [kind] : [],
       sections: made.types,
@@ -69,10 +68,11 @@ export async function hearStart(text: string, fallbackKind: Kind = 'studio'): Pr
       goals: guess.goals ?? [],
       plan,
       lines: plan.lines.length,
-      placed: plan.lines.length - made.tray.length,
+      placed: made.placed,
       waiting: made.tray.length,
     }
   }
+  if (t.length < 3) return null
   const res = await askJev(describeRequest(t, looksOnOffer()), { timeoutMs: 6000 })
   const read = readDescribe(res)
   if (!read) return null
