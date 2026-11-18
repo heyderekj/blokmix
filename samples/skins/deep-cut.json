@@ -1,0 +1,194 @@
+{
+  "name": "Deep Cut",
+  "words": "Mint on charcoal with tight type and a technical grid.",
+  "mode": "dark",
+  "feel": [
+    "dark",
+    "modern"
+  ],
+  "tokens": {
+    "icon.set": "tabler:regular",
+    "color.bg": "#0a1015",
+    "color.surface": "#141c22",
+    "color.text": "#ebeff3",
+    "color.muted": "#9fa6ab",
+    "color.border": "#272f35",
+    "color.primary": "#a8f2db",
+    "color.onPrimary": "#171717",
+    "color.accent": "#e3baff",
+    "font.display": "'Space Grotesk', sans-serif",
+    "font.body": "'Geist', sans-serif",
+    "font.mono": "'Geist Mono', ui-monospace, monospace",
+    "type.base": "15px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "700",
+    "radius.base": "6px",
+    "stroke.width": "1px",
+    "shadow.card": "0 0 0 1px rgb(255 255 255 / 0.06), 0 20px 40px rgb(0 0 0 / 0.4)",
+    "space.base": "4px",
+    "space.section": "88px",
+    "motion.duration": "176ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1280px",
+    "space.text": "740px"
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0.06
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "mono"
+    },
+    "card": {
+      "variant": "bordered"
+    },
+    "button": {
+      "secondary": {
+        "variant": "ghost"
+      }
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "sweep"
+    },
+    "input": {
+      "variant": "underline"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "grid",
+        "params": {
+          "strength": 8
+        }
+      }
+    },
+    "features": {
+      "surface": "soft"
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "inverse"
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "nav": {
+      "backdrop": {
+        "id": "grid"
+      }
+    }
+  },
+  "picture": {
+    "style": "ascii"
+  },
+  "industries": [
+    "ai",
+    "devtools"
+  ],
+  "formats": [
+    "landing"
+  ],
+  "flavors": [
+    {
+      "id": "terminal",
+      "name": "Deep Cut · Terminal",
+      "industry": "devtools",
+      "parts": {
+        "type": "afterhours"
+      }
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "name": "Gatefold",
+  "words": "Broad margins, stone tones and fine rules frame the work.",
+  "mode": "light",
+  "feel": [
+    "classic",
+    "calm"
+  ],
+  "tokens": {
+    "icon.set": "lucide:regular",
+    "color.bg": "#ffffff",
+    "color.surface": "#f4f5f7",
+    "color.text": "#0c0e13",
+    "color.muted": "#5a606e",
+    "color.border": "#e2e4e9",
+    "color.primary": "#272d2a",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#766946",
+    "font.display": "'Playfair Display', serif",
+    "font.body": "'Inter', sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "600",
+    "radius.base": "0px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 2px rgb(12 14 19 / 0.06), 0 8px 24px rgb(12 14 19 / 0.06)",
+    "space.base": "4px",
+    "space.section": "120px",
+    "motion.duration": "160ms",
+    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "space.content": "1400px",
+    "space.text": "660px"
+  },
+  "effects": {
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "stops": [
+          "accent",
+          "primary"
+        ],
+        "angle": 135
+      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0.08
+    },
+    "h2": {
+      "tracking": -0.025
+    },
+    "h3": {
+      "tracking": -0.01
+    },
+    "h4": {
+      "tracking": -0.01
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "outline"
+    },
+    "card": {
+      "variant": "rule"
+    },
+    "button": {
+      "secondary": {
+        "variant": "outline"
+      }
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "sweep"
+    },
+    "input": {
+      "variant": "outlined"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "lines",
+        "params": {
+          "strength": 8
+        }
+      }
+    },
+    "features": {
+      "surface": "soft"
+    },
+    "testimonials": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "inverse"
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "normal"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    }
+  },
+  "picture": {
+    "style": "arch"
+  },
+  "industries": [
+    "architecture",
+    "agency"
+  ],
+  "formats": [
+    "portfolio"
+  ],
+  "flavors": [
+    {
+      "id": "exhibition",
+      "name": "Gatefold · Exhibition",
+      "industry": "agency",
+      "parts": {
+        "pictures": "vinyl"
+      }
+    }
+  ]
+}
