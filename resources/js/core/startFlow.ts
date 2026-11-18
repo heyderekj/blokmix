@@ -8,7 +8,7 @@ import { SENTENCE_FEEL, KIND_FEEL, type FeelWord } from './feel'
 import { recipeFor, RECIPES } from './start'
 import type { Kind, SectionType } from './types'
 
-export const QUESTIONS = ['name', 'what', 'confirm', 'goals', 'action', 'sections', 'look', 'drafts'] as const
+export const QUESTIONS = ['what', 'copy', 'confirm', 'goals', 'action', 'sections', 'look', 'drafts'] as const
 export type Question = (typeof QUESTIONS)[number]
 
 /** What was read from the second answer: Jev's read when suggestions are on, else a guess from keywords. */
@@ -34,6 +34,7 @@ export interface HeardBrief {
 
 export interface Answers {
   name: string
+  /** The description from the start sentence. Page copy is read separately. */
   text: string
   brief: Brief
   /** Home's sections after your ✕ and +; null keeps the suggested ones. */
@@ -56,8 +57,7 @@ export function briefFrom(a: Answers, heard: HeardBrief | null): Brief {
     : a.text.trim()
       ? (({ sure: _, what: __, ...g }) => g)(guessBrief(a.text))
       : {}
-  // A description is context worth keeping; pasted copy is already on the page.
-  const what = heard?.mode !== 'paste' && a.text.trim() && a.text.trim().length <= 600 ? { what: a.text.trim() } : {}
+  const what = a.text.trim() && a.text.trim().length <= 600 ? { what: a.text.trim() } : {}
   return patchBrief({ ...fromHeard, ...what, ...(a.feel.length ? { feel: a.feel } : {}) }, a.brief)
 }
 
@@ -97,7 +97,6 @@ export function nextQuestion(a: Answers, heard: HeardBrief | null): Question {
   const skip = folded(a, heard)
   for (const q of QUESTIONS) {
     if (a.done.includes(q)) continue
-    if (q === 'name' && a.name.trim()) continue
     if (skip[q]) continue
     return q
   }
@@ -110,7 +109,6 @@ export function skipToPages(a: Answers, heard: HeardBrief | null): Answers {
   const mainAction = b.mainAction ?? actionChoices(b)[0]
   return {
     ...a,
-    name: a.name.trim() || 'Your site',
     brief: patchBrief(a.brief, { ...(b.goals ? {} : { goals: goalsOf(b) }), mainAction }),
     done: QUESTIONS.filter((q) => q !== 'drafts'),
   }
@@ -185,10 +183,10 @@ export function answersFromSentence(a: Answers, fill: StartFill, picks: Picks): 
   const typed = !!goal && !goal.id && !!goal.words.trim()
   const feel = (picks.feel ?? []).flatMap((p) => (p.id && SENTENCE_FEEL[p.id] ? [SENTENCE_FEEL[p.id]] : []))
   const shows = (picks.show ?? []).some((p) => p.words.trim())
-  const done: Question[] = ['name', 'what', ...(goal?.id && SENTENCE_GOAL[goal.id] ? (['goals'] as const) : []), ...(fill.button ? (['action'] as const) : []), ...(shows && fill.sections ? (['sections'] as const) : [])]
+  const done: Question[] = ['what', ...(goal?.id && SENTENCE_GOAL[goal.id] ? (['goals'] as const) : []), ...(fill.button ? (['action'] as const) : []), ...(shows && fill.sections ? (['sections'] as const) : [])]
   return {
     ...a,
-    name: fill.name.trim() || a.name.trim() || 'Your site',
+    name: fill.name.trim(),
     text: fill.text,
     brief: patchBrief(a.brief, { ...(fill.button ? { mainAction: fill.button, mainActionTyped: typed } : {}), ...(goal?.id && SENTENCE_GOAL[goal.id] ? { goals: [SENTENCE_GOAL[goal.id]] } : {}) }),
     feel: feel.length ? [...new Set(feel)] : a.feel,

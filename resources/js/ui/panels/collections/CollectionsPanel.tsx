@@ -1,7 +1,9 @@
 import { Dropdown } from '@/ui/controls/Dropdown'
+import { useStore as useHistory } from 'zustand'
 import { useMemo, useState } from 'react'
-import { ArrowDown, ArrowLeft, ArrowUp, ImagePlus, Plus, Redo2, Trash2, Undo2, X } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowUp, Layers, ImagePlus, Plus, Redo2, Trash2, Undo2, X } from 'lucide-react'
 import {
+  autoMap,
   entryTitle,
   FIELD_TYPE_LABEL,
   FIELD_TYPES,
@@ -14,10 +16,14 @@ import {
   type FieldType,
   type MediaRef,
 } from '@/core/collections'
-import { allSlots } from '@/core/site'
+import { outline } from '@/core/outline'
+import { parseHtml } from '@/core/html/parse'
+import { library, slotClip } from '@/data/library'
+import { runCommand } from '@/state/commands'
+import { allSlots, pageOf } from '@/core/site'
 import { TYPE_LABEL } from '@/core/content'
 import { redoCollections, undoCollections, useCollections } from '@/state/collections'
-import { useStore } from '@/state/store'
+import { currentSlots, useStore } from '@/state/store'
 import { addImage, assetUrl, useAssets } from '@/lib/assets'
 import { pickFile } from '@/lib/pickFile'
 import { confirmAction } from '@/ui/shell/Confirm'
@@ -33,30 +39,65 @@ export function CollectionsPanel() {
   const open = useStore((s) => s.ui.openCollection)
   const all = useCollections((s) => s.bySlug)
   const c = open ? all[open] : undefined
-  return c ? <CollectionView c={c} /> : <CollectionList />
+  return c ? <CollectionView key={c.slug} c={c} /> : <CollectionList />
+}
+
+/** Offer the page's top-level repeatable lists. A list already connected to content keeps its source. */
+function usePageLists() {
+  const slots = useStore(currentSlots)
+  return useMemo(() => slots.flatMap((slot, index) => {
+    if (!library.clips[slot.clipId]) return []
+    const clip = slotClip(slot)
+    return outline(parseHtml(clip.html)).flatMap((node) => {
+      if (node.t !== 'list' || !node.items.length || slot.bind?.lists?.[node.listKey]) return []
+      return [{
+        id: `${slot.id}/${node.id}`,
+        section: slot.id,
+        node,
+        name: node.key.charAt(0).toUpperCase() + node.key.slice(1),
+        label: `${index + 1}. ${TYPE_LABEL[slot.type]} · ${node.key}`,
+      }]
+    })
+  }), [slots])
+}
+
+function CollectionHistory() {
+  const undo = useHistory(useCollections.temporal, (s) => !!s.pastStates.length)
+  const redo = useHistory(useCollections.temporal, (s) => !!s.futureStates.length)
+  return <div className="ml-auto flex">
+    <IconBtn label="Undo collection change" disabled={!undo} onClick={undoCollections}><Undo2 size={14} /></IconBtn>
+    <IconBtn label="Redo collection change" disabled={!redo} onClick={redoCollections}><Redo2 size={14} /></IconBtn>
+  </div>
 }
 
 function CollectionList() {
   const all = useCollections((s) => s.bySlug)
   const site = useStore((s) => s.site)
   const [name, setName] = useState('')
+  const [source, setSource] = useState('')
+  const sources = usePageLists()
+  const from = sources.find((list) => list.id === source)
   const list = Object.values(all).sort((a, b) => a.name.localeCompare(b.name))
   const usedIn = (slug: string) => allSlots(site).filter((s) => Object.values(s.bind?.lists ?? {}).some((b) => b.collection === slug))
   const create = () => {
-    if (!name.trim()) return
-    const c = useCollections.getState().create(name, { fields: [{ key: 'title', label: 'Title', type: 'text', required: true }], titleField: 'title' })
-    setName('')
-    useStore.getState().setUi({ openCollection: c.slug })
+    if (!name.trim() || (source && !from)) return
+    try {
+      const c = runCommand('create_collection', { name: name.trim(), ...(from && { from: { section: from.section, list: from.node.id } }) }, 'you') as { slug: string }
+      useStore.getState().setUi({ openCollection: c.slug })
+    } catch (e) {
+      useStore.getState().showFlash(e instanceof Error ? e.message : String(e))
+    }
   }
   return (
     <div className="px-4 py-3.5">
-      <p className="mb-3 text-[12px] leading-relaxed text-zinc-500">
-        Content that lives apart from any one section, shared by all your mixes. Make one from a list on the page (select an item, then <b>Collection</b> in its bar), or start
-        one here.
-      </p>
+      <div className="mb-2 flex items-center gap-2">
+        <h3 className="text-sm font-semibold">Your collections</h3>
+        <CollectionHistory />
+      </div>
       <ul className="grid gap-1.5">
         {list.map((c) => {
           const used = usedIn(c.slug)
+          const template = site.pages.find((p) => p.template?.collection === c.slug)
           return (
             <li key={c.slug}>
               <button
@@ -64,25 +105,35 @@ function CollectionList() {
                 onClick={() => useStore.getState().setUi({ openCollection: c.slug })}
                 className="flex w-full cursor-pointer items-center gap-3 rounded-xl bg-white p-2.5 text-left shadow-[0_0_0_1px_rgb(0_0_0/0.07)] transition-[box-shadow,scale] duration-150 hover:shadow-[0_0_0_1px_rgb(0_0_0/0.14)] active:scale-[0.99]"
               >
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-key-soft text-[13px] font-bold text-key-ink">{c.entries.length}</span>
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-key-soft text-[13px] font-bold text-key-ink"><Layers size={16} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px] font-semibold text-zinc-900">{c.name}</span>
                   <span className="block truncate text-[11.5px] text-zinc-500">
-                    {c.schema.fields.length} fields · {used.length ? `shown in ${used.map((s) => TYPE_LABEL[s.type]).join(', ')}` : 'not on this mix yet'}
+                    {c.entries.length} {c.entries.length === 1 ? 'entry' : 'entries'} · {used.length ? `Used in ${used.map((s) => TYPE_LABEL[s.type]).join(', ')}` : template ? 'Has entry pages' : 'Available to use'}
                   </span>
                 </span>
               </button>
             </li>
           )
         })}
-        {!list.length && <li className="rounded-xl border border-dashed border-zinc-950/15 p-4 text-center text-[12px] text-zinc-500">No collections yet.</li>}
       </ul>
-      <div className="mt-3 flex gap-1.5">
-        <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && create()} placeholder="New collection, e.g. Blog posts" className={inputCls} />
-        <button type="button" onClick={create} disabled={!name.trim()} className="btn-quiet flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-lg px-3 text-[12.5px] font-semibold disabled:opacity-40">
-          <Plus size={14} /> Create
+      {!list.length && <p className="mb-3 text-[12.5px] leading-relaxed text-zinc-600">Keep services, projects, or team members in one place. Edit an entry to update the lists that use it.</p>}
+      <form onSubmit={(e) => { e.preventDefault(); create() }} className="mt-3 grid gap-3 rounded-xl border border-zinc-950/10 p-3">
+        <h4 className="text-[13px] font-semibold">New collection</h4>
+        <div className="grid gap-1 text-xs font-medium">Start with
+          <Dropdown label="Start with" value={from?.id ?? ''} onChange={(id) => {
+            if (!name.trim() || name === from?.name) setName(sources.find((l) => l.id === id)?.name ?? '')
+            setSource(id)
+          }} options={[{ v: '', label: 'An empty collection' }, ...sources.map((l) => ({ v: l.id, label: l.label, group: 'Lists on this page' }))]} />
+        </div>
+        {from && <p className="text-xs text-zinc-600">Creates {from.node.items.length} entries from this list and connects it to the collection.</p>}
+        <label className="grid gap-1 text-xs font-medium">Collection name
+          <input maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Services" className={inputCls} />
+        </label>
+        <button type="submit" disabled={!name.trim() || (!!source && !from)} className="btn-lit flex h-8 items-center justify-center gap-1 rounded-lg px-3 text-xs font-semibold disabled:opacity-40">
+          <Plus size={14} /> Create collection
         </button>
-      </div>
+      </form>
     </div>
   )
 }
@@ -104,12 +155,7 @@ function CollectionView({ c }: { c: Collection }) {
           aria-label="Collection name"
           className="min-w-0 flex-1 rounded-md bg-transparent px-1.5 py-1 text-[14px] font-semibold text-zinc-900 outline-none hover:bg-zinc-950/[0.04] focus:bg-white focus:ring-2 focus:ring-zinc-900/10"
         />
-        <button type="button" title="Undo (collections)" onClick={undoCollections} className="grid size-8 cursor-pointer place-items-center rounded-full text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-900">
-          <Undo2 size={14} />
-        </button>
-        <button type="button" title="Redo (collections)" onClick={redoCollections} className="grid size-8 cursor-pointer place-items-center rounded-full text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-900">
-          <Redo2 size={14} />
-        </button>
+        <CollectionHistory />
       </div>
       <div className="flex gap-0.5 px-3 pt-2.5">
         {(['entries', 'fields'] as const).map((t) => (
@@ -123,13 +169,46 @@ function CollectionView({ c }: { c: Collection }) {
             {t === 'entries' ? `Entries · ${c.entries.length}` : `Fields · ${c.schema.fields.length}`}
           </button>
         ))}
-        <span className="ml-auto self-center font-mono text-[10.5px] text-zinc-400" title="Its folder in exports">
-          src/content/{c.slug}
-        </span>
       </div>
-      {tab === 'entries' ? <Entries c={c} /> : <Fields c={c} />}
+      {tab === 'entries' ? <><Entries c={c} /><PageConnection c={c} /></> : <Fields c={c} />}
     </div>
   )
+}
+
+function PageConnection({ c }: { c: Collection }) {
+  const site = useStore((s) => s.site)
+  const page = pageOf(site, useStore((s) => s.ui.pageId))
+  const slots = useStore(currentSlots)
+  const targets = usePageLists().filter((t) => Object.keys(autoMap(t.node, c.schema).map).length)
+  const [choosing, setChoosing] = useState(false)
+  const [selected, setSelected] = useState('')
+  const target = targets.find((t) => t.id === selected)
+  const connected = slots.flatMap((s) => Object.entries(s.bind?.lists ?? {}).filter(([, binding]) => binding.collection === c.slug).map(([key]) =>
+    `${TYPE_LABEL[s.type]} · ${slotClip(s).blocks.find((b) => b.listKey === key)?.list ?? key}`))
+  const connect = () => {
+    if (!target) return
+    try {
+      runCommand('bind_list', { collection: c.slug, section: target.section, list: target.node.id }, 'you')
+      setChoosing(false)
+      setSelected('')
+      useStore.getState().showFlash(`Connected ${c.name} to ${target.label}`, { undo: true })
+    } catch (e) {
+      useStore.getState().showFlash(e instanceof Error ? e.message : String(e))
+    }
+  }
+  return <section className="mx-3 mb-3 grid gap-2 rounded-xl border border-zinc-950/10 bg-zinc-50 p-3">
+    <h4 className="text-xs font-semibold [overflow-wrap:anywhere]">On {page.title}</h4>
+    {connected.length > 0 && <p className="text-xs text-zinc-600">{connected.join(', ')}</p>}
+    {targets.length > 0 ? choosing ? <>
+      <Dropdown label="Page list" value={target?.id ?? ''} onChange={setSelected} options={[{ v: '', label: 'Choose a list' }, ...targets.map((t) => ({ v: t.id, label: t.label }))]} />
+      <p className="text-xs text-zinc-600">This list will show the collection’s entries in place of its current items.</p>
+      <div className="flex items-center gap-3">
+        <button type="button" disabled={!target} onClick={connect} className="btn-lit rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-40">Connect list</button>
+        <button type="button" onClick={() => setChoosing(false)} className="text-xs font-medium">Cancel</button>
+      </div>
+    </> : <button type="button" onClick={() => setChoosing(true)} className="flex items-center gap-1 text-left text-xs font-semibold"><Plus size={13} /> Connect a page list</button>
+    : !connected.length && <p className="text-xs text-zinc-600">Add a section with a repeatable list to show entries here.</p>}
+  </section>
 }
 
 // ---------- entries ----------
@@ -137,6 +216,7 @@ function CollectionView({ c }: { c: Collection }) {
 function Entries({ c }: { c: Collection }) {
   const [open, setOpen] = useState<string | null>(null)
   const st = useCollections.getState
+  const [title, setTitle] = useState('')
   const list = sortedEntries(c)
   const image = c.schema.fields.find((f) => f.type === 'image')
   useAssets((s) => s.assets) // redraw when uploads load
@@ -159,7 +239,7 @@ function Entries({ c }: { c: Collection }) {
                 </span>
                 {e.draft && <span className="rounded-full bg-zinc-950/6 px-1.5 py-px text-[10.5px] font-semibold text-zinc-500">Draft</span>}
               </button>
-              <div className="flex opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+              <div className="flex opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                 <IconBtn label="Move up" disabled={i === 0} onClick={() => move(i, -1)}>
                   <ArrowUp size={13} />
                 </IconBtn>
@@ -172,13 +252,15 @@ function Entries({ c }: { c: Collection }) {
           </li>
         ))}
       </ul>
-      <button
-        type="button"
-        onClick={() => setOpen(st().addEntry(c.slug, { [c.schema.titleField]: 'New entry' }).id)}
-        className="mt-2 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-950/15 text-[12.5px] font-semibold text-zinc-600 transition hover:border-zinc-950/30 hover:text-zinc-900 active:scale-[0.99]"
-      >
-        <Plus size={14} /> Add an entry
-      </button>
+      <form onSubmit={(ev) => {
+        ev.preventDefault()
+        if (!title.trim()) return
+        setOpen(st().addEntry(c.slug, { [c.schema.titleField]: title.trim() }).id)
+        setTitle('')
+      }} className="mt-2 flex gap-1.5">
+        <input aria-label="New entry title" placeholder="New entry title" value={title} onChange={(ev) => setTitle(ev.target.value)} className={inputCls + ' min-w-0 flex-1'} />
+        <button type="submit" disabled={!title.trim()} className="btn-quiet flex shrink-0 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold disabled:opacity-40"><Plus size={13} /> Add entry</button>
+      </form>
     </div>
   )
 }
@@ -208,7 +290,7 @@ function EntryForm({ c, e, onClose }: { c: Collection; e: Entry; onClose: () => 
         </label>
       ))}
       <label className="grid gap-1">
-        <span className="text-[11px] font-medium text-zinc-500">Slug (its page’s address)</span>
+        <span className="text-[11px] font-medium text-zinc-500">Entry slug</span>
         <input
           key={e.slug}
           defaultValue={e.slug}
@@ -216,9 +298,9 @@ function EntryForm({ c, e, onClose }: { c: Collection; e: Entry; onClose: () => 
           className={`${inputCls} font-mono`}
         />
       </label>
-      <div className="flex items-center gap-2 pt-1">
+      <div className="flex flex-wrap items-center gap-2 pt-1">
         <label className="flex cursor-pointer items-center gap-1.5 text-[12px] text-zinc-600">
-          <input type="checkbox" checked={!!e.draft} onChange={(ev) => st().updateEntry(c.slug, e.id, { draft: ev.target.checked })} /> Draft (hidden on the page and in exports)
+          <input type="checkbox" checked={!!e.draft} onChange={(ev) => st().updateEntry(c.slug, e.id, { draft: ev.target.checked })} /> Draft · hide from pages and exports
         </label>
         <button
           type="button"
@@ -263,7 +345,7 @@ function FieldInput({ f, v, onChange }: { f: CollectionField; v: EntryValue; onC
     case 'select':
       return (
         <Dropdown label={f.label} value={text} onChange={(next) => onChange(next || null)} className="w-full"
-          options={[{ v: '', label: '—' }, ...(f.options ?? []).filter(Boolean).map((v) => ({ v, label: v }))]} />
+          options={[{ v: '', label: '—' }, ...[...new Set([...(f.options ?? []), text])].filter(Boolean).map((v) => ({ v, label: v }))]} />
       )
     case 'image':
       return <ImageField v={v} onChange={onChange} />
@@ -317,27 +399,36 @@ function Fields({ c }: { c: Collection }) {
     <div className="px-3 py-2.5">
       <ul className="grid gap-1">
         {c.schema.fields.map((f) => (
-          <li key={f.key} className="flex items-center gap-1.5 rounded-xl bg-white p-1.5 shadow-[0_0_0_1px_rgb(0_0_0/0.07)]">
-            <input
-              key={f.label}
-              defaultValue={f.label}
-              aria-label="Field name"
-              onBlur={(e) => e.target.value.trim() && e.target.value !== f.label && st().renameField(c.slug, f.key, e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-              className="min-w-0 flex-1 rounded-md bg-transparent px-1.5 py-1 text-[12.5px] font-medium text-zinc-900 outline-none hover:bg-zinc-950/[0.04] focus:bg-white focus:ring-2 focus:ring-zinc-900/10"
-            />
-            {f.key === c.schema.titleField && <span className="rounded-full bg-key-soft px-1.5 py-px text-[10px] font-semibold text-key-ink">Title</span>}
-            <Dropdown label="Field type" value={f.type} onChange={(next) => retype(f, next)}
-              options={FIELD_TYPES.filter((v) => v !== 'reference').map((v) => ({ v, label: FIELD_TYPE_LABEL[v] }))} />
-            <IconBtn
-              label={f.key === c.schema.titleField ? 'The title field can’t be removed' : 'Remove field'}
-              disabled={f.key === c.schema.titleField}
-              onClick={async () => {
-                if (!used.has(f.key) || (await confirmAction({ title: `Remove ${f.label}?`, body: 'Its values leave every entry.', confirm: 'Remove' }))) st().removeField(c.slug, f.key)
-              }}
-            >
-              <Trash2 size={13} />
-            </IconBtn>
+          <li key={f.key} className="rounded-xl bg-white p-1.5 shadow-[0_0_0_1px_rgb(0_0_0/0.07)]">
+            <div className="flex items-center gap-1.5">
+              <input
+                key={f.label}
+                defaultValue={f.label}
+                aria-label="Field name"
+                onBlur={(e) => e.target.value.trim() && e.target.value !== f.label && st().updateFieldDetails(c.slug, f.key, { label: e.target.value.trim() })}
+                onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+                className="min-w-0 flex-1 rounded-md bg-transparent px-1.5 py-1 text-[12.5px] font-medium text-zinc-900 outline-none hover:bg-zinc-950/[0.04] focus:bg-white focus:ring-2 focus:ring-zinc-900/10"
+              />
+              {f.key === c.schema.titleField && <span className="rounded-full bg-key-soft px-1.5 py-px text-[10px] font-semibold text-key-ink">Title</span>}
+              <Dropdown label="Field type" value={f.type} onChange={(next) => retype(f, next)}
+                options={FIELD_TYPES.filter((v) => v !== 'reference').map((v) => ({ v, label: FIELD_TYPE_LABEL[v] }))} />
+              <IconBtn
+                label={f.key === c.schema.titleField ? 'The title field can’t be removed' : 'Remove field'}
+                disabled={f.key === c.schema.titleField}
+                onClick={async () => {
+                  if (!used.has(f.key) || (await confirmAction({ title: `Remove ${f.label}?`, body: 'Its values leave every entry.', confirm: 'Remove' }))) st().removeField(c.slug, f.key)
+                }}
+              >
+                <Trash2 size={13} />
+              </IconBtn>
+            </div>
+            {f.type === 'select' && <label className="mt-2 grid gap-1 px-1 pb-1 text-xs text-zinc-600">
+              Choices (one per line)
+              <textarea key={JSON.stringify(f.options)} defaultValue={f.options?.join('\n')} rows={3} className={inputCls} onBlur={(ev) => {
+                const options = [...new Set(ev.target.value.split('\n').map((v) => v.trim()).filter(Boolean))]
+                if (JSON.stringify(options) !== JSON.stringify(f.options ?? [])) st().updateFieldDetails(c.slug, f.key, { options })
+              }} />
+            </label>}
           </li>
         ))}
       </ul>

@@ -84,6 +84,15 @@ describe('collections', () => {
     expect(Object.values(pf.fields)).toEqual(expect.arrayContaining(['One thing', 'Two things']))
   })
 
+  it('hides the list when all entries are drafts and shows it again when one is ready', () => {
+    const { collection, slot } = fromList('blog.layout-cards', 'p')
+    const drafts = { ...collection, entries: collection.entries.map((e) => ({ ...e, draft: true })) }
+    const list = drawn(slot, collection).clip.blocks.find((b) => b.kind === 'list' && b.listKey === 'p')!
+    expect(drawn(slot, drafts).slot.edits?.[slot.clipId]?.[list.id]?.hidden).toBe(true)
+    const ready = updateEntry(drafts, drafts.entries[0].id, { draft: false })
+    expect(drawn(slot, ready).slot.edits?.[slot.clipId]?.[list.id]?.hidden).toBeFalsy()
+  })
+
   it('sorts, filters, caps and leaves drafts out', () => {
     const { collection } = fromList('blog.layout-cards', 'p')
     const drafted = updateEntry(collection, collection.entries[0].id, { draft: true })

@@ -411,7 +411,7 @@ const CARD =
  * start, which also offers a starter, a saved style guide, a blank page or a mix file. */
 function NewMix({ onOpen }: { onOpen: (event: MouseEvent<HTMLButtonElement>) => void }) {
   return (
-    <div className="group/new relative grid h-full min-h-[260px] w-full place-items-center rounded-[22px] border-2 border-dashed border-[#E4D9DF] transition-[border-color,background-color] duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-[#FF69B4]/60 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/60">
+    <div className="group/new relative grid h-full min-h-[260px] w-full place-items-center rounded-[22px] border-2 border-dashed border-zinc-200 transition-[border-color,background-color] duration-200 hover:border-zinc-400 hover:bg-white/60">
       <button type="button" onClick={onOpen} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
       <span className="pointer-events-none grid justify-items-center gap-4">
         <span className="relative block size-[64px]">
@@ -595,7 +595,7 @@ function Name({ id, name }: { id: string; name: string }) {
       type="button"
       title="Rename"
       onClick={() => setEditing(true)}
-      className="group/name -mx-1.5 flex max-w-[calc(100%+12px)] cursor-text items-center gap-1.5 rounded-lg px-1.5 text-left text-[15.5px] font-semibold text-[#17121A] transition-colors duration-150 hover:bg-[#F3EDF0]"
+      className="group/name -mx-1.5 flex max-w-[calc(100%+12px)] cursor-text items-center gap-1.5 rounded-lg px-1.5 text-left text-[15.5px] font-semibold text-[#17121A] transition-colors duration-150 hover:bg-zinc-950/[0.06]"
     >
       <span className="truncate">{value}</span>
       <Pencil size={13} className="shrink-0 text-zinc-400 opacity-0 transition-opacity duration-150 group-hover/name:opacity-100 [@media(hover:none)]:opacity-100" />

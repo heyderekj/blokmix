@@ -731,6 +731,8 @@ function PickOutline({ rect, picked, label }: { rect: FrameRect | null; picked?:
   if (rect) last.current = rect
   const r = rect ?? last.current
   if (!r) return null
+  const outline = picked ? 'var(--color-key)' : 'var(--color-zinc-800)'
+  const halo = picked ? 'color-mix(in oklab, var(--color-key) 18%, transparent)' : 'rgb(255 255 255 / 0.65)'
   return (
     <div
       className="pointer-events-none absolute left-0 top-0 z-10"
@@ -741,14 +743,14 @@ function PickOutline({ rect, picked, label }: { rect: FrameRect | null; picked?:
         transform: `translate(calc(${r.x}px - 5px / var(--z)), calc(${r.y}px - 5px / var(--z)))`,
         opacity: rect ? 1 : 0,
         borderRadius: 'calc(8px / var(--zl))',
-        background: `color-mix(in oklab, var(--color-key) ${picked ? 7 : 10}%, transparent)`,
-        boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--zl)) var(--color-key), 0 0 0 calc(${picked ? 6 : 5.5}px / var(--zl)) color-mix(in oklab, var(--color-key) 18%, transparent)`,
+        background: picked ? 'color-mix(in oklab, var(--color-key) 7%, transparent)' : 'transparent',
+        boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--zl)) ${outline}, 0 0 0 calc(${picked ? 6 : 4}px / var(--zl)) ${halo}`,
         transition: 'opacity 140ms cubic-bezier(0.2, 0, 0, 1), transform 90ms cubic-bezier(0.2, 0, 0, 1), width 90ms cubic-bezier(0.2, 0, 0, 1), height 90ms cubic-bezier(0.2, 0, 0, 1)',
       }}
     >
       {label && (
         <span
-          className="absolute bottom-full left-0 mb-[calc(8px/var(--z))] origin-bottom-left whitespace-nowrap rounded-md bg-key px-2 py-0.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.35)]"
+          className={`absolute bottom-full left-0 mb-[calc(8px/var(--z))] origin-bottom-left whitespace-nowrap rounded-md px-2 py-0.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.35)] ${picked ? 'bg-key' : 'bg-zinc-800'}`}
           style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}
         >
           {label}

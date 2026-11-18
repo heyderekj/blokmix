@@ -1,4 +1,4 @@
-import { COMMANDS, toolDefinitions, type CommandName } from '@/core/commands/schema'
+import { COMMANDS, toolDefinitions, type CommandInput, type CommandName } from '@/core/commands/schema'
 import { useCollections } from '../collections'
 import { useStore } from '../store'
 import { canEdit, useAccount } from '@/lib/account'
@@ -20,6 +20,7 @@ import * as libraryCmds from './library'
 import * as start from './start'
 import * as skins from './skins'
 import * as jev from './jev'
+import type { PageLayouts, PagePlan } from '../jevPage'
 
 export { CommandError, describeNote } from './refs'
 
@@ -53,7 +54,12 @@ export function runCommand(name: string, raw: unknown, by: Caller = 'agent'): un
   return run(name, raw, by)
 }
 
-function run(name: string, raw: unknown, by: Caller): unknown {
+/** Commit the same reading and section choices the person inspected. */
+export function keepPagePreview(input: CommandInput<'page_from_words'>, plan: PagePlan, layouts: PageLayouts) {
+  return run('page_from_words', input, 'you', { plan, layouts }) as ReturnType<typeof jev.later.page_from_words.apply>
+}
+
+function run(name: string, raw: unknown, by: Caller, pagePreview?: { plan: PagePlan; layouts: PageLayouts }): unknown {
   if (!(name in COMMANDS)) throw new CommandError(`Unknown command "${name}". Known: ${Object.keys(COMMANDS).join(', ')}`)
   const cmd = COMMANDS[name as CommandName]
   const parsed = cmd.input.safeParse(raw ?? {})
@@ -72,6 +78,10 @@ function run(name: string, raw: unknown, by: Caller): unknown {
     throw new CommandError(`This mix is archived: you can leave marks (${[...MARKS].join(', ')}), not ${name}. Its owner can bring it back from the mixes page or the top bar.`)
   if (cmd.write && !canEdit(useAccount.getState().role) && !MARKS.has(name))
     throw new CommandError(`You can view this mix and leave marks (${[...MARKS].join(', ')}), not ${name}. Ask its owner to make you an editor.`)
+  if (pagePreview && name === 'page_from_words') {
+    const apply = () => jev.later.page_from_words.apply(input as CommandInput<'page_from_words'>, pagePreview.plan, pagePreview.layouts)
+    return asOneStep(name, input, by, apply)
+  }
   const later = ASYNC[name]
   if (later) {
     return later.prepare(input as never).then((prepared) => {

@@ -85,7 +85,7 @@ export function splitLines(text: string): Line[] {
     else if (/^(?:[$€£¥]\s?\d[\d,.]*|\d[\d,.]*\s?(?:[$€£¥]|usd|eur|gbp))(?:\s*\/\s*\w+)?$/i.test(text)) sure = 'price'
     if (text) out.push({ i: out.length, text, group, heading: !!md, sure })
   }
-  return out.slice(0, POUR_THRESHOLDS.maxLines)
+  return out
 }
 
 /** A place a line can go: one field of one section, with the role it plays there. */

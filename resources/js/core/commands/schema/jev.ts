@@ -47,6 +47,8 @@ export const JEV_COMMANDS = {
       'Make a page from anything pasted (an old site’s copy, a menu, a CV, event notes): Jev says what kind of section each run of lines is (questions and answers → FAQ, names with roles → team, prices → pricing) and what each line is; built-in layouts that hold each run’s items are picked, a hero leads with the most headline-like line, and every line is placed word for word. arrangement 1–3 gives the same words in contrasting layouts (the reading is cached, so 2 and 3 come at once). into new_page adds a page; this_page replaces the open page’s own sections. One undo step.',
     input: z.object({
       text: z.string().min(1).max(20_000),
+      title: z.string().trim().min(1).max(100).optional().describe('Name for a new page'),
+      reading: z.enum(['suggested', 'paragraphs']).default('suggested').describe('Use paragraphs for a local arrangement based on line breaks'),
       into: z.enum(['new_page', 'this_page']).default('new_page'),
       arrangement: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(1),
       page: z.string().optional().describe('With this_page: which page (default the open one)'),

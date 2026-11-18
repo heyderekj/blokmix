@@ -108,6 +108,7 @@ export function Sentence({
           kind={kind ?? null}
           closest={closest[open.id] ?? []}
           big={big}
+          onType={open.ownOnly ? (words) => set(open.id, words ? [{ words }] : [], false) : undefined}
           onChoose={(c) => choose(open, c)}
           onOwn={(w) => void own(open, w)}
           onDone={() => setOpenId(null)}
@@ -118,14 +119,14 @@ export function Sentence({
 }
 
 /**
- * A blank in any fill-in-the-blanks sentence, as on blokmix.com: a pink underline, a pink tint on hover, blush while it's
- * open. Empty, it names what goes there in a quieter voice; your own words (not one of the options) are underlined in ink.
+ * A blank in a fill-in-the-blanks sentence. It uses a neutral hover and a blush fill while open.
+ * Empty blanks name what goes there. Your own words are underlined in ink.
  */
 export const BLANK = 'mx-[0.02em] rounded-[0.2em] px-[0.15em] underline decoration-[0.09em] underline-offset-[0.16em] [text-decoration-skip-ink:none] transition-[background-color,color] duration-150'
 export const blankLook = (on: boolean, filled: boolean, own = false) =>
   on
     ? 'bg-[#FFD4E8] text-[#17121A] decoration-transparent'
-    : `${filled ? 'text-[#17121A]' : 'text-[#B3A7AE]'} ${own ? 'decoration-[#17121A]' : 'decoration-[#FF69B4]'} [@media(hover:hover)]:hover:bg-[#FF69B4]/12`
+    : `${filled ? 'text-[#17121A]' : 'text-[#B3A7AE]'} ${own ? 'decoration-[#17121A]' : 'decoration-[#FF69B4]'} hover:bg-zinc-950/[0.06] hover:text-zinc-900`
 
 /** A blank in the sentence: its words once filled, what it asks for while empty; several picks read as a list. */
 function BlankWords({ blank, picks, open, onOpen, onDrop }: { blank: Blank; picks: Picks; open: boolean; onOpen: () => void; onDrop: (i: number) => void }) {
@@ -173,6 +174,7 @@ function Options({
   closest,
   big,
   onChoose,
+  onType,
   onOwn,
   onDone,
 }: {
@@ -183,10 +185,12 @@ function Options({
   closest: string[]
   big: boolean
   onChoose: (c: Choice) => void
+  onType?: (words: string) => void
   onOwn: (words: string) => void
   onDone: () => void
 }) {
-  const [words, setWords] = useState('')
+  const [query, setQuery] = useState('')
+  const words = onType ? (picks[blank.id]?.[0]?.words ?? '') : query
   const [hovering, setHovering] = useState(false)
   const [category, setCategory] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
@@ -241,7 +245,7 @@ function Options({
         e.preventDefault()
         if (words.trim()) {
           onOwn(words)
-          setWords('')
+          setQuery('')
         } else onDone()
       }}
       className={`flex items-center gap-2 ${blank.ownOnly || grouped ? '' : 'mt-2'}`}
@@ -250,7 +254,8 @@ function Options({
         ref={field}
         value={words}
         onChange={(e) => {
-          setWords(e.target.value)
+          if (onType) onType(e.target.value)
+          else setQuery(e.target.value)
           setShowAll(false)
         }}
         onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), onDone())}

@@ -104,7 +104,6 @@
 
   /* Blokmix's key, a bright pink, with its wash and the dark ink that sits on it. */
   --color-key: var(--key);
-  --color-key-hover: var(--key-hover);
   --color-key-ink: var(--key-ink);
   --color-key-soft: var(--key-soft);
 
@@ -165,10 +164,8 @@
   --chip: hsl(0 0% 90%);
   --chip-hover: hsl(0 0% 85%);
 
-  /* Blokmix's key, from the brand guide: hot pink with ink on it (never white), deep pink on hover,
-     blush for selected states. Pink is the drop, not the wall. */
+  /* Blokmix's key for primary actions, with blush for selected states. */
   --key: #ff69b4;
-  --key-hover: #ff1493;
   --key-ink: #17121a;
   /* Text on the pink: white, with a faint rose shadow so it holds on the lighter part of the face. */
   --key-on: #ffffff;
@@ -371,7 +368,7 @@ body:has([data-board]) { overflow: hidden; }
   }
   /* Hover lifts only where there's a pointer to hover with: a tapped button doesn't stay lifted. */
   @media (hover: hover) and (pointer: fine) {
-    .btn-lit:hover { --btn-sheen: 26%; translate: 0 -1px; }
+    .btn-lit:hover { translate: 0 -1px; --tw-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.3), inset 0 -2px 0 hsl(0 0% 0% / 0.1), 0 1px 1px hsl(0 0% 0% / 0.16), 0 7px 15px -5px hsl(0 0% 0% / 0.35); }
   }
   .btn-quiet {
     color: var(--foreground);
@@ -399,8 +396,7 @@ body:has([data-board]) { overflow: hidden; }
   @media (hover: hover) and (pointer: fine) {
     .btn-block:hover {
       translate: 0 -2px;
-      background-color: var(--key);
-      box-shadow: inset 0 2px 0 #ff9acd, 0 5px 0 #c2185b, 5px 11px 16px -4px rgb(23 18 26 / 0.32);
+      box-shadow: inset 0 2px 0 #ff8cc6, 0 5px 0 #c2185b, 5px 11px 16px -4px rgb(23 18 26 / 0.32);
     }
   }
   .btn-block:active {

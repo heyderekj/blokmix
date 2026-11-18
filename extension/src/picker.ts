@@ -1,5 +1,4 @@
-// The in-page picker: hover outlines sections with Blokmix's pink pick outline
-// (PickOutline in ui/frames/SlotRow.tsx), ↑/↓ widen or narrow the pick, a click
+// The in-page picker: hover outlines sections, ↑/↓ widen or narrow the pick, a click
 // freezes it and asks for the section type, then the section is snapshotted.
 
 import { SECTION_TYPES, type SectionType } from '@/core/types'
@@ -15,12 +14,12 @@ const CSS = `
 :host { all: initial; }
 .layer { position: fixed; inset: 0; pointer-events: none; z-index: 2147483647; font: 500 12px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif; }
 .outline { position: fixed; left: 0; top: 0; border-radius: 6px; opacity: 0;
-  background: color-mix(in oklab, ${KEY} 10%, transparent);
-  box-shadow: 0 0 0 2px ${KEY}, 0 0 0 5.5px color-mix(in oklab, ${KEY} 18%, transparent);
+  box-shadow: 0 0 0 2px #27272a, 0 0 0 4px rgb(255 255 255 / 0.65);
   transition: opacity 140ms ${EASE}, transform 90ms ${EASE}, width 90ms ${EASE}, height 90ms ${EASE}; }
 .outline.on { opacity: 1; }
 .outline.picked { background: color-mix(in oklab, ${KEY} 7%, transparent); box-shadow: 0 0 0 2.5px ${KEY}, 0 0 0 6px color-mix(in oklab, ${KEY} 18%, transparent); }
-.label { position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; white-space: nowrap; border-radius: 6px; background: ${KEY}; color: #fff; padding: 2px 8px; font-weight: 600; box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.35); }
+.label { position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; white-space: nowrap; border-radius: 6px; background: #27272a; color: #fff; padding: 2px 8px; font-weight: 600; box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.35); }
+.picked .label { background: ${KEY}; color: #17121a; }
 .label kbd { font: inherit; opacity: 0.75; margin-left: 6px; }
 .chooser { position: fixed; pointer-events: auto; width: 300px; padding: 12px; border-radius: 12px; background: #fff; color: #18181b;
   box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08), 0 16px 40px -8px rgb(0 0 0 / 0.3); opacity: 0; transform: translateY(4px) scale(0.98);

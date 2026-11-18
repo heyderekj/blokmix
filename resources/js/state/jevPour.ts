@@ -7,7 +7,7 @@ import type { ProjectContent, Slot, TrayLine } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { currentWords, keepOption } from '@/core/words'
 import { editList, listContext } from '@/core/lists'
-import { composePour, listRunsFrom, pourRequest, readLines, spotsOf, splitLines, type Line, type PourPlan, type PourSection, type Role, type Spot } from '@/core/jev/pour'
+import { POUR_THRESHOLDS, composePour, listRunsFrom, pourRequest, readLines, spotsOf, splitLines, type Line, type PourPlan, type PourSection, type Role, type Spot } from '@/core/jev/pour'
 import { slotClip } from '@/data/library'
 import { askJev } from '@/lib/jev'
 import { currentSlots, useStore, type State } from './store'
@@ -56,9 +56,12 @@ export async function planPour(text: string, slots: Slot[] = currentSlots(useSto
   if (!lines.length) return { lines, plan: { words: {}, lists: {}, placed: [], tray: [] } }
   const { sections, spots } = pourTargets(slots)
   if (!sections.length) return { lines, plan: { words: {}, lists: {}, placed: [], tray: lines.map((line) => ({ line, homes: [] })) } }
-  const res = await askJev(pourRequest(lines, sections), { timeoutMs: 8000 })
+  const batch = lines.slice(0, POUR_THRESHOLDS.maxLines)
+  const res = await askJev(pourRequest(batch, sections), { timeoutMs: 8000 })
   if (!res) return null
-  return { lines, plan: composePour(readLines(res, lines), spots, listRunsFrom(res)) }
+  const plan = composePour(readLines(res, batch), spots, listRunsFrom(res))
+  plan.tray.push(...lines.slice(batch.length).map((line) => ({ line, homes: [] })))
+  return { lines, plan }
 }
 
 const sectionOf = (id: string) => currentSlots(useStore.getState()).find((s) => s.id === id)

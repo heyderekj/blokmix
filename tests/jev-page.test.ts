@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { useStore } from '@/state/store'
+import { currentSlots, useStore } from '@/state/store'
 import { pageView } from '@/core/site'
-import { runCommand } from '@/state/commands'
+import { keepPagePreview, runCommand } from '@/state/commands'
+import { matchPageSections, paragraphPlan, planPage, revisePageLines, wordsPage } from '@/state/jevPage'
+import { packetInputFor } from '@/lib/packet'
+import { packetFiles, packetJson, versionBuildPrompt } from '@/core/export/packet'
 import { chunkLines } from '@/core/jev/pageFromWords'
 import { splitLines } from '@/core/jev/pour'
 import { setTray } from '@/state/jevPour'
@@ -60,6 +63,79 @@ beforeEach(() => {
 afterEach(() => realJev())
 
 describe('a page from anything you paste', () => {
+  it('keeps every line past the reading limit for placement after creating a named page', async () => {
+    const lines = Array.from({ length: 86 }, (_, i) => `Customer line ${i + 1}`)
+    const result = await runCommand('page_from_words', { title: 'Services', text: lines.join('\n'), reading: 'paragraphs' }, 'you') as { page: string; placed: number; waiting: number }
+    const st = useStore.getState()
+    expect(st.site.pages.find((p) => p.id === result.page)?.path).toBe('/services')
+    expect(result.placed + result.waiting).toBe(lines.length)
+    expect(st.content.tray?.slice(-6).map((l) => l.text)).toEqual(lines.slice(80))
+  })
+
+  it('keeps the selected services layout and carries different length descriptions into the page', async () => {
+    const text = 'Our services\nDesign for small teams.\n\nDiscovery\nA short research sprint.\n\nBrand design\nIdentity, typography, and a practical style guide.'
+    const input = { text, title: 'Services', reading: 'paragraphs', arrangement: 2 }
+    const { page } = await runCommand('page_from_words', input, 'you') as { page: string }
+    const slots = pageView(useStore.getState().site, page)
+    const section = slots.find((s) => s.type === 'features')
+    expect(section).toBeDefined()
+    expect(Object.values(section!.words ?? {})).toEqual(expect.arrayContaining(['Discovery', 'Brand design', 'A short research sprint.', 'Identity, typography, and a practical style guide.']))
+  })
+
+  it('ships the saved combination of a kept services layout and a different hero', () => {
+    const text = 'Our services\nDesign for small teams.\n\nDiscovery\nA short research sprint.\n\nBrand design\nIdentity, typography, and a practical style guide.'
+    const plan = paragraphPlan(text)
+    const { content } = useStore.getState()
+    const first = wordsPage(plan, 1, content)
+    const second = wordsPage(plan, 2, content)
+    expect(first.slots.map((s) => s.clipId)).not.toContain(second.slots[0].clipId)
+    expect(first.slots[1].clipId).not.toBe(second.slots[1].clipId)
+
+    const kept = { 1: { clipId: first.slots[1].clipId, locked: true } }
+    const preview = wordsPage(plan, 2, content, (i) => `preview-${i}`, kept)
+    const { page } = keepPagePreview({ text, title: 'Services', reading: 'paragraphs', into: 'new_page', arrangement: 2 }, plan, kept)
+    const st = useStore.getState()
+    expect(st.site.pages.find((p) => p.id === page)?.slots.map(({ clipId, locked, words }) => ({ clipId, locked, words })))
+      .toEqual(preview.slots.map(({ clipId, locked, words }) => ({ clipId, locked, words })))
+    expect(preview.slots.map((s) => [s.clipId, s.locked])).toEqual([
+      [second.slots[0].clipId, false],
+      [first.slots[1].clipId, true],
+    ])
+    expect(preview.placed + preview.tray.length).toBe(plan.lines.length)
+    expect(useStore.temporal.getState().pastStates).toHaveLength(1)
+
+    const id = st.pressVersion()
+    st.setClip(currentSlots(useStore.getState()).find((s) => s.type === 'hero')!.id, first.slots[0].clipId)
+    const saved = useStore.getState().versions[id]
+    const input = packetInputFor(useStore.getState(), { version: saved, targets: ['astro'] })
+    expect(versionBuildPrompt(saved, 'astro')).toContain(JSON.stringify({ version: id, target: 'astro' }))
+    const packet = packetJson(input)
+    const exported = packet.site?.pages.find((p) => p.path === '/services')?.sections
+    const clips = exported?.map((component) => packet.sections.find((s) => s.component === component)?.clip.id)
+    expect(clips).toEqual([second.slots[0].clipId, first.slots[1].clipId])
+    const files = packetFiles(input)
+    expect(files['reference/services.html']).toContain('A short research sprint.')
+    expect(files['astro/src/pages/services.astro']).toBeDefined()
+    expect(files['BLOKMIX.md']).toContain('Build it faithfully')
+  })
+
+  it('updates a typo in Jev’s original field without reclassifying the page', async () => {
+    const jev = jevOnMenu()
+    const before = (await planPage(MENU))!
+    const next = revisePageLines(before, MENU.replace('Sourdough', 'Country sourdough'))!
+    expect(next.read.roles).toEqual(before.read.roles)
+    const priced = wordsPage(next, 2, useStore.getState().content).slots.find((s) => s.type === 'pricing')
+    expect(Object.values(priced?.words ?? {})).toContain('Country sourdough')
+    expect(jev.requests).toHaveLength(1)
+    expect(revisePageLines(before, MENU.replace('$9', 'Call for prices'))).toBeNull()
+  })
+
+  it('carries layout choices to the same sections after a section is inserted', () => {
+    const before = paragraphPlan('Studio\nHello.\n\nHistory\nSince 2015.\n\nPeople\nOur team.')
+    const after = paragraphPlan('Studio\nHello.\n\nWork\nRecent projects.\n\nHistory\nSince 2015.\n\nPeople\nOur team.')
+    expect([...matchPageSections(before, after)].sort()).toEqual([[0, 0], [1, 2], [2, 3]])
+  })
+
   it('cuts text into runs, a lone heading joining the run after it', () => {
     const chunks = chunkLines(splitLines(MENU))
     expect(chunks.map((c) => c.lines[0].text)).toEqual(['Mill Bakery', 'What we bake', 'Questions', 'Come say hi'])

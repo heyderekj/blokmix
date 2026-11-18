@@ -23,17 +23,17 @@ const heardBakery: HeardBrief = {
 describe('the guided start’s questions', () => {
   it('asks one at a time, in order', () => {
     let a = emptyAnswers()
-    expect(nextQuestion(a, null)).toBe('name')
-    a = answer(a, 'name', { name: 'Mill' })
     expect(nextQuestion(a, null)).toBe('what')
     a = answer(a, 'what', { text: 'something' })
+    expect(nextQuestion(a, null)).toBe('copy')
+    a = answer(a, 'copy')
     expect(nextQuestion(a, null)).toBe('confirm')
     for (const q of ['confirm', 'goals', 'action', 'sections', 'look'] as const) a = answer(a, q)
     expect(nextQuestion(a, null)).toBe('drafts')
   })
 
   it('folds what the first sentence already settled, and asks it again when you open it', () => {
-    let a = answer(answer(emptyAnswers(), 'name', { name: 'Mill' }), 'what', { text: 'A bakery that takes pre-orders' })
+    let a = answer(answer(emptyAnswers(), 'what', { name: 'Mill', text: 'A bakery that takes pre-orders' }), 'copy')
     expect(folded(a, heardBakery).confirm).toBe('A small business site · Food and drink')
     expect(nextQuestion(a, heardBakery)).toBe('goals')
     a = reopen(a, 'confirm')
@@ -58,6 +58,16 @@ describe('the guided start’s questions', () => {
     expect(sectionsFrom({ ...a, sections: ['nav', 'hero', 'footer'] }, null)).toEqual(['nav', 'hero', 'footer'])
   })
 
+  it('keeps the site description when using copy and lets the copy step reopen from layouts', () => {
+    const description = 'A bakery that takes pre-orders'
+    const a = answer(emptyAnswers(), 'what', { name: 'Mill', text: description })
+    const fromCopy: HeardBrief = { ...heardBakery, mode: 'paste', sections: ['hero', 'pricing'] }
+    const withCopy = answer(a, 'copy')
+    expect(briefFrom(withCopy, fromCopy).what).toBe(description)
+    expect(sectionsFrom(withCopy, fromCopy)).toEqual(fromCopy.sections)
+    expect(nextQuestion(reopen(skipToPages(withCopy, fromCopy), 'copy'), heardBakery)).toBe('copy')
+  })
+
   it('starts the feel from the industry', () => {
     expect(feelFrom(emptyAnswers(), heardBakery)).toEqual(['warm', 'playful'])
     expect(feelFrom({ ...emptyAnswers(), feel: ['dark'] }, heardBakery)).toEqual(['dark'])
@@ -66,7 +76,7 @@ describe('the guided start’s questions', () => {
   it('skips to the pages with every suggestion taken', () => {
     const a = skipToPages(answer(emptyAnswers(), 'what', { text: 'A bakery that takes pre-orders' }), heardBakery)
     expect(nextQuestion(a, heardBakery)).toBe('drafts')
-    expect(a.name).toBe('Your site')
+    expect(a.name).toBe('')
     expect(a.brief.mainAction).toBe('Order ahead')
   })
 
@@ -98,6 +108,20 @@ describe('what the first sentence tells', () => {
 })
 
 describe('the start sentence', () => {
+  it('returns from copy to a single editable description and respects a cleared name', async () => {
+    const { fillStart } = await import('@/core/jev/sentence')
+    const { answersFromSentence } = await import('@/core/startFlow')
+    const picks = { name: [{ words: 'Fern & Co' }] }
+    const named = answersFromSentence(emptyAnswers(), fillStart(picks), picks)
+    expect(nextQuestion(named, null)).toBe('copy')
+    const back = reopen(named, 'what')
+    expect(back.done).toEqual([])
+    expect(nextQuestion(back, null)).toBe('what')
+    const cleared = answersFromSentence(back, fillStart({}), {})
+    expect(cleared.name).toBe('')
+    expect(nextQuestion(cleared, null)).toBe('copy')
+  })
+
   it('answers what it fills and folds those questions', async () => {
     const { fillStart } = await import('@/core/jev/sentence')
     const { answersFromSentence, heardFromSentence } = await import('@/core/startFlow')
@@ -117,7 +141,7 @@ describe('the start sentence', () => {
     expect(a.brief.mainAction).toBe('Order ahead')
     expect(a.feel).toEqual(['warm'])
     expect(a.sections).toContain('pricing')
-    // Name, what, goals, button and sections are answered; the kind of site folds when it's sure; the look is still asked.
-    expect(nextQuestion(a, heard)).toBe('look')
+    expect(nextQuestion(a, heard)).toBe('copy')
+    expect(nextQuestion(answer(a, 'copy'), heard)).toBe('look')
   })
 })

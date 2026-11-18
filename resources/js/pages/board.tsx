@@ -11,6 +11,7 @@ import { SiteLibrary } from '@/ui/library/SiteLibrary'
 import { Flash, HelpOverlay, toggleHelp } from '@/ui/shell/Overlays'
 import { useShortcuts } from '@/hooks/useShortcuts'
 import { StartOverlay } from '@/ui/start/StartOverlay'
+import { PageComposer } from '@/ui/words/PageComposer'
 import { BuySheet } from '@/ui/shell/BuySheet'
 
 /**
@@ -40,6 +41,7 @@ export default function Board() {
       <Flash />
       <HelpOverlay />
       <StartOverlay />
+      <PageComposer />
       <BuySheet />
     </div>
   )

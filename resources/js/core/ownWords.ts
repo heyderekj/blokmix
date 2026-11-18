@@ -38,7 +38,8 @@ export function ownership(slot: Slot, clip: Pick<Clip, 'id' | 'type' | 'fields' 
   const seen = new Set<string>()
   const out: FieldOwner[] = []
   for (const b of clip.blocks) {
-    if (!b.field || b.kind === 'image' || seen.has(b.field)) continue
+    // Logo blocks can be images with editable brand text. Count the field when it has copy.
+    if (!b.field || seen.has(b.field)) continue
     seen.add(b.field)
     if (hidden(b.id) || !shown[b.field]?.trim()) continue
     out.push({ field: b.field, owner: fieldOwner(slot, clip, content, b.field) })
