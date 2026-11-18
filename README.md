@@ -1,43 +1,31 @@
 # Blokmix
 
-Start a website from layouts, skins and palettes that already work, mix them into something that's yours, and hand a packet to your agent to build in Astro or Next.js.
+**Remix website layouts and styles, then hand your design to an agent to build.**
 
-This is the clickable prototype: the core loop runs end to end on 18 sample clips from four fictional sites. The capture extension, backend and MCP server come later (see the plan below).
+[![License: O'Saasy](https://img.shields.io/badge/license-O%27Saasy-ffc53d)](LICENSE)
 
-```bash
-npm install
-npm run dev
-```
+Blokmix is a visual workspace for designing websites. Try layouts from the library or capture sections from sites you like. Your copy, colors, and type stay in place as you explore different layouts.
 
-Open http://localhost:5173.
+[Visit blokmix.com](https://blokmix.com)
 
-## The loop
+## How it works
 
-1. **Try layouts.** Each section of the working mix steps through the built-in layouts of its type and this mix's own clips (← →, or ‹ › in the bar below the section), always in your words and your style. Space shuffles unlocked sections; L locks one.
-2. **Keep.** Per section: layout, own style, source copy, motion (1–4).
-3. **Resolve.** Promote a clip's design (P, or "Use design") and settle contradictions per group in the Style guide. Flip **Original / Your style** (U) to see the difference.
-4. **Save version.** Enter (or ⌘S) snapshots the mix as a lettered version (A, B…). Work from any version to branch (B.1, B.2).
-5. **Export.** Send a version to the agent with Build, or open Export: `blokmix.json`, `BLOKMIX.md` build notes, tokens (CSS + W3C DTCG), and runnable `astro/` and `next/` projects.
+1. **Start a mix.** Pick a theme, try built-in layouts, or bring in sections you captured with the [Chrome clipper](extension/README.md).
+2. **Explore and share.** Try different directions in separate drafts, save versions, and share a preview for feedback. Notes stay with the design.
+3. **Hand it to your agent.** Send a build packet with your design, notes, and style guide using the MCP connector, or download a starter project for Astro or Next.js. Review changes your agent sends back and choose which ones to apply.
 
-Sticky notes (S) dropped on a section or a version become instructions in the packet. Version frames carry review statuses (in progress → ready for review → changes requested / approved).
+## What’s next
 
-## Commands
+- Capture individual elements like buttons and cards, and save clips straight to your Blokmix account.
+- Start a mix from a website you already have or bring in its design tokens.
+- Edit a mix together in real time and launch a site on your own domain.
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Dev server |
-| `npm test` | Core tests: guide resolution, clip lint, every clip through both exporters |
-| `npm run typecheck` / `npm run build` | Types / production build |
-| `npm run export:demo` | Writes the seeded demo packet to `.out/packet` (then `npm i && npm run build` inside `astro/` or `next/`) |
+See the [roadmap](docs/roadmap.md) for more.
 
-## Layout
+## About this repository
 
-`resources/js` mirrors the Laravel React starter kit (`pages/`, `components`-style folders, `@/` alias), so the app can move into Laravel + Inertia on Laravel Cloud without restructuring. `resources/js/core` is framework-free so the capture extension and MCP server can reuse it. Clip authoring rules live in `CLAUDE.md`.
+Blokmix is built with Laravel, Inertia, React, and TypeScript. See the [project notes](CLAUDE.md) for development details and the [agent handoff guide](docs/agent-iterations.md) for how the connector works.
 
-## Next phases
+## License
 
-1. Laravel + Inertia on Laravel Cloud: projects, clip storage, auth, share links
-2. Chrome MV3 "Clip section" extension that emits this clip format
-3. MCP server (`laravel/mcp`): `get_packet`, `list_versions`, `set_status`, `submit_version`, `add_note`; agent presence driven by real calls
-4. ReviseMy reviews from version frames (statuses + marks as stickies) and "Open in Koati"
-5. Bookmark-app and gallery imports
+Blokmix uses the [O'Saasy License](LICENSE), the same license as ReviseMy. It allows use, modification, and redistribution under its terms. The license restricts offering Blokmix or a derivative as a directly competing hosted service.
