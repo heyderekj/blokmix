@@ -226,8 +226,8 @@ describe('the start box', () => {
     const mix = mixFromStart({ name: 'Mill Bakery' }, starts, starts[0].id)
     useStore.getState().openMixData(mix)
     expect(trayLines(useStore.getState()).length).toBe(starts[0].content.tray?.length ?? 0)
-    expect(Object.keys(mix.drafts)).toHaveLength(starts.length)
-    expect(startedWords('Mill Bakery', mix)).toMatch(/^Started Mill Bakery( with \d drafts)?\./)
+    expect(Object.keys(mix.drafts)).toHaveLength(1)
+    expect(startedWords('Mill Bakery', mix)).toMatch(/^Started Mill Bakery\./)
   })
 
   it('answers suggest_starts from text, saying what Jev heard', async () => {

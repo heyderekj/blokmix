@@ -45,8 +45,8 @@ export interface DraftState extends DraftBody {
   versions: Record<string, VersionNode>
 }
 
-/** Content every draft shares: the site's name, its logo and what it's for. */
-export const SHARED_CONTENT = ['brand', 'logo', 'brief'] as const
+/** Content every draft shares: the site's name, its logo, what it's for and what its owner has shown they want. */
+export const SHARED_CONTENT = ['brand', 'logo', 'brief', 'taste'] as const
 
 /** Drafts in the order they were made (A, B, C). */
 export const draftList = (drafts: Record<string, Draft>): Draft[] => Object.values(drafts).sort((a, b) => a.createdAt - b.createdAt || a.letter.localeCompare(b.letter))
@@ -63,12 +63,12 @@ export function draftBody(st: DraftState, id: string): DraftBody | null {
   return st.drafts[id]?.body ?? null
 }
 
-/** A body brought up to the shared content: the open draft's name (renamed in its words), logo and brief. */
+/** A body brought up to the shared content: the open draft's name (renamed in its words), logo, brief and taste. */
 function withShared(body: DraftBody, shared: ProjectContent): DraftBody {
   let { site, content } = body
   if (content.brand !== shared.brand && content.brand && shared.brand) ({ site, content } = renameBrand(content, site, content.brand, shared.brand))
   const next: ProjectContent = { ...content, brand: shared.brand }
-  for (const k of ['logo', 'brief'] as const) {
+  for (const k of ['logo', 'brief', 'taste'] as const) {
     if (shared[k] === undefined) delete next[k]
     else (next as unknown as Record<string, unknown>)[k] = shared[k]
   }

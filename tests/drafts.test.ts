@@ -91,10 +91,11 @@ describe('drafts', () => {
     expect(out.versions.v1.draftId).toBe(LEGACY_DRAFT)
   })
 
-  it('a guided start’s three picks are three drafts, the chosen one open', () => {
+  it('a guided start keeps only the page you open, as Draft A', () => {
     const starts = startCandidates({ kind: 'local', name: 'Mill' }, library)
     const mix = mixFromStart({ name: 'Mill' }, starts, starts[1].id)
-    expect(Object.keys(mix.drafts)).toHaveLength(starts.length)
+    expect(Object.keys(mix.drafts)).toEqual(['draft_startA'])
+    expect(mix.drafts.draft_startA.letter).toBe('A')
     expect(mix.drafts[mix.draftId].body).toBeNull()
     expect(mix.site).toBe(starts[1].site)
     expect(Object.keys(mix.versions)).toHaveLength(0)

@@ -1,0 +1,44 @@
+{
+  "name": "Market day",
+  "why": "Tiles of what you sell and loud little stickers: a stall people want to browse.",
+  "theme": "mixtape/market-day",
+  "layouts": {
+    "nav": [
+      "pill"
+    ],
+    "hero": [
+      "bento",
+      "collage"
+    ],
+    "features": [
+      "four-up",
+      "mosaic"
+    ],
+    "pricing": [
+      "packages"
+    ],
+    "testimonials": [
+      "wall"
+    ],
+    "cta": [
+      "sticker"
+    ],
+    "footer": [
+      "columns"
+    ]
+  },
+  "density": "dense",
+  "kinds": [
+    "local",
+    "product"
+  ],
+  "industries": [
+    "ecommerce",
+    "food"
+  ],
+  "formats": [
+    "business",
+    "landing"
+  ],
+  "odd": 1
+}

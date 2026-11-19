@@ -1,0 +1,42 @@
+{
+  "name": "Ledger",
+  "why": "A product shot, a row of logos and plans in tiers: careful money people read every line.",
+  "theme": "mastered",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "product"
+    ],
+    "logos": [
+      "row"
+    ],
+    "features": [
+      "tabs"
+    ],
+    "stats": [
+      "big"
+    ],
+    "pricing": [
+      "tiers"
+    ],
+    "faq": [
+      "double"
+    ],
+    "footer": [
+      "columns"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "product"
+  ],
+  "industries": [
+    "fintech"
+  ],
+  "formats": [
+    "landing"
+  ],
+  "odd": 0
+}

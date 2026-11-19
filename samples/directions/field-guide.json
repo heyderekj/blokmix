@@ -1,0 +1,42 @@
+{
+  "name": "Field guide",
+  "why": "Wide photos, a strip of places and answers to the usual questions: plan the trip from one page.",
+  "theme": "field-recording",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "backdrop"
+    ],
+    "gallery": [
+      "filmstrip"
+    ],
+    "features": [
+      "staggered"
+    ],
+    "testimonials": [
+      "slider"
+    ],
+    "faq": [
+      "rows"
+    ],
+    "contact": [
+      "map"
+    ],
+    "footer": [
+      "columns"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "local"
+  ],
+  "industries": [
+    "travel"
+  ],
+  "formats": [
+    "business"
+  ],
+  "odd": 0
+}

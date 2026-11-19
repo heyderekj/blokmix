@@ -1,0 +1,40 @@
+{
+  "name": "Pastel app",
+  "why": "Soft colors and a sliding row of what it does: an app that feels easy before anyone opens it.",
+  "theme": "dreampop",
+  "layouts": {
+    "nav": [
+      "pill"
+    ],
+    "hero": [
+      "product"
+    ],
+    "features": [
+      "carousel"
+    ],
+    "testimonials": [
+      "cards"
+    ],
+    "pricing": [
+      "packages"
+    ],
+    "faq": [
+      "cards"
+    ],
+    "footer": [
+      "centered"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "product"
+  ],
+  "industries": [
+    "education",
+    "ecommerce"
+  ],
+  "formats": [
+    "landing"
+  ],
+  "odd": 1
+}

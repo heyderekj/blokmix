@@ -1,0 +1,42 @@
+{
+  "name": "Launch pad",
+  "why": "One centered promise, then tiles of what it does: the classic software page, done tidy.",
+  "theme": "mastered/ledger",
+  "layouts": {
+    "nav": [
+      "pill"
+    ],
+    "hero": [
+      "centered"
+    ],
+    "logos": [
+      "marquee"
+    ],
+    "features": [
+      "bento"
+    ],
+    "testimonials": [
+      "row"
+    ],
+    "pricing": [
+      "toggle"
+    ],
+    "cta": [
+      "centered"
+    ],
+    "footer": [
+      "columns"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "product"
+  ],
+  "industries": [
+    "saas"
+  ],
+  "formats": [
+    "landing"
+  ],
+  "odd": 0
+}

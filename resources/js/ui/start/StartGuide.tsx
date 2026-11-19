@@ -45,7 +45,7 @@ const FIXED: SectionType[] = ['nav', 'hero', 'footer']
  * Then confirm the kind of site and its industry, what it should do, the main button, the sections
  * and the look. The sidebar shows a neutral outline until the look step; anything the first sentence already settled folds
  * away, and "Skip, show me pages" takes every suggestion. Last come three ways to lay it out: the one you open is the
- * mix, the other two come along. Jev only ranks the answers on offer; nothing here is written for you.
+ * mix, on its own. Jev only ranks the answers on offer; nothing here is written for you.
  */
 export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClose, busy }: {
   /** The answers, every start (best first), and the one picked. */
@@ -486,7 +486,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                     <div className="flex flex-wrap items-end justify-between gap-3">
                       <div>
                         <h2 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Three ways to lay it out</h2>
-                        <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Open the one you like. The other two come along, so you can go back to them any time.</p>
+                        <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Open the one you like. You can try another direction any time.</p>
                       </div>
                       <button type="button" onClick={() => setSeed((n) => n + 1)} disabled={!starts || paste} className={QUIET}>
                         <Shuffle size={15} /> Shuffle

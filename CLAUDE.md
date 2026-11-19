@@ -58,7 +58,7 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Drafts (`core/drafts.ts`, `state/slices/drafts.ts`): a mix holds a few, side by side, each one you can work on. "Mix"
   on screen means only the project. The open draft's body is the mix's top-level site, guide, content and contract, so
   every action edits it; the others keep a `body` until opened (`switchDraft`, one undo step; the site's name, logo and
-  brief are shared and follow you). A guided start makes three (A, B, C; `mixFromStart`); a mix saved before drafts opens
+  brief are shared and follow you). A guided start keeps only the page you open, as Draft A (`mixFromStart`); a mix saved before drafts opens
   as one, "Draft A", holding every version (`draftsFromLegacy`, run by the store's `merge`). Saved versions belong to a
   draft (`VersionNode.draftId`, letters A1, A2…): its history, in the Drafts panel under the top bar's
   "Mix / Draft A ▾ / Page" (`ui/drafts/DraftsPanel.tsx`: open, new draft from this, rename, delete; history: go back to
@@ -167,7 +167,7 @@ of site and industry, folded when the first sentence settled both 4. What should
 who it's for) 5. What should the main button say? (`actionChoices`, or your own words) 6. What goes on the page? (section
 chips, ✕ and +; folded for pasted words) 7. Pick a look (three themes that fit the sentence's feeling, or
 feel words when it gave none; "Show me different ones"; brand color and light/dark in one small row) 8. Three ways to lay it out: measured, in the theme you picked; the one you open
-is the mix and the other two are kept (A/B/C).
+is the mix, on its own (the others aren't kept).
 The answers are the brief (see The brief): `recipeFor` shapes the kind's page by format and goals, `contentFor` puts the
 main button's words in the buttons. Jev only ranks what's offered: one request (`describeRequest`: the kind, each
 optional section, the look, the format, the industry and each goal, `readDescribe`, `sureGoals`) after question 2, while a
@@ -217,6 +217,23 @@ your own lines. Swaps and Surprise me leave Keep alone; agent commands that writ
 the packet's rules to match. A section's `slot.keep` is more specific and wins. UI: themes in Look, the contract as Rules for your agent in the Style
 guide behind it (on screen a skin is a Theme and the contract is Rules for your agent; code keeps `skin` and `contract`); a section's own options dock in the Style panel at the window's side (`ui/frames/SectionPill.tsx`), and `frameBeside`
 moves the canvas so the section shows beside it. Agents: `list_skins`, `suggest_themes`, `apply_skin`, `nudge_look`, `surprise_me`, `get_contract`, `set_contract`.
+
+## Directions and taste
+
+A direction (`core/directions.ts`, `samples/directions/<id>.json`, `data/directions.ts`; `docs/directions.md`) is a theme
+and the page's arrangement curated together: a theme or variant, optional parts, its own layouts per section type (short
+names like `"split"`), density, kinds/industries/formats, `odd` (0–2) and a `why` line. It dresses whatever sections the
+brief asks for (`directionPage` through `core/start.ts` `fillPage`'s `prefs`). Every starter is one too
+(`directionFromStarter`). `checkDirections` runs in `npm test`. Traits (`core/traits.ts` `traitsOf`) are a closed set
+read off any guide and layouts, never hand-tagged. Taste (`core/taste.ts`, `content.taste`, shared by every draft like
+the brief, context never copy) keeps events of what the owner showed (more, less, picked, passed, kept, swapped,
+dropped, note; agents at half weight); `leanOf`, `traitsFromWords`, `tasteWords`. `rankDirections` ranks a row by
+`themeFit` (shared with `rankThemes`), the brief, the lean and a heavy cost for odd ones, never repeating an opener
+or theme, leaving out what was just passed on, with a stretch in the last place once there's taste; `pin` holds the
+look or the layouts; `directionStarts` makes start candidates. On screen: never "direction", "trait" or "taste" as
+words people read. Agents: `list_directions`, `suggest_directions`, `get_taste`, `note_taste`, `drop_taste`,
+`clear_taste`. `npx vite-node scripts/render-directions.ts` screenshots them. The start row and the board's signals
+are next (`docs/directions.md`).
 
 ## Jev (TypeSafe)
 

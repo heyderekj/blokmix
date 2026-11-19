@@ -1,0 +1,40 @@
+{
+  "name": "Gallery wall",
+  "why": "Pictures overlap and the type stays small: the work does the talking.",
+  "theme": "gatefold",
+  "layouts": {
+    "nav": [
+      "centered"
+    ],
+    "hero": [
+      "collage"
+    ],
+    "gallery": [
+      "masonry"
+    ],
+    "content": [
+      "overlap"
+    ],
+    "team": [
+      "founder"
+    ],
+    "contact": [
+      "minimal"
+    ],
+    "footer": [
+      "wordmark"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "studio",
+    "personal"
+  ],
+  "industries": [
+    "architecture"
+  ],
+  "formats": [
+    "portfolio"
+  ],
+  "odd": 1
+}

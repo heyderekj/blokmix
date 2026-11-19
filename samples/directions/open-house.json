@@ -1,0 +1,44 @@
+{
+  "name": "Open house",
+  "why": "Friendly tiles, the people who teach and plain answers: parents and students find what they need.",
+  "theme": "homeroom",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "split"
+    ],
+    "features": [
+      "four-up"
+    ],
+    "team": [
+      "grid"
+    ],
+    "faq": [
+      "columns"
+    ],
+    "pricing": [
+      "two"
+    ],
+    "cta": [
+      "card"
+    ],
+    "footer": [
+      "columns"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "local",
+    "studio"
+  ],
+  "industries": [
+    "education",
+    "other"
+  ],
+  "formats": [
+    "business"
+  ],
+  "odd": 0
+}

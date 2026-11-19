@@ -1,0 +1,37 @@
+{
+  "name": "Broadsheet",
+  "why": "A magazine front: a big headline, the latest pieces in columns and a sign-up at the end.",
+  "theme": "press-kit",
+  "layouts": {
+    "nav": [
+      "stacked",
+      "centered"
+    ],
+    "hero": [
+      "editorial"
+    ],
+    "blog": [
+      "magazine"
+    ],
+    "testimonials": [
+      "big"
+    ],
+    "cta": [
+      "newsletter"
+    ],
+    "footer": [
+      "index"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "writing"
+  ],
+  "industries": [
+    "media"
+  ],
+  "formats": [
+    "blog"
+  ],
+  "odd": 0
+}

@@ -1,0 +1,37 @@
+{
+  "name": "Exhibition",
+  "why": "One big headline and one picture at a time, like walking a show.",
+  "theme": "gatefold/exhibition",
+  "layouts": {
+    "nav": [
+      "centered"
+    ],
+    "hero": [
+      "editorial"
+    ],
+    "gallery": [
+      "spotlight"
+    ],
+    "testimonials": [
+      "big"
+    ],
+    "contact": [
+      "details"
+    ],
+    "footer": [
+      "wordmark"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "studio"
+  ],
+  "industries": [
+    "agency"
+  ],
+  "formats": [
+    "portfolio",
+    "business"
+  ],
+  "odd": 1
+}

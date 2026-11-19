@@ -48,6 +48,12 @@ The catalog includes 15 finished themes, Wireframe, and eight industry variants.
 on the open page. Optional visual suggestions check fit and translate a restyling request into editable parts.
 The implementation and verification notes are in `docs/theming.md`.
 
+## Directions on screen
+
+The start's row of pages made from directions (a theme and its own layouts), with "More like this", "Not this" and
+a line to say what to change, then the board learning from what you keep and undo. The engine, the taste it keeps
+and the commands are built; what's left is in `docs/directions.md` under Next.
+
 ## Capture straight to your account
 
 The extension sends a clip to the live app in one click, instead of downloading a zip you then add in the

@@ -20,12 +20,13 @@ import * as libraryCmds from './library'
 import * as start from './start'
 import * as skins from './skins'
 import * as jev from './jev'
+import * as directionCmds from './directions'
 import type { PageLayouts, PagePlan } from '../jevPage'
 
 export { CommandError, describeNote } from './refs'
 
-const READ = { ...read.read, ...pageCmds.textStyleRead, ...siteCmds.read, ...treatments.read, ...notes.read, ...versions.read, ...drafts.read, ...collectionCmds.read, ...skins.read }
-const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write, ...drafts.write, ...collectionCmds.write, ...skins.write, ...jev.write }
+const READ = { ...read.read, ...pageCmds.textStyleRead, ...siteCmds.read, ...treatments.read, ...notes.read, ...versions.read, ...drafts.read, ...collectionCmds.read, ...skins.read, ...directionCmds.read }
+const WRITE = { ...pageCmds.write, ...siteCmds.write, ...blocks.write, ...treatments.write, ...words.write, ...notes.write, ...versions.write, ...drafts.write, ...collectionCmds.write, ...skins.write, ...directionCmds.write, ...jev.write }
 
 /**
  * Runs the commands in core/commands/schema.ts against the live mix. Every
@@ -90,7 +91,8 @@ function run(name: string, raw: unknown, by: Caller, pagePreview?: { plan: PageP
     })
   }
   if (!cmd.write) return READ[name as keyof typeof READ](input as never)
-  return asOneStep(name, input, by, () => WRITE[name as keyof typeof WRITE](input as never))
+  // Writes may care who asked (a taste noted by an agent counts less than your own).
+  return asOneStep(name, input, by, () => (WRITE[name as keyof typeof WRITE] as (i: never, by: Caller) => unknown)(input as never, by))
 }
 
 /** One undo step for the whole command, however many store updates it makes. */
@@ -216,6 +218,11 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return 'put a new skin on'
       case 'surprise_me':
         return 'mixed up the look'
+      case 'note_taste':
+        return 'noted what you want for the next suggestions'
+      case 'drop_taste':
+      case 'clear_taste':
+        return 'changed what the next suggestions lean on'
       case 'nudge_look':
         return `made it ${String(input.nudge)}`
       case 'place_links':
