@@ -8,7 +8,7 @@ import { DEFAULT_KEEP } from '@/core/types'
 import { navForStart } from '@/core/startNav'
 import { chromeFor, contentFor, guideFor, RECIPES, type StartCandidate, type StartInput } from '@/core/start'
 import { describeRequest, readDescribe, sectionsFor, sureGoals, textMode, type Look, type TextMode } from '@/core/jev/describe'
-import { briefFromKind, guessBrief, kindOf } from '@/core/brief'
+import { briefFromKind, guessBrief } from '@/core/brief'
 import type { HeardBrief } from '@/core/startFlow'
 import { describeSections } from '@/core/jev/pageFromWords'
 import { siteFromSlots } from '@/core/site'
@@ -90,26 +90,6 @@ export async function hearStart(text: string, fallbackKind: Kind = 'studio', mod
     industry: read.industry,
     industries: read.industries,
     goals: sureGoals(read),
-  }
-}
-
-/** What keywords alone can tell, when suggestions are off or didn't answer: the same questions, ranked by code. */
-export function guessHeard(text: string): Heard {
-  const g = guessBrief(text)
-  const kind = g.format || g.industry ? kindOf(g) : null
-  return {
-    mode: 'describe',
-    jev: false,
-    kind,
-    kinds: kind ? [kind] : [],
-    sections: kind ? RECIPES[kind].home : [],
-    want: {},
-    looks: [],
-    format: g.format ?? null,
-    formats: g.format ? [g.format] : [],
-    industry: g.industry ?? null,
-    industries: g.industry ? [g.industry] : [],
-    goals: g.goals ?? [],
   }
 }
 

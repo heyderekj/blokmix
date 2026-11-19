@@ -58,15 +58,6 @@ export interface StartCandidate {
   shelves: { plain: number; real: number }
 }
 
-export const KIND_LABEL: Record<Kind, { name: string; words: string }> = {
-  product: { name: 'An app or product', words: 'Software, a gadget, something people sign up for or buy' },
-  studio: { name: 'A studio or service', words: 'Your design studio, agency, practice or freelance work' },
-  local: { name: 'A local business', words: 'A café, shop, salon or anything with a door people walk through' },
-  event: { name: 'An event or launch', words: 'Something coming soon: a waitlist, a conference, a drop' },
-  personal: { name: 'A personal site', words: 'You: who you are, what you do, how to reach you' },
-  writing: { name: 'Writing or a newsletter', words: 'Essays, issues, a publication people subscribe to' },
-}
-
 /** Each kind's pages, top to bottom, in the order people expect (nav and footer included on Home). */
 export const RECIPES: Record<Kind, { home: SectionType[]; about?: SectionType[] }> = {
   product: { home: ['nav', 'hero', 'logos', 'features', 'testimonials', 'pricing', 'faq', 'cta', 'footer'] },

@@ -29,6 +29,8 @@ export function themeReason(guide: GuideState) {
 interface RankOptions {
   brief?: Brief
   words?: readonly string[]
+  /** Feel words to steer away from ("not corporate"): a theme that has one ranks well below. */
+  avoid?: readonly string[]
   guide?: GuideState
   contract?: Contract
   pool?: Skin[]
@@ -40,6 +42,7 @@ interface RankOptions {
 export function rankThemes({
   brief = {},
   words = brief.feel ?? [],
+  avoid = brief.avoid ?? [],
   guide = emptyGuide(),
   contract,
   pool = themeList(),
@@ -57,9 +60,10 @@ export function rankThemes({
       if (toneOfGuide(tokens) === 'dark') tags.add('dark')
       else tags.delete('dark')
       const explicit = words.filter((w) => tags.has(w as NonNullable<Brief['feel']>[number])).length
+      const avoided = avoid.filter((w) => !words.includes(w) && tags.has(w as NonNullable<Brief['feel']>[number])).length
       const industry = brief.industry && skin.industries?.includes(brief.industry)
       const fit =
-        explicit * 20 + (industry ? 6 : 0) + (brief.format && skin.formats?.includes(brief.format) ? 2 : 0) + defaults.filter((w) => tags.has(w)).length
+        explicit * 20 - avoided * 25 + (industry ? 6 : 0) + (brief.format && skin.formats?.includes(brief.format) ? 2 : 0) + defaults.filter((w) => tags.has(w)).length
       return {
         skin,
         guide: result,

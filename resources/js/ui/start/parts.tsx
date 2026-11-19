@@ -1,10 +1,8 @@
-// Pieces the guided start draws with: start cards, theme cards, the score ring and the kind tile.
+// Pieces the guided start draws with: start cards, theme cards and the score ring.
 import { Children, useCallback, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowRight, Check, ChevronLeft, ChevronRight, type LucideIcon } from 'lucide-react'
-import type { GuideState, Kind, SectionType } from '@/core/types'
-import { KIND_FEEL } from '@/core/feel'
-import { themesFor } from '@/core/themeRanking'
-import { skinList, WIREFRAME, type Skin } from '@/core/skins'
+import { ArrowRight, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import type { GuideState, SectionType } from '@/core/types'
+import type { Skin } from '@/core/skins'
 import { library } from '@/data/library'
 import type { ScoredStart } from '@/lib/start'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
@@ -18,49 +16,6 @@ export const ON = 'shadow-[0_0_0_2px_#FF69B4,0_16px_32px_-20px_rgb(255_105_180/0
 // The app's lit pink button, the step's one main action.
 export const PRIMARY = `btn-lit flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold disabled:pointer-events-none disabled:opacity-45 ${PRESS}`
 export const QUIET = `flex h-11 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-medium text-[#6B5F68] ${HOVER}bg-zinc-950/5 ${PRESS}`
-
-/** A quiet outline for the questions before Blokmix asks about visual style. */
-export function StartOutline({ name, action, sections }: { name: string; action?: string; sections: string[] }) {
-  return (
-    <figure aria-label="Page outline" className="@container mx-auto max-w-[540px]">
-      <figcaption className="mb-2 text-xs font-semibold text-[#6B5F68]">Page outline</figcaption>
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-[0_8px_22px_-18px_rgb(23_18_26/0.35)]">
-        <div className="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-2.5">
-          <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-zinc-700">
-            <span aria-hidden="true" className="size-3 shrink-0 rounded-[4px] bg-[#EEC6DA]" />
-            <span className="[overflow-wrap:anywhere]">{name || 'Site name'}</span>
-          </div>
-          <div aria-hidden="true" className="flex shrink-0 gap-1.5">
-            <span className="h-1 w-5 rounded-full bg-zinc-200" />
-            <span className="h-1 w-5 rounded-full bg-zinc-200" />
-          </div>
-        </div>
-        <div className="p-4 @sm:p-5">
-          <div className="grid items-center gap-4 @sm:grid-cols-2 @sm:gap-6">
-            <div className="min-w-0">
-              <div className="text-base font-semibold">Heading</div>
-              <div aria-hidden="true" className="mt-2.5 grid gap-1.5">
-                <span className="h-1.5 w-4/5 rounded-full bg-zinc-200" />
-                <span className="h-1.5 w-3/5 rounded-full bg-zinc-200" />
-              </div>
-              {action && <div className="mt-4 w-fit max-w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm [overflow-wrap:anywhere]">{action}</div>}
-            </div>
-            <div className="grid min-h-16 place-items-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-xs @sm:min-h-24">
-              Main content
-            </div>
-          </div>
-          {sections.length > 0 && (
-            <ul className="mt-4 grid list-none gap-2 p-0">
-              {sections.map((section, i) => (
-                <li key={i} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm [overflow-wrap:anywhere]">{section}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </figure>
-  )
-}
 
 /** A skin, drawn as your actual page in it. */
 export function SkinCard({ skin, on, start, guide, reason, jevPick, onPick }: { skin: Skin; on: boolean; start: Pick<ScoredStart, 'site' | 'content'>; guide: GuideState; reason: string; jevPick: boolean; onPick: () => void }) {
@@ -209,12 +164,6 @@ export function sectionWords(types: SectionType[], max = 5): string {
 
 export const firstPage = (start: ScoredStart): SectionType[] => (start.site.pages[0]?.slots ?? []).map((x) => x.type)
 
-/** The look a new start opens in: Jev's pick, else the theme that fits this kind best, never the grey sketch. */
-export function firstTheme(looks: string[], kind: Kind): string {
-  const open = skinList()
-  return looks.find((id) => open.some((x) => x.id === id)) ?? themesFor(KIND_FEEL[kind], open, { count: 1 })[0]?.id ?? WIREFRAME
-}
-
 export function Score({ value }: { value: number }) {
   const r = 16
   const c = 2 * Math.PI * r
@@ -225,21 +174,6 @@ export function Score({ value }: { value: number }) {
         <circle cx="20" cy="20" r={r} fill="none" stroke={value >= 80 ? '#10b981' : value >= 50 ? '#f59e0b' : '#ef4444'} strokeWidth="4" strokeDasharray={`${(value / 100) * c} ${c}`} strokeLinecap="round" />
       </svg>
       <span className="text-[11px] font-bold tabular-nums">{value}</span>
-    </span>
-  )
-}
-
-/** A kind's icon in a slot carved into the paper; picked, it lifts out as the pink block, tilted, the icon in white. */
-export function KindTile({ icon: Icon, on }: { icon: LucideIcon; on: boolean }) {
-  return (
-    <span className="relative grid size-9 shrink-0 place-items-center">
-      <span className="absolute inset-0 rounded-[30%] bg-zinc-100 shadow-[inset_0_2px_4px_rgb(0_0_0/0.1),inset_0_0_0_1px_rgb(0_0_0/0.05)]" />
-      <span
-        className={`absolute inset-0 grid place-items-center rounded-[30%] bg-[#FF5CB0] text-white shadow-[0_3px_0_#C2185B,0_8px_14px_-6px_rgb(194_24_91/0.6),inset_0_2px_0_rgb(255_255_255/0.35)] transition-[opacity,transform] duration-200 ease-out ${on ? '-translate-y-1 rotate-[-8deg] opacity-100' : 'translate-y-0 rotate-0 opacity-0'}`}
-      >
-        <Icon size={17} strokeWidth={2.2} />
-      </span>
-      {!on && <Icon size={17} className="relative text-zinc-500" />}
     </span>
   )
 }
