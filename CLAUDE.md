@@ -423,7 +423,11 @@ Nudge) for hierarchy, spacing and type; Laws of UX for behavior; Emil Kowalski's
   entrances; stagger 30–80ms; never from `scale(0)` (start ~0.95 with opacity 0); nothing on keyboard
   actions or things seen many times a day; reduced motion keeps fades, drops movement. Lint warns on
   `transition: all`, `scale(0)` and `ease-in`. Motion presets (`core/motion.ts`) are written to these
-  rules; a section preset replaces the clip's own motion.css.
+  rules; a section preset replaces the clip's own motion.css. The one named exception is the reel: Mix (Space, the
+  dock's dice) rolls each on-screen row sideways through its layouts like a slot machine, about 520ms on a key
+  (`core/reel.ts` `reelPlan`/`reelTiming`, `ui/motion/reel.ts` `spinStrip`, played in `ui/frames/SlotRow.tsx`): one
+  strip of the row's already-mounted tiles slides once, ease-out, 60ms stagger, a 6px settle; height and "Layout n of
+  m" change once, at landing; off-screen rows swap at once; reduced motion cross-fades.
 
 ### Browsing, starters and dials
 
