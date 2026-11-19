@@ -32,7 +32,7 @@ export class PublishError extends Error {}
 
 function mixId(): string {
   const id = useSave.getState().mixId
-  if (!id || id === 'local') throw new PublishError('This mix lives only in this browser. Save it to your mixes to publish it.')
+  if (!id || id === 'local') throw new PublishError('This site lives only in this browser. Save it to your sites to publish it.')
   return id
 }
 

@@ -22,6 +22,7 @@ import { useSave } from '@/lib/mixSync'
 import { agent as agentP, useMe } from '@/lib/people'
 import { SayBar, toggleSay, useSay } from '../jev/SayBar'
 import { WordsSheet, WordsTray } from '../jev/WordsSheet'
+import { NextSteps } from './NextSteps'
 
 const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
   { id: 'select', icon: MousePointer2, label: 'Select', key: 'V' },
@@ -49,6 +50,7 @@ export function Dock() {
   return (
     // Centered in the room beside the docked panels (Design, Content, Notes on the left; Style on the right), never over them.
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex flex-col items-center gap-2 px-3" style={{ paddingLeft: Math.max(12, inset.left), paddingRight: Math.max(12, inset.right) }} data-dock>
+      <NextSteps />
       <FirstRunTip />
       <WordsTray />
       <WordsSheet />
@@ -149,8 +151,8 @@ function ShuffleButton() {
     <button
       type="button"
       onClick={() => useStore.getState().shuffle()}
-      title="Shuffle unlocked sections (Space)"
-      aria-label="Shuffle"
+      title="Mix: new layouts for unlocked sections (Space)"
+      aria-label="Mix"
       className="grid size-8 place-items-center rounded-full text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.97]"
     >
       <Dices size={16} className={`transition-transform duration-300 ${spin ? 'rotate-[360deg]' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }} />
@@ -322,7 +324,7 @@ export function Presence({ size = 28, inline = false }: { size?: number; inline?
 /** One quiet line above the dock until you've slid or shuffled once. */
 function FirstRunTip() {
   const dismissed = useStore((s) => s.ui.hintDismissed)
-  const sheetOpen = useStore((s) => s.ui.sheet !== 'none' || !!s.ui.focusedSlotId)
+  const sheetOpen = useStore((s) => s.ui.sheet !== 'none' || !!s.ui.focusedSlotId || !!s.ui.nextSteps)
   const seq = useStore((s) => s.shuffleSeq)
   const key = useStore((s) => currentSlots(s).map((x) => x.clipId).join())
   const [initial] = useState(key)
@@ -349,7 +351,7 @@ function FirstRunTip() {
               Try layouts
             </li>
             <li className="ml-3 hidden items-center gap-1.5 border-l border-zinc-950/10 pl-3 @min-[16.5rem]:flex">
-              <kbd className="kbd">Space</kbd> Shuffle
+              <kbd className="kbd">Space</kbd> Mix
             </li>
             <li className="ml-3 hidden items-center gap-1.5 border-l border-zinc-950/10 pl-3 @min-[25.5rem]:flex">
               <kbd className="kbd">Enter</kbd> Save version

@@ -32,6 +32,7 @@ import { StatusRing } from '../frames/FrameHeader'
 import { SendToAgent } from '../shell/SendToAgent'
 import { toggleSheet } from '../shell/TopBar'
 import { newDraft, openDraft } from './open'
+import { OtherDirections } from './OtherDirections'
 
 const PRESS = 'cursor-pointer transition-[background-color,color,scale] duration-150 active:scale-[0.97]'
 const ROW_BUTTON = `flex h-7 items-center gap-1 rounded-full px-2.5 text-[12px] font-medium text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900 ${PRESS}`
@@ -143,6 +144,7 @@ export function DraftsPanel() {
               <GitBranch size={15} /> Manage drafts
             </button>
           </header>
+          <OtherDirections />
           <div role="group" aria-label="History scope" className="draft-scope">
             <button aria-pressed={!wide} onClick={() => setWide(false)}>
               <GitBranch size={15} /> This draft

@@ -70,7 +70,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
   const metaLine = [
     `${pages.length > 1 ? `${pages.length} pages · ` : ''}${allSlots(v.snapshot.site).length} sections · ${sources.length} sites`,
     v.kind === 'build' ? `${v.build?.agentName} · ${v.build?.target === 'astro' ? 'Astro' : 'Next.js'}${v.build?.previewUrl ? ' · live preview' : ''}` : parent ? `from ${parent.letter}` : null,
-    isBranchBase ? 'in the mix' : null,
+    isBranchBase ? 'you’re working from it' : null,
   ]
     .filter(Boolean)
     .join(' · ')
@@ -101,7 +101,7 @@ export const VersionFrame = memo(function VersionFrame({ p }: { p: FramePlacemen
           <AvatarStack people={v.kind === 'build' ? [agent(v.build?.agentName ?? 'Agent')] : [me]} />
         </span>
         {/* Make your mix match this version (your unsaved edits are saved first) */}
-        <button type="button" onClick={() => remix(v)} title="Make your mix match this version" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold active:scale-[0.97] @max-[420px]:hidden">
+        <button type="button" onClick={() => remix(v)} title="Make your site match this version" className="btn-quiet flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold active:scale-[0.97] @max-[420px]:hidden">
           <Shuffle size={13} /> Start from this
         </button>
         {v.kind === 'snapshot' && <SendToAgent version={v} className="@max-[250px]:hidden" onReference={(t) => runReferenceBuild(v.id, t)} />}

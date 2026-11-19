@@ -9,7 +9,7 @@ export default function Login({ canReset = false }: { canReset?: boolean }) {
       <Head title="Sign in" />
       <AuthCard
         title={flash ? 'Sign in to Blokmix' : 'Welcome back'}
-        lede={flash ?? 'Pick up your mix where you left it.'}
+        lede={flash ?? 'Pick up your site where you left it.'}
         onSubmit={() => form.post('/login', { onFinish: () => form.reset('password') })}
         footer={
           <>

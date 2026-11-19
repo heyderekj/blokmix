@@ -18,6 +18,10 @@ export type Goal = (typeof GOALS)[number]
 
 export interface Brief {
   feel?: FeelWord[]
+  /** How it should feel, in their words ("warm and handmade"). Context only. */
+  feelWords?: string[]
+  /** Feelings to steer away from ("not corporate"): themes that have them rank lower. Context only. */
+  avoid?: FeelWord[]
   /** What it is, in their words (the start's sentence). Context only. */
   what?: string
   /** Who it's for, in their words. Context only. */
@@ -301,6 +305,7 @@ export function briefContext(content: Pick<ProjectContent, 'brand' | 'brief' | '
   const goals = [...(b.goals ?? []).map((g) => lower(GOAL_LABEL[g])), ...(b.goalsOther?.trim() ? [b.goalsOther.trim()] : [])]
   if (goals.length) parts.push(`It should ${goals.length > 1 ? `${goals.slice(0, -1).join(', ')} and ${goals.at(-1)}` : goals[0]}.`)
   if (b.who?.trim()) parts.push(`For ${lower(b.who.trim()).replace(/[.!?]$/, '')}.`)
+  if (b.feelWords?.length) parts.push(`It should feel ${b.feelWords.join(', ')}.`)
   if (b.mainAction?.trim()) parts.push(`Main button: ${b.mainAction.trim()}.`)
   return parts.join(' ')
 }

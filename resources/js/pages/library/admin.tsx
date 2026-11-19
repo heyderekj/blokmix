@@ -115,7 +115,7 @@ export default function LibraryAdmin({ sites, site, types, wants = [] }: { sites
           <Wordmark height={18} />
         </span>
         <Link href={site ? '/library/admin' : '/mixes'} className={QUIET}>
-          <ArrowLeft size={15} /> {site ? 'All sites' : 'Your mixes'}
+          <ArrowLeft size={15} /> {site ? 'All sites' : 'Your sites'}
         </Link>
       </header>
       {!site && <SharedRecipes curate/>}

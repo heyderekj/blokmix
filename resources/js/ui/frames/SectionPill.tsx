@@ -179,7 +179,7 @@ export function SectionPill({
                 <button
                   type="button"
                   aria-pressed={slot.locked}
-                  title={slot.locked ? 'Locked: Shuffle and agents leave this section alone. Click to unlock (L)' : 'Lock this section, so only you can change it (L)'}
+                  title={slot.locked ? 'Locked: Mix and agents leave this section alone. Click to unlock (L)' : 'Lock this section, so only you can change it (L)'}
                   onClick={(e) => {
                     e.stopPropagation()
                     st().toggleLock(slot.id)

@@ -24,6 +24,8 @@ Pay once per site for code export and agent handoff. There is no subscription. S
 - **The waitlist has no paywall.** While `BLOKMIX_WAITLIST_MODE` is on, every mix ships free.
 - **Storage is a guardrail, not a feature.** 100 MB of images, video and published pages per owner; 10 GB once they've
   paid for a site (or have Plus). It's never printed as a selling point.
+- **Reading is included.** Suggestions that read what you write (the reader, Claude Haiku) cost everyone nothing, behind
+  quiet daily caps per person and site-wide (`config/blokmix.php` `read_daily_cap`, `throttle:read`), like storage.
 - Agents hear the same rules: `prepare_build` on an unpaid mix refuses with why and how to pay.
 
 ## Principles

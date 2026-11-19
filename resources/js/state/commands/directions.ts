@@ -81,6 +81,14 @@ export const write = {
     setTaste(i.words ? { ...next, words: i.words } : next)
     return describe(tasteNow())
   },
+  try_direction: (i: CommandInput<'try_direction'>) => {
+    const d = directionById(i.direction)
+    if (!d) throw new CommandError(`No direction "${i.direction}". Try suggest_directions.`)
+    const id = useStore.getState().tryDirection(d)
+    if (!id) throw new CommandError('This site already has 6 drafts. Delete one first (delete_draft).')
+    const draft = useStore.getState().drafts[id]
+    return { draft: { id, letter: draft.letter, name: draft.name }, direction: d.id, theme: d.theme }
+  },
   drop_taste: (i: CommandInput<'drop_taste'>) => {
     setTaste(dropLean(tasteNow(), i.trait as Trait))
     return describe(tasteNow())

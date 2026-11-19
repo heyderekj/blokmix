@@ -95,7 +95,7 @@ class PublicationController extends Controller
         $size = array_sum(array_map('strlen', $files));
         $why = $owner->publishRefusal($mix, $size);
         if ($why !== null && $owner->isNot($request->user())) {
-            $why = 'This mix’s owner can’t publish it: '.lcfirst($why);
+            $why = 'This site’s owner can’t publish it: '.lcfirst($why);
         }
         abort_if($why !== null, 403, (string) $why);
 
@@ -201,7 +201,7 @@ class PublicationController extends Controller
         $role = $mix->roleOf($request->user());
         abort_unless($role, 404);
         abort_unless($role->canEdit(), 403, 'Viewers can’t publish.');
-        abort_if($mix->isArchived(), 403, 'This mix is archived. Bring it back to publish it.');
+        abort_if($mix->isArchived(), 403, 'This site is archived. Bring it back to publish it.');
     }
 
     /**

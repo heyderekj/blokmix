@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ClipController;
 use App\Http\Controllers\Api\CollectionAssetController;
 use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\JevController;
+use App\Http\Controllers\Api\ReadController;
 use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\MixApiController;
 use App\Http\Controllers\Api\PublicationController;
@@ -109,6 +110,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/jev/status', [JevController::class, 'status'])->name('jev.status');
         Route::post('/jev', [JevController::class, 'ask'])->middleware('throttle:jev')->name('jev.ask');
         Route::post('/jev/wants', [JevController::class, 'want'])->middleware('throttle:30,1')->name('jev.wants');
+
+        // The reader (Claude, Anthropic): reads what you wrote into Blokmix's own picks. Its key, instructions and schema stay here.
+        Route::get('/read/status', [ReadController::class, 'status'])->name('read.status');
+        Route::post('/read', [ReadController::class, 'read'])->middleware('throttle:read')->name('read.read');
 
         Route::get('/unsplash/search', [UnsplashController::class, 'search'])->middleware('throttle:60,1')->name('unsplash.search');
         Route::post('/unsplash/download', [UnsplashController::class, 'download'])->middleware('throttle:60,1')->name('unsplash.download');

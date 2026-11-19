@@ -82,6 +82,12 @@ export const JEV_COMMANDS = {
     input: z.object({ text: z.string().trim().min(1).max(200) }),
     write: false,
   },
+  read_start: {
+    description:
+      'Read what someone wrote about the site they want (a sentence or a pasted paragraph, any language) the way the guided start would, with the reader (Claude, through Blokmix’s server): the business, kind, format and industry, its name, the feel to aim for and to avoid, goals, the main button, who it’s for, what to show and leave out on home, other pages, light or dark, and what it couldn’t place. Ids come from Blokmix’s own lists and every string is copied from the text, never written. Needs suggestions on. Changes nothing.',
+    input: z.object({ text: z.string().trim().min(1).max(12_000) }),
+    write: false,
+  },
   find_subject: {
     description:
       'Find the subject of a photo or upload in an image block (a person, a product, a dish) with Jev, and set the crop to keep it in frame at every width and on phones (the fill’s focus). A person’s focus sits near their face. Does nothing for placeholders, mockups or moving media, or when the photo has no single subject. One undo step.',

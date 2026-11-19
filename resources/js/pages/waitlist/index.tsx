@@ -58,7 +58,7 @@ export default function Waitlist({ people }: { people: Person[] }) {
           href="/mixes"
           className="flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-zinc-600 transition-[background-color,color,scale] duration-150 hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]"
         >
-          <ArrowLeft size={15} /> Your mixes
+          <ArrowLeft size={15} /> Your sites
         </Link>
       </header>
 

@@ -78,7 +78,7 @@ export function Specimen({ tokens, size = 'lg', className = '' }: { tokens: Toke
           className={`inline-flex items-center font-semibold transition-[translate,filter] hover:-translate-y-px hover:brightness-110 ${lg ? 'h-8 px-3.5 text-[12px]' : 'h-5 px-2 text-[9px]'}`}
           style={{ background: tokens['color.primary'], color: tokens['color.onPrimary'], borderRadius: r, transitionDuration: dur, transitionTimingFunction: ease }}
         >
-          {words.ctaPrimary || 'Start a mix'}
+          {words.ctaPrimary || 'Start a site'}
         </span>
         {lg && (
           <span className="inline-flex h-8 items-center px-3.5 text-[12px] font-semibold" style={{ borderRadius: r, boxShadow: `inset 0 0 0 ${tokens['stroke.width'] || '1px'} ${tokens['color.border']}` }}>

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\AnthropicReader;
+use App\Services\Reader;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -17,7 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // The reader asks Claude; tests swap in App\Services\FakeReader.
+        $this->app->bind(Reader::class, fn () => new AnthropicReader(
+            (string) config('blokmix.read_key'),
+            (string) config('blokmix.read_model'),
+            (float) config('blokmix.read_timeout'),
+        ));
     }
 
     /**
@@ -39,6 +46,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('jev', fn (Request $request) => [
             Limit::perMinute(120)->by('jev-m:'.($request->user()?->id ?: $request->ip())),
             Limit::perDay(3000)->by('jev-d:'.($request->user()?->id ?: $request->ip())),
+        ]);
+
+        // The reader runs when you finish a sentence or paste, never as you type: a few a minute, a couple hundred a day.
+        RateLimiter::for('read', fn (Request $request) => [
+            Limit::perMinute(20)->by('read-m:'.($request->user()?->id ?: $request->ip())),
+            Limit::perDay(200)->by('read-d:'.($request->user()?->id ?: $request->ip())),
         ]);
     }
 }

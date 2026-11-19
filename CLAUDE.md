@@ -55,8 +55,8 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Captured clips (`clips`, `ClipController`, `lib/userClips.ts`): the extension's zip, added from the Crate, linted
   in the browser, saved to your account. You get yours and those of people you share mixes with; they join the
   library (`core/library.ts` `extendLibrary`) before the board opens a mix.
-- Drafts (`core/drafts.ts`, `state/slices/drafts.ts`): a mix holds a few, side by side, each one you can work on. "Mix"
-  on screen means only the project. The open draft's body is the mix's top-level site, guide, content and contract, so
+- Drafts (`core/drafts.ts`, `state/slices/drafts.ts`): a mix (a site, on screen) holds a few, side by side, each one you
+  can work on. The open draft's body is the mix's top-level site, guide, content and contract, so
   every action edits it; the others keep a `body` until opened (`switchDraft`, one undo step; the site's name, logo and
   brief are shared and follow you). A guided start keeps only the page you open, as Draft A (`mixFromStart`); a mix saved before drafts opens
   as one, "Draft A", holding every version (`draftsFromLegacy`, run by the store's `merge`). Saved versions belong to a
@@ -66,7 +66,11 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   (`placeDrafts`, `ui/frames/DraftFrame.tsx`, a click opens one); version frames are only builds, versions you chose to
   show (`ui.pinnedVersions`) and versions with notes (`placeVersions`). Sync sends drafts one by one like versions. A mix
   holds up to 6 (`MAX_DRAFTS`). Export and Publish can pick another draft (`draft:<id>`,
-  `lib/packet.ts` `sourceVersion`). Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`.
+  `lib/packet.ts` `sourceVersion`). The Drafts panel's "Try another direction" shows your own Home in three other directions (`ui/drafts/OtherDirections.tsx`,
+  `rankDirections` leaving out what you picked; Others records them as passed); a click is a new draft beside the others
+  (`tryDirection`, `core/tryDirection.ts` `siteInDirection`/`guideInDirection`: its layouts with your words, pictures and links
+  carried by `withClip`, its look by `applySkin`; locked sections and Keep in Rules for your agent stay), counted as picked.
+  Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`, `try_direction`.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
   drops one, and sections it uses always count. A section's arrows (‹ Layout n of m ›, ← →, Shuffle, `get_options`)
   step through the built-in layouts plus this mix's clips only (`core/library.ts` `cycleIds`), never another mix's or a
@@ -150,45 +154,62 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 
 ## Guided start
 
-The audience is non-designers first (`docs/simple-vision.md`). New mix (the gallery's tile, the browser-only mix's first
-visit, or "Start a new mix" in its menu) opens `ui/start/StartGuide.tsx`: plain questions one at a time on the left, the
-page they add up to on the right (`startCandidates`' first, drawn at once; measuring waits for the end). The first screen is
-a sentence to fill in, whole from the start, each empty blank naming what it asks for (`Blank.ask`, never a sample
+The audience is non-designers first (`docs/simple-vision.md`). New site (the gallery's tile, the browser-only mix's first
+visit, or "Start a new site" in its menu) opens `ui/start/StartGuide.tsx`. Its first screen describes the site
+(`ui/start/Describe.tsx`): a sentence to fill in on the left, the real page it adds up to on the right from the first
+blank (`ui/start/LivePreview.tsx`: `startCandidates(input, library, 1)[0]` in `rankThemes`' first, 200ms after a change,
+two stacked frames so a change fades in instead of flashing; it scrolls to the section that changed and says why in a line
+from fixed templates, `becauseLines`, `changedSection`: "Added Pricing: you asked for our menu.", "No schedule section yet.
+Noted."). The sentence is whole from the start, each empty blank naming what it asks for (`Blank.ask`, never a sample
 answer): "I'm making a site for [what it is] called [its name]. It should feel [a feeling] and help people [do what].
-Show [what to show]." (`core/jev/sentence.ts` `startSentence`, `fillStart`, `startText` for what's filled; `ui/jev/Sentence.tsx`:
-each blank opens a shortlist and a field that searches all options or takes your own words. Browse categories
-shows one group at a time. Jev's order (`rankRequest`) or the kind informs the shortlist and `matchRequest`
-matches your words to an option), with a box under it to paste what you already have. The page on the right follows the sentence as you fill it. Whatever it fills answers
-those questions and folds them (`answersFromSentence`, `heardFromSentence`, `SENTENCE_GOAL`, `SENTENCE_FEEL`). Answered
-questions fold into one line each with Change; "Skip, show me pages" takes every suggestion. The questions
-(`core/startFlow.ts`, pure: `QUESTIONS`, `nextQuestion`, `folded`, `skipToPages`, `briefFrom`, `sectionsFrom`):
-1–2. The sentence (its name, what it is), or the words you already have (`textMode` tells a paste apart) 3. The kind
-of site and industry, folded when the first sentence settled both 4. What should it do for you? (goals, something else,
-who it's for) 5. What should the main button say? (`actionChoices`, or your own words) 6. What goes on the page? (section
-chips, ✕ and +; folded for pasted words) 7. Pick a look (three themes that fit the sentence's feeling, or
-feel words when it gave none; "Show me different ones"; brand color and light/dark in one small row) 8. Three ways to lay it out: measured, in the theme you picked; the one you open
-is the mix, on its own (the others aren't kept).
-The answers are the brief (see The brief): `recipeFor` shapes the kind's page by format and goals, `contentFor` puts the
-main button's words in the buttons. Jev only ranks what's offered: one request (`describeRequest`: the kind, each
-optional section, the look, the format, the industry and each goal, `readDescribe`, `sureGoals`) after question 2, while a
-keyword guess (`guessHeard`, `guessBrief`) shows at once; with suggestions off the same questions are ranked by keywords
-alone. Pasted words become a page from your words in three arrangements (`lib/startFromText.ts` `wordsCandidates`, the
-pure `state/jevPage.ts` `wordsPage`, a nav and footer from `chromeFor`; lines it wasn't sure of ride along in
+Show [what to show]." (`core/jev/sentence.ts` `startSentence`, `fillStart`, `startText`; `ui/jev/Sentence.tsx`: each blank
+opens a shortlist and a field that searches or takes your own words, which are always the first option ("Use “…”"); a
+long answer shows its start and flows with the sentence. Jev's order (`rankRequest`) or the kind informs the shortlist and
+`matchRequest` matches your words to an option). Under it, a row for each thing it understood, filled in and changeable in
+place (`ui/start/ChipRows.tsx`: kind of site and industry, what it should do, main button (`actionChoices` or your words),
+what's on the page (✕ and +), who it's for, and the feel in your words with what to steer away from). "I have words
+already" opens a drawer for copy you have (`ui/start/CopyDrawer.tsx`, `hearStart` in paste mode); "Start from" stays one
+quiet line. Your own words in a blank, or a paragraph pasted into any blank (`isParagraph`), are read: by the reader when
+it's on (`askReader('start')` over the whole sentence), else by keywords (`core/reader/local.ts` `keywordRead`, the same
+shape with spans of your text, `FEEL_SYNONYMS`, "not …" as avoid), so they never dead-end. `applyRead` fills every blank it
+can and marks it "From what you wrote", never a blank you set (`StartState.mine`) or changed while it read. The state is
+pure (`core/startFlow.ts`: `StartState`, `startView`, `setPicks`, `setBrief`, `applyRead`, `briefFrom`, `kindFrom`,
+`sectionsFrom`, `feelFrom`; trust runs keywords and your copy, then the sentence, then reads, then your chip changes). A map
+lands in Contact and a shop in Pricing; a schedule or events have no section yet and are noted (`noteWants`). The Pages row
+adds pages from the page templates (a read's "an about page" lands there too; `StartInput.pages`, `otherPages`).
+"Show me versions" opens Pick a version (`ui/start/Versions.tsx`): four whole pages that differ in layout and look, each a
+direction (`core/startVersions.ts` `startVersions` over `rankDirections`/`directionStart`, see `docs/directions.md`) with its
+one line on what it is and why it works, and its first screen's measured verdict fading in (`scoreStart`; cards never
+reorder). The brief's own feel words and what to avoid lean the row (`briefTaste`). Mix spins a new row and records the
+row as passed; Keep layout / Keep look hold one half (`pin`, the kept card stays first, `layoutWords` when the look is
+held); 👍/👎 are "More like this" / "Not this"; "How unusual" is `odd`; brand color and light/dark sit there too. Your words
+pasted as copy give arrangements of them in looks that fit; a saved style guide varies the layouts only. Open one and the
+site starts with that page alone (`mixFromStart`); the pick and the rest go into `content.taste` (`picked`, `passed`).
+The answers are the brief (see The brief; `feelWords` and `avoid` are context only): `recipeFor` shapes the kind's page by
+format and goals, `contentFor` puts the main button's words in the buttons. Pasted words become a page from your words in
+three arrangements (`lib/startFromText.ts` `wordsCandidates`, the pure `state/jevPage.ts` `wordsPage`, a nav and footer from
+`chromeFor`; lines it wasn't sure of ride along in
 `content.tray`). `startCandidates` offers matching starter mixes (`samples/starters/*.json`, ranked by their `industries`
 and `formats`, checked by `checkStarters`) first, then fills the recipe from the library with `suggestClip`, built-in
 layouts first. Its words come from `core/startWords.ts`: every field of every section, per kind, read as a believable site
 (tests keep instructions, greetings and Blokmix's own demo words out). `lib/start.ts` measures each at a laptop, a phone
 and widths between (`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its
-first screen holds up (after Shu Ding's "The Calculus of Interfaces"). Under the first questions, "Or start from": a
+first screen holds up (after Shu Ding's "The Calculus of Interfaces"). Under the description, "Start from": a
 starter, a saved style guide (hosted), a blank page, a mix file (`ui/start/StartFrom.tsx`). Hosted, a start posts to
-`POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, `sections`, `format`, `industry`,
-`goals`, `main_action` and `who`). The flash says how many spots still hold sample words.
+`POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, read as a description by the reader or keywords and
+as copy through Jev when it's a long paste, `sections`, `format`, `industry`, `goals`, `main_action`, `who`, `count` 2–6,
+`vary` layout (default) / look / both, `pages`, `feel` and `avoid`; `apply_start` takes `start` 1–6). A start lands on the page alone, no panel open (`ui/shell/landOnPage.ts`): a few quiet hints
+above the dock (`ui/shell/NextSteps.tsx`, pure `core/nextSteps.ts`, `ui.nextSteps` per device) say what to try next (your words, another
+opener, a look), each with one plain line of why (the first screen's measured miss when there is one), and retire once done or
+dismissed.
 
 ## Skins and the contract
 
-On screen (`docs/simple-vision.md`, the brand guide's B3): Your mix (not working mix), Design (the panel; `look` in code), Content (your words; `words` in code), Themes (skins),
+On screen (`docs/simple-vision.md`, the brand guide's B3): the project is a Site (Your sites, New site; `mix` stays in code, routes and
+the file format), it holds Drafts, and Mix is only the verb (Space and the dock's dice, `shuffle` in code; a mixed theme). `tests/site-words.test.ts`
+polices it. Then: Design (the panel; `look` in code), Content (your words; `words` in code), Themes (skins),
 Rules for your agent (the contract), Style guide (every value, behind Look), Options (candidates), Crate (the clips drawer), Original / Your style, Export (code) vs Download a copy
-(the mix file), Notes (not marks). Word tags read Your words · Placeholder · Original · Saved. No "packet", "tokens" or
+(the site file), Notes (not marks). Word tags read Your words · Placeholder · Original · Saved. No "packet", "tokens" or
 "slot" in anything a person reads.
 
 Layouts are the bones; a skin is the whole look over them (`core/skins.ts`, `samples/skins/<id>.json`, `data/skins.ts`): tokens,
@@ -200,7 +221,7 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
 pass AA and load its fonts (`tests/skins.test.ts`). Surprise me (`surpriseMe`) mixes
-skins: areas come whole from other skins; on screen it's "Mashup" (so "mix" only ever means the project), drawn before it lands.
+skins: areas come whole from other skins; on screen it's a "Mixed theme" (Mix again), drawn before it lands; agents only (`surprise_me`), not in Look.
 Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers, broad to specific:
 three steps that fold into one line each once answered (like the start's questions), then Your color (with Light/Dark, `set_tone`)
 and the Style guide door. 1. How should it feel? Four broad feels (Calm, Warm, Bold, Sharp, each a few `FEEL_WORDS` written to
@@ -238,8 +259,8 @@ dropped, note; agents at half weight); `leanOf`, `traitsFromWords`, `tasteWords`
 or theme, leaving out what was just passed on, with a stretch in the last place once there's taste; `pin` holds the
 look or the layouts; `directionStarts` makes start candidates. On screen: never "direction", "trait" or "taste" as
 words people read. Agents: `list_directions`, `suggest_directions`, `get_taste`, `note_taste`, `drop_taste`,
-`clear_taste`. `npx vite-node scripts/render-directions.ts` screenshots them. The start row and the board's signals
-are next (`docs/directions.md`).
+`clear_taste`, `try_direction`. `npx vite-node scripts/render-directions.ts` screenshots them. The start's row (Guided
+start) and the Drafts panel's "Try another direction" use them; the board's other signals are next (`docs/directions.md`).
 
 ## Jev (TypeSafe)
 
@@ -254,7 +275,8 @@ dates: code does those.
   shape and image sizes, passes the body on unchanged). Vite-only dev: `scripts/jev/devProxy.ts` reads `.env.local`. No key
   means Jev is off. Per device: "Suggestions" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
 - On screen there's no "Jev" and no feature names, only plain words: Suggestions (the menu switch, whose credit line,
-  "Suggestions by Jev (TypeSafe)", is the one place the name shows; `tests/jev-name.test.ts` checks it), "From what you wrote", "Suggested", "Suggestions are off (Blokmix menu)", "What do you want to change?" (the
+  "Suggestions by Jev (TypeSafe) and Claude (Anthropic). They read, place and pick; they never write your words.", is the
+  one place either name shows; `tests/jev-name.test.ts` checks it), "From what you wrote", "Suggested", "Suggestions are off (Blokmix menu)", "What do you want to change?" (the
   bar), "Add your text to this page", "Make a page from your text", "Text not placed yet", "Background ideas", "Find colors",
   "Is it clear?", "Best match first". Code names (`core/jev`, commands, files) stay. The Say bar's built-in edits work
   without a server key or with suggestions turned off. Commands that need suggestions use `jevOffMessage`.
@@ -277,6 +299,38 @@ dates: code does those.
   only (`jev_wants`, `POST /api/jev/wants`) and shown to owners on `/library/admin`.
 - Bench: `npx vite-node scripts/jev/bench.ts [suite] [--runs 3]` (accuracy against today's rule, coverage at thresholds,
   calibration, option-order flips, latency, cost). Change thresholds only on its numbers.
+
+## The reader (Claude)
+
+A small Claude model (Claude Haiku 5.5, `claude-haiku-5-5`, Anthropic) on the server that only reads: it turns free text
+(the start's sentence, a pasted paragraph) into the same picks the UI makes, ids from Blokmix's closed lists, and never
+writes a word. Jev stays for fast ranking. Order of trust: keywords at once, Jev in ~100ms, the reader last and over
+both; your own picks over everything (`mergeRead`). It runs on commit or paste, never as you type. No key, or Suggestions
+off (the same `ui.jev` switch), is exactly today's behaviour.
+- Pure: `core/reader/` (`vocab.ts` closed sets from `BUSINESSES`, `FEELS`, `GOALS`, `SHOWS`, `FORMATS`, `INDUSTRIES`, brief
+  goals, page templates and section types; `schema.ts` zod per task with `SPANS`; `prompt.ts`; `spec.ts`; `verbatim.ts`;
+  `start.ts` `mergeRead`/`readPicks`/`readBrief`; `need.ts` `needOf`). Tasks: `start` (business id or your words, kind,
+  format, industry, name, feel ids + your words + what to avoid, goals, main button, who, what to show and leave out,
+  extra pages {template, purpose}, light/dark, unsure) and `need` ("I need a [page | section] that…": schema, prompt and
+  bench only, wired later).
+- It cannot write: every free string must be a span of the text (`verbatim`: case, quotes, dashes, spaces and edge
+  punctuation ignored; your exact slice comes back), checked on the server (`Services/ReaderSpans`) and again in the
+  browser, or the whole read is dropped. Both run `tests/fixtures/reader-spans.json`.
+- The server owns the prompt and schema (sign-up is open, so no pass-through): `npx vite-node scripts/read/build.ts`
+  writes `resources/reader/start.json` and `need.json` (committed; `tests/reader.test.ts` checks they match). The
+  browser sends only `{task, text, context}` (context: closed ids only).
+- Client: `lib/reader.ts` `askReader(task, text, context?)` (null when off, slow, failing or not your words; cached),
+  `readerOn`, `setReaderTransport` (`tests/helpers/fakeReader.ts`).
+- Server: `POST /api/read`, `GET /api/read/status` (signed in) → `Api\ReadController` + `Services\Reader` (interface;
+  `AnthropicReader` through the official PHP SDK with structured output, effort low, 12s timeout, one retry, `stop_reason`
+  checked; `FakeReader` in tests). `throttle:read` 20/min 200/day per person; `read_daily_cap` site-wide;
+  12,000 characters at most; the reply is checked against the schema (opis) and the spans, else 502. Logs counts and
+  timings, never words. Config: `read_key` (`ANTHROPIC_API_KEY`), `read_model`, `read_daily_cap`, `read_timeout`.
+- Vite-only dev: `scripts/read/devProxy.ts` (with `scripts/read/call.ts`, the TS SDK) reads `ANTHROPIC_API_KEY` from
+  `.env.local`. Agents: `read_start {text}` (read-only).
+- Bench: `npx vite-node scripts/read/bench.ts [start|need] [--runs 3]` (accuracy per field against today's Jev plus
+  keywords, reads dropped for non-spans and strings let through (must be 0), latency, cost per read). Reading is included
+  in the price (`docs/pricing.md`); text goes to Anthropic, so check the privacy page before the key goes on in production.
 
 ## Agents
 
@@ -446,7 +500,11 @@ Nudge) for hierarchy, spacing and type; Laws of UX for behavior; Emil Kowalski's
   entrances; stagger 30–80ms; never from `scale(0)` (start ~0.95 with opacity 0); nothing on keyboard
   actions or things seen many times a day; reduced motion keeps fades, drops movement. Lint warns on
   `transition: all`, `scale(0)` and `ease-in`. Motion presets (`core/motion.ts`) are written to these
-  rules; a section preset replaces the clip's own motion.css.
+  rules; a section preset replaces the clip's own motion.css. The one named exception is the reel: Mix (Space, the
+  dock's dice) rolls each on-screen row sideways through its layouts like a slot machine, about 520ms on a key
+  (`core/reel.ts` `reelPlan`/`reelTiming`, `ui/motion/reel.ts` `spinStrip`, played in `ui/frames/SlotRow.tsx`): one
+  strip of the row's already-mounted tiles slides once, ease-out, 60ms stagger, a 6px settle; height and "Layout n of
+  m" change once, at landing; off-screen rows swap at once; reduced motion cross-fades.
 
 ### Browsing, starters and dials
 

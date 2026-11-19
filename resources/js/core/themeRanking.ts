@@ -44,6 +44,8 @@ export function themeFit(skin: Skin, tokens: ReturnType<typeof resolveGuide>['to
 interface RankOptions {
   brief?: Brief
   words?: readonly string[]
+  /** Feel words to steer away from ("not corporate"): a theme that has one ranks well below. */
+  avoid?: readonly string[]
   guide?: GuideState
   contract?: Contract
   pool?: Skin[]
@@ -55,6 +57,7 @@ interface RankOptions {
 export function rankThemes({
   brief = {},
   words = brief.feel ?? [],
+  avoid = brief.avoid ?? [],
   guide = emptyGuide(),
   contract,
   pool = themeList(),
@@ -67,7 +70,8 @@ export function rankThemes({
     .map((skin) => {
       const result = applySkin(guide, skin, contract)
       const tokens = resolveGuide(result).tokens
-      const fit = themeFit(skin, tokens, brief, words)
+      const avoided = avoid.filter((w) => !words.includes(w) && (skin.feel as readonly string[]).includes(w)).length
+      const fit = themeFit(skin, tokens, brief, words) - avoided * 25
       return {
         skin,
         guide: result,

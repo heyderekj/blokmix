@@ -47,6 +47,15 @@ export function ownership(slot: Slot, clip: Pick<Clip, 'id' | 'type' | 'fields' 
   return out
 }
 
+/** The first spot on a page, top to bottom, still holding words that aren't yours yet (sample or clipped). */
+export function firstSample(slots: Slot[], clipOf: (s: Slot) => Pick<Clip, 'id' | 'type' | 'fields' | 'blocks'>, content: ProjectContent): { slotId: string; field: string } | null {
+  for (const s of slots) {
+    const f = ownership(s, clipOf(s), content).find((x) => x.owner !== 'yours')
+    if (f) return { slotId: s.id, field: f.field }
+  }
+  return null
+}
+
 /** How many of a page's words are yours, of how many it shows. */
 export function pageOwnership(slots: Slot[], clipOf: (s: Slot) => Pick<Clip, 'id' | 'type' | 'fields' | 'blocks'>, content: ProjectContent): { yours: number; total: number } {
   let yours = 0

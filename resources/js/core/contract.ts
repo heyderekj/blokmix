@@ -140,7 +140,7 @@ export function contractRefusal(c: Contract | undefined, name: string, input: Re
   const kept = areasOfCommand(name, input).filter((a) => isKept(c, a))
   if (!kept.length) return null
   const list = kept.map((a) => AREA_LABEL[a].name).join(', ')
-  return `The contract says Keep for ${list}, so ${name} can’t change ${kept.length > 1 ? 'them' : 'it'}. Ask whoever owns this mix to set ${kept.length > 1 ? 'those areas' : 'that area'} to Tweak or Surprise first.`
+  return `The contract says Keep for ${list}, so ${name} can’t change ${kept.length > 1 ? 'them' : 'it'}. Ask whoever owns this site to set ${kept.length > 1 ? 'those areas' : 'that area'} to Tweak or Surprise first.`
 }
 
 const bullets = (lines: string[]) => lines.map((l) => `- ${l}`).join('\n')
@@ -155,7 +155,7 @@ export function contractMarkdown(c: Contract | undefined, skin?: { name: string 
   const parts = [
     '# Contract',
     '',
-    'What the person who made this mix always wants kept, and where they’d like to be surprised. It outranks the defaults in BLOKMIX.md. A section’s own notes and keep settings are more specific and win over it.',
+    'What the person who made this site always wants kept, and where they’d like to be surprised. It outranks the defaults in BLOKMIX.md. A section’s own notes and keep settings are more specific and win over it.',
   ]
   if (skin && skin.name !== 'Your own') parts.push('', `The current skin is **${skin.name}**: the style guide’s values in tokens.css come from it, plus any changes made since.`)
   parts.push('', '## Always keep', '', 'Never change these. If the work seems to need it, ask first.', '')

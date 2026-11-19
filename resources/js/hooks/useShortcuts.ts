@@ -167,6 +167,9 @@ export function useShortcuts(onHelp: () => void) {
           return
         case 'Enter':
           e.preventDefault()
+          // A selected block with words is edited by Enter in its frame; one without (a picture, card, list, icon) does
+          // nothing here: Enter never saves a version from under a selection.
+          if (focused && st.ui.selectedBlockId) return
           pressVersionAndFly()
           return
         case 'l':

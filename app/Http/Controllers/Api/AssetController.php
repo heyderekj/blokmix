@@ -29,7 +29,7 @@ class AssetController extends Controller
         $role = $mix->roleOf($request->user());
         abort_unless($role, 404);
         abort_unless($role->canEdit(), 403, 'Viewers can’t add images.');
-        abort_if($mix->isArchived(), 403, 'This mix is archived. Bring it back to add images.');
+        abort_if($mix->isArchived(), 403, 'This site is archived. Bring it back to add images.');
         // A server's own disk is wiped on every deploy: in production, keep uploads in the browser until a bucket is attached.
         $driver = config('filesystems.disks.'.config('blokmix.uploads_disk').'.driver');
         abort_if(app()->isProduction() && $driver === 'local', 503, 'Uploads aren’t set up on this server yet. They stay in your browser for now.');
@@ -66,7 +66,7 @@ class AssetController extends Controller
         $was = (int) $mix->assets()->where('key', $input['id'])->value('size');
         $why = $owner->uploadRefusal($size - $was);
         if ($why !== null && $owner->isNot($request->user())) {
-            $why = 'This mix’s owner is out of room for images and video. It stays in this browser.';
+            $why = 'This site’s owner is out of room for images and video. It stays in this browser.';
         }
         abort_if($why !== null, 403, (string) $why);
 

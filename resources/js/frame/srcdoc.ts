@@ -47,7 +47,13 @@ const BRIDGE = `(function () {
       }
       if (l < Infinity) return { x: l, y: t, w: rt - l, h: b - t };
     }
-    return { x: r.left, y: r.top, w: r.width, h: r.height };
+    return { x: r.left, y: r.top, w: r.width, h: r.height, r: radius(el, r) };
+  };
+  /* The element's own corner (its top-left one), so an outline can hug its shape: px, or a share of its short side. */
+  var radius = function (el, r) {
+    var v = getComputedStyle(el).borderTopLeftRadius || '0', n = parseFloat(v) || 0, short = Math.min(r.width, r.height);
+    if (v.indexOf('%') > 0) n = (n / 100) * short;
+    return Math.min(n, short / 2);
   };
   var editMode = false, noteMode = false, sel = null, hoverId = null, editing = null, tracked = [], drag = null;
   function reportTracked() {
@@ -231,16 +237,18 @@ const BRIDGE = `(function () {
       post({ gesture: { phase: t === 'gesturestart' ? 'start' : t === 'gesturechange' ? 'change' : 'end', scale: e.scale || 1, x: e.clientX || 0, y: e.clientY || 0 } });
     });
   });
-  /* Keys pressed while the frame has focus still drive the canvas. */
+  /* Keys pressed while the frame has focus still drive the canvas, except those typed into the page's own form fields
+     (a newsletter box): Space, L or Backspace there are typing, not Mix, Lock or Hide. */
+  var formField = function (t) { return !!(t && t.closest && t.closest('input, textarea, select')); };
   document.addEventListener('keydown', function (e) {
-    if (editing) return;
+    if (editing || formField(e.target)) return;
     if (editMode && e.key === 'Enter' && sel) { var f = fieldEl(byId(sel)); if (f) { e.preventDefault(); startEdit(f); return; } }
     post({ key: { key: e.key, code: e.code, meta: e.metaKey, ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey } });
     if (e.key === ' ' || e.key === 'Tab' || e.key.indexOf('Arrow') === 0 || e.key === 'PageUp' || e.key === 'PageDown' || ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D' || (e.key.length === 1 && '=+-_01'.indexOf(e.key) >= 0)))) e.preventDefault();
   });
   /* …and their release, so a key held down out here (Space pans) is let go of too. */
   document.addEventListener('keyup', function (e) {
-    if (editing) return;
+    if (editing || formField(e.target)) return;
     post({ key: { key: e.key, code: e.code, meta: e.metaKey, ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, up: true } });
   });
   /* A tab, toggle or accordion switched: what's selected and tracked may have moved, and the height changed. */
