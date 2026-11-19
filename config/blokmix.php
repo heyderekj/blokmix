@@ -48,6 +48,19 @@ return [
     'jev_key' => env('TYPESAFE_API_KEY'),
 
     /**
+     * The reader: a small Claude model (Anthropic) that reads what people write (the start's sentence, a pasted
+     * paragraph) into the same picks the board offers, and never writes words (resources/reader, /api/read). Without
+     * the key it's off and the start reads with keywords and Jev, as before. Reading is included for everyone; these
+     * caps are guardrails, like storage: 20 reads a minute and 200 a day per person (throttle:read), and a site-wide
+     * number a day.
+     */
+    'read_key' => env('ANTHROPIC_API_KEY'),
+    'read_model' => env('BLOKMIX_READ_MODEL', 'claude-haiku-5-5'),
+    'read_daily_cap' => (int) env('BLOKMIX_READ_DAILY_CAP', 20000),
+    /** Seconds to wait for a read before the board keeps what it has. */
+    'read_timeout' => (float) env('BLOKMIX_READ_TIMEOUT', 12),
+
+    /**
      * Who runs Blokmix: these accounts see the waitlist (/waitlist) and, like Plus, ship every mix they own free.
      * Comma-separated emails in BLOKMIX_OWNERS; without it, Derek's account.
      */

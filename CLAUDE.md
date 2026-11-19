@@ -236,7 +236,8 @@ dates: code does those.
   shape and image sizes, passes the body on unchanged). Vite-only dev: `scripts/jev/devProxy.ts` reads `.env.local`. No key
   means Jev is off. Per device: "Suggestions" in the board menu (`ui.jev`, on by default). Everyone gets it, Free too.
 - On screen there's no "Jev" and no feature names, only plain words: Suggestions (the menu switch, whose credit line,
-  "Suggestions by Jev (TypeSafe)", is the one place the name shows; `tests/jev-name.test.ts` checks it), "From what you wrote", "Suggested", "Suggestions are off (Blokmix menu)", "What do you want to change?" (the
+  "Suggestions by Jev (TypeSafe) and Claude (Anthropic). They read, place and pick; they never write your words.", is the
+  one place either name shows; `tests/jev-name.test.ts` checks it), "From what you wrote", "Suggested", "Suggestions are off (Blokmix menu)", "What do you want to change?" (the
   bar), "Add your text to this page", "Make a page from your text", "Text not placed yet", "Background ideas", "Find colors",
   "Is it clear?", "Best match first". Code names (`core/jev`, commands, files) stay. The Say bar's built-in edits work
   without a server key or with suggestions turned off. Commands that need suggestions use `jevOffMessage`.
@@ -259,6 +260,38 @@ dates: code does those.
   only (`jev_wants`, `POST /api/jev/wants`) and shown to owners on `/library/admin`.
 - Bench: `npx vite-node scripts/jev/bench.ts [suite] [--runs 3]` (accuracy against today's rule, coverage at thresholds,
   calibration, option-order flips, latency, cost). Change thresholds only on its numbers.
+
+## The reader (Claude)
+
+A small Claude model (Claude Haiku 5.5, `claude-haiku-5-5`, Anthropic) on the server that only reads: it turns free text
+(the start's sentence, a pasted paragraph) into the same picks the UI makes, ids from Blokmix's closed lists, and never
+writes a word. Jev stays for fast ranking. Order of trust: keywords at once, Jev in ~100ms, the reader last and over
+both; your own picks over everything (`mergeRead`). It runs on commit or paste, never as you type. No key, or Suggestions
+off (the same `ui.jev` switch), is exactly today's behaviour.
+- Pure: `core/reader/` (`vocab.ts` closed sets from `BUSINESSES`, `FEELS`, `GOALS`, `SHOWS`, `FORMATS`, `INDUSTRIES`, brief
+  goals, page templates and section types; `schema.ts` zod per task with `SPANS`; `prompt.ts`; `spec.ts`; `verbatim.ts`;
+  `start.ts` `mergeRead`/`readPicks`/`readBrief`; `need.ts` `needOf`). Tasks: `start` (business id or your words, kind,
+  format, industry, name, feel ids + your words + what to avoid, goals, main button, who, what to show and leave out,
+  extra pages {template, purpose}, light/dark, unsure) and `need` ("I need a [page | section] that…": schema, prompt and
+  bench only, wired later).
+- It cannot write: every free string must be a span of the text (`verbatim`: case, quotes, dashes, spaces and edge
+  punctuation ignored; your exact slice comes back), checked on the server (`Services/ReaderSpans`) and again in the
+  browser, or the whole read is dropped. Both run `tests/fixtures/reader-spans.json`.
+- The server owns the prompt and schema (sign-up is open, so no pass-through): `npx vite-node scripts/read/build.ts`
+  writes `resources/reader/start.json` and `need.json` (committed; `tests/reader.test.ts` checks they match). The
+  browser sends only `{task, text, context}` (context: closed ids only).
+- Client: `lib/reader.ts` `askReader(task, text, context?)` (null when off, slow, failing or not your words; cached),
+  `readerOn`, `setReaderTransport` (`tests/helpers/fakeReader.ts`).
+- Server: `POST /api/read`, `GET /api/read/status` (signed in) → `Api\ReadController` + `Services\Reader` (interface;
+  `AnthropicReader` through the official PHP SDK with structured output, effort low, 12s timeout, one retry, `stop_reason`
+  checked; `FakeReader` in tests). `throttle:read` 20/min 200/day per person; `read_daily_cap` site-wide;
+  12,000 characters at most; the reply is checked against the schema (opis) and the spans, else 502. Logs counts and
+  timings, never words. Config: `read_key` (`ANTHROPIC_API_KEY`), `read_model`, `read_daily_cap`, `read_timeout`.
+- Vite-only dev: `scripts/read/devProxy.ts` (with `scripts/read/call.ts`, the TS SDK) reads `ANTHROPIC_API_KEY` from
+  `.env.local`. Agents: `read_start {text}` (read-only).
+- Bench: `npx vite-node scripts/read/bench.ts [start|need] [--runs 3]` (accuracy per field against today's Jev plus
+  keywords, reads dropped for non-spans and strings let through (must be 0), latency, cost per read). Reading is included
+  in the price (`docs/pricing.md`); text goes to Anthropic, so check the privacy page before the key goes on in production.
 
 ## Agents
 

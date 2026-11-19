@@ -7,6 +7,7 @@
     "license": "LicenseRef-OSaaSy",
     "require": {
         "php": "^8.3",
+        "anthropic-ai/sdk": "^1.10",
         "inertiajs/inertia-laravel": "^3.5",
         "laravel/fortify": "^1.41",
         "laravel/framework": "^13.17",
