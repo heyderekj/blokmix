@@ -162,8 +162,8 @@
   --raised: hsl(0 0% 100%);
   --lift: hsl(0 0% 100%);
   --well: hsl(0 0% 94.5%);
-  --chip: hsl(0 0% 90%);
-  --chip-hover: hsl(0 0% 85%);
+  --chip: hsl(0 0% 94.5%);
+  --chip-hover: hsl(0 0% 91%);
 
   /* Blokmix's key for primary actions, with blush for selected states. */
   --key: #ff69b4;

@@ -201,14 +201,20 @@ over any band or backdrop, whatever the palette: `readBackdrop` picks the text c
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
 pass AA and load its fonts (`tests/skins.test.ts`). Surprise me (`surpriseMe`) mixes
 skins: areas come whole from other skins; on screen it's "Mashup" (so "mix" only ever means the project), drawn before it lands.
-Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers: How should it feel?
-(`core/feel.ts` `FEEL_WORDS`, stored in `content.brief.feel`) ranks the resolved themes for the mix's industry, format,
-brand and feel. The catalog has 15 finished themes plus Wireframe and eight industry variants. The guided start
-previews the actual page. Catalog specimens and visual scoring share a scene. Change one part previews locally and
-commits with `set_theme_parts` in one undo step. Shape owns shadows, type owns text styles, and motion owns section entrances.
-The command catalog includes `list_theme_parts`, `set_theme_part`, `rank_themes`, `check_look`, and `restyle`.
-Nudge it (`NUDGES`, `nudgeTokens`: Bolder, Rounder, Darker…) turns Feel dials a step, one undo step each. Your color is the brand
-color. The Style guide door opens everything else (`GuideBoard`: Feel, the group tiles, text styles, effects, contrast, Rules for
+Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers, broad to specific:
+three steps that fold into one line each once answered (like the start's questions), then Your color (with Light/Dark, `set_tone`)
+and the Style guide door. 1. How should it feel? Four broad feels (Calm, Warm, Bold, Sharp, each a few `FEEL_WORDS` written to
+`content.brief.feel`), one marked Suggested from what fits the brief with no words said. 2. Pick a theme: the three `rankThemes`
+puts first for that feel, as specimens that preview on the page when pointed at; All themes on this page opens the side-by-side
+compare. 3. Fine-tune on a dot matrix (`ui/panels/guide/DotMatrix.tsx`, after Tesla's air vents): across is quiet to loud (type
+size and weight), up is crisp to soft (corners and room), from where the theme put its dials (the ring); it previews while you drag
+and lands as one undo step. Change one part folds under it and opens when Say it asks to restyle. A new look lands on the sections top to bottom (`frame/ClipFrame.tsx` `waveDelay`, by where each sits on screen; drags land at once). Feel words
+(`core/feel.ts` `FEEL_WORDS`, `content.brief.feel`) still rank themes for the start and for agents (`rankThemes`). The catalog has 15
+finished themes plus Wireframe and eight industry variants. The guided start previews the actual page. Catalog specimens and visual
+scoring share a scene. Change one part previews locally and commits with `set_theme_parts` in one undo step. Shape owns shadows, type
+owns text styles, and motion owns section entrances. The command catalog includes `list_theme_parts`, `set_theme_part`,
+`rank_themes`, `check_look`, and `restyle`. Agents still nudge (`nudge_look`, `NUDGES`).
+Your color is the brand color. The Style guide door opens everything else (`GuideBoard`: Feel, the group tiles, text styles, effects, contrast, Rules for
 your agent, Copy for your agent).
 A mix saved before skins dresses itself when it opens (`dressSavedMix`, in the store's `merge`, versions too): its own values stay, and block looks, section defaults and pictures come from the frozen original definitions in `samples/legacy/themes.json` (`closestSkin`; Wireframe only if it was already plain greys). A guide with no skin and no built-in layouts is only marked `OWN_LOOK`, and so are saved guides you swap in.
 The contract (`core/contract.ts`, `contract` in the mix's data, not the guide) sets each area to Keep, Tweak or Surprise, plus

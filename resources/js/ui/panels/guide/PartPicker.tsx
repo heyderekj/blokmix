@@ -91,8 +91,8 @@ export function PartPicker() {
     void ask(false, asked)
   }, [asked])
   return (
-    <section ref={panel} className="grid gap-3 rounded-2xl bg-[var(--lift)] p-3">
-      <div className="grid gap-1.5 text-[13px] font-semibold">
+    <section ref={panel} className="grid gap-3">
+      <div className="grid gap-1.5 text-[11.5px] font-medium text-zinc-700">
         <span>Change one part</span>
         <Dropdown
           label="Change one part"
