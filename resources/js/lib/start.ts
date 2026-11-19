@@ -1,8 +1,7 @@
-import { library, slotClip } from '@/data/library'
+import { library } from '@/data/library'
 import { startCandidates, type StartCandidate, type StartInput } from '@/core/start'
+import { startVersions, type StartVersion, type VersionOptions } from '@/core/startVersions'
 import { scorePage, SCREENS, SWEEP, type PageMeasure, type PageScore } from '@/core/score'
-import { pageView } from '@/core/site'
-import { pageOwnership } from '@/core/ownWords'
 import { DRAFT_WORD, type Draft } from '@/core/drafts'
 import type { MixData } from '@/state/store'
 import { measureFirstScreen } from './measure'
@@ -10,7 +9,7 @@ import { measureFirstScreen } from './measure'
 export type ScoredStart = StartCandidate & { score: PageScore }
 
 /** Lay a start out at a laptop, a phone and the widths between, and read how it holds up. */
-export async function scoreStart(c: StartCandidate): Promise<PageScore> {
+export async function scoreStart(c: Pick<StartCandidate, 'site' | 'guide' | 'content'>): Promise<PageScore> {
   if (typeof document === 'undefined') return scorePage({})
   const data = { site: c.site, guide: c.guide, content: c.content }
   const screens = [SCREENS.laptop, SCREENS.phone, ...SWEEP.map((width) => ({ width, height: 900 }))]
@@ -32,18 +31,20 @@ export async function scoredStarts(input: StartInput): Promise<ScoredStart[]> {
   return scored.map((c, i) => ({ c, i })).sort((a, b) => b.c.score.score - a.c.score.score || a.i - b.i).map(({ c }) => c)
 }
 
-/** What the flash says once a start is on the board: what's yours so far, and where the rest is. */
+export type ScoredVersion = StartVersion & { score: PageScore }
+
+/** The start's row of versions, each measured. They keep their order: the row never reshuffles once it's shown. */
+export async function scoredVersions(input: StartInput, opts: VersionOptions = {}): Promise<ScoredVersion[]> {
+  return Promise.all(startVersions(input, library, opts).map(async (v) => ({ ...v, score: await scoreStart(v.start) })))
+}
+
+/** What the flash says once a start is on the board. The hints above the dock say what to try next. */
 export function startedWords(name: string, mix: Pick<MixData, 'site' | 'content'> & Partial<Pick<MixData, 'drafts'>>): string {
-  const home = mix.site.pages[0]
-  const slots = home ? pageView(mix.site, home.id) : []
-  const { yours, total } = pageOwnership(slots, slotClip, mix.content)
   const waiting = mix.content.tray?.length ?? 0
-  const left = total - yours
-  const who = name.trim() || 'your mix'
+  const who = name.trim() || 'your site'
   const drafts = Object.keys(mix.drafts ?? {}).length
   const started = `Started ${who}${drafts > 1 ? ` with ${drafts} drafts` : ''}.`
-  if (waiting) return `${started} ${waiting} of your lines aren’t placed yet; Content shows them.`
-  return left ? `${started} Open Content to review ${left} text ${left === 1 ? 'field' : 'fields'}.` : `${started} Home’s text is ready.`
+  return waiting ? `${started} ${waiting} of your lines aren’t placed yet; Content shows them.` : started
 }
 
 /**

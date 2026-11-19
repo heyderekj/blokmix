@@ -6,6 +6,7 @@ import { buildStarter } from '@/core/starters'
 import { library } from '@/data/library'
 import { importLocalMix } from '@/ui/shell/TopBar'
 import { StartGuide, useStartFlow } from './StartGuide'
+import { landOnPage } from '@/ui/shell/landOnPage'
 
 /** The guided start over the browser-only mix: a start (or a blank page, a starter, a file) replaces it, a fresh undo history and all. */
 export function StartOverlay() {
@@ -33,8 +34,8 @@ export function StartOverlay() {
         const mix = mixFromStart(input, starts, chosen)
         useStore.getState().openMixData(mix)
         close()
-        // Your words are what's left to do: the Words panel opens beside the page, its Next on the first sample.
-        useStore.getState().setUi({ leftPanel: 'words' })
+        // You land on the page itself, with a few quiet hints above the dock for where to look next.
+        landOnPage()
         useStore.getState().showFlash(startedWords(input.name, mix))
       }}
     />

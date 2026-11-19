@@ -1,94 +1,139 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { answer, briefFrom, emptyAnswers, feelFrom, folded, kindFrom, nextQuestion, reopen, sectionsFrom, skipToPages, type HeardBrief } from '@/core/startFlow'
-import { recipeFor, RECIPES } from '@/core/start'
-import { guessHeard, hearStart } from '@/lib/startFromText'
+import { applyRead, becauseLines, briefFrom, changedSection, dropAvoid, emptyStart, sectionsFrom, setBrief, setPicks, startView, type StartState } from '@/core/startFlow'
+import { checkRead, keywordRead } from '@/core/reader'
+import { fillStart, type Picks } from '@/core/jev/sentence'
+import { rankThemes } from '@/core/themeRanking'
+import { TYPE_LABEL } from '@/core/content'
+import { hearStart } from '@/lib/startFromText'
 import { fakeJev, realJev } from './helpers/fakeJev'
 
 afterEach(() => realJev())
 
-const heardBakery: HeardBrief = {
-  mode: 'describe',
-  jev: true,
-  format: 'business',
-  formats: ['business'],
-  industry: 'food',
-  industries: ['food'],
-  goals: ['orders'],
-  kind: 'local',
-  sections: RECIPES.local.home,
-  want: {},
-  looks: [],
+const pick = (id: string, words = id) => [{ id, words }]
+const bakery: Picks = {
+  business: pick('bakery', 'a bakery'),
+  name: [{ words: 'Fern & Co' }],
+  feel: pick('cozy'),
+  goal: pick('order', 'order ahead'),
+  show: pick('menu', 'our menu'),
 }
+const withPicks = (picks: Picks): StartState => setPicks(emptyStart(), picks)
 
-describe('the guided start’s questions', () => {
-  it('asks one at a time, in order', () => {
-    let a = emptyAnswers()
-    expect(nextQuestion(a, null)).toBe('what')
-    a = answer(a, 'what', { text: 'something' })
-    expect(nextQuestion(a, null)).toBe('copy')
-    a = answer(a, 'copy')
-    expect(nextQuestion(a, null)).toBe('confirm')
-    for (const q of ['confirm', 'goals', 'action', 'sections', 'look'] as const) a = answer(a, q)
-    expect(nextQuestion(a, null)).toBe('drafts')
+describe('the start, on one screen', () => {
+  it('reads the sentence as the brief, the kind and the page', () => {
+    const v = startView(withPicks(bakery))
+    expect(v.name).toBe('Fern & Co')
+    expect(v.kind).toBe('local')
+    expect(v.brief.mainAction).toBe('Order ahead')
+    expect(v.brief.goals).toEqual(['orders'])
+    expect(v.brief.feel).toEqual(['warm'])
+    expect(v.sections).toContain('pricing')
+    expect(v.brief.what).toBe(fillStart(bakery).text)
   })
 
-  it('folds what the first sentence already settled, and asks it again when you open it', () => {
-    let a = answer(answer(emptyAnswers(), 'what', { name: 'Mill', text: 'A bakery that takes pre-orders' }), 'copy')
-    expect(folded(a, heardBakery).confirm).toBe('A small business site · Food and drink')
-    expect(nextQuestion(a, heardBakery)).toBe('goals')
-    a = reopen(a, 'confirm')
-    expect(nextQuestion(a, heardBakery)).toBe('confirm')
+  it('works out a page from nothing', () => {
+    const v = startView(emptyStart())
+    expect(v.kind).toBe('studio')
+    expect(v.sections[0]).toBe('nav')
+    expect(v.feel.length).toBeGreaterThan(0)
   })
 
-  it('reads the brief from what was heard, yours on top', () => {
-    const a = { ...answer(emptyAnswers(), 'what', { text: 'A bakery that takes pre-orders' }), brief: { industry: 'travel' as const } }
-    const b = briefFrom(a, heardBakery)
-    expect(b.format).toBe('business')
-    expect(b.industry).toBe('travel')
-    expect(b.goals).toEqual(['orders'])
-    expect(b.what).toBe('A bakery that takes pre-orders')
-    expect(kindFrom(a, heardBakery)).toBe('local')
+  it('puts your chip changes over everything else', () => {
+    let s = applyRead(withPicks({ business: [{ words: 'a bakery' }] }), keywordRead('a bakery that takes bookings'))
+    expect(briefFrom(s).industry).toBe('food')
+    s = setBrief(s, { industry: 'travel', who: 'Neighbours' })
+    expect(briefFrom(s).industry).toBe('travel')
+    expect(briefFrom(s).who).toBe('Neighbours')
+    expect(sectionsFrom({ ...s, sections: ['nav', 'hero', 'footer'] })).toEqual(['nav', 'hero', 'footer'])
   })
 
-  it('shapes the sections by the format and the goals', () => {
-    expect(recipeFor({ format: 'portfolio' }, 'personal')[2]).toBe('gallery')
-    expect(recipeFor({ goals: ['bookings'] }, 'product')).toContain('contact')
-    const a = { ...emptyAnswers(), brief: { goals: ['tickets' as const] } }
-    expect(sectionsFrom(a, null)).toContain('team')
-    expect(sectionsFrom({ ...a, sections: ['nav', 'hero', 'footer'] }, null)).toEqual(['nav', 'hero', 'footer'])
+  it('shapes the page by the goals when nothing was asked to show', () => {
+    const s = setBrief(emptyStart(), { goals: ['tickets'] })
+    expect(sectionsFrom(s)).toContain('team')
   })
 
-  it('keeps the site description when using copy and lets the copy step reopen from layouts', () => {
-    const description = 'A bakery that takes pre-orders'
-    const a = answer(emptyAnswers(), 'what', { name: 'Mill', text: description })
-    const fromCopy: HeardBrief = { ...heardBakery, mode: 'paste', sections: ['hero', 'pricing'] }
-    const withCopy = answer(a, 'copy')
-    expect(briefFrom(withCopy, fromCopy).what).toBe(description)
-    expect(sectionsFrom(withCopy, fromCopy)).toEqual(fromCopy.sections)
-    expect(nextQuestion(reopen(skipToPages(withCopy, fromCopy), 'copy'), heardBakery)).toBe('copy')
-  })
-
-  it('starts the feel from the industry', () => {
-    expect(feelFrom(emptyAnswers(), heardBakery)).toEqual(['warm', 'playful'])
-    expect(feelFrom({ ...emptyAnswers(), feel: ['dark'] }, heardBakery)).toEqual(['dark'])
-  })
-
-  it('skips to the pages with every suggestion taken', () => {
-    const a = skipToPages(answer(emptyAnswers(), 'what', { text: 'A bakery that takes pre-orders' }), heardBakery)
-    expect(nextQuestion(a, heardBakery)).toBe('drafts')
-    expect(a.name).toBe('')
-    expect(a.brief.mainAction).toBe('Order ahead')
-  })
-
-  it('asks the same questions with suggestions off, ranked by keywords', () => {
-    const h = guessHeard('A yoga studio taking bookings for classes')
-    expect(h.jev).toBe(false)
-    expect(h.industry).toBe('health')
-    expect(h.goals).toContain('bookings')
+  it('puts a map in Contact and a shop in Pricing; a schedule is only noted', () => {
+    const f = fillStart({ business: pick('bakery', 'a bakery'), show: [...pick('map', 'a map'), ...pick('shop', 'a shop'), ...pick('schedule', 'the schedule')] })
+    expect(f.sections).toEqual(expect.arrayContaining(['contact', 'pricing']))
+    expect(f.wants).toEqual(['the schedule'])
   })
 })
 
-describe('what the first sentence tells', () => {
+describe('reading your words', () => {
+  const own = 'warm and handmade, a bit editorial, not corporate'
+
+  it('reads feelings and what to steer away from, by keywords, in spans of your words', () => {
+    const r = keywordRead(own)
+    expect(r.feel.ids).toEqual(['warm', 'earthy', 'editorial'])
+    expect(r.feel.avoid).toEqual(['trustworthy'])
+    expect(r.feel.avoid_words).toEqual(['corporate'])
+    expect(checkRead('start', r, own)).not.toBeNull()
+  })
+
+  it('reads a paragraph into every blank it can', () => {
+    const text = 'A small sourdough bakery called Crumb & Co in Leeds. Cozy, not fancy. People should order ahead; show our menu and opening hours.'
+    const r = keywordRead(text)
+    expect(r.business.id).toBe('bakery')
+    expect(r.name).toBe('Crumb & Co')
+    expect(r.action.id).toBe('order')
+    expect(r.show).toEqual(expect.arrayContaining(['menu', 'hours']))
+    expect(r.feel.ids).toContain('cozy')
+    expect(r.feel.avoid).toContain('elegant')
+    expect(checkRead('start', r, text)).not.toBeNull()
+    const s = applyRead(emptyStart(), r)
+    expect(s.from).toEqual(expect.arrayContaining(['business', 'name', 'goal', 'show']))
+    expect(startView(s).kind).toBe('local')
+  })
+
+  it('keeps your own words in their blank, counted as what they mean, and changes the look', () => {
+    const before = startView(withPicks({ business: pick('bakery', 'a bakery') }))
+    const s = applyRead(withPicks({ business: pick('bakery', 'a bakery'), feel: [{ words: own }] }), keywordRead(own), undefined, { blank: 'feel', words: own })
+    expect(s.picks.feel).toEqual([{ words: own, id: 'warm' }])
+    expect(s.from).toContain('feel')
+    const v = startView(s)
+    expect(v.brief.feel).toEqual(['warm', 'classic'])
+    expect(v.brief.avoid).toEqual(['serious'])
+    expect(v.brief.feelWords).toEqual([own])
+    expect(rankThemes({ brief: v.brief })[0].skin.id).not.toBe(rankThemes({ brief: before.brief })[0].skin.id)
+    expect(dropAvoid(s, 'corporate').avoid).toEqual([])
+  })
+
+  it('never overwrites a blank you set, or one you changed while it was reading', () => {
+    const asked = { business: [{ words: 'something' }] }
+    let s = withPicks({ ...asked, name: [{ words: 'Mine' }] })
+    const r = keywordRead('a café called Elsewhere')
+    expect(applyRead(s, r).picks.name).toEqual([{ words: 'Mine' }])
+    // The business changed after the read was asked for: it stays as you left it.
+    s = { ...s, picks: { ...s.picks, business: pick('florist', 'a florist') }, mine: ['name'] }
+    expect(applyRead(s, r, asked).picks.business).toEqual(pick('florist', 'a florist'))
+    expect(applyRead(s, null)).toBe(s)
+  })
+
+  it('steers the theme away from what you said not to be', () => {
+    const top = rankThemes({ brief: { feel: ['calm'] } })[0]
+    const away = rankThemes({ brief: { feel: ['calm'], avoid: top.skin.feel.filter((f) => f !== 'calm') as never } })[0]
+    if (top.skin.feel.some((f) => f !== 'calm')) expect(away.skin.id).not.toBe(top.skin.id)
+  })
+})
+
+describe('why the page changed', () => {
+  it('says what was added and why, from fixed lines', () => {
+    const prev = startView(withPicks({ business: pick('bakery', 'a bakery') }))
+    const next = startView(withPicks({ business: pick('bakery', 'a bakery'), show: [...pick('menu', 'our menu'), ...pick('schedule', 'the schedule')] }))
+    const lines = becauseLines(prev, next, { show: [...pick('menu', 'our menu'), ...pick('schedule', 'the schedule')] })
+    expect(lines[0]).toBe(`Added ${TYPE_LABEL.pricing}: you asked for our menu.`)
+    expect(lines.join(' ')).toContain('No schedule section yet. Noted.')
+    expect(changedSection(prev, next)).toBe('pricing')
+    expect(becauseLines(null, next, {})).toEqual([])
+  })
+
+  it('names a new look with how it should feel', () => {
+    const v = startView(withPicks(bakery))
+    expect(becauseLines(v, v, bakery, { prev: 'Paper', next: 'Bakehouse' })).toEqual(['Bakehouse feels warm.'])
+  })
+})
+
+describe('what a description tells Jev', () => {
   it('reads the format, industry and goals along with the kind', async () => {
     const fake = fakeJev((name) => {
       if (name.startsWith('kind')) return { option: 'local', p: 0.85 }
@@ -104,44 +149,5 @@ describe('what the first sentence tells', () => {
     expect(h!.industry).toBe('food')
     expect(h!.goals).toEqual(['orders', 'visit'])
     expect(Object.keys(fake.requests[0].questions).length).toBeLessThanOrEqual(200)
-  })
-})
-
-describe('the start sentence', () => {
-  it('returns from copy to a single editable description and respects a cleared name', async () => {
-    const { fillStart } = await import('@/core/jev/sentence')
-    const { answersFromSentence } = await import('@/core/startFlow')
-    const picks = { name: [{ words: 'Fern & Co' }] }
-    const named = answersFromSentence(emptyAnswers(), fillStart(picks), picks)
-    expect(nextQuestion(named, null)).toBe('copy')
-    const back = reopen(named, 'what')
-    expect(back.done).toEqual([])
-    expect(nextQuestion(back, null)).toBe('what')
-    const cleared = answersFromSentence(back, fillStart({}), {})
-    expect(cleared.name).toBe('')
-    expect(nextQuestion(cleared, null)).toBe('copy')
-  })
-
-  it('answers what it fills and folds those questions', async () => {
-    const { fillStart } = await import('@/core/jev/sentence')
-    const { answersFromSentence, heardFromSentence } = await import('@/core/startFlow')
-    const picks = {
-      business: [{ id: 'bakery', words: 'a bakery' }],
-      name: [{ words: 'Fern & Co' }],
-      feel: [{ id: 'cozy', words: 'cozy' }],
-      goal: [{ id: 'order', words: 'order ahead' }],
-      show: [{ id: 'menu', words: 'our menu' }],
-    }
-    const fill = fillStart(picks)
-    const heard = heardFromSentence(fill, picks)!
-    expect(heard.kind).toBe('local')
-    expect(heard.goals).toEqual(['orders'])
-    const a = answersFromSentence(emptyAnswers(), fill, picks)
-    expect(a.name).toBe('Fern & Co')
-    expect(a.brief.mainAction).toBe('Order ahead')
-    expect(a.feel).toEqual(['warm'])
-    expect(a.sections).toContain('pricing')
-    expect(nextQuestion(a, heard)).toBe('copy')
-    expect(nextQuestion(answer(a, 'copy'), heard)).toBe('look')
   })
 })

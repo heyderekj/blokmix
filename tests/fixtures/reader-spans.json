@@ -1,0 +1,17 @@
+[
+  { "text": "I’m making a site for Fern & Co, a sourdough bakery.", "span": "Fern & Co", "found": "Fern & Co" },
+  { "text": "I’m making a site for Fern & Co, a sourdough bakery.", "span": "fern & co.", "found": "Fern & Co" },
+  { "text": "I’m making a site for Fern & Co, a sourdough bakery.", "span": "I'm making", "found": "I’m making" },
+  { "text": "We want it   warm and\nhandmade, a bit editorial — not corporate", "span": "warm and handmade", "found": "warm and\nhandmade" },
+  { "text": "We want it warm and handmade, a bit editorial — not corporate", "span": "editorial - not corporate", "found": "editorial — not corporate" },
+  { "text": "We want it warm and handmade, a bit editorial — not corporate", "span": "“corporate”", "found": "corporate" },
+  { "text": "Une boulangerie à Lyon qui s’appelle Pain Perdu", "span": "pain perdu", "found": "Pain Perdu" },
+  { "text": "Une boulangerie à Lyon qui s’appelle Pain Perdu", "span": "qui s'appelle", "found": "qui s’appelle" },
+  { "text": "ＦＵＬＬ width name", "span": "full", "found": "ＦＵＬＬ" },
+  { "text": "Party 🎉 time", "span": "party 🎉", "found": "Party 🎉" },
+  { "text": "A bakery called Fern", "span": "Fern & Co", "found": null },
+  { "text": "A bakery called Fern", "span": "a cozy bakery", "found": null },
+  { "text": "A bakery called Fern", "span": "...", "found": null },
+  { "text": "A bakery called Fern", "span": "", "found": null },
+  { "text": "A bakery called Fern", "span": "Bakery", "found": "bakery" }
+]

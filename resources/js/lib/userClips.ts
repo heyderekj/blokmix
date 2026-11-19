@@ -17,7 +17,7 @@ export const useUserClips = create<{ ids: string[] }>()(() => ({ ids: [] }))
  * both of the first two.
  */
 export type Shelf = 'mix' | 'yours' | 'layouts'
-export const SHELF_LABEL: Record<Shelf, string> = { mix: 'This mix', yours: 'All your clips', layouts: 'Layouts' }
+export const SHELF_LABEL: Record<Shelf, string> = { mix: 'This site', yours: 'All your clips', layouts: 'Layouts' }
 /** A clip's home shelf in the library: one you captured, or a built-in layout. */
 export const shelfOf = (id: string): 'yours' | 'layouts' => (library.clips[id]?.origin === 'layout' ? 'layouts' : 'yours')
 /** Whether a clip shows on a shelf, given this mix's clips. */

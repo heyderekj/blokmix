@@ -109,7 +109,7 @@ export function PacketPanel() {
             onChange={(next) => st().setUi({ packetSource: next })}
             className="w-fit max-w-full"
             options={[
-              { v: 'mix', label: `${drafts[draftId]?.name ?? 'Your mix'}, as it is now` },
+              { v: 'mix', label: `${drafts[draftId]?.name ?? 'Your site'}, as it is now` },
               ...others.map((d) => ({ v: `draft:${d.id}`, label: d.name })),
               ...draftList(drafts).flatMap((d) => versionsOf(versions, d.id).map((v) => ({
                 v: v.id, label: `${v.letter} · ${v.title}`, group: `${d.name}: saved`,
@@ -197,7 +197,7 @@ export function PacketPanel() {
           <div className="space-y-3">
             {mcp && (
               <p className="rounded-xl bg-done/10 px-3 py-2 text-[12px] leading-relaxed text-zinc-700">
-                Your agent is connected. Ask it to build this mix and it shows its progress here.
+                Your agent is connected. Ask it to build this site and it shows its progress here.
               </p>
             )}
             <ol className="grid gap-2.5">

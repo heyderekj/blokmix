@@ -193,7 +193,7 @@ describe('saving a mix to the server', () => {
     const site = st.site
     st.addSlot('faq')
     expect(useStore.getState().site).toBe(site)
-    expect(useStore.getState().flash?.text).toMatch(/view this mix and leave marks/)
+    expect(useStore.getState().flash?.text).toMatch(/view this site and leave marks/)
     useStore.getState().addMark({ anchor: { kind: 'page' }, kind: 'keep', text: 'Love the hero' })
     expect(useStore.getState().notes.at(-1)?.text).toBe('Love the hero')
     await settle()

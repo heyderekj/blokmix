@@ -97,6 +97,6 @@ class ShareController extends Controller
     private function owner(Request $request, Mix $mix): void
     {
         abort_unless($mix->roleOf($request->user()), 404);
-        abort_unless($request->user()->can('share', $mix), 403, 'Only the owner can share this mix.');
+        abort_unless($request->user()->can('share', $mix), 403, 'Only the owner can share this site.');
     }
 }

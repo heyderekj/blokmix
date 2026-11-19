@@ -1,17 +1,19 @@
-// The guided start as a short run of plain questions, one at a time. Code decides which comes next and which can fold
-// away because the first sentence already answered it; Jev only ranks the answers on offer (it never writes a word).
-// Pure, so the screen, the agent commands and the tests walk it alike.
+// The guided start as one screen: a sentence with blanks, chip rows for what it understood, and the real page beside
+// them. Every answer can be changed where it sits; a read of your own words (the reader, else keywords) fills every
+// blank it can, but never one you set yourself. Then a look, then three ways to lay it out (until those become one row
+// of versions). Pure, so the screen, the agent commands and the tests share it.
 
-import { actionChoices, briefFeel, briefFromKind, FORMAT_LABEL, goalsOf, guessBrief, INDUSTRY_LABEL, kindOf, patchBrief, type Brief, type Format, type Goal, type Industry } from './brief'
-import type { Picks, StartFill } from './jev/sentence'
+import { briefFeel, briefFromKind, FORMAT_LABEL, GOAL_LABEL, guessBrief, kindOf, patchBrief, type Brief, type Format, type Goal, type Industry } from './brief'
+import { FEELS, fillStart, SHOWS, type Pick, type Picks, type StartFill } from './jev/sentence'
+import { placeSection } from './jev/describe'
 import { SENTENCE_FEEL, KIND_FEEL, type FeelWord } from './feel'
+import { mergeRead, readPicks, type ExtraPage, type ReadBlank } from './reader/start'
+import type { ReadStart } from './reader/schema'
 import { recipeFor, RECIPES } from './start'
+import { TYPE_LABEL } from './content'
 import type { Kind, SectionType } from './types'
 
-export const QUESTIONS = ['what', 'copy', 'confirm', 'goals', 'action', 'sections', 'look', 'drafts'] as const
-export type Question = (typeof QUESTIONS)[number]
-
-/** What was read from the second answer: Jev's read when suggestions are on, else a guess from keywords. */
+/** What was read from your pasted copy (or Jev's read of a description). */
 export interface HeardBrief {
   mode: 'describe' | 'paste'
   /** Read by Jev (false: keywords only). */
@@ -32,97 +34,227 @@ export interface HeardBrief {
   looks: string[]
 }
 
-export interface Answers {
-  name: string
-  /** The description from the start sentence. Page copy is read separately. */
-  text: string
+export type StartStep = 'describe' | 'versions'
+
+export interface StartState {
+  step: StartStep
+  /** The sentence's blanks. */
+  picks: Picks
+  /** Blanks you filled or changed yourself: a read never overwrites them. */
+  mine: string[]
+  /** Blanks a read of your words filled ("From what you wrote"). */
+  from: string[]
+  /** What reads of your words said about the brief (under your own changes), and the kind of site they heard. */
+  read: Partial<Brief>
+  readKind: Kind | null
+  /** Your changes from the chip rows, on top of everything else. */
   brief: Brief
-  /** Home's sections after your ✕ and +; null keeps the suggested ones. */
+  /** Home's sections after your ✕ and +; null keeps what the sentence and the brief make. */
   sections: SectionType[] | null
+  /** Sections a read said to leave out. */
+  hide: SectionType[]
+  /** Feel words from the look step; empty keeps the sentence's. */
   feel: FeelWord[]
-  /** Questions answered or skipped. */
-  done: Question[]
+  /** Feelings to steer away from, and how you said them. */
+  avoid: FeelWord[]
+  avoidWords: string[]
+  /** Pages besides home a read heard you ask for (made in the next PR's versions). */
+  pages: ExtraPage[]
+  tone: 'light' | 'dark' | null
+  /** Your pasted copy, read: its page decides the sections. */
+  copy: HeardBrief | null
   /** Started from a saved style guide: there's no look to pick. */
   fixedGuide?: boolean
-  /** Questions you opened again: they're asked even when the first sentence answered them. */
-  opened?: Question[]
 }
 
-export const emptyAnswers = (): Answers => ({ name: '', text: '', brief: {}, sections: null, feel: [], done: [] })
+export const emptyStart = (): StartState => ({ step: 'describe', picks: {}, mine: [], from: [], read: {}, readKind: null, brief: {}, sections: null, hide: [], feel: [], avoid: [], avoidWords: [], pages: [], tone: null, copy: null })
 
-/** What the brief reads as so far: yours where you said, else what was heard. */
-export function briefFrom(a: Answers, heard: HeardBrief | null): Brief {
+/** What the start says so far, worked out once for the screen. */
+export interface StartView {
+  fill: StartFill
+  heard: HeardBrief | null
+  name: string
+  brief: Brief
+  kind: Kind
+  sections: SectionType[]
+  feel: FeelWord[]
+}
+
+/** The sentence's own answers as a brief: the goal's button and goal, and the feelings of its feel blank. */
+function sentenceBrief(fill: StartFill, picks: Picks): Brief {
+  const goal = picks.goal?.[0]
+  const typed = !!goal && !goal.id && !!goal.words.trim()
+  const feel = [...new Set((picks.feel ?? []).flatMap((p) => (p.id && SENTENCE_FEEL[p.id] ? [SENTENCE_FEEL[p.id]] : [])))]
+  return patchBrief({}, {
+    ...(fill.button ? { mainAction: fill.button, mainActionTyped: typed } : {}),
+    ...(goal?.id && SENTENCE_GOAL[goal.id] ? { goals: [SENTENCE_GOAL[goal.id]] } : {}),
+    ...(feel.length ? { feel } : {}),
+  })
+}
+
+/** What the brief reads as: keywords and the copy at the bottom, then the sentence, then reads of your words, then yours. */
+export function briefFrom(s: StartState, fill = fillStart(s.picks)): Brief {
+  const heard = heardOf(s, fill)
   const fromHeard: Brief = heard
     ? { ...(heard.format ? { format: heard.format } : {}), ...(heard.industry ? { industry: heard.industry } : {}), ...(heard.goals.length ? { goals: heard.goals } : {}) }
-    : a.text.trim()
-      ? (({ sure: _, what: __, ...g }) => g)(guessBrief(a.text))
+    : fill.text.trim()
+      ? (({ sure: _, what: __, ...g }) => g)(guessBrief(fill.text))
       : {}
-  const what = a.text.trim() && a.text.trim().length <= 600 ? { what: a.text.trim() } : {}
-  return patchBrief({ ...fromHeard, ...what, ...(a.feel.length ? { feel: a.feel } : {}) }, a.brief)
+  const what = fill.text.trim() && fill.text.trim().length <= 600 ? { what: fill.text.trim() } : {}
+  // Your own words for the feel (not an option's label), kept as said.
+  const feelWords = (s.picks.feel ?? []).filter((p) => !p.id || FEELS.find((f) => f.id === p.id)?.label.toLowerCase() !== p.words.trim().toLowerCase()).map((p) => p.words.trim()).filter(Boolean)
+  const base = patchBrief(patchBrief({ ...fromHeard, ...what }, sentenceBrief(fill, s.picks)), s.read)
+  return patchBrief(base, {
+    ...(s.feel.length ? { feel: s.feel } : {}),
+    ...(feelWords.length ? { feelWords } : {}),
+    ...(s.avoid.length ? { avoid: s.avoid } : {}),
+    ...s.brief,
+  })
 }
 
-/** The kind of site the answers add up to. */
-export const kindFrom = (a: Answers, heard: HeardBrief | null): Kind => kindOf(briefFrom(a, heard), heard?.kind ?? 'studio')
+const heardOf = (s: StartState, fill: StartFill) => s.copy ?? heardFromSentence(fill, s.picks)
 
-/** Home's sections the answers add up to: yours, else your words' page, else the recipe for the brief. */
-export function sectionsFrom(a: Answers, heard: HeardBrief | null): SectionType[] {
-  if (a.sections) return a.sections
+/** The kind of site it adds up to. */
+export const kindFrom = (s: StartState, fill = fillStart(s.picks)): Kind => kindOf(briefFrom(s, fill), heardOf(s, fill)?.kind ?? s.readKind ?? 'studio')
+
+/** Home's sections: yours, else your copy's page, else what you said to show, else the recipe for the brief. */
+export function sectionsFrom(s: StartState, fill = fillStart(s.picks)): SectionType[] {
+  if (s.sections) return s.sections
+  const heard = heardOf(s, fill)
   if (heard?.mode === 'paste') return heard.sections
-  return recipeFor(briefFrom(a, heard), kindFrom(a, heard), heard?.want)
+  // The recipe for the brief, with what you asked to show placed where it belongs.
+  let page = recipeFor(briefFrom(s, fill), kindFrom(s, fill), heard?.want)
+  for (const p of s.picks.show ?? []) {
+    const t = SHOWS.find((x) => x.id === p.id)?.section
+    if (t) page = placeSection(page, t)
+  }
+  return page.filter((t) => !s.hide.includes(t))
 }
 
 /** How it should feel to start with: yours, else what the industry and kind suggest. */
-export function feelFrom(a: Answers, heard: HeardBrief | null): FeelWord[] {
-  if (a.feel.length) return a.feel
-  const b = briefFrom(a, heard)
-  return [...new Set([...briefFeel(b), ...KIND_FEEL[kindFrom(a, heard)]])].slice(0, 2)
+export function feelFrom(s: StartState, fill = fillStart(s.picks)): FeelWord[] {
+  const b = briefFrom(s, fill)
+  if (b.feel?.length) return b.feel
+  return [...new Set([...briefFeel(b), ...KIND_FEEL[kindFrom(s, fill)]])].slice(0, 2)
 }
 
-/** Questions that need no asking, with the line that says what was taken as the answer. */
-export function folded(a: Answers, heard: HeardBrief | null): Partial<Record<Question, string>> {
-  const out: Partial<Record<Question, string>> = {}
-  const b = briefFrom(a, heard)
-  const asked = (q: Question) => a.opened?.includes(q) || a.done.includes(q)
-  // Sure of both from the first sentence: say so, and move on (a click opens it again).
-  if (heard?.format && heard.industry && !asked('confirm')) out.confirm = `${FORMAT_LABEL[heard.format]} · ${INDUSTRY_LABEL[heard.industry]}`
-  const actions = actionChoices(b)
-  if (!b.mainAction && actions.length === 1 && !asked('action')) out.action = actions[0]
-  if (heard?.mode === 'paste' && !a.sections && !asked('sections')) out.sections = 'Your words decide the sections'
-  if (a.fixedGuide) out.look = 'Your saved style guide'
-  return out
-}
-
-/** The next question to ask: the first not yet answered that didn't fold away. */
-export function nextQuestion(a: Answers, heard: HeardBrief | null): Question {
-  const skip = folded(a, heard)
-  for (const q of QUESTIONS) {
-    if (a.done.includes(q)) continue
-    if (skip[q]) continue
-    return q
-  }
-  return 'drafts'
-}
-
-/** Every remaining question answered with what's suggested, straight to the pages. */
-export function skipToPages(a: Answers, heard: HeardBrief | null): Answers {
-  const b = briefFrom(a, heard)
-  const mainAction = b.mainAction ?? actionChoices(b)[0]
+/** Everything the screen needs from the state, in one pass. */
+export function startView(s: StartState): StartView {
+  const fill = fillStart(s.picks)
   return {
-    ...a,
-    brief: patchBrief(a.brief, { ...(b.goals ? {} : { goals: goalsOf(b) }), mainAction }),
-    done: QUESTIONS.filter((q) => q !== 'drafts'),
+    fill,
+    heard: heardOf(s, fill),
+    name: fill.name.trim(),
+    brief: briefFrom(s, fill),
+    kind: kindFrom(s, fill),
+    sections: sectionsFrom(s, fill),
+    feel: feelFrom(s, fill),
   }
 }
 
-/** Mark a question answered. */
-export const answer = (a: Answers, q: Question, patch: Partial<Answers> = {}): Answers => ({ ...a, ...patch, done: [...new Set([...a.done.filter((x) => x !== q), q])] })
+/** You set a blank yourself: a read leaves it alone from now on. */
+export function setPicks(s: StartState, picks: Picks): StartState {
+  const changed = Object.keys({ ...s.picks, ...picks }).filter((id) => JSON.stringify(s.picks[id] ?? []) !== JSON.stringify(picks[id] ?? []))
+  if (!changed.length) return s
+  return { ...s, picks, mine: [...new Set([...s.mine, ...changed])], from: s.from.filter((id) => !changed.includes(id)) }
+}
 
-/** Open an answered question again: it and everything after it is asked again (your answers stay as they were). */
-export const reopen = (a: Answers, q: Question): Answers => ({
-  ...a,
-  done: a.done.filter((x) => QUESTIONS.indexOf(x) < QUESTIONS.indexOf(q)),
-  opened: [...new Set([...(a.opened ?? []), q])],
-})
+/** Patch the brief from the chip rows. */
+export const setBrief = (s: StartState, patch: Partial<Brief>): StartState => ({ ...s, brief: patchBrief(s.brief, patch) })
+
+/**
+ * A read of your words, folded in: it fills every blank it can, except blanks you set yourself and blanks you changed
+ * since the read was asked for (`asked` is the sentence as it was then). When the words came from one blank (`own`),
+ * that blank keeps them exactly, counted as the option the read heard.
+ */
+export function applyRead(s: StartState, read: ReadStart | null, asked: Picks = s.picks, own?: { blank: string; words: string }): StartState {
+  if (!read) return s
+  const since = Object.keys({ ...asked, ...s.picks }).filter((id) => JSON.stringify(asked[id] ?? []) !== JSON.stringify(s.picks[id] ?? []))
+  const keep = [...new Set([...s.mine.filter((id) => id !== own?.blank), ...since])]
+  const m = mergeRead(s.picks, read, keep)
+  let picks = m.picks
+  if (own && !since.includes(own.blank)) {
+    const heardHere = readPicks(read)[own.blank as ReadBlank]
+    const mine: Pick = { words: own.words, ...(heardHere?.[0]?.id ? { id: heardHere[0].id } : {}) }
+    const others = (s.picks[own.blank] ?? []).filter((p) => p.words !== own.words)
+    picks = { ...picks, [own.blank]: own.blank === 'show' ? [...others, mine, ...(heardHere ?? []).filter((p) => !others.some((o) => o.id === p.id))] : [mine] }
+  }
+  const hide = SHOWS.filter((x) => read.hide.includes(x.id) && x.section).map((x) => x.section!)
+  return {
+    ...s,
+    picks,
+    mine: own ? [...new Set([...s.mine, own.blank])] : s.mine,
+    from: [...new Set([...s.from, ...m.from, ...(own ? [own.blank] : [])])],
+    read: patchBrief(s.read, m.brief),
+    readKind: m.kind ?? s.readKind,
+    hide: [...new Set([...s.hide, ...hide])],
+    avoid: [...new Set([...s.avoid, ...m.avoid])],
+    avoidWords: [...new Set([...s.avoidWords, ...m.avoidWords])],
+    pages: m.pages.length ? m.pages : s.pages,
+    ...(m.pages.length ? { from: [...new Set([...s.from, ...m.from, ...(own ? [own.blank] : []), 'pages'])] } : {}),
+    tone: m.tone ?? s.tone,
+  }
+}
+
+/** Stop steering away from a feeling. */
+export const dropAvoid = (s: StartState, word: string): StartState => ({ ...s, avoidWords: s.avoidWords.filter((w) => w !== word), avoid: s.avoidWords.length <= 1 ? [] : s.avoid })
+
+const lower = (t: string) => t.replace(/^./, (c) => c.toLowerCase())
+const listOf = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}` : (xs[0] ?? ''))
+
+/** Why a section is on the page, in a few words: the goal or the thing you asked to show that put it there. */
+function becauseOf(t: SectionType, v: StartView, picks: Picks): string | null {
+  const show = (picks.show ?? []).find((p) => SHOWS.find((x) => x.id === p.id)?.section === t)
+  if (show) return `you asked for ${show.words.trim()}`
+  const goal = (v.brief.goals ?? []).find((g) => GOAL_SECTION_WORDS[g]?.includes(t))
+  if (goal) return `you want to ${lower(GOAL_LABEL[goal])}`
+  return null
+}
+
+const GOAL_SECTION_WORDS: Partial<Record<Goal, SectionType[]>> = {
+  orders: ['pricing', 'contact', 'faq'],
+  bookings: ['contact', 'faq'],
+  sell: ['pricing', 'features'],
+  signups: ['pricing', 'features', 'faq'],
+  waitlist: ['cta', 'features'],
+  tickets: ['pricing', 'team', 'faq'],
+  subscribers: ['blog', 'cta'],
+  showWork: ['gallery'],
+  hire: ['gallery', 'contact', 'stats'],
+  visit: ['contact', 'gallery'],
+  calls: ['contact', 'testimonials'],
+  donate: ['stats', 'cta'],
+}
+
+/**
+ * What changed on the page and why, in a line or two from fixed templates ("Added Prices: you take orders."). `look`
+ * is the theme's name before and after. Nothing here is written by a model.
+ */
+export function becauseLines(prev: StartView | null, next: StartView, picks: Picks, look?: { prev?: string; next?: string }): string[] {
+  if (!prev) return []
+  const out: string[] = []
+  const later: string[] = []
+  const added = next.sections.filter((t) => !prev.sections.includes(t))
+  const gone = prev.sections.filter((t) => !next.sections.includes(t))
+  for (const t of added) {
+    const why = becauseOf(t, next, picks)
+    out.push(`Added ${TYPE_LABEL[t]}${why ? `: ${why}` : ''}.`)
+  }
+  for (const w of next.fill.wants.filter((w) => !prev.fill.wants.includes(w))) out.push(`No ${w.replace(/^(an?|the|our)\s+/i, '')} section yet. Noted.`)
+  if (gone.length) later.push(`Took out ${listOf(gone.map((t) => TYPE_LABEL[t]))}.`)
+  if (next.brief.format && next.brief.format !== prev.brief.format) later.push(`Laid out as ${lower(FORMAT_LABEL[next.brief.format])}.`)
+  if (next.brief.mainAction && next.brief.mainAction !== prev.brief.mainAction) later.push(`The main button says “${next.brief.mainAction}”.`)
+  if (look?.next && look.next !== look.prev) {
+    // Your own words say it best (they already hold any "not"); else the feel words and what to steer away from.
+    const own = next.brief.feelWords?.length ? next.brief.feelWords.join(', ') : ''
+    const feel = own || `${listOf(next.feel)}${next.brief.avoid?.length ? `, not ${listOf(next.brief.avoid)}` : ''}`
+    later.push(`${look.next}${feel ? ` feels ${feel}` : ''}.`)
+  }
+  return [...out, ...later].slice(0, 2)
+}
+
+/** The section a change is about, so the page can scroll to it. */
+export const changedSection = (prev: StartView | null, next: StartView): SectionType | null => (prev ? (next.sections.find((t) => !prev.sections.includes(t)) ?? null) : null)
 
 // ---- The start sentence ("I'm making a site for [a bakery] called [Fern & Co]…") as answers ----
 
@@ -174,23 +306,3 @@ export function heardFromSentence(fill: StartFill, picks: Picks): HeardBrief | n
   }
 }
 
-/**
- * The answers the sentence gives: its name, what it is, the main button, how it should feel and what to show. The
- * questions it answered fold away (the look and the three layouts are still yours to pick).
- */
-export function answersFromSentence(a: Answers, fill: StartFill, picks: Picks): Answers {
-  const goal = picks.goal?.[0]
-  const typed = !!goal && !goal.id && !!goal.words.trim()
-  const feel = (picks.feel ?? []).flatMap((p) => (p.id && SENTENCE_FEEL[p.id] ? [SENTENCE_FEEL[p.id]] : []))
-  const shows = (picks.show ?? []).some((p) => p.words.trim())
-  const done: Question[] = ['what', ...(goal?.id && SENTENCE_GOAL[goal.id] ? (['goals'] as const) : []), ...(fill.button ? (['action'] as const) : []), ...(shows && fill.sections ? (['sections'] as const) : [])]
-  return {
-    ...a,
-    name: fill.name.trim(),
-    text: fill.text,
-    brief: patchBrief(a.brief, { ...(fill.button ? { mainAction: fill.button, mainActionTyped: typed } : {}), ...(goal?.id && SENTENCE_GOAL[goal.id] ? { goals: [SENTENCE_GOAL[goal.id]] } : {}) }),
-    feel: feel.length ? [...new Set(feel)] : a.feel,
-    sections: shows && fill.sections ? fill.sections : a.sections,
-    done: [...new Set([...a.done, ...done])],
-  }
-}

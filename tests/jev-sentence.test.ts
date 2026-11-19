@@ -111,7 +111,7 @@ describe('the start sentence', () => {
       name: [{ words: 'Fern & Co' }],
       feel: pick('cozy'),
       goal: pick('order', 'order ahead'),
-      show: [...pick('menu', 'our menu'), ...pick('hours', 'opening hours'), ...pick('team', 'our team'), ...pick('map', 'a map')],
+      show: [...pick('menu', 'our menu'), ...pick('hours', 'opening hours'), ...pick('team', 'our team'), ...pick('schedule', 'the schedule')],
     }
     const f = fillStart(picks)
     expect(f.kind).toBe('local')
@@ -121,8 +121,8 @@ describe('the start sentence', () => {
     expect(skinById(f.looks[0])?.feel).toContain('warm')
     expect(f.button).toBe('Order ahead')
     expect(f.feel).toBe('cozy bakery')
-    expect(f.wants).toEqual(['a map'])
-    expect(f.text).toBe('I’m making a site for a bakery called Fern & Co. It should feel cozy and help people order ahead. Show our menu, opening hours, our team and a map.')
+    expect(f.wants).toEqual(['the schedule'])
+    expect(f.text).toBe('I’m making a site for a bakery called Fern & Co. It should feel cozy and help people order ahead. Show our menu, opening hours, our team and the schedule.')
   })
 
   it('has no kind for your own words until they’re matched', () => {

@@ -49,6 +49,12 @@ export const DIRECTION_COMMANDS = {
     }),
     write: true,
   },
+  try_direction: {
+    description:
+      'A new draft beside the others, opened: the open draft’s pages and words laid out with a direction’s layouts and dressed in its look (ids from suggest_directions). Your words, pictures and links come along; locked sections, and layouts or the look set to Keep, stay as they are. The draft you were in is untouched. Counts as picked toward later suggestions. A site holds up to 6 drafts.',
+    input: z.object({ direction: z.string().min(1).describe('A direction id from suggest_directions or list_directions') }),
+    write: true,
+  },
   drop_taste: {
     description: 'Stop leaning on one trait, toward or away, one undo step.',
     input: z.object({ trait: z.enum(TRAITS as [string, ...string[]]) }),

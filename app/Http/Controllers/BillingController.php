@@ -19,7 +19,7 @@ class BillingController extends Controller
     {
         $role = $mix->roleOf($request->user());
         abort_unless($role, 404);
-        abort_unless($role->canEdit(), 403, 'Only people who can edit this mix can pay for it.');
+        abort_unless($role->canEdit(), 403, 'Only people who can edit this site can pay for it.');
         abort_unless($billing->available(), 404);
         try {
             return Inertia::location($billing->checkoutUrl($request->user(), $mix));

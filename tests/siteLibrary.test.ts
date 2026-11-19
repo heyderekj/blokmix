@@ -71,7 +71,7 @@ describe('site library', () => {
     const own = st.site.pages.at(-1)!.slots
     expect(own.map((s) => s.clipId)).toEqual(['header.layout-centered', 'pricing.layout-table', 'faq.layout-columns'])
     expect(own.every((s) => s.inspiredBy?.url === 'https://fernway.example/pricing')).toBe(true)
-    expect(r.skipped.some((s) => /Kept this mix’s nav/.test(s.reason))).toBe(true)
+    expect(r.skipped.some((s) => /Kept this site’s nav/.test(s.reason))).toBe(true)
   })
 
   it('refuses a pick with nothing to clip, and an unknown site', async () => {

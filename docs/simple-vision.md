@@ -44,7 +44,7 @@ Optional: publish the current mix to a noindex/nofollow page on blok.page so you
 - Not a forced multi-step process.
 - Not a team inbox or project board (that is Koati).
 - Not the place the final site lives.
-- No AI that writes for you: Jev only places, picks and checks your own words, sections and pictures; your agent builds from the notes and export.
+- No AI that writes for you: Jev (TypeSafe) only places, picks and checks your own words, sections and pictures, and the reader (Claude, Anthropic) only reads what you wrote into Blokmix's own picks, every word it hands back copied from yours; your agent builds from the notes and export.
 
 ## Domains
 
@@ -53,14 +53,16 @@ Optional: publish the current mix to a noindex/nofollow page on blok.page so you
 
 ## Guided start
 
-New mix asks a few plain questions, one at a time, with the page they add up to beside them. What's it called, then what
-is it: say it in a sentence ("a bakery on Elm Street that takes pre-orders"), or paste what you already have. Jev reads
-it and pre-picks the rest, so most questions are a glance and a Next: the kind of site and the industry, what it should
-do for you (take bookings, get sign-ups…), what the main button says, which sections, how it should feel. It never
-writes; a sentence describes the site and stays off the page, and pasted words land as written. With Jev off the same
-questions are ranked by keywords. "Skip, show me pages" takes every suggestion. Last come three ways to lay it out,
-A/B/C, already in the look you picked: open one and it's your site; another direction is a new draft whenever you want one. A starter, a saved style
-guide, a blank page or a mix file are one quiet line under the first questions, not a first screen.
+New site is two screens. First, say what it is: a sentence with blanks ("I'm making a site for [a bakery] called [Fern &
+Co]…"), with the real page beside it from the first blank, changing as you fill it in and saying why. Every blank takes
+your own words, and a paragraph pasted into any of them fills in everything it can; under the sentence, a row for each
+thing it understood (the kind of site, what it should do, the main button, the sections, the pages, who it's for, the
+feel), each changeable where it sits. Your words are read, never written: the reader and Jev only pick from Blokmix's own
+lists, and with suggestions off keywords do the same. Then pick a version: four whole pages, each a different layout and
+look, each with a line on what it is and how its first screen holds up. Mix shows a new row; keep the layout or the look
+you like and the rest changes; say more like this or not this. Open one and it's your site, that page alone; what you
+passed on is remembered, so later rows lean your way. A starter, a saved style guide, a blank page or a site file are one
+quiet line under the sentence, not a first screen.
 
 What you said the site is for (the brief) stays with the mix: it steers what's suggested later and goes to your agent
 as "What this site is for".

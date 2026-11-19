@@ -10,7 +10,7 @@ it('packages both sample projects with standalone prompts and no account mix ide
   expect(packet.mix).not.toHaveProperty('draft')
   expect(files['reference/about.html']).toBeTruthy()
   expect(files['BLOKMIX.md']).toContain('make the primary action easy to find on mobile')
-  expect(files['BLOKMIX.md']).toContain('To start a new mix')
+  expect(files['BLOKMIX.md']).toContain('To start a new site')
   expect(files['BLOKMIX.md']).not.toContain('Copy mix.id')
 
   for (const target of ['astro', 'next']) {

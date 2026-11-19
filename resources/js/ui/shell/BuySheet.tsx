@@ -62,11 +62,11 @@ export function BuySheet() {
     router.post(`/api/mixes/${id}/checkout`, {}, { preserveState: true, preserveScroll: true, onError: (e) => setError(e.buy ?? 'Couldn’t start paying. Try again.') })
 
   const why = !saved
-    ? 'Save this mix to your mixes first, then pay for it there.'
+    ? 'Save this site to your sites first, then pay for it there.'
     : archived
-      ? 'This mix is archived. Bring it back from your mixes to pay for it.'
+      ? 'This site is archived. Bring it back from your sites to pay for it.'
       : !canEdit(role)
-        ? 'Someone who can edit this mix can pay for it.'
+        ? 'Someone who can edit this site can pay for it.'
         : 'Paying for sites opens at launch.'
 
   return (
@@ -143,7 +143,7 @@ export function BuySheet() {
               <div className="flex items-center gap-3 border-t border-zinc-950/10 pt-4">
                 <span aria-hidden className="size-6 shrink-0 rounded-[22%] shadow-[inset_0_0_0_1.5px_currentColor] text-zinc-900" />
                 <p className="text-[13px] leading-snug text-zinc-500">
-                  <b className="font-semibold text-zinc-900">Making stays free.</b> Every layout, theme and control, as many mixes as you like. A copy of a mix is a new site.
+                  <b className="font-semibold text-zinc-900">Making stays free.</b> Every layout, theme and control, as many sites as you like. A copy is a new site.
                 </p>
               </div>
             </div>

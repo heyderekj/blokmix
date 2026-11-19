@@ -209,9 +209,9 @@ export const SHOWS: Show[] = inGroups<Show>([
   { id: 'speakers', label: 'speakers', section: 'team', kinds: ['event'] },
   { id: 'contact', label: 'how to reach us', section: 'contact', kinds: ['studio', 'personal'] },
   { id: 'schedule', label: 'the schedule', section: null, kinds: ['event'] },
-  { id: 'map', label: 'a map', section: null, kinds: ['local'] },
+  { id: 'map', label: 'a map', section: 'contact', kinds: ['local'] },
   { id: 'events', label: 'upcoming events', section: null, kinds: ['local', 'event'] },
-  { id: 'shop', label: 'a shop', section: null, kinds: ['local', 'product'] },
+  { id: 'shop', label: 'a shop', section: 'pricing', kinds: ['local', 'product'] },
 ], SHOW_GROUPS)
 
 // ---- The start sentence ----

@@ -214,7 +214,7 @@ export function buildNotes(i: PacketInput): string {
     lines.push(`- **Status:** ${v.status}`)
   }
   lines.push(`- **Sections:** ${page.sections.length}`)
-  if (i.publishedUrl) lines.push(`- **Published:** ${i.publishedUrl} (an unlisted snapshot of the mix, to compare your build against)`)
+  if (i.publishedUrl) lines.push(`- **Published:** ${i.publishedUrl} (an unlisted snapshot of the site, to compare your build against)`)
   if (i.guideState?.skin && i.guideState.skin.id !== 'own') lines.push(`- **Skin:** ${i.guideState.skin.name}`)
   lines.push('- **Contract:** read CONTRACT.md first: what to always keep and where you’re invited to surprise')
   const open = openGroups(guide)
@@ -475,7 +475,7 @@ If the ReviseMy MCP server is connected, have the page reviewed and bring the ma
 export function packetFiles(i: PacketInput, options: { mcp?: boolean } = {}): FileMap {
   const returnInstructions = i.mixId
     ? 'Copy mix.id and mix.draft as mix and draft, and the saved version ID as base. A design created outside Blokmix can omit base and use page /.'
-    : 'To start a new mix, use page / and choose Bring into Blokmix on the mixes page.'
+    : 'To start a new site, use page / and choose Bring into Blokmix on the sites page.'
   const files: FileMap = {
     'blokmix.json': JSON.stringify(packetJson(i), null, 2) + '\n',
     'BLOKMIX.md': buildNotes(i) + `\nTo bring your implementation back, create a JSON file matching blokmix-return.schema.json. ${returnInstructions}\n`,

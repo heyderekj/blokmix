@@ -15,13 +15,13 @@ export function localMixState(): Record<string, unknown> | null {
  * Copy the browser's mix to your mixes on the server (the browser keeps its copy). Resolves to the new mix's short
  * address, or the reason it couldn't (no room left, a dropped connection), in words.
  */
-export async function saveLocalMix(state: Record<string, unknown>, fallbackName = 'Untitled mix'): Promise<{ short: string } | { problem: string }> {
+export async function saveLocalMix(state: Record<string, unknown>, fallbackName = 'Untitled site'): Promise<{ short: string } | { problem: string }> {
   const { mixName, versions, drafts, ui: _ui, camera: _camera, ...data } = state
   void _ui
   void _camera
   try {
     const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: (mixName as string | undefined) ?? fallbackName, data, versions: versions ?? {}, ...(drafts ? { drafts } : {}) })
-    return res.status === 201 ? { short: res.body.short } : { problem: res.body?.message ?? 'Couldn’t save that mix. Try again.' }
+    return res.status === 201 ? { short: res.body.short } : { problem: res.body?.message ?? 'Couldn’t save that site. Try again.' }
   } catch {
     return { problem: 'Couldn’t reach Blokmix. Check your connection and try again.' }
   }

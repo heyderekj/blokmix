@@ -45,7 +45,7 @@ export const write = {
   new_draft: (i: CommandInput<'new_draft'>) => {
     const from = i.from_version ? { version: findVersion(i.from_version).id } : { draft: i.from_draft ? findDraft(i.from_draft).id : undefined }
     const id = useStore.getState().addDraft(from, { name: i.name, open: i.open })
-    if (!id) throw new CommandError('No room for another draft in this mix: delete one first.')
+    if (!id) throw new CommandError('No room for another draft in this site: delete one first.')
     return describeDraft(useStore.getState().drafts[id])
   },
   update_draft: (i: CommandInput<'update_draft'>) => {
@@ -55,7 +55,7 @@ export const write = {
   },
   delete_draft: (i: CommandInput<'delete_draft'>) => {
     const d = findDraft(i.draft)
-    if (!useStore.getState().deleteDraft(d.id)) throw new CommandError('A mix keeps at least one draft.')
+    if (!useStore.getState().deleteDraft(d.id)) throw new CommandError('A site keeps at least one draft.')
     return { deleted: d.letter, drafts: draftList(useStore.getState().drafts).map((x) => x.letter) }
   },
 }

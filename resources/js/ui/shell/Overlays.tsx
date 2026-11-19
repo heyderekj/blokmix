@@ -68,7 +68,7 @@ const HELP: [string, [string, string][]][] = [
     [
       ['← →', 'Try another layout (or, on a block, another look)'],
       ['↑ ↓', 'Move between sections'],
-      ['Space', 'Shuffle unlocked sections (hold and drag to pan)'],
+      ['Space', 'Mix: new layouts for unlocked sections (hold and drag to pan)'],
       ['L', 'Lock or unlock a section'],
       ['⌥↑ ⌥↓', 'Move a section up or down'],
       ['1 2 3 4', 'Use the original layout · style · words · motion'],

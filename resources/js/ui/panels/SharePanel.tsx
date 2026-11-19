@@ -51,7 +51,7 @@ export function SharePanel() {
   useEffect(() => void load(), [load])
 
   if (mixId === 'local')
-    return <p className="px-4 py-5 text-[13px] text-pretty text-zinc-500">This mix lives only in this browser. Save it to your mixes (on the Mixes page) to share it.</p>
+    return <p className="px-4 py-5 text-[13px] text-pretty text-zinc-500">This site lives only in this browser. Save it to your sites (on the Sites page) to share it.</p>
 
   const makeLink = async (role: ShareLink['role']) => {
     const res = await api<ShareLink>('POST', `/api/mixes/${mixId}/share/links`, { role })

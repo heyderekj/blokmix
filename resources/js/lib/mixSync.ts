@@ -283,11 +283,11 @@ class MixSync {
           }
           if (!this.closed) {
             openMix(res.body.mix, { force: true })
-            if (recovery) useStore.getState().showFlash('This mix changed elsewhere. Download your unsent edits from the mix menu.')
+            if (recovery) useStore.getState().showFlash('This site changed elsewhere. Download your unsent edits from the menu.')
           }
         } else {
           if (!this.closed) useSave.setState({ status: 'error' })
-          console.error('Saving the mix failed', res.status, res.body)
+          console.error('Saving the site failed', res.status, res.body)
         }
       } catch {
         // Offline or the server's away: keep the edits here and try again, backing off.
@@ -370,7 +370,7 @@ function holdStill(): () => void {
     useStore.setState(held)
     if (!told) {
       told = true
-      st.showFlash('You can view this mix and leave marks. Ask its owner to make you an editor to change it.')
+      st.showFlash('You can view this site and leave marks. Ask its owner to make you an editor to change it.')
     }
   })
 }

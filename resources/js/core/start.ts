@@ -9,7 +9,7 @@ import { DEFAULT_KEEP } from './types'
 import { emptyGuide } from './guide'
 import { DEFAULT_CONTENT, FIELD_SCHEMA } from './content'
 import { KIND_WORDS, SHARED_WORDS } from './startWords'
-import { siteFromSlots } from './site'
+import { PAGE_TEMPLATES, siteFromSlots, type PageTemplate } from './site'
 import { suggestClip, suggestTypes } from './suggest'
 import { pickable, shelfOf } from './library'
 import { applySkin, skinById, skinList, WIREFRAME } from './skins'
@@ -42,6 +42,8 @@ export interface StartInput {
   brief?: Brief
   /** The main button's words ("Order ahead"), from what the site should help people do. */
   button?: string
+  /** Pages besides home that were asked for ("an about page", "a page for our classes"), from the page templates. */
+  pages?: { template: PageTemplate; purpose?: string | null }[]
 }
 
 export interface StartCandidate {
@@ -58,15 +60,6 @@ export interface StartCandidate {
   shelves: { plain: number; real: number }
   /** The direction it was made in (core/directions.ts), when it came from one. */
   direction?: string
-}
-
-export const KIND_LABEL: Record<Kind, { name: string; words: string }> = {
-  product: { name: 'An app or product', words: 'Software, a gadget, something people sign up for or buy' },
-  studio: { name: 'A studio or service', words: 'Your design studio, agency, practice or freelance work' },
-  local: { name: 'A local business', words: 'A café, shop, salon or anything with a door people walk through' },
-  event: { name: 'An event or launch', words: 'Something coming soon: a waitlist, a conference, a drop' },
-  personal: { name: 'A personal site', words: 'You: who you are, what you do, how to reach you' },
-  writing: { name: 'Writing or a newsletter', words: 'Essays, issues, a publication people subscribe to' },
 }
 
 /** Each kind's pages, top to bottom, in the order people expect (nav and footer included on Home). */
@@ -161,6 +154,25 @@ export function siteFromPages(lib: Library, pages: { path: string; title: string
     site.pages.push({ id: `${prefix}page${i + 1}`, path: page.path, title: page.title, slots, show: { nav: true, footer: true } })
   }
   return site
+}
+
+/**
+ * Pages besides home, each from its page template: the kind's About when home is the kind's usual page, then the pages
+ * asked for, one of each (a blank one only when it says what it's for, titled by its words).
+ */
+export function otherPages(input: Pick<StartInput, 'pages'>, about: SectionType[] | undefined, lib: Library, variant: number, seed: number, prefs: PagePrefs = {}): { path: string; title: string; sections: string[] }[] {
+  const out: { path: string; title: string; sections: string[] }[] = []
+  if (about) out.push({ path: '/about', title: 'About', sections: fillPage(lib, about, variant, seed, undefined, prefs) })
+  for (const p of input.pages ?? []) {
+    const t = PAGE_TEMPLATES[p.template]
+    const purpose = p.purpose?.trim()
+    const title = p.template === 'blank' ? (purpose ? purpose.replace(/^./, (c) => c.toUpperCase()).slice(0, 40) : '') : t.title
+    const path = `/${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
+    if (!title || out.some((o) => o.path === path)) continue
+    const types: SectionType[] = t.types.length ? [...t.types] : ['header', 'content', 'cta']
+    out.push({ path, title, sections: fillPage(lib, types, variant, seed, undefined, prefs) })
+  }
+  return out
 }
 
 /** A small, stable hash for seeded picks. */
@@ -288,7 +300,7 @@ export function startCandidates(input: StartInput, lib: Library, n = 3): StartCa
     const [hero] = heroes.splice(index, 1)
     if (hero) usedHeroes.add(heroFamily(hero, lib))
     const pages = [{ path: '/', title: 'Home', sections: fillPage(lib, recipe.home, variant, seed, hero) }]
-    if (recipe.about) pages.push({ path: '/about', title: 'About', sections: fillPage(lib, recipe.about, variant, seed) })
+    pages.push(...otherPages(input, recipe.about, lib, variant, seed))
     const site = siteFromPages(lib, pages, `gen${variant}_`)
     const shelves = countShelves(lib, site)
     const label = shelves.real ? `${shelves.real} real-site section${shelves.real === 1 ? '' : 's'}, ${shelves.plain} plain` : `${lib.clips[hero ?? '']?.title ?? 'A fresh mix'}`

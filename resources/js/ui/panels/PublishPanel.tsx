@@ -51,7 +51,7 @@ export function PublishPanel() {
 
   const preview = pub?.live ? pub : null
   const publishedVersion = preview?.version
-  let publishedSource = 'Working mix'
+  let publishedSource = 'The open draft'
   if (publishedVersion?.startsWith('draft:')) {
     publishedSource = drafts[publishedVersion.slice('draft:'.length)]?.name ?? 'Saved draft'
   } else if (publishedVersion) {
@@ -143,7 +143,7 @@ export function PublishPanel() {
           <div className="flex items-center gap-2 px-0.5 text-[12.5px] text-zinc-500">
             <span>From</span>
             <Dropdown label="Which draft or version to publish" value={source} onChange={setSource} className="flex-1" options={[
-              { v: 'working', label: `${drafts[draftId]?.name ?? 'The mix'}, as it is now` },
+              { v: 'working', label: `${drafts[draftId]?.name ?? 'The site'}, as it is now` },
               ...others.map((d) => ({ v: `draft:${d.id}`, label: d.name })),
               ...snapshots.map((v) => ({ v: v.id, label: `Version ${v.letter}${v.title ? `: ${v.title}` : ''}` })),
             ]} />
@@ -301,9 +301,9 @@ function SaveLocalFirst() {
   }
   return (
     <div className="grid gap-3 px-4 py-5">
-      <p className="text-[13px] text-pretty text-zinc-600">Save this mix to your account to create a preview link.</p>
+      <p className="text-[13px] text-pretty text-zinc-600">Save this site to your account to create a preview link.</p>
       <button type="button" disabled={busy} onClick={save} className="btn-lit btn-ink flex h-8 w-fit cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold active:scale-[0.97]">
-        {busy ? <Loader2 size={14} className="animate-spin" /> : null} Save to your mixes
+        {busy ? <Loader2 size={14} className="animate-spin" /> : null} Save to your sites
       </button>
       {problem && <p className="text-[12px] text-problem-ink">{problem}</p>}
     </div>

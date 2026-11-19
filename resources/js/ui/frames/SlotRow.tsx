@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { GripVertical, Plus, Copy, Minus } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
 import { library, slotClip } from '@/data/library'
@@ -26,8 +27,9 @@ import { useBarFloor } from '../canvas/useBarFloor'
 import { SectionPill, SectionRail } from './SectionPill'
 import { useLockMoment } from './LockGlyph'
 import { edgePan, panBy } from '../canvas/dragPan'
+import { reelPlan, reelTiles, reelTiming } from '@/core/reel'
+import { fadeTile, prefersReducedMotion, spinStrip } from '../motion/reel'
 
-const SPIN_STEP = 90
 /** Clip swaps: short, firm and settled, like flipping a card, not spinning a reel. */
 const SWAP = '240ms cubic-bezier(0.2, 0.9, 0.25, 1)'
 /** How far a clip travels as it swaps, as a share of the page width. */
@@ -94,48 +96,110 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   const ids = useMemo(() => cycleIds(library, slot.type, mixKey.split(' '), slot.clipId), [slot.type, mixKey, slot.clipId])
   const W = VIEW_W[viewport]
 
-  // `shown` trails the store so shuffles can spin like a slot machine before landing.
+  // `shown` trails the store so a Mix can roll like a slot machine's reel before landing (`core/reel.ts`): the row's
+  // layouts sit side by side in one strip that slides once, and `shown` (the height, bars, "Layout n of m") changes
+  // only when it lands.
   const [shown, setShown] = useState(slot.clipId)
-  const [spinning, setSpinning] = useState(false)
   const [landed, setLanded] = useState(0)
+  const [heights, setHeights] = useState<Record<string, number>>({})
+  const [reel, setReel] = useState<{ plan: string[]; key: number; rank: number; quick: boolean; reduced: boolean } | null>(null)
+  // The render a reel lands (or is cut short) in: tiles jump to rest instead of sliding there.
+  const [snap, setSnap] = useState(false)
+  const spinning = !!reel
+  const reelRef = useRef(reel)
+  reelRef.current = reel
+  const heightsRef = useRef(heights)
+  heightsRef.current = heights
   const seqRef = useRef(shuffleSeq)
-  const timer = useRef<number>(0)
+  const anim = useRef<Animation | null>(null)
+  const stripRef = useRef<HTMLDivElement>(null)
+  const rowRef = useRef<HTMLDivElement>(null)
+  const reelKey = useRef(0)
 
+  const settle = useCallback((to: string, replay: boolean) => {
+    anim.current?.cancel()
+    anim.current = null
+    setShown(to)
+    setReel(null)
+    setSnap(true)
+    if (replay) setLanded((n) => n + 1)
+  }, [])
   useEffect(() => {
-    window.clearTimeout(timer.current)
-    if (shown === slot.clipId) return
+    if (!snap) return
+    const f = requestAnimationFrame(() => setSnap(false))
+    return () => cancelAnimationFrame(f)
+  }, [snap])
+  useEffect(() => () => anim.current?.cancel(), [])
+
+  // Before paint, so a Mix during a spin lands the first in the same frame the next one starts.
+  useLayoutEffect(() => {
+    const active = reelRef.current
     const isShuffle = shuffleSeq !== seqRef.current
     seqRef.current = shuffleSeq
-    if (!isShuffle || ids.length < 2) {
-      setShown(slot.clipId)
-      setLanded((n) => n + 1)
+    // Where the row is now: a Mix during a spin counts from where that one was going.
+    const from = active && isShuffle ? active.plan[active.plan.length - 1] : shown
+    if (from === slot.clipId) {
+      if (active) settle(from, isShuffle)
       return
     }
-    const n = ids.length
-    let cur = ids.indexOf(shown)
-    const target = ids.indexOf(slot.clipId)
-    const steps = ((target - cur + n) % n) + n
-    let k = 0
-    const tick = () => {
-      k++
-      cur = (cur + 1) % n
-      setShown(ids[cur])
-      if (k < steps) {
-        setSpinning(true)
-        timer.current = window.setTimeout(tick, SPIN_STEP)
-      } else {
-        setSpinning(false)
-        setLanded((x) => x + 1)
+    // A step with the arrows, a pick, an undo (also mid-spin): no reel, today's small nudge.
+    if (!isShuffle || ids.length < 2) {
+      if (active) settle(slot.clipId, true)
+      else {
+        setShown(slot.clipId)
+        setLanded((n) => n + 1)
       }
+      return
     }
-    timer.current = window.setTimeout(tick, index * 70)
-    return () => window.clearTimeout(timer.current)
+    const onScreen = (r: DOMRect | undefined) => !!r && r.bottom > 0 && r.top < window.innerHeight && r.height > 0
+    // Rows out of sight swap at once.
+    if (!onScreen(rowRef.current?.getBoundingClientRect())) return settle(slot.clipId, true)
+    const rows = [...document.querySelectorAll<HTMLElement>('[data-slot]')].filter((el) => onScreen(el.getBoundingClientRect()))
+    const rank = Math.max(0, rows.indexOf(rowRef.current!))
+    const reduced = prefersReducedMotion()
+    anim.current?.cancel()
+    anim.current = null
+    const plan = reduced
+      ? [from, slot.clipId]
+      : reelPlan(ids, from, slot.clipId, { ready: (id) => heightsRef.current[id] != null, pass: reelTiles(rows.length) - 2, seed: shuffleSeq * 7 + index })
+    setShown(from)
+    setReel({ plan, key: ++reelKey.current, rank, quick: !!active, reduced })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slot.clipId, shuffleSeq])
 
-  const [heights, setHeights] = useState<Record<string, number>>({})
+  // Play the reel once its tiles are laid out; land it in the frame it ends.
+  const timing = reel ? reelTiming(reel.rank, { quick: reel.quick, reduced: reel.reduced }) : null
+  useLayoutEffect(() => {
+    const r = reel
+    const strip = stripRef.current
+    if (!r || !strip || !timing) return
+    const target = r.plan[r.plan.length - 1]
+    const tile = strip.querySelector<HTMLElement>(`[data-reel-tile="${CSS.escape(target)}"]`)
+    const a = r.reduced
+      ? tile
+        ? fadeTile(tile, { duration: timing.duration, delay: timing.delay })
+        : null
+      : spinStrip(strip, { distance: (r.plan.length - 1) * W, duration: timing.duration, delay: timing.delay, settle: timing.settle })
+    if (!a) return settle(target, true)
+    anim.current = a
+    a.onfinish = () => {
+      if (anim.current !== a || reelRef.current?.key !== r.key) return
+      // The tiles go back to rest in the same commit the strip lets go, so nothing jumps.
+      flushSync(() => {
+        setShown(target)
+        setReel(null)
+        setSnap(true)
+        setLanded((n) => n + 1)
+      })
+      a.cancel()
+      anim.current = null
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reel?.key])
+
   const height = heights[shown] ?? 520
-  const rowRef = useRef<HTMLDivElement>(null)
+  // While it rolls the row holds its height, then eases once to where it lands.
+  const rowHeight = reel ? (heights[reel.plan[reel.plan.length - 1]] ?? height) : height
   const setRow = useLayout((s) => s.setRow)
   useLayoutEffect(() => {
     const el = rowRef.current
@@ -327,8 +391,12 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
       // A section you aren't in yet takes the click to focus it (its frame ignores the pointer until then): say so.
       className={`group/row relative ${!canEdit && tool === 'select' ? 'cursor-pointer' : ''}`}
       style={{
-        height,
-        transition: `height ${SWAP}`,
+        height: rowHeight,
+        transition: timing
+          ? `height ${timing.heightDuration}ms cubic-bezier(0.23, 1, 0.32, 1) ${timing.delay + timing.heightDelay}ms`
+          : snap
+            ? 'none'
+            : `height ${SWAP}`,
         // Above its neighbours while it's focused or has a note open, so cards and menus aren't covered.
         // A section you're pointing into lifts too, so its outline isn't cut off by the next section.
         zIndex: focused || noteOpen ? 20 : hover ? 10 : 1,
@@ -362,6 +430,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
       {/* slides happen inside the page: only the current clip is ever visible */}
       {/* Locking presses the section in and lets it settle; unlocking lifts it and lets go. */}
       <div className={`absolute inset-0 overflow-hidden ${index === 0 ? 'frame-r-top' : ''} ${index === count - 1 ? 'frame-r-bottom' : ''} ${lockMoment === 'lock' ? 'lock-press' : lockMoment === 'unlock' ? 'lock-lift' : ''}`}>
+        {/* The reel's strip: tiles never move between parents (a moved frame reloads); a spin slides this instead. */}
+        <div ref={stripRef} className="absolute inset-0" style={{ willChange: reel ? 'transform' : undefined }}>
         {ids.map((clipId, i) => {
           const n = ids.length
           let rel = (((i - shownIndex) % n) + n) % n
@@ -369,6 +439,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
           const jump = Math.abs(rel - (prevRel.current[clipId] ?? rel)) > 1
           prevRel.current[clipId] = rel
           const isCurrent = rel === 0
+          const at = reel ? reel.plan.indexOf(clipId) : -1
           return (
             <Tile
               key={clipId}
@@ -378,7 +449,8 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
               edit={isCurrent ? edit : null}
               rel={rel}
               jump={jump}
-              spinning={spinning}
+              reel={at < 0 ? null : reel!.reduced ? { x: 0, z: at + 1 } : { x: at * W, z: at + 1 }}
+              snap={snap}
               width={W}
               mode={mode}
               guide={guide}
@@ -392,6 +464,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
             />
           )
         })}
+        </div>
       </div>
 
       {dropping && (
@@ -433,7 +506,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
 
       {/* block outlines, in page pixels: the current frame sits at 0,0 at 1:1 */}
       {/* Koati's picker: one outline that glides to whatever's under the pointer, with a chip naming it */}
-      <PickOutline rect={canEdit && !sorting && hover && hover.id !== selectedBlock ? hover.rect : null} label={hover ? partLabel(blocks.find((b) => b.id === hover.id)?.label) : ''} />
+      <PickOutline rect={canEdit && !sorting && hover && hover.id !== selectedBlock ? hover.rect : null} label={hover ? partLabel(blocks.find((b) => b.id === hover.id)?.label) : ''} top={index === 0} />
       {/* Note mode snaps to the block under the pointer; a drag lets go and draws an area instead */}
       {noting && hover && !drawing && (
         <div
@@ -477,11 +550,6 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
 /** "Features · Feature 2 · Heading" → "Feature 2 · Heading": the section is already on screen. */
 const partLabel = (label: string | undefined) => label?.split(' · ').slice(1).join(' · ') || 'Block'
 
-/**
- * The outline Koati's picker draws (after Claude's artifact feedback tool): a tinted
- * border with a faint fill and a soft halo, thicker once picked. It stays mounted and
- * glides between blocks instead of blinking from one to the next.
- */
 /** Starting, moving and letting go of an item drag from outside (the frame, when you press on the item itself). */
 export type ItemDragHandle = { start: (p: { x: number; y: number }) => void; move: (p: { x: number; y: number }) => void; end: (commit: boolean) => void }
 
@@ -726,31 +794,55 @@ function ItemActions({ slotId, itemId }: { slotId: string; itemId: string }) {
   )
 }
 
-function PickOutline({ rect, picked, label }: { rect: FrameRect | null; picked?: boolean; label?: string }) {
+/**
+ * The outline Koati's picker draws: a hairline on hover, a thin ring once picked, close around the element and following
+ * its own corners, with no fill. Two tones (the line and a pale edge outside it) so it reads on light, dark and brand
+ * bands alike. It stays mounted and glides between blocks instead of blinking from one to the next. Its name chip sits
+ * above, or below (inside, on a tall block) when there's no room above: the top section, under the draft's header.
+ */
+function PickOutline({ rect, picked, label, top }: { rect: FrameRect | null; picked?: boolean; label?: string; top?: boolean }) {
   const last = useRef<FrameRect | null>(null)
   if (rect) last.current = rect
   const r = rect ?? last.current
+  const box = useRef<HTMLDivElement>(null)
+  const chip = useRef<HTMLSpanElement>(null)
+  const [place, setPlace] = useState<'above' | 'below' | 'inside'>('above')
+  useLayoutEffect(() => {
+    const el = box.current
+    const c = chip.current
+    const row = el?.offsetParent
+    if (!el || !c || !row || !top) return setPlace((p) => (p === 'above' ? p : 'above'))
+    const b = el.getBoundingClientRect()
+    const ch = c.getBoundingClientRect().height
+    const next = b.top - ch - 8 >= row.getBoundingClientRect().top ? 'above' : b.height > ch * 3 ? 'inside' : 'below'
+    setPlace((p) => (p === next ? p : next))
+  })
   if (!r) return null
-  const outline = picked ? 'var(--color-key)' : 'var(--color-zinc-800)'
-  const halo = picked ? 'color-mix(in oklab, var(--color-key) 18%, transparent)' : 'rgb(255 255 255 / 0.65)'
+  const line = picked ? 'var(--color-key)' : 'rgb(24 24 27 / 0.9)'
+  const edge = 'rgb(255 255 255 / 0.75)'
+  const w = picked ? 1.5 : 1
+  // A hair of room outside the element, the same on screen at any zoom; its corners grow by the same hair.
+  const pad = picked ? 2 : 1.5
   return (
     <div
+      ref={box}
       className="pointer-events-none absolute left-0 top-0 z-10"
       style={{
-        // A little breathing room outside the element, the same on screen at any zoom.
-        width: `calc(${r.w}px + 10px / var(--z))`,
-        height: `calc(${r.h}px + 10px / var(--z))`,
-        transform: `translate(calc(${r.x}px - 5px / var(--z)), calc(${r.y}px - 5px / var(--z)))`,
+        width: `calc(${r.w}px + ${pad * 2}px / var(--z))`,
+        height: `calc(${r.h}px + ${pad * 2}px / var(--z))`,
+        transform: `translate(calc(${r.x}px - ${pad}px / var(--z)), calc(${r.y}px - ${pad}px / var(--z)))`,
         opacity: rect ? 1 : 0,
-        borderRadius: 'calc(8px / var(--zl))',
-        background: picked ? 'color-mix(in oklab, var(--color-key) 7%, transparent)' : 'transparent',
-        boxShadow: `0 0 0 calc(${picked ? 2.5 : 2}px / var(--zl)) ${outline}, 0 0 0 calc(${picked ? 6 : 4}px / var(--zl)) ${halo}`,
-        transition: 'opacity 140ms cubic-bezier(0.2, 0, 0, 1), transform 90ms cubic-bezier(0.2, 0, 0, 1), width 90ms cubic-bezier(0.2, 0, 0, 1), height 90ms cubic-bezier(0.2, 0, 0, 1)',
+        borderRadius: `calc(${r.r ?? 0}px + ${pad}px / var(--z))`,
+        boxShadow: `0 0 0 calc(${w}px / var(--zl)) ${line}, 0 0 0 calc(${w + 1}px / var(--zl)) ${edge}`,
+        transition: 'opacity 140ms cubic-bezier(0.2, 0, 0, 1), transform 90ms cubic-bezier(0.2, 0, 0, 1), width 90ms cubic-bezier(0.2, 0, 0, 1), height 90ms cubic-bezier(0.2, 0, 0, 1), border-radius 90ms cubic-bezier(0.2, 0, 0, 1)',
       }}
     >
       {label && (
         <span
-          className={`absolute bottom-full left-0 mb-[calc(8px/var(--z))] origin-bottom-left whitespace-nowrap rounded-md px-2 py-0.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_-4px_rgb(0_0_0/0.35)] ${picked ? 'bg-key' : 'bg-zinc-800'}`}
+          ref={chip}
+          className={`absolute left-0 whitespace-nowrap rounded-md px-1.5 py-px text-[11px] font-semibold text-white shadow-[0_2px_8px_-2px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.5)] ${
+            place === 'above' ? 'bottom-full mb-[calc(6px/var(--z))] origin-bottom-left' : place === 'below' ? 'top-full mt-[calc(6px/var(--z))] origin-top-left' : 'top-[calc(4px/var(--z))] ml-[calc(4px/var(--z))] origin-top-left'
+          } ${picked ? 'bg-key' : 'bg-zinc-900'}`}
           style={{ transform: 'scale(min(calc(1 / var(--zl)), 3.4))' }}
         >
           {label}
@@ -767,7 +859,10 @@ const Tile = memo(function Tile(p: {
   edit: Parameters<typeof ClipFrame>[0]['edit']
   rel: number
   jump: boolean
-  spinning: boolean
+  /** Its place on the reel's strip while a Mix rolls (x in page px, stacked by z), else null. */
+  reel: { x: number; z: number } | null
+  /** Back to rest at once (the reel just landed). */
+  snap: boolean
   width: number
   mode: 'captured' | 'unified'
   guide: TokenSet
@@ -795,7 +890,8 @@ const Tile = memo(function Tile(p: {
   // Alternatives waiting under the current clip are invisible anyway: once measured and faded out,
   // hide them for real so the browser stops painting them (and their animations) on every frame.
   const [measured, setMeasured] = useState(false)
-  const asleep = !isCurrent && measured
+  const onReel = !!p.reel
+  const asleep = !isCurrent && measured && !onReel
   const parentOnHeight = p.onHeight
   const onHeight = useCallback(
     (h: number) => {
@@ -804,20 +900,21 @@ const Tile = memo(function Tile(p: {
     },
     [parentOnHeight],
   )
-  const transition = `${
-    p.jump ? 'opacity 200ms' : p.spinning ? `transform ${SPIN_STEP - 10}ms linear, opacity 120ms` : `transform ${SWAP}, opacity 160ms ease-out`
-  }, visibility 0s linear ${asleep ? 280 : 0}ms`
+  const transition =
+    onReel || p.snap ? 'none' : `${p.jump ? 'opacity 200ms' : `transform ${SWAP}, opacity 160ms ease-out`}, visibility 0s linear ${asleep ? 280 : 0}ms`
   return (
     <div
       className={`absolute left-0 top-0 overflow-hidden ${p.edge}`}
       style={{
         // the outgoing clip shifts a little and fades while the next one shifts in from that side
-        transform: `translateX(${Math.sign(p.rel) * p.width * NUDGE}px)`,
-        opacity: isCurrent ? 1 : 0,
+        transform: `translateX(${p.reel ? p.reel.x : Math.sign(p.rel) * p.width * NUDGE}px)`,
+        opacity: isCurrent || onReel ? 1 : 0,
+        zIndex: p.reel?.z,
         visibility: asleep ? 'hidden' : 'visible',
         transition,
         pointerEvents: isCurrent ? 'auto' : 'none',
       }}
+      data-reel-tile={onReel ? p.clipId : undefined}
       onClick={(e) => {
         if (isCurrent) return
         e.stopPropagation()

@@ -18,6 +18,9 @@ export function Sentence({
   match,
   size = 'lg',
   autoOpen = true,
+  onOwnWords,
+  onPasteText,
+  from = [],
 }: {
   segments: Segment[]
   picks: Picks
@@ -31,6 +34,12 @@ export function Sentence({
   size?: 'lg' | 'sm'
   /** Open the first empty blank on its own. */
   autoOpen?: boolean
+  /** Your own words went into a blank (a read can fill the other blanks from them). */
+  onOwnWords?: (blank: Blank, words: string) => void
+  /** A paragraph pasted into any blank: read as a whole instead of landing in that blank. */
+  onPasteText?: (text: string) => void
+  /** Blanks filled from what you wrote, marked as such. */
+  from?: string[]
 }) {
   const blanks = useMemo(() => segments.flatMap((s) => ('blank' in s ? [s.blank] : [])), [segments])
   const [openId, setOpenId] = useState<string | null>(() => (autoOpen ? (openBlanks(segments, picks)[0]?.id ?? null) : null))
@@ -67,6 +76,7 @@ export function Sentence({
     const mine = { words: w }
     const list = b.many ? [...(picks[b.id] ?? []), mine] : [mine]
     set(b.id, list, !b.many)
+    onOwnWords?.(b, w)
     if (!match || b.ownOnly) return
     const m = await match(b, w)
     if (!m) return
@@ -94,7 +104,7 @@ export function Sentence({
             ) : (
               <>
                 {' '}
-                <BlankWords blank={s.blank} picks={picks} open={openId === s.blank.id} onOpen={() => setOpenId(openId === s.blank.id ? null : s.blank.id)} onDrop={(i) => set(s.blank.id, (picks[s.blank.id] ?? []).filter((_, k) => k !== i), false)} />
+                <BlankWords blank={s.blank} picks={picks} read={from.includes(s.blank.id)} open={openId === s.blank.id} onOpen={() => setOpenId(openId === s.blank.id ? null : s.blank.id)} onDrop={(i) => set(s.blank.id, (picks[s.blank.id] ?? []).filter((_, k) => k !== i), false)} />
               </>
             )}
           </Fragment>
@@ -113,6 +123,7 @@ export function Sentence({
           onChoose={(c) => choose(open, c)}
           onOwn={(w) => void own(open, w)}
           onDone={() => setOpenId(null)}
+          onPasteText={onPasteText && ((t) => (setOpenId(null), onPasteText(t)))}
         />
       )}
     </div>
@@ -130,7 +141,7 @@ export const blankLook = (on: boolean, filled: boolean, own = false) =>
     : `${filled ? 'text-[#17121A]' : 'text-[#B3A7AE]'} ${own ? 'decoration-[#17121A]' : 'decoration-[#FF69B4]'} hover:bg-zinc-950/[0.06] hover:text-zinc-900`
 
 /** A blank in the sentence: its words once filled, what it asks for while empty; several picks read as a list. */
-function BlankWords({ blank, picks, open, onOpen, onDrop }: { blank: Blank; picks: Picks; open: boolean; onOpen: () => void; onDrop: (i: number) => void }) {
+function BlankWords({ blank, picks, read, open, onOpen, onDrop }: { blank: Blank; picks: Picks; read?: boolean; open: boolean; onOpen: () => void; onDrop: (i: number) => void }) {
   const list = (picks[blank.id] ?? []).filter((p) => p.words.trim() && (!blank.searchOnly || blank.options.some((o) => o.id === p.id)))
   const base = BLANK
   const look = blankLook
@@ -141,7 +152,7 @@ function BlankWords({ blank, picks, open, onOpen, onDrop }: { blank: Blank; pick
         {list.map((p, i) => (
           <Fragment key={`${p.words}${i}`}>
             <span className={`group/m relative ${base} ${look(false, true, own(p))}`}>
-              {p.words}
+              {shortWords(p.words)}
               <button type="button" onClick={() => onDrop(i)} aria-label={`Drop ${p.words}`} className="absolute -right-2 -top-1.5 grid size-5 cursor-pointer place-items-center rounded-full bg-white text-zinc-500 opacity-0 shadow-[0_0_0_1px_rgb(0_0_0/0.1)] transition-opacity hover:text-zinc-900 group-hover/m:opacity-100 focus-visible:opacity-100">
                 <X size={11} />
               </button>
@@ -156,11 +167,27 @@ function BlankWords({ blank, picks, open, onOpen, onDrop }: { blank: Blank; pick
     )
   }
   return (
-    <button type="button" onClick={onOpen} aria-expanded={open} className={`cursor-pointer ${base} ${look(open, list.length > 0, list.length > 0 && list.every(own))}`}>
-      {list.length ? list.map((p) => p.words).join(', ') : (blank.ask ?? blank.placeholder)}
-    </button>
+    // Inline, not a button box: a long answer flows on with the sentence instead of breaking it into a block.
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onOpen())}
+      aria-expanded={open}
+      title={read ? 'From what you wrote' : list.some((p) => p.words.length > SHORT) ? list.map((p) => p.words).join(', ') : undefined}
+      className={`cursor-pointer outline-none [box-decoration-break:clone] focus-visible:bg-[#FFD4E8] ${base} ${look(open, list.length > 0, list.length > 0 && list.every(own))} ${read && !open ? 'decoration-dotted' : ''}`}
+    >
+      {list.length ? shortWords(list.map((p) => p.words).join(', ')) : (blank.ask ?? blank.placeholder)}
+    </span>
   )
 }
+
+/** Past this, a blank shows the start of your words (all of them are kept): a long answer never breaks the sentence. */
+const SHORT = 42
+const shortWords = (w: string) => (w.length > SHORT ? `${w.slice(0, SHORT).replace(/[\s,;:.]+\S*$/, '')}…` : w)
+
+/** Pasted text that reads as a paragraph, not an answer: read as a whole. */
+export const isParagraph = (t: string) => t.trim().length > 90 || /\n\s*\S/.test(t.trim()) || (t.match(/[.!?](\s|$)/g)?.length ?? 0) >= 2
 
 /**
  * A blank's options. The guided start shows a shortlist and can browse one category at a time. The bar uses a
@@ -178,6 +205,7 @@ function Options({
   onType,
   onOwn,
   onDone,
+  onPasteText,
 }: {
   blank: Blank
   picks: Picks
@@ -189,6 +217,7 @@ function Options({
   onType?: (words: string) => void
   onOwn: (words: string) => void
   onDone: () => void
+  onPasteText?: (text: string) => void
 }) {
   const [query, setQuery] = useState('')
   const words = onType ? (picks[blank.id]?.[0]?.words ?? '') : query
@@ -262,6 +291,12 @@ function Options({
           setShowAll(false)
         }}
         onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), onDone())}
+        onPaste={(e) => {
+          const t = e.clipboardData.getData('text')
+          if (!onPasteText || !isParagraph(t)) return
+          e.preventDefault()
+          onPasteText(t)
+        }}
         placeholder={blank.ownOnly ? `Type ${ask}` : blank.searchOnly ? 'Search options' : grouped ? 'Search or type your own' : 'or say it your way'}
         aria-label={blank.ownOnly ? ask : blank.searchOnly ? `Search options for ${ask}` : grouped ? 'Search or type your own' : 'Your own words'}
         className={`min-w-0 flex-1 rounded-full bg-white outline-none shadow-[0_0_0_1px_rgb(0_0_0/0.1)] placeholder:text-zinc-400 focus:shadow-[0_0_0_2px_#FF69B4] ${big ? 'h-10 px-4 text-[14.5px]' : 'h-8 px-3 text-[12.5px]'}`}
@@ -280,6 +315,7 @@ function Options({
     const top = [...near, ...examples.filter((o) => !near.some((n) => n.id === o.id))].slice(0, 6)
     const browsing = !q && category !== null
     const options = q ? list : browsing ? groups.find((group) => group.name === category)?.options ?? [] : top
+    const exact = q && list.some((o) => o.label.toLowerCase() === q)
     const visible = showAll ? options : options.slice(0, 8)
     const heading = q ? 'Matching options' : browsing ? 'Category' : near.length ? 'Closest to your words' : ranked ? 'Suggestions' : 'Examples'
     const link = 'min-h-8 shrink-0 cursor-pointer rounded-md px-1 text-[12px] font-semibold text-[#665762] underline decoration-[#B9AAB4] underline-offset-4 hover:text-[#17121A]'
@@ -315,12 +351,11 @@ function Options({
               className="min-h-9 w-full"
             />
           )}
-          {visible.length ? (
+          {(visible.length > 0 || (q && !blank.searchOnly)) && (
             <div className="flex flex-wrap gap-1.5" role="group" aria-label={ask}>
+              {q && !exact && !blank.searchOnly && <UseMine words={words} big={big} onUse={() => (onOwn(words), setQuery(''))} />}
               {visible.map((o) => chip(o, !q && !browsing && near.some((n) => n.id === o.id)))}
             </div>
-          ) : (
-            <p className="text-[13px] text-zinc-600" role="status">No matches. Use keeps your words.</p>
           )}
           {options.length > 8 && (
             <button type="button" aria-expanded={showAll} onClick={() => setShowAll((value) => !value)} className={`${link} justify-self-start`}>
@@ -363,11 +398,24 @@ function Options({
               <span className="w-2 shrink-0" />
             </>
           )}
+          {q && !blank.searchOnly && !list.some((o) => o.label.toLowerCase() === q) && <UseMine words={words} big={big} onUse={() => (onOwn(words), setQuery(''))} />}
           {list.map((o) => chip(o))}
-          {q && !list.length && <span className={`flex shrink-0 items-center text-zinc-400 ${big ? 'text-[13px]' : 'text-[11.5px]'}`}>Nothing like that here: Enter keeps your words</span>}
         </div>
       )}
       {own}
     </div>
+  )
+}
+
+/** Your own words as the first option: they always count, whatever the list holds. */
+function UseMine({ words, big, onUse }: { words: string; big: boolean; onUse: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onUse}
+      className={`max-w-full shrink-0 cursor-pointer snap-start truncate rounded-full bg-zinc-900 font-semibold text-white transition-[scale] duration-150 active:scale-[0.97] ${big ? 'h-9 px-3.5 text-[13.5px]' : 'h-8 px-3 text-[12.5px]'}`}
+    >
+      Use “{shortWords(words.trim())}”
+    </button>
   )
 }

@@ -46,7 +46,7 @@ export const write = {
     return { clips: useStore.getState().clips }
   },
   remove_clip_from_mix: (i: CommandInput<'remove_clip_from_mix'>) => {
-    if (!(useStore.getState().clips ?? []).includes(i.clip)) throw new CommandError(`${i.clip} isn’t in this mix’s set`)
+    if (!(useStore.getState().clips ?? []).includes(i.clip)) throw new CommandError(`${i.clip} isn’t in this site’s set`)
     useStore.getState().removeMixClip(i.clip)
     return { clips: useStore.getState().clips }
   },
