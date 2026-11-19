@@ -4,7 +4,7 @@
 // library's two shelves, following the page order people expect for that kind of site.
 // Pure: measuring and picking the best happen in the browser (`lib/start.ts`).
 
-import type { GuideState, Kind, Library, ProjectContent, SectionType, Site, Slot, Starter } from './types'
+import type { Density, GuideState, Kind, Library, ProjectContent, SectionType, Site, Slot, Starter } from './types'
 import { DEFAULT_KEEP } from './types'
 import { emptyGuide } from './guide'
 import { DEFAULT_CONTENT, FIELD_SCHEMA } from './content'
@@ -56,6 +56,8 @@ export interface StartCandidate {
   content: ProjectContent
   /** How many sections came from each shelf. */
   shelves: { plain: number; real: number }
+  /** The direction it was made in (core/directions.ts), when it came from one. */
+  direction?: string
 }
 
 /** Each kind's pages, top to bottom, in the order people expect (nav and footer included on Home). */
@@ -141,7 +143,7 @@ export function contentFor(input: Pick<StartInput, 'kind' | 'name' | 'oneLiner' 
 const slotFor = (id: string, type: SectionType, clipId: string): Slot => ({ id, type, clipId, locked: false, keep: { ...DEFAULT_KEEP } })
 
 /** A site from pages of clip ids (Home first, its nav and footer shared). */
-function siteFromPages(lib: Library, pages: { path: string; title: string; sections: string[] }[], prefix: string): Site {
+export function siteFromPages(lib: Library, pages: { path: string; title: string; sections: string[] }[], prefix: string): Site {
   const slotsOf = (ids: string[], p: number) => ids.filter((id) => lib.clips[id]).map((id, i) => slotFor(`${prefix}p${p}s${i}`, lib.clips[id].type, id))
   const [home, ...rest] = pages
   const site = siteFromSlots(slotsOf(home?.sections ?? [], 0))
@@ -159,17 +161,28 @@ const mix = (...parts: (string | number)[]) => {
   return h >>> 0
 }
 
+/** What a direction (core/directions.ts) asks of a page: its own layouts per type, best first, and how roomy. */
+export interface PagePrefs {
+  layouts?: Partial<Record<SectionType, string[]>>
+  density?: Density
+}
+
 /**
- * One page, filled section by section. Each spot ranks the clips for its type the
- * way Add section does (rhythm contrast with the section above), built-in layouts
- * first since they take any skin; `variant` and the seed pick among the best few so
- * starts differ.
+ * One page, filled section by section. A direction's own layouts for a type come first (the first that's offered; a
+ * seed or a variant turns between its first two). Otherwise each spot ranks the clips for its type the way Add section does
+ * (rhythm contrast with the section above, leaning to the direction's density), built-in layouts first since they
+ * take any skin; `variant` and the seed pick among the best few so starts differ.
  */
-function fillPage(lib: Library, types: SectionType[], variant: number, seed: number, hero?: string): string[] {
+export function fillPage(lib: Library, types: SectionType[], variant: number, seed: number, hero?: string, prefs: PagePrefs = {}): string[] {
   const out: string[] = []
   for (const type of types) {
     if (type === 'hero' && hero) {
       out.push(hero)
+      continue
+    }
+    const own = (prefs.layouts?.[type] ?? []).filter((id) => pickable(lib, type).includes(id))
+    if (own.length) {
+      out.push(own[(variant + (seed ? mix(seed, type) : 0)) % Math.min(2, own.length)])
       continue
     }
     // A clear brand, a short row of links and one action are the default chrome for generated pages.
@@ -182,7 +195,7 @@ function fillPage(lib: Library, types: SectionType[], variant: number, seed: num
     }
     const slots = out.map((clipId) => ({ type: lib.clips[clipId].type, clipId }))
     const ranked = suggestClip(type, slots, slots.length, lib)
-      .map((s, i) => ({ id: s.clipId, score: (lib.clips[s.clipId].origin === 'layout' ? 2 : 0) - i * 0.25 }))
+      .map((s, i) => ({ id: s.clipId, score: (lib.clips[s.clipId].origin === 'layout' ? 2 : 0) - i * 0.25 + (prefs.density && lib.clips[s.clipId].density === prefs.density ? 0.5 : 0) }))
       .sort((a, b) => b.score - a.score)
     if (!ranked.length) continue
     const top = ranked.slice(0, Math.min(3, ranked.length))
@@ -210,7 +223,7 @@ function heroesFor(lib: Library, kind: Kind, seed: number): string[] {
   return [...ordered.slice(turn), ...ordered.slice(0, turn), ...all.filter((id) => lib.clips[id].origin === 'clip')]
 }
 
-const countShelves = (lib: Library, site: Site) => {
+export const countShelves = (lib: Library, site: Site) => {
   const ids = [site.shared.nav, site.shared.footer, ...site.pages.flatMap((p) => p.slots)].filter(Boolean).map((s) => s!.clipId)
   return {
     plain: ids.filter((id) => shelfOf(lib.clips[id]) === 'plain').length,

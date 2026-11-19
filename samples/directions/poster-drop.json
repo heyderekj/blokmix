@@ -1,0 +1,40 @@
+{
+  "name": "Poster drop",
+  "why": "Hi-vis tiles, one giant number and a sticker that says go: a launch nobody scrolls past.",
+  "theme": "flyer",
+  "layouts": {
+    "nav": [
+      "notice",
+      "pill"
+    ],
+    "hero": [
+      "bento"
+    ],
+    "stats": [
+      "big"
+    ],
+    "cta": [
+      "sticker"
+    ],
+    "faq": [
+      "band"
+    ],
+    "footer": [
+      "minimal"
+    ]
+  },
+  "density": "dense",
+  "kinds": [
+    "event",
+    "product"
+  ],
+  "industries": [
+    "events",
+    "ecommerce"
+  ],
+  "formats": [
+    "event",
+    "landing"
+  ],
+  "odd": 2
+}

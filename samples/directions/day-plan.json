@@ -1,0 +1,40 @@
+{
+  "name": "Day plan",
+  "why": "The schedule as a timeline and sign-up right up top: an event people can plan around.",
+  "theme": "day-planner",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "form"
+    ],
+    "content": [
+      "timeline"
+    ],
+    "team": [
+      "circles"
+    ],
+    "faq": [
+      "accordion"
+    ],
+    "cta": [
+      "banner"
+    ],
+    "footer": [
+      "centered"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "event"
+  ],
+  "industries": [
+    "events",
+    "education"
+  ],
+  "formats": [
+    "event"
+  ],
+  "odd": 0
+}

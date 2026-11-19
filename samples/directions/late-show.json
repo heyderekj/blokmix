@@ -1,0 +1,42 @@
+{
+  "name": "Late show",
+  "why": "Dark, loud and tiled like a poster wall: the date and the tickets can't be missed.",
+  "theme": "press-kit/late-show",
+  "layouts": {
+    "nav": [
+      "pill"
+    ],
+    "hero": [
+      "bento"
+    ],
+    "features": [
+      "list"
+    ],
+    "team": [
+      "carousel"
+    ],
+    "pricing": [
+      "single"
+    ],
+    "faq": [
+      "compact"
+    ],
+    "cta": [
+      "banner"
+    ],
+    "footer": [
+      "minimal"
+    ]
+  },
+  "density": "dense",
+  "kinds": [
+    "event"
+  ],
+  "industries": [
+    "events"
+  ],
+  "formats": [
+    "event"
+  ],
+  "odd": 2
+}

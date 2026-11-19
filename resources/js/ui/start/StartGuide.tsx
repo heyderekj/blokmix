@@ -32,7 +32,7 @@ export const useStartFlow = create<{ open: boolean }>()(() => ({ open: false }))
 /**
  * New site. One screen describes it: a sentence with blanks, rows for what it understood, and the real page beside them
  * from the first blank, which follows every change and says why. Next picks a look, then three ways to lay it out: the
- * one you open is the site, the other two come along. Nothing here is written for you.
+ * one you open is the site, on its own. Nothing here is written for you.
  */
 export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClose, busy }: {
   /** The answers, every start (best first), and the one picked. */
@@ -266,7 +266,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                     <div className="flex flex-wrap items-end justify-between gap-3">
                       <div>
                         <h2 className="text-[22px] font-bold tracking-tight [text-wrap:balance] sm:text-[26px]">Three ways to lay it out</h2>
-                        <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Open the one you like. The other two come along, so you can go back to them any time.</p>
+                        <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Open the one you like. You can try another direction any time.</p>
                       </div>
                       <button type="button" onClick={() => setSeed((n) => n + 1)} disabled={!starts || paste} className={QUIET}>
                         <Shuffle size={15} /> Mix

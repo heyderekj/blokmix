@@ -1,0 +1,33 @@
+{
+  "name": "Night portfolio",
+  "why": "A portrait, the work in rows and very little else: quiet confidence on a dark page.",
+  "theme": "vinyl",
+  "layouts": {
+    "nav": [
+      "centered"
+    ],
+    "hero": [
+      "portrait"
+    ],
+    "gallery": [
+      "rows"
+    ],
+    "content": [
+      "prose"
+    ],
+    "contact": [
+      "minimal"
+    ],
+    "footer": [
+      "minimal"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "personal"
+  ],
+  "formats": [
+    "portfolio"
+  ],
+  "odd": 1
+}

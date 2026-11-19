@@ -1,0 +1,41 @@
+{
+  "name": "Quiet clinic",
+  "why": "Calm and clear: soft corners, short answers, and booking one tap away.",
+  "theme": "acoustic",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "split"
+    ],
+    "features": [
+      "checklist",
+      "grid"
+    ],
+    "team": [
+      "circles"
+    ],
+    "faq": [
+      "accordion"
+    ],
+    "contact": [
+      "form"
+    ],
+    "footer": [
+      "columns"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "local",
+    "studio"
+  ],
+  "industries": [
+    "health"
+  ],
+  "formats": [
+    "business"
+  ],
+  "odd": 0
+}

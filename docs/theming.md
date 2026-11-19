@@ -17,6 +17,9 @@ The Design panel previews parts on the open page. Apply commits through the same
 `set_theme_parts` takes a mapping of areas to parts. `rank_themes`, `restyle`, and `check_look` only suggest.
 Motion is judged in the live preview. The other areas can be compared as font-aware specimens.
 
+Themes paired with their own layouts, ranked by what a site's owner has shown they want, are directions: see
+`docs/directions.md`.
+
 Run `npx vite-node scripts/render-skins.ts --flavors` for full-page comparisons.
 Run `npx vite-node scripts/jev/bench.ts themes --local` for the labeled local baseline.
 With TypeSafe credentials, run `npx vite-node scripts/jev/bench.ts themes` for the visual comparison.

@@ -26,6 +26,21 @@ export function themeReason(guide: GuideState) {
   return `${type} headings, ${corners >= 12 ? 'rounded' : corners <= 3 ? 'square' : 'softly rounded'} corners and a ${toneOfGuide(t)} background.`
 }
 
+/**
+ * How well a theme fits a brief, as dressed (`tokens`): feel words said outright count most, then the industry and
+ * format it was made for, then the industry's usual feel. The tone is read from the colors, so a brand color that
+ * turns a theme dark counts as dark.
+ */
+export function themeFit(skin: Skin, tokens: ReturnType<typeof resolveGuide>['tokens'], brief: Brief = {}, words: readonly string[] = brief.feel ?? []): number {
+  const defaults = briefFeel({ ...brief, feel: undefined })
+  const tags = new Set<string>(skin.feel)
+  if (toneOfGuide(tokens) === 'dark') tags.add('dark')
+  else tags.delete('dark')
+  const explicit = words.filter((w) => tags.has(w)).length
+  const industry = brief.industry && skin.industries?.includes(brief.industry)
+  return explicit * 20 + (industry ? 6 : 0) + (brief.format && skin.formats?.includes(brief.format) ? 2 : 0) + defaults.filter((w) => tags.has(w)).length
+}
+
 interface RankOptions {
   brief?: Brief
   words?: readonly string[]
@@ -50,20 +65,13 @@ export function rankThemes({
   exclude = [],
   count = 3,
 }: RankOptions = {}) {
-  const defaults = briefFeel({ ...brief, feel: undefined })
   const scored = pool
     .filter((s) => s.id !== 'wireframe')
     .map((skin) => {
       const result = applySkin(guide, skin, contract)
       const tokens = resolveGuide(result).tokens
-      const tags = new Set(skin.feel)
-      if (toneOfGuide(tokens) === 'dark') tags.add('dark')
-      else tags.delete('dark')
-      const explicit = words.filter((w) => tags.has(w as NonNullable<Brief['feel']>[number])).length
-      const avoided = avoid.filter((w) => !words.includes(w) && tags.has(w as NonNullable<Brief['feel']>[number])).length
-      const industry = brief.industry && skin.industries?.includes(brief.industry)
-      const fit =
-        explicit * 20 - avoided * 25 + (industry ? 6 : 0) + (brief.format && skin.formats?.includes(brief.format) ? 2 : 0) + defaults.filter((w) => tags.has(w)).length
+      const avoided = avoid.filter((w) => !words.includes(w) && (skin.feel as readonly string[]).includes(w)).length
+      const fit = themeFit(skin, tokens, brief, words) - avoided * 25
       return {
         skin,
         guide: result,

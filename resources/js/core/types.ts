@@ -3,6 +3,7 @@
 
 import { SKETCH_IDS, type SketchId, type SketchMode } from './sketchCatalog'
 import type { Brief } from './brief'
+import type { Taste } from './taste'
 import type { ParamValues, TreatmentValue } from './treatments/params'
 
 /** In typical page order. Inner pages use `header` (a page header) instead of `hero`. */
@@ -322,6 +323,11 @@ export interface ProjectContent {
    * your agent; never placed on a page. When set, `kind` is derived from it (`kindOf`).
    */
   brief?: Brief
+  /**
+   * What the owner has shown they want (core/taste.ts): reactions, direction in words, what they kept and passed on.
+   * Steers every later row of suggestions; never placed on a page. Shared by every draft, like the brief.
+   */
+  taste?: Taste
 }
 
 /** A line of your words waiting for a home, with the best two guesses (a section and the role it'd play there). */

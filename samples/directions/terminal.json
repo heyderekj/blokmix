@@ -1,0 +1,37 @@
+{
+  "name": "Terminal",
+  "why": "Dark, code-like type and the steps to get going: developers want proof, not adjectives.",
+  "theme": "deep-cut/terminal",
+  "layouts": {
+    "nav": [
+      "tools",
+      "simple"
+    ],
+    "hero": [
+      "split"
+    ],
+    "features": [
+      "tabs-top"
+    ],
+    "content": [
+      "steps"
+    ],
+    "pricing": [
+      "columns"
+    ],
+    "footer": [
+      "index"
+    ]
+  },
+  "density": "dense",
+  "kinds": [
+    "product"
+  ],
+  "industries": [
+    "devtools"
+  ],
+  "formats": [
+    "landing"
+  ],
+  "odd": 0
+}

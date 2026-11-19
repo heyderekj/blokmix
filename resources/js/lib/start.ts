@@ -1,8 +1,6 @@
 import { library } from '@/data/library'
 import { startCandidates, type StartCandidate, type StartInput } from '@/core/start'
 import { scorePage, SCREENS, SWEEP, type PageMeasure, type PageScore } from '@/core/score'
-import { allSlots } from '@/core/site'
-import { autoTitle } from '@/core/versions'
 import { DRAFT_WORD, type Draft } from '@/core/drafts'
 import type { MixData } from '@/state/store'
 import { measureFirstScreen } from './measure'
@@ -41,35 +39,16 @@ export function startedWords(name: string, mix: Pick<MixData, 'site' | 'content'
   return waiting ? `${started} ${waiting} of your lines aren’t placed yet; Content shows them.` : started
 }
 
-/** A start's name as a version: the starter's, else its hero's ("Photo backdrop"). */
-function titleOf(s: StartCandidate): string {
-  if (s.from === 'starter') return s.label.replace(/^Starter: /, '')
-  const hero = s.site.pages[0]?.slots.find((x) => x.type === 'hero')
-  return (hero && library.clips[hero.clipId]?.title) || autoTitle(allSlots(s.site), library)
-}
-
 /**
- * A new mix from the guided start: the start you picked is the open draft, and the other starts come along as drafts
- * beside it (B and C), each yours to open and change. No versions yet: saving one starts a draft's history.
+ * A new site from the guided start: only the start you picked, as Draft A. The others were a way to choose, not
+ * drafts you asked for; another direction is a new draft whenever you want one. No versions yet: saving one starts
+ * the draft's history.
  */
 export function mixFromStart(input: Pick<StartInput, 'name'>, starts: StartCandidate[], chosen: string): MixData {
   const pick = starts.find((s) => s.id === chosen) ?? starts[0]
-  // The one you picked is Draft A; the others follow in the order they were offered.
-  const order = [pick, ...starts.filter((s) => s !== pick)]
-  const drafts: Record<string, Draft> = {}
-  order.forEach((s, i) => {
-    const letter = String.fromCharCode(65 + i)
-    const id = `draft_start${letter}`
-    drafts[id] = {
-      id,
-      letter,
-      name: i === 0 ? `${DRAFT_WORD} ${letter}` : `${DRAFT_WORD} ${letter}: ${titleOf(s)}`,
-      createdAt: Date.now() + i,
-      status: 'in-progress',
-      head: null,
-      body: i === 0 ? null : { site: s.site, guide: s.guide, content: s.content },
-    }
-  })
+  const drafts: Record<string, Draft> = {
+    draft_startA: { id: 'draft_startA', letter: 'A', name: `${DRAFT_WORD} A`, createdAt: Date.now(), status: 'in-progress', head: null, body: null },
+  }
   return {
     mixName: input.name.trim() || 'Untitled site',
     site: pick.site,

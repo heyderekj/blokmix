@@ -1,0 +1,36 @@
+{
+  "name": "Practice",
+  "why": "A plain list of what you do and one good quote: trust comes from saying it simply.",
+  "theme": "acoustic/practice",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "editorial"
+    ],
+    "features": [
+      "list"
+    ],
+    "testimonials": [
+      "quote"
+    ],
+    "contact": [
+      "sidebar"
+    ],
+    "footer": [
+      "minimal"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "studio"
+  ],
+  "industries": [
+    "services"
+  ],
+  "formats": [
+    "business"
+  ],
+  "odd": 0
+}

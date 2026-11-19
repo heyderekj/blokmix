@@ -59,7 +59,7 @@ it and pre-picks the rest, so most questions are a glance and a Next: the kind o
 do for you (take bookings, get sign-ups…), what the main button says, which sections, how it should feel. It never
 writes; a sentence describes the site and stays off the page, and pasted words land as written. With Jev off the same
 questions are ranked by keywords. "Skip, show me pages" takes every suggestion. Last come three ways to lay it out,
-A/B/C, already in the look you picked: open one, and the other two come along to go back to. A starter, a saved style
+A/B/C, already in the look you picked: open one and it's your site; another direction is a new draft whenever you want one. A starter, a saved style
 guide, a blank page or a mix file are one quiet line under the first questions, not a first screen.
 
 What you said the site is for (the brief) stays with the mix: it steers what's suggested later and goes to your agent
