@@ -54,7 +54,8 @@ the pages you didn't pick.
    (`note_taste` with `ref`), the row a line to say what to change (`words`) and the "Leaning…" line with each lean
    removable (`drop_taste`). Mix re-rolls with the taste so far; pins are `pin`; "how odd" is `odd`. The start's
    reactions go into the new site's `content.taste` (the pick as `picked`, the rest as `passed`).
-2. **The board learns too.** A taste event in the same store update as applying a theme, a part swap, a nudge, light
+2. **The board learns too.** (Built so far: "Try another direction" in the Drafts panel, `try_direction`,
+   `core/tryDirection.ts`.) A taste event in the same store update as applying a theme, a part swap, a nudge, light
    or dark, a Keep in Rules for your agent, a new opener and a deleted draft, so undo takes both back. Accepted and
    dismissed agent returns (`lib/iterations.ts` `decideReturn`) and notes add events with their source. "Try another
    direction" in the Drafts panel: a row from `rankDirections`, opened as a new draft with your words carried

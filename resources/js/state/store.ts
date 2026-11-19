@@ -277,6 +277,8 @@ export interface State extends MixData {
   switchDraft: (id: string) => boolean
   /** A new draft from a draft (the open one by default) or a saved version; null at the limit. Opens it unless told not to. */
   addDraft: (from?: { draft?: string; version?: string }, opts?: { name?: string; open?: boolean }) => string | null
+  /** A new draft: the open one's pages and words in another direction's layouts and look, opened; null at the limit. */
+  tryDirection: (d: import('@/core/directions').Direction) => string | null
   updateDraft: (id: string, patch: { name?: string; status?: Status }) => void
   /** Delete a draft and its history (not the last one); deleting the open one opens its neighbour. */
   deleteDraft: (id: string) => boolean

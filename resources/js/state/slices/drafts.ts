@@ -1,13 +1,17 @@
 import { draftList, forkDraft, MAX_DRAFTS, swapDraft } from '@/core/drafts'
 import { pageOf } from '@/core/site'
 import { uid } from '../uid'
+import { library } from '@/data/library'
+import type { Direction } from '@/core/directions'
+import { guideInDirection, siteInDirection } from '@/core/tryDirection'
+import { noteTaste } from '@/core/taste'
 import type { State } from '../store'
 
 type Set = (partial: Partial<State> | ((st: State) => Partial<State>)) => void
 type Get = () => State
 
 /** Drafts: opening one, making one, renaming, deleting. Each is one undo step. */
-export function draftActions(set: Set, get: Get): Pick<State, 'switchDraft' | 'addDraft' | 'updateDraft' | 'deleteDraft' | 'restoreVersion'> {
+export function draftActions(set: Set, get: Get): Pick<State, 'switchDraft' | 'addDraft' | 'tryDirection' | 'updateDraft' | 'deleteDraft' | 'restoreVersion'> {
   const open = (id: string) => {
     const st = get()
     const out = swapDraft(st, id, st.ui.pageId)
@@ -17,17 +21,30 @@ export function draftActions(set: Set, get: Get): Pick<State, 'switchDraft' | 'a
     set({ ...rest, ui: { ...st.ui, pageId: pageOf(site, pageId).id, focusedSlotId: null, selectedBlockId: null, selectedFrameId: 'mix', mode: 'unified' } })
     return true
   }
+  const addDraft: State['addDraft'] = (from = {}, opts = {}) => {
+    const st = get()
+    const count = Object.keys(st.drafts).length
+    if (count >= MAX_DRAFTS) return null
+    const draft = forkDraft(st, from, { id: uid('draft'), name: opts.name })
+    if (!draft) return null
+    set({ drafts: { ...st.drafts, [draft.id]: draft } })
+    if (opts.open !== false) open(draft.id)
+    return draft.id
+  }
   return {
     switchDraft: open,
-    addDraft: (from = {}, opts = {}) => {
-      const st = get()
-      const count = Object.keys(st.drafts).length
-      if (count >= MAX_DRAFTS) return null
-      const draft = forkDraft(st, from, { id: uid('draft'), name: opts.name })
-      if (!draft) return null
-      set({ drafts: { ...st.drafts, [draft.id]: draft } })
-      if (opts.open !== false) open(draft.id)
-      return draft.id
+    addDraft,
+    // A copy of the open draft in another direction, opened; the one you were in stays as it was. Picking it counts
+    // toward what later suggestions lean to.
+    tryDirection: (d: Direction) => {
+      const id = addDraft({}, { name: d.name })
+      if (!id) return null
+      set((st) => ({
+        site: siteInDirection(st.site, d, library, st.contract),
+        guide: guideInDirection(st.guide, d, st.contract),
+        content: { ...st.content, taste: noteTaste(st.content.taste, { kind: 'picked', traits: [], ref: d.id, source: 'you' }) },
+      }))
+      return id
     },
     updateDraft: (id, patch) =>
       set((st) => (st.drafts[id] ? { drafts: { ...st.drafts, [id]: { ...st.drafts[id], ...(patch.name?.trim() ? { name: patch.name.trim() } : {}), ...(patch.status ? { status: patch.status } : {}) } } } : {})),

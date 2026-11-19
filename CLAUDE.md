@@ -66,7 +66,11 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   (`placeDrafts`, `ui/frames/DraftFrame.tsx`, a click opens one); version frames are only builds, versions you chose to
   show (`ui.pinnedVersions`) and versions with notes (`placeVersions`). Sync sends drafts one by one like versions. A mix
   holds up to 6 (`MAX_DRAFTS`). Export and Publish can pick another draft (`draft:<id>`,
-  `lib/packet.ts` `sourceVersion`). Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`.
+  `lib/packet.ts` `sourceVersion`). The Drafts panel's "Try another direction" shows your own Home in three other directions (`ui/drafts/OtherDirections.tsx`,
+  `rankDirections` leaving out what you picked; Others records them as passed); a click is a new draft beside the others
+  (`tryDirection`, `core/tryDirection.ts` `siteInDirection`/`guideInDirection`: its layouts with your words, pictures and links
+  carried by `withClip`, its look by `applySkin`; locked sections and Keep in Rules for your agent stay), counted as picked.
+  Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`, `try_direction`.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
   drops one, and sections it uses always count. A section's arrows (‹ Layout n of m ›, ← →, Shuffle, `get_options`)
   step through the built-in layouts plus this mix's clips only (`core/library.ts` `cycleIds`), never another mix's or a
@@ -249,8 +253,8 @@ dropped, note; agents at half weight); `leanOf`, `traitsFromWords`, `tasteWords`
 or theme, leaving out what was just passed on, with a stretch in the last place once there's taste; `pin` holds the
 look or the layouts; `directionStarts` makes start candidates. On screen: never "direction", "trait" or "taste" as
 words people read. Agents: `list_directions`, `suggest_directions`, `get_taste`, `note_taste`, `drop_taste`,
-`clear_taste`. `npx vite-node scripts/render-directions.ts` screenshots them. The start row and the board's signals
-are next (`docs/directions.md`).
+`clear_taste`, `try_direction`. `npx vite-node scripts/render-directions.ts` screenshots them. The start's row (Guided
+start) and the Drafts panel's "Try another direction" use them; the board's other signals are next (`docs/directions.md`).
 
 ## Jev (TypeSafe)
 

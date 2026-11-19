@@ -220,6 +220,8 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return 'mixed up the look'
       case 'note_taste':
         return 'noted what you want for the next suggestions'
+      case 'try_direction':
+        return 'made a new draft in another direction'
       case 'drop_taste':
       case 'clear_taste':
         return 'changed what the next suggestions lean on'
