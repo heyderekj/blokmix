@@ -45,7 +45,7 @@ class PublishedController extends Controller
     private function serve(Request $request, Publication $publication, string $rest, bool $retry = true): Response
     {
         if (! $publication->isLive()) {
-            return $this->notice(410, 'This mix isn’t published anymore.');
+            return $this->notice(410, 'This site isn’t published anymore.');
         }
 
         $code = $publication->code;
@@ -59,7 +59,7 @@ class PublishedController extends Controller
         }
         $file = $this->fileFor($path);
         if ($file === null) {
-            return $this->notice(404, 'There’s no such page in this mix.');
+            return $this->notice(404, 'There’s no such page in this site.');
         }
         $disk = Storage::disk(config('blokmix.uploads_disk'));
         $stored = $publication->dir().'/'.$file;
@@ -77,7 +77,7 @@ class PublishedController extends Controller
                 return $this->serve($request, $current, $rest, false);
             }
 
-            return $this->notice(404, 'There’s no such page in this mix.');
+            return $this->notice(404, 'There’s no such page in this site.');
         }
         $response = response($preview ? $this->withPreview($contents, $preview) : $contents, 200, ['Content-Type' => self::TYPES[$ext] ?? 'application/octet-stream']);
         $response->setEtag(trim($etag, '"'));

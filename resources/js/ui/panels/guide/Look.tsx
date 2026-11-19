@@ -116,7 +116,7 @@ function Themes() {
   const putMix = () => {
     const st = useStore.getState()
     if (mix && runCommand('surprise_me', {seed}, 'you')) {
-      st.showFlash(`Mashup on: ${mix.words.replace(/^./, (c) => c.toLowerCase())}`, { undo: true })
+      st.showFlash(`Mixed theme: ${mix.words.replace(/^./, (c) => c.toLowerCase())}`, { undo: true })
       setSeed((n) => n + 1)
     }
   }
@@ -124,7 +124,7 @@ function Themes() {
   return (
     <div className={TILE}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="min-w-0 truncate text-[12.5px] font-semibold text-zinc-900">Theme{on ? `: ${on.id === 'remix' ? 'a mashup' : on.name}` : ''}</span>
+        <span className="min-w-0 truncate text-[12.5px] font-semibold text-zinc-900">Theme{on ? `: ${on.id === 'remix' ? 'mixed' : on.name}` : ''}</span>
         <button type="button" onClick={() => setDifferent((d) => !d)} className={LINK}>
             {away ? '‹ Back to my words' : 'Something different'}
           </button>
@@ -134,13 +134,13 @@ function Themes() {
         {shown.map(({ skin, guide, reason }) => (
           <SkinCard key={skin.id} label={skin.name} words={reason} guide={guide} suggested={enabled && suggestion?.key === shown && suggestion.id === skin.id} here={refId(on) === skin.id} onPick={() => putSkin(skin)} />
         ))}
-        {mix && <SkinCard label="Mashup" words={mix.words} guide={mix.guide} here={false} onPick={putMix} />}
+        {mix && <SkinCard label="Mixed theme" words={mix.words} guide={mix.guide} here={false} onPick={putMix} />}
       </div>
       {mix && (
         <div className="mt-2 flex items-start justify-between gap-2 text-[11px] leading-snug text-zinc-500">
-          <span className="min-w-0 text-pretty">Mashup: {mix.words}</span>
-          <button type="button" onClick={() => setSeed((n) => n + 1)} aria-label="Another mashup" className={`flex shrink-0 items-center gap-1 ${LINK}`}>
-            <RefreshCw size={11} /> Another
+          <span className="min-w-0 text-pretty">Mixed from: {mix.words}</span>
+          <button type="button" onClick={() => setSeed((n) => n + 1)} aria-label="Mix again" className={`flex shrink-0 items-center gap-1 ${LINK}`}>
+            <RefreshCw size={11} /> Mix again
           </button>
         </div>
       )}

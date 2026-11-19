@@ -285,10 +285,10 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
         style={{ color: INK }}
         role="dialog"
         aria-modal="true"
-        aria-label="New mix"
+        aria-label="New site"
       >
         <header className="flex items-center gap-3 border-b border-zinc-950/[0.06] bg-white px-4 py-2.5 sm:px-5">
-          <h1 className="text-[15.5px] font-semibold">New mix</h1>
+          <h1 className="text-[15.5px] font-semibold">New site</h1>
           <span className="flex-1" />
           {q !== 'drafts' && (
             <button type="button" disabled={hearing || (copying && (loadingFile || overLimit))} onClick={() => {
@@ -489,7 +489,7 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
                         <p className="mt-2 max-w-xl text-[15px] text-[#6B5F68] [text-wrap:pretty]">Open the one you like. The other two come along, so you can go back to them any time.</p>
                       </div>
                       <button type="button" onClick={() => setSeed((n) => n + 1)} disabled={!starts || paste} className={QUIET}>
-                        <Shuffle size={15} /> Shuffle
+                        <Shuffle size={15} /> Mix
                       </button>
                     </div>
                     {problem && <p className="mt-6 rounded-xl bg-white p-4 text-[14px] text-red-700 shadow-[0_0_0_1px_rgb(23_18_26/0.08)]">{problem}</p>}
@@ -707,7 +707,7 @@ function StartFrom({ busy, onNext, guides, fixed, onBlank, onStarter, onImport, 
   if (onStarter) sources.push({ v: 'starter', label: 'A starter' })
   if (guides !== undefined) sources.push({ v: 'guide', label: 'A saved style guide' })
   sources.push({ v: 'blank', label: 'A blank page' })
-  if (onImport) sources.push({ v: 'file', label: 'A mix file' })
+  if (onImport) sources.push({ v: 'file', label: 'A site file' })
 
   const chooseSource = (source: StartSource) => {
     if (source === 'starter' || source === 'guide') {
@@ -748,7 +748,7 @@ function StartFrom({ busy, onNext, guides, fixed, onBlank, onStarter, onImport, 
             {show === 'guide' && (
               <>
                 {guides === null && <p className="px-1 py-2 text-[13px] text-[#6B5F68]">Loading your style guides…</p>}
-                {guides?.length === 0 && <p className="px-1 py-2 text-[13px] text-[#6B5F68]">No saved style guides yet. Save one from a mix’s Style guide.</p>}
+                {guides?.length === 0 && <p className="px-1 py-2 text-[13px] text-[#6B5F68]">No saved style guides yet. Save one from a site’s Style guide.</p>}
                 {guides?.map((g) => (
                   <GuideOption key={g.key} name={g.name} note={g.note} guide={g.guide} picked={false} onPick={() => (onGuide({ name: g.name, guide: g.guide }), setShow(null))} />
                 ))}

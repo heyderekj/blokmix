@@ -123,7 +123,7 @@ export function Crate() {
                   // A clip added while a mix is open joins this mix too (and stays in your library for the others).
                   st().addMixClips(added)
                   setShelf('mix')
-                  st().showFlash(`Added ${added.map((id) => library.clips[id]?.title ?? id).join(', ')} to this mix and your clips`)
+                  st().showFlash(`Added ${added.map((id) => library.clips[id]?.title ?? id).join(', ')} to this site and your clips`)
                 } catch (e) {
                   st().showFlash(e instanceof Error ? e.message : String(e))
                 }
@@ -317,13 +317,13 @@ function ClipCard({ clip, used, inMix, own, scroller }: { clip: Clip; used: bool
           <span className={`truncate text-[12px] ${used ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-700'}`}>{layout ? clip.title : source?.name}</span>
           {used ? <span className="size-1.5 shrink-0 rounded-full bg-key" title="On the page" /> : layout ? <LayoutTag /> : null}
         </div>
-        <div className="truncate px-0.5 text-[11px] text-zinc-400">{inMix && !used ? `In this mix · ${feel}` : feel}</div>
+        <div className="truncate px-0.5 text-[11px] text-zinc-400">{inMix && !used ? `In this site · ${feel}` : feel}</div>
       </button>
       {clip.origin === 'clip' && !used && (
         <button
           type="button"
-          title={own ? 'Take out of this mix (it stays in your crate)' : 'Add to this mix'}
-          aria-label={own ? `Take ${clip.title} out of this mix` : `Keep ${clip.title} in this mix`}
+          title={own ? 'Take out of this site (it stays in your crate)' : 'Add to this site'}
+          aria-label={own ? `Take ${clip.title} out of this site` : `Keep ${clip.title} in this site`}
           onClick={() => (own ? st().removeMixClip(clip.id) : st().addMixClips([clip.id]))}
           className={`absolute right-1.5 top-1.5 grid size-6 cursor-pointer place-items-center rounded-full text-[11px] transition active:scale-[0.97] ${
             inMix ? 'bg-key-soft text-key-ink' : 'bg-white text-zinc-500 opacity-0 shadow-sm ring-1 ring-zinc-950/10 group-hover/card:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100'

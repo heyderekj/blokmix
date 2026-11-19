@@ -47,7 +47,7 @@ export function MixFrame() {
   // exactly that much room, on screen.
   const room = useBarOverhang((s) => (previewing ? 0 : barRoomBelow(s, slots.at(-1)?.id)))
   const label = head ? (dirty ? `edited since ${head.letter}` : `saved as ${head.letter}`) : 'not saved yet'
-  const name = draft?.name ?? 'Your mix'
+  const name = draft?.name ?? 'Your site'
 
   return (
     <div

@@ -110,7 +110,7 @@ class MixController extends Controller
         ]);
         // as sent: validate() keeps only the keys that have rules
         $data = array_filter(['guide' => $request->input('guide'), 'site' => $request->input('site')]);
-        $mix = Mix::create(['name' => trim((string) $request->input('name')) ?: 'Untitled mix', 'data' => $data ?: null]);
+        $mix = Mix::create(['name' => trim((string) $request->input('name')) ?: 'Untitled site', 'data' => $data ?: null]);
         $mix->admit($request->user(), MixRole::Owner);
 
         return redirect()->route('mixes.show', $mix);

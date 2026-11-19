@@ -105,7 +105,7 @@ function clipFromSite(i: CommandInput<'clip_from_site'>, s: LibrarySite) {
       if (shared) {
         // One nav and one footer for the whole site: a pick you asked for by name swaps the shared one's layout.
         if (!explicit) {
-          skipped.push({ order: x.order, type: x.type, reason: `Kept this mix’s ${chrome} (ask for section ${x.order} to swap it)` })
+          skipped.push({ order: x.order, type: x.type, reason: `Kept this site’s ${chrome} (ask for section ${x.order} to swap it)` })
           continue
         }
         now.setClip(shared.id, x.clipId)

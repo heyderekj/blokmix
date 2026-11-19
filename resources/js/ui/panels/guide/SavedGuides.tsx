@@ -45,7 +45,7 @@ export function SavedGuides() {
   }
 
   const remove = async (g: SavedGuide) => {
-    const ok = await confirmAction({ title: `Delete “${g.name}”?`, body: 'Mixes that use this style guide keep their own copy.', confirm: 'Delete guide' })
+    const ok = await confirmAction({ title: `Delete “${g.name}”?`, body: 'Sites that use this style guide keep their own copy.', confirm: 'Delete guide' })
     if (!ok) return
     if (await deleteGuide(g.id)) setGuides((all) => (all ?? []).filter((x) => x.id !== g.id))
   }
@@ -101,7 +101,7 @@ export function SavedGuides() {
                 <button
                   type="button"
                   onClick={() => use(g)}
-                  title={`Use “${g.name}” in this mix (undo with ⌘Z)`}
+                  title={`Use “${g.name}” in this site (undo with ⌘Z)`}
                   className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition-[background-color,scale] duration-150 hover:bg-zinc-950/5 active:scale-[0.98]"
                 >
                   <span className="flex h-5 w-10 shrink-0 overflow-hidden rounded-md shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]">
@@ -127,7 +127,7 @@ export function SavedGuides() {
           })}
         </ul>
       ) : (
-        !naming && <p className="mt-1 text-[12px] text-zinc-500">Save this guide to start new mixes from it, or to use it in another mix.</p>
+        !naming && <p className="mt-1 text-[12px] text-zinc-500">Save this guide to start new sites from it, or to use it in another site.</p>
       )}
     </div>
   )

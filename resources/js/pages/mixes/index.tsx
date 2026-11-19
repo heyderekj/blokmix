@@ -69,7 +69,7 @@ function readLocal(): LocalMix | null {
     const site = state.site as Site | undefined
     const first = site?.pages[0]
     return {
-      name: String(state.mixName ?? state['tape' + 'Name'] ?? 'Untitled mix'),
+      name: String(state.mixName ?? state['tape' + 'Name'] ?? 'Untitled site'),
       pages: site?.pages.length ?? ((state.slots as Slot[] | undefined)?.length ? 1 : 0),
       versions: Object.keys((state.versions as Record<string, VersionNode>) ?? {}).length,
       sections: [
@@ -137,7 +137,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     setProblem(null)
     const res = await api<{ message?: string }>('POST', `/api/mixes/${m.id}/duplicate`)
     if (res.status === 201) router.reload({ only: ['mixes', 'auth'] })
-    else setProblem(res.body?.message ?? 'Couldn’t copy that mix. Try again.')
+    else setProblem(res.body?.message ?? 'Couldn’t copy that site. Try again.')
   }
 
   /** Archive a mix you own (kept, read-only, out of the way), or bring one back. */
@@ -195,7 +195,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
       ? null
       : [
           ...saved.map((g) => ({ key: `s${g.id}`, name: g.name, note: 'Saved style guide', guide: g.guide })),
-          ...styled.map((m) => ({ key: m.id, name: m.name, note: 'This mix’s style guide', guide: m.guide! })),
+          ...styled.map((m) => ({ key: m.id, name: m.name, note: 'This site’s style guide', guide: m.guide! })),
         ]
   const post = (body: { name: string; site?: Site; guide?: GuideState }) =>
     router.post('/mixes', body as unknown as Record<string, string>, { onError: (e) => (setGuided(false), e.mix && setProblem(e.mix)) })
@@ -210,7 +210,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
     if (res.status === 201) return router.visit(`/${res.body.short}?start=1`)
     setMoving(false)
     setGuided(false)
-    setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
+    setProblem(res.body?.message ?? 'Couldn’t save that site. Try again.')
   }
 
   const importFile = () =>
@@ -224,7 +224,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
         const res = await api<ServerMix & { short: string; message?: string }>('POST', '/api/mixes', { name: file.name, data: file.data, versions: file.versions, ...(file.drafts ? { drafts: file.drafts } : {}) })
         setMoving(false)
         if (res.status === 201) router.visit(`/${res.body.short}`)
-        else setProblem(res.body?.message ?? 'Couldn’t save that mix. Try again.')
+        else setProblem(res.body?.message ?? 'Couldn’t save that site. Try again.')
       } catch (e) {
         setMoving(false)
         setProblem(e instanceof Error ? e.message : String(e))
@@ -233,13 +233,13 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
 
   return (
     <div className="min-h-full" style={{ background: '#FBF8F9', backgroundImage: 'radial-gradient(#DDD2D9 1.2px, transparent 1.3px)', backgroundSize: '24px 24px' }}>
-      <Head title="Mixes" />
+      <Head title="Sites" />
       {guided && (
         <StartGuide
           busy={moving}
           guides={guides}
           onClose={() => setGuided(false)}
-          onBlank={(name) => post({ name: name === 'Your site' ? 'Untitled mix' : name })}
+          onBlank={(name) => post({ name: name === 'Your site' ? 'Untitled site' : name })}
           onStarter={startStarter}
           onImport={() => (setGuided(false), importFile())}
           onDone={saveStart}
@@ -274,7 +274,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
       <main inert={guided} className="mx-auto max-w-6xl px-6 pb-24 pt-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-[30px] font-bold tracking-tight text-[#17121A]">Your mixes</h1>
+            <h1 className="text-[30px] font-bold tracking-tight text-[#17121A]">Your sites</h1>
             {billing && <BillingLine billing={billing} />}
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -284,18 +284,18 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Find a mix"
-                aria-label="Find a mix"
+                placeholder="Find a site"
+                aria-label="Find a site"
                 className="h-full min-w-0 flex-1 bg-transparent text-[13.5px] text-zinc-900 outline-none placeholder:text-zinc-400"
               />
             </label>
             <Dropdown
-              label="Sort mixes" value={sort} onChange={setSort}
+              label="Sort sites" value={sort} onChange={setSort}
               options={(Object.keys(SORTS) as Sort[]).map((v) => ({ v, label: SORTS[v].label }))}
               className="h-10 rounded-full px-4"
             />
             <Dropdown label="Bring into Blokmix" disabled={moving} lead={<Upload size={15}/>}
-              options={[{v:'file',label:'Choose a mix or AI return file'},{v:'prompt',label:'Copy instructions for my AI'}]}
+              options={[{v:'file',label:'Choose a site or AI return file'},{v:'prompt',label:'Copy instructions for my AI'}]}
               onChange={async action=>{
                 if(action==='file') return importFile()
                 try {
@@ -316,7 +316,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
           </p>
         )}
 
-        {query && !shown.length && <p className="mt-8 text-[14px] text-[#6B5F68]">No mixes match “{query}”.</p>}
+        {query && !shown.length && <p className="mt-8 text-[14px] text-[#6B5F68]">No sites match “{query}”.</p>}
 
         <ul className={GRID}>
           {!query && (
@@ -370,7 +370,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
                     onClick={() => void saveLocal()}
                     className="btn-quiet flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold disabled:opacity-50"
                   >
-                    <CloudUpload size={14} /> {moving ? 'Saving…' : 'Save to your mixes'}
+                    <CloudUpload size={14} /> {moving ? 'Saving…' : 'Save to your sites'}
                   </button>
                 </Card>
               </li>
@@ -425,14 +425,14 @@ const CARD =
 function NewMix({ onOpen }: { onOpen: (event: MouseEvent<HTMLButtonElement>) => void }) {
   return (
     <div className="group/new relative grid h-full min-h-[260px] w-full place-items-center rounded-[22px] border-2 border-dashed border-zinc-200 transition-[border-color,background-color] duration-200 hover:border-zinc-400 hover:bg-white/60">
-      <button type="button" onClick={onOpen} aria-label="New mix" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
+      <button type="button" onClick={onOpen} aria-label="New site" className="absolute inset-0 cursor-pointer rounded-[20px] transition-[scale] duration-200 active:scale-[0.99]" />
       <span className="pointer-events-none grid justify-items-center gap-4">
         <span className="relative block size-[64px]">
           <BlockSlot size={64} className="left-0 top-0" />
           <LiftedBlock size={64} className="left-[6px] top-[-14px] transition-transform duration-300 group-hover/new:-translate-y-1 group-hover/new:rotate-[-4deg]" />
         </span>
         <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#17121A]">
-          <Plus size={16} strokeWidth={2.4} /> New mix
+          <Plus size={16} strokeWidth={2.4} /> New site
         </span>
       </span>
     </div>
@@ -477,7 +477,7 @@ function MixCard({ mix: m, onDelete, onDuplicate, onArchive }: { mix: SavedMix; 
           </button>
         )}
         {onDelete && (
-          <button type="button" title="Delete this mix" aria-label={`Delete ${m.name}`} onClick={onDelete} className={CARD_BUTTON + ' hover:text-red-600'}>
+          <button type="button" title="Delete this site" aria-label={`Delete ${m.name}`} onClick={onDelete} className={CARD_BUTTON + ' hover:text-red-600'}>
             <Trash2 size={15} />
           </button>
         )}
@@ -591,7 +591,7 @@ function Name({ id, name }: { id: string; name: string }) {
       ref={input}
       value={value}
       maxLength={120}
-      aria-label="Mix name"
+      aria-label="Site name"
       onChange={(e) => setValue(e.target.value)}
       onBlur={() => void save()}
       onKeyDown={(e) => {
@@ -627,7 +627,7 @@ function BillingLine({ billing }: { billing: Billing }) {
   const link = 'cursor-pointer font-semibold text-[#C2185B] underline-offset-2 hover:underline'
   return (
     <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-[13px] text-[#6B5F68]">
-      <span className="font-semibold text-[#17121A]">{billing.ships ? 'Free to make, and every mix you own ships free.' : `Free to make. $${price} a site when you ship it.`}</span>
+      <span className="font-semibold text-[#17121A]">{billing.ships ? 'Free to make, and every site you own ships free.' : `Free to make. $${price} a site when you ship it.`}</span>
       <span>· {used}</span>
       {billing.receipts && (
         <a href="/api/billing/receipts" className={link}>

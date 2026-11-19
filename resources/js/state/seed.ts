@@ -33,7 +33,7 @@ export function buildSeed(lib: Library): MixData {
   const { site, guide } = buildStarter(lib, {
     id: 'seed',
     name: 'Blokmix launch page',
-    description: 'The demo mix',
+    description: 'The demo site',
     skin: 'wireframe',
     pages: [
       { path: '/', title: 'Home', sections: pick(SEED_PICKS), slotPrefix: 'slot_seed' },
@@ -67,7 +67,7 @@ export function buildSeed(lib: Library): MixData {
 }
 
 /** A new mix: one empty Home page, no style guide yet, plain starter words (never Blokmix's own demo copy). */
-export function blankMix(name = 'Untitled mix'): MixData {
+export function blankMix(name = 'Untitled site'): MixData {
   const wireframe = skinById(WIREFRAME)
   return {
     mixName: name,

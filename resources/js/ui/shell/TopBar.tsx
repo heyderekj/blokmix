@@ -124,7 +124,7 @@ function BrandIsland({ onHelp }: { onHelp: () => void }) {
 async function bringBack() {
   const res = await api<{ message?: string }>('POST', `/api/mixes/${openMixId()}/unarchive`)
   if (res.status === 200) window.location.reload()
-  else useStore.getState().showFlash(res.body?.message ?? 'Couldn’t bring this mix back.')
+  else useStore.getState().showFlash(res.body?.message ?? 'Couldn’t bring this site back.')
 }
 
 /** Save version (or, for viewers or an archived mix, a note that they can only look). `short` for the compact bar. */
@@ -133,7 +133,7 @@ function SaveButton({ short }: { short?: boolean }) {
   const { archived, owns } = useAccount()
   if (archived)
     return (
-      <span className="ml-0.5 flex h-8 items-center gap-1 rounded-full bg-zinc-950/5 pl-3 pr-1 text-[12.5px] font-semibold text-zinc-600" title="Archived mixes are kept as they are and don’t take one of your mixes">
+      <span className="ml-0.5 flex h-8 items-center gap-1 rounded-full bg-zinc-950/5 pl-3 pr-1 text-[12.5px] font-semibold text-zinc-600" title="Archived sites are kept as they are and don’t take one of your sites">
         <Archive size={14} /> Archived
         {owns ? (
           <button type="button" onClick={() => void bringBack()} className="ml-1 h-6 cursor-pointer rounded-full bg-white px-2.5 text-[12px] font-semibold text-zinc-800 shadow-sm ring-1 ring-zinc-950/10 transition-[scale] duration-150 active:scale-[0.97]">
@@ -284,15 +284,15 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         {isHosted() && (
           <>
-            <MenuItem icon={LayoutGrid} label="All mixes" onClick={() => (st().setUi({ sheet: 'none' }), router.visit('/mixes'))} />
+            <MenuItem icon={LayoutGrid} label="All sites" onClick={() => (st().setUi({ sheet: 'none' }), router.visit('/mixes'))} />
             <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
           </>
         )}
-        <MenuItem icon={Download} label="Download a copy of this mix" onClick={() => (st().setUi({ sheet: 'none' }), downloadMix())} />
+        <MenuItem icon={Download} label="Download a copy of this site" onClick={() => (st().setUi({ sheet: 'none' }), downloadMix())} />
         {recoveries.length > 0 && (
           <div className="max-h-44 overflow-auto px-2.5 py-2">
             <p className="text-[12px] font-semibold">Unsent edits</p>
-            <p className="mb-1 text-[12px] text-zinc-500">Download a copy and import it from All mixes.</p>
+            <p className="mb-1 text-[12px] text-zinc-500">Download a copy and import it from All sites.</p>
             {recoveries.map(({ id, at, state }) => (
               <div key={id} className="flex items-center gap-1">
                 <MenuItem icon={Download} label={new Date(at).toLocaleString()} onClick={() => downloadMix({ ...state, mixName: `${state.mixName} recovery` })} />
@@ -306,7 +306,7 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
         {!isHosted() && (
           <MenuItem
             icon={Upload}
-            label="Import a mix file…"
+            label="Import a site file…"
             onClick={importLocalMix}
           />
         )}
@@ -330,16 +330,16 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
             onHelp()
           }}
         />
-        {(!isHosted() || openMixId() === 'local') && <MenuItem icon={Sparkles} label="Start a new mix" onClick={() => {
+        {(!isHosted() || openMixId() === 'local') && <MenuItem icon={Sparkles} label="Start a new site" onClick={() => {
           st().setUi({ sheet: 'none' })
           useStartFlow.setState({ open: true })
         }} />}
         <MenuItem
           icon={RotateCcw}
-          label="Reset the demo mix"
+          label="Reset the demo site"
           onClick={() => {
             st().resetDemo()
-            st().showFlash('Demo mix reset', { undo: true })
+            st().showFlash('Demo site reset', { undo: true })
           }}
         />
         </div>
@@ -355,7 +355,7 @@ function AgentAccess() {
     <div className="flex items-start gap-2.5 rounded-xl px-2.5 py-2">
       <Bot size={16} className="mt-0.5 shrink-0 text-agent" />
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-medium text-zinc-800">Let agents edit this mix</div>
+        <div className="text-[13px] font-medium text-zinc-800">Let agents edit this site</div>
         <div className="text-[11.5px] leading-snug text-zinc-500">
           {!on
             ? 'Claude Code, Cursor, Codex or any MCP agent can do what you can.'
@@ -364,7 +364,7 @@ function AgentAccess() {
               : 'Waiting for the bridge: run npm run mcp, or add it to your agent.'}
         </div>
       </div>
-      <Switch on={on} onChange={() => useStore.getState().setUi({ agentAccess: !on })} label="Let agents edit this mix" />
+      <Switch on={on} onChange={() => useStore.getState().setUi({ agentAccess: !on })} label="Let agents edit this site" />
     </div>
   )
 }
@@ -425,7 +425,7 @@ function ShipIsland() {
             <button
               type="button"
               onClick={() => toggleSheet('share')}
-              title="Who's here, and share this mix"
+              title="Who's here, and share this site"
               aria-expanded={sheet === 'share'}
               className={`flex h-8 cursor-pointer items-center gap-2 rounded-full pl-1 pr-3 text-[13px] font-medium transition-[background-color,color,box-shadow,scale] duration-150 active:scale-[0.97] ${
                 sheet === 'share' ? 'bg-zinc-900 text-white' : 'text-zinc-800 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] hover:bg-zinc-950/5'
@@ -500,7 +500,7 @@ function MixName({ value, onChange }: { value: string; onChange: (v: string) => 
       }}
       className="rounded-lg bg-transparent px-1.5 py-1 text-[14px] font-medium text-zinc-500 outline-none transition hover:bg-zinc-950/5 focus:bg-zinc-950/5 focus:text-zinc-900"
       style={{ fieldSizing: 'content', minWidth: 60, maxWidth: 220 } as React.CSSProperties}
-      aria-label="Mix name"
+      aria-label="Site name"
     />
   )
 }
@@ -609,10 +609,10 @@ export function importLocalMix() {
   pickFile('.json,application/json', async (f) => {
     try {
       const file = await readMixFile(f)
-      if (file.clips?.length) return st().showFlash('This mix uses captured clips, which need an account: import it on your Blokmix mixes page.')
+      if (file.clips?.length) return st().showFlash('This site uses captured clips, which need an account: import it on your Blokmix sites page.')
       const ok = await confirmAction({
-        title: `Replace this mix with “${file.name}”?`,
-        body: 'The mix in this browser is replaced. Export it first if you want to keep it.',
+        title: `Replace this site with “${file.name}”?`,
+        body: 'The site in this browser is replaced. Export it first if you want to keep it.',
         confirm: 'Replace',
         tone: 'caution',
       })

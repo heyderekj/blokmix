@@ -197,7 +197,7 @@ class SitesTest extends TestCase
 
         $this->actingAs($owner)->upload($mix, 'img_aaaa1111', 700)->assertCreated();
         // The editor's upload goes over the owner's 1 MB.
-        $this->actingAs($editor)->upload($mix, 'img_bbbb2222', 400)->assertForbidden()->assertJsonPath('message', 'This mix’s owner is out of room for images and video. It stays in this browser.');
+        $this->actingAs($editor)->upload($mix, 'img_bbbb2222', 400)->assertForbidden()->assertJsonPath('message', 'This site’s owner is out of room for images and video. It stays in this browser.');
         // Replacing an upload only counts the difference.
         $this->actingAs($owner)->upload($mix, 'img_aaaa1111', 900)->assertCreated();
         $this->actingAs($owner)->upload($mix, 'img_cccc3333', 200)->assertForbidden()->assertJsonPath('message', 'That would go over your 1 MB of images and video. It stays in this browser.');

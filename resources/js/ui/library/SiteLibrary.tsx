@@ -98,7 +98,7 @@ function Unavailable() {
           <Globe size={28} className="mx-auto mb-3 text-zinc-400" />
           <h2 className="text-[17px] font-semibold text-zinc-900">The site library lives in your Blokmix account</h2>
           <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500 [text-wrap:pretty]">
-            Real sites, split into sections and matched to Blokmix layouts. Sign in at blokmix.com to browse them and clip sections into your mixes.
+            Real sites, split into sections and matched to Blokmix layouts. Sign in at blokmix.com to browse them and clip sections into your sites.
           </p>
         </div>
       </div>

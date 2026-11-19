@@ -96,7 +96,7 @@ class MixApiController extends Controller
         if (! empty($input['drafts']['put'])) {
             $keys = $mix->drafts()->pluck('key')->merge(array_map('strval', array_keys($input['drafts']['put'])))->unique()
                 ->diff($input['drafts']['remove'] ?? []);
-            abort_if($keys->count() > Mix::MAX_DRAFTS, 422, 'A mix holds up to '.Mix::MAX_DRAFTS.' drafts.');
+            abort_if($keys->count() > Mix::MAX_DRAFTS, 422, 'A site holds up to '.Mix::MAX_DRAFTS.' drafts.');
         }
 
         $saved = DB::transaction(function () use ($mix, $lock, $input) {
@@ -129,7 +129,7 @@ class MixApiController extends Controller
 
         $mix->refresh()->load('versions', 'drafts');
         if (! $saved) {
-            return $this->withLock(response()->json(['message' => 'This mix changed since you last read it.', 'mix' => $mix->toBoard()], 412), $mix->lock_version);
+            return $this->withLock(response()->json(['message' => 'This site changed since you last read it.', 'mix' => $mix->toBoard()], 412), $mix->lock_version);
         }
 
         return $this->withLock(response()->json(['lock' => $mix->lock_version, 'updated_at' => $mix->updated_at]), $mix->lock_version);
@@ -143,9 +143,9 @@ class MixApiController extends Controller
     {
         $role = $mix->roleOf($request->user());
         abort_unless($role, 404);
-        abort_unless($role->canEdit(), 403, 'Viewers can’t rename a mix.');
+        abort_unless($role->canEdit(), 403, 'Viewers can’t rename a site.');
         $name = trim($request->validate(['name' => ['required', 'string', 'max:120']])['name']);
-        abort_if($name === '', 422, 'Give the mix a name.');
+        abort_if($name === '', 422, 'Give the site a name.');
         Mix::whereKey($mix->id)->update(['name' => $name, 'updated_at' => now()]);
 
         return response()->json(['name' => $name]);
@@ -197,7 +197,7 @@ class MixApiController extends Controller
     public function archive(Request $request, Mix $mix): JsonResponse
     {
         abort_unless($mix->roleOf($request->user()), 404);
-        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can archive a mix.');
+        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can archive a site.');
         if (! $mix->isArchived()) {
             Mix::whereKey($mix->id)->update(['archived_at' => now()]);
         }
@@ -209,7 +209,7 @@ class MixApiController extends Controller
     public function unarchive(Request $request, Mix $mix): JsonResponse
     {
         abort_unless($mix->roleOf($request->user()), 404);
-        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can bring a mix back.');
+        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can bring a site back.');
         if ($mix->isArchived()) {
             Mix::whereKey($mix->id)->update(['archived_at' => null]);
         }
@@ -220,7 +220,7 @@ class MixApiController extends Controller
     public function destroy(Request $request, Mix $mix): JsonResponse
     {
         abort_unless($mix->roleOf($request->user()), 404);
-        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can delete a mix.');
+        abort_unless($request->user()->can('delete', $mix), 403, 'Only the owner can delete a site.');
         $mix->delete();
 
         return response()->json(null, 204);
@@ -233,6 +233,6 @@ class MixApiController extends Controller
 
     private function guardSize(Request $request): void
     {
-        abort_if(strlen($request->getContent()) > self::MAX_BYTES, 413, 'This mix is too big to save in one go.');
+        abort_if(strlen($request->getContent()) > self::MAX_BYTES, 413, 'This site is too big to save in one go.');
     }
 }

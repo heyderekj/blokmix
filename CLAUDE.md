@@ -55,8 +55,8 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
 - Captured clips (`clips`, `ClipController`, `lib/userClips.ts`): the extension's zip, added from the Crate, linted
   in the browser, saved to your account. You get yours and those of people you share mixes with; they join the
   library (`core/library.ts` `extendLibrary`) before the board opens a mix.
-- Drafts (`core/drafts.ts`, `state/slices/drafts.ts`): a mix holds a few, side by side, each one you can work on. "Mix"
-  on screen means only the project. The open draft's body is the mix's top-level site, guide, content and contract, so
+- Drafts (`core/drafts.ts`, `state/slices/drafts.ts`): a mix (a site, on screen) holds a few, side by side, each one you
+  can work on. The open draft's body is the mix's top-level site, guide, content and contract, so
   every action edits it; the others keep a `body` until opened (`switchDraft`, one undo step; the site's name, logo and
   brief are shared and follow you). A guided start makes three (A, B, C; `mixFromStart`); a mix saved before drafts opens
   as one, "Draft A", holding every version (`draftsFromLegacy`, run by the store's `merge`). Saved versions belong to a
@@ -182,13 +182,18 @@ and widths between (`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `
 first screen holds up (after Shu Ding's "The Calculus of Interfaces"). Under the first questions, "Or start from": a
 starter, a saved style guide (hosted), a blank page, a mix file (`ui/start/StartFrom.tsx`). Hosted, a start posts to
 `POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, `sections`, `format`, `industry`,
-`goals`, `main_action` and `who`). The flash says how many spots still hold sample words.
+`goals`, `main_action` and `who`). A start lands on the page alone, no panel open (`ui/shell/landOnPage.ts`): a few quiet hints
+above the dock (`ui/shell/NextSteps.tsx`, pure `core/nextSteps.ts`, `ui.nextSteps` per device) say what to try next (your words, another
+opener, a look), each with one plain line of why (the first screen's measured miss when there is one), and retire once done or
+dismissed.
 
 ## Skins and the contract
 
-On screen (`docs/simple-vision.md`, the brand guide's B3): Your mix (not working mix), Design (the panel; `look` in code), Content (your words; `words` in code), Themes (skins),
+On screen (`docs/simple-vision.md`, the brand guide's B3): the project is a Site (Your sites, New site; `mix` stays in code, routes and
+the file format), it holds Drafts, and Mix is only the verb (Space and the dock's dice, `shuffle` in code; a mixed theme). `tests/site-words.test.ts`
+polices it. Then: Design (the panel; `look` in code), Content (your words; `words` in code), Themes (skins),
 Rules for your agent (the contract), Style guide (every value, behind Look), Options (candidates), Crate (the clips drawer), Original / Your style, Export (code) vs Download a copy
-(the mix file), Notes (not marks). Word tags read Your words · Placeholder · Original · Saved. No "packet", "tokens" or
+(the site file), Notes (not marks). Word tags read Your words · Placeholder · Original · Saved. No "packet", "tokens" or
 "slot" in anything a person reads.
 
 Layouts are the bones; a skin is the whole look over them (`core/skins.ts`, `samples/skins/<id>.json`, `data/skins.ts`): tokens,
@@ -200,7 +205,7 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
 pass AA and load its fonts (`tests/skins.test.ts`). Surprise me (`surpriseMe`) mixes
-skins: areas come whole from other skins; on screen it's "Mashup" (so "mix" only ever means the project), drawn before it lands.
+skins: areas come whole from other skins; on screen it's a "Mixed theme" (Mix again), drawn before it lands.
 Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers: How should it feel?
 (`core/feel.ts` `FEEL_WORDS`, stored in `content.brief.feel`) ranks the resolved themes for the mix's industry, format,
 brand and feel. The catalog has 15 finished themes plus Wireframe and eight industry variants. The guided start

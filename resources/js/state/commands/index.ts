@@ -71,13 +71,13 @@ function run(name: string, raw: unknown, by: Caller, pagePreview?: { plan: PageP
     if (refusal) throw new CommandError(refusal)
     // A locked section is hands off for agents too, apart from leaving marks on it.
     if (input.section !== undefined && !MARKS.has(name) && findSection(input.section as string | number, input.page as string | undefined).locked) {
-      throw new CommandError(`This section is locked, so ${name} can’t change it. Leave a note, or ask whoever owns this mix to unlock it.`)
+      throw new CommandError(`This section is locked, so ${name} can’t change it. Leave a note, or ask whoever owns this site to unlock it.`)
     }
   }
   if (cmd.write && useAccount.getState().archived && !MARKS.has(name))
-    throw new CommandError(`This mix is archived: you can leave marks (${[...MARKS].join(', ')}), not ${name}. Its owner can bring it back from the mixes page or the top bar.`)
+    throw new CommandError(`This site is archived: you can leave marks (${[...MARKS].join(', ')}), not ${name}. Its owner can bring it back from the sites page or the top bar.`)
   if (cmd.write && !canEdit(useAccount.getState().role) && !MARKS.has(name))
-    throw new CommandError(`You can view this mix and leave marks (${[...MARKS].join(', ')}), not ${name}. Ask its owner to make you an editor.`)
+    throw new CommandError(`You can view this site and leave marks (${[...MARKS].join(', ')}), not ${name}. Ask its owner to make you an editor.`)
   if (pagePreview && name === 'page_from_words') {
     const apply = () => jev.later.page_from_words.apply(input as CommandInput<'page_from_words'>, pagePreview.plan, pagePreview.layouts)
     return asOneStep(name, input, by, apply)

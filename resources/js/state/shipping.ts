@@ -26,5 +26,5 @@ export function canShip(what: string): boolean {
 export function shipRefusal(): string | null {
   if (ships()) return null
   const { price } = useAccount.getState()
-  return `This mix isn’t paid for yet, so it can’t be exported or built. Making it is free; shipping it is $${price} a site, once. Someone who can edit it pays from Export on the board, and then every version and export of it is free.`
+  return `This site isn’t paid for yet, so it can’t be exported or built. Making it is free; shipping it is $${price} a site, once. Someone who can edit it pays from Export on the board, and then every version and export of it is free.`
 }

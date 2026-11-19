@@ -18,7 +18,7 @@ import { FIELD_SCHEMA } from '@/core/content'
 
 function editable() {
   const account = useAccount.getState()
-  if (!canEdit(account.role) || account.archived) throw Error('This mix is read-only.')
+  if (!canEdit(account.role) || account.archived) throw Error('This site is read-only.')
 }
 
 /** Bind a submission to the saved snapshot it was built against, regardless of which draft is open. */
@@ -64,7 +64,7 @@ export function stageReturn(raw: unknown, allowUnbased = false) {
   const bundle = parsed.data
   if (JSON.stringify(bundle).length > 60000) throw Error('A return can contain up to 60,000 characters.')
   const st = useStore.getState()
-  if (bundle.mix && bundle.mix !== openMixId()) throw Error('This return belongs to another mix.')
+  if (bundle.mix && bundle.mix !== openMixId()) throw Error('This return belongs to another site.')
   if (bundle.base && !bundle.mix && openMixId() !== 'local' && allowUnbased) throw Error('Include the originating mix ID from the handoff.')
   if (!bundle.base && allowUnbased) {
     const previous = Object.values(st.versions).find((v) => v.returns?.some((r) => r.bundle.id === bundle.id))
@@ -74,7 +74,7 @@ export function stageReturn(raw: unknown, allowUnbased = false) {
     return stageReturn(bundle)
   }
   const base = bundle.base && Object.hasOwn(st.versions, bundle.base) ? st.versions[bundle.base] : null
-  if (!base || base.kind !== 'snapshot') throw Error('Open the mix containing the original version.')
+  if (!base || base.kind !== 'snapshot') throw Error('Open the site containing the original version.')
   if (bundle.draft && bundle.draft !== base.draftId) throw Error('This return belongs to another draft.')
   const old = base.returns?.find((r) => r.bundle.id === bundle.id)
   if (old) {
@@ -292,7 +292,7 @@ export async function sendChanges() {
       version: v.id,
       packet: JSON.stringify(packet),
     })
-    if (res.status !== 201) throw Error(res.body?.message ?? 'Save the mix and try sending again.')
+    if (res.status !== 201) throw Error(res.body?.message ?? 'Save the site and try sending again.')
     id = res.body.id
   }
   if (openMixId() !== mix || !useStore.getState().versions[v.id]) throw Error('Reopen the original mix to continue.')

@@ -60,7 +60,7 @@ export function CollectionMenu({ slot, list, onClose }: { slot: Slot; list: Bloc
   return (
     <div className="glass-menu w-[300px] animate-pop rounded-2xl p-2">
       <div className="px-1 pb-1.5 text-[12px] font-semibold text-zinc-900">Make a collection from these items</div>
-      <p className="px-1 pb-2 text-[11.5px] leading-snug text-zinc-500">Their fields become its fields and their words its entries, shared by all your mixes.</p>
+      <p className="px-1 pb-2 text-[11.5px] leading-snug text-zinc-500">Their fields become its fields and their words its entries, shared by all your sites.</p>
       <div className="flex gap-1.5">
         <input
           value={name}
