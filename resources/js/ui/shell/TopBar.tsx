@@ -30,6 +30,9 @@ import { Wordmark } from '../brand/Wordmark'
 import { BrandIcon } from '../brand/BrandIcon'
 import { SaveState } from './SaveState'
 
+/** The one place people read who suggests things: Jev ranks and places, the reader reads what you wrote. */
+const CREDIT = 'Suggestions by Jev (TypeSafe) and Claude (Anthropic). They read, place and pick; they never write your words.'
+
 export const toggleSheet = (s: Sheet) => {
   const st = useStore.getState()
   st.setUi({ sheet: st.ui.sheet === s ? 'none' : s })
@@ -380,7 +383,7 @@ function JevHelp() {
       <div className="min-w-0 flex-1">
         <div className="text-[13px] font-medium text-zinc-800">Suggestions</div>
         <div className="text-[11.5px] leading-snug text-zinc-500">
-          {server === false ? 'Not available here.' : 'Suggestions by Jev (TypeSafe). It places and picks; it never writes your words.'}
+          {server === false ? 'Not available here.' : CREDIT}
         </div>
       </div>
       {server !== false && <Switch on={on} onChange={() => useStore.getState().setUi({ jev: !on })} label="Suggestions" />}

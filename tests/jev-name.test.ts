@@ -34,3 +34,21 @@ describe('Jev’s name', () => {
     expect(found).toEqual([])
   })
 })
+
+describe('the Suggestions credit', () => {
+  it('names Jev and the reader in one line, and says they never write', () => {
+    const src = readFileSync(join(ROOT, 'ui/shell/TopBar.tsx'), 'utf8')
+    expect(src).toContain("'Suggestions by Jev (TypeSafe) and Claude (Anthropic). They read, place and pick; they never write your words.'")
+  })
+
+  it('is the only place people read Anthropic’s name', () => {
+    const found: string[] = []
+    for (const f of files(ROOT)) {
+      const rel = f.slice(ROOT.length + 1)
+      if (rel === 'ui/shell/TopBar.tsx' || rel.startsWith('core/commands/schema/')) continue
+      const code = readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\s\/\/ .*$/gm, '')
+      for (const m of code.matchAll(/(['"`])((?:\\.|(?!\1)[^\\])*?)\1/g)) if (/\bAnthropic\b/.test(m[2])) found.push(`${rel}: ${m[2]}`)
+    }
+    expect(found).toEqual([])
+  })
+})

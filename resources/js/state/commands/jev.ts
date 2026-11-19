@@ -15,6 +15,8 @@ import { fitsFor, layoutTitle, readsAs } from '../wordsFit'
 import { retypeSection } from '../retype'
 import { measureFirstScreen } from '@/lib/measure'
 import { askJev, jevOffMessage, jevOn, setJevAllowed } from '@/lib/jev'
+import { askReader, readerOffMessage, readerOn, setReaderAllowed } from '@/lib/reader'
+import { mergeRead, type ReadStart } from '@/core/reader'
 import { useStore } from '../store'
 import { deadLinks, guessLinks } from '../jevLinks'
 import { findFocus } from '../jevPhotos'
@@ -34,6 +36,7 @@ import type { AsyncCommand } from './index'
 
 // This device's switch decides whether Jev may help ("Let Jev help" in the menu).
 setJevAllowed(() => useStore.getState().ui.jev !== false)
+setReaderAllowed(() => useStore.getState().ui.jev !== false)
 
 async function needJev() {
   if (!(await jevOn())) throw new CommandError(await jevOffMessage())
@@ -233,6 +236,22 @@ export const later = {
     },
     apply: (_i: CommandInput<'suggest_treatments'>, ideas: DressIdea[]) => ideas.map((d) => ({ does: d.label, command: d.command, input: d.input, fit: Math.round(d.fit * 100) / 100 })),
   } satisfies AsyncCommand<DressIdea[]>,
+  read_start: {
+    prepare: async (i: CommandInput<'read_start'>): Promise<ReadStart> => {
+      if (!(await readerOn())) throw new CommandError(await readerOffMessage())
+      const read = await askReader('start', i.text)
+      if (!read) throw new CommandError('No answer that time; nothing was read. Try again.')
+      return read
+    },
+    apply: (_i: CommandInput<'read_start'>, read: ReadStart) => {
+      const m = mergeRead({}, read)
+      return {
+        read,
+        start: { kind: m.kind, sections: m.sections, brief: m.brief, pages: m.pages, tone: m.tone, avoid: m.avoid, avoid_words: m.avoidWords, unsure: m.unsure },
+        message: 'Read only: nothing on the board changed.',
+      }
+    },
+  } satisfies AsyncCommand<ReadStart>,
   understand: {
     prepare: (i: CommandInput<'understand'>) => hear(i.text),
     apply: (_i: CommandInput<'understand'>, h: Heard) => {
