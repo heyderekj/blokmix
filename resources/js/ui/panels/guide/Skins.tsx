@@ -1,17 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import type { GuideState, TokenSet } from '@/core/types'
-import { applySkin, themeList, refId, type Skin } from '@/core/skins'
+import { applySkin, themeList, type Skin } from '@/core/skins'
 import { emptyContract } from '@/core/contract'
 import { resolveGuide } from '@/core/guide'
 import { pageOf } from '@/core/site'
 import { useStore } from '@/state/store'
 import { SkinPreview } from '@/ui/skins/SkinPreview'
-import { SkinSpecimen } from '@/ui/skins/SkinSpecimen'
 import { runCommand } from '@/state/commands'
-import { themeReason } from '@/core/themeRanking'
-import { FontLinks } from './shared'
 
 const PRESS = 'cursor-pointer transition-[background-color,box-shadow,scale] duration-150 active:scale-[0.97]'
 
@@ -42,60 +39,6 @@ export function putSkin(skin: Skin) {
   st.showFlash(`${skin.name} is on`, { undo: true })
 }
 
-/** A theme drawn in its own look, with its name under it. Also used for a mix, which has no skin of its own. */
-export function SkinCard({ label, words, guide, here, onPick, suggested }: { label: string; words: string; guide: GuideState; suggested?: boolean; here: boolean; onPick: () => void }) {
-  const brand = useStore((s) => s.content.brand)
-  return (
-    <button
-      type="button"
-      onClick={onPick}
-      aria-pressed={here}
-      aria-label={`${label}: ${words}`}
-      title={words}
-      className="group/skin grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)] gap-1 rounded-[13px] text-left transition-[scale] duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent,#ff69b4)]"
-    >
-      <span className={`block min-w-0 rounded-[12px] transition-[box-shadow] duration-150 ${here ? 'shadow-[0_0_0_2px_var(--color-accent,#ff69b4)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.06)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/skin:shadow-[0_0_0_1px_rgb(0_0_0/0.18)]'}`}>
-        <SkinSpecimen guide={guide} name={brand?.trim() || 'Your site'} />
-      </span>
-      <span className="flex items-center justify-between gap-1 px-1 text-[11.5px] font-semibold text-zinc-800">
-        <span className="truncate">{label}</span>
-        {here && <Check size={12} className="shrink-0" />}
-      </span>
-      <span className="px-1 text-[11px] leading-snug text-zinc-600">{suggested && <strong>Suggested · </strong>}{words}</span>
-    </button>
-  )
-}
-
-/** Theme cards in a grid, with every theme's fonts loaded. */
-export function SkinGrid({ looks, cols = 2 }: { looks: SkinLook[]; cols?: 2 | 3 }) {
-  const on = useStore((s) => s.guide.skin)
-  return (
-    <>
-      <FontLinks tokens={looks.map((l) => l.tokens)} />
-      <div className={`grid gap-x-2 gap-y-2.5 ${cols === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-        {looks.map(({ skin, guide }) => (
-          <SkinCard key={skin.id} label={skin.name} words={themeReason(guide)} guide={guide} here={refId(on) === skin.id} onPick={() => putSkin(skin)} />
-        ))}
-      </div>
-    </>
-  )
-}
-
-/** Every theme, and a way to see this page under each of them side by side. */
-export function AllThemes() {
-  const looks = useSkinLooks()
-  const [comparing, setComparing] = useState(false)
-  return (
-    <div className="grid gap-2">
-      <SkinGrid looks={looks} />
-      <button type="button" onClick={() => setComparing(true)} className={`h-8 w-full rounded-full text-[11.5px] font-semibold text-zinc-600 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-zinc-950/5 ${PRESS}`}>
-        Compare on this page
-      </button>
-      {comparing && <Compare onClose={() => setComparing(false)} onPick={(s) => { putSkin(s); setComparing(false) }} />}
-    </div>
-  )
-}
-
 /** This page under every skin, side by side, as a swap would really leave it. */
 function LazyPreview(props: Parameters<typeof SkinPreview>[0]) {
   const el = useRef<HTMLDivElement>(null)
@@ -111,7 +54,7 @@ function LazyPreview(props: Parameters<typeof SkinPreview>[0]) {
   return <div ref={el} style={{height: props.height}}>{visible && <SkinPreview {...props} />}</div>
 }
 
-function Compare({ onClose, onPick }: { onClose: () => void; onPick: (s: Skin) => void }) {
+export function Compare({ onClose, onPick }: { onClose: () => void; onPick: (s: Skin) => void }) {
   const site = useStore((s) => s.site)
   const pageId = useStore((s) => s.ui.pageId)
   const guide = useStore((s) => s.guide)

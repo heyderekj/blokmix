@@ -31,6 +31,25 @@ interface Props {
   } | null
 }
 
+/** The longest a section waits for its turn in a wave: the one at the bottom of the screen and below. */
+const WAVE_MS = 240
+let waveAt = -Infinity
+let steady = false
+/**
+ * How long this frame waits before showing a new look. Every frame's change in one render is one wave; a change that
+ * follows another within a fifth of a second (a dial or a matrix being dragged) is steady and lands at once everywhere.
+ */
+function waveDelay(el: HTMLElement | null): number {
+  const now = performance.now()
+  if (now - waveAt > 16) {
+    steady = now - waveAt < 200
+    waveAt = now
+  }
+  if (steady || !el) return 0
+  const top = el.getBoundingClientRect().top
+  return Math.round(Math.min(1, Math.max(0, top / window.innerHeight)) * WAVE_MS)
+}
+
 /**
  * A clip rendered at a real viewport width inside a sandboxed iframe. The srcdoc
  * is built once per clip + width; every later change goes over postMessage so the
@@ -119,9 +138,19 @@ export const ClipFrame = memo(function ClipFrame({ clip, width, state, replayKey
     postState(ref.current?.contentWindow, Object.keys(blobs).length ? { ...s, blobs } : s)
   }
 
+  // A new look lands top to bottom, section by section (a wave by where each frame sits on screen), so a theme change
+  // reads as one intentional sweep. Words, lists and live drags go straight through.
+  const lastCss = useRef(state.css)
   useEffect(() => {
-    const id = requestAnimationFrame(push)
-    return () => cancelAnimationFrame(id)
+    const look = state.css !== lastCss.current
+    lastCss.current = state.css
+    const delay = look ? waveDelay(ref.current) : 0
+    let id = 0
+    const t = window.setTimeout(() => (id = requestAnimationFrame(push)), delay)
+    return () => {
+      clearTimeout(t)
+      cancelAnimationFrame(id)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.css, state.motion, state.fields, state.fonts, state.outline, state.slider, state.blocks, state.media, state.backdrop, state.icons, state.lists, state.links])
 
