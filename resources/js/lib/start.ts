@@ -1,5 +1,6 @@
 import { library } from '@/data/library'
 import { startCandidates, type StartCandidate, type StartInput } from '@/core/start'
+import { startVersions, type StartVersion, type VersionOptions } from '@/core/startVersions'
 import { scorePage, SCREENS, SWEEP, type PageMeasure, type PageScore } from '@/core/score'
 import { DRAFT_WORD, type Draft } from '@/core/drafts'
 import type { MixData } from '@/state/store'
@@ -28,6 +29,13 @@ export async function scoredStarts(input: StartInput): Promise<ScoredStart[]> {
   // Starts queue up at each width's frame, so they can all be asked for at once.
   const scored: ScoredStart[] = await Promise.all(candidates.map(async (c) => ({ ...c, score: await scoreStart(c) })))
   return scored.map((c, i) => ({ c, i })).sort((a, b) => b.c.score.score - a.c.score.score || a.i - b.i).map(({ c }) => c)
+}
+
+export type ScoredVersion = StartVersion & { score: PageScore }
+
+/** The start's row of versions, each measured. They keep their order: the row never reshuffles once it's shown. */
+export async function scoredVersions(input: StartInput, opts: VersionOptions = {}): Promise<ScoredVersion[]> {
+  return Promise.all(startVersions(input, library, opts).map(async (v) => ({ ...v, score: await scoreStart(v.start) })))
 }
 
 /** What the flash says once a start is on the board. The hints above the dock say what to try next. */

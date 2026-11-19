@@ -11,7 +11,7 @@ import { resolveGuide } from './guide'
 import { heroFamily } from './heroLayouts'
 import { pickable } from './library'
 import { partSource, skinById, swapThemeParts, themeList, type Skin, type ThemeParts } from './skins'
-import { contentFor, countShelves, fillPage, guideFor, RECIPES, siteFromPages, type StartCandidate, type StartInput } from './start'
+import { contentFor, countShelves, fillPage, guideFor, otherPages, RECIPES, siteFromPages, type StartCandidate, type StartInput } from './start'
 import { navForStart } from './startNav'
 import { leanOf, passedRefs, type Taste } from './taste'
 import { themeFit, themeReason } from './themeRanking'
@@ -128,7 +128,7 @@ export function directionStart(d: Direction, input: StartInput, lib: Library, va
   const seed = input.seed ?? 0
   const { home, about } = typesFor(input)
   const pages = [{ path: '/', title: 'Home', sections: directionPage(d, home, lib, seed, variant) }]
-  if (about) pages.push({ path: '/about', title: 'About', sections: fillPage(lib, about, variant, seed, undefined, prefsOf(d)) })
+  pages.push(...otherPages(input, about, lib, variant, seed, prefsOf(d)))
   const site = siteFromPages(lib, pages, `${d.id.replace(/[^a-z0-9]/gi, '')}_`)
   const content = contentFor(input)
   const placed = navForStart(site, content, lib)

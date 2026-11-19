@@ -48,7 +48,8 @@ the pages you didn't pick.
 
 ## Next
 
-1. **The start row** (after the start rewrite lands). Its row of whole-page versions asks `rankDirections` /
+1. **The start row** (built: `core/startVersions.ts`, `ui/start/Versions.tsx`; a line to type what to change and
+   removable leans are still to come). Its row of whole-page versions asks `rankDirections` /
    `directionStarts` instead of crossing themes with layouts. Each card gets "More like this" and "Not this"
    (`note_taste` with `ref`), the row a line to say what to change (`words`) and the "Leaning…" line with each lean
    removable (`drop_taste`). Mix re-rolls with the taste so far; pins are `pin`; "how odd" is `odd`. The start's

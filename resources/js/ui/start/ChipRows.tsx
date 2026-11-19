@@ -5,6 +5,7 @@ import { TYPE_LABEL } from '@/core/content'
 import { actionChoices, FORMAT_LABEL, FORMATS, GOAL_LABEL, GOALS, INDUSTRIES, INDUSTRY_LABEL, type Brief, type Goal } from '@/core/brief'
 import { OPTIONAL, placeSection } from '@/core/jev/describe'
 import { dropAvoid, setBrief, type StartState, type StartView } from '@/core/startFlow'
+import { PAGE_TEMPLATES, type PageTemplate } from '@/core/site'
 import { HOVER, PINK, PRESS } from './parts'
 
 export const CHIP = `inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold ${PRESS}`
@@ -15,7 +16,10 @@ const INPUT =
 /** Sections a start always has: the chips can't drop them. */
 const FIXED: SectionType[] = ['nav', 'hero', 'footer']
 
-type Row = 'kind' | 'goals' | 'action' | 'sections'
+type Row = 'kind' | 'goals' | 'action' | 'sections' | 'pages'
+
+/** Pages besides home you can ask for here (a blank one comes from your words). */
+const EXTRA: PageTemplate[] = ['about', 'contact', 'pricing', 'blog']
 
 /**
  * What the sentence (and any read of your words) understood, one row each, already filled in. A row's value changes in
@@ -89,6 +93,30 @@ export function ChipRows({ s, v, onChange, paste }: { s: StartState; v: StartVie
         onToggle={() => toggle('sections')}
       >
         <SectionChips sections={sections} onChange={(next) => onChange({ ...s, sections: next })} />
+      </ChipRow>
+
+      <ChipRow
+        label="Pages"
+        value={['Home', ...s.pages.map((p) => (p.template === 'blank' ? (p.purpose ?? 'Another page') : PAGE_TEMPLATES[p.template].title))].join(', ')}
+        from={s.from.includes('pages')}
+        open={open === 'pages'}
+        onToggle={() => toggle('pages')}
+      >
+        <Chips>
+          {EXTRA.map((t) => {
+            const on = s.pages.some((p) => p.template === t)
+            return (
+              <Chip key={t} on={on} onClick={() => onChange({ ...s, pages: on ? s.pages.filter((p) => p.template !== t) : [...s.pages, { template: t, purpose: null }] })}>
+                {PAGE_TEMPLATES[t].title}
+              </Chip>
+            )
+          })}
+          {s.pages.filter((p) => p.template === 'blank').map((p, i) => (
+            <Chip key={`blank${i}`} on onClick={() => onChange({ ...s, pages: s.pages.filter((x) => x !== p) })}>
+              {p.purpose ?? 'Another page'} <X size={12} />
+            </Chip>
+          ))}
+        </Chips>
       </ChipRow>
 
       <label className="flex min-w-0 items-center gap-3 rounded-xl bg-white/80 px-3.5 py-1.5 shadow-[0_0_0_1px_rgb(23_18_26/0.06)]">

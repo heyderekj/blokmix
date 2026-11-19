@@ -34,7 +34,7 @@ export interface HeardBrief {
   looks: string[]
 }
 
-export type StartStep = 'describe' | 'look' | 'drafts'
+export type StartStep = 'describe' | 'versions'
 
 export interface StartState {
   step: StartStep
@@ -191,6 +191,7 @@ export function applyRead(s: StartState, read: ReadStart | null, asked: Picks = 
     avoid: [...new Set([...s.avoid, ...m.avoid])],
     avoidWords: [...new Set([...s.avoidWords, ...m.avoidWords])],
     pages: m.pages.length ? m.pages : s.pages,
+    ...(m.pages.length ? { from: [...new Set([...s.from, ...m.from, ...(own ? [own.blank] : []), 'pages'])] } : {}),
     tone: m.tone ?? s.tone,
   }
 }

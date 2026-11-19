@@ -171,10 +171,16 @@ shape with spans of your text, `FEEL_SYNONYMS`, "not …" as avoid), so they nev
 can and marks it "From what you wrote", never a blank you set (`StartState.mine`) or changed while it read. The state is
 pure (`core/startFlow.ts`: `StartState`, `startView`, `setPicks`, `setBrief`, `applyRead`, `briefFrom`, `kindFrom`,
 `sectionsFrom`, `feelFrom`; trust runs keywords and your copy, then the sentence, then reads, then your chip changes). A map
-lands in Contact and a shop in Pricing; a schedule or events have no section yet and are noted (`noteWants`). Next picks a
-look (three themes that fit the feeling, steered away from what you said it shouldn't be: `rankThemes` `avoid`; "Show me
-different ones"; brand color and light/dark in one small row), then three ways to lay it out, measured, in that theme; the
-one you open is the site, on its own. "Skip, show me pages" goes straight there.
+lands in Contact and a shop in Pricing; a schedule or events have no section yet and are noted (`noteWants`). The Pages row
+adds pages from the page templates (a read's "an about page" lands there too; `StartInput.pages`, `otherPages`).
+"Show me versions" opens Pick a version (`ui/start/Versions.tsx`): four whole pages that differ in layout and look, each a
+direction (`core/startVersions.ts` `startVersions` over `rankDirections`/`directionStart`, see `docs/directions.md`) with its
+one line on what it is and why it works, and its first screen's measured verdict fading in (`scoreStart`; cards never
+reorder). The brief's own feel words and what to avoid lean the row (`briefTaste`). Mix spins a new row and records the
+row as passed; Keep layout / Keep look hold one half (`pin`, the kept card stays first, `layoutWords` when the look is
+held); 👍/👎 are "More like this" / "Not this"; "How unusual" is `odd`; brand color and light/dark sit there too. Your words
+pasted as copy give arrangements of them in looks that fit; a saved style guide varies the layouts only. Open one and the
+site starts with that page alone (`mixFromStart`); the pick and the rest go into `content.taste` (`picked`, `passed`).
 The answers are the brief (see The brief; `feelWords` and `avoid` are context only): `recipeFor` shapes the kind's page by
 format and goals, `contentFor` puts the main button's words in the buttons. Pasted words become a page from your words in
 three arrangements (`lib/startFromText.ts` `wordsCandidates`, the pure `state/jevPage.ts` `wordsPage`, a nav and footer from
@@ -186,8 +192,9 @@ layouts first. Its words come from `core/startWords.ts`: every field of every se
 and widths between (`lib/measure.ts` `measureFirstScreen`) and `core/score.ts` `scorePage` says in plain words how its
 first screen holds up (after Shu Ding's "The Calculus of Interfaces"). Under the description, "Start from": a
 starter, a saved style guide (hosted), a blank page, a mix file (`ui/start/StartFrom.tsx`). Hosted, a start posts to
-`POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, `sections`, `format`, `industry`,
-`goals`, `main_action` and `who`). A start lands on the page alone, no panel open (`ui/shell/landOnPage.ts`): a few quiet hints
+`POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, read as a description by the reader or keywords and
+as copy through Jev when it's a long paste, `sections`, `format`, `industry`, `goals`, `main_action`, `who`, `count` 2–6,
+`vary` layout (default) / look / both, `pages`, `feel` and `avoid`; `apply_start` takes `start` 1–6). A start lands on the page alone, no panel open (`ui/shell/landOnPage.ts`): a few quiet hints
 above the dock (`ui/shell/NextSteps.tsx`, pure `core/nextSteps.ts`, `ui.nextSteps` per device) say what to try next (your words, another
 opener, a look), each with one plain line of why (the first screen's measured miss when there is one), and retire once done or
 dismissed.
