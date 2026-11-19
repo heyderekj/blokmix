@@ -1,0 +1,35 @@
+{
+  "name": "CV",
+  "why": "Your name set like a book, what you've done in columns and your writing below: easy to read, easy to hire.",
+  "theme": "liner-notes",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "editorial"
+    ],
+    "content": [
+      "columns"
+    ],
+    "blog": [
+      "list"
+    ],
+    "contact": [
+      "band"
+    ],
+    "footer": [
+      "minimal"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "personal",
+    "writing"
+  ],
+  "formats": [
+    "portfolio",
+    "blog"
+  ],
+  "odd": 0
+}

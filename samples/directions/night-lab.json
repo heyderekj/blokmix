@@ -1,0 +1,37 @@
+{
+  "name": "Night lab",
+  "why": "A dark page with tiles that glow a little: it feels like something new without shouting.",
+  "theme": "deep-cut",
+  "layouts": {
+    "nav": [
+      "pill"
+    ],
+    "hero": [
+      "centered",
+      "bento"
+    ],
+    "features": [
+      "mosaic"
+    ],
+    "stats": [
+      "band"
+    ],
+    "cta": [
+      "band"
+    ],
+    "footer": [
+      "minimal"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "product"
+  ],
+  "industries": [
+    "ai"
+  ],
+  "formats": [
+    "landing"
+  ],
+  "odd": 1
+}

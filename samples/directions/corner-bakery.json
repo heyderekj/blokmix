@@ -1,0 +1,44 @@
+{
+  "name": "Corner bakery",
+  "why": "A big photo up top and the menu in plain rows: people want to see the food and find the door.",
+  "theme": "counter-service",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "backdrop",
+      "split"
+    ],
+    "features": [
+      "alternating",
+      "list"
+    ],
+    "gallery": [
+      "mosaic"
+    ],
+    "testimonials": [
+      "cards"
+    ],
+    "faq": [
+      "compact"
+    ],
+    "contact": [
+      "map"
+    ],
+    "footer": [
+      "centered"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "local"
+  ],
+  "industries": [
+    "food"
+  ],
+  "formats": [
+    "business"
+  ],
+  "odd": 0
+}

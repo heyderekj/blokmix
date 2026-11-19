@@ -1,0 +1,37 @@
+{
+  "name": "Field journal",
+  "why": "A picture, the numbers that matter and how you got here: a cause told like a story.",
+  "theme": "field-recording/field-journal",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "media-below"
+    ],
+    "stats": [
+      "highlight"
+    ],
+    "content": [
+      "timeline"
+    ],
+    "cta": [
+      "big"
+    ],
+    "footer": [
+      "newsletter"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "studio",
+    "writing"
+  ],
+  "industries": [
+    "nonprofit"
+  ],
+  "formats": [
+    "business"
+  ],
+  "odd": 0
+}

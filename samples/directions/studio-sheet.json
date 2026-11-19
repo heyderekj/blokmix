@@ -1,0 +1,40 @@
+{
+  "name": "Studio sheet",
+  "why": "Overlapping pictures, a wall of clients and the story of the work: a studio that's done this before.",
+  "theme": "studio",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "overlap"
+    ],
+    "logos": [
+      "wall"
+    ],
+    "features": [
+      "story"
+    ],
+    "testimonials": [
+      "quote"
+    ],
+    "contact": [
+      "split"
+    ],
+    "footer": [
+      "columns"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "studio"
+  ],
+  "industries": [
+    "agency",
+    "services"
+  ],
+  "formats": [
+    "business"
+  ],
+  "odd": 0
+}

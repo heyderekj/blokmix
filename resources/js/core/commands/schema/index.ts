@@ -18,8 +18,9 @@ import { LIBRARY_COMMANDS } from './library'
 import { START_COMMANDS } from './start'
 import { SKIN_COMMANDS } from './skins'
 import { JEV_COMMANDS } from './jev'
+import { DIRECTION_COMMANDS } from './directions'
 
-export const COMMANDS = { ...PAGE_COMMANDS, ...SITE_COMMANDS, ...BLOCK_COMMANDS, ...TREATMENT_COMMANDS, ...NOTE_COMMANDS, ...VERSION_COMMANDS, ...DRAFT_COMMANDS, ...COLLECTION_COMMANDS, ...LIBRARY_COMMANDS, ...START_COMMANDS, ...SKIN_COMMANDS, ...JEV_COMMANDS } as const
+export const COMMANDS = { ...PAGE_COMMANDS, ...SITE_COMMANDS, ...BLOCK_COMMANDS, ...TREATMENT_COMMANDS, ...NOTE_COMMANDS, ...VERSION_COMMANDS, ...DRAFT_COMMANDS, ...COLLECTION_COMMANDS, ...LIBRARY_COMMANDS, ...START_COMMANDS, ...SKIN_COMMANDS, ...DIRECTION_COMMANDS, ...JEV_COMMANDS } as const
 
 export type CommandName = keyof typeof COMMANDS
 export type CommandInput<N extends CommandName> = z.infer<(typeof COMMANDS)[N]['input']>
