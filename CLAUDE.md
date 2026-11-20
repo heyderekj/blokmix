@@ -431,7 +431,11 @@ source's tokens (light or dark), swap copy, and export cleanly to Astro and JSX.
    `core/content.ts`. Put every piece of real copy in a field so "your copy" replaces it fully.
    Decorative static text (labels like "01", "↗", "Fig. 1") must not mention the source brand.
    A duplicate of a field (e.g. the second half of a seamless marquee) uses `data-mx-mirror="<field>"`
-   so it follows the swapped copy too.
+   so it follows the swapped copy too. Every word a built-in layout shows is a field, the small ones too ("/ month" is
+   `t1Per`, "Popular" `t2Flag`, "Email" `emailTitle`); `lintBones` flags any that isn't (`wordsWithoutField`), apart from
+   screen-reader text, a nav's menu toggle and text marked `data-mx-static` (fixed on purpose, like a "New" tag). A block
+   added to a layout people may already have changed carries its own id (`data-mx-b="l1"`, `l2`…): it takes no number,
+   so every block after it keeps its id (`indexBlocks`, `stamp`; lint refuses a numbered-looking or repeated one).
 9. Siblings that need visual space between them get it from flex/grid `gap`, never from whitespace
    between inline elements (JSX drops it).
 10. Use typographic quotes (’ “ ”). Avoid `{` `}` in text unless inside `<pre>`/`<code>`.
@@ -543,15 +547,35 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
   `onPaint`/`onSettle` to follow it. Screen-sized chrome in world space reads `--zl` (written every frame) for transforms,
   outlines and shadows, and `--z` (written once the camera rests) for anything that takes layout: widths, heights,
   margins, container queries. Camera-only saves skip the mix's diff and write the view a second later (`sameMix`).
-- Selecting: one click picks the smallest block under the pointer, in any section (focusing it on the way); a click on a
-  section's empty space, its rail or Escape selects the section. Both bars hang below what they belong to, so it stays in
+- Selecting: one click picks the smallest block or group under the pointer, in any section (focusing it on the way); a
+  click on a section's empty space, its rail or Escape selects the section. A click on what's selected picks what's around
+  it, and clicking the same spot again keeps climbing (link, its item, the list, the section; after the double-click
+  window, so a double-click still edits words); the bar's name opens the whole path up to the section. A question or a
+  toggle (a `summary`, a `label`) only selects on its first click; once it (or something in it) is selected, a click works
+  it. The selection has a handle on its bottom edge (`ui/frames/SpaceHandle.tsx`): drag it for more or less space below, a
+  step on the spacing scale at a time (14px of drag a step, the step shows beside it), one undo step, Escape puts it back. Groups
+  (`core/blocks.ts` `groupName`) are read off the layout primitives, never marked: `.head` Header, `.actions` Buttons,
+  `.band` Panel, `.card` Card, `.about` About, `[data-nav-group]`, when not a block and holding two or more. `stamp`
+  writes `data-mx-group` and ids of their own (`g0`, `g1`…, so `b` ids never shift); `BlockInfo.group` is the nearest
+  group around a block, `upOf` walks groups and blocks, and `parent`/`children` still mean blocks only. A group takes
+  spacing, fill, motion and hiding like a card; exports give a changed one its class. Both bars hang below what they belong to, so it stays in
   view; the section bar holds still while you point at it (‹ › don't slide away as the height changes), and on anything
   taller than the screen both stop just above the dock (`ui/canvas/useBarFloor.ts`, which also reports how far a bar
   hangs below the last section so Add a section makes that much room). Both share one look (`ui/frames/bar.ts`). Esc
   closes the thing on top first (`useEscape` in `ui/shell/keys.ts`: a menu, a tab, the shortcuts sheet) and stops there;
-  Enter and Space press a focused button instead of saving or shuffling (`pressable`). The block bar is slim like the section bar (name with its
-  parents, ‹ Look ›, words, picture, link, item add/duplicate/remove, Style, note, ⋯); everything about how a block or a
-  section looks is in one Style panel at the window's side that follows the selection (`ui/panels/SelectionStyle.tsx`).
+  Enter and Space press a focused button instead of saving or shuffling (`pressable`). The block bar is slim like the section bar (its name, ‹ Look ›,
+  words, picture, link, then its quick options, item add/duplicate/remove, Style, note, ⋯; Add a blok is in ⋯ and A).
+  Quick options that need more than a click (color, size, alignment, shape, padding, gap) are one button each that opens
+  a small menu under the bar; columns step in place and a row's direction is one icon.
+  Quick options (`core/blocks/quick.ts` `quickOptions`, also in `get_options` as `quick`) are the few things you change
+  most for that kind, on the bar (`ui/blocks/QuickOptions.tsx`): a button's color and size; a heading's or text's size
+  and alignment; a picture's shape; a card's or item's fill, padding and alignment; a grid list's columns ("− 3 across +",
+  `columnsOf` reads the layout's own) and gap; a row of buttons side by side or stacked. `BlockStyle` `align`
+  (start/center/end; a group's row of buttons follows), `columns` (lists marked `.grid`, `BlockInfo.grid`: two at most on
+  tablets, one on phones) and `direction` are written by `layoutDecl`. The section itself, once you click its empty space,
+  shows its band dots, Width and Spacing on its bar. Everything else about how a block or a section looks is in one Style
+  panel at the window's side, opened on ask, that follows the selection (`ui/panels/SelectionStyle.tsx`); its rows
+  leave out what does nothing for a kind (`styleRows`: no fill on a list or a heading).
   ← → step the selected block's looks, else the section's layouts (the section bar's ‹ Layout n of m ›). Over a skin's
   default look, Original is stored as `variant: 'original'` (`ORIGINAL`), so it can be picked.
 - List items move by dragging: selecting anything in an item shows one grip on its corner; drag it, or press on the item

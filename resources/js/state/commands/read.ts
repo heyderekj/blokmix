@@ -1,3 +1,4 @@
+import { columnsOf, quickOptions, styleRows } from '@/core/blocks/quick'
 import { ICON_NAMES, ICON_SETS } from '@/core/icons'
 import { type CommandInput } from '@/core/commands/schema'
 import { variantsFor } from '@/core/blocks/variants'
@@ -103,6 +104,10 @@ export const read = {
       return {
         block: b.label,
         looks: variantsFor(b.kind).map((v) => ({ id: v.id, label: v.label, when: v.hint, suggested: suggested.includes(v.id) })),
+        // What people change most about this kind of block (the bar shows these first), and the style it takes.
+        quick: quickOptions(b),
+        style: styleRows(b),
+        ...(b.kind === 'list' && b.grid ? { columns: { now: slot.edits?.[slot.clipId]?.[b.id]?.style?.columns ?? columnsOf(clip.html, b.id) ?? null, max: 6 } } : {}),
         palette: ['primary', 'accent', 'text', 'muted', 'surface', 'bg', ...(st.guide.swatches ?? []).map((w) => `x:${w.name}`)],
         spacingSteps: { '0': 0, XS: 1, S: 2, M: 4, L: 6, XL: 8 },
         advice: adviceFor(slot).filter((a) => a.blockId === b.id),

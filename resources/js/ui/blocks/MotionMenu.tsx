@@ -27,6 +27,7 @@ const KIND_NOUN: Record<BlockKind, string> = {
   card: 'card',
   item: 'item',
   list: 'list',
+  group: 'group',
 }
 
 /** Each phrase says what happens, including when nothing does. */

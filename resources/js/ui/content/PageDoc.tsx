@@ -14,6 +14,7 @@ import { runCommand } from '@/state/commands'
 import { placeFromTray, setTray, trayLines } from '@/state/jevPour'
 import { useTrayOpen } from '@/ui/jev/SayBar'
 import { Switch } from '@/ui/panels/parts'
+import { upOf } from '@/core/blocks'
 
 const WORD: Record<string, string> = {
   q: 'Question',
@@ -103,7 +104,7 @@ function hiddenFields(slot: Slot, clip: SectionClip): Set<string> {
   const out = new Set<string>()
   for (const b of clip.blocks) {
     if (!b.field) continue
-    for (let at: string | null = b.id; at; at = byId.get(at)?.parent ?? null) if (edits[at]?.hidden) out.add(b.field)
+    for (let at: string | null = b.id; at; at = (byId.get(at) && upOf(byId.get(at)!)) ?? null) if (edits[at]?.hidden) out.add(b.field)
   }
   return out
 }

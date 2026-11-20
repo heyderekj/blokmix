@@ -37,7 +37,7 @@ export function useLink(slot: Slot, block: BlockInfo) {
 export function LinkLabel({ slot, block }: { slot: Slot; block: BlockInfo }) {
   const { resolved, scope } = useLink(slot, block)
   if (!resolved.target || resolved.target.to === 'none') return <span className="text-zinc-400">Link</span>
-  return <span className="max-w-[110px] truncate">{describeLink(resolved.target, scope).replace(/ section( on |$)/, '$1')}</span>
+  return <span className="max-w-[88px] truncate">{describeLink(resolved.target, scope).replace(/ section( on |$)/, '$1')}</span>
 }
 
 /**

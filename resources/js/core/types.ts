@@ -473,14 +473,24 @@ export interface VersionNode {
  * repeating items of a section.
  */
 export const BLOCK_KINDS = ['heading', 'text', 'button', 'link', 'badge', 'icon', 'image', 'input', 'banner', 'card', 'item', 'list'] as const
-export type BlockKind = (typeof BLOCK_KINDS)[number]
+/** What a clip marks with `data-mx-block`, plus `group`: a header, a row of buttons or a panel read off the layout
+ * primitives' class names (`core/blocks.ts` `groupName`), so they can be picked without re-marking every layout. */
+export type BlockKind = (typeof BLOCK_KINDS)[number] | 'group'
 
 export interface BlockInfo {
   /** Order in the document: b0, b1… Stable for a clip's content. */
   id: string
   kind: BlockKind
+  /** The nearest block around it (never a group), as before groups: list → item → title. */
   parent: string | null
+  /** Blocks directly inside it (never groups). */
   children: string[]
+  /** The nearest group around it, when one sits between it and its parent (a heading in its section's header). */
+  group?: string
+  /** Groups: what kind of group it is. */
+  role?: GroupRole
+  /** Lists laid out on the layout grid (`.grid`), so their columns can change. */
+  grid?: boolean
   /** People-facing name: "Features · Plan 2 · Button". Selectors are never shown. */
   label: string
   /** The copy field on (or inside) this block, if any. */
@@ -528,7 +538,18 @@ export interface BlockStyle {
   text?: import('./textStyles').TextStyleId | 'none'
   /** This block's own size, a step on the type scale (smaller on phones for big sizes). */
   size?: import('./textStyles').TypeStep
+  /** Where its words and what's in it line up: start (left), center or end. */
+  align?: BlockAlign
+  /** A list laid out on a grid: how many across on wide screens (two at most on tablets, one on phones). */
+  columns?: number
+  /** A row of buttons (or any group laid out in a row): side by side or stacked. */
+  direction?: 'row' | 'column'
 }
+
+export const BLOCK_ALIGNS = ['start', 'center', 'end'] as const
+export type BlockAlign = (typeof BLOCK_ALIGNS)[number]
+/** What a group is, read off its class name (`core/blocks.ts` `groupName`). */
+export type GroupRole = 'header' | 'buttons' | 'panel' | 'card' | 'about'
 
 /** A section's top or bottom padding, relative to the style guide's section spacing. */
 export type SectionSpace = 'none' | 'tight' | 'default' | 'roomy'

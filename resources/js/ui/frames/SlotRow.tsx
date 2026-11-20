@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { SpaceHandle } from './SpaceHandle'
 import { flushSync } from 'react-dom'
 import { GripVertical, Plus, Copy, Minus } from 'lucide-react'
 import type { Slot, TokenSet } from '@/core/types'
@@ -524,6 +525,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
       {canEdit && block && selRect && !sorting && (
         <>
           <PickOutline rect={selRect} picked />
+          {!typing && <SpaceHandle slot={slot} block={block} rect={selRect} />}
           {!typing && (
             // Below the block, menus opening downwards, so the block stays in view while you preview looks on it.
             <div ref={blockAnchor} className="absolute z-30" style={{ left: barAt!.x, top: barAt!.y + barAt!.h, width: 0, height: 0 }}>
