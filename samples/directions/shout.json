@@ -1,0 +1,38 @@
+{
+  "name": "Shout",
+  "why": "Say it once, very large: headlines that fill the screen and almost nothing else.",
+  "theme": "full-volume",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "centered"
+    ],
+    "content": [
+      "quote"
+    ],
+    "features": [
+      "story"
+    ],
+    "stats": [
+      "big"
+    ],
+    "cta": [
+      "big"
+    ],
+    "footer": [
+      "wordmark"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "studio",
+    "product"
+  ],
+  "formats": [
+    "landing",
+    "portfolio"
+  ],
+  "odd": 2
+}

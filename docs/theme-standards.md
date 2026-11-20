@@ -58,6 +58,18 @@ renders (`npx vite-node scripts/render-skins.ts --flavors --widths 1440,390`).
 | Headliner | Studio and agency (bold) | Cabinet Grotesk 800 at -0.05em, black inverse button, one signal orange band, square labels, heavier lines |
 | Solo | Personal | Bespoke Serif over Onest, plum on soft lilac paper, narrow 980px page, pill button, highlight links, portraits |
 
-## Gaps (next themes)
+## Experiments
 
-Glass and glow, brutalist and oversized type are experiments.
+Marked `"odd": 2` in the skin file, so Mix only reaches them at Strange (`oddness` takes the higher of the theme's own
+`odd` and its directions' lowest), however a starter or direction uses them. They pass the same AA, font and motion
+checks, and are as far apart as any two themes. They may borrow a picture style or icon set (there are fewer icon sets
+than themes), and may set a `display` style when it has a phone size.
+
+| Theme | What it tries |
+|---|---|
+| Light Show | Dark glass cards, glow, a text-to-mint gradient on headings and the main button, a live mesh backdrop on the hero |
+| Bootleg | Mono everything, 2px black lines, offset cards and button, marker headings in caps, op-art pictures, 160ms motion |
+| Full Volume | Display at 6xl (3xl on phones), Darker Grotesque 800 at −0.055em, 0.86 leading, a 2xl-sized lead, few pictures |
+
+Any heading style set to 4xl or above is capped at `11cqi` (`textDecl`), so oversized type shrinks in a tablet's
+half column instead of breaking words.

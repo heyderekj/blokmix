@@ -245,7 +245,8 @@ the dice: Safe, A little, Strange; `ui.unusual`, this device's) holds for both: 
 Safe, everything at A little, the odd ones first at Strange (never nothing); Mix the rest at Safe takes parts from the half of
 themes nearest this one, at Strange from odd or far ones (`surpriseMe`'s `unusual`, `surprise_me {unusual}`). Change one part folds under it and opens when Say it asks to restyle. A new look lands on the sections top to bottom (`frame/ClipFrame.tsx` `waveDelay`, by where each sits on screen; drags land at once). Feel words
 (`core/feel.ts` `FEEL_WORDS`, `content.brief.feel`) still rank themes for the start and for agents (`rankThemes`). The catalog has 21
-finished themes plus Wireframe and eight industry variants. Each is checked against `docs/theme-standards.md` (what each kind of
+finished themes plus Wireframe, eight industry variants and three experiments (Light Show, Bootleg, Full Volume: `"odd": 2` in
+the skin file, which `oddness` takes over its directions', so Mix reaches them only at Strange). Each is checked against `docs/theme-standards.md` (what each kind of
 site expects, and what makes a theme its own; `tests/theme-distinct.test.ts`). The guided start previews the actual page. Catalog specimens and visual
 scoring share a scene. Change one part previews locally and commits with `set_theme_parts` in one undo step. Shape owns shadows, type
 owns text styles, and motion owns section entrances. The command catalog includes `list_theme_parts`, `set_theme_part`,

@@ -1,0 +1,262 @@
+{
+  "name": "Light Show",
+  "words": "Frosted glass over a slow, glowing color wash, after dark.",
+  "mode": "dark",
+  "odd": 2,
+  "feel": [
+    "dark",
+    "modern",
+    "playful"
+  ],
+  "tokens": {
+    "icon.set": "material:regular",
+    "color.bg": "#0b0a1a",
+    "color.surface": "#17152e",
+    "color.text": "#f1efff",
+    "color.muted": "#aba7ca",
+    "color.border": "#2d2a52",
+    "color.primary": "#8f80ff",
+    "color.onPrimary": "#0b0a1a",
+    "color.accent": "#3ee6c1",
+    "font.display": "'Syne', 'Helvetica Neue', sans-serif",
+    "font.body": "'Albert Sans', system-ui, sans-serif",
+    "font.mono": "'Azeret Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "600",
+    "radius.base": "18px",
+    "stroke.width": "1px",
+    "space.base": "4px",
+    "space.section": "112px",
+    "space.content": "1200px",
+    "space.text": "640px",
+    "motion.duration": "300ms",
+    "motion.ease": "cubic-bezier(0.16, 1, 0.3, 1)"
+  },
+  "effects": {
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 24,
+        "softness": 90,
+        "layers": 4,
+        "opacity": 22,
+        "tighten": 30
+      }
+    },
+    "glass": {
+      "id": "glass",
+      "params": {
+        "blur": 20,
+        "fill": 40,
+        "edge": 60
+      }
+    },
+    "glow": {
+      "id": "glow",
+      "params": {
+        "color": "accent",
+        "size": 60,
+        "strength": 30
+      }
+    },
+    "gradient": {
+      "id": "gradient",
+      "params": {
+        "stops": [
+          "text",
+          "accent"
+        ],
+        "angle": 110
+      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 400,
+      "tracking": 0.08,
+      "size": "xs",
+      "upper": true
+    },
+    "h1": {
+      "weight": 600,
+      "tracking": -0.03,
+      "leading": 1.02
+    },
+    "h2": {
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.06
+    },
+    "h3": {
+      "weight": 600,
+      "tracking": -0.01,
+      "leading": 1.15
+    },
+    "h4": {
+      "font": "body",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.3
+    },
+    "bodyLarge": {
+      "leading": 1.55,
+      "weight": 400
+    },
+    "small": {
+      "leading": 1.5
+    },
+    "caption": {
+      "font": "mono",
+      "size": "xs",
+      "tracking": 0.04
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "pill"
+    },
+    "card": {
+      "variant": "glass"
+    },
+    "heading": {
+      "variant": "gradient"
+    },
+    "button": {
+      "variant": "gradient",
+      "secondary": {
+        "variant": "ghost"
+      }
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "sweep"
+    },
+    "input": {
+      "variant": "filled"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "mesh-gradient",
+        "params": {
+          "colors": [
+            "bg",
+            "surface",
+            "primary",
+            "bg"
+          ]
+        }
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "backdrop": {
+        "id": "mesh"
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    }
+  },
+  "picture": {
+    "style": "mesh",
+    "mode": "image",
+    "subjects": [
+      "ceramics",
+      "print-studio"
+    ]
+  }
+}

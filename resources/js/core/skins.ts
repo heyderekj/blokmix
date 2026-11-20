@@ -39,6 +39,8 @@ export interface Skin {
   components?: GuideState['components']
   sections?: Partial<Record<SectionType, SectionDefault>>
   picture?: PictureDefault
+  /** How unusual it is on its own (0 safe, 2 strange): an experiment stays Strange even when a safe direction uses it. */
+  odd?: 0 | 1 | 2
 }
 
 /** The skin everything starts in: plain, grey and honest about being a sketch. */
@@ -64,6 +66,7 @@ const shape = z.object({
   textStyles: z.record(z.string(), z.any()).optional(),
   components: z.record(z.string(), z.any()).optional(),
   sections: z.record(z.string(), z.any()).optional(),
+  odd: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
   picture: z.object({ style: z.enum(PLACEHOLDER_STYLES), mode: z.enum(SKETCH_MODES).optional(), photo: z.boolean().optional(), subjects: z.array(z.enum([...SAMPLE_PHOTOS, ...SKETCH_IDS, ...MOCK_IDS])).min(1).optional(), mockParams: z.record(z.string(), z.any()).optional(), params: z.record(z.string(), z.any()).optional() }).optional(),
 })
 
@@ -100,6 +103,7 @@ export function parseSkin(id: string, json: unknown): Skin {
     ...(r.components ? { components: r.components as GuideState['components'] } : {}),
     ...(Object.keys(sections).length ? { sections } : {}),
     ...(r.picture ? { picture: r.picture as PictureDefault } : {}),
+    ...(r.odd ? { odd: r.odd } : {}),
   }
 }
 

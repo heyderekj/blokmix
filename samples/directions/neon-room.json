@@ -1,0 +1,38 @@
+{
+  "name": "Neon Room",
+  "why": "Glass panels floating over a slow glow: a launch that feels like a light show.",
+  "theme": "light-show",
+  "layouts": {
+    "nav": [
+      "pill"
+    ],
+    "hero": [
+      "centered"
+    ],
+    "features": [
+      "bento"
+    ],
+    "stats": [
+      "cards"
+    ],
+    "testimonials": [
+      "wall"
+    ],
+    "cta": [
+      "centered"
+    ],
+    "footer": [
+      "minimal"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "product",
+    "event"
+  ],
+  "formats": [
+    "landing",
+    "event"
+  ],
+  "odd": 2
+}
