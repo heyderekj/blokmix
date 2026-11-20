@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dismissStep, landedSteps, nextSteps, type NextStepsInput } from '@/core/nextSteps'
+import { dismissStep, landedSteps, nextSteps, shortMiss, type NextStepsInput } from '@/core/nextSteps'
 import { firstSample } from '@/core/ownWords'
 import { library } from '@/data/library'
 import type { ProjectContent, Slot } from '@/core/types'
@@ -23,15 +23,18 @@ describe('next steps after a start', () => {
   it('offers words, another opener and a look, each with why', () => {
     const steps = nextSteps(input())
     expect(steps.map((s) => s.id)).toEqual(['words', 'layout', 'look'])
-    expect(steps[0].why).toMatch(/^12 spots still hold sample words\./)
-    expect(steps[1].why).toMatch(/^8 other ways to open the page\./)
+    expect(steps[0].why).toBe('12 spots still show sample text')
+    expect(steps[1].why).toBe('8 more ways to start the page')
     expect(steps[1].action).toEqual({ kind: 'layouts', slotId: 's2' })
-    for (const s of steps) expect(s.why.length).toBeLessThan(110)
+    for (const s of steps) expect(s.why.length).toBeLessThan(45)
   })
 
   it('says what the first screen got wrong when it was measured', () => {
-    const checks = [{ id: 'first-phone', ok: false, words: 'The headline falls below a phone’s first screen', weight: 2 }]
-    expect(nextSteps(input({ checks }))[1].why).toBe('The headline falls below a phone’s first screen. The first screen decides whether people stay.')
+    const checks = [{ id: 'first-phone', ok: false, words: 'On a phone, the headline continues below the first screen', weight: 2 }]
+    expect(nextSteps(input({ checks }))[1].why).toBe('Headline runs past a phone’s first screen')
+    expect(shortMiss('On a laptop, the button sits below the first screen')).toBe('Button runs past a laptop’s first screen')
+    expect(shortMiss('The nav takes 24% of a phone’s first screen')).toBe('Nav takes 24% of a phone’s first screen')
+    expect(shortMiss('Part of the headline is clipped on a phone')).toBe('Headline is clipped on a phone')
   })
 
   it('retires each hint once it’s done', () => {
