@@ -151,3 +151,24 @@ describe('what a description tells Jev', () => {
     expect(Object.keys(fake.requests[0].questions).length).toBeLessThanOrEqual(200)
   })
 })
+
+describe('a paragraph written into a blank', () => {
+  const para = "We're Fern, a small neighborhood bakery in Portland. Sourdough and coffee, made by hand every morning. It should feel warm and handmade, not corporate."
+  const read = () => ({ ...keywordRead(para), name: "We're Fern", business: { id: 'bakery' as const, words: 'a small neighborhood bakery in Portland' } })
+
+  it('gives way to what was read from it, marked as read', () => {
+    const s = applyRead(withPicks({ business: [{ words: para }] }), read(), undefined, { blank: 'business', words: para, paragraph: true })
+    expect(s.picks.business).toEqual([{ id: 'bakery', words: 'a small neighborhood bakery in Portland' }])
+    expect(s.from).toContain('business')
+    expect(s.mine).not.toContain('business')
+    expect(s.picks.name).toEqual([{ words: 'Fern' }])
+  })
+
+  it('stays as your words when the read heard nothing for that blank', () => {
+    const r = { ...read(), business: { id: null, words: null } }
+    const s = applyRead(withPicks({ business: [{ words: para }] }), r, undefined, { blank: 'business', words: para, paragraph: true })
+    expect(s.picks.business).toEqual([{ words: para }])
+    expect(s.mine).toContain('business')
+    expect(s.from).not.toContain('business')
+  })
+})

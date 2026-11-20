@@ -1,4 +1,6 @@
 import { fromSavedIteration, layoutClip, recipeSchema } from '@/core/iterations'
+import { byUnusual, oddness } from '@/core/directions'
+import '@/data/directions'
 import { briefOf, kindOf, patchBrief, type Brief } from '@/core/brief'
 import { create } from 'zustand'
 import { createJSONStorage, persist, type PersistStorage, type StorageValue } from 'zustand/middleware'
@@ -64,6 +66,7 @@ import { draftsFromLegacy, draftSites, type Draft } from '@/core/drafts'
 import { noteActions } from './slices/notes'
 import { contentFor } from '@/core/start'
 import type { NextStepsState } from '@/core/nextSteps'
+import type { StyleArea } from '@/core/contract'
 
 export type Mode = 'captured' | 'unified'
 export type Viewport = 'desktop' | 'mobile'
@@ -111,6 +114,10 @@ export interface UiState {
   hintDismissed: boolean
   /** Hints above the dock after a start: where to look next (`core/nextSteps.ts`). Null once there are none. */
   nextSteps: NextStepsState | null
+  /** Parts of the look you like, pinned in Design: Mix the rest leaves them (this device; Rules for your agent are apart). */
+  lookKeep?: StyleArea[]
+  /** How unusual Mix goes, layouts and looks alike: 0 safe, 1 anything (default), 2 strange (this device). */
+  unusual?: 0 | 1 | 2
   editingNoteId: string | null
   myName: string
   /** The block selected inside the focused section (b3), if any. */
@@ -250,7 +257,7 @@ export interface State extends MixData {
   /** Put a whole skin on: one undo step, and the contract says what it leaves alone. False when there's no such skin. */
   applySkin: (skinId: string) => boolean
   /** Remix: the areas the contract opens come from other skins. Says what changed, or null when nothing can. */
-  surpriseMe: (seed?: number) => string | null
+  surpriseMe: (seed?: number, keep?: StyleArea[], unusual?: 0 | 1 | 2) => string | null
   setContract: (patch: Partial<Contract>) => void
   setField: (type: SectionType, key: string, value: string) => void
   /** Your site's name, changed everywhere it's written; returns how many places changed. */
@@ -342,6 +349,10 @@ const DEFAULT_UI: UiState = {
   leftPanel: 'none',
   pageScroll: {},
 }
+
+/** How unusual each layout is (`core/directions.ts` `oddness`), read once. */
+let layoutOddCache: Map<string, number> | null = null
+const layoutOdd = () => (layoutOddCache ??= oddness().layouts)
 
 function pickDifferent(options: string[], current: string): string {
   if (options.length < 2) return current
@@ -522,7 +533,14 @@ export const useStore = create<State>()(
             const mix = mixClipIds(st)
             // Never "shuffle" into the same arrangement.
             for (let tries = 0; tries < 8; tries++) {
-              picks = new Map(view.filter((s) => !s.locked).map((s) => [s.id, pickDifferent(cycleIds(library, s.type, mix, s.clipId), s.clipId)]))
+              // How unusual (the dock's Mix menu): safe layouts only, any, or the odd ones first.
+              const odd = st.ui.unusual ?? 1
+              const oddOf = (id: string) => layoutOdd().get(id) ?? 0
+              picks = new Map(view.filter((s) => !s.locked).map((s) => {
+                const options = cycleIds(library, s.type, mix, s.clipId)
+                const pool = byUnusual(options.filter((o) => o !== s.clipId), odd, oddOf)
+                return [s.id, pool.length ? pool[Math.floor(Math.random() * pool.length)] : pickDifferent(options, s.clipId)]
+              }))
               if (view.some((s) => picks.has(s.id) && picks.get(s.id) !== s.clipId)) break
             }
             set((x) => ({ site: mapSlots(x.site, (s) => (picks.has(s.id) ? withClip(s, picks.get(s.id)!, library) : s)), shuffleSeq: x.shuffleSeq + 1 }))
@@ -885,9 +903,11 @@ export const useStore = create<State>()(
             set((st) => ({ guide: applySkinTo(st.guide, skin, st.contract) }))
             return true
           },
-          surpriseMe: (seed = Date.now()) => {
+          surpriseMe: (seed = Date.now(), keep = [], unusual) => {
             const st = get()
-            const out = remix(st.guide, st.contract ?? emptyContract(), seed, skinList())
+            const odd = unusual ?? st.ui.unusual ?? 1
+            const themeOdd = oddness().themes
+            const out = remix(st.guide, st.contract ?? emptyContract(), seed, skinList(), keep, { odd, oddOf: (id) => themeOdd.get(id.split('/')[0]) ?? 0 })
             if (!out) return null
             set({ guide: out.guide })
             return out.words

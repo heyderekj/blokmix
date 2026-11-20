@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { mergeRead, needOf, readBrief, readPicks } from '@/core/reader'
+import { bareName, mergeRead, needOf, readBrief, readPicks } from '@/core/reader'
 import type { Picks } from '@/core/jev/sentence'
 import { useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
@@ -127,5 +127,15 @@ describe('read_start', () => {
 
     fakeReader(() => startRead({ name: 'Fern & Co Artisan Bakery' }))
     await expect(runCommand('read_start', { text: TEXT })).rejects.toThrow(/No answer/)
+  })
+})
+
+describe('a read name', () => {
+  it('is the name alone, still a span of what was written', () => {
+    expect(bareName("We're Fern")).toBe('Fern')
+    expect(bareName('This is “Low Tide”.')).toBe('Low Tide')
+    expect(bareName('Welcome to Elsewhere')).toBe('Elsewhere')
+    expect(bareName('Fern & Co')).toBe('Fern & Co')
+    expect(bareName('Meet')).toBe('Meet')
   })
 })

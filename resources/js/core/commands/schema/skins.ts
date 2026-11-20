@@ -53,6 +53,12 @@ export const SKIN_COMMANDS = {
     input: z.object({}),
     write: false,
   },
+  look_from_words: {
+    description:
+      'A look from someone’s own words (“warm and handmade, a bit editorial, roomier, not corporate”): the feelings in them pick the best theme (said with “not”, steered away from), nudge words turn the dials (roomier, tighter, rounder, sharper, bolder, quieter), and light or dark sets the tone. The words are kept in the brief as how it should feel. One undo step. Areas set to Keep in the contract stay.',
+    input: z.object({ text: z.string().trim().min(2).max(400) }),
+    write: true,
+  },
   nudge_look: {
     description:
       'Nudge the look in plain words, one undo step: bolder (bigger, heavier type), quieter (smaller, lighter type, more room), rounder, sharper, roomier, tighter, darker, lighter. Each moves the Feel dials a step or turns the page light or dark.',
@@ -67,8 +73,12 @@ export const SKIN_COMMANDS = {
   },
   surprise_me: {
     description:
-      'Mix up the look: each area the contract marks Surprise (or, with none marked, each one not kept) comes whole from another skin. One undo step; says what came from where.',
-    input: z.object({ seed: z.number().int().min(0).optional().describe('Change it for different picks') }),
+      'Mix up the look: each area the contract marks Surprise (or, with none marked, each one not kept) comes whole from another skin. `keep` names areas to leave as they are this time (what the person likes: color, type, shape, space, motion, looks, sections, pictures). One undo step; says what came from where.',
+    input: z.object({
+      seed: z.number().int().min(0).optional().describe('Change it for different picks'),
+      keep: z.array(z.enum(STYLE_AREAS)).optional(),
+      unusual: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional().describe('How unusual: 0 from themes close to this look, 1 any (default), 2 from far and odd ones'),
+    }),
     write: true,
   },
   get_contract: {

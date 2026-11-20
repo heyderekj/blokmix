@@ -37,6 +37,16 @@ export interface MergedRead {
   from: ReadBlank[]
 }
 
+/**
+ * A name as a name: "We're Fern" is Fern. Drops the words people say before a name ("we're", "this is", "welcome to")
+ * and quotes or a trailing stop, so what's left is still a span of what you wrote.
+ */
+export function bareName(name: string): string {
+  const lead = /^(?:(?:hi|hello|hey)[,!]?\s+)?(?:we['’]re|we\s+are|i['’]m|i\s+am|this\s+is|it['’]s|it\s+is|meet|welcome\s+to|introducing|my\s+name\s+is|our\s+name\s+is)\s+/i
+  const bare = name.trim().replace(lead, '').replace(/^[“"'‘]+|[”"'’.,;:!?]+$/g, '').trim()
+  return bare || name.trim()
+}
+
 const label = <T extends { id: string; label: string }>(list: T[], id: string) => list.find((x) => x.id === id)?.label ?? id
 
 /** The read as the sentence's picks, blank by blank (a blank it said nothing about is left out). */
@@ -45,7 +55,8 @@ export function readPicks(read: ReadStart): Partial<Record<ReadBlank, Pick[]>> {
   const b = read.business
   if (b.id) out.business = [{ id: b.id, words: b.words ?? label(BUSINESSES, b.id) }]
   else if (b.words) out.business = [{ words: b.words }]
-  if (read.name) out.name = [{ words: read.name }]
+  const name = read.name ? bareName(read.name) : ''
+  if (name) out.name = [{ words: name }]
   const f = read.feel.ids[0]
   if (f) out.feel = [{ id: f, words: read.feel.words[0] ?? label(FEELS, f) }]
   else if (read.feel.words[0]) out.feel = [{ words: read.feel.words[0] }]

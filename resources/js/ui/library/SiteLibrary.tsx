@@ -320,23 +320,24 @@ function SiteView({ slug }: { slug: string }) {
   )
 }
 
+/** Use this site's look as the theme: its colors, type and shape over the closest built-in theme's block looks and bands. */
 function UseStyleButton({ site }: { site: LibrarySite }) {
-  const added = useStore((s) => s.guide.candidates.some((c) => c.clipId === `src:site:${site.slug}`))
+  const using = useStore((s) => s.guide.skin?.id === 'site' && s.guide.skin.name === site.name)
   return (
     <button
       type="button"
       onClick={async () => {
         try {
-          await runCommand('use_site_style', { site: site.slug }, 'you')
-          useStore.getState().showFlash(`${site.name}’s look is a style guide candidate`, { undo: true })
+          await runCommand('use_site_style', { site: site.slug, whole: true }, 'you')
+          useStore.getState().showFlash(`Your site now looks like ${site.name}`, { undo: true })
         } catch (e) {
           useStore.getState().showFlash(e instanceof Error ? e.message : String(e))
         }
       }}
-      title="Add its colors, type, shape, spacing and motion to your style guide as candidates"
+      title="Use its colors, type, shape, spacing and motion as your theme (its looks stay on offer in the style guide)"
       className={`flex h-8 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-medium text-zinc-700 ${PRESS} ${RING} ${HOVER}bg-zinc-950/5`}
     >
-      {added ? <Check size={14} className="text-green-600" /> : <Palette size={14} />} {added ? 'Style added' : 'Use its style'}
+      {using ? <Check size={14} className="text-green-600" /> : <Palette size={14} />} {using ? 'Using this look' : 'Use this look'}
     </button>
   )
 }

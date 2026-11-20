@@ -1,4 +1,8 @@
 import { type CommandInput } from '@/core/commands/schema'
+import { closestSkin, skinList, swapThemeParts, WIREFRAME } from '@/core/skins'
+import { emptyContract, isKept } from '@/core/contract'
+import { resolveGuide } from '@/core/guide'
+import type { GuideState, Source } from '@/core/types'
 import { SOURCE_PREFIX } from '@/core/guide'
 import { pageView } from '@/core/site'
 import type { SectionType } from '@/core/types'
@@ -141,8 +145,34 @@ function clipFromSite(i: CommandInput<'clip_from_site'>, s: LibrarySite) {
 function useSiteStyle(i: CommandInput<'use_site_style'>, s: LibrarySite) {
   const source = registerSiteSource(library, s)
   const groups = i.groups ?? [...TOKEN_GROUPS]
+  if (i.whole) {
+    const dressedFrom = useSiteLook(source, s)
+    return { site: s.name, theme: useStore.getState().guide.skin?.name, dressedFrom }
+  }
   useStore.getState().promoteSite(source, groups, !!i.adopt)
   return { site: s.name, candidates: useStore.getState().guide.candidates.filter((c) => c.clipId === `${SOURCE_PREFIX}${source.id}`).map((c) => c.id), groups, adopted: !!i.adopt }
+}
+
+/**
+ * A site's look as the theme: its values win every token group (and its fonts load, as a candidate's do), what themes
+ * add over values (block looks, section bands, pictures) comes from the built-in theme closest to it, its own effects
+ * come along, and the theme takes the site's name. An agent is refused before this where Rules for your agent keep an area;
+ * kept areas are still left out of the dressing, so a theme part is never forced over them. Returns the theme it dressed from.
+ */
+function useSiteLook(source: Source, s: LibrarySite): string | null {
+  const st = useStore.getState()
+  const contract = st.contract ?? emptyContract()
+  st.promoteSite(source, [...TOKEN_GROUPS], true)
+  const g = useStore.getState().guide
+  const closest = closestSkin(resolveGuide(g).tokens, skinList().filter((x) => x.id !== WIREFRAME))
+  let next = g
+  const parts = Object.fromEntries((['looks', 'sections', 'pictures'] as const).filter((a) => !isKept(contract, a) && closest).map((a) => [a, closest!.id]))
+  if (Object.keys(parts).length) next = swapThemeParts(next, parts, contract)
+  // Its own effects (a gradient, grain, glass…), read off the site, over the theme's.
+  const effects = (s as LibrarySite & { effects?: GuideState['effects'] }).effects
+  if (effects && !isKept(contract, 'looks')) next = { ...next, effects: { ...next.effects, ...effects } }
+  useStore.setState({ guide: { ...next, skin: { id: 'site', name: s.name } } })
+  return closest?.name ?? null
 }
 
 const summary = (x: LibrarySiteSummary) => ({

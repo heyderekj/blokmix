@@ -1,9 +1,10 @@
 import { rankThemes } from '@/core/themeRanking'
 import { listParts } from '@/core/themeParts'
 import type { CommandInput } from '@/core/commands/schema'
-import { contractMarkdown, emptyContract } from '@/core/contract'
+import { contractMarkdown, contractRefusal, emptyContract } from '@/core/contract'
 import { refId, swapThemeParts, type ThemeParts, skinById, skinList, skinRefOf } from '@/core/skins'
 import { NUDGE_LABEL, nudgeTokens } from '@/core/feel'
+import { readLook, saysAnything } from '@/core/lookWords'
 import { resolveGuide } from '@/core/guide'
 import { readDials, toneOfGuide } from '@/core/dials'
 import { useStore } from '../store'
@@ -75,6 +76,34 @@ export const write = {
     useStore.getState().applySkin(id)
     return { skin: skinRefOf(useStore.getState().guide.skin) ?? null, contract: useStore.getState().contract?.areas ?? {} }
   },
+  look_from_words: (i: CommandInput<'look_from_words'>) => {
+    const read = readLook(i.text)
+    if (!saysAnything(read)) throw new CommandError('No feeling in that to go on. Try words like warm, calm, bold, playful, classic, modern, roomier or dark.')
+    const st = useStore.getState()
+    // Your words are how it should feel from now on (the start reads them the same way).
+    st.setBrief({ feel: [...read.words, ...(read.tone === 'dark' ? (['dark'] as const) : [])], feelWords: [i.text.trim()], avoid: read.avoid })
+    let theme: string | null = null
+    if (read.words.length || read.avoid.length) {
+      const now = useStore.getState()
+      const best = rankThemes({ brief: now.content.brief, words: read.words, avoid: read.avoid, guide: now.guide, contract: now.contract, count: 1 })[0]
+      if (best) {
+        if (refId(now.guide.skin) !== best.skin.id) now.applySkin(best.skin.id)
+        theme = best.skin.name
+      }
+    }
+    if (read.tone) useStore.getState().setThemeTone(read.tone)
+    const nudged: string[] = []
+    for (const n of read.nudges) {
+      // A nudge into an area Rules for your agent keeps is left out.
+      if (contractRefusal(useStore.getState().contract, 'nudge_look', { nudge: n })) continue
+      const values = nudgeTokens(resolveGuide(useStore.getState().guide).tokens, n)
+      if (!values) continue
+      useStore.getState().chooseTokens(values)
+      nudged.push(n)
+    }
+    const tokens = resolveGuide(useStore.getState().guide).tokens
+    return { theme, leaning: read.words, avoiding: read.avoid, nudged, tone: toneOfGuide(tokens), dials: readDials(tokens) }
+  },
   nudge_look: (i: CommandInput<'nudge_look'>) => {
     const st = useStore.getState()
     const values = nudgeTokens(resolveGuide(st.guide).tokens, i.nudge)
@@ -85,7 +114,7 @@ export const write = {
     return { nudge: i.nudge, dials: readDials(tokens), tone: toneOfGuide(tokens) }
   },
   surprise_me: (i: CommandInput<'surprise_me'>) => {
-    const words = useStore.getState().surpriseMe(i.seed)
+    const words = useStore.getState().surpriseMe(i.seed, i.keep, i.unusual)
     if (!words) throw new CommandError('Nothing to surprise you with: the contract keeps every area, or no other skins are available.')
     return { words, skin: skinRefOf(useStore.getState().guide.skin) ?? null }
   },

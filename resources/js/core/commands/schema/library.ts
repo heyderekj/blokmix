@@ -37,11 +37,12 @@ export const LIBRARY_COMMANDS = {
     write: true,
   },
   use_site_style: {
-    description: 'Add a library site’s look to the style guide as candidates (one per group: color, type, shape, space, motion). adopt also makes it win those groups. One undo step.',
+    description: 'Add a library site’s look to the style guide as candidates (one per group: color, type, shape, space, motion). adopt also makes it win those groups. whole uses the site’s look as the theme: its values win every group, block looks, section bands and pictures come from the closest built-in theme, its effects come along, and the theme is named after the site. Refused where the contract keeps an area. One undo step.',
     input: z.object({
       site,
       groups: z.array(z.enum(TOKEN_GROUPS)).min(1).optional().describe('Default: every group'),
       adopt: z.boolean().optional(),
+      whole: z.boolean().optional(),
     }),
     write: true,
   },
