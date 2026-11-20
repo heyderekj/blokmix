@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { applyRead, setPicks, type StartState, type StartView } from '@/core/startFlow'
 import { keywordRead, type ReadStart } from '@/core/reader'
-import { matchRequest, openBlanks, rankRequest, readMatch, readRank, sentenceText, startSentence, type Blank } from '@/core/jev/sentence'
+import { matchRequest, openBlanks, rankRequest, readMatch, readRank, sentenceText, startSentence, type Blank, type Picks } from '@/core/jev/sentence'
 import { askJev, askLatest } from '@/lib/jev'
 import { askReader, readerOn } from '@/lib/reader'
 import { noteWants } from '@/lib/jevWants'
@@ -51,8 +51,8 @@ export function Describe({ s, v, setS, jev, onReading }: { s: StartState; v: Sta
   const match = async (b: Blank, words: string) => readMatch(await askJev(matchRequest(b, words, fill.text)))
 
   /** Read your words and fold the read in. The reader goes over the whole sentence; keywords read just your words. */
-  const read = async (text: string, own?: { blank: string; words: string; paragraph?: boolean }) => {
-    const asked = latest.current.picks
+  const read = async (text: string, own?: { blank: string; words: string; paragraph?: boolean }, now?: Picks) => {
+    const asked = now ?? latest.current.picks
     onReading(true)
     try {
       let r: ReadStart | null = null
@@ -80,12 +80,15 @@ export function Describe({ s, v, setS, jev, onReading }: { s: StartState; v: Sta
         kind={fill.kind}
         match={jev ? match : undefined}
         from={s.from}
-        onOwnWords={(b, words) => {
+        onOwnWords={(b, words, now, list) => {
           // Your words for the name are just the name; everything else may say more than its blank.
           if (b.ownOnly) return
-          const sentence = sentenceText(SEGMENTS, { ...latest.current.picks, [b.id]: [...(b.many ? (latest.current.picks[b.id] ?? []) : []), { words }] })
-          // A paragraph says more than its blank: the blank takes what's read from it (applyRead's `paragraph`).
-          void read(sentence, { blank: b.id, words, paragraph: isParagraph(words) })
+          const sentence = sentenceText(SEGMENTS, now)
+          // A list already holds its items in the blank, so the read only fills the other blanks. A paragraph says more
+          // than its blank: the blank takes what's read from it (applyRead's `paragraph`). `now` is the sentence as it
+          // is with your words in it, so the read never mistakes them for a change made while it read.
+          if (list) void read(sentence, undefined, now)
+          else void read(sentence, { blank: b.id, words, paragraph: isParagraph(words) }, now)
         }}
         onPasteText={(text) => void read(text)}
       />

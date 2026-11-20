@@ -29,8 +29,10 @@ import {
   readRank,
   sentenceText,
   startSentence,
+  type Blank,
   type Picks,
 } from '@/core/jev/sentence'
+import { matchOption, saidNot, splitList } from '@/core/jev/blankList'
 import { INTENTS } from '@/core/jev/say'
 import { askJev } from '@/lib/jev'
 import { useStore } from '@/state/store'
@@ -222,5 +224,50 @@ describe('Jev on the sentence', () => {
     const unsure = readMatch(await askJev(matchRequest({ id: 'business', placeholder: 'a bakery', options: BUSINESSES }, 'cosy coffee spot')))
     expect(unsure.id).toBeNull()
     expect(unsure.closest).toEqual(expect.arrayContaining(['cafe', 'bakery']))
+  })
+})
+
+describe('a list in one blank', () => {
+  const B = START_BLANKS
+
+  it('cuts a list at commas, “and”, “&” and slashes, in the order written', () => {
+    expect(splitList('menu, opening hours, a map and reviews')).toEqual(['menu', 'opening hours', 'a map', 'reviews'])
+    expect(splitList('warm, handmade & a bit bold')).toEqual(['warm', 'handmade', 'a bit bold'])
+    expect(splitList('book a table / order ahead')).toEqual(['book a table', 'order ahead'])
+    expect(splitList('menu, hours, and a map')).toEqual(['menu', 'hours', 'a map'])
+  })
+
+  it('is no list for one item or a paragraph', () => {
+    expect(splitList('our menu')).toBeNull()
+    expect(splitList('We bake every morning. Come by and say hello, we open at seven.')).toBeNull()
+  })
+
+  it('matches each item to the blank’s options without a network', () => {
+    const ids = (blank: Blank, text: string) => splitList(text)!.map((i) => matchOption(blank, i)?.id ?? null)
+    expect(ids(B.show, 'menu, opening hours, a map and reviews')).toEqual(['menu', 'hours', 'map', 'reviews'])
+    expect(ids(B.show, 'testimonials, faq, gallery and a podcast')).toEqual(['reviews', 'questions', 'photos', null])
+    expect(ids(B.feel, 'warm, handmade, bold')).toEqual(['warm', 'earthy', 'bold'])
+    expect(ids(B.goal, 'book a table, order ahead')).toEqual(['book-table', 'order'])
+    expect(ids(B.goal, 'reservations and pre-orders')).toEqual(['book-table', 'order'])
+  })
+
+  it('never matches an item said with a “no”, or a name', () => {
+    expect(matchOption(B.show, 'no reviews')).toBeNull()
+    expect(saidNot('not corporate')).toBe(true)
+    expect(matchOption(B.name, 'menu')).toBeNull()
+    expect(matchOption(B.show, 'us')).toBeNull()
+  })
+
+  it('makes the page from every item, and the brief from every feeling and goal', () => {
+    const fill = fillStart({
+      business: [{ id: 'bakery', words: 'a bakery' }],
+      feel: [{ id: 'warm', words: 'warm' }, { id: 'bold', words: 'bold' }],
+      goal: [{ id: 'book-table', words: 'book a table' }, { id: 'order', words: 'order ahead' }],
+      show: [{ id: 'menu', words: 'menu' }, { id: 'map', words: 'a map' }, { id: 'reviews', words: 'reviews' }],
+    })
+    expect(fill.sections).toEqual(expect.arrayContaining(['pricing', 'contact', 'testimonials']))
+    expect(fill.button).toBe('Book a table')
+    expect(fill.feel).toMatch(/^warm and bold/)
+    expect(fill.wants).toEqual([])
   })
 })

@@ -2,7 +2,8 @@ import { Dropdown } from '@/ui/controls/Dropdown'
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { CornerDownLeft, X } from 'lucide-react'
 import type { Kind } from '@/core/types'
-import { groupsOf, openBlanks, orderOptions, type Blank, type Choice, type Matched, type Picks, type Segment } from '@/core/jev/sentence'
+import { groupsOf, openBlanks, orderOptions, type Blank, type Choice, type Matched, type Pick, type Picks, type Segment } from '@/core/jev/sentence'
+import { isParagraph, matchOption, saidNot, splitList } from '@/core/jev/blankList'
 
 /**
  * A sentence with blanks, after the motion menu: "I'm making a site for [what it is] called [its name]…". Each empty blank
@@ -35,8 +36,11 @@ export function Sentence({
   size?: 'lg' | 'sm'
   /** Open the first empty blank on its own. */
   autoOpen?: boolean
-  /** Your own words went into a blank (a read can fill the other blanks from them). */
-  onOwnWords?: (blank: Blank, words: string) => void
+  /**
+   * Your own words went into a blank (a read can fill the other blanks from them). `now` is the sentence with them in
+   * it; `list` says they were taken as a list, one pick per item.
+   */
+  onOwnWords?: (blank: Blank, words: string, now: Picks, list: boolean) => void
   /** A paragraph pasted into any blank: read as a whole instead of landing in that blank. */
   onPasteText?: (text: string) => void
   /** Blanks filled from what you wrote, marked as such. */
@@ -87,11 +91,33 @@ export function Sentence({
     const exact = b.options.find((o) => o.label.toLowerCase() === w.toLowerCase())
     if (exact) return choose(b, exact)
     if (b.searchOnly) return
-    const mine = { words: w }
-    const list = b.many ? [...(picks[b.id] ?? []), mine] : [mine]
+    // A list ("menu, opening hours, a map and reviews"): one pick per item, each matched on its own, in the order
+    // written; an item said with a "no" is left for the read to steer away from. Taken as a list only when some item
+    // matches, so "black and white" with nothing to match stays your words, whole.
+    const items = b.list ? splitList(w) : null
+    const listed = items?.filter((i) => !saidNot(i)).map((i) => ({ words: i, choice: matchOption(b, i) }))
+    if (listed?.some((x) => x.choice)) {
+      const fresh: Pick[] = []
+      for (const { words: iw, choice } of listed) if (!choice || !fresh.some((p) => p.id === choice.id)) fresh.push(choice ? { id: choice.id, words: iw } : { words: iw })
+      const kept = b.many ? (picks[b.id] ?? []).filter((p) => !p.id || !fresh.some((f) => f.id === p.id)) : []
+      const now = { ...picks, [b.id]: [...kept, ...fresh] }
+      set(b.id, now[b.id], !b.many)
+      onOwnWords?.(b, w, now, true)
+      // Items nothing matched still go to Jev, one by one; your words stand either way.
+      if (!match) return
+      for (const { words: iw } of listed.filter((x) => !x.choice)) {
+        const m = await match(b, iw)
+        if (m?.id) onPicksLater(b.id, iw, m.id)
+      }
+      return
+    }
+    // One item: matched here when it plainly means an option ("menu" → our menu), still in your words.
+    const near = b.ownOnly ? null : matchOption(b, w)
+    const mine: Pick = near ? { id: near.id, words: w } : { words: w }
+    const list = b.many ? [...(picks[b.id] ?? []).filter((p) => !mine.id || p.id !== mine.id), mine] : [mine]
     set(b.id, list, !b.many)
-    onOwnWords?.(b, w)
-    if (!match || b.ownOnly) return
+    onOwnWords?.(b, w, { ...picks, [b.id]: list }, false)
+    if (!match || b.ownOnly || near) return
     const m = await match(b, w)
     if (!m) return
     setClosest((x) => ({ ...x, [b.id]: m.closest }))
@@ -202,7 +228,7 @@ const SHORT = 42
 const shortWords = (w: string) => (w.length > SHORT ? `${w.slice(0, SHORT).replace(/[\s,;:.]+\S*$/, '')}…` : w)
 
 /** Pasted text that reads as a paragraph, not an answer: read as a whole. */
-export const isParagraph = (t: string) => t.trim().length > 90 || /\n\s*\S/.test(t.trim()) || (t.match(/[.!?](\s|$)/g)?.length ?? 0) >= 2
+export { isParagraph } from '@/core/jev/blankList'
 
 /**
  * A blank's options. The guided start shows a shortlist and can browse one category at a time. The bar uses a

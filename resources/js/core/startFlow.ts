@@ -84,10 +84,12 @@ export interface StartView {
 function sentenceBrief(fill: StartFill, picks: Picks): Brief {
   const goal = picks.goal?.[0]
   const typed = !!goal && !goal.id && !!goal.words.trim()
+  // Every goal said, in order, at most three (like a read's).
+  const goals = [...new Set((picks.goal ?? []).flatMap((p) => (p.id && SENTENCE_GOAL[p.id] ? [SENTENCE_GOAL[p.id]] : [])))].slice(0, 3)
   const feel = [...new Set((picks.feel ?? []).flatMap((p) => (p.id && SENTENCE_FEEL[p.id] ? [SENTENCE_FEEL[p.id]] : [])))]
   return patchBrief({}, {
     ...(fill.button ? { mainAction: fill.button, mainActionTyped: typed } : {}),
-    ...(goal?.id && SENTENCE_GOAL[goal.id] ? { goals: [SENTENCE_GOAL[goal.id]] } : {}),
+    ...(goals.length ? { goals } : {}),
     ...(feel.length ? { feel } : {}),
   })
 }
@@ -103,7 +105,10 @@ export function briefFrom(s: StartState, fill = fillStart(s.picks)): Brief {
   const what = fill.text.trim() && fill.text.trim().length <= 600 ? { what: fill.text.trim() } : {}
   // Your own words for the feel (not an option's label), kept as said.
   const feelWords = (s.picks.feel ?? []).filter((p) => !p.id || FEELS.find((f) => f.id === p.id)?.label.toLowerCase() !== p.words.trim().toLowerCase()).map((p) => p.words.trim()).filter(Boolean)
-  const base = patchBrief(patchBrief({ ...fromHeard, ...what }, sentenceBrief(fill, s.picks)), s.read)
+  const read = patchBrief(patchBrief({ ...fromHeard, ...what }, sentenceBrief(fill, s.picks)), s.read)
+  // A business you picked says what kind of site it is: a keyword elsewhere ("a podcast" in what to show) never turns a
+  // bakery into a blog. Only the format gives way, and only when it would say another kind.
+  const base = fill.kind && kindOf(read, fill.kind) !== fill.kind ? patchBrief(read, { format: briefFromKind(fill.kind).format }) : read
   return patchBrief(base, {
     ...(s.feel.length ? { feel: s.feel } : {}),
     ...(feelWords.length ? { feelWords } : {}),
@@ -179,25 +184,28 @@ export function applyRead(s: StartState, read: ReadStart | null, asked: Picks = 
   // A paragraph the read heard something in for its blank gives way to that; else it stays, as your words.
   const gaveWay = !!own?.paragraph && m.from.includes(own.blank as ReadBlank)
   if (own?.paragraph && !gaveWay) picks = { ...picks, [own.blank]: s.picks[own.blank] ?? [{ words: own.words }] }
+  const heardOwn = !!own && !own.paragraph && !since.includes(own.blank) && !!readPicks(read)[own.blank as ReadBlank]?.some((p) => p.id)
   if (own && !own.paragraph && !since.includes(own.blank)) {
     const heardHere = readPicks(read)[own.blank as ReadBlank]
     const mine: Pick = { words: own.words, ...(heardHere?.[0]?.id ? { id: heardHere[0].id } : {}) }
     const others = (s.picks[own.blank] ?? []).filter((p) => p.words !== own.words)
-    picks = { ...picks, [own.blank]: own.blank === 'show' ? [...others, mine, ...(heardHere ?? []).filter((p) => !others.some((o) => o.id === p.id))] : [mine] }
+    // What else the read heard here joins your words, never twice ("menu" from your words and from the read).
+    const more = (heardHere ?? []).filter((p) => p.id !== mine.id && !others.some((o) => o.id === p.id))
+    picks = { ...picks, [own.blank]: own.blank === 'show' ? [...others, mine, ...more] : [mine] }
   }
   const hide = SHOWS.filter((x) => read.hide.includes(x.id) && x.section).map((x) => x.section!)
   return {
     ...s,
     picks,
     mine: gaveWay ? s.mine.filter((id) => id !== own!.blank) : own ? [...new Set([...s.mine, own.blank])] : s.mine,
-    from: [...new Set([...s.from, ...m.from, ...(own && !own.paragraph ? [own.blank] : [])])],
+    from: [...new Set([...s.from, ...m.from, ...(heardOwn ? [own!.blank] : [])])],
     read: patchBrief(s.read, m.brief),
     readKind: m.kind ?? s.readKind,
     hide: [...new Set([...s.hide, ...hide])],
     avoid: [...new Set([...s.avoid, ...m.avoid])],
     avoidWords: [...new Set([...s.avoidWords, ...m.avoidWords])],
     pages: m.pages.length ? m.pages : s.pages,
-    ...(m.pages.length ? { from: [...new Set([...s.from, ...m.from, ...(own && !own.paragraph ? [own.blank] : []), 'pages'])] } : {}),
+    ...(m.pages.length ? { from: [...new Set([...s.from, ...m.from, ...(heardOwn ? [own!.blank] : []), 'pages'])] } : {}),
     tone: m.tone ?? s.tone,
   }
 }
