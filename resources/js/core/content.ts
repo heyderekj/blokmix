@@ -7,7 +7,7 @@ const range = (n: number, f: (i: number) => string[]) => Array.from({ length: n 
  * clip of a type render your copy instead of the source's.
  */
 export const FIELD_SCHEMA: Record<SectionType, string[]> = {
-  nav: ['brand', 'link1', 'link2', 'link3', 'link4', 'cta', ...range(6, (i) => [`notice${i}`]), ...range(6, (i) => [`menu${i}`])],
+  nav: ['brand', 'link1', 'link2', 'link3', 'link4', 'cta', ...range(6, (i) => [`notice${i}`]), ...range(6, (i) => [`menu${i}`]), 'menuKicker'],
   hero: ['eyebrow', 'headline', 'subhead', 'ctaPrimary', 'ctaSecondary', 'note', ...range(6, (i) => [`s${i}Title`, `s${i}Body`, `s${i}Cta`]), ...range(6, (i) => [`logo${i}`])],
   features: ['eyebrow', 'heading', 'intro', ...range(6, (i) => [`f${i}Title`, `f${i}Body`])],
   testimonials: [
@@ -28,8 +28,20 @@ export const FIELD_SCHEMA: Record<SectionType, string[]> = {
       `t${i}Desc`,
       `t${i}Cta`,
       ...range(4, (j) => [`t${i}F${j}`]),
+      // The small words around a plan's price and name: "/ month", "Popular", "From", "billed yearly".
+      `t${i}Per`,
+      `t${i}Flag`,
+      `t${i}From`,
+      `t${i}Billed`,
+      `t${i}BilledYearly`,
+      `t${i}YearlyLead`,
+      `t${i}YearlyNote`,
+      `t${i}Range`,
     ]),
     'footnote',
+    'monthly',
+    'yearly',
+    'plansLabel',
   ],
   header: ['eyebrow', 'heading', 'intro', 'ctaPrimary'],
   logos: ['eyebrow', 'heading', ...range(8, (i) => [`logo${i}`])],
@@ -37,9 +49,9 @@ export const FIELD_SCHEMA: Record<SectionType, string[]> = {
   content: ['eyebrow', 'heading', 'lead', 'body1', 'body2', 'body3', 'quote', 'caption'],
   gallery: ['eyebrow', 'heading', 'intro', ...range(8, (i) => [`g${i}Caption`, `g${i}Title`]), 'cta'],
   team: ['eyebrow', 'heading', 'intro', ...range(6, (i) => [`m${i}Name`, `m${i}Role`])],
-  blog: ['eyebrow', 'heading', 'intro', ...range(4, (i) => [`p${i}Title`, `p${i}Excerpt`, `p${i}Meta`]), 'cta'],
+  blog: ['eyebrow', 'heading', 'intro', ...range(4, (i) => [`p${i}Title`, `p${i}Excerpt`, `p${i}Meta`]), 'cta', 'featuredTag'],
   faq: ['eyebrow', 'heading', 'intro', ...range(6, (i) => [`faq${i}Q`, `faq${i}A`]), 'contactText', 'contactCta'],
-  contact: ['eyebrow', 'heading', 'intro', 'email', 'phone', 'address', 'nameLabel', 'emailLabel', 'messageLabel', 'submit', 'note'],
+  contact: ['eyebrow', 'heading', 'intro', 'email', 'phone', 'address', 'nameLabel', 'emailLabel', 'messageLabel', 'submit', 'note', 'emailTitle', 'phoneTitle', 'addressTitle'],
   cta: ['eyebrow', 'heading', 'body', 'ctaPrimary', 'ctaSecondary', 'note'],
   footer: [
     'brand',

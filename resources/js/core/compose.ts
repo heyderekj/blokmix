@@ -225,7 +225,7 @@ export function composePage(input: ComposeInput): ComposedPage {
     const blockClass = (id: string) => `mx-${key}${position + 1}-${id.replace(/\./g, '-')}`
     const preset = slot.motion?.mode === 'preset' ? slot.motion : undefined
     // Staggered sections animate their top-level blocks, so those need a class too.
-    const staggered = preset?.stagger ? clip.blocks.filter((b) => !b.parent || clip.blocks.find((x) => x.id === b.parent)?.kind === 'list').map((b) => b.id) : []
+    const staggered = preset?.stagger ? clip.blocks.filter((b) => b.kind !== 'group' && (!b.parent || clip.blocks.find((x) => x.id === b.parent)?.kind === 'list')).map((b) => b.id) : []
     const changedIds = new Set([...changed.map((x) => x.b.id), ...staggered])
     let order = 0
     // Section spacing, on desktop or only on phones (spacing.mobile), a backdrop, and a band or width of its own need the root class too.
@@ -332,7 +332,11 @@ export function composePage(input: ComposeInput): ComposedPage {
         const root = addClass(spaced ? addClass(el, `mx-${key}${position + 1}`) : el, 'mx-section')
         return { ...root, attrs: [...root.attrs.filter(([k]) => k !== 'id'), ['id', anchors[slot.id]], ...sliderAttrs(slot.slider)], kids: live ? [...root.kids, live.el] : root.kids }
       }
-      if (attr(el, 'data-mx-block') === undefined) return el
+      if (attr(el, 'data-mx-block') === undefined) {
+        // A group you changed (a header's spacing, a panel hidden on phones) gets its class like a block.
+        const group = attr(el, 'data-mx-group') !== undefined ? attr(el, 'data-mx-b') : undefined
+        return group && changedIds.has(group) ? addClass(el, blockClass(group)) : el
+      }
       const id = attr(el, 'data-mx-b') ?? `b${order}`
       order++
       if (!changedIds.has(id)) return el

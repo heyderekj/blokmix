@@ -1,7 +1,7 @@
 import type { LintIssue, SectionType } from './types'
 import { SECTION_TYPES } from './types'
 import { FIELD_SCHEMA } from './content'
-import { attr, parseHtml, walk } from './html/parse'
+import { attr, parseHtml, walk, type HNode } from './html/parse'
 import { lintBlocks } from './blocks'
 import { ICON_NAMES } from './icons'
 import { viewportWidthRules } from './containerize'
@@ -73,11 +73,51 @@ export function lintClip(input: {
   blocks.errors.forEach(err)
   blocks.warnings.forEach(warn)
 
+  // Ids a layout gives its own blocks (added after people had changed it): unique, never one the counters hand out.
+  const own = new Set<string>()
+  walk(tree, (n) => {
+    if (n.t !== 'el') return
+    const id = attr(n, 'data-mx-b')
+    if (id === undefined) return
+    if (/^[bgx]\d+$/.test(id)) err(`data-mx-b="${id}" looks like a numbered id; use l1, l2…`)
+    if (own.has(id)) err(`data-mx-b="${id}" is used twice`)
+    own.add(id)
+  })
+
   // ---- CSS ----
   checkCss(input.css, 'clip.css', input.rootClass, err, warn)
   if (input.motionCss) checkCss(input.motionCss, 'motion.css', input.rootClass, err, warn)
 
   return issues
+}
+
+/**
+ * Visible words that aren't in a field (or a mirror of one), so nobody could change them: "/ month", "Popular".
+ * Screen-reader-only text, a nav's menu toggle, hidden decoration and text marked data-mx-static are left alone.
+ */
+export function wordsWithoutField(tree: HNode[]): string[] {
+  const out: string[] = []
+  const visit = (nodes: HNode[], skip: boolean) => {
+    for (const n of nodes) {
+      if (n.t === 'text') {
+        const t = n.v.trim().replace(/\s+/g, ' ')
+        if (!skip && /\p{L}{2,}/u.test(t)) out.push(t)
+      } else if (n.t === 'el' && n.tag !== 'svg' && n.tag !== 'style') {
+        const cls = (attr(n, 'class') ?? '').split(/\s+/)
+        const off =
+          skip ||
+          attr(n, 'data-mx-field') !== undefined ||
+          attr(n, 'data-mx-mirror') !== undefined ||
+          attr(n, 'data-mx-static') !== undefined ||
+          attr(n, 'data-nav-toggle') !== undefined ||
+          attr(n, 'aria-hidden') === 'true' ||
+          cls.some((c) => c === 'sr' || c === 'sr-only' || c === 'visually-hidden')
+        visit(n.kids, off)
+      }
+    }
+  }
+  visit(tree, false)
+  return out
 }
 
 /**
@@ -206,6 +246,9 @@ export function lintBones(input: { html: string; css: string; motionCss: string 
   const tree = parseHtml(input.html)
   tree.forEach(visit)
   out.push(...lintCraft(tree, css))
+  // Every word you can see is yours to change: "/ month" and "Popular" are fields too.
+  const unfielded = wordsWithoutField(tree)
+  if (unfielded.length) out.push(`has words with no field (${unfielded.slice(0, 4).map((t) => `“${t}”`).join(', ')}${unfielded.length > 4 ? '…' : ''}); give each a data-mx-field, or data-mx-static if it never changes`)
   return [...new Set(out)]
 }
 

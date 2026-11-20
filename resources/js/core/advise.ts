@@ -283,6 +283,8 @@ export function advise(i: AdviseInput): Advice[] {
   // Spacing rhythm: siblings of a kind should sit on the same step.
   const groups = new Map<string, BlockInfo[]>()
   for (const b of i.blocks) {
+    // A header and a row of buttons are both groups, not siblings of a kind.
+    if (b.kind === 'group') continue
     const key = `${b.parent}|${b.kind}`
     groups.set(key, [...(groups.get(key) ?? []), b])
   }

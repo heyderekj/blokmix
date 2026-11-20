@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { ArrowUp, X } from 'lucide-react'
 import type { BlockInfo, Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
-import { BLOCK_LABEL } from '@/core/blocks'
+import { BLOCK_LABEL, upOf } from '@/core/blocks'
 import { slotClip } from '@/data/library'
 import { useStore, currentSlots } from '@/state/store'
 import { frameBeside } from '../canvas/inView'
@@ -62,7 +62,7 @@ function Panel({ slot, block }: { slot: Slot; block?: BlockInfo }) {
 
   const blocks = slotClip(slot).blocks
   const crumbs: BlockInfo[] = []
-  for (let b: BlockInfo | undefined = block; b; b = b.parent ? blocks.find((x) => x.id === b!.parent) : undefined) crumbs.unshift(b)
+  for (let b: BlockInfo | undefined = block; b; b = upOf(b) ? blocks.find((x) => x.id === upOf(b!)) : undefined) crumbs.unshift(b)
   const name = (b: BlockInfo) => b.label.split(' · ').at(-1) ?? BLOCK_LABEL[b.kind]
   const parent = crumbs.at(-2)
   const st = useStore.getState

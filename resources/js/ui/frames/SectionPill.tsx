@@ -31,7 +31,7 @@ import { LockGlyph } from './LockGlyph'
 import { useEscape } from '../shell/keys'
 import { BAR_GAP, BAR_SURFACE } from './bar'
 
-type Tab = 'style' | 'source'
+type Tab = 'style' | 'source' | 'width' | 'spacing'
 
 const TABS: { id: Tab; label: string; icon: typeof Type }[] = [
   { id: 'style', label: 'Style', icon: Palette },
@@ -71,6 +71,8 @@ export function SectionPill({
   const multi = useStore((s) => s.site.pages.length > 1)
   const [tab, setTab] = useState<Tab | null>(null)
   const styling = useStylePanel((s) => s.open)
+  // The section itself is selected (its empty space, its rail): its own few options sit on its bar.
+  const own = useStore((s) => focused && !s.ui.selectedBlockId)
   const st = useStore.getState
   // While you point at the bar it stays put, so ‹ › don't slide away as the section changes height under them; once
   // you leave, it glides to the section's new bottom.
@@ -88,6 +90,10 @@ export function SectionPill({
   useEffect(() => {
     if (!focused || sheet !== 'none') setTab(null)
   }, [focused, sheet])
+  // Picking a block in it folds the section's own width and spacing.
+  useEffect(() => {
+    if (!own && (tab === 'width' || tab === 'spacing')) setTab(null)
+  }, [own, tab])
 
   if (!clip) return null
 
@@ -149,6 +155,12 @@ export function SectionPill({
               ) : null}
             </div>
             {total > 1 && <LayoutStepper slotId={slot.id} pos={pos} total={total} captured={clip.origin !== 'layout'} prev={slot.prevClipId && slot.prevClipId !== slot.clipId && library.clips[slot.prevClipId]?.type === slot.type ? slot.prevClipId : undefined} />}
+            {own && (
+              <>
+                <span className="mx-1 h-4 w-px shrink-0 bg-zinc-950/[0.08]" aria-hidden />
+                <SectionQuick slot={slot} tab={tab} onTab={(t) => (st().setUi({ sheet: 'none' }), setTab(tab === t ? null : t))} />
+              </>
+            )}
             {focused && (
               <>
                 <span className="mx-1 h-4 w-px shrink-0 bg-zinc-950/[0.08]" aria-hidden />
@@ -218,6 +230,16 @@ export function SectionPill({
                 className="bg-well p-3"
               >
                 {tab === 'source' && <SourceTab slot={slot} />}
+                {tab === 'width' && (
+                  <div className="w-[300px]">
+                    <WidthPicks slot={slot} />
+                  </div>
+                )}
+                {tab === 'spacing' && (
+                  <div className="w-[300px]">
+                    <SpacingGroup slot={slot} />
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -541,6 +563,53 @@ function InspiredBy({ inspired }: { inspired: NonNullable<Slot['inspiredBy']> })
 }
 
 /** The band the section sits on: the one it's on, its swatch painted as it would look with your style guide. */
+/**
+ * What you change most about a section, on its bar once you've clicked its empty space: its band (four dots in the
+ * guide's own colors), how wide it runs and the room above and below it. Backdrop, motion and the rest are in Style.
+ */
+function SectionQuick({ slot, tab, onTab }: { slot: Slot; tab: Tab | null; onTab: (t: Tab) => void }) {
+  const tokens = useResolvedGuide().tokens
+  const fromGuide = useStore((s) => s.guide.sections?.[slot.type]?.surface)
+  const on = slot.surface ?? fromGuide ?? 'page'
+  const pill = (t: Tab, label: string, value?: string) => (
+    <button
+      type="button"
+      aria-expanded={tab === t}
+      onClick={(e) => {
+        e.stopPropagation()
+        onTab(t)
+      }}
+      className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${tab === t ? 'bg-zinc-950/[0.07] text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+    >
+      {label}
+      {value && <span className="text-zinc-400">{value}</span>}
+    </button>
+  )
+  return (
+    <>
+      <div className="flex items-center gap-1 px-1" role="radiogroup" aria-label="Section background">
+        {SURFACES.map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={on === v}
+            title={`${SURFACE_LABEL[v]} background`}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (v !== on) useStore.getState().setSurface(slot.id, v)
+            }}
+            className={`size-5 cursor-pointer rounded-full ring-offset-2 transition-[scale,box-shadow] hover:scale-110 active:scale-[0.97] ${on === v ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/15'}`}
+            style={{ background: surfaceTokens(tokens, v)['color.bg'] }}
+          />
+        ))}
+      </div>
+      {pill('width', 'Width', SECTION_WIDTH_LABEL[slot.width ?? 'standard'])}
+      {pill('spacing', 'Spacing')}
+    </>
+  )
+}
+
 function SurfacePicks({ slot }: { slot: Slot }) {
   const tokens = useResolvedGuide().tokens
   const fromGuide = useStore((s) => s.guide.sections?.[slot.type]?.surface)

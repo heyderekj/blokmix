@@ -12,11 +12,28 @@ type Words = Partial<Record<SectionType, Record<string, string>>>
 export const SHARED_WORDS: Words = {
   logos: { logo1: 'Northwind', logo2: 'Fieldnote', logo3: 'Paperplane', logo4: 'Lumen', logo5: 'Orbital', logo6: 'Kettle', logo7: 'Ridgeway', logo8: 'Halftone' },
   testimonials: { logo1: 'Northwind', logo2: 'Fieldnote', logo3: 'Paperplane', logo4: 'Lumen', logo5: 'Orbital', logo6: 'Kettle' },
-  contact: { email: '{email}', nameLabel: 'Your name', emailLabel: 'Email', messageLabel: 'Message', submit: 'Send message' },
+  contact: { email: '{email}', nameLabel: 'Your name', emailLabel: 'Email', messageLabel: 'Message', submit: 'Send message', emailTitle: 'Email', phoneTitle: 'Phone', addressTitle: 'Address' },
+  // The small words around each plan's price; a kind that charges by the session or the project says so in its own.
+  pricing: {
+    ...Object.fromEntries([1, 2, 3].flatMap((i) => [
+      [`t${i}Per`, '/ month'],
+      [`t${i}Flag`, 'Popular'],
+      [`t${i}From`, 'From'],
+      [`t${i}Billed`, 'Billed monthly'],
+      [`t${i}BilledYearly`, 'Billed once a year'],
+      [`t${i}YearlyLead`, 'Or'],
+      [`t${i}YearlyNote`, 'a month, billed yearly'],
+      [`t${i}Range`, i === 3 ? 'only' : 'and up'],
+    ])),
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    plansLabel: 'Plans',
+  },
+  blog: { featuredTag: 'Featured' },
   footer: { brand: '{name}', legal: '© {year} {name}. All rights reserved.' },
   hero: { logo1: 'Northwind', logo2: 'Fieldnote', logo3: 'Paperplane', logo4: 'Lumen', logo5: 'Orbital', logo6: 'Kettle', s1Title: 'What we do best', s1Body: 'The one thing people come back for, done the same way every time.', s1Cta: 'See how', s2Title: 'How it works', s2Body: 'You tell us what you need. We take it from there and keep you posted.', s2Cta: 'See the steps', s3Title: 'Who it’s for', s3Body: 'Small teams and busy people who’d rather not think about it twice.', s3Cta: 'See who uses it', s4Title: 'Why people stay', s4Body: 'It works the same on a busy Monday as it did on day one.', s4Cta: 'Read what they say', s5Title: 'What’s new', s5Body: 'Something new this season, worth a look.', s5Cta: 'Take a look', s6Title: 'Where to start', s6Body: 'Start small. Most people are up and running the same day.', s6Cta: 'Get started' },
   gallery: { g1Title: 'Project one', g2Title: 'Project two', g3Title: 'Project three', g4Title: 'Project four', g5Title: 'Project five', g6Title: 'Project six', g7Title: 'Project seven', g8Title: 'Project eight' },
-  nav: { brand: '{name}' },
+  nav: { brand: '{name}', menuKicker: 'Explore' },
 }
 
 export const KIND_WORDS: Record<Kind, Words> = {

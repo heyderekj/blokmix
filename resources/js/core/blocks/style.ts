@@ -96,6 +96,38 @@ function spacingDecl(s: Partial<Record<'padding' | 'above' | 'below' | 'gap', nu
   return decl
 }
 
+const ALIGN_FLEX = { start: 'flex-start', center: 'center', end: 'flex-end' } as const
+
+/**
+ * Alignment, a grid list's columns and a row's direction. A block's own declarations, plus rules for what's inside it
+ * (a group's row of buttons lines up with its words) and for narrower screens (columns come down to two, then one).
+ */
+export function layoutDecl(b: Pick<BlockInfo, 'kind' | 'role' | 'grid'>, s: BlockStyle | undefined, sel: string): { decl: string[]; rules: string[]; phone: string[] } {
+  const decl: string[] = []
+  const rules: string[] = []
+  const phone: string[] = []
+  if (s?.align) {
+    const flex = ALIGN_FLEX[s.align]
+    decl.push(`text-align: ${s.align}; justify-content: ${flex}; --b-align: ${flex};`)
+    // A heading or paragraph narrower than its column moves with its words.
+    if (b.kind === 'heading' || b.kind === 'text') decl.push(`margin-inline: ${s.align === 'center' ? 'auto' : s.align === 'end' ? 'auto 0' : '0 auto'};`)
+    // A row of buttons or a header inside follows.
+    if (b.kind !== 'heading' && b.kind !== 'text') rules.push(`${sel} :where(.actions, .head, .heading, .lead) { text-align: ${s.align}; justify-content: ${flex}; }`)
+  }
+  if (s?.direction) {
+    decl.push(`display: flex; flex-direction: ${s.direction};`)
+    if (s.direction === 'column') decl.push('align-items: var(--b-align, flex-start);')
+  }
+  if (s?.columns && b.kind === 'list' && b.grid) {
+    const n = Math.max(1, Math.min(6, Math.round(s.columns)))
+    decl.push(`grid-template-columns: repeat(${n}, minmax(0, 1fr));`)
+    rules.push(`${sel} > * { grid-column: auto; }`)
+    if (n > 2) rules.push(`@media (max-width: 1080px) { ${sel} { grid-template-columns: repeat(2, minmax(0, 1fr)); } }`)
+    phone.push(`${sel} { grid-template-columns: minmax(0, 1fr); }`)
+  }
+  return { decl, rules, phone }
+}
+
 /** Rules for phone widths, inside the same layer so they win over desktop picks by coming later. */
 const phoneRules = (rules: string[]) => (rules.length ? `\n@media (max-width: ${MOBILE_MAX}px) {\n${rules.map((r) => `  ${r.replace(/\n/g, '\n  ')}`).join('\n')}\n}` : '')
 
@@ -141,6 +173,8 @@ export function blockCss(i: BlockCssInput): string {
     if (s?.radius) decl.push(`--b-radius: ${RADIUS[s.radius]}; border-radius: ${RADIUS[s.radius]};`)
     if (s?.shadow) decl.push(`--b-shadow: ${SHADOW[s.shadow]}; box-shadow: ${SHADOW[s.shadow]};`)
     decl.push(...spacingDecl(s))
+    const lay = layoutDecl(b, s, i.select(b))
+    decl.push(...lay.decl)
     // Type after the variant's own, so a picked text style or size wins on the same element.
     const edits = ts && i.layout && b.kind === 'heading' && !s?.text ? i.textStyles?.[ts] : undefined
     const sizing = edits && !edits.size ? (edits.phone ? 'phone' : 'layout') : 'style'
@@ -150,6 +184,8 @@ export function blockCss(i: BlockCssInput): string {
     // Variant first so the explicit picks above (declared after) win on the same element.
     const body = [v ? v.css : '', decl.join(' ')].filter(Boolean).join('\n  ')
     if (body) rules.push(`${i.select(b)} {\n  ${body}\n}`)
+    rules.push(...lay.rules)
+    phone.push(...lay.phone)
     // Hidden everywhere already covers phones.
     const m = e?.hidden ? undefined : e?.mobile
     const mdecl = [...(m?.hidden ? ['display: none;'] : []), ...spacingDecl(m?.style), ...type.phone]

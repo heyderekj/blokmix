@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ENTER_PRESETS, HOVER_PRESETS, LOOP_PRESETS, SCROLL_PRESETS } from '../../types'
+import { BLOCK_ALIGNS, ENTER_PRESETS, HOVER_PRESETS, LOOP_PRESETS, SCROLL_PRESETS } from '../../types'
 
 /** Building blocks the command schemas share. */
 export const section = z.union([z.string(), z.number().int().min(1)]).describe('A section: its id, its position from the top of the page (1 = first), its type such as "hero", its anchor ("team"), or a page and anchor ("/about#team"). "nav" and "footer" are the shared ones')
@@ -19,6 +19,9 @@ export const style = z
     above: space.nullable().optional().describe('Space above the block'),
     below: space.nullable().optional().describe('Space below the block'),
     gap: space.nullable().optional().describe('Space between the block’s children (lists, cards, items)'),
+    align: z.enum(BLOCK_ALIGNS).nullable().optional().describe('Line up its words and what’s in it: start (left), center or end'),
+    columns: z.number().int().min(1).max(6).nullable().optional().describe('Lists on a grid only (get_options says which): how many across on wide screens; two at most on tablets, one on phones'),
+    direction: z.enum(['row', 'column']).nullable().optional().describe('A row of buttons: side by side (row) or stacked (column)'),
   })
   .describe('Only the properties you set change; null clears one back to the clip’s own')
 

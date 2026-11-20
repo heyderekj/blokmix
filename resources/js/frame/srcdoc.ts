@@ -33,7 +33,9 @@ const BRIDGE = `(function () {
   /* Named icons say which icon they show in a plain attribute, as exports do, so a clip can style by it. */
   document.querySelectorAll('svg[data-mx-icon]').forEach(function (svg) { svg.setAttribute('data-icon', svg.getAttribute('data-mx-icon')); });
   var byId = function (id) { return id ? document.querySelector('[data-mx-b="' + id + '"]') : null; };
-  var up = function (el) { return el && el.parentElement ? el.parentElement.closest('[data-mx-block]') : null; };
+  /* Anything you can pick: a block, or a group (a header, a row of buttons) read off the layout's class names. */
+  var PICK = '[data-mx-block], [data-mx-group]';
+  var up = function (el) { return el && el.parentElement ? el.parentElement.closest(PICK) : null; };
   var rect = function (el) {
     if (!el) return null;
     var r = el.getBoundingClientRect();
@@ -63,10 +65,10 @@ const BRIDGE = `(function () {
     post({ rects: out });
   }
 
-  /* A click picks what you clicked: the smallest block under the pointer. Its parents are a click on their own padding,
-     the bar's breadcrumb or Escape away. */
+  /* A click picks what you clicked: the smallest block or group under the pointer. What's around it is a click on its
+     own padding, a click again on what's selected, the bar's crumb or Escape away. */
   function target(node) {
-    return node && node.closest ? node.closest('[data-mx-block]') : null;
+    return node && node.closest ? node.closest(PICK) : null;
   }
   function fieldEl(el) {
     if (!el) return null;
@@ -169,17 +171,37 @@ const BRIDGE = `(function () {
     /* Dots, tabs, toggles and accordions still work while editing: the click switches them, and selects as usual. */
     if (e.target.matches && e.target.matches('input[type=radio], input[type=checkbox]')) return;
     if (e.target.closest && e.target.closest('[data-slider-prev], [data-slider-next], [data-slider-dot], [data-nav-toggle]')) return;
-    if (e.target.closest && e.target.closest('label, summary')) {
-      var hit = target(e.target);
-      post({ pick: hit ? hit.getAttribute('data-mx-b') : null });
+    /* A question or a toggle: the first click selects it without opening or switching it; a click on it once it's
+       selected (or on something selected inside it) works it. */
+    var holder = e.target.closest && e.target.closest('label, summary');
+    if (holder) {
+      var hit = target(e.target), hid = hit ? hit.getAttribute('data-mx-b') : null, s0 = byId(sel);
+      if (!(hid && hid === sel) && !(s0 && (holder.contains(s0) || s0.contains(holder)))) e.preventDefault();
+      clearTimeout(upTimer);
+      post({ pick: hid });
       return;
     }
     e.preventDefault(); e.stopPropagation();
     /* A click only ever selects: words are edited with a double-click, ↵ or the bar's Edit text. */
     var t = target(e.target);
-    post({ pick: t ? t.getAttribute('data-mx-b') : null });
+    var id = t ? t.getAttribute('data-mx-b') : null;
+    /* A click on what's already selected picks what's around it (a link, its item, the list, the section), and clicking
+       the same spot again keeps climbing, once the double-click window has passed, so a double-click still edits the
+       words. Past the section it starts again from what you clicked. A click on something else inside the selection
+       picks that. */
+    var s = byId(sel);
+    if (id && (id === sel || (climb === t && s && s.contains(t)))) {
+      clearTimeout(upTimer);
+      if (e.detail === 1) upTimer = setTimeout(function () { climb = t; var p = up(s); post({ pick: p ? p.getAttribute('data-mx-b') : null }); }, 260);
+      return;
+    }
+    clearTimeout(upTimer);
+    climb = null;
+    post({ pick: id });
   }, true);
+  var upTimer = 0, climb = null;
   document.addEventListener('dblclick', function (e) {
+    clearTimeout(upTimer);
     if (!editMode || noteMode) return;
     if (editing && editing.contains(e.target)) return; /* the page's own word selection */
     e.preventDefault();

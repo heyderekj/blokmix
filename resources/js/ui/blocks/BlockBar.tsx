@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 import { create } from 'zustand'
 import { Link2, LayoutTemplate, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, MoreHorizontal, Palette, Plus, RotateCcw, Type, Users, MessageSquarePlus, Image as ImageIcon, Smile, Database, ListPlus } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
-import { BLOCK_LABEL, COMPOSITE } from '@/core/blocks'
+import { BLOCK_LABEL, COMPOSITE, upOf } from '@/core/blocks'
 import { defaultFor, effectiveEdit } from '@/core/blocks/style'
 import { variantsFor } from '@/core/blocks/variants'
 import { advise, type Advice } from '@/core/advise'
@@ -38,11 +38,17 @@ import { TextMenu } from './TextMenu'
 import { autoTextStyle } from '@/core/textStyles'
 import { LooksPicker, stepLook } from './LooksPicker'
 import { setStylePanel, useStylePanel } from '../panels/stylePanel'
+import { CORE, Segmented, Swatch, usePaint } from './swatches'
+import { quickOptions, styleRows, type Quick, type StyleRow } from '@/core/blocks/quick'
+import { isQuickMenu, QuickInline, QuickMenuBody, type QuickMenu } from './QuickOptions'
 
 /** Icons that read as included or not. */
 const MARK_ON = ['check', 'check-circle']
 const MARK_OFF = ['minus', 'x']
-type Menu = 'crumbs' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'collection' | 'add' | null
+type Menu = 'crumbs' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'collection' | 'add' | QuickMenu | null
+
+/** Quick options about how it looks (the bar's others, words, picture, link and adding, have their own buttons). */
+const STYLE_QUICK = new Set<Quick>(['color', 'size', 'align', 'shape', 'fill', 'padding', 'columns', 'direction', 'gap'])
 
 const PLURAL: Record<BlockKind, string> = {
   heading: 'headings',
@@ -57,6 +63,7 @@ const PLURAL: Record<BlockKind, string> = {
   card: 'cards',
   item: 'items',
   list: 'lists',
+  group: 'groups',
 }
 
 /**
@@ -91,7 +98,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   // Esc closes the open menu and nothing else.
   useEscape(!!menu, () => setMenu(null))
   // A opens Add a blok (useShortcuts asks).
-  const canAdd = block.id !== BANNER_ID && !blocks.some((b) => b.kind === 'banner' && isInside(blocks, block.id, b.id))
+  const canAdd = block.kind !== 'group' && block.id !== BANNER_ID && !blocks.some((b) => b.kind === 'banner' && isInside(blocks, block.id, b.id))
   useEffect(() => {
     const open = () => canAdd && setMenu('add')
     window.addEventListener('blokmix:add-blok', open)
@@ -109,7 +116,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   useEffect(() => () => preview.clear(), [block.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const crumbs: BlockInfo[] = []
-  for (let b: BlockInfo | undefined = block; b; b = b.parent ? blocks.find((x) => x.id === b!.parent) : undefined) crumbs.unshift(b)
+  for (let b: BlockInfo | undefined = block; b; b = upOf(b) ? blocks.find((x) => x.id === upOf(b!)) : undefined) crumbs.unshift(b)
   const name = (b: BlockInfo) => b.label.split(' · ').at(-1) ?? BLOCK_LABEL[b.kind]
 
   const mark = (() => {
@@ -132,15 +139,18 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   const advice = useAdvice(slot, block, rect, !styling)
   // The list you're in: the list itself, an item, or anything inside an item (its title, its picture).
   const list = listContext(slotClip(slot), slot, block.id, { within: true })
+  // The few things you change most about this kind of block, right on the bar; the Style panel has the rest.
+  const quick = quickOptions(block).filter((q) => STYLE_QUICK.has(q))
+  const shown: BlockStyle = edit?.style ?? {}
 
   return (
     <div ref={ref} className="flex w-max flex-col items-start gap-1.5" data-chrome onPointerDown={(e) => e.stopPropagation()}>
       <div className="glass-panel flex h-11 items-center gap-1 whitespace-nowrap pl-1.5 pr-1.5 text-[13px]" style={BAR_SURFACE}>
-        {/* what it is; its parents (up to the section) are a click away */}
+        {/* what it is; everything around it (up to the section) is in its menu */}
         <button
           type="button"
           aria-expanded={menu === 'crumbs'}
-          title={crumbs.map(name).join(' › ')}
+          title={`${[TYPE_LABEL[slot.type], ...crumbs.map(name)].join(' › ')}: what's around it is in this menu, or click the selection again`}
           onClick={() => setMenu(menu === 'crumbs' ? null : 'crumbs')}
           className={`flex h-8 cursor-pointer items-center gap-1 rounded-full pl-2.5 pr-2 text-[14px] font-semibold transition active:scale-[0.97] ${menu === 'crumbs' ? 'bg-zinc-950/[0.06] text-zinc-900' : 'text-zinc-900 hover:bg-zinc-950/5'}`}
         >
@@ -157,7 +167,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
               type="button"
               title="See every look in the Style panel"
               onClick={() => setStylePanel(!styling)}
-              className="flex h-8 max-w-[150px] cursor-pointer items-center truncate px-1.5 text-[12.5px] font-medium text-zinc-600 transition hover:text-zinc-900 active:scale-[0.97]"
+              className="flex h-8 max-w-[104px] cursor-pointer items-center truncate px-1 text-[12.5px] font-medium text-zinc-600 transition hover:text-zinc-900 active:scale-[0.97]"
             >
               {current?.label ?? 'Original'}
             </button>
@@ -198,12 +208,14 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
             <LinkLabel slot={slot} block={block} />
           </BarButton>
         )}
+        {quick.length > 0 && <Sep />}
+        {quick.map((q) => (
+          <QuickInline key={q} q={q} slot={slot} block={block} shown={shown} apply={apply} hover={hover} open={menu === q} onOpen={() => setMenu(menu === q ? null : (q as QuickMenu))} />
+        ))}
         {/* Adding: a blok after this one, or (on the list itself) an item. An item's own Add / Duplicate / Remove sit
             with its grip, on the item. */}
-        {(canAdd || (list && !list.item)) && <Sep />}
-        {canAdd && (
-          <BarButton active={menu === 'add'} expands onClick={() => setMenu(menu === 'add' ? null : 'add')} icon={Plus} title="Add a blok (A)" />
-        )}
+        {/* On the list itself: add an item. Adding a blok after this one is in ⋯ (and A). */}
+        {list && !list.item && <Sep />}
         {list && !list.item && <ListControls slotId={slot.id} ctx={list} />}
 
         <Sep />
@@ -273,11 +285,17 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         />
       )}
       {menu === 'link' && <LinkMenu slot={slot} block={block} />}
+      {isQuickMenu(menu) && <QuickMenuBody q={menu} block={block} shown={shown} apply={apply} hover={hover} />}
       {menu === 'collection' && list && <CollectionMenu slot={slot} list={list.list} onClose={() => setMenu(null)} />}
       {menu === 'add' && <AddBlockMenu slot={slot} block={block} onClose={() => setMenu(null)} />}
       {menu === 'words' && block.field && <WordsMenu slot={slot} field={block.field} blockId={block.id} onClose={() => setMenu(null)} />}
       {menu === 'more' && (
         <Popover width={248}>
+          {canAdd && (
+            <MenuItem icon={Plus} onClick={() => setMenu('add')} kbd="A">
+              Add a blok after this
+            </MenuItem>
+          )}
           {list && (
             <MenuItem icon={Database} onClick={() => setMenu('collection')}>
               {slot.bind?.lists?.[list.list.listKey ?? ''] ? 'Collection shown here…' : 'Show a collection here…'}
@@ -415,7 +433,8 @@ export function BlockStyleBody({ slot, block }: { slot: Slot; block: BlockInfo }
           style={own?.style}
           inherited={def?.style}
           phone={own?.mobile?.style}
-          composite={COMPOSITE.has(block.kind)}
+          composite={COMPOSITE.has(block.kind) || block.kind === 'group'}
+          rows={styleRows(block)}
           onHover={(s) => hover(s ? { style: s } : null)}
           onPick={(s) => apply({ style: s })}
           // Phone previews carry the whole phone edit, since a preview replaces it.
@@ -618,28 +637,6 @@ function MenuItem({ icon: Icon, children, onClick, disabled, kbd }: { icon: type
 
 /* ---------- color and shape ---------- */
 
-const CORE: { ref: ColorRef; key: string; label: string }[] = [
-  { ref: 'primary', key: 'color.primary', label: 'Primary' },
-  { ref: 'accent', key: 'color.accent', label: 'Accent' },
-  { ref: 'text', key: 'color.text', label: 'Text' },
-  { ref: 'muted', key: 'color.muted', label: 'Muted' },
-  { ref: 'surface', key: 'color.surface', label: 'Surface' },
-  { ref: 'bg', key: 'color.bg', label: 'Page' },
-]
-
-/** Resolve a palette ref to something the browser can paint in the chrome. */
-function usePaint() {
-  const tokens = useResolvedGuide().tokens as Record<string, string>
-  const swatches = useStore((s) => s.guide.swatches) ?? []
-  return (ref: ColorRef | undefined) => {
-    if (!ref) return undefined
-    const [name, mix] = ref.split('/')
-    const base = name.startsWith('x:') ? swatches.find((w) => w.name === name.slice(2))?.value : tokens[`color.${name}`]
-    if (!base) return undefined
-    return mix ? `color-mix(in oklab, ${base} ${mix}%, ${tokens['color.bg']})` : base
-  }
-}
-
 const SPACE_PROPS: { k: 'padding' | 'above' | 'below' | 'gap'; label: string }[] = [
   { k: 'padding', label: 'Padding' },
   { k: 'above', label: 'Space above' },
@@ -657,7 +654,10 @@ export function StyleMenu({
   onHoverPhone,
   onPickPhone,
   bare,
+  rows,
 }: {
+  /** The rows that mean something for this block (core/blocks/quick.ts styleRows); all of them when absent. */
+  rows?: StyleRow[]
   /** In a panel rather than a floating menu. */
   bare?: boolean
   style?: BlockStyle
@@ -678,6 +678,7 @@ export function StyleMenu({
   const refs: { ref: ColorRef; label: string }[] = [...CORE, ...swatches.map((w) => ({ ref: `x:${w.name}`, label: w.name }))]
   const base = shown.fill?.split('/')[0]
   const [adding, setAdding] = useState(false)
+  const has = (r: StyleRow) => !rows || rows.includes(r)
 
   const Row = ({ prop, label }: { prop: 'fill' | 'ink'; label: string }) => (
     <div className="px-2 py-1.5">
@@ -709,8 +710,8 @@ export function StyleMenu({
 
   const body = (
     <>
-      <Row prop="fill" label="Fill" />
-      {base && (
+      {has('fill') && <Row prop="fill" label="Fill" />}
+      {has('fill') && base && (
         // Explore around the chosen color: lighter mixes of it towards the page.
         <div className="flex items-center gap-1.5 px-2 pb-1.5" onMouseLeave={() => onHover(null)}>
           <span className="w-12 text-[11px] font-medium text-zinc-400">Explore</span>
@@ -721,16 +722,18 @@ export function StyleMenu({
         </div>
       )}
       {adding && <NewSwatch onDone={(name) => (setAdding(false), name && onPick({ fill: `x:${name}` }))} />}
-      <Row prop="ink" label="Text" />
-      <div className="px-2 py-1.5">
-        <div className="mb-1.5 text-[11px] font-semibold text-zinc-400">Corners</div>
-        <Segmented
-          options={(['none', 'sm', 'md', 'lg', 'pill'] as const).map((v) => ({ v, label: { none: 'None', sm: 'S', md: 'M', lg: 'L', pill: 'Pill' }[v] }))}
-          value={shown.radius}
-          onHover={(v) => onHover(v ? { radius: v } : null)}
-          onPick={(v) => onPick({ radius: v })}
-        />
-      </div>
+      {has('ink') && <Row prop="ink" label="Text" />}
+      {has('radius') && (
+        <div className="px-2 py-1.5">
+          <div className="mb-1.5 text-[11px] font-semibold text-zinc-400">Corners</div>
+          <Segmented
+            options={(['none', 'sm', 'md', 'lg', 'pill'] as const).map((v) => ({ v, label: { none: 'None', sm: 'S', md: 'M', lg: 'L', pill: 'Pill' }[v] }))}
+            value={shown.radius}
+            onHover={(v) => onHover(v ? { radius: v } : null)}
+            onPick={(v) => onPick({ radius: v })}
+          />
+        </div>
+      )}
       <div className="px-2 py-1.5">
         <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-semibold text-zinc-400">
           <span className="flex items-center gap-2">
@@ -744,7 +747,7 @@ export function StyleMenu({
           <DeviceSwitch value={device} onChange={setDevice} />
         </div>
         <div className="space-y-1.5">
-          {SPACE_PROPS.filter((p) => p.k !== 'gap' || composite).map((p) => {
+          {SPACE_PROPS.filter((p) => (p.k !== 'gap' || composite) && has(p.k)).map((p) => {
             const own = phone?.[p.k]
             return device === 'desktop' ? (
               <div key={p.k} className="flex items-center gap-2">
@@ -768,49 +771,20 @@ export function StyleMenu({
           })}
         </div>
       </div>
-      <div className="px-2 pb-2 pt-1.5">
-        <div className="mb-1.5 text-[11px] font-semibold text-zinc-400">Shadow</div>
-        <Segmented
-          options={(['none', 'soft', 'lifted', 'offset'] as const).map((v) => ({ v, label: { none: 'None', soft: 'Soft', lifted: 'Lifted', offset: 'Offset' }[v] }))}
-          value={shown.shadow}
-          onHover={(v) => onHover(v ? { shadow: v } : null)}
-          onPick={(v) => onPick({ shadow: v })}
-        />
-      </div>
+      {has('shadow') && (
+        <div className="px-2 pb-2 pt-1.5">
+          <div className="mb-1.5 text-[11px] font-semibold text-zinc-400">Shadow</div>
+          <Segmented
+            options={(['none', 'soft', 'lifted', 'offset'] as const).map((v) => ({ v, label: { none: 'None', soft: 'Soft', lifted: 'Lifted', offset: 'Offset' }[v] }))}
+            value={shown.shadow}
+            onHover={(v) => onHover(v ? { shadow: v } : null)}
+            onPick={(v) => onPick({ shadow: v })}
+          />
+        </div>
+      )}
     </>
   )
   return bare ? <div className="-mx-2">{body}</div> : <Popover width={300}>{body}</Popover>
-}
-
-function Swatch({ color, label, on, onHover, onPick, small }: { color?: string; label: string; on: boolean; onHover: () => void; onPick: () => void; small?: boolean }) {
-  return (
-    <button
-      type="button"
-      title={label}
-      onMouseEnter={onHover}
-      onClick={onPick}
-      className={`${small ? 'size-6' : 'size-7'} rounded-full ring-offset-2 transition hover:scale-110 ${on ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/10'}`}
-      style={{ background: color }}
-    />
-  )
-}
-
-function Segmented<T extends string>({ options, value, onHover, onPick }: { options: { v: T; label: string }[]; value?: T; onHover: (v: T | null) => void; onPick: (v: T) => void }) {
-  return (
-    <div className="flex rounded-full bg-chip p-0.5" onMouseLeave={() => onHover(null)}>
-      {options.map((o) => (
-        <button
-          key={o.v}
-          type="button"
-          onMouseEnter={() => onHover(o.v)}
-          onClick={() => onPick(o.v)}
-          className={`h-6 flex-1 rounded-full text-[11.5px] font-semibold transition ${value === o.v ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  )
 }
 
 /** Add a brand color to the palette; it becomes a swatch everywhere. */

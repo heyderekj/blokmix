@@ -145,7 +145,7 @@ export function motionCss(i: MotionCssInput): string {
     const enter = sec.enter ?? 'rise'
     const speed = sec.speed ?? 'normal'
     if (sec.stagger) {
-      const tops = i.blocks.filter((b) => !b.parent || i.blocks.find((x) => x.id === b.parent)?.kind === 'list')
+      const tops = i.blocks.filter((b) => b.kind !== 'group' && (!b.parent || i.blocks.find((x) => x.id === b.parent)?.kind === 'list'))
       tops.forEach((b, n) => {
         if (i.edits(b)?.motion?.enter) return // the block's own entrance (or 'none') wins
         entrance(i.select(b), enter, speed, Math.min(n, MAX_STAGGER) * STAGGER_MS, !!sec.onScroll)

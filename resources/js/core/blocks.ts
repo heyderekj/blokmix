@@ -1,4 +1,4 @@
-import type { BlockInfo, BlockKind, SectionType } from './types'
+import type { BlockInfo, BlockKind, GroupRole, SectionType } from './types'
 import { BLOCK_KINDS } from './types'
 import { TYPE_LABEL } from './content'
 import { attr, walk, type HEl, type HNode } from './html/parse'
@@ -17,6 +17,7 @@ export const BLOCK_LABEL: Record<BlockKind, string> = {
   card: 'Card',
   item: 'Item',
   list: 'List',
+  group: 'Group',
 }
 
 /** Small blocks hold words or a single element; composite ones hold other blocks. */
@@ -34,18 +35,74 @@ function firstField(el: HEl): string | undefined {
 }
 
 /**
+ * Groups: what the layout primitives already name (a section's header, a row of buttons, a panel, a card) when it isn't
+ * a block itself and holds two or more. Read off class names, so every built-in layout and every normalised capture
+ * has them without re-marking. Once stamped (`core/lists.ts` `stamp`), `data-mx-group` carries the name.
+ */
+const GROUP_CLASSES: [string, string, GroupRole][] = [
+  ['head', 'Header', 'header'],
+  ['actions', 'Buttons', 'buttons'],
+  ['band', 'Panel', 'panel'],
+  ['card', 'Card', 'card'],
+  ['about', 'About', 'about'],
+]
+const ROLE_OF: Record<string, GroupRole> = Object.fromEntries(GROUP_CLASSES.map(([, name, role]) => [name, role]))
+
+const classesOf = (el: HEl) => (attr(el, 'class') ?? '').split(/\s+/)
+
+function blocksIn(el: HEl, max: number): number {
+  let n = 0
+  walk(el.kids, (k) => {
+    if (n < max && k.t === 'el' && attr(k, 'data-mx-block') !== undefined) n++
+  })
+  return n
+}
+
+/** The group's name ("Header", "Buttons"), or undefined when the element isn't one. */
+export function groupName(el: HEl): string | undefined {
+  if (attr(el, 'data-mx-block') !== undefined || attr(el, 'data-mx-section') !== undefined) return undefined
+  const stamped = attr(el, 'data-mx-group')
+  if (stamped !== undefined) return stamped || 'Group'
+  const cls = classesOf(el)
+  const name = GROUP_CLASSES.find(([c]) => cls.includes(c))?.[1] ?? (attr(el, 'data-nav-group') !== undefined ? 'Buttons' : undefined)
+  return name && blocksIn(el, 2) >= 2 ? name : undefined
+}
+
+/** What's around it, one step up: its group, else its parent block; null at the section. */
+export const upOf = (b: Pick<BlockInfo, 'group' | 'parent'>): string | null => b.group ?? b.parent
+
+/**
  * Index a clip's blocks in document order, the same order the in-frame script
  * sees with querySelectorAll('[data-mx-block]'), so ids line up on both sides.
+ * Groups join the list with ids of their own (g0, g1…), so a block's id never depends on them.
  */
 export function indexBlocks(tree: HNode[], type: SectionType): BlockInfo[] {
   const out: BlockInfo[] = []
   const names = new Map<string, string>() // data-mx-label, e.g. "Plan"
-  const visit = (nodes: HNode[], parent: BlockInfo | null) => {
+  let nb = 0
+  let ng = 0
+  const visit = (nodes: HNode[], parent: BlockInfo | null, around: BlockInfo | null) => {
     for (const n of nodes) {
       if (n.t !== 'el') continue
       const kind = attr(n, 'data-mx-block')
-      if (isKind(kind)) {
-        const b: BlockInfo = { id: attr(n, 'data-mx-b') ?? `b${out.length}`, kind, parent: parent?.id ?? null, children: [], label: '' }
+      const group = isKind(kind) ? undefined : groupName(n)
+      if (group) {
+        const own = attr(n, 'data-mx-b')
+        const g: BlockInfo = { id: own ?? `g${ng}`, kind: 'group', parent: parent?.id ?? null, children: [], label: '' }
+        if (!own) ng++
+        if (around?.kind === 'group') g.group = around.id
+        const role = ROLE_OF[group]
+        if (role) g.role = role
+        out.push(g)
+        names.set(g.id, group)
+        visit(n.kids, parent, g)
+      } else if (isKind(kind)) {
+        // A block a layout gave its own id (data-mx-b="l1", added after people had changed it) takes no number, so the
+        // blocks after it keep theirs.
+        const own = attr(n, 'data-mx-b')
+        const b: BlockInfo = { id: own ?? `b${nb}`, kind, parent: parent?.id ?? null, children: [], label: '' }
+        if (!own) nb++
+        if (around?.kind === 'group') b.group = around.id
         const field = COMPOSITE.has(kind) ? undefined : firstField(n)
         if (field) b.field = field
         if (kind === 'button' && /(^|\s)(secondary|ghost)(\s|$)/.test(attr(n, 'class') ?? '')) b.secondary = true
@@ -57,16 +114,17 @@ export function indexBlocks(tree: HNode[], type: SectionType): BlockInfo[] {
         if (attr(n, 'data-mx-media-kind') === 'video') b.mediaKind = 'video'
         const list = attr(n, 'data-mx-list')
         if (list) b.list = list
+        if (kind === 'list' && classesOf(n).includes('grid')) b.grid = true
         if (linkElementOf(n)) b.linkable = true
         out.push(b)
         parent?.children.push(b.id)
         const name = attr(n, 'data-mx-label')
         if (name) names.set(b.id, name)
-        visit(n.kids, b)
-      } else visit(n.kids, parent)
+        visit(n.kids, b, b)
+      } else visit(n.kids, parent, around)
     }
   }
-  visit(tree, null)
+  visit(tree, null, null)
 
   // Labels: the section, then each item ancestor ("Plan 2"), then the block. Repeats of a kind
   // within the same parent are numbered ("Button", "Button 2") so labels tell them apart.

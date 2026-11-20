@@ -15,7 +15,7 @@ import { DEFAULT_CONTENT, resolveFields } from './content'
 import { bannerTree } from './banner'
 import { attr, extractFields, mapTree, parseHtml, walk, type HEl, type HNode } from './html/parse'
 import { serialize } from './html/serialize'
-import { indexBlocks } from './blocks'
+import { groupName, indexBlocks } from './blocks'
 
 /** A change for a live frame: replace the element matching `sel` with `html`. */
 export interface ListPatch {
@@ -311,10 +311,19 @@ export function setCounter(el: HEl, replace: (v: string) => HNode): HEl {
  */
 export function stamp(tree: HNode[]): HNode[] {
   let i = 0
+  let g = 0
   const stamped = mapTree(tree, (el) => {
-    if (attr(el, 'data-mx-block') === undefined) return el
-    const id = `b${i++}`
-    return attr(el, 'data-mx-b') !== undefined ? el : { ...el, attrs: [...el.attrs, ['data-mx-b', id]] }
+    if (attr(el, 'data-mx-block') === undefined) {
+      // Groups (a header, a row of buttons) get ids of their own, in the same order indexBlocks gives them.
+      const name = groupName(el)
+      if (!name) return el
+      if (attr(el, 'data-mx-group') !== undefined && attr(el, 'data-mx-b') !== undefined) return el
+      const id = attr(el, 'data-mx-b') ?? `g${g++}`
+      return { ...el, attrs: [...el.attrs.filter(([k]) => k !== 'data-mx-group' && k !== 'data-mx-b'), ['data-mx-group', name], ['data-mx-b', id]] }
+    }
+    // A block with its own id (a layout's later additions, l1, l2…) takes no number, as in indexBlocks.
+    if (attr(el, 'data-mx-b') !== undefined) return el
+    return { ...el, attrs: [...el.attrs, ['data-mx-b', `b${i++}`]] }
   })
   // Mirror sets: an element whose children all mirror a list's items.
   const lists: { id: string; key: string; ns: Set<number> }[] = []
