@@ -165,15 +165,21 @@ export const setBrief = (s: StartState, patch: Partial<Brief>): StartState => ({
 /**
  * A read of your words, folded in: it fills every blank it can, except blanks you set yourself and blanks you changed
  * since the read was asked for (`asked` is the sentence as it was then). When the words came from one blank (`own`),
- * that blank keeps them exactly, counted as the option the read heard.
+ * that blank keeps them exactly, counted as the option the read heard. A paragraph written into a blank
+ * (`own.paragraph`) says more than its blank: the blank takes what the read heard for it, and keeps the paragraph
+ * only when the read said nothing about it.
  */
-export function applyRead(s: StartState, read: ReadStart | null, asked: Picks = s.picks, own?: { blank: string; words: string }): StartState {
+export function applyRead(s: StartState, read: ReadStart | null, asked: Picks = s.picks, own?: { blank: string; words: string; paragraph?: boolean }): StartState {
   if (!read) return s
-  const since = Object.keys({ ...asked, ...s.picks }).filter((id) => JSON.stringify(asked[id] ?? []) !== JSON.stringify(s.picks[id] ?? []))
+  const holdsOwn = (id: string) => !!own && id === own.blank && (s.picks[id] ?? []).some((p) => p.words === own.words)
+  const since = Object.keys({ ...asked, ...s.picks }).filter((id) => JSON.stringify(asked[id] ?? []) !== JSON.stringify(s.picks[id] ?? []) && !(own?.paragraph && holdsOwn(id)))
   const keep = [...new Set([...s.mine.filter((id) => id !== own?.blank), ...since])]
   const m = mergeRead(s.picks, read, keep)
   let picks = m.picks
-  if (own && !since.includes(own.blank)) {
+  // A paragraph the read heard something in for its blank gives way to that; else it stays, as your words.
+  const gaveWay = !!own?.paragraph && m.from.includes(own.blank as ReadBlank)
+  if (own?.paragraph && !gaveWay) picks = { ...picks, [own.blank]: s.picks[own.blank] ?? [{ words: own.words }] }
+  if (own && !own.paragraph && !since.includes(own.blank)) {
     const heardHere = readPicks(read)[own.blank as ReadBlank]
     const mine: Pick = { words: own.words, ...(heardHere?.[0]?.id ? { id: heardHere[0].id } : {}) }
     const others = (s.picks[own.blank] ?? []).filter((p) => p.words !== own.words)
@@ -183,15 +189,15 @@ export function applyRead(s: StartState, read: ReadStart | null, asked: Picks = 
   return {
     ...s,
     picks,
-    mine: own ? [...new Set([...s.mine, own.blank])] : s.mine,
-    from: [...new Set([...s.from, ...m.from, ...(own ? [own.blank] : [])])],
+    mine: gaveWay ? s.mine.filter((id) => id !== own!.blank) : own ? [...new Set([...s.mine, own.blank])] : s.mine,
+    from: [...new Set([...s.from, ...m.from, ...(own && !own.paragraph ? [own.blank] : [])])],
     read: patchBrief(s.read, m.brief),
     readKind: m.kind ?? s.readKind,
     hide: [...new Set([...s.hide, ...hide])],
     avoid: [...new Set([...s.avoid, ...m.avoid])],
     avoidWords: [...new Set([...s.avoidWords, ...m.avoidWords])],
     pages: m.pages.length ? m.pages : s.pages,
-    ...(m.pages.length ? { from: [...new Set([...s.from, ...m.from, ...(own ? [own.blank] : []), 'pages'])] } : {}),
+    ...(m.pages.length ? { from: [...new Set([...s.from, ...m.from, ...(own && !own.paragraph ? [own.blank] : []), 'pages'])] } : {}),
     tone: m.tone ?? s.tone,
   }
 }

@@ -6,7 +6,7 @@ import { askJev, askLatest } from '@/lib/jev'
 import { askReader, readerOn } from '@/lib/reader'
 import { noteWants } from '@/lib/jevWants'
 import type { Heard } from '@/lib/startFromText'
-import { Sentence } from '@/ui/jev/Sentence'
+import { Sentence, isParagraph } from '@/ui/jev/Sentence'
 import { ChipRows } from './ChipRows'
 import { CopyDrawer } from './CopyDrawer'
 
@@ -51,7 +51,7 @@ export function Describe({ s, v, setS, jev, onReading }: { s: StartState; v: Sta
   const match = async (b: Blank, words: string) => readMatch(await askJev(matchRequest(b, words, fill.text)))
 
   /** Read your words and fold the read in. The reader goes over the whole sentence; keywords read just your words. */
-  const read = async (text: string, own?: { blank: string; words: string }) => {
+  const read = async (text: string, own?: { blank: string; words: string; paragraph?: boolean }) => {
     const asked = latest.current.picks
     onReading(true)
     try {
@@ -84,7 +84,8 @@ export function Describe({ s, v, setS, jev, onReading }: { s: StartState; v: Sta
           // Your words for the name are just the name; everything else may say more than its blank.
           if (b.ownOnly) return
           const sentence = sentenceText(SEGMENTS, { ...latest.current.picks, [b.id]: [...(b.many ? (latest.current.picks[b.id] ?? []) : []), { words }] })
-          void read(sentence, { blank: b.id, words })
+          // A paragraph says more than its blank: the blank takes what's read from it (applyRead's `paragraph`).
+          void read(sentence, { blank: b.id, words, paragraph: isParagraph(words) })
         }}
         onPasteText={(text) => void read(text)}
       />
