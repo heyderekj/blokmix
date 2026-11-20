@@ -106,8 +106,9 @@ export function StartGuide({ onDone, onBlank, onStarter, onImport, guides, onClo
   }
 
   const dialog = useRef<HTMLDivElement>(null)
+  // Focus comes into the window as it opens, unless a field inside it (the first blank) already has it.
   useEffect(() => {
-    dialog.current?.focus({ preventScroll: true })
+    if (!dialog.current?.contains(document.activeElement)) dialog.current?.focus({ preventScroll: true })
   }, [])
 
   return (

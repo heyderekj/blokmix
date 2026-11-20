@@ -1,5 +1,5 @@
 import { Dropdown } from '@/ui/controls/Dropdown'
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { CornerDownLeft, X } from 'lucide-react'
 import type { Kind } from '@/core/types'
 import { groupsOf, openBlanks, orderOptions, type Blank, type Choice, type Matched, type Picks, type Segment } from '@/core/jev/sentence'
@@ -50,7 +50,8 @@ export function Sentence({
   const [moves, setMoves] = useState(0)
   const open = blanks.find((b) => b.id === openId) ?? null
 
-  useEffect(() => {
+  // Before paint, so keys typed right after Enter never land in the blank just left.
+  useLayoutEffect(() => {
     const from = advance.current
     if (!from) return
     advance.current = null
@@ -258,10 +259,13 @@ function Options({
   }, [sorted, hovering])
 
   // The field takes the keys as a blank opens, so you can type, Enter, and type the next (a phone's keyboard only on a name).
-  // A frame later, so a window that focuses itself as it opens doesn't take it back.
-  useEffect(() => {
+  // At once, before the screen updates, so keys typed right after Enter land here; and again a frame later if a window
+  // that focuses itself as it opens took it back.
+  useLayoutEffect(() => {
     if (!blank.ownOnly && !matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    const raf = requestAnimationFrame(() => field.current?.focus({ preventScroll: true }))
+    const take = () => field.current && document.activeElement !== field.current && field.current.focus({ preventScroll: true })
+    take()
+    const raf = requestAnimationFrame(take)
     return () => cancelAnimationFrame(raf)
   }, [blank])
 
