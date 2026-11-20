@@ -1,4 +1,5 @@
 import { resolveGuide } from '@/core/guide'
+import { addNeededPage, addNeededSection, readNeed, type NeedRead } from '../need'
 import { toneOfGuide } from '@/core/dials'
 // Jev's commands: each asks first (async prepare), then lands as one undo step (apply).
 
@@ -236,6 +237,24 @@ export const later = {
     },
     apply: (_i: CommandInput<'suggest_treatments'>, ideas: DressIdea[]) => ideas.map((d) => ({ does: d.label, command: d.command, input: d.input, fit: Math.round(d.fit * 100) / 100 })),
   } satisfies AsyncCommand<DressIdea[]>,
+  need_section: {
+    prepare: async (i: CommandInput<'need_section'>) => readNeed(i.text, 'section'),
+    apply: (i: CommandInput<'need_section'>, need: NeedRead | null) => {
+      if (!need) throw new CommandError('Couldn’t tell which section that is. Name what it should show (prices, questions, the team, reviews…).')
+      const added = addNeededSection(need, i.at !== undefined ? i.at - 1 : undefined)
+      if (!added) throw new CommandError(`No layouts for ${need.sections.map((t) => TYPE_LABEL[t]).join(' or ')} yet.`)
+      return { added: added.type, label: TYPE_LABEL[added.type], others: added.others, read_by: need.from, purpose: need.purpose }
+    },
+  } satisfies AsyncCommand<NeedRead | null>,
+  need_page: {
+    prepare: async (i: CommandInput<'need_page'>) => readNeed(i.text, 'page'),
+    apply: (i: CommandInput<'need_page'>, need: NeedRead | null) => {
+      if (!need) throw new CommandError('Couldn’t tell what page that is. Say what it’s for (our story, contact, prices, news…).')
+      const added = addNeededPage(need, i.title)
+      const page = useStore.getState().site.pages.find((p) => p.id === added.pageId)
+      return { page: page?.path, title: page?.title, template: need.template, sections: added.sections, read_by: need.from }
+    },
+  } satisfies AsyncCommand<NeedRead | null>,
   read_start: {
     prepare: async (i: CommandInput<'read_start'>): Promise<ReadStart> => {
       if (!(await readerOn())) throw new CommandError(await readerOffMessage())

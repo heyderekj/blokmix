@@ -10,7 +10,6 @@ import { library } from '@/data/library'
 import { canvasApi, onPaint } from '../canvas/Canvas'
 import { Divider, Island, MORPH } from './Island'
 import { Crate } from './Crate'
-import { Alternatives } from './Alternatives'
 import { toggleSheet } from './TopBar'
 import { toggleLeft, useDocked } from './LeftPanel'
 import { useInsets } from '@/ui/canvas/insets'
@@ -31,7 +30,7 @@ const TOOLS: { id: Tool; icon: typeof Hand; label: string; key: string }[] = [
   { id: 'sticky', icon: StickyNote, label: 'Sticky note', key: 'S' },
 ]
 
-/** Which section's other layouts the dock is showing (the section bar's Layout label asks too). */
+/** Which section's row of other layouts is open under its bar ("Layout n of m ▾", or a hint that asks). */
 export const useDockLayouts = create<{ slotId: string | null }>()(() => ({ slotId: null }))
 
 /** The dock: how you work the canvas. The Clips button grows it upward into the crate. */
@@ -39,13 +38,6 @@ export function Dock() {
   const sheet = useStore((s) => s.ui.sheet)
   // The Clips button grows the crate.
   const open = sheet === 'crate'
-  // On a section (and nothing else open) the dock offers that section's other layouts, but only grows them when asked:
-  // focusing a section opens nothing, so the section's own card stays clear. Not while you're working on one of its
-  // blocks, either: the clips would compete with it.
-  const section = useStore((s) => (s.ui.sheet === 'none' && !s.ui.selectedBlockId ? currentSlots(s).find((x) => x.id === s.ui.focusedSlotId) : undefined))
-  const asked = useDockLayouts((s) => s.slotId)
-  const setAsked = (slotId: string | null) => useDockLayouts.setState({ slotId })
-  const focused = section && asked === section.id ? section : undefined
   const inset = useInsets()
   return (
     // Centered in the room beside the docked panels (Design, Content, Notes on the left; Style on the right), never over them.
@@ -56,12 +48,12 @@ export function Dock() {
       <WordsSheet />
       <SayBar />
       <Island
-        open={open || !!focused}
-        width={open || focused ? Math.min(760, window.innerWidth - 24) : undefined}
+        open={open}
+        width={open ? Math.min(760, window.innerWidth - 24) : undefined}
         grow="up"
         anchor="center"
         maxBody="min(52vh, 420px)"
-        onClose={() => (open ? useStore.getState().setUi({ sheet: 'none' }) : setAsked(null))}
+        onClose={() => useStore.getState().setUi({ sheet: 'none' })}
         bar={
           <>
             <NarrowPanels />
@@ -85,7 +77,7 @@ export function Dock() {
           </>
         }
       >
-        {open ? <Crate /> : focused ? <Alternatives slot={focused} /> : null}
+        {open ? <Crate /> : null}
       </Island>
     </div>
   )

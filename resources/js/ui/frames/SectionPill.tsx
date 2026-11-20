@@ -1,4 +1,5 @@
 import { RecipeControls } from '../drafts/SharedRecipes'
+import { Alternatives } from '../shell/Alternatives'
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowUpRight, ChevronDown, MoveHorizontal, PaintBucket, UnfoldVertical, Eye, ChevronLeft, ChevronRight, GripVertical, Link2, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
@@ -90,6 +91,18 @@ export function SectionPill({
   useEffect(() => {
     if (!focused || sheet !== 'none') setTab(null)
   }, [focused, sheet])
+  // Its row of other layouts opens under the bar, one open thing at a time with its tabs; leaving the section folds it.
+  const layoutsOpen = useDockLayouts((s) => s.slotId === slot.id)
+  useEffect(() => {
+    if (layoutsOpen) setTab(null)
+  }, [layoutsOpen])
+  useEffect(() => {
+    if (tab && useDockLayouts.getState().slotId === slot.id) useDockLayouts.setState({ slotId: null })
+  }, [tab, slot.id])
+  useEffect(() => {
+    if (!focused && useDockLayouts.getState().slotId === slot.id) useDockLayouts.setState({ slotId: null })
+  }, [focused, slot.id])
+  useEscape(focused && layoutsOpen, () => useDockLayouts.setState({ slotId: null }))
   // Picking a block in it folds the section's own width and spacing.
   useEffect(() => {
     if (!own && tab === 'spacing') setTab(null)
@@ -217,6 +230,20 @@ export function SectionPill({
           </motion.div>
 
           <AnimatePresence initial={false} mode="popLayout">
+            {focused && layoutsOpen && !tab && (
+              <motion.div
+                key="layouts"
+                data-bar-wide
+                layout="position"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { delay: 0.05, duration: 0.14 } }}
+                exit={{ opacity: 0, transition: { duration: 0.06 } }}
+                className="bg-well"
+                style={{ width: Math.min(720, window.innerWidth - 48) }}
+              >
+                <Alternatives slot={slot} />
+              </motion.div>
+            )}
             {focused && tab && (
               <motion.div
                 key={tab}

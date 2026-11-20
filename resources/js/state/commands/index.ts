@@ -119,6 +119,21 @@ function asOneStep(name: string, input: Record<string, unknown>, by: Caller, run
   return result
 }
 
+/**
+ * Several changes made one after another (each its own command), undone as one: the steps they added fold into the
+ * one from before the first. Used when Say it does two or more things at once.
+ */
+export async function oneUndoStep<T>(run: () => Promise<T>): Promise<T> {
+  const s = useStore.getState()
+  const before = { site: s.site, guide: s.guide, content: s.content, contract: s.contract, versions: s.versions, notes: s.notes, branchFrom: s.branchFrom, head: s.head }
+  const from = useStore.temporal.getState().pastStates.length
+  try {
+    return await run()
+  } finally {
+    useStore.temporal.setState((x) => (x.pastStates.length > from ? { pastStates: [...x.pastStates.slice(0, from), before].slice(-100), futureStates: [] } : x))
+  }
+}
+
 export const tools = toolDefinitions
 
 /** A section in words for a toast ("Pricing", "the About page’s Team"), or null when it can't be found. */
@@ -222,6 +237,12 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return 'noted what you want for the next suggestions'
       case 'try_direction':
         return 'made a new draft in another direction'
+      case 'need_section':
+        return 'added the section you asked for'
+      case 'need_page':
+        return 'added the page you asked for'
+      case 'another_take':
+        return 'made another take as a new draft'
       case 'drop_taste':
       case 'clear_taste':
         return 'changed what the next suggestions lean on'

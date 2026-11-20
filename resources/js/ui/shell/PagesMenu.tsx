@@ -9,6 +9,7 @@ import { PAGE_TEMPLATES, pageOf, type PageTemplate } from '@/core/site'
 import { useStore } from '@/state/store'
 import { runCommand } from '@/state/commands'
 import { toggleSheet } from './TopBar'
+import { NeedLine } from './NeedLine'
 
 /** The open page's name in the top bar; opens the Pages panel. Hidden while the site has one page and nothing else to say. */
 export function PageSwitch() {
@@ -242,7 +243,16 @@ function AddPage({ onDone }: { onDone: () => void }) {
   }
   return (
     <div className="px-1.5 pb-1">
-      <div className="px-1 pb-1.5 pt-1 text-[11px] font-semibold text-zinc-400">Start from</div>
+      <div className="pt-1">
+        <NeedLine
+          what="page"
+          onDone={() => {
+            useStore.getState().setUi({ sheet: 'none' })
+            onDone()
+          }}
+        />
+      </div>
+      <div className="px-1 pb-1.5 pt-1 text-[11px] font-semibold text-zinc-400">Or start from</div>
       <button
         type="button"
         onClick={() => openPageComposer()}

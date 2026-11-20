@@ -1,4 +1,6 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useDockLayouts } from '../shell/Dock'
+import { useLayoutPeek } from './peek'
 import { groupOrderOf, moveIn } from '@/core/lists'
 import { pastePicture, placePicture } from '../blocks/placePicture'
 import { SpaceHandle } from './SpaceHandle'
@@ -204,7 +206,13 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reel?.key])
 
-  const height = heights[shown] ?? 520
+  // A layout pointed at in the section's row of layouts shows in front until you let go of it or pick it.
+  // Only while its row of layouts is open, so a preview can never outlast it.
+  const rowOpen = useDockLayouts((s) => s.slotId === slot.id)
+  const peekId = useLayoutPeek((s) => (rowOpen && s.slotId === slot.id ? s.clipId : null))
+  const peeking = !reel && !!peekId && peekId !== shown && ids.includes(peekId)
+  const front = peeking ? peekId! : shown
+  const height = heights[front] ?? heights[shown] ?? 520
   // While it rolls the row holds its height, then eases once to where it lands.
   const rowHeight = reel ? (heights[reel.plan[reel.plan.length - 1]] ?? height) : height
   const setRow = useLayout((s) => s.setRow)
@@ -220,11 +228,11 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
 
   const [dropping, setDropping] = useState<'replace' | 'after' | null>(null)
   const prevRel = useRef<Record<string, number>>({})
-  const shownIndex = ids.indexOf(shown)
+  const shownIndex = ids.indexOf(front)
   const st = useStore.getState
 
   // ---- blocks: hover, select and edit inside the current clip; or mark them with the Note tool ----
-  const current = !previewing && !spinning && shown === slot.clipId
+  const current = !previewing && !spinning && !peeking && shown === slot.clipId
   // Every section takes clicks: one click picks the block under the pointer, focusing its section on the way.
   const canEdit = mode === 'unified' && tool === 'select' && current
   const noting = tool === 'note' && current

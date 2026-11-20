@@ -1,4 +1,6 @@
 import type { CommandInput } from '@/core/commands/schema'
+import { anotherTake } from '@/state/takes'
+import { MAX_DRAFTS } from '@/core/drafts'
 import { briefOf, kindOf } from '@/core/brief'
 import { directionById, directionList, directionStart, rankDirections, type RankDirectionOptions } from '@/core/directions'
 import { pageView } from '@/core/site'
@@ -88,6 +90,14 @@ export const write = {
     if (!id) throw new CommandError('This site already has 6 drafts. Delete one first (delete_draft).')
     const draft = useStore.getState().drafts[id]
     return { draft: { id, letter: draft.letter, name: draft.name }, direction: d.id, theme: d.theme }
+  },
+  another_take: () => {
+    const st = useStore.getState()
+    if (Object.keys(st.drafts).length >= MAX_DRAFTS) throw new CommandError('This site already has 6 drafts. Delete one first (delete_draft).')
+    const took = anotherTake(st)
+    if (!took) throw new CommandError('Every direction that fits has been tried. Try suggest_directions with odd 2, or change the brief.')
+    const draft = useStore.getState().drafts[took.id]
+    return { draft: { id: took.id, letter: draft.letter, name: draft.name }, direction: took.direction.direction.id, theme: took.direction.direction.theme, why: took.direction.why }
   },
   drop_taste: (i: CommandInput<'drop_taste'>) => {
     setTaste(dropLean(tasteNow(), i.trait as Trait))

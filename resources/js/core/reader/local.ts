@@ -5,8 +5,9 @@
 
 import { BUSINESSES, FEELS, GOALS as ACTIONS, SHOWS } from '../jev/sentence'
 import { guessBrief } from '../brief'
-import { PAGE_TEMPLATES } from '../site'
-import type { ReadStart } from './schema'
+import { PAGE_TEMPLATES, type PageTemplate } from '../site'
+import type { SectionType } from '../types'
+import type { ReadNeed, ReadStart } from './schema'
 
 /** Words people use for a feel Blokmix lists under another name. */
 export const FEEL_SYNONYMS: Record<string, string> = {
@@ -96,4 +97,45 @@ export function keywordRead(text: string): ReadStart {
     tone,
     unsure: [],
   }
+}
+
+/** Words that ask for a kind of section ("prices", "what people say"), in the order a need would want them. */
+const NEED_WORDS: [SectionType, string[]][] = [
+  ['pricing', ['pricing', 'prices', 'price list', 'price', 'plans', 'plan', 'packages', 'package', 'menu', 'rates', 'costs', 'cost', 'fees', 'tickets']],
+  ['faq', ['faq', 'faqs', 'questions', 'question', 'answers', 'common questions', 'people ask']],
+  ['contact', ['contact', 'get in touch', 'reach us', 'reach me', 'email', 'phone', 'call us', 'address', 'opening hours', 'hours', 'map', 'directions', 'find us', 'visit us', 'location']],
+  ['team', ['team', 'staff', 'people behind', 'founders', 'who we are', 'our people', 'crew']],
+  ['testimonials', ['reviews', 'review', 'testimonials', 'testimonial', 'what people say', 'what customers say', 'quotes', 'feedback', 'praise']],
+  ['gallery', ['gallery', 'photos', 'pictures', 'portfolio', 'our work', 'projects', 'images', 'showcase']],
+  ['features', ['features', 'services', 'what we do', 'what we offer', 'offerings', 'benefits', 'how it works', 'steps']],
+  ['stats', ['numbers', 'stats', 'statistics', 'figures', 'results', 'metrics', 'impact']],
+  ['logos', ['logos', 'clients', 'partners', 'press', 'as seen in', 'trusted by', 'sponsors']],
+  ['blog', ['blog', 'posts', 'news', 'articles', 'updates', 'journal', 'stories']],
+  ['content', ['story', 'our story', 'mission', 'history', 'explain', 'explains', 'background']],
+  ['cta', ['sign up', 'signup', 'newsletter', 'subscribe', 'join', 'get started', 'book', 'booking', 'call to action', 'waitlist']],
+  ['hero', ['headline', 'opening', 'intro', 'welcome']],
+]
+
+/** Words that ask for one of the page templates. */
+const PAGE_WORDS: [PageTemplate, string[]][] = [
+  ['about', ['about', 'about us', 'our story', 'who we are', 'team']],
+  ['contact', ['contact', 'get in touch', 'find us', 'visit']],
+  ['pricing', ['pricing', 'prices', 'plans', 'menu', 'packages']],
+  ['blog', ['blog', 'news', 'posts', 'articles', 'journal']],
+]
+
+/**
+ * "I need a [page | section] that …", from keywords: the sections its words ask for, in the order they're said (never
+ * one said with a "not"), and for a page the template they point to. `what` is what was asked for, since the sentence
+ * names it. The purpose is the text itself.
+ */
+export function keywordNeed(text: string, what: 'page' | 'section'): ReadNeed {
+  const found = NEED_WORDS.flatMap(([type, words]) => words.flatMap((w) => hits(text, w).filter((h) => !h.negated).map((h) => ({ type, at: h.at, len: h.words.length }))))
+  found.sort((a, b) => a.at - b.at || b.len - a.len)
+  // Longest first where they overlap ("opening hours" over "opening").
+  const kept = found.filter((h, i) => !found.slice(0, i).some((o) => h.at < o.at + o.len && h.at >= o.at))
+  const sections = [...new Set(kept.map((f) => f.type))].slice(0, 4)
+  const page = what === 'page' ? (PAGE_WORDS.flatMap(([t, words]) => words.flatMap((w) => hits(text, w).filter((h) => !h.negated).map((h) => ({ t, at: h.at })))).sort((a, b) => a.at - b.at)[0]?.t ?? 'blank') : null
+  const purpose = text.trim() || null
+  return { what, template: page, sections: sections as ReadNeed['sections'], purpose, unsure: sections.length || page !== 'blank' ? [] : purpose ? [purpose] : [] }
 }

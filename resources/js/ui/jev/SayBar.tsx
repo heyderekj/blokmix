@@ -5,7 +5,7 @@ import { CornerDownLeft, FilePlus2, Type, Wand2, X } from 'lucide-react'
 import type { SayAction } from '@/core/jev/say'
 import { readLocalSay } from '@/core/jev/sayLocal'
 import { checkJevServer, useJevServer } from '@/lib/jev'
-import { doSay, hear, previewSay, sayContext, useJevTools, type Heard } from '@/state/jevSay'
+import { doSay, doSayParts, hear, hearParts, previewSay, sayContext, useJevTools, type Heard } from '@/state/jevSay'
 import { barSentence, fillBar, type Picks } from '@/core/jev/sentence'
 import { Sentence } from './Sentence'
 import { trayLines } from '@/state/jevPour'
@@ -65,7 +65,9 @@ export function SayBar() {
     const parsed = query.length > 1 ? readLocalSay(query, ctx) : null
     return parsed ? previewSay(parsed) : null
   }, [query, ctx])
-  const request = useMemo(() => open && !sheet && !pasted && suggestions && query.length > 1 && !local ? { query, ctx } : null, [open, sheet, pasted, suggestions, query, ctx, local])
+  // Two or more edits in one go ("make the hero darker and move testimonials to the top"), each read here.
+  const parts = useMemo(() => (!local && query.length > 3 ? hearParts(query, ctx) : null), [local, query, ctx])
+  const request = useMemo(() => open && !sheet && !pasted && suggestions && query.length > 1 && !local && !parts ? { query, ctx } : null, [open, sheet, pasted, suggestions, query, ctx, local, parts])
   const [reply, setReply] = useState<{ request: NonNullable<typeof request>; heard: Heard } | null>(null)
   const heard = local ?? (reply?.request === request ? reply.heard : null)
   const busy = !!request && reply?.request !== request
@@ -146,6 +148,21 @@ export function SayBar() {
   const showing = !pasted && query.length > 1
   const building = !pasted && !query
   const runBuilt = () => { if (built.action) void run(built.action, built.text) }
+  const runParts = async () => {
+    if (!parts || applying.current) return
+    applying.current = true
+    setRunning(true)
+    setError(null)
+    try {
+      await doSayParts(parts)
+      close()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Couldn’t do all of that. Try them one at a time.')
+    } finally {
+      applying.current = false
+      setRunning(false)
+    }
+  }
 
   return (
     <div ref={box} onKeyDown={(e) => {
@@ -168,7 +185,25 @@ export function SayBar() {
           {!picks.verb?.length && <p className="mt-2 text-[11.5px] text-zinc-600">Build an edit or type “make the page light” below.</p>}
         </div>
       )}
-      {showing && (
+      {showing && parts && (
+        <div className="glass-menu mb-1.5 animate-pop rounded-2xl p-1.5 text-[12.5px]">
+          <ol className="grid gap-0.5 px-1 pb-1 pt-0.5">
+            {parts.map((p, i) => (
+              <li key={i} className="flex items-center gap-2 rounded-lg px-1.5 py-1">
+                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-zinc-950/[0.06] text-[11px] font-semibold tabular-nums text-zinc-600">{i + 1}</span>
+                <span className="min-w-0 flex-1 truncate font-medium text-zinc-800">{p.action.words}</span>
+              </li>
+            ))}
+          </ol>
+          <button type="button" onClick={() => void runParts()} disabled={running} className="flex w-full cursor-pointer items-center gap-2 rounded-xl bg-zinc-950/[0.05] px-2.5 py-2 text-left transition hover:bg-zinc-950/[0.08] active:scale-[0.99] disabled:opacity-50">
+            <span className="min-w-0 flex-1 truncate font-semibold text-zinc-900">{parts.length === 2 ? 'Do both' : `Do all ${parts.length}`}, in this order</span>
+            <span className="kbd flex items-center gap-1">
+              <CornerDownLeft size={11} />
+            </span>
+          </button>
+        </div>
+      )}
+      {showing && !parts && (
         <div className="glass-menu mb-1.5 animate-pop rounded-2xl p-1.5 text-[12.5px]">
           {action && (
             <button type="button" onClick={() => void run(action, query)} disabled={running} className="flex w-full cursor-pointer items-center gap-2 rounded-xl bg-zinc-950/[0.05] px-2.5 py-2 text-left transition hover:bg-zinc-950/[0.08] active:scale-[0.99] disabled:opacity-50">
@@ -197,6 +232,7 @@ export function SayBar() {
           onSubmit={(e) => {
             e.preventDefault()
             if (pasted) words('pour')
+            else if (parts) void runParts()
             else if (action) void run(action, query)
             else if (!query) runBuilt()
           }}
