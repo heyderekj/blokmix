@@ -33,7 +33,8 @@ Route::domain(config('blokmix.publish_host'))->withoutMiddleware('web')->group(f
 // Share links work for people who aren't signed in yet (they sign up, then come back here).
 Route::get('/share/{token}', [ShareController::class, 'join'])->name('share.join');
 
-Route::inertia('/mixes/sample', 'mixes/sample')->name('mixes.sample');
+Route::inertia('/sites/sample', 'mixes/sample')->name('mixes.sample');
+Route::permanentRedirect('/mixes/sample', '/sites/sample');
 
 // The public site's navigation confirms the session without exposing any account details.
 Route::get('/api/session', fn (Request $request) => response()
@@ -49,9 +50,13 @@ Route::post('/api/polar/webhook', [BillingController::class, 'webhook'])->name('
 
 Route::middleware('auth')->group(function () {
     // The public homepage lives at the edge. Direct visits to the Laravel origin or local app can still reach the workspace.
-    Route::redirect('/', '/mixes');
-    Route::get('/mixes', [MixController::class, 'index'])->name('mixes.index');
-    Route::post('/mixes', [MixController::class, 'store'])->name('mixes.store');
+    Route::redirect('/', '/sites');
+    // Your sites (the on-screen name); /mixes, its old address, forwards here.
+    Route::get('/sites', [MixController::class, 'index'])->name('mixes.index');
+    Route::post('/sites', [MixController::class, 'store'])->name('mixes.store');
+    Route::permanentRedirect('/mixes', '/sites');
+    // A page opened before the move still posts here for a little while.
+    Route::post('/mixes', [MixController::class, 'store']);
     // A mix lives at its short address (blokmix.com/k3x9, the route last in this file); the old addresses forward there.
     Route::get('/local', [MixController::class, 'local'])->name('mixes.local');
     Route::permanentRedirect('/mixes/local', '/local');

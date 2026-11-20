@@ -18,7 +18,7 @@ Inertia on Laravel Cloud later.
 
 Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The board still runs on its own:
 - `npm run dev:laravel` (or `composer dev`): `php artisan serve` on http://localhost:8000 plus Vite on 5174.
-  `/mixes` is the gallery of your mixes (signed in), `/{short}` is a mix's board (`mixes.short`, e.g. `/k3x9`: 4+ letters and digits
+  `/sites` is the gallery of your mixes (signed in; `/mixes`, its old address, forwards there; route names stay `mixes.*`), `/{short}` is a mix's board (`mixes.short`, e.g. `/k3x9`: 4+ letters and digits
   with at least one digit, `Mix::SHORT_PATTERN`; old `/mixes/{ulid}` addresses forward there), `/local` the browser-only mix. `resources/views/app.blade.php` marks the page
   (`<meta name="blokmix-host">`, `lib/host.ts` `isHosted()`), and `app.tsx` then mounts Inertia pages from
   `resources/js/pages/` instead of the bare board.
@@ -39,7 +39,7 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   CLI (`composer global` laravel/cloud-cli) is signed in: `cloud deploy blokmix production`, `cloud cmd:run`.
 - Accounts (Fortify: sign up, sign in, sign out; Inertia pages in `pages/auth/`). Sign-up is open. Password reset
   emails go through Resend (Cloud's Email resource, sender hello@notifications.blokmix.com; DNS on Cloudflare). The board takes your account's name for marks and versions.
-- `/mixes` is your gallery of cards, each drawing its first page in its own
+- `/sites` is your gallery of cards, each drawing its first page in its own
   style guide (`ui/mixes/MixThumb.tsx`, its main heading in the mix's display font) with its versions' status rings.
   Cards rename in place (`PATCH /api/mixes/{id}/name`, owners and editors, no lock bump) and duplicate
   (`POST /api/mixes/{id}/duplicate`: data, versions and uploads into a new mix you own); the gallery searches and sorts. `MarkSignedIn` sets a plain `blokmix_signed_in=1`
@@ -91,14 +91,14 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   Starting a mix from a site is gone for v1 (`mixFromSitePage` stays for the Crate's Sites).
 - Saved style guides (`style_guides`, `Api\StyleGuideController`, `lib/styleGuides.ts`): save a mix's guide under a
   name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). The guided start's "Or start from"
-  offers a starter (posts `site`, `guide` and `name` to `/mixes`, which stores `data = {guide, site}`; the board fills
+  offers a starter (posts `site`, `guide` and `name` to `/sites`, which stores `data = {guide, site}`; the board fills
   the rest from a blank mix), a saved style guide or another mix's (the questions go on with that guide, and the look
   step folds away), a blank page or a mix file. Every mix keeps its own copy, so edits never spread.
 - Pricing (`config/blokmix.php` `site` and `upload_mb`, `docs/pricing.md`): free to make, $30 a site when you ship it. A
   site is one mix. Everything on the board is free for everyone (every layout, theme, control and treatment, any number
   of mixes). Shipping is paid for once per mix: downloading the full export, copying the build prompt or generated code,
   and handing a version to an agent. The Style guide's Copy for your agent and copying `tokens.css` or `tokens.json`
-  are free. `/mixes/sample` offers a public download from the built-in demo with standalone prompts.
+  are free. `/sites/sample` offers a public download from the built-in demo with standalone prompts.
   `Mix` `isPaid` (`mixes.paid_at`, `paid_order_id`) and `ships` (paid, its owner `hasPlus`, or `waitlist_mode`);
   `toBoard` `ships` sets `useAccount` `ships`, and
   `state/shipping.ts` `canShip(what)` opens `ui/shell/BuySheet.tsx` (pay for this site at Polar; viewers hear it's an

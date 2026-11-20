@@ -114,7 +114,7 @@ export default function LibraryAdmin({ sites, site, types, wants = [] }: { sites
         <span className="flex-1 text-zinc-900">
           <Wordmark height={18} />
         </span>
-        <Link href={site ? '/library/admin' : '/mixes'} className={QUIET}>
+        <Link href={site ? '/library/admin' : '/sites'} className={QUIET}>
           <ArrowLeft size={15} /> {site ? 'All sites' : 'Your sites'}
         </Link>
       </header>

@@ -287,7 +287,7 @@ function AppMenu({ onHelp, showName }: { onHelp: () => void; showName?: boolean 
         <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
         {isHosted() && (
           <>
-            <MenuItem icon={LayoutGrid} label="All sites" onClick={() => (st().setUi({ sheet: 'none' }), router.visit('/mixes'))} />
+            <MenuItem icon={LayoutGrid} label="All sites" onClick={() => (st().setUi({ sheet: 'none' }), router.visit('/sites'))} />
             <div className="mx-2.5 my-1 h-px bg-zinc-950/6" />
           </>
         )}

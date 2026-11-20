@@ -241,17 +241,23 @@ const GOAL_HINTS: [Goal, RegExp][] = [
   ['subscribers', /\b(subscrib\w*|newsletter|readers)\b/i],
   ['showWork', /\b(portfolio|my work|projects|case studies)\b/i],
   ['hire', /\b(hire|hiring me|freelanc\w*|available for)\b/i],
-  ['visit', /\b(visit|hours|opening|come by|find us|location)\b/i],
+  ['visit', /\b(visit|hours|opening|come by|find us|location|walk-?ins?)\b/i],
   ['tickets', /\b(tickets?|rsvp)\b/i],
   ['donate', /\b(donat\w+|fundrais\w*|support us)\b/i],
 ]
+
+/** Said with a "no" right before it ("no bookings", "we don't take orders"): asked not to, so not a goal. */
+const NOT_GOAL = /\b(?:no|not|never|without|don['’]?t|doesn['’]?t|won['’]?t|can['’]?t)\s+(?:(?:take|do|want|need|offer|have|accept|any|online)\s+){0,2}$/i
+
+/** Whether the text asks for this goal: some place it's said without a "no" before it. */
+const asksFor = (t: string, re: RegExp) => [...t.matchAll(new RegExp(re.source, 'gi'))].some((m) => !NOT_GOAL.test(t.slice(Math.max(0, m.index! - 40), m.index!)))
 
 /** A first guess at the brief from what they typed, by keywords: what the start offers when suggestions are off. */
 export function guessBrief(text: string): Partial<Brief> & { sure: boolean } {
   const t = text.trim()
   const industry = INDUSTRY_HINTS.find(([, re]) => re.test(t))?.[0]
   const format = FORMAT_HINTS.find(([, re]) => re.test(t))?.[0]
-  const goals = GOAL_HINTS.filter(([, re]) => re.test(t)).map(([g]) => g).slice(0, 3)
+  const goals = GOAL_HINTS.filter(([, re]) => asksFor(t, re)).map(([g]) => g).slice(0, 3)
   return { ...(t ? { what: t } : {}), ...(format ? { format } : {}), ...(industry ? { industry } : {}), ...(goals.length ? { goals } : {}), sure: !!(format && industry) }
 }
 

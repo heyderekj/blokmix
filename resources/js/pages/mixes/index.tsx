@@ -198,7 +198,7 @@ export default function MixesIndex({ mixes }: { mixes: SavedMix[] }) {
           ...styled.map((m) => ({ key: m.id, name: m.name, note: 'This site’s style guide', guide: m.guide! })),
         ]
   const post = (body: { name: string; site?: Site; guide?: GuideState }) =>
-    router.post('/mixes', body as unknown as Record<string, string>, { onError: (e) => (setGuided(false), e.mix && setProblem(e.mix)) })
+    router.post('/sites', body as unknown as Record<string, string>, { onError: (e) => (setGuided(false), e.mix && setProblem(e.mix)) })
   const startStarter = (starter: Starter, name: string) => {
     const { site, guide } = buildStarter(library, starter)
     post({ name: name === 'Your site' ? starter.name : name, site, guide })

@@ -145,7 +145,7 @@ export function PacketPanel() {
             <p><b className="font-semibold text-zinc-800">${shippingPrice} once per site</b> for code export and agent handoff. All drafts, versions, and re-exports are included.</p>
           )}
           {hosted && (
-            <a href="/mixes/sample" target="_blank" rel="noreferrer" className="w-fit font-medium text-zinc-700 underline underline-offset-2 hover:text-zinc-900">Try a free sample handoff</a>
+            <a href="/sites/sample" target="_blank" rel="noreferrer" className="w-fit font-medium text-zinc-700 underline underline-offset-2 hover:text-zinc-900">Try a free sample handoff</a>
           )}
         </div>
       )}

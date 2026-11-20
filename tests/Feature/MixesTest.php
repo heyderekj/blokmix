@@ -40,14 +40,14 @@ class MixesTest extends TestCase
 
     public function test_the_workspace_lists_your_mixes_and_marks_you_signed_in(): void
     {
-        $this->get('/mixes')->assertOk()->assertInertia(fn (Assert $page) => $page->component('mixes/index'))->assertCookie('blokmix_signed_in', '1', false);
-        $this->get('/')->assertRedirect('/mixes');
+        $this->get('/sites')->assertOk()->assertInertia(fn (Assert $page) => $page->component('mixes/index'))->assertCookie('blokmix_signed_in', '1', false);
+        $this->get('/')->assertRedirect('/sites');
     }
 
     public function test_signed_out_people_are_asked_to_sign_in(): void
     {
         auth()->logout();
-        $this->get('/mixes')->assertRedirect('/login');
+        $this->get('/sites')->assertRedirect('/login');
         $this->getJson('/api/mixes/x')->assertUnauthorized();
     }
 
@@ -67,7 +67,7 @@ class MixesTest extends TestCase
         $theirs = Mix::create(['name' => 'Theirs']);
         $theirs->admit(User::factory()->create(), MixRole::Owner);
 
-        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page->has('mixes', 0));
+        $this->get('/sites')->assertInertia(fn (Assert $page) => $page->has('mixes', 0));
         $this->get("/{$theirs->short}")->assertNotFound();
         $this->get("/mixes/{$theirs->id}")->assertNotFound();
         $this->getJson("/api/mixes/{$theirs->id}")->assertNotFound();
@@ -79,7 +79,7 @@ class MixesTest extends TestCase
         $this->mine(['name' => 'Older'])->forceFill(['updated_at' => now()->subDay()])->save();
         $this->mine(['name' => 'Newer'])->versions()->create(['key' => 'v_A', 'letter' => 'A', 'node' => $this->node('A')]);
 
-        $this->get('/mixes')
+        $this->get('/sites')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('mixes/index')
                 ->has('mixes', 2)
@@ -89,7 +89,7 @@ class MixesTest extends TestCase
 
     public function test_a_new_mix_starts_blank_and_opens(): void
     {
-        $response = $this->post('/mixes');
+        $response = $this->post('/sites');
         $mix = Mix::sole();
         $this->assertSame(MixRole::Owner, $mix->roleOf($this->me));
         $response->assertRedirect("/{$mix->short}");
@@ -103,30 +103,34 @@ class MixesTest extends TestCase
     public function test_a_new_mix_can_start_from_a_style_guide(): void
     {
         $guide = ['base' => ['color.primary' => '#7a4fd1'], 'candidates' => [['id' => 'hero.a#color']], 'choices' => ['color.text' => 'x']];
-        $this->post('/mixes', ['guide' => $guide])->assertRedirect();
+        $this->post('/sites', ['guide' => $guide])->assertRedirect();
         $this->assertSame(['guide' => $guide], Mix::sole()->data);
 
-        $this->post('/mixes', ['guide' => ['choices' => []]])->assertSessionHasErrors('guide.base');
+        $this->post('/sites', ['guide' => ['choices' => []]])->assertSessionHasErrors('guide.base');
     }
 
     public function test_a_new_mix_can_start_from_a_starter_mix(): void
     {
         $guide = ['base' => ['color.primary' => '#7a4fd1'], 'candidates' => [], 'choices' => []];
         $site = ['pages' => [['id' => 'page_home', 'path' => '/', 'title' => 'Home', 'slots' => [['id' => 'slot_0_0', 'type' => 'hero', 'clipId' => 'hero.layout-product']]]], 'shared' => []];
-        $this->post('/mixes', ['name' => 'Product launch', 'site' => $site, 'guide' => $guide])->assertRedirect();
+        $this->post('/sites', ['name' => 'Product launch', 'site' => $site, 'guide' => $guide])->assertRedirect();
         $mix = Mix::sole();
         $this->assertSame('Product launch', $mix->name);
         $this->assertSame('hero.layout-product', $mix->data['site']['pages'][0]['slots'][0]['clipId']);
         $this->assertSame('#7a4fd1', $mix->data['guide']['base']['color.primary']);
 
-        $this->post('/mixes', ['site' => ['shared' => []]])->assertSessionHasErrors('site.pages');
-        $this->post('/mixes', ['name' => str_repeat('x', 121)])->assertSessionHasErrors('name');
+        $this->post('/sites', ['site' => ['shared' => []]])->assertSessionHasErrors('site.pages');
+        $this->post('/sites', ['name' => str_repeat('x', 121)])->assertSessionHasErrors('name');
     }
 
     public function test_the_browser_mix_still_opens(): void
     {
         $this->get('/local')->assertInertia(fn (Assert $page) => $page->component('mixes/show')->where('mix.id', 'local'));
         $this->get('/mixes/local')->assertRedirect('/local');
+        // Your sites moved from /mixes; old links and bookmarks forward.
+        $this->get('/mixes')->assertStatus(301)->assertRedirect('/sites');
+        $this->get('/mixes/sample')->assertStatus(301)->assertRedirect('/sites/sample');
+        $this->post('/mixes')->assertRedirect();
         $this->get('/mixes/nope')->assertNotFound();
         $this->get('/k3x8')->assertNotFound();
     }
@@ -158,7 +162,7 @@ class MixesTest extends TestCase
         ]]);
         $mix->versions()->create(['key' => 'v_A', 'letter' => 'A', 'node' => [...$this->node('A'), 'status' => 'approved']]);
 
-        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page
+        $this->get('/sites')->assertInertia(fn (Assert $page) => $page
             ->where('mixes.0.short', $mix->short)
             ->where('mixes.0.sections', ['nav', 'hero', 'features'])
             ->where('mixes.0.pages', 1)
@@ -325,7 +329,7 @@ class MixesTest extends TestCase
         $copy = Mix::findOrFail($this->postJson("/api/mixes/{$mix->id}/duplicate")->assertCreated()->json('id'));
         $this->assertSame(2, $copy->drafts()->count());
 
-        $this->get('/mixes')->assertInertia(fn (Assert $page) => $page
+        $this->get('/sites')->assertInertia(fn (Assert $page) => $page
             ->where('mixes.0.drafts', 2)
             ->where('mixes.0.heads.1.letter', 'B')
             ->where('mixes.0.heads.1.status', 'ready'));
