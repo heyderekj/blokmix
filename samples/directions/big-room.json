@@ -1,0 +1,45 @@
+{
+  "name": "Big Room",
+  "why": "Your name huge, the work big and close together, and who you’ve worked with: confident without saying so.",
+  "theme": "headliner",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "centered"
+    ],
+    "logos": [
+      "wall"
+    ],
+    "gallery": [
+      "spotlight",
+      "rows"
+    ],
+    "features": [
+      "list"
+    ],
+    "testimonials": [
+      "big"
+    ],
+    "cta": [
+      "big"
+    ],
+    "footer": [
+      "wordmark"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "studio"
+  ],
+  "industries": [
+    "agency",
+    "services"
+  ],
+  "formats": [
+    "portfolio",
+    "landing"
+  ],
+  "odd": 0
+}

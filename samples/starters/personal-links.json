@@ -1,0 +1,24 @@
+{
+  "name": "About me",
+  "blurb": "One person’s page: a small portrait, a few lines, your writing and your links.",
+  "kind": "personal",
+  "skin": "solo",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-simple",
+        "hero.layout-portrait",
+        "content.layout-aside",
+        "blog.layout-minimal",
+        "contact.layout-minimal",
+        "footer.layout-minimal"
+      ]
+    }
+  ],
+  "formats": [
+    "portfolio",
+    "blog"
+  ]
+}

@@ -98,6 +98,6 @@ describe('theme parts and resolved recommendations', () => {
       const g = guideFor({ skin: s.id, brand: '#402f51', mode: 'dark' })
       expect(visualKey(g), s.id).not.toBe(visualKey(guideFor({ skin: s.baseId, brand: '#402f51', mode: 'dark' })))
     }
-    expect(skinList()).toHaveLength(18)
+    expect(skinList()).toHaveLength(22)
   })
 })

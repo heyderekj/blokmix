@@ -169,7 +169,7 @@ describe('section defaults', () => {
 
 describe('the skins themselves', () => {
   it('load the catalog, starting from Wireframe', () => {
-    expect(skinList().map((s) => s.id).sort()).toEqual(['acoustic', 'afterhours', 'counter-service', 'day-planner', 'deep-cut', 'dreampop', 'field-recording', 'flyer', 'gatefold', 'homeroom', 'liner-notes', 'lofi', 'mastered', 'mixtape', 'press-kit', 'studio', 'vinyl', 'wireframe'])
+    expect(skinList().map((s) => s.id).sort()).toEqual(['acoustic', 'afterhours', 'counter-service', 'day-planner', 'deep-cut', 'dreampop', 'field-recording', 'flyer', 'gatefold', 'headliner', 'homeroom', 'liner-notes', 'lofi', 'mastered', 'mixtape', 'press-kit', 'solo', 'songbook', 'studio', 'supper-club', 'vinyl', 'wireframe'])
     expect(skinList()[0].id).toBe('wireframe')
   })
 

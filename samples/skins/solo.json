@@ -1,0 +1,218 @@
+{
+  "name": "Solo",
+  "words": "One person, a few words and links, in soft plum and paper.",
+  "mode": "light",
+  "feel": [
+    "calm",
+    "warm",
+    "playful"
+  ],
+  "tokens": {
+    "icon.set": "phosphor:fill",
+    "color.bg": "#f6f5f8",
+    "color.surface": "#ecebf1",
+    "color.text": "#24222b",
+    "color.muted": "#5c5967",
+    "color.border": "#dcdae3",
+    "color.primary": "#74386a",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#c06838",
+    "font.display": "'Bespoke Serif', Georgia, serif",
+    "font.body": "'Onest', system-ui, sans-serif",
+    "font.mono": "'Red Hat Mono', ui-monospace, monospace",
+    "type.base": "17px",
+    "type.ratio": "1.25",
+    "type.displayWeight": "500",
+    "radius.base": "12px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 2px rgb(36 34 43 / 0.05), 0 4px 14px rgb(116 56 106 / 0.07)",
+    "space.base": "4px",
+    "space.section": "96px",
+    "space.content": "980px",
+    "space.text": "620px",
+    "motion.duration": "300ms",
+    "motion.ease": "cubic-bezier(0.25, 1, 0.5, 1)"
+  },
+  "textStyles": {
+    "label": {
+      "weight": 500,
+      "tracking": 0.01,
+      "upper": false,
+      "size": "sm"
+    },
+    "h1": {
+      "weight": 500,
+      "tracking": -0.02,
+      "leading": 1.1
+    },
+    "h2": {
+      "weight": 500,
+      "tracking": -0.015,
+      "leading": 1.15
+    },
+    "h3": {
+      "weight": 400,
+      "tracking": -0.005,
+      "leading": 1.25
+    },
+    "h4": {
+      "font": "body",
+      "weight": 500,
+      "tracking": -0.005,
+      "leading": 1.35
+    },
+    "bodyLarge": {
+      "leading": 1.6,
+      "weight": 400
+    },
+    "small": {
+      "leading": 1.5,
+      "tracking": 0.005
+    },
+    "caption": {
+      "size": "xs",
+      "leading": 1.4,
+      "tracking": 0.01
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "outline"
+    },
+    "card": {
+      "variant": "flat"
+    },
+    "button": {
+      "variant": "pill",
+      "secondary": {
+        "variant": "ghost"
+      }
+    },
+    "icon": {
+      "variant": "tinted"
+    },
+    "link": {
+      "variant": "sweep"
+    },
+    "input": {
+      "variant": "pill"
+    }
+  },
+  "sections": {
+    "hero": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true,
+        "speed": "slow"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true,
+        "speed": "slow"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "stagger": true,
+        "speed": "slow"
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "contact": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    }
+  },
+  "picture": {
+    "style": "portrait",
+    "mode": "image"
+  },
+  "industries": [
+    "other",
+    "education"
+  ],
+  "formats": [
+    "portfolio",
+    "blog"
+  ]
+}

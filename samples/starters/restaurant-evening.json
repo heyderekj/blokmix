@@ -1,0 +1,29 @@
+{
+  "name": "Restaurant",
+  "blurb": "A sit-down place: the room, the menu, what people say and a way to book a table.",
+  "kind": "local",
+  "skin": "supper-club",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-centered",
+        "hero.layout-backdrop",
+        "content.layout-media",
+        "pricing.layout-rows",
+        "gallery.layout-mosaic",
+        "testimonials.layout-big",
+        "contact.layout-map",
+        "footer.layout-centered"
+      ]
+    }
+  ],
+  "industries": [
+    "food",
+    "travel"
+  ],
+  "formats": [
+    "business"
+  ]
+}

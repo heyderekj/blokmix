@@ -1,0 +1,241 @@
+{
+  "name": "Supper Club",
+  "words": "Candlelit and unhurried: a dark dining room, brass and a printed menu.",
+  "mode": "dark",
+  "feel": [
+    "dark",
+    "warm",
+    "classic"
+  ],
+  "tokens": {
+    "icon.set": "material:light",
+    "color.bg": "#17110e",
+    "color.surface": "#231a15",
+    "color.text": "#f3e9dc",
+    "color.muted": "#bba995",
+    "color.border": "#3b2d25",
+    "color.primary": "#d9a75b",
+    "color.onPrimary": "#1a120d",
+    "color.accent": "#d0684b",
+    "font.display": "'Bodoni Moda', Didot, 'Times New Roman', serif",
+    "font.body": "'Karla', system-ui, sans-serif",
+    "font.mono": "'DM Mono', ui-monospace, monospace",
+    "type.base": "17px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "400",
+    "radius.base": "4px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 0 rgb(0 0 0 / 0.4), 0 18px 40px rgb(0 0 0 / 0.35)",
+    "space.base": "4px",
+    "space.section": "120px",
+    "space.content": "1180px",
+    "space.text": "660px",
+    "motion.duration": "280ms",
+    "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "effects": {
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 0
+      }
+    },
+    "grain": {
+      "id": "grain",
+      "params": {
+        "amount": 8,
+        "size": 0.8
+      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "body",
+      "weight": 500,
+      "tracking": 0.24,
+      "size": "xs"
+    },
+    "h1": {
+      "weight": 400,
+      "tracking": -0.01,
+      "leading": 1.04,
+      "phone": "3xl"
+    },
+    "h2": {
+      "weight": 400,
+      "tracking": -0.005,
+      "leading": 1.1,
+      "phone": "2xl"
+    },
+    "h3": {
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "phone": "xl"
+    },
+    "h4": {
+      "weight": 400,
+      "tracking": 0.005,
+      "leading": 1.25
+    },
+    "bodyLarge": {
+      "leading": 1.6,
+      "weight": 400
+    },
+    "small": {
+      "leading": 1.55,
+      "tracking": 0.01
+    },
+    "caption": {
+      "tracking": 0.08,
+      "upper": true,
+      "size": "xs"
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "line"
+    },
+    "card": {
+      "variant": "bordered"
+    },
+    "button": {
+      "variant": "pill",
+      "secondary": {
+        "variant": "arrow"
+      }
+    },
+    "icon": {
+      "variant": "tinted"
+    },
+    "link": {
+      "variant": "quiet"
+    },
+    "input": {
+      "variant": "underline"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "grain"
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true,
+        "speed": "slow"
+      }
+    },
+    "pricing": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "stagger": true,
+        "speed": "slow"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "brand",
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "contact": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    }
+  },
+  "picture": {
+    "style": "table-setting",
+    "subjects": [
+      "table-setting",
+      "courtyard",
+      "bakery"
+    ],
+    "mode": "image"
+  },
+  "industries": [
+    "food",
+    "travel"
+  ],
+  "formats": [
+    "business"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Dinner Service",
+  "why": "The room in one big photo, the menu set like a printed card, and a table one tap away.",
+  "theme": "supper-club",
+  "layouts": {
+    "nav": [
+      "centered"
+    ],
+    "hero": [
+      "backdrop"
+    ],
+    "features": [
+      "alternating"
+    ],
+    "content": [
+      "media"
+    ],
+    "pricing": [
+      "rows"
+    ],
+    "gallery": [
+      "mosaic"
+    ],
+    "testimonials": [
+      "big"
+    ],
+    "contact": [
+      "map"
+    ],
+    "footer": [
+      "centered"
+    ]
+  },
+  "density": "balanced",
+  "kinds": [
+    "local"
+  ],
+  "industries": [
+    "food",
+    "travel"
+  ],
+  "formats": [
+    "business"
+  ],
+  "odd": 0
+}
