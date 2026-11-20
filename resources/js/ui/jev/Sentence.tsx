@@ -7,7 +7,8 @@ import { groupsOf, openBlanks, orderOptions, type Blank, type Choice, type Match
 /**
  * A sentence with blanks, after the motion menu: "I'm making a site for [what it is] called [its name]…". Each empty blank
  * says what it asks for. Tap one and a few options open under the sentence. The same field searches or takes your own words (Jev maps them to the nearest
- * option, and your words still stand). Picking moves on to the next empty blank; Tab steps between blanks.
+ * option, and your words still stand). Picking moves on to the next empty blank, and Enter moves on to the next blank
+ * (an empty one after this first, else the one after it), so the sentence fills from the keyboard; Escape closes.
  */
 export function Sentence({
   segments,
@@ -44,19 +45,31 @@ export function Sentence({
   const blanks = useMemo(() => segments.flatMap((s) => ('blank' in s ? [s.blank] : [])), [segments])
   const [openId, setOpenId] = useState<string | null>(() => (autoOpen ? (openBlanks(segments, picks)[0]?.id ?? null) : null))
   const [closest, setClosest] = useState<Record<string, string[]>>({})
-  const advance = useRef(false)
+  // Where to go on from: a blank just set (or Entered), handled once the sentence has its new picks (and maybe a new blank).
+  const advance = useRef<string | null>(null)
+  const [moves, setMoves] = useState(0)
   const open = blanks.find((b) => b.id === openId) ?? null
 
-  // After a pick, on to the next empty blank (the sentence may have grown one).
   useEffect(() => {
-    if (!advance.current) return
-    advance.current = false
-    const next = openBlanks(segments, picks)[0]
-    setOpenId(next?.id ?? null)
-  }, [segments, picks])
+    const from = advance.current
+    if (!from) return
+    advance.current = null
+    const order = segments.flatMap((s) => ('blank' in s ? [s.blank.id] : []))
+    const at = order.indexOf(from)
+    const empty = openBlanks(segments, picks).map((b) => b.id)
+    // The next empty blank after this one, then any empty one, then simply the next blank; none after the last.
+    const next = empty.find((id) => order.indexOf(id) > at) ?? empty.find((id) => id !== from) ?? order[at + 1] ?? null
+    setOpenId(next)
+  }, [segments, picks, moves])
+
+  /** On to the next blank from this one. */
+  const moveOn = (id: string) => {
+    advance.current = id
+    setMoves((n) => n + 1)
+  }
 
   const set = (id: string, list: Picks[string], next = true) => {
-    advance.current = next
+    if (next) moveOn(id)
     onPicks({ ...picks, [id]: list })
   }
   const choose = (b: Blank, c: Choice) => {
@@ -123,6 +136,7 @@ export function Sentence({
           onChoose={(c) => choose(open, c)}
           onOwn={(w) => void own(open, w)}
           onDone={() => setOpenId(null)}
+          onNext={() => moveOn(open.id)}
           onPasteText={onPasteText && ((t) => (setOpenId(null), onPasteText(t)))}
         />
       )}
@@ -205,6 +219,7 @@ function Options({
   onType,
   onOwn,
   onDone,
+  onNext,
   onPasteText,
 }: {
   blank: Blank
@@ -217,6 +232,8 @@ function Options({
   onType?: (words: string) => void
   onOwn: (words: string) => void
   onDone: () => void
+  /** Enter with nothing typed: on to the next blank. */
+  onNext: () => void
   onPasteText?: (text: string) => void
 }) {
   const [query, setQuery] = useState('')
@@ -240,8 +257,12 @@ function Options({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sorted, hovering])
 
+  // The field takes the keys as a blank opens, so you can type, Enter, and type the next (a phone's keyboard only on a name).
+  // A frame later, so a window that focuses itself as it opens doesn't take it back.
   useEffect(() => {
-    if (blank.ownOnly) field.current?.focus()
+    if (!blank.ownOnly && !matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    const raf = requestAnimationFrame(() => field.current?.focus({ preventScroll: true }))
+    return () => cancelAnimationFrame(raf)
   }, [blank])
 
   const selected = picks[blank.id] ?? []
@@ -278,7 +299,7 @@ function Options({
         else if (words.trim() && !blank.searchOnly) {
           onOwn(words)
           setQuery('')
-        } else if (!words.trim()) onDone()
+        } else if (!words.trim()) onNext()
       }}
       className={`flex items-center gap-2 ${blank.ownOnly || grouped ? '' : 'mt-2'}`}
     >

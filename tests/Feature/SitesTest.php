@@ -51,8 +51,8 @@ class SitesTest extends TestCase
     {
         $me = User::factory()->create();
         $first = $this->owned($me);
-        $this->actingAs($me)->post('/mixes', ['name' => 'Second'])->assertRedirect();
-        $this->actingAs($me)->post('/mixes', ['name' => 'Starter', 'site' => ['pages' => [['path' => '/']]]])->assertRedirect();
+        $this->actingAs($me)->post('/sites', ['name' => 'Second'])->assertRedirect();
+        $this->actingAs($me)->post('/sites', ['name' => 'Starter', 'site' => ['pages' => [['path' => '/']]]])->assertRedirect();
         $this->actingAs($me)->postJson('/api/mixes', ['name' => 'Imported'])->assertCreated();
         $this->actingAs($me)->postJson("/api/mixes/{$first->id}/duplicate")->assertCreated();
         $this->assertSame(5, $me->ownedMixes()->count());
@@ -77,7 +77,7 @@ class SitesTest extends TestCase
 
     public function test_a_guest_can_open_the_sample_handoff(): void
     {
-        $this->get('/mixes/sample')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->get('/sites/sample')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('mixes/sample')->where('auth.user', null)->missing('mix'));
     }
 
@@ -210,7 +210,7 @@ class SitesTest extends TestCase
         $this->owned($me);
         $me->clips()->create(['clip_id' => 'hero.acme-one', 'files' => ['x' => 'y']]);
 
-        $this->actingAs($me)->get('/mixes')->assertInertia(fn (Assert $page) => $page
+        $this->actingAs($me)->get('/sites')->assertInertia(fn (Assert $page) => $page
             ->where('auth.billing.price', 30)
             ->where('auth.billing.buy', false)
             ->where('auth.billing.ships', false)

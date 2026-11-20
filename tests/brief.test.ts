@@ -102,3 +102,13 @@ describe('brief commands', () => {
     expect(currentSlots(useStore.getState()).length).toBeGreaterThan(0)
   })
 })
+
+describe('goals said with a “no”', () => {
+  it('leaves out what you said you don’t do, and keeps what you do', () => {
+    const g = guessBrief("A small neighborhood bakery. We want people to order cakes ahead and find us on a map. No bookings, walk-ins only.").goals
+    expect(g).not.toContain('bookings')
+    expect(g).toEqual(expect.arrayContaining(['orders', 'visit']))
+    expect(guessBrief("A café. We don't take bookings.").goals ?? []).not.toContain('bookings')
+    expect(guessBrief('A restaurant that takes bookings, no delivery.').goals).toEqual(['bookings'])
+  })
+})
