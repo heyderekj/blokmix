@@ -33,7 +33,7 @@ export const BLOCK_COMMANDS = {
   },
   set_block: {
     description:
-      'Change one block: its look (a variant id from get_options, or null for the original), its style and spacing, its motion, or hide it (hidden: everywhere; mobile.hidden: on phones only). mobile sets spacing just for phones. reset clears all changes.',
+      'Change one block: its look (a variant id from get_options, or null for the original), its style and spacing, its motion, or hide it (hidden: everywhere; mobile.hidden: on phones only). mobile sets spacing just for phones. move puts it earlier or later (or at a place, 0 first) among what’s in its group or card, like a button in a row (list items move with edit_list). reset clears all changes.',
     input: z.object({
       section,
       block,
@@ -42,6 +42,7 @@ export const BLOCK_COMMANDS = {
       motion: blockMotion.optional(),
       hidden: z.boolean().optional(),
       mobile: mobile.optional(),
+      move: z.union([z.enum(['earlier', 'later']), z.number().int().min(0)]).optional(),
       reset: z.boolean().optional(),
     }),
     write: true,

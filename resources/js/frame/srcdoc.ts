@@ -96,7 +96,11 @@ const BRIDGE = `(function () {
   document.addEventListener('pointerdown', function (e) {
     if (!editMode || noteMode || editing || e.button !== 0) return;
     var it = itemOf(target(e.target)), s = byId(sel);
-    press = it && s && it.contains(s) ? { id: it.getAttribute('data-mx-b'), x: e.clientX, y: e.clientY } : null;
+    /* Not in a list item: the selection itself, when it sits in a group or card (a button in a row), moves among its own. */
+    var holder = s && !(it && it.contains(s)) && s.contains(e.target) ? up(s) : null;
+    var inGroup = holder && (holder.hasAttribute('data-mx-group') || holder.getAttribute('data-mx-block') === 'card') ? s : null;
+    var moving = it && s && it.contains(s) ? it : inGroup;
+    press = moving ? { id: moving.getAttribute('data-mx-b'), x: e.clientX, y: e.clientY } : null;
   }, true);
   document.addEventListener('pointermove', function (e) {
     if (!press) return;
@@ -206,8 +210,43 @@ const BRIDGE = `(function () {
     if (editing && editing.contains(e.target)) return; /* the page's own word selection */
     e.preventDefault();
     var w = e.target.closest ? e.target.closest('[data-mx-field]') : null;
+    /* A picture or an icon has no words: a double-click opens what changes it. */
+    var art = e.target.closest ? e.target.closest('[data-mx-block="image"], [data-mx-block="icon"]') : null;
+    if (art && !w) { post({ pick: art.getAttribute('data-mx-b'), openMenu: true }); return; }
     var f = w && fieldEl(w.closest('[data-mx-block]')) === w ? w : fieldEl(byId(sel) || target(e.target));
     if (f) { post({ pick: f.closest('[data-mx-block]').getAttribute('data-mx-b') }); startEdit(f, caretAt(e.clientX, e.clientY)); }
+  }, true);
+  /* A file dragged onto a picture fills it; dropped anywhere else on the page it does nothing (never opens the file). */
+  var dropId = null;
+  var hasFiles = function (e) { var t = e.dataTransfer && e.dataTransfer.types; return !!t && [].indexOf.call(t, 'Files') >= 0; };
+  var pictureAt = function (node) { return node && node.closest ? node.closest('[data-mx-block="image"]') : null; };
+  var overDrop = function (p) {
+    var id = p ? p.getAttribute('data-mx-b') : null;
+    if (id === dropId) return;
+    dropId = id;
+    post({ dropOver: p ? { id: id, rect: rect(p) } : null });
+  };
+  document.addEventListener('dragover', function (e) {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    var p = editMode && !noteMode ? pictureAt(e.target) : null;
+    e.dataTransfer.dropEffect = p ? 'copy' : 'none';
+    overDrop(p);
+  }, true);
+  document.addEventListener('dragleave', function (e) { if (!e.relatedTarget) overDrop(null); }, true);
+  document.addEventListener('drop', function (e) {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    var p = editMode && !noteMode ? pictureAt(e.target) : null;
+    overDrop(null);
+    var f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (p && f) post({ dropFile: { id: p.getAttribute('data-mx-b'), file: f } });
+  }, true);
+  /* A picture pasted while the page has focus goes to the selected picture (the board decides). */
+  document.addEventListener('paste', function (e) {
+    if (!editMode || editing || formField(e.target)) return;
+    var f = e.clipboardData && e.clipboardData.files && e.clipboardData.files[0];
+    if (f) { e.preventDefault(); post({ pasteFile: f }); }
   }, true);
   /* The caret where a press landed (Koati's caretAt). */
   function caretAt(x, y) {

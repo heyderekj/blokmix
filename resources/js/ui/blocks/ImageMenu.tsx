@@ -338,7 +338,7 @@ function Uploads({ fill, onHover, onPick }: { fill?: MediaFill; onHover: (m: Med
     return () => window.removeEventListener('paste', paste)
   })
   return (
-    <div>
+    <div data-uploads>
       <button
         type="button"
         onClick={() => input.current?.click()}
@@ -568,7 +568,7 @@ function Stock({ block, slot, fill, onHover, onPick }: { block: BlockInfo; slot?
 }
 
 /** A stored file as a fill, keeping the crop and description you'd set. */
-function fillFor(a: Asset, prev?: MediaFill): MediaFill {
+export function fillFor(a: Asset, prev?: MediaFill): MediaFill {
   const keep = { fit: prev?.fit, alt: prev?.alt, lightbox: prev?.lightbox }
   if (a.kind === 'video') return { source: 'video', asset: a.id, play: 'inview', loop: true, ...keep }
   if (a.kind === 'lottie') return { source: 'lottie', asset: a.id, play: 'inview', loop: true, ...keep }

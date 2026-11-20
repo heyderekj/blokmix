@@ -191,3 +191,21 @@ export function lintBlocks(tree: HNode[]): { errors: string[]; warnings: string[
   if (!count) warnings.push('No blocks marked; add data-mx-block to headings, buttons, cards and images')
   return { errors, warnings }
 }
+
+/** What sits beside it, in page order: the blocks and groups that share what's around it (itself included). */
+export function siblingsOf(blocks: BlockInfo[], b: BlockInfo): BlockInfo[] {
+  const at = upOf(b)
+  return blocks.filter((x) => upOf(x) === at)
+}
+
+/** What's directly inside it (blocks and groups), in page order; the section's own when id is null. */
+export const insideOf = (blocks: BlockInfo[], id: string | null): BlockInfo[] => blocks.filter((x) => upOf(x) === id)
+
+/** One step through what's beside it (Tab, Shift+Tab), going round at the ends. */
+export function stepSibling(blocks: BlockInfo[], id: string, d: 1 | -1): string | null {
+  const b = blocks.find((x) => x.id === id)
+  if (!b) return null
+  const sibs = siblingsOf(blocks, b)
+  if (sibs.length < 2) return null
+  return sibs[(sibs.indexOf(b) + d + sibs.length) % sibs.length].id
+}

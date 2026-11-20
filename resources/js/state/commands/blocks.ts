@@ -1,4 +1,5 @@
 import { isSketch, SKETCH_MODES } from '@/core/sketchCatalog'
+import { groupOrderOf } from '@/core/lists'
 import type { LinkTarget, BlockEdit, BlockMotion, BlockStyle, MediaFill, SectionSpacing } from '@/core/types'
 import { detectLink } from '@/core/media'
 import { ICON_NAMES, blockIconName } from '@/core/icons'
@@ -32,6 +33,11 @@ export const write = {
     if (i.mobile === null) patch.mobile = undefined
     else if (i.mobile) patch.mobile = { ...(i.mobile.style ? { style: styleFrom(i.mobile.style) } : {}), ...(i.mobile.hidden !== undefined ? { hidden: i.mobile.hidden } : {}) }
     if (Object.keys(patch).length) st.editBlock(slot.id, b.id, patch)
+    if (i.move !== undefined) {
+      const to = i.move === 'earlier' ? { by: -1 as const } : i.move === 'later' ? { by: 1 as const } : i.move
+      if (!groupOrderOf(slotClip(findSection(slot.id)), b.id)) throw new CommandError(`${b.label} isn’t in a group or card it can move around in. List items move with edit_list.`)
+      if (!useStore.getState().moveInGroup(slot.id, b.id, to)) throw new CommandError(`${b.label} can’t move ${typeof i.move === 'number' ? `to place ${i.move}` : i.move}: it’s already at that end`)
+    }
     return describeSection(findSection(slot.id), 0).blocks.find((x) => x.id === b.id)
   },
   use_look_for_all: (i: CommandInput<'use_look_for_all'>) => {

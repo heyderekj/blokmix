@@ -24,6 +24,12 @@ export interface FrameRect {
 export interface BlockEvent {
   hover?: { id: string; rect: FrameRect } | null
   pick?: string | null
+  /** With a pick: open what changes it (a double-click on a picture or an icon). */
+  openMenu?: boolean
+  /** A file dragged over a picture (its id and box), then let go of on it; or pasted while the frame had focus. */
+  dropOver?: { id: string; rect: FrameRect } | null
+  dropFile?: { id: string; file: File }
+  pasteFile?: File
   selRect?: FrameRect | null
   word?: { field: string; value: string }
   editing?: boolean

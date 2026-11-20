@@ -13,6 +13,8 @@ interface BlockPreview {
   patch: Partial<BlockEdit> | null
   show: (slotId: string, blockId: string, patch: Partial<BlockEdit>) => void
   clear: () => void
+  /** A block whose menu (picture, icon) should open as soon as its bar shows: a double-click on it. */
+  openMenuFor?: string | null
   /** Ask the frame to start editing a block's words in place. */
   editText: { id: string; n: number } | null
   requestEditText: (blockId: string) => void

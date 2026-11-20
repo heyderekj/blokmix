@@ -31,12 +31,111 @@ export interface ListPatch {
 export interface SectionExtras {
   banner?: boolean
   inserts?: Insert[]
+  /** What's in a group or card, in the order you put it (by the group's id). */
+  order?: Record<string, string[]>
 }
 
 /** What a section adds to a clip: its banner, and the bloks it added to that clip (the one it shows, by default). */
-export const extrasOf = (slot: Pick<Slot, 'banner' | 'inserts'> & { clipId?: string }, clipId = slot.clipId ?? ''): SectionExtras | undefined => {
+export const extrasOf = (slot: Pick<Slot, 'banner' | 'inserts'> & { clipId?: string; edits?: Slot['edits'] }, clipId = slot.clipId ?? ''): SectionExtras | undefined => {
   const inserts = slot.inserts?.[clipId]
-  return slot.banner || inserts?.length ? { ...(slot.banner ? { banner: true } : {}), ...(inserts?.length ? { inserts } : {}) } : undefined
+  const order = Object.fromEntries(Object.entries(slot.edits?.[clipId] ?? {}).flatMap(([id, e]) => (e.order?.length ? [[id, e.order]] : [])))
+  const ordered = Object.keys(order).length > 0
+  return slot.banner || inserts?.length || ordered ? { ...(slot.banner ? { banner: true } : {}), ...(inserts?.length ? { inserts } : {}), ...(ordered ? { order } : {}) } : undefined
+}
+
+/** What's directly in an element and can move: its children that are blocks or groups (they carry an id). */
+const movableKids = (el: HEl) => el.kids.flatMap((k, i) => (isEl(k) && attr(k, 'data-mx-b') ? [i] : []))
+
+/**
+ * Put what's in each group or card in the order you chose. Only its blocks and groups move, among their own places;
+ * wrappers and whitespace stay where they are, and anything the order doesn't name keeps its place after the rest.
+ */
+export function applyOrder(tree: HNode[], order: Record<string, string[]>): HNode[] {
+  return mapTree(tree, (el) => {
+    const ids = order[attr(el, 'data-mx-b') ?? '']
+    if (!ids || attr(el, 'data-mx-block') === 'list') return el
+    const at = movableKids(el)
+    const els = at.map((i) => el.kids[i] as HEl)
+    const rank = (e: HEl) => {
+      const i = ids.indexOf(attr(e, 'data-mx-b')!)
+      return i < 0 ? ids.length + els.indexOf(e) : i
+    }
+    const sorted = [...els].sort((a, b) => rank(a) - rank(b))
+    if (sorted.every((e, i) => e === els[i])) return el
+    const kids = [...el.kids]
+    at.forEach((pos, j) => (kids[pos] = sorted[j]))
+    return { ...el, kids }
+  })
+}
+
+/** What's in a group or card that can move, by id in page order; null when there's less than two to put in order. */
+export function orderIn(tree: HNode[], id: string): string[] | null {
+  let out: string[] | null = null
+  walk(tree, (n) => {
+    if (out || !isEl(n) || attr(n, 'data-mx-b') !== id || attr(n, 'data-mx-block') === 'list') return
+    const ids = movableKids(n).map((i) => attr(n.kids[i] as HEl, 'data-mx-b')!)
+    out = ids.length > 1 ? ids : null
+  })
+  return out
+}
+
+/** The group or card a block can move around in, with what's in it in order; null when it isn't in one that can. */
+export function groupOrderOf(clip: SectionClip, blockId: string): { holder: string; ids: string[] } | null {
+  const b = clip.blocks.find((x) => x.id === blockId)
+  const around = b && (b.group ?? b.parent)
+  const holder = around ? clip.blocks.find((x) => x.id === around) : undefined
+  if (!holder || (holder.kind !== 'group' && holder.kind !== 'card')) return null
+  const ids = orderIn(parseHtml(clip.html), holder.id)
+  return ids?.includes(blockId) ? { holder: holder.id, ids } : null
+}
+
+/** The order with one thing moved a step (-1 earlier, 1 later), or to an index; null when it can't move there. */
+export function moveIn(ids: string[], id: string, to: number | { by: -1 | 1 }): string[] | null {
+  const from = ids.indexOf(id)
+  const at = typeof to === 'number' ? to : from + to.by
+  if (from < 0 || at < 0 || at >= ids.length || at === from) return null
+  const next = ids.filter((x) => x !== id)
+  next.splice(at, 0, id)
+  return next
+}
+
+const selOf = (n: HEl) => (attr(n, 'data-mx-b') ? `[data-mx-b="${attr(n, 'data-mx-b')}"]` : attr(n, 'data-mx-set') ? `[data-mx-set="${attr(n, 'data-mx-set')}"]` : null)
+
+/** Every element (by selector) inside the one `sel` names. */
+function inside(tree: HNode[], sel: string): Set<string> {
+  const out = new Set<string>()
+  const collect = (nodes: HNode[]) =>
+    walk(nodes, (n) => {
+      const s = isEl(n) && selOf(n)
+      if (s) out.add(s)
+    })
+  const find = (nodes: HNode[]): boolean =>
+    nodes.some((n) => {
+      if (!isEl(n)) return false
+      if (selOf(n) === sel) return (collect(n.kids), true)
+      return find(n.kids)
+    })
+  find(tree)
+  return out
+}
+
+/**
+ * A frame shows a reordered group by swapping it in whole; patches already inside it (a list, a blok you added) come
+ * with it, and a group inside a changed list comes with the list.
+ */
+function orderPatches(tree: HNode[], order: Record<string, string[]>, others: ListPatch[]): ListPatch[] {
+  const covered = new Set(others.filter((p) => !p.before && !p.after).flatMap((p) => [...inside(tree, p.sel)]))
+  const outer: ListPatch[] = []
+  const done = new Set<string>()
+  walk(tree, (n) => {
+    if (!isEl(n)) return
+    const id = attr(n, 'data-mx-b')
+    const sel = id ? `[data-mx-b="${id}"]` : null
+    if (!sel || !order[id!] || covered.has(sel) || done.has(sel)) return
+    for (const s of inside(tree, sel)) done.add(s)
+    outer.push({ sel, html: serialize([n], 'html') })
+  })
+  return outer
 }
 
 /** A clip as one section shows it: its lists applied, blocks stamped and indexed. */
@@ -503,18 +602,26 @@ export function sectionClip(clip: Clip, lists?: Record<string, ListItemRef[]>, e
     return n.t === 'el' && (attr(n, 'data-mx-block') === 'banner' || n.kids.some(has))
   })
   const inserts = extras?.inserts?.length ? extras.inserts : undefined
-  const k = `${clip.id}@${clip.hash}:${relevant ? JSON.stringify(relevant) : ''}:${banner ? 'b' : ''}:${inserts ? JSON.stringify(inserts) : ''}`
+  const order = extras?.order && Object.keys(extras.order).length ? extras.order : undefined
+  const k = `${clip.id}@${clip.hash}:${relevant ? JSON.stringify(relevant) : ''}:${banner ? 'b' : ''}:${inserts ? JSON.stringify(inserts) : ''}:${order ? JSON.stringify(order) : ''}`
   let hit = cache.get(k)
   if (hit) return hit
   const withExtras: HNode[] = banner ? [bannerTree((f) => DEFAULT_CONTENT.fields.nav?.[f] ?? ''), { t: 'text', v: '\n' }, ...base] : base
   // Bloks you added go in after the clip's own blocks are stamped (their ids never shift), and before the lists are
   // changed, so a blok in every item is copied along with a new item.
   const added = inserts ? applyInserts(withExtras, inserts, clip.type) : withExtras
-  const tree = applyLists(added, relevant)
-  const patches = relevant || inserts ? patchesFor(base, tree) : []
+  const listed = applyLists(added, relevant)
+  // Then what's in each group, in the order you chose.
+  const tree = order ? applyOrder(listed, order) : listed
+  let patches = relevant || inserts || order ? patchesFor(base, tree) : []
   if (banner) patches.unshift({ sel: '[data-mx-section]', html: serialize([tree[0]], 'html'), before: true })
   // A blok outside any list arrives in a frame on its own, right after its anchor (a list's own patch carries those in it).
   if (inserts) patches.push(...insertPatches(tree))
+  if (order) {
+    const groups = orderPatches(tree, order, patches)
+    const swapped = new Set(groups.flatMap((g) => [...inside(tree, g.sel)]))
+    patches = [...patches.filter((p) => !swapped.has(p.sel)), ...groups]
+  }
   hit = {
     ...clip,
     html: serialize(tree, 'html'),
@@ -522,7 +629,7 @@ export function sectionClip(clip: Clip, lists?: Record<string, ListItemRef[]>, e
     blocks: annotate(indexBlocks(tree, clip.type), tree),
     patches,
     source: clip,
-    extras: banner || inserts ? { ...(banner ? { banner } : {}), ...(inserts ? { inserts } : {}) } : undefined,
+    extras: banner || inserts || order ? { ...(banner ? { banner } : {}), ...(inserts ? { inserts } : {}), ...(order ? { order } : {}) } : undefined,
   }
   if (cache.size > 400) cache.clear()
   cache.set(k, hit)

@@ -1,7 +1,7 @@
 import { RecipeControls } from '../drafts/SharedRecipes'
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpRight, ChevronDown, Eye, ChevronLeft, ChevronRight, GripVertical, Link2, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, MoveHorizontal, PaintBucket, UnfoldVertical, Eye, ChevronLeft, ChevronRight, GripVertical, Link2, Palette, Plus, Sparkles, Trash2, Type, Undo2 } from 'lucide-react'
 import type { Slot, TokenGroup } from '@/core/types'
 import { TOKEN_GROUPS } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
@@ -31,7 +31,7 @@ import { LockGlyph } from './LockGlyph'
 import { useEscape } from '../shell/keys'
 import { BAR_GAP, BAR_SURFACE } from './bar'
 
-type Tab = 'style' | 'source' | 'width' | 'spacing'
+type Tab = 'style' | 'source' | 'spacing'
 
 const TABS: { id: Tab; label: string; icon: typeof Type }[] = [
   { id: 'style', label: 'Style', icon: Palette },
@@ -92,7 +92,7 @@ export function SectionPill({
   }, [focused, sheet])
   // Picking a block in it folds the section's own width and spacing.
   useEffect(() => {
-    if (!own && (tab === 'width' || tab === 'spacing')) setTab(null)
+    if (!own && tab === 'spacing') setTab(null)
   }, [own, tab])
 
   if (!clip) return null
@@ -127,7 +127,7 @@ export function SectionPill({
           }}
         >
           {/* one slim row: what it is, its tabs, its utilities, the one strong action */}
-          <motion.div layout="position" transition={MORPH} className={`flex h-11 items-center gap-1 pr-1.5 ${sectionMovable(slot.id) ? 'pl-1.5' : 'pl-3.5'}`}>
+          <motion.div data-bar-row layout="position" transition={MORPH} className={`flex h-11 items-center gap-1 pr-1.5 [&>*]:shrink-0 ${sectionMovable(slot.id) ? 'pl-1.5' : 'pl-3.5'}`}>
             {sectionMovable(slot.id) && (
               <span
                 role="button"
@@ -230,11 +230,6 @@ export function SectionPill({
                 className="bg-well p-3"
               >
                 {tab === 'source' && <SourceTab slot={slot} />}
-                {tab === 'width' && (
-                  <div className="w-[300px]">
-                    <WidthPicks slot={slot} />
-                  </div>
-                )}
                 {tab === 'spacing' && (
                   <div className="w-[300px]">
                     <SpacingGroup slot={slot} />
@@ -563,49 +558,88 @@ function InspiredBy({ inspired }: { inspired: NonNullable<Slot['inspiredBy']> })
 }
 
 /** The band the section sits on: the one it's on, its swatch painted as it would look with your style guide. */
+const SPACE_WORD: Record<string, string> = { none: 'None', tight: 'Tight', default: 'Default', roomy: 'Roomy' }
+
 /**
- * What you change most about a section, on its bar once you've clicked its empty space: its band (four dots in the
- * guide's own colors), how wide it runs and the room above and below it. Backdrop, motion and the rest are in Style.
+ * What you change most about a section, on its bar once you've clicked its empty space: each shows only what it's set
+ * to, with its icon, and a click opens its choices right there in the bar (the room above and below opens under it).
+ * Backdrop, motion and the rest are in Style.
  */
 function SectionQuick({ slot, tab, onTab }: { slot: Slot; tab: Tab | null; onTab: (t: Tab) => void }) {
   const tokens = useResolvedGuide().tokens
   const fromGuide = useStore((s) => s.guide.sections?.[slot.type]?.surface)
   const on = slot.surface ?? fromGuide ?? 'page'
-  const pill = (t: Tab, label: string, value?: string) => (
+  const width = slot.width ?? 'standard'
+  const [open, setOpen] = useState<'band' | 'width' | null>(null)
+  useEscape(!!open, () => setOpen(null))
+  const top = slot.spacing?.top ?? 'default'
+  const bottom = slot.spacing?.bottom ?? 'default'
+  const room = top === bottom ? SPACE_WORD[top] : `${SPACE_WORD[top]} · ${SPACE_WORD[bottom]}`
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation()
+  const pill = (label: string, Icon: typeof Type, value: ReactNode, active: boolean, onClick: () => void) => (
     <button
       type="button"
-      aria-expanded={tab === t}
+      title={label}
+      aria-expanded={active}
       onClick={(e) => {
-        e.stopPropagation()
-        onTab(t)
+        stop(e)
+        onClick()
       }}
-      className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${tab === t ? 'bg-zinc-950/[0.07] text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+      className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${active ? 'bg-zinc-950/[0.07] text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
     >
-      {label}
-      {value && <span className="text-zinc-400">{value}</span>}
+      <Icon size={15} className="text-zinc-500" />
+      {value}
     </button>
   )
+  const dot = (v: (typeof SURFACES)[number], size = 'size-4') => <span className={`${size} shrink-0 rounded-full ring-1 ring-zinc-950/15`} style={{ background: surfaceTokens(tokens, v)['color.bg'] }} />
   return (
     <>
-      <div className="flex items-center gap-1 px-1" role="radiogroup" aria-label="Section background">
-        {SURFACES.map((v) => (
-          <button
-            key={v}
-            type="button"
-            role="radio"
-            aria-checked={on === v}
-            title={`${SURFACE_LABEL[v]} background`}
-            onClick={(e) => {
-              e.stopPropagation()
-              if (v !== on) useStore.getState().setSurface(slot.id, v)
-            }}
-            className={`size-5 cursor-pointer rounded-full ring-offset-2 transition-[scale,box-shadow] hover:scale-110 active:scale-[0.97] ${on === v ? 'ring-2 ring-zinc-900' : 'ring-1 ring-zinc-950/15'}`}
-            style={{ background: surfaceTokens(tokens, v)['color.bg'] }}
-          />
-        ))}
-      </div>
-      {pill('width', 'Width', SECTION_WIDTH_LABEL[slot.width ?? 'standard'])}
-      {pill('spacing', 'Spacing')}
+      {open === 'band' ? (
+        <div className="flex items-center gap-1 rounded-full bg-zinc-950/[0.05] px-1.5 py-1" role="radiogroup" aria-label="Section background">
+          {SURFACES.map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={on === v}
+              title={`${SURFACE_LABEL[v]} background`}
+              onClick={(e) => {
+                stop(e)
+                if (v !== on) useStore.getState().setSurface(slot.id, v)
+                setOpen(null)
+              }}
+              className={`grid size-6 cursor-pointer place-items-center rounded-full transition-[scale] hover:scale-110 active:scale-[0.97] ${on === v ? 'ring-2 ring-zinc-900' : ''}`}
+            >
+              {dot(v, 'size-5')}
+            </button>
+          ))}
+        </div>
+      ) : (
+        pill(`Background: ${SURFACE_LABEL[on]}`, PaintBucket, dot(on), false, () => setOpen('band'))
+      )}
+      {open === 'width' ? (
+        <div className="flex items-center rounded-full bg-zinc-950/[0.05] p-0.5" role="radiogroup" aria-label="Section width">
+          {SECTION_WIDTHS.map((w) => (
+            <button
+              key={w}
+              type="button"
+              role="radio"
+              aria-checked={width === w}
+              onClick={(e) => {
+                stop(e)
+                if (w !== width) useStore.getState().setSectionWidth(slot.id, w)
+                setOpen(null)
+              }}
+              className={`h-7 cursor-pointer rounded-full px-2.5 text-[12.5px] font-medium transition-[background-color,color] ${width === w ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              {SECTION_WIDTH_LABEL[w]}
+            </button>
+          ))}
+        </div>
+      ) : (
+        pill('Width', MoveHorizontal, SECTION_WIDTH_LABEL[width], false, () => setOpen('width'))
+      )}
+      {pill('Room above and below', UnfoldVertical, room, tab === 'spacing', () => (setOpen(null), onTab('spacing')))}
     </>
   )
 }

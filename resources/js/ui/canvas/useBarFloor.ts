@@ -2,13 +2,17 @@ import { useLayoutEffect, type DependencyList, type RefObject } from 'react'
 import { create } from 'zustand'
 import { canvasApi, onPaint } from './Canvas'
 import { screenFloor } from './inView'
+import { useInsets } from './insets'
 import type { Camera } from './geometry'
 
 /**
  * Keep a bar that hangs below something on screen. The bar is anchored in world space (`anchor`, a 0×0 element
  * placed where the bar belongs inside `row`); when that spot is below the dock (a tall section, a block near the
- * bottom of the screen), the anchor is nudged up to just above the dock, but never above the row's top. It is also
- * nudged left so it never runs past the row's right edge.
+ * bottom of the screen), the anchor is nudged up to just above the dock, but never above the row's top. Sideways it
+ * stays where it belongs as long as that's on screen: inside the row when the row is in view, else inside what you can
+ * see between the side panels (zoomed in on a wide section, the bar comes to the middle of the screen rather than
+ * running off it). A bar wider than all of that keeps its row (`[data-bar-row]`) to the room there is and scrolls
+ * sideways; its menus below are never cut off.
  *
  * Cheap on every frame: the page is measured only when something changes size (the row, the bar, the window), in
  * world units; each painted camera frame then places the bar with arithmetic and at most one style write, never a
@@ -25,7 +29,10 @@ export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObjec
     let burst = 0
     let raf = 0
     // Measured in world (page) pixels, plus the screen's floor, refreshed only when sizes change.
-    let m: { rowX: number; rowY: number; rowW: number; rowH: number; ax: number; ay: number; barW: number; barH: number; floor: number; rootX: number; rootY: number } | null = null
+    let m: { rowX: number; rowY: number; rowW: number; rowH: number; ax: number; ay: number; barW: number; barH: number; floor: number; rootX: number; rootY: number; rootW: number } | null = null
+    // The bar's own row, which scrolls sideways when even the screen can't fit it.
+    const strip = () => bar.current?.querySelector<HTMLElement>('[data-bar-row]') ?? null
+    let squeezed = ''
     const report = (px: number) => {
       if (!key || px === hang) return
       hang = px
@@ -49,12 +56,13 @@ export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObjec
         rowH: rr.height / cam.z,
         ax: a.offsetLeft,
         ay: a.offsetTop,
-        // The bar is drawn at screen size (capped): keep its own size, unscaled.
-        barW: br.width / barScale(cam.z),
+        // The bar is drawn at screen size (capped): keep its own size, unscaled (its row's whole width, scrolled or not).
+        barW: strip()?.scrollWidth ?? br.width / barScale(cam.z),
         barH: br.height / barScale(cam.z),
         floor: screenFloor(),
         rootX: box.left,
         rootY: box.top,
+        rootW: box.width,
       }
     }
     const place = (cam: Camera) => {
@@ -72,8 +80,27 @@ export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObjec
       const bh = m.barH * s
       let dy = 0
       if (ay + bh > m.floor) dy = Math.max(m.floor - bh - ay, top - ay)
-      let dx = 0
-      if (ax + bw > right) dx = Math.max(right - bw - ax, left - ax)
+      // What you can see, between the panels at the window's sides.
+      const ins = useInsets.getState()
+      const vl = m.rootX + Math.max(ins.left, 12)
+      const vr = m.rootX + m.rootW - ins.right - 12
+      const lo = Math.max(vl, left)
+      const hi = Math.min(vr, right)
+      // Inside the row when it fits there, else inside the screen; never past either edge of what you can see.
+      const [from, to] = hi - lo >= bw ? [lo, hi] : [vl, vr]
+      const x = Math.max(from, Math.min(ax, to - bw))
+      const dx = x - ax
+      const room = Math.max(120, vr - vl)
+      const fit = bw > room ? `${Math.floor(room / s)}px` : ''
+      if (fit !== squeezed) {
+        squeezed = fit
+        const st = strip()
+        if (st) {
+          st.style.maxWidth = fit
+          st.style.overflowX = fit ? 'auto' : ''
+          st.style.scrollbarWidth = fit ? 'thin' : ''
+        }
+      }
       const t = dx || dy ? `${dx / z}px ${dy / z}px` : ''
       if (a.style.translate !== t) a.style.translate = t
       // How far the bar hangs below the row, on screen: what sits under the page makes that much room.

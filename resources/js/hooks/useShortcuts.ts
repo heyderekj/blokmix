@@ -1,4 +1,8 @@
 import { toggleLeft } from '@/ui/shell/LeftPanel'
+import { groupOrderOf } from '@/core/lists'
+import { pastePicture } from '@/ui/blocks/placePicture'
+import { useBlockPreview } from '@/ui/blocks/preview'
+import { insideOf, stepSibling, upOf } from '@/core/blocks'
 import { useEffect } from 'react'
 import { useTiles } from '@/ui/frames/tiles'
 import type { Keep } from '@/core/types'
@@ -23,11 +27,32 @@ export function useShortcuts(onHelp: () => void) {
     // Long text pasted on the board (not into a field): offer to pour it in, or make a page from it.
     const onPaste = (e: ClipboardEvent) => {
       if (typing(e.target) || e.defaultPrevented) return
+      // A picture pasted with a picture selected goes into it (the Image menu's Upload tab takes its own pastes).
+      const file = e.clipboardData?.files?.[0]
+      if (file && !document.querySelector('[data-uploads]') && pastePicture(file)) {
+        e.preventDefault()
+        return
+      }
       const text = e.clipboardData?.getData('text/plain') ?? ''
       if (text.trim().length < 80 || text.trim().split('\n').length < 2) return
       e.preventDefault()
       useJevTools.setState({ open: currentSlots(useStore.getState()).length > 2 ? 'pour' : 'page', text })
     }
+    // A file let go of anywhere but a picture (or a drop zone of the board's own) never opens in the browser.
+    const files = (e: DragEvent) => !!e.dataTransfer && [...e.dataTransfer.types].includes('Files')
+    const onDragOver = (e: DragEvent) => {
+      if (files(e) && !e.defaultPrevented) {
+        e.preventDefault()
+        e.dataTransfer!.dropEffect = 'none'
+      }
+    }
+    const onDrop = (e: DragEvent) => {
+      if (!files(e) || e.defaultPrevented) return
+      e.preventDefault()
+      useStore.getState().showFlash('Drop it onto a picture on the page')
+    }
+    window.addEventListener('dragover', onDragOver)
+    window.addEventListener('drop', onDrop)
     window.addEventListener('paste', onPaste)
     const onKey = (e: KeyboardEvent) => {
       if (!e.defaultPrevented && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -90,6 +115,15 @@ export function useShortcuts(onHelp: () => void) {
       let inItem = st.ui.selectedBlockId
       for (let b = clip?.blocks.find((x) => x.id === inItem); b && b.kind !== 'item'; b = clip!.blocks.find((x) => x.id === b!.parent)) inItem = b.parent
       const tile = focused && clip && inItem ? listContext(clip, focused, inItem) : null
+      // In a group or card (a row of buttons, a header), ⌥ + arrows move the selection among what's beside it there.
+      // At either end it stays put (it never moves the item around the group instead).
+      // In a list item, a card's things leave ⌥ + arrows to moving the item (a group's still move among themselves).
+      const inGroup = focused && clip && st.ui.selectedBlockId && e.altKey && !mod && k.startsWith('Arrow') ? groupOrderOf(clip, st.ui.selectedBlockId) : null
+      if (focused && st.ui.selectedBlockId && inGroup && (!tile?.item || clip!.blocks.find((b) => b.id === inGroup.holder)?.kind === 'group')) {
+        e.preventDefault()
+        st.moveInGroup(focused.id, st.ui.selectedBlockId, { by: k === 'ArrowUp' || k === 'ArrowLeft' ? -1 : 1 })
+        return
+      }
       if (focused && tile?.item && e.altKey && !mod && k.startsWith('Arrow')) {
         e.preventDefault()
         // Like a sliding tile: trade places with the item on screen in that direction (the one below in a grid);
@@ -146,14 +180,29 @@ export function useShortcuts(onHelp: () => void) {
         st.moveSlot(focused.id, i + (k === 'ArrowUp' ? -1 : 1))
         return
       }
+      // Tab and Shift+Tab: what's beside the selection (from the section, its first thing).
+      // (Tab from a button in the bars still moves the keyboard's focus, as it should.)
+      if (k === 'Tab' && !mod && !e.altKey && focused && !pressable(e.target)) {
+        const blocks = slotClip(focused).blocks
+        const next = st.ui.selectedBlockId ? stepSibling(blocks, st.ui.selectedBlockId, e.shiftKey ? -1 : 1) : (insideOf(blocks, null)[0]?.id ?? null)
+        e.preventDefault()
+        if (next) st.selectBlock(next)
+        return
+      }
       if (mod || e.altKey) return
 
       switch (k) {
         case 'ArrowLeft':
         case 'ArrowRight': {
           e.preventDefault()
-          // The selected thing's options a step at a time: a block's looks, else the section's layouts.
-          if (focused && st.ui.selectedBlockId && stepLook(focused.id, st.ui.selectedBlockId, k === 'ArrowRight' ? 1 : -1)) return
+          // The selected thing's looks a step at a time; with none (a list, a group), what's beside it. Only the section
+          // itself steps through layouts, so nothing inside it changes the whole section by surprise.
+          if (focused && st.ui.selectedBlockId) {
+            if (stepLook(focused.id, st.ui.selectedBlockId, k === 'ArrowRight' ? 1 : -1)) return
+            const next = stepSibling(slotClip(focused).blocks, st.ui.selectedBlockId, k === 'ArrowRight' ? 1 : -1)
+            if (next) st.selectBlock(next)
+            return
+          }
           const target = focused ?? currentSlots(st)[0]
           if (!target) return
           if (!focused) st.focusSlot(target.id)
@@ -165,13 +214,27 @@ export function useShortcuts(onHelp: () => void) {
           e.preventDefault()
           st.focusNext(k === 'ArrowDown' ? 1 : -1)
           return
-        case 'Enter':
+        case 'Enter': {
           e.preventDefault()
-          // A selected block with words is edited by Enter in its frame; one without (a picture, card, list, icon) does
-          // nothing here: Enter never saves a version from under a selection.
-          if (focused && st.ui.selectedBlockId) return
+          // Shift+Enter: out to what's around it. Enter: into what's inside (a section's first thing, a group's, a
+          // card's); a block with words is edited by Enter in its frame. Enter never saves a version from under a
+          // selection; with nothing selected it does (⌘S always does).
+          if (focused) {
+            const blocks = slotClip(focused).blocks
+            const id = st.ui.selectedBlockId
+            if (e.shiftKey) {
+              const b = id ? blocks.find((x) => x.id === id) : undefined
+              if (b) st.selectBlock(upOf(b))
+              return
+            }
+            const first = insideOf(blocks, id)[0]
+            if (first) st.selectBlock(first.id)
+            else if (id && blocks.find((x) => x.id === id)?.field) useBlockPreview.getState().requestEditText(id)
+            return
+          }
           pressVersionAndFly()
           return
+        }
         case 'l':
         case 'L':
           if (focused) st.toggleLock(focused.id)
@@ -237,7 +300,7 @@ export function useShortcuts(onHelp: () => void) {
           else if (focused && st.ui.selectedBlockId) {
             // Step out one level, like Figma.
             const block = slotClip(focused).blocks.find((b) => b.id === st.ui.selectedBlockId)
-            st.selectBlock(block?.parent ?? null)
+            st.selectBlock(block ? upOf(block) : null)
           } else if (st.ui.sheet !== 'none') st.setUi({ sheet: 'none' })
           // With nothing left to step out of, Esc goes back from the canvas to the page.
           else if (!focused && st.ui.tool === 'select' && !st.ui.previewFrameId && canvasApi.mode() === 'canvas') canvasApi.setMode('page')
@@ -263,6 +326,8 @@ export function useShortcuts(onHelp: () => void) {
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
+      window.removeEventListener('dragover', onDragOver)
+      window.removeEventListener('drop', onDrop)
       window.removeEventListener('paste', onPaste)
     }
   }, [onHelp])

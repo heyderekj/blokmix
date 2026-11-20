@@ -42,7 +42,7 @@ import { library, slotClip } from '@/data/library'
 import { cycleIds, withClip } from '@/core/library'
 import { BANNER_ID } from '@/core/banner'
 import { addInsert, insertOf, InsertError, removeInsert } from '@/core/inserts'
-import { editList as applyListEdit, ListError, listOrder, type ListOp } from '@/core/lists'
+import { editList as applyListEdit, groupOrderOf, ListError, listOrder, moveIn, type ListOp } from '@/core/lists'
 import { keepOption, putBackOption, renameBrand, retireOption, showWords } from '@/core/words'
 import { suggestClip } from '@/core/suggest'
 import type { FacetFilter } from '@/core/browse'
@@ -188,6 +188,8 @@ export interface State extends MixData {
   // blocks
   selectBlock: (blockId: string | null) => void
   /** Patch a block of the section's current clip; null clears its edit. */
+  /** Move a block or group a step (or to a place) among what's in its group or card, as one undo step; false when it can't. */
+  moveInGroup: (slotId: string, blockId: string, to: number | { by: -1 | 1 }) => boolean
   editBlock: (slotId: string, blockId: string, patch: Partial<BlockEdit> | null) => void
   setWord: (slotId: string, field: string, value: string | null) => void
   /** Navs: show or remove an announcement banner (the clip's own, or one added above it). */
@@ -564,6 +566,15 @@ export const useStore = create<State>()(
               }
               throw e
             }
+          },
+          moveInGroup: (slotId, blockId, to) => {
+            const slot = currentSlots(get()).find((x) => x.id === slotId)
+            if (!slot) return false
+            const g = groupOrderOf(slotClip(slot), blockId)
+            const next = g && moveIn(g.ids, blockId, to)
+            if (!g || !next) return false
+            get().editBlock(slotId, g.holder, { order: next })
+            return true
           },
           editBlock: (slotId, blockId, patch) => {
             updateSlot(slotId, (s) => {
