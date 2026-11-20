@@ -203,10 +203,10 @@ first screen holds up (after Shu Ding's "The Calculus of Interfaces"). Under the
 starter, a saved style guide (hosted), a blank page, a mix file (`ui/start/StartFrom.tsx`). Hosted, a start posts to
 `POST /api/mixes`; agents use `suggest_starts` and `apply_start` (both take `text`, read as a description by the reader or keywords and
 as copy through Jev when it's a long paste, `sections`, `format`, `industry`, `goals`, `main_action`, `who`, `count` 2–6,
-`vary` layout (default) / look / both, `pages`, `feel` and `avoid`; `apply_start` takes `start` 1–6). A start lands on the page alone, no panel open (`ui/shell/landOnPage.ts`): a few quiet hints
-above the dock (`ui/shell/NextSteps.tsx`, pure `core/nextSteps.ts`, `ui.nextSteps` per device) say what to try next (your words, another
-opener, a look), each with one plain line of why (the first screen's measured miss when there is one), and retire once done or
-dismissed.
+`vary` layout (default) / look / both, `pages`, `feel` and `avoid`; `apply_start` takes `start` 1–6). A start lands on the page alone, no panel open (`ui/shell/landOnPage.ts`): one quiet row of
+up to three cards above the dock (`ui/shell/NextSteps.tsx`, pure `core/nextSteps.ts`, `ui.nextSteps` per device) says what to try next
+(Write your words, Try another opener, Try a look), each with an icon and a few words of why (the first screen's measured miss, cut
+short by `shortMiss`, when there is one); they retire once done or dismissed, and the row scrolls sideways on a narrow window.
 
 ## Skins and the contract
 

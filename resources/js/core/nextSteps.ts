@@ -19,9 +19,9 @@ export type NextStepAction =
 
 export interface NextStep {
   id: NextStepId
-  /** What to do, as a button: "Make the words yours". */
+  /** What to do, as a button: "Write your words". */
   label: string
-  /** Why, in one line. */
+  /** Why, in a few words (no stop): "83 spots still show sample text". */
   why: string
   action: NextStepAction
 }
@@ -62,8 +62,8 @@ export function nextSteps(i: NextStepsInput): NextStep[] {
   if (!off('words') && i.sample.left > 0) {
     out.push({
       id: 'words',
-      label: 'Make the words yours',
-      why: `${plural(i.sample.left, 'spot')} still ${i.sample.left === 1 ? 'holds' : 'hold'} sample words. Real words show whether a layout works.`,
+      label: 'Write your words',
+      why: `${plural(i.sample.left, 'spot')} still ${i.sample.left === 1 ? 'shows' : 'show'} sample text`,
       action: { kind: 'words' },
     })
   }
@@ -75,9 +75,7 @@ export function nextSteps(i: NextStepsInput): NextStep[] {
     out.push({
       id: 'layout',
       label: 'Try another opener',
-      why: miss
-        ? `${miss.words}. The first screen decides whether people stay.`
-        : `${plural(i.openerLayouts - 1, 'other way')} to open the page. The first screen decides whether people stay.`,
+      why: miss ? shortMiss(miss.words) : `${plural(i.openerLayouts - 1, 'more way')} to start the page`,
       action: { kind: 'layouts', slotId: opener.id },
     })
   }
@@ -86,11 +84,18 @@ export function nextSteps(i: NextStepsInput): NextStep[] {
     out.push({
       id: 'look',
       label: 'Try a look',
-      why: 'A theme sets type, color and shape together, so every section speaks in one voice.',
+      why: 'Type, color and shape in one click',
       action: { kind: 'design' },
     })
   }
   return out
+}
+
+/** A first-screen miss in a few words: "On a phone, the headline continues below the first screen" → "Headline runs past a phone’s first screen". */
+export function shortMiss(words: string): string {
+  const m = /^On an? (\w+), the (headline|button) (?:continues|starts|sits) below the first screen$/i.exec(words)
+  if (m) return `${m[2][0].toUpperCase()}${m[2].slice(1)} runs past a ${m[1]}’s first screen`
+  return words.replace(/^The (nav|headline)/, (_, w: string) => w[0].toUpperCase() + w.slice(1)).replace(/^Part of the headline is clipped/, 'Headline is clipped')
 }
 
 /** Set a hint aside (dismissed, or followed). */
