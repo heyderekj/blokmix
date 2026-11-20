@@ -1,14 +1,13 @@
 import { useMemo, useState } from 'react'
-import { Shuffle } from 'lucide-react'
-import { briefOf, kindOf } from '@/core/brief'
-import { rankDirections, type RankedDirection } from '@/core/directions'
-import { pageView } from '@/core/site'
+import { Shuffle, Sparkles } from 'lucide-react'
+import type { RankedDirection } from '@/core/directions'
 import { noteTaste } from '@/core/taste'
 import { guideInDirection, siteInDirection } from '@/core/tryDirection'
 import { library } from '@/data/library'
 import '@/data/directions'
 import { useStore } from '@/state/store'
 import { canAddDraft } from '@/state/slices/drafts'
+import { anotherTake, directionsForSite } from '@/state/takes'
 import { canvasApi } from '../canvas/Canvas'
 import { SkinPreview } from '../skins/SkinPreview'
 
@@ -27,18 +26,8 @@ export function OtherDirections() {
   const [round, setRound] = useState(0)
 
   const row = useMemo<RankedDirection[]>(() => {
-    const brief = briefOf(content)
-    const home = site.pages[0]
-    const sections = home ? pageView(site, home.id).map((s) => s.type) : undefined
     // What you already picked (the start's version, other drafts) is here already.
-    const picked = (content.taste?.events ?? []).filter((e) => e.kind === 'picked' && e.ref).map((e) => e.ref!)
-    return rankDirections({
-      input: { kind: content.kind ?? kindOf(brief), brief, sections, brand: guide.brand?.color ?? null, variant: guide.brand?.variant, mode: guide.mode },
-      lib: library,
-      taste: content.taste,
-      exclude: picked,
-      count: 3,
-    })
+    return directionsForSite({ site, guide, content }, 3)
     // Ranked when the panel opens and on Others, not on every edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round])
@@ -53,7 +42,7 @@ export function OtherDirections() {
     const st = useStore.getState()
     const id = st.tryDirection(r.direction)
     if (!id) return
-    st.showFlash(`Made ${st.drafts[id]?.name ?? 'a new draft'} beside the others, with your words. The one you were in stays as it was.`, { undo: true })
+    st.showFlash(`Made ${useStore.getState().drafts[id]?.name ?? 'a new draft'} beside the others, with your words. The one you were in stays as it was.`, { undo: true })
     st.setUi({ sheet: 'none' })
     setTimeout(() => canvasApi.fitMix(), 60)
   }
@@ -62,6 +51,23 @@ export function OtherDirections() {
     <section className="mb-5" aria-label="Try another direction">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h3 className="draft-subtitle m-0">Try another direction</h3>
+        <span className="ml-auto" />
+        {/* One click, no choosing: the best idea you haven't tried yet, as a new draft. */}
+        <button
+          type="button"
+          title="A new draft in the best direction you haven’t tried yet, with your words"
+          onClick={() => {
+            const st = useStore.getState()
+            const took = anotherTake(st)
+            if (!took) return
+            st.showFlash(`Made ${useStore.getState().drafts[took.id]?.name ?? 'a new draft'}, another take with your words. The one you were in stays as it was.`, { undo: true })
+            st.setUi({ sheet: 'none' })
+            setTimeout(() => canvasApi.fitMix(), 60)
+          }}
+          className={`flex h-7 items-center gap-1 rounded-full px-2.5 text-[12px] font-semibold text-zinc-800 hover:bg-zinc-950/5 ${PRESS}`}
+        >
+          <Sparkles size={13} /> Another take
+        </button>
         <button type="button" onClick={others} className={`flex h-7 items-center gap-1 rounded-full px-2.5 text-[12px] font-medium text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900 ${PRESS}`}>
           <Shuffle size={13} /> Others
         </button>

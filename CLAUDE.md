@@ -70,12 +70,14 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `rankDirections` leaving out what you picked; Others records them as passed); a click is a new draft beside the others
   (`tryDirection`, `core/tryDirection.ts` `siteInDirection`/`guideInDirection`: its layouts with your words, pictures and links
   carried by `withClip`, its look by `applySkin`; locked sections and Keep in Rules for your agent stay), counted as picked.
-  Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`, `try_direction`.
+  Another take, beside it, is the one-click version: a new draft in the best direction not tried yet, no choosing
+  (`state/takes.ts` `anotherTake`, over `directionsForSite`, which the row uses too).
+  Agents: `list_drafts`, `switch_draft`, `new_draft`, `update_draft`, `delete_draft`, `try_direction`, `another_take`.
 - Each mix has its own clip set (`clips` in its data): captures added while it's open join it, the Crate's ✓ keeps or
   drops one, and sections it uses always count. A section's arrows (‹ Layout n of m ›, ← →, Shuffle, `get_options`)
   step through the built-in layouts plus this mix's clips only (`core/library.ts` `cycleIds`), never another mix's or a
   collaborator's; picking one from All your clips (`setClip`) adds it to the mix. Stepping onto a built-in layout turns
-  off a captured clip's own words and look (`withClip`), so layouts always show your words and style. The Crate and Alternatives show This mix / All your clips / Layouts (a focused section opens nothing by itself: the dock's Layouts button grows its alternatives);
+  off a captured clip's own words and look (`withClip`), so layouts always show your words and style. The Crate and a section's row of layouts show This mix / All your clips / Layouts. The row opens under the section's own bar from its "Layout n of m ▾" (`ui/shell/Alternatives.tsx` in `SectionPill`, `useDockLayouts` says which section's is open; the dock no longer grows one): live previews in your style, and pointing at one shows it in the section before you pick it (`ui/frames/peek.ts` `peekLayout`, only while that row is open), a click keeps it;
   agents use `list_mix_clips`, `add_clips_to_mix`, `remove_clip_from_mix`.
 - Site library (Landbook-style, `lib/siteLibrary.ts`, `ui/library/SiteLibrary.tsx`): real sites captured offline, each page's
   sections matched to built-in layouts (`GET /api/library`, `GET /api/library/sites/{slug}`; Vite-only dev uses the made-up
@@ -292,7 +294,11 @@ dates: code does those.
   focused, it offers a verb-led sentence ("Make [Pricing] [darker]", "Move [Testimonials] [above] [Features]", "Add [a FAQ
   section]", `barSentence`); `fillBar` and the built-in text commands (`readLocalSay`) use the same `pickedSay` actions. It also takes a
   typed command, or a paste of two or more lines: "Add to this page" / "Make a new page" hand the words to `WordsSheet`
-  (`useJevTools.auto`), which places them at once. Text not placed yet (`content.tray`, saved and undone with the mix's words;
+  (`useJevTools.auto`), which places them at once. Two or more edits in one go ("make the hero dark and move testimonials to
+  the top") show as a numbered list with "Do both, in this order" (`core/jev/sayParts.ts` `splitSay` cuts at and, then, commas
+  and semicolons only where every part reads on its own, so "black and white" stays whole; `state/jevSay.ts` `hearParts`
+  reads each part with the built-in reader, `doSayParts` reads each again just before it runs against the page the last one
+  left, and `oneUndoStep` makes all of it one ⌘Z). Parts only suggestions understand aren't split yet. Text not placed yet (`content.tray`, saved and undone with the mix's words;
   `trayLines`, `setTray`) unfolds from the "n not placed" chip beside the bar.
 - What to make next: `npx vite-node scripts/library/gaps.ts [--all]` reads every library screenshot (type, shape, ~30
   elements and treatments) into `.out/library/gaps.md`; unmet asks from Say it, Pour and Dress it up are counted by name
@@ -311,8 +317,7 @@ off (the same `ui.jev` switch), is exactly today's behaviour.
   goals, page templates and section types; `schema.ts` zod per task with `SPANS`; `prompt.ts`; `spec.ts`; `verbatim.ts`;
   `start.ts` `mergeRead`/`readPicks`/`readBrief`; `need.ts` `needOf`). Tasks: `start` (business id or your words, kind,
   format, industry, name, feel ids + your words + what to avoid, goals, main button, who, what to show and leave out,
-  extra pages {template, purpose}, light/dark, unsure) and `need` ("I need a [page | section] that…": schema, prompt and
-  bench only, wired later).
+  extra pages {template, purpose}, light/dark, unsure) and `need` ("I need a [page | section] that…", see below).
 - It cannot write: every free string must be a span of the text (`verbatim`: case, quotes, dashes, spaces and edge
   punctuation ignored; your exact slice comes back), checked on the server (`Services/ReaderSpans`) and again in the
   browser, or the whole read is dropped. Both run `tests/fixtures/reader-spans.json`.
@@ -326,6 +331,13 @@ off (the same `ui.jev` switch), is exactly today's behaviour.
   checked; `FakeReader` in tests). `throttle:read` 20/min 200/day per person; `read_daily_cap` site-wide;
   12,000 characters at most; the reply is checked against the schema (opis) and the spans, else 502. Logs counts and
   timings, never words. Config: `read_key` (`ANTHROPIC_API_KEY`), `read_model`, `read_daily_cap`, `read_timeout`.
+- "I need a [section | page] that [does what]": a sentence with one blank at the top of Add a section and in Pages → Add page
+  (`ui/shell/NeedLine.tsx`), the same as `need_section {text, at?}` and `need_page {text, title?}`. `state/need.ts` `readNeed`
+  asks the reader's `need` task when it's on, else `core/reader/local.ts` `keywordNeed` (section words in the order said,
+  longest first where they overlap, none said with a "not"; a page's template); `addNeededSection` adds the first section
+  with layouts, in the layout that suits the spot (default: the end, before the footer); `addNeededPage` adds a template's
+  page, else a page header and the sections asked for, at an address named after it (`/about`, `/gallery`). When it can't
+  tell, it says so and nothing changes.
 - Vite-only dev: `scripts/read/devProxy.ts` (with `scripts/read/call.ts`, the TS SDK) reads `ANTHROPIC_API_KEY` from
   `.env.local`. Agents: `read_start {text}` (read-only).
 - Bench: `npx vite-node scripts/read/bench.ts [start|need] [--runs 3]` (accuracy per field against today's Jev plus

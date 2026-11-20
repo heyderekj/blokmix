@@ -2,6 +2,7 @@
 // latest words are answered), and run what it understood through the ordinary commands,
 // as you, so the buy sheet and one-step undo work as they always do.
 
+import { splitSay } from '@/core/jev/sayParts'
 import { create } from 'zustand'
 import type { SectionType } from '@/core/types'
 import { readDials, toneOfGuide } from '@/core/dials'
@@ -20,7 +21,7 @@ import { askJev, jevOn } from '@/lib/jev'
 import { noteWants } from '@/lib/jevWants'
 import { setStylePanel } from '@/ui/panels/stylePanel'
 import { currentSlots, mixClipIds, useStore } from './store'
-import { runCommand } from './commands'
+import { oneUndoStep, runCommand } from './commands'
 import { wordsFor } from './commands/refs'
 
 /** Which of Jev's tools Say it (or anything else) asked to open, and on what. */
@@ -139,3 +140,40 @@ export async function doSay(a: SayAction, text: string): Promise<void> {
 }
 
 export const sectionName = (type: SectionType) => TYPE_LABEL[type]
+
+export interface SayPart {
+  text: string
+  action: SayAction
+}
+
+/** A request that's two or more edits ("make the hero darker and move testimonials to the top"), each read here. */
+export function hearParts(text: string, ctx = sayContext()): SayPart[] | null {
+  const read = (part: string) => {
+    const local = readLocalSay(part, ctx)
+    const action = local ? previewSay(local).action : null
+    // Only edits run in a row: opening a tool waits for you.
+    return action && action.command && !action.open ? action : null
+  }
+  const parts = splitSay(text, (p) => !!read(p))
+  return parts ? parts.map((p) => ({ text: p, action: read(p)! })) : null
+}
+
+/**
+ * Do them in the order said. Each part is read again just before it runs, against the page as the last one left it
+ * (an added section moves the others along). Stops at the first that can't be done and says which.
+ */
+export async function doSayParts(parts: SayPart[]): Promise<void> {
+  // All of it is one ⌘Z.
+  await oneUndoStep(async () => {
+    const done: string[] = []
+    for (const p of parts) {
+      const local = readLocalSay(p.text, sayContext())
+      const action = local ? previewSay(local).action : null
+      if (!action) throw new Error(done.length ? `Did “${done.join('” and “')}”, then couldn’t ${p.text}.` : `Couldn’t ${p.text}.`)
+      await doSay(action, p.text)
+      done.push(action.words)
+    }
+  })
+  const st = useStore.getState()
+  st.showFlash(parts.map((p) => p.action.words).join(' · '), { undo: true })
+}

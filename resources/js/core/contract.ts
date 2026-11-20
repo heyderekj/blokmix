@@ -107,6 +107,7 @@ export function areasOfCommand(name: string, input: Record<string, unknown>): Co
     case 'set_slider':
     case 'add_block':
     case 'add_section':
+    case 'need_section':
     case 'swap_section':
     case 'edit_list':
     case 'set_list':

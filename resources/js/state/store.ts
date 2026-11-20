@@ -187,9 +187,9 @@ export interface State extends MixData {
 
   // blocks
   selectBlock: (blockId: string | null) => void
-  /** Patch a block of the section's current clip; null clears its edit. */
   /** Move a block or group a step (or to a place) among what's in its group or card, as one undo step; false when it can't. */
   moveInGroup: (slotId: string, blockId: string, to: number | { by: -1 | 1 }) => boolean
+  /** Patch a block of the section's current clip; null clears its edit. */
   editBlock: (slotId: string, blockId: string, patch: Partial<BlockEdit> | null) => void
   setWord: (slotId: string, field: string, value: string | null) => void
   /** Navs: show or remove an announcement banner (the clip's own, or one added above it). */

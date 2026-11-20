@@ -57,7 +57,8 @@ export function useBarFloor(anchor: RefObject<HTMLElement | null>, bar: RefObjec
         ax: a.offsetLeft,
         ay: a.offsetTop,
         // The bar is drawn at screen size (capped): keep its own size, unscaled (its row's whole width, scrolled or not).
-        barW: strip()?.scrollWidth ?? br.width / barScale(cam.z),
+        // A part of the bar that opens wider than its row (a section's row of layouts, `[data-bar-wide]`) counts too.
+        barW: Math.max(strip()?.scrollWidth ?? br.width / barScale(cam.z), (b.querySelector('[data-bar-wide]')?.getBoundingClientRect().width ?? 0) / barScale(cam.z)),
         barH: br.height / barScale(cam.z),
         floor: screenFloor(),
         rootX: box.left,

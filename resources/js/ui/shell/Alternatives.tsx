@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Library } from 'lucide-react'
+import { peekLayout } from '../frames/peek'
 import type { Slot } from '@/core/types'
 import { TYPE_LABEL } from '@/core/content'
 import { library } from '@/data/library'
@@ -14,10 +15,9 @@ export function LayoutTag() {
 }
 
 /**
- * The focused section's alternatives, as live thumbnails in your style: the way
- * Figma shows a component's variants. One shelf at a time, your clips or the
- * built-in layouts, so each gets room for a real preview. Click one to swap it
- * onto the page.
+ * A section's other layouts, as live thumbnails in your style, opened from its bar's "Layout n of m ▾" and shown right
+ * under it: the way Figma shows a component's variants. One shelf at a time, your clips or the built-in layouts, so
+ * each gets room for a real preview. Pointing at one shows it in the section; a click keeps it.
  */
 export function Alternatives({ slot }: { slot: Slot }) {
   const slots = useStore(currentSlots)
@@ -41,6 +41,7 @@ export function Alternatives({ slot }: { slot: Slot }) {
   useEffect(() => setShelf(onShelf), [slot.id, onShelf])
   const list = by[shelf]
   const scroller = useRef<HTMLDivElement>(null)
+  useEffect(() => () => peekLayout(null), [])
 
   return (
     <div className="pb-2 pt-2.5">
@@ -72,7 +73,7 @@ export function Alternatives({ slot }: { slot: Slot }) {
           <Library size={13} /> Open the crate
         </button>
       </div>
-      <div ref={scroller} className="thin-scroll fade-x flex items-start gap-2.5 overflow-x-auto scroll-px-3 px-3 pb-1.5 pt-1">
+      <div ref={scroller} onMouseLeave={() => peekLayout(null)} className="thin-scroll fade-x flex items-start gap-2.5 overflow-x-auto scroll-px-3 px-3 pb-1.5 pt-1">
         {list.map((r) => (
           <Thumb key={r.clipId} clipId={r.clipId} slot={slot} current={r.clipId === slot.clipId} reason={r.reason} scroller={scroller} />
         ))}
@@ -114,7 +115,15 @@ const Thumb = memo(function Thumb({
   return (
     <button
       type="button"
-      onClick={() => useStore.getState().setClip(slot.id, clipId)}
+      // Pointing at one shows it in the section; a click keeps it.
+      onMouseEnter={() => peekLayout(slot.id, clipId)}
+      onMouseLeave={() => peekLayout(null)}
+      onFocus={() => peekLayout(slot.id, clipId)}
+      onBlur={() => peekLayout(null)}
+      onClick={() => {
+        peekLayout(null)
+        useStore.getState().setClip(slot.id, clipId)
+      }}
       className="group relative shrink-0 text-left focus-visible:outline-none"
       style={{ width: CARD_W }}
       title={`${layout ? clip.title : `${source.name}: ${clip.title}`}\n${reason}`}

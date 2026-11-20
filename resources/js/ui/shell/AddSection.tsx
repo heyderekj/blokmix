@@ -8,6 +8,7 @@ import { library } from '@/data/library'
 import { useStore, currentSlots } from '@/state/store'
 import { Preview, TYPE_ICON } from './Preview'
 import { keepInView } from '../canvas/inView'
+import { NeedLine } from './NeedLine'
 
 /** Insert a section at `at`, picking the clip or layout that suits that spot best. */
 export function insertSection(type: SectionType, at: number) {
@@ -50,6 +51,8 @@ export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => voi
     }
     const key = (e: KeyboardEvent) => {
       if (!['Escape', 'ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) return
+      // Typing "I need a section that…": its own Enter adds what it reads; only Escape closes from there.
+      if ((e.target as Element | null)?.closest?.('[data-need-line]') && e.key !== 'Escape') return
       e.preventDefault()
       e.stopImmediatePropagation()
       if (e.key === 'Escape') return onClose()
@@ -74,12 +77,15 @@ export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => voi
   return (
     <div
       ref={ref}
-      className="glass-menu flex w-[560px] animate-pop gap-1.5 overflow-hidden rounded-2xl p-1.5"
+      className="glass-menu flex w-[560px] animate-pop flex-col gap-1.5 overflow-hidden rounded-2xl p-1.5"
       onPointerDown={(e) => e.stopPropagation()}
       onWheel={(e) => e.stopPropagation()}
       data-chrome
       data-scroll-ok
     >
+      {/* Say what it's for, or point at a type below. */}
+      <NeedLine what="section" at={at} onDone={() => onClose()} />
+      <div className="flex gap-1.5">
       <div className="thin-scroll max-h-[372px] w-[184px] shrink-0 overflow-y-auto" role="listbox" aria-label="Section types">
         {suggested.length > 0 && <div className="px-2 pb-1 pt-1 text-[11px] font-semibold text-zinc-400">Suggested here</div>}
         {order.map((s, i) => {
@@ -135,6 +141,7 @@ export function AddSectionMenu({ at, onClose }: { at: number; onClose: () => voi
         ) : (
           <div className="grid flex-1 place-items-center px-4 text-center text-[12.5px] text-zinc-400">Point at a type on the left to see it here.</div>
         )}
+      </div>
       </div>
     </div>
   )

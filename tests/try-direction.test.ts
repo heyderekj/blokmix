@@ -64,3 +64,34 @@ describe('another direction for a site you have', () => {
     await expect((async () => runCommand('try_direction', { direction: ids[6] }, 'agent'))()).rejects.toThrow(/6 drafts/)
   })
 })
+
+describe('another take', () => {
+  beforeEach(() => {
+    useStore.getState().resetDemo()
+    useStore.temporal.getState().clear()
+  })
+
+  it('makes a new draft in the best direction not tried yet, and never the same one twice', async () => {
+    const was = useStore.getState().draftId
+    const a = (await runCommand('another_take', {}, 'agent')) as { draft: { id: string }; direction: string; why: string }
+    expect(useStore.getState().draftId).toBe(a.draft.id)
+    expect(a.draft.id).not.toBe(was)
+    expect(a.why).toBeTruthy()
+    const b = (await runCommand('another_take', {}, 'agent')) as { direction: string }
+    expect(b.direction).not.toBe(a.direction)
+    // Each take counts as picked, so the row and the next take move on.
+    const picked = useStore.getState().content.taste?.events.filter((e) => e.kind === 'picked').map((e) => e.ref)
+    expect(picked).toEqual(expect.arrayContaining([a.direction, b.direction]))
+  })
+
+  it('keeps every section and its words', async () => {
+    const before = allSlots(useStore.getState().site).map((s) => [s.id, s.type])
+    await runCommand('another_take', {}, 'agent')
+    expect(allSlots(useStore.getState().site).map((s) => [s.id, s.type])).toEqual(before)
+  })
+
+  it('refuses past the drafts a site can hold', async () => {
+    for (let i = 0; i < 5; i++) await runCommand('another_take', {}, 'agent')
+    await expect((async () => runCommand('another_take', {}, 'agent'))()).rejects.toThrow(/6 drafts/)
+  })
+})

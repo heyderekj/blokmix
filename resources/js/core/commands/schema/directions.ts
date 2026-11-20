@@ -55,6 +55,12 @@ export const DIRECTION_COMMANDS = {
     input: z.object({ direction: z.string().min(1).describe('A direction id from suggest_directions or list_directions') }),
     write: true,
   },
+  another_take: {
+    description:
+      'Another take: a new draft beside the others, opened, in the best direction not tried yet (by what the site is for and what the owner leans toward, leaving out ones already picked), with the open draft’s pages and words laid out its way, like try_direction without choosing. The draft you were in is untouched. A site holds up to 6 drafts.',
+    input: z.object({}),
+    write: true,
+  },
   drop_taste: {
     description: 'Stop leaning on one trait, toward or away, one undo step.',
     input: z.object({ trait: z.enum(TRAITS as [string, ...string[]]) }),

@@ -88,6 +88,18 @@ export const JEV_COMMANDS = {
     input: z.object({ text: z.string().trim().min(1).max(12_000) }),
     write: false,
   },
+  need_section: {
+    description:
+      'Add the section someone describes (“I need a section that shows our prices and opening hours”): read by the reader when suggestions are on, else by keywords, to a section type, then added in the layout that suits the spot best, at `at` (1 = the top; by default the end, before the footer). One undo step. Returns what it added and what else would have done it.',
+    input: z.object({ text: z.string().trim().min(1).max(2000), at: z.number().int().min(1).optional() }),
+    write: true,
+  },
+  need_page: {
+    description:
+      'Add the page someone describes (“I need a page that tells our story”, “a page for our menu”): read to one of the page templates (about, contact, pricing, blog), else a page of the sections it asks for under a page header; opened. One undo step.',
+    input: z.object({ text: z.string().trim().min(1).max(2000), title: z.string().trim().min(1).max(60).optional() }),
+    write: true,
+  },
   find_subject: {
     description:
       'Find the subject of a photo or upload in an image block (a person, a product, a dish) with Jev, and set the crop to keep it in frame at every width and on phones (the fill’s focus). A person’s focus sits near their face. Does nothing for placeholders, mockups or moving media, or when the photo has no single subject. One undo step.',
