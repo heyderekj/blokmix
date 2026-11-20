@@ -1,0 +1,222 @@
+{
+  "name": "Headliner",
+  "words": "Huge, tight type in black and white, with one loud color.",
+  "mode": "light",
+  "feel": [
+    "bold",
+    "modern",
+    "serious"
+  ],
+  "tokens": {
+    "icon.set": "tabler:filled",
+    "color.bg": "#fafaf7",
+    "color.surface": "#ecece6",
+    "color.text": "#0d0d0d",
+    "color.muted": "#55554e",
+    "color.border": "#c8c8bf",
+    "color.primary": "#ff4f1f",
+    "color.onPrimary": "#0d0d0d",
+    "color.accent": "#2b2bd9",
+    "font.display": "'Cabinet Grotesk', 'Helvetica Neue', Arial, sans-serif",
+    "font.body": "'Switzer', 'Helvetica Neue', Arial, sans-serif",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "16px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "800",
+    "radius.base": "2px",
+    "stroke.width": "1.5px",
+    "shadow.card": "0 0 0 1.5px #0d0d0d",
+    "space.base": "4px",
+    "space.section": "128px",
+    "space.content": "1320px",
+    "space.text": "680px",
+    "motion.duration": "240ms",
+    "motion.ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0.12,
+      "size": "sm",
+      "upper": true
+    },
+    "h1": {
+      "weight": 800,
+      "tracking": -0.05,
+      "leading": 0.92,
+      "phone": "4xl"
+    },
+    "h2": {
+      "weight": 800,
+      "tracking": -0.04,
+      "leading": 0.98,
+      "phone": "3xl"
+    },
+    "h3": {
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1.08,
+      "phone": "xl"
+    },
+    "h4": {
+      "weight": 700,
+      "tracking": -0.01,
+      "leading": 1.2
+    },
+    "bodyLarge": {
+      "size": "xl",
+      "leading": 1.4,
+      "weight": 500
+    },
+    "small": {
+      "leading": 1.45,
+      "weight": 500
+    },
+    "caption": {
+      "font": "mono",
+      "size": "xs",
+      "tracking": 0.04,
+      "upper": true
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "square"
+    },
+    "card": {
+      "variant": "bordered"
+    },
+    "button": {
+      "variant": "inverse",
+      "secondary": {
+        "variant": "arrow"
+      }
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "outlined"
+    }
+  },
+  "sections": {
+    "hero": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "testimonials": {
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "brand",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    }
+  },
+  "picture": {
+    "style": "courtyard",
+    "subjects": [
+      "courtyard",
+      "ceramics",
+      "print-studio"
+    ],
+    "mode": "image"
+  },
+  "industries": [
+    "agency",
+    "services"
+  ],
+  "formats": [
+    "portfolio",
+    "landing"
+  ]
+}

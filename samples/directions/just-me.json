@@ -1,0 +1,34 @@
+{
+  "name": "Just Me",
+  "why": "A small portrait, a few honest lines about you, then your writing and where to find you.",
+  "theme": "solo",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "portrait"
+    ],
+    "content": [
+      "aside"
+    ],
+    "blog": [
+      "minimal"
+    ],
+    "contact": [
+      "minimal"
+    ],
+    "footer": [
+      "minimal"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "personal"
+  ],
+  "formats": [
+    "portfolio",
+    "blog"
+  ],
+  "odd": 0
+}

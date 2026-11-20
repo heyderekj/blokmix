@@ -1,0 +1,27 @@
+{
+  "name": "Blog",
+  "blurb": "For writing people read to the end: the newest piece first, a line worth quoting, a sign-up.",
+  "kind": "writing",
+  "skin": "songbook",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-simple",
+        "hero.layout-editorial",
+        "blog.layout-featured",
+        "content.layout-quote",
+        "cta.layout-newsletter",
+        "footer.layout-newsletter"
+      ]
+    }
+  ],
+  "industries": [
+    "media",
+    "education"
+  ],
+  "formats": [
+    "blog"
+  ]
+}

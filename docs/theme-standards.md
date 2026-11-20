@@ -53,8 +53,11 @@ renders (`npx vite-node scripts/render-skins.ts --flavors --widths 1440,390`).
 | Homeroom | Personal (education) | 1.2 scale, soft blue shadow, raised cards |
 | Day Planner | Event (programs, education) | Condensed caps headings, caps button, grid pictures |
 | Flyer | Event, agency | Black rules, offset main button, caps everything |
+| Supper Club | Restaurant and local (sit-down dining, hotels), dark | Bodoni over Karla on candlelit brown, brass pill button, caps dish names, the menu on a soft band, table photos |
+| Songbook | Editorial (blog) | White paper, Zodiak over a 19px Source Serif body, a 720px measure, mono labels and captions, solid blue button |
+| Headliner | Studio and agency (bold) | Cabinet Grotesk 800 at -0.05em, black inverse button, one signal orange band, square labels, heavier lines |
+| Solo | Personal | Bespoke Serif over Onest, plum on soft lilac paper, narrow 980px page, pill button, highlight links, portraits |
 
 ## Gaps (next themes)
 
-Sit-down restaurant, light editorial (blog), bold agency and personal each have no theme made for them yet; Glass and
-glow, brutalist and oversized type are experiments.
+Glass and glow, brutalist and oversized type are experiments.

@@ -1,0 +1,233 @@
+{
+  "name": "Songbook",
+  "words": "Clean white pages and a blue pen, set for long reading.",
+  "mode": "light",
+  "feel": [
+    "calm",
+    "serious",
+    "classic"
+  ],
+  "tokens": {
+    "icon.set": "iconoir:bold",
+    "color.bg": "#fcfcfa",
+    "color.surface": "#f0f1ec",
+    "color.text": "#18191d",
+    "color.muted": "#5a5d64",
+    "color.border": "#dcddd6",
+    "color.primary": "#2346b8",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#b8452a",
+    "font.display": "'Zodiak', Georgia, serif",
+    "font.body": "'Source Serif 4', Georgia, serif",
+    "font.mono": "'DM Mono', ui-monospace, monospace",
+    "type.base": "19px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "400",
+    "radius.base": "3px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 2px rgb(24 25 29 / 0.06)",
+    "space.base": "4px",
+    "space.section": "104px",
+    "space.content": "1120px",
+    "space.text": "720px",
+    "motion.duration": "300ms",
+    "motion.ease": "cubic-bezier(0.25, 1, 0.5, 1)"
+  },
+  "effects": {
+    "shadow": {
+      "id": "shadow",
+      "params": {
+        "elevation": 0
+      }
+    }
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0.03,
+      "size": "sm",
+      "upper": false
+    },
+    "h1": {
+      "weight": 400,
+      "tracking": -0.02,
+      "leading": 1.08,
+      "phone": "3xl"
+    },
+    "h2": {
+      "weight": 400,
+      "tracking": -0.015,
+      "leading": 1.14,
+      "phone": "2xl"
+    },
+    "h3": {
+      "weight": 700,
+      "tracking": -0.01,
+      "leading": 1.25,
+      "phone": "lg"
+    },
+    "h4": {
+      "font": "body",
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.35
+    },
+    "bodyLarge": {
+      "size": "lg",
+      "leading": 1.5,
+      "weight": 400
+    },
+    "small": {
+      "size": "sm",
+      "leading": 1.55
+    },
+    "caption": {
+      "font": "mono",
+      "size": "xs",
+      "leading": 1.45,
+      "tracking": 0.01
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "mono"
+    },
+    "card": {
+      "variant": "flat"
+    },
+    "button": {
+      "variant": "solid",
+      "secondary": {
+        "variant": "ghost"
+      }
+    },
+    "icon": {
+      "variant": "tinted"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "outlined"
+    }
+  },
+  "sections": {
+    "hero": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true,
+        "speed": "slow"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "testimonials": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    }
+  },
+  "picture": {
+    "style": "reading-room",
+    "subjects": [
+      "reading-room",
+      "print-studio",
+      "mountain-trail"
+    ],
+    "mode": "image"
+  },
+  "industries": [
+    "media",
+    "education"
+  ],
+  "formats": [
+    "blog"
+  ]
+}

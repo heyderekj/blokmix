@@ -1,0 +1,41 @@
+{
+  "name": "Long Read",
+  "why": "A clean page that puts the writing first: the latest piece up top, a calm list of the rest, a sign-up at the end.",
+  "theme": "songbook",
+  "layouts": {
+    "nav": [
+      "simple"
+    ],
+    "hero": [
+      "editorial"
+    ],
+    "blog": [
+      "featured",
+      "minimal"
+    ],
+    "content": [
+      "prose"
+    ],
+    "testimonials": [
+      "quote"
+    ],
+    "cta": [
+      "newsletter"
+    ],
+    "footer": [
+      "newsletter"
+    ]
+  },
+  "density": "airy",
+  "kinds": [
+    "writing"
+  ],
+  "industries": [
+    "media",
+    "education"
+  ],
+  "formats": [
+    "blog"
+  ],
+  "odd": 0
+}

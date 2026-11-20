@@ -1,0 +1,30 @@
+{
+  "name": "Agency",
+  "blurb": "Big type, big work, the names you’ve worked with and one clear way to get in touch.",
+  "kind": "studio",
+  "skin": "headliner",
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "sections": [
+        "nav.layout-simple",
+        "hero.layout-centered",
+        "logos.layout-wall",
+        "gallery.layout-spotlight",
+        "features.layout-list",
+        "testimonials.layout-big",
+        "cta.layout-big",
+        "footer.layout-wordmark"
+      ]
+    }
+  ],
+  "industries": [
+    "agency",
+    "services"
+  ],
+  "formats": [
+    "portfolio",
+    "landing"
+  ]
+}
