@@ -295,10 +295,25 @@ export interface Surprise {
  * from another skin, chosen by the seed. Palettes travel whole and every skin's palette passes AA (a test checks), so a
  * rolled palette stays readable. Null when nothing can change.
  */
-export function surpriseMe(guide: GuideState, contract: Contract, seed: number, pool: Skin[]): Surprise | null {
-  const marked = STYLE_AREAS.filter((a) => settingOf(contract, a) === 'surprise')
-  const rolled = marked.length ? marked : STYLE_AREAS.filter((a) => !isKept(contract, a))
-  const others = pool.filter((s) => s.id !== WIREFRAME && s.id !== guide.skin?.id)
+export function surpriseMe(
+  guide: GuideState,
+  contract: Contract,
+  seed: number,
+  pool: Skin[],
+  keep: readonly StyleArea[] = [],
+  unusual: { odd: 0 | 1 | 2; oddOf: (id: string) => number } = { odd: 1, oddOf: () => 0 },
+): Surprise | null {
+  // Areas you pinned (Keep what you like) stay as they are too, apart from Rules for your agent.
+  const marked = STYLE_AREAS.filter((a) => settingOf(contract, a) === 'surprise' && !keep.includes(a))
+  const rolled = marked.length ? marked : STYLE_AREAS.filter((a) => !isKept(contract, a) && !keep.includes(a))
+  const all = pool.filter((s) => s.id !== WIREFRAME && s.id !== guide.skin?.id)
+  // How unusual: safe draws from the themes closest to this look (and no odd ones), strange from the farthest (odd first).
+  const here = resolveGuide(guide).tokens
+  const near = [...all].sort((a, b) => lookDistance(here, skinTokens(a)) - lookDistance(here, skinTokens(b)))
+  const half = Math.max(1, Math.ceil(near.length / 2))
+  const safe = near.filter((s) => unusual.oddOf(s.id) === 0).slice(0, half)
+  const odd = all.filter((s) => unusual.oddOf(s.id) >= 1)
+  const others = unusual.odd === 0 ? (safe.length ? safe : near.slice(0, half)) : unusual.odd === 2 ? [...odd, ...near.slice(-half).filter((s) => !odd.includes(s))] : all
   if (!rolled.length || !others.length) return null
   const picks = rolled.map((area, i) => ({ area, skin: others[mix(seed, area, i) % others.length] }))
   const name = `Mix of ${[...new Set(picks.map((p) => p.skin.name))].join(', ')}`

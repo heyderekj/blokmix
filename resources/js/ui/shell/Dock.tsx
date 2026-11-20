@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { create } from 'zustand'
 import { useEscape } from './keys'
 import { openHelp } from './Overlays'
-import { ChevronDown, Dices, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard, MoveHorizontal, Scan, Square, Wand2, Type, SwatchBook, MessageSquare } from 'lucide-react'
+import { ChevronDown, ChevronUp, Dices, Hand, Library, Maximize, Minus, Monitor, MousePointer2, Plus, Smartphone, StickyNote, MessageSquarePlus, Keyboard, MoveHorizontal, Scan, Square, Wand2, Type, SwatchBook, MessageSquare } from 'lucide-react'
 import { useStore, type Tool, currentSlots } from '@/state/store'
 import { library } from '@/data/library'
 import { canvasApi, onPaint } from '../canvas/Canvas'
@@ -139,18 +139,72 @@ function ShuffleButton() {
     const t = window.setTimeout(() => setSpin(false), 300)
     return () => window.clearTimeout(t)
   }, [seq])
+  const unusual = useStore((s) => s.ui.unusual ?? 1)
+  const [menu, setMenu] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEscape(menu, () => setMenu(false))
+  useEffect(() => {
+    if (!menu) return
+    const down = (e: PointerEvent) => {
+      const t = e.target as Node
+      if (box.current?.contains(t) || (t instanceof Element && t.closest('[data-dock-menu]'))) return
+      setMenu(false)
+    }
+    window.addEventListener('pointerdown', down, true)
+    return () => window.removeEventListener('pointerdown', down, true)
+  }, [menu])
   return (
-    <button
-      type="button"
-      onClick={() => useStore.getState().shuffle()}
-      title="Mix: new layouts for unlocked sections (Space)"
-      aria-label="Mix"
-      className="grid size-8 place-items-center rounded-full text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.97]"
-    >
-      <Dices size={16} className={`transition-transform duration-300 ${spin ? 'rotate-[360deg]' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }} />
-    </button>
+    <div ref={box} className="relative flex items-center">
+      <button
+        type="button"
+        onClick={() => useStore.getState().shuffle()}
+        title={`Mix: new layouts for unlocked sections (Space) · ${UNUSUAL_LABEL[unusual]}`}
+        aria-label="Mix"
+        className="grid size-8 place-items-center rounded-full text-zinc-600 transition hover:bg-zinc-950/5 active:scale-[0.97]"
+      >
+        <Dices size={16} className={`transition-transform duration-300 ${spin ? 'rotate-[360deg]' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }} />
+      </button>
+      <button
+        type="button"
+        onClick={() => setMenu(!menu)}
+        aria-expanded={menu}
+        title="How unusual Mix goes"
+        aria-label="How unusual Mix goes"
+        className={`-ml-1 grid h-8 w-4 place-items-center rounded-full transition ${unusual !== 1 ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-800'}`}
+      >
+        <ChevronUp size={12} />
+      </button>
+      {/* How unusual Mix goes, for layouts here and for Mix the rest in Design. */}
+      <DockMenu anchor={box} open={menu} align="left">
+        <div className="p-0.5">
+          <div className="px-1 pb-1.5 text-[11.5px] font-semibold text-zinc-500">How unusual Mix goes</div>
+          <div className="flex rounded-full bg-chip p-0.5" role="radiogroup" aria-label="How unusual">
+            {([0, 1, 2] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                aria-checked={unusual === v}
+                onClick={() => useStore.getState().setUi({ unusual: v })}
+                className={`h-7 flex-1 cursor-pointer rounded-full text-[12px] font-semibold transition ${unusual === v ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+              >
+                {UNUSUAL_LABEL[v]}
+              </button>
+            ))}
+          </div>
+          <p className="px-1 pt-1.5 text-[11.5px] leading-snug text-zinc-500">{UNUSUAL_LINE[unusual]}</p>
+        </div>
+      </DockMenu>
+    </div>
   )
 }
+
+const UNUSUAL_LABEL = { 0: 'Safe', 1: 'A little', 2: 'Strange' } as const
+const UNUSUAL_LINE = {
+  0: 'Layouts and looks most sites like yours use.',
+  1: 'Anything that fits, now and then a surprise.',
+  2: 'The odd ones first: layouts and looks people don’t expect.',
+} as const
 
 /** The zoom on screen, as it changes (at most once a frame). */
 function useLiveZoom() {

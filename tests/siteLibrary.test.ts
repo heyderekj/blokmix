@@ -90,6 +90,29 @@ describe('site library', () => {
     expect(resolveGuide(g).provenance['color.primary']).toBe('src:site:fernway#color')
   })
 
+  it('use_site_style whole makes the site’s look the theme, dressed from the closest built-in one', async () => {
+    const out = (await runCommand('use_site_style', { site: 'fernway', whole: true })) as { theme: string; dressedFrom: string | null }
+    const g = useStore.getState().guide
+    expect(out.theme).toBe('Fernway')
+    expect(g.skin).toEqual({ id: 'site', name: 'Fernway' })
+    expect(resolveGuide(g).tokens['color.primary']).toBe('#1f6f4a')
+    // Block looks come from a built-in theme, so buttons and cards are dressed, not bare.
+    expect(out.dressedFrom).toBeTruthy()
+    expect(Object.keys(g.components ?? {}).length).toBeGreaterThan(0)
+  })
+
+  it('use_site_style whole: an agent is refused where Rules for your agent keep an area; you can use it anyway', async () => {
+    useStore.getState().setContract({ areas: { color: 'keep' }, keep: [], surprise: [] })
+    try {
+      await expect((async () => runCommand('use_site_style', { site: 'fernway', whole: true }, 'agent'))()).rejects.toThrow(/Keep for Color/)
+      // The rules are for agents: your own controls don't answer to them.
+      await runCommand('use_site_style', { site: 'fernway', whole: true }, 'you')
+      expect(resolveGuide(useStore.getState().guide).tokens['color.primary']).toBe('#1f6f4a')
+    } finally {
+      useStore.getState().setContract({ areas: {}, keep: [], surprise: [] })
+    }
+  })
+
   it('lists and describes sites for agents', async () => {
     const list = (await runCommand('list_library_sites', { industry: 'architecture' })) as { sites: { slug: string }[] }
     expect(list.sites.map((s) => s.slug)).toEqual(['harbor-and-pine'])

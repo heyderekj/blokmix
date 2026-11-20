@@ -237,6 +237,8 @@ export function summary(name: string, input: Record<string, unknown>): string {
         return 'noted what you want for the next suggestions'
       case 'try_direction':
         return 'made a new draft in another direction'
+      case 'look_from_words':
+        return 'set the look from your words'
       case 'need_section':
         return 'added the section you asked for'
       case 'need_page':

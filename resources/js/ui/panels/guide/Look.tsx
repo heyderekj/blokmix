@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Dices, Pin, Shuffle } from 'lucide-react'
 import type { FeelWord } from '@/core/feel'
 import { openGroups, resolveGuide } from '@/core/guide'
-import { applySkin, refId, skinById, WIREFRAME } from '@/core/skins'
-import { emptyContract } from '@/core/contract'
+import { applySkin, refId, skinById, themeList, WIREFRAME } from '@/core/skins'
+import { emptyContract, isKept, type StyleArea } from '@/core/contract'
 import { DIALS, readDials, toneOfGuide, type DialName } from '@/core/dials'
 import { rankThemes } from '@/core/themeRanking'
 import type { TokenKey } from '@/core/types'
@@ -17,6 +17,8 @@ import { DotMatrix, type Point } from './DotMatrix'
 import { PartPicker } from './PartPicker'
 import { Compare, putSkin } from './Skins'
 import { FontLinks } from './shared'
+import { SkinPreview } from '../../skins/SkinPreview'
+import { pageOf } from '@/core/site'
 
 const TILE = 'rounded-2xl bg-[var(--lift)] p-3 shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_6px_16px_-10px_rgb(0_0_0/0.25)]'
 const LINK = 'flex cursor-pointer items-center gap-1 text-[11.5px] font-semibold text-zinc-500 transition-[color] [@media(hover:hover)_and_(pointer:fine)]:hover:text-zinc-900'
@@ -85,7 +87,7 @@ function Steps() {
     <div className={`${TILE} grid gap-2.5`}>
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-[12.5px] font-semibold text-zinc-900">Look</span>
-        <span className="min-w-0 truncate text-[11.5px] font-medium text-zinc-500">{[feel?.name, on?.name ?? (guide.skin?.id === 'remix' ? 'Mixed theme' : null)].filter(Boolean).join(' › ') || 'Three quick steps'}</span>
+        <span className="min-w-0 truncate text-[11.5px] font-medium text-zinc-500">{[feel?.name, on?.name ?? (guide.skin?.id === 'remix' ? 'Mixed theme' : guide.skin?.id === 'site' ? `${guide.skin.name}’s look` : null)].filter(Boolean).join(' › ') || 'Three quick steps'}</span>
       </div>
       {open === 'feel' ? (
         <div className={STEP}>
@@ -102,16 +104,122 @@ function Steps() {
               )
             })}
           </div>
+          <OwnWords onDone={() => setOpen('tune')} />
         </div>
       ) : (
-        <Folded label="Feel" value={feel?.name ?? 'Any'} onChange={() => setOpen('feel')} />
+        <Folded label="Feel" value={brief?.feelWords?.[0] && !feel ? brief.feelWords[0] : (feel?.name ?? 'Any')} onChange={() => setOpen('feel')} />
       )}
       {open === 'theme' ? (
         <Themes words={feel?.words ?? []} onPicked={() => setOpen('tune')} />
       ) : (
-        (skin || open === 'tune') && <Folded label="Theme" value={on?.name ?? (guide.skin?.id === 'remix' ? 'Mixed theme' : 'Wireframe')} onChange={() => setOpen('theme')} />
+        (skin || open === 'tune') && <Folded label="Theme" value={on?.name ?? (guide.skin?.id === 'remix' ? 'Mixed theme' : guide.skin?.id === 'site' ? `${guide.skin.name}’s look` : 'Wireframe')} onChange={() => setOpen('theme')} />
       )}
       {open === 'tune' && <FineTune />}
+      {open === 'tune' && <MixRest />}
+    </div>
+  )
+}
+
+/**
+ * How it should feel, in your own words: "warm and handmade, roomier, not corporate". The best theme for those feelings
+ * goes on, nudges turn its dials and light or dark sets the tone, as one undo step (`look_from_words`).
+ */
+function OwnWords({ onDone }: { onDone: () => void }) {
+  const [text, setText] = useState('')
+  const [note, setNote] = useState<string | null>(null)
+  const go = () => {
+    if (!text.trim()) return
+    try {
+      const out = runCommand('look_from_words', { text }, 'you') as { theme: string | null; nudged: string[]; tone: string }
+      const said = [out.theme, ...out.nudged].filter(Boolean).join(', ')
+      useStore.getState().showFlash(said ? `From your words: ${said}` : 'From your words', { undo: true })
+      setText('')
+      onDone()
+    } catch (e) {
+      setNote((e as Error).message)
+    }
+  }
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        go()
+      }}
+      className="grid gap-1"
+    >
+      <label className="flex h-9 items-center gap-1.5 rounded-xl bg-chip pl-3 pr-1 text-[12.5px] focus-within:shadow-[0_0_0_2px_rgb(24_24_27)]">
+        <span className="shrink-0 font-medium text-zinc-500">Or in your words</span>
+        <input
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value)
+            setNote(null)
+          }}
+          placeholder="warm, handmade, roomier"
+          aria-label="How should it feel, in your words"
+          className="min-w-0 flex-1 bg-transparent font-medium text-zinc-900 outline-none placeholder:text-zinc-400"
+        />
+        <button type="submit" disabled={!text.trim()} aria-label="Use these words" className={`grid size-7 shrink-0 place-items-center rounded-lg bg-zinc-900 text-white disabled:opacity-25 ${PRESS}`}>
+          <ChevronRight size={14} />
+        </button>
+      </label>
+      {note && <p className="px-1 text-[11.5px] leading-snug text-zinc-500">{note}</p>}
+    </form>
+  )
+}
+
+const NO_PINS: StyleArea[] = []
+
+/** The parts you can pin; the rest (spacing, motion, block looks, section bands) mix along. */
+const PINS: { area: StyleArea; label: string }[] = [
+  { area: 'color', label: 'Color' },
+  { area: 'type', label: 'Type' },
+  { area: 'shape', label: 'Shape' },
+  { area: 'pictures', label: 'Pictures' },
+]
+
+/**
+ * Keep what you like, Mix the rest: pin the parts of this look you want to hold on to, and Mix brings the others from
+ * other themes (a mixed theme), as one undo step. Pins are this device's and apart from Rules for your agent.
+ */
+function MixRest() {
+  // One empty list, never a new one per read (a new one each time would re-render forever).
+  const keep = useStore((s) => s.ui.lookKeep) ?? NO_PINS
+  const kept = useStore((s) => s.contract)
+  const toggle = (a: StyleArea) => useStore.getState().setUi({ lookKeep: keep.includes(a) ? keep.filter((x) => x !== a) : [...keep, a] })
+  const mixRest = () => {
+    try {
+      const out = runCommand('surprise_me', { seed: Math.floor(Math.random() * 1e9), keep }, 'you') as { words: string }
+      useStore.getState().showFlash(out.words, { undo: true })
+    } catch (e) {
+      useStore.getState().showFlash((e as Error).message)
+    }
+  }
+  return (
+    <div className="grid gap-1.5 border-t border-zinc-950/6 pt-2.5">
+      <span className="text-[11.5px] font-medium text-zinc-500">Keep what you like, mix the rest</span>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {PINS.map(({ area, label }) => {
+          const ruled = isKept(kept ?? undefined, area)
+          const on = ruled || keep.includes(area)
+          return (
+            <button
+              key={area}
+              type="button"
+              aria-pressed={on}
+              disabled={ruled}
+              title={ruled ? `${label} stays: Rules for your agent keep it` : on ? `${label} stays when you mix` : `Keep this ${label.toLowerCase()} when you mix`}
+              onClick={() => toggle(area)}
+              className={`flex h-7 items-center gap-1 rounded-full px-2.5 text-[12px] font-semibold disabled:cursor-default ${PRESS} ${on ? 'bg-zinc-900 text-white' : 'bg-chip text-zinc-700 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-chip-hover'}`}
+            >
+              {on ? <Pin size={11} className="fill-current" /> : <Pin size={11} />} {label}
+            </button>
+          )
+        })}
+        <button type="button" onClick={mixRest} className={`ml-auto flex h-7 items-center gap-1.5 rounded-full bg-[var(--color-accent,#ff69b4)] px-3 text-[12px] font-semibold text-white ${PRESS}`}>
+          <Dices size={13} /> Mix the rest
+        </button>
+      </div>
     </div>
   )
 }
@@ -127,53 +235,79 @@ function Folded({ label, value, onChange }: { label: string; value: string; onCh
   )
 }
 
-/** The three themes that fit the feel best, as small specimens; pointing at one previews it on the page. */
+/**
+ * The themes that fit the feel best, as your own page in each: the open page drawn in that look, four at a time. Pointing
+ * at one previews it on the page itself; a click puts it on. Others rolls four more, never one shown this round; every
+ * theme side by side is a link away.
+ */
 function Themes({ words, onPicked }: { words: FeelWord[]; onPicked: () => void }) {
   const brief = useStore((s) => s.content.brief)
   const guide = useStore((s) => s.guide)
   const contract = useStore((s) => s.contract)
+  const content = useStore((s) => s.content)
+  const site = useStore((s) => s.site)
+  const pageId = useStore((s) => s.ui.pageId)
   const on = useStore((s) => s.guide.skin)
   const preview = useTokenPreview((s) => s.setPatch)
   const [comparing, setComparing] = useState(false)
+  // Themes already shown this round, so Others always brings new ones (and starts over once they run out).
+  const [seen, setSeen] = useState<string[]>([])
   useEffect(() => () => preview(null), [preview])
-  const shown = useMemo(() => rankThemes({ brief: { ...brief, feel: words }, words, guide, contract }).map((r) => ({ skin: r.skin, reason: r.reason, tokens: resolveGuide(r.guide).tokens })), [brief, words, guide, contract])
+  // Only the open page, as the previews draw a site's first page.
+  const page = useMemo(() => ({ ...site, pages: [pageOf(site, pageId)] }), [site, pageId])
+  const shown = useMemo(() => {
+    // A theme and its variants count as one: a row never shows two of them, and Others leaves out every one already seen.
+    const base = (id: string) => id.split('/')[0]
+    const exclude = themeList().filter((t) => seen.includes(base(t.id))).map((t) => t.id)
+    const ranked = rankThemes({ brief: { ...brief, feel: words }, words, guide, contract, count: 10, exclude })
+    const row = ranked.filter((r, i) => ranked.findIndex((x) => base(x.skin.id) === base(r.skin.id)) === i).slice(0, 4)
+    return row.map((r) => ({ skin: r.skin, reason: r.reason, guide: r.guide, tokens: resolveGuide(r.guide).tokens }))
+    // A change of the look you picked shouldn't reshuffle the row under your pointer: it's ranked per round.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brief, words, contract, seen])
+  const others = () => {
+    preview(null)
+    const ids = shown.map((l) => l.skin.id.split('/')[0])
+    setSeen((s) => (shown.length < 4 ? [] : [...s, ...ids]))
+  }
   return (
     <div className={STEP}>
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-[11.5px] font-medium text-zinc-500">Pick a theme</span>
-        <span className="text-[11px] text-zinc-400">Best fit first</span>
+        <button type="button" onClick={others} className={LINK}>
+          <Shuffle size={12} /> Others
+        </button>
       </div>
       <FontLinks tokens={shown.map((l) => l.tokens)} />
-      <div className="grid grid-cols-3 gap-1.5" onMouseLeave={() => preview(null)}>
-        {shown.map(({ skin, reason, tokens }) => (
-          <button
-            key={skin.id}
-            type="button"
-            aria-pressed={refId(on) === skin.id}
-            title={reason}
-            onMouseEnter={() => preview(tokens)}
-            onFocus={() => preview(tokens)}
-            onBlur={() => preview(null)}
-            onClick={() => {
-              preview(null)
-              if (refId(on) !== skin.id) putSkin(skin)
-              onPicked()
-            }}
-            className={`group/sw grid min-w-0 gap-1 rounded-[11px] text-left ${PRESS}`}
-          >
-            <span
-              className={`grid aspect-[4/3] place-content-center justify-items-center gap-1.5 rounded-[10px] transition-[box-shadow] duration-150 ${refId(on) === skin.id ? 'shadow-[0_0_0_2px_rgb(24_24_27)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.08)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/sw:shadow-[0_0_0_1px_rgb(0_0_0/0.25)]'}`}
-              style={{ background: tokens['color.bg'], color: tokens['color.text'] }}
+      <div className="grid grid-cols-2 gap-2" onMouseLeave={() => preview(null)}>
+        {shown.map(({ skin, reason, guide: g, tokens }) => {
+          const here = refId(on) === skin.id
+          return (
+            <button
+              key={skin.id}
+              type="button"
+              aria-pressed={here}
+              title={reason}
+              onMouseEnter={() => preview(tokens)}
+              onFocus={() => preview(tokens)}
+              onBlur={() => preview(null)}
+              onClick={() => {
+                preview(null)
+                if (!here) putSkin(skin)
+                onPicked()
+              }}
+              className={`group/sw grid min-w-0 gap-1 rounded-[12px] text-left ${PRESS}`}
             >
-              <span className="text-[20px] leading-none" style={{ fontFamily: tokens['font.display'], fontWeight: Number(tokens['type.displayWeight']) || 700 }}>Aa</span>
-              <span className="h-1.5 w-6" style={{ background: tokens['color.primary'], borderRadius: tokens['radius.base'] }} />
-            </span>
-            <span className="truncate px-0.5 text-[11px] font-semibold text-zinc-700">{skin.name}</span>
-          </button>
-        ))}
+              <span className={`block overflow-hidden rounded-[11px] transition-[box-shadow] duration-150 ${here ? 'shadow-[0_0_0_2px_rgb(24_24_27)]' : 'shadow-[0_0_0_1px_rgb(0_0_0/0.08)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/sw:shadow-[0_0_0_1px_rgb(0_0_0/0.25)]'}`}>
+                <SkinPreview site={page} guide={g} content={content} title={`This page in ${skin.name}`} height={112} viewportWidth={1100} />
+              </span>
+              <span className="truncate px-0.5 text-[11.5px] font-semibold text-zinc-700">{skin.name}</span>
+            </button>
+          )
+        })}
       </div>
       <button type="button" onClick={() => setComparing(true)} className={`justify-self-start ${LINK}`}>
-        All themes on this page <ChevronRight size={13} />
+        Every theme on this page <ChevronRight size={13} />
       </button>
       {comparing && <Compare onClose={() => setComparing(false)} onPick={(s) => { putSkin(s); setComparing(false); onPicked() }} />}
     </div>

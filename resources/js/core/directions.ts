@@ -304,3 +304,30 @@ export function checkDirections(lib: Library, pool: Direction[] = directionList(
   }
   return problems
 }
+
+/**
+ * How unusual each layout and theme is, read off the curated directions: the least unusual one that uses it (0 safe,
+ * 1 a little unexpected, 2 strange). Ones no direction uses count as safe.
+ */
+export function oddness(pool: Direction[] = directionList()): { layouts: Map<string, number>; themes: Map<string, number> } {
+  const layouts = new Map<string, number>()
+  const themes = new Map<string, number>()
+  const note = (m: Map<string, number>, id: string, odd: number) => m.set(id, Math.min(m.get(id) ?? odd, odd))
+  for (const d of pool) {
+    const odd = d.odd ?? 0
+    for (const ids of Object.values(d.layouts)) for (const id of ids ?? []) note(layouts, id, odd)
+    note(themes, d.theme.split('/')[0], odd)
+  }
+  return { layouts, themes }
+}
+
+/** "How unusual" on Mix: 0 safe (only what conventional directions use), 1 anything (the default), 2 strange (the odd ones first). */
+export const UNUSUAL = [0, 1, 2] as const
+export type Unusual = (typeof UNUSUAL)[number]
+
+/** The options Mix may land on at a setting: safe ones, any, or the unusual ones (falling back to any when there are none). */
+export function byUnusual<T>(options: T[], odd: Unusual, oddOf: (o: T) => number): T[] {
+  if (odd === 1) return options
+  const fit = options.filter((o) => (odd === 0 ? oddOf(o) === 0 : oddOf(o) >= 1))
+  return fit.length ? fit : options
+}

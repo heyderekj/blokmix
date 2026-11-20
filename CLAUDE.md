@@ -84,7 +84,10 @@ Laravel 13 + Inertia 3 sit at the repo root around the same `resources/js`. The 
   `data/librarySample.ts`). Opened from the Crate's "Sites". Clipping lands the MATCHED LAYOUT (never the site's words or
   pictures) and credits it (`slot.inspiredBy`, shown in the Source tab, written to blokmix.json and BLOKMIX.md; a slot
   without one falls back to its clip's). A site's look joins the style guide as candidates `src:site:<slug>#<group>`
-  (`promoteSource`, `candidateSource`). Agents: `list_library_sites`, `get_library_site`, `clip_from_site`, `use_site_style`.
+  (`promoteSource`, `candidateSource`); "Use this look" (`use_site_style {whole: true}`) makes it the theme: its values win every
+  group (fonts load as a candidate's do), block looks, section bands and pictures come from the closest built-in theme
+  (`closestSkin`, `swapThemeParts`), its own effects come along, and the theme is named after it (`guide.skin = {id: 'site'}`,
+  shown in Design as "<Site>'s look"); one undo step. Agents: `list_library_sites`, `get_library_site`, `clip_from_site`, `use_site_style`.
   Starting a mix from a site is gone for v1 (`mixFromSitePage` stays for the Crate's Sites).
 - Saved style guides (`style_guides`, `Api\StyleGuideController`, `lib/styleGuides.ts`): save a mix's guide under a
   name from the Style guide panel, or swap one in (`replaceGuide`, one undo step). The guided start's "Or start from"
@@ -223,15 +226,24 @@ guide as one undo step; candidates and swatches stay. Section defaults and pictu
 over any band or backdrop, whatever the palette: `readBackdrop` picks the text color or softens the backdrop, `sectionTokens` applies
 it (`tests/skins.test.ts` checks every combination), and the Style panel says when it did. Every skin must
 pass AA and load its fonts (`tests/skins.test.ts`). Surprise me (`surpriseMe`) mixes
-skins: areas come whole from other skins; on screen it's a "Mixed theme" (Mix again), drawn before it lands; agents only (`surprise_me`), not in Look.
+skins: areas come whole from other skins; on screen it's a "Mixed theme" (Mix again), drawn before it lands; in Look as Mix the rest (below), and `surprise_me` for agents.
 Look (`ui/panels/guide/Look.tsx`, the panel's first view, `ui.guideView`) is for people who aren't designers, broad to specific:
 three steps that fold into one line each once answered (like the start's questions), then Your color (with Light/Dark, `set_tone`)
 and the Style guide door. 1. How should it feel? Four broad feels (Calm, Warm, Bold, Sharp, each a few `FEEL_WORDS` written to
-`content.brief.feel`), one marked Suggested from what fits the brief with no words said. 2. Pick a theme: the three `rankThemes`
-puts first for that feel, as specimens that preview on the page when pointed at; All themes on this page opens the side-by-side
-compare. 3. Fine-tune on a dot matrix (`ui/panels/guide/DotMatrix.tsx`, after Tesla's air vents): across is quiet to loud (type
+`content.brief.feel`), one marked Suggested from what fits the brief with no words said; or in your own words ("playful and bold,
+roomier, not corporate": `core/lookWords.ts` `readLook` maps the start's feels and synonyms to feel words, "not …" to avoid, nudge
+words to dial nudges and light or dark to the tone; `look_from_words` puts on the best theme, then the tone and nudges, skipping
+any into an area Rules for your agent keeps, keeps the words as `brief.feelWords`, one undo step). 2. Pick a theme: your open page itself in the four themes
+`rankThemes` puts first for that feel (`SkinPreview`; a theme and its variants count as one), which preview on the page when
+pointed at; Others rolls four more never shown this round; Every theme on this page opens the side-by-side compare. 3. Fine-tune on a dot matrix (`ui/panels/guide/DotMatrix.tsx`, after Tesla's air vents): across is quiet to loud (type
 size and weight), up is crisp to soft (corners and room), from where the theme put its dials (the ring); it previews while you drag
-and lands as one undo step. Change one part folds under it and opens when Say it asks to restyle. A new look lands on the sections top to bottom (`frame/ClipFrame.tsx` `waveDelay`, by where each sits on screen; drags land at once). Feel words
+and lands as one undo step. Under it, Keep what you like, mix the rest: pin Color, Type, Shape or Pictures (`ui.lookKeep`, this device's, apart from
+Rules for your agent, whose kept areas show pinned and can't be unpinned) and Mix the rest brings every other area from other
+themes as a mixed theme (`surpriseMe`'s `keep`, `surprise_me {keep}`), one undo step. How unusual Mix goes (the dock's ^ by
+the dice: Safe, A little, Strange; `ui.unusual`, this device's) holds for both: a layout's or theme's oddness is the least
+`odd` of the directions that use it (`core/directions.ts` `oddness`, unused ones 0) and `byUnusual` keeps the safe ones at
+Safe, everything at A little, the odd ones first at Strange (never nothing); Mix the rest at Safe takes parts from the half of
+themes nearest this one, at Strange from odd or far ones (`surpriseMe`'s `unusual`, `surprise_me {unusual}`). Change one part folds under it and opens when Say it asks to restyle. A new look lands on the sections top to bottom (`frame/ClipFrame.tsx` `waveDelay`, by where each sits on screen; drags land at once). Feel words
 (`core/feel.ts` `FEEL_WORDS`, `content.brief.feel`) still rank themes for the start and for agents (`rankThemes`). The catalog has 15
 finished themes plus Wireframe and eight industry variants. The guided start previews the actual page. Catalog specimens and visual
 scoring share a scene. Change one part previews locally and commits with `set_theme_parts` in one undo step. Shape owns shadows, type
