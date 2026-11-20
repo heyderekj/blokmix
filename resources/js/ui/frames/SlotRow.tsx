@@ -1,4 +1,6 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { groupOrderOf, moveIn } from '@/core/lists'
+import { pastePicture, placePicture } from '../blocks/placePicture'
 import { SpaceHandle } from './SpaceHandle'
 import { flushSync } from 'react-dom'
 import { GripVertical, Plus, Copy, Minus } from 'lucide-react'
@@ -80,10 +82,14 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   const replays = useBlockPreview((s) => s.replays)
   // The slot as shown: with any look you're hovering in a picker applied, uncommitted.
   // While an item is dragged, the section shows the list as it would be with the item dropped where it is now.
-  const [sorting, setSorting] = useState<{ itemId: string; from: number; to: number } | null>(null)
+  const [sorting, setSorting] = useState<Sorting | null>(null)
   const live = useMemo(() => {
     let s = withPreview(slot, { slotId: pSlot, blockId: pBlock, patch: pPatch, words: pWords, backdrop: pBackdrop, slider: pSlider, inserts: pInserts })
-    if (sorting && sorting.to !== sorting.from)
+    // Something in a group: the group in the order it would have with it dropped here.
+    const g = sorting?.group
+    const order = g && sorting.to !== sorting.from ? moveIn(g.ids, sorting.itemId, sorting.to) : null
+    if (g && order) s = { ...s, edits: { ...s.edits, [s.clipId]: { ...s.edits?.[s.clipId], [g.id]: { ...s.edits?.[s.clipId]?.[g.id], order } } } }
+    else if (sorting && sorting.to !== sorting.from)
       try {
         s = applyListEdit(s, slotClip(s), content, { op: 'move', itemId: sorting.itemId, to: sorting.to })
       } catch {
@@ -224,6 +230,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   const noting = tool === 'note' && current
   const [hover, setHover] = useState<{ id: string; rect: FrameRect } | null>(null)
   const [selRect, setSelRect] = useState<FrameRect | null>(null)
+  const [dropOver, setDropOver] = useState<{ id: string; rect: FrameRect } | null>(null)
   // While a look is previewed on the selected block, the bar stays where it was: a preview that changes the block's
   // size would otherwise move the menu under the pointer, which previews another look, and so on (jitter).
   const barRef = useRef<FrameRect | null>(null)
@@ -275,13 +282,20 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
     [canEdit, focused, sectioned, slot, blocks],
   )
   const grabbed = sorting?.itemId ?? itemOf(selectedBlock)?.id
-  const items = useMemo(() => {
+  const items = useMemo((): DragItems | null => {
     const ctx = sectioned && grabbed && canEdit && focused ? listContext(sectioned, slot, grabbed) : null
+    // Not in a list: what's selected in a group or card (a button in a row, a header's heading) moves among its own.
+    const moving = sorting?.itemId ?? selectedBlock
+    const g = !ctx?.item && sectioned && moving && canEdit && focused ? groupOrderOf(sectioned, moving) : null
+    if (g && sectioned) {
+      const b = blocks.find((x) => x.id === moving)
+      return b ? { item: b, index: g.ids.indexOf(b.id), siblings: g.ids.map((id) => ({ id })), group: { id: g.holder, ids: g.ids } } : null
+    }
     if (!ctx?.item || ctx.count < 2 || !sectioned) return null
     const order = listOrder(sectioned, ctx.list.id)
     const siblings = blocks.filter((b) => b.parent === ctx.list.id && b.kind === 'item' && b.n != null).sort((a, b) => order.indexOf(a.n!) - order.indexOf(b.n!))
     return { item: ctx.item, index: ctx.index, siblings }
-  }, [sectioned, grabbed, canEdit, focused, slot, blocks])
+  }, [sectioned, grabbed, canEdit, focused, slot, blocks, sorting?.itemId, selectedBlock])
   // Blocks with a pin on them: the frame reports where they are.
   const notes = useStore((s) => s.notes)
   const track = useMemo(
@@ -301,7 +315,10 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
   useEffect(() => {
     if (!items && useTiles.getState().slotId === slot.id) useTiles.getState().set(null, [], {})
   }, [items, slot.id])
-  const trackAll = useMemo(() => (movable.length ? [...new Set([...track, ...movable.map((b) => b.id)])] : track), [track, movable])
+  const trackAll = useMemo(
+    () => (movable.length || items?.group ? [...new Set([...track, ...movable.map((b) => b.id), ...(items?.group?.ids ?? [])])] : track),
+    [track, movable, items],
+  )
   const frameH = heights[shown] ?? 520
   const drafting = useMarkDraft((s) => s.draft?.slotId === slot.id)
   // When a note on selected words closes, let go of the text selection in the page.
@@ -324,10 +341,19 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
           // A click in a section you weren't in focuses it on the way; a click on its empty space selects the section.
           if (st().ui.focusedSlotId !== slot.id) st().focusSlot(slot.id)
           st().selectBlock(e.pick ?? null)
+          if (e.openMenu && e.pick) useBlockPreview.setState({ openMenuFor: e.pick })
           // A click on the page from the canvas goes back to reading it.
           if (st().ui.canvasMode === 'canvas') canvasApi.setMode('page', { slotId: slot.id })
         }
         if ('selRect' in e) setSelRect(e.selRect ?? null)
+        // A file dragged over a picture: outline it; let go and it's placed there.
+        if ('dropOver' in e) setDropOver(e.dropOver ?? null)
+        if (e.dropFile) {
+          st().focusSlot(slot.id)
+          st().selectBlock(e.dropFile.id)
+          void placePicture(slot.id, e.dropFile.id, e.dropFile.file)
+        }
+        if (e.pasteFile && !pastePicture(e.pasteFile)) st().showFlash('Select a picture, then paste to put it there')
         // Words typed into a field that shows a collection go to its entry.
         const bound = e.word ? targets?.fields.get(e.word.field) : undefined
         if (e.word && bound) {
@@ -522,6 +548,7 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
           </span>
         </div>
       )}
+      {dropOver && <PickOutline rect={dropOver.rect} picked label="Drop to place it here" />}
       {canEdit && block && selRect && !sorting && (
         <>
           <PickOutline rect={selRect} picked />
@@ -552,6 +579,11 @@ export const SlotRow = memo(function SlotRow({ slot: own, index, count, guide, f
 /** "Features · Feature 2 · Heading" → "Feature 2 · Heading": the section is already on screen. */
 const partLabel = (label: string | undefined) => label?.split(' · ').slice(1).join(' · ') || 'Block'
 
+/** A drag in progress: a list item, or something in a group (with the group's order when it started). */
+type Sorting = { itemId: string; from: number; to: number; group?: { id: string; ids: string[] } }
+/** What a drag moves among: a list's items, or what's in a group or card. */
+type DragItems = { item: { id: string; label: string }; index: number; siblings: { id: string }[]; group?: { id: string; ids: string[] } }
+
 /** Starting, moving and letting go of an item drag from outside (the frame, when you press on the item itself). */
 export type ItemDragHandle = { start: (p: { x: number; y: number }) => void; move: (p: { x: number; y: number }) => void; end: (commit: boolean) => void }
 
@@ -573,13 +605,13 @@ function ItemDrag({
   handle,
 }: {
   slotId: string
-  items: { item: { id: string; label: string }; index: number; siblings: { id: string }[] }
+  items: DragItems
   rect: FrameRect
   rects: Record<string, FrameRect>
   row: React.RefObject<HTMLDivElement | null>
   pageW: number
-  sorting: { itemId: string; from: number; to: number } | null
-  onSort: (s: { itemId: string; from: number; to: number } | null) => void
+  sorting: Sorting | null
+  onSort: (s: Sorting | null) => void
   handle: React.MutableRefObject<ItemDragHandle | null>
 }) {
   const [ghost, setGhost] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
@@ -609,7 +641,7 @@ function ItemDrag({
     const k = Math.min(1, 360 / rect.w)
     st.grab = { x: (p0.x - rect.x) * k, y: (p0.y - rect.y) * k }
     setGhost({ x: p0.x - st.grab.x, y: p0.y - st.grab.y, w: rect.w * k, h: rect.h * k })
-    onSort({ itemId: items.item.id, from: items.index, to: items.index })
+    onSort({ itemId: items.item.id, from: items.index, to: items.index, group: items.group })
     st.pan?.stop()
     st.pan = edgePan(() => over(toPage(st.client)))
   }
@@ -640,7 +672,7 @@ function ItemDrag({
     if (to === st.to) return
     st.to = to
     st.at = performance.now()
-    onSort({ itemId: items.item.id, from: items.index, to })
+    onSort({ itemId: items.item.id, from: items.index, to, group: items.group })
   }
   const moveTo = (client: { x: number; y: number }) => {
     state.current.client = client
@@ -653,7 +685,10 @@ function ItemDrag({
     st.pan = null
     const to = st.to
     setGhost(null)
-    if (commit && to !== items.index) useStore.getState().editList(slotId, { op: 'move', itemId: items.item.id, to })
+    if (commit && to !== items.index) {
+      if (items.group) useStore.getState().moveInGroup(slotId, items.item.id, to)
+      else useStore.getState().editList(slotId, { op: 'move', itemId: items.item.id, to })
+    }
     onSort(null)
   }
   // The frame starts, moves and ends a drag from the item itself (its coordinates are page pixels).
@@ -716,7 +751,7 @@ function ItemDrag({
       <div className="absolute z-30" style={{ left: rect.x, top: rect.y, width: 0, height: 0 }} data-chrome>
         <button
           type="button"
-          title="Drag to move this item (or ⌥ + arrow keys)"
+          title={items.group ? "Drag to move it (or ⌥ + arrow keys)" : "Drag to move this item (or ⌥ + arrow keys)"}
           aria-label="Drag to move this item"
           onPointerDown={(e) => {
             e.stopPropagation()
@@ -729,7 +764,7 @@ function ItemDrag({
           <GripVertical size={14} />
         </button>
         {/* The item's own actions sit with its grip, on the item: add one after it, duplicate it, remove it. */}
-        {!dragging && <ItemActions slotId={slotId} itemId={items.item.id} />}
+        {!dragging && !items.group && <ItemActions slotId={slotId} itemId={items.item.id} />}
       </div>
       {dragging &&
         createPortal(

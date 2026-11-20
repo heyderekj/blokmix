@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { AlignCenter, AlignLeft, AlignRight, ALargeSmall, Columns3, Minus, Plus, Rows3, Square, SquareDashed } from 'lucide-react'
+import { AlignCenter, AlignLeft, AlignRight, ALargeSmall, BetweenHorizontalStart, Columns3, Scan, Minus, Plus, Rows3, Square, SquareDashed } from 'lucide-react'
 import type { BlockAlign, BlockEdit, BlockInfo, BlockStyle, Slot } from '@/core/types'
 import type { Quick } from '@/core/blocks/quick'
 import { columnsOf } from '@/core/blocks/quick'
@@ -16,6 +16,8 @@ import { useBlockPreview } from './preview'
 export const QUICK_MENUS = ['color', 'fill', 'shape', 'padding', 'gap', 'size', 'align'] as const
 export type QuickMenu = (typeof QUICK_MENUS)[number]
 export const isQuickMenu = (q: string | null): q is QuickMenu => !!q && (QUICK_MENUS as readonly string[]).includes(q)
+/** These open right in the bar, in place of their button; the others open a small menu under it. */
+export const OPENS_INLINE: ReadonlySet<QuickMenu> = new Set(['color', 'fill', 'size', 'align'])
 
 interface Props {
   q: Quick
@@ -35,6 +37,31 @@ const SMALL = 'grid h-8 w-7 shrink-0 cursor-pointer place-items-center text-zinc
 export function QuickInline(p: Props) {
   const paint = usePaint()
   const { q, shown, apply, hover } = p
+  const refs = usePaletteRefs()
+  if (p.open && (q === 'color' || q === 'fill')) {
+    const prop = p.block.kind === 'icon' ? 'ink' : 'fill'
+    return (
+      <Opened>
+        <div className="flex items-center gap-1" onMouseLeave={() => hover(null)}>
+          {refs.map((r) => (
+            <Swatch key={r.ref} small color={paint(r.ref)} label={r.label} on={shown[prop] === r.ref} onHover={() => hover({ style: { ...shown, [prop]: r.ref } })} onPick={() => (apply({ style: { [prop]: r.ref } }), p.onOpen())} />
+          ))}
+        </div>
+      </Opened>
+    )
+  }
+  if (p.open && q === 'size')
+    return (
+      <Opened>
+        <SizeSteps size={shown.size} apply={apply} />
+      </Opened>
+    )
+  if (p.open && q === 'align')
+    return (
+      <Opened>
+        <AlignRow shown={shown} apply={(x) => (apply(x), p.onOpen())} hover={hover} />
+      </Opened>
+    )
   switch (q) {
     case 'color':
     case 'fill': {
@@ -53,13 +80,15 @@ export function QuickInline(p: Props) {
         </Trigger>
       )
     case 'padding':
-    case 'gap':
+    case 'gap': {
+      const Icon = q === 'gap' ? BetweenHorizontalStart : Scan
       return (
-        <Trigger open={p.open} onClick={p.onOpen} title={q === 'gap' ? 'Space between what’s in it' : 'Space inside it'}>
-          {q === 'gap' ? 'Gap' : 'Padding'}
-          {shown[q] !== undefined && <span className="text-zinc-400">{label(shown[q]!)}</span>}
+        <Trigger open={p.open} onClick={p.onOpen} title={q === 'gap' ? 'Gap: space between what’s in it' : 'Padding: space inside it'}>
+          <Icon size={15} className="text-zinc-500" />
+          <span className={shown[q] === undefined ? 'text-zinc-500' : ''}>{shown[q] === undefined ? 'Auto' : label(shown[q]!)}</span>
         </Trigger>
       )
+    }
     case 'size':
       return (
         <Trigger open={p.open} onClick={p.onOpen} title="Size">
@@ -235,7 +264,7 @@ function ColumnSteps({ slot, block, columns, apply }: { slot: Slot; block: Block
 /** Left, center, right: its words and what's in it line up there; the one that's on turns it off again. */
 function AlignRow({ shown, apply, hover }: Pick<Props, 'shown' | 'apply' | 'hover'>) {
   return (
-    <div className="flex items-center gap-0.5 p-0.5" role="group" aria-label="Align" onMouseLeave={() => hover(null)}>
+    <div className="flex items-center gap-0.5" role="group" aria-label="Align" onMouseLeave={() => hover(null)}>
       {(
         [
           ['start', AlignLeft, 'Left'],
@@ -246,12 +275,14 @@ function AlignRow({ shown, apply, hover }: Pick<Props, 'shown' | 'apply' | 'hove
         <button
           key={v}
           type="button"
+          title={title}
+          aria-label={title}
           aria-pressed={shown.align === v}
           onMouseEnter={() => hover({ style: { ...shown, align: v } })}
           onClick={() => apply({ style: { align: shown.align === v ? undefined : v } })}
-          className={`flex h-8 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-[12.5px] font-medium transition active:scale-[0.97] ${shown.align === v ? 'bg-zinc-950/[0.07] text-zinc-900' : 'text-zinc-600 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+          className={`grid size-7 cursor-pointer place-items-center rounded-full transition active:scale-[0.97] ${shown.align === v ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
         >
-          <Icon size={15} /> {title}
+          <Icon size={15} />
         </button>
       ))}
     </div>
@@ -264,4 +295,9 @@ function SizeNow({ size }: { size?: TypeStep }) {
   const shownPx = useBlockPreview((s) => s.selRect?.font)
   const n = size ? parseFloat(px[`--mx-text-${size}`] ?? '16') : shownPx
   return n ? <span className="text-[12.5px] font-medium tabular-nums text-zinc-600">{Math.round(n)}</span> : null
+}
+
+/** A quick option opened in the bar: its choices on a soft pill, where its button was. */
+function Opened({ children }: { children: ReactNode }) {
+  return <div className="flex h-8 items-center rounded-full bg-zinc-950/[0.05] px-1">{children}</div>
 }

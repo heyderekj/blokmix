@@ -561,12 +561,18 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
   spacing, fill, motion and hiding like a card; exports give a changed one its class. Both bars hang below what they belong to, so it stays in
   view; the section bar holds still while you point at it (‹ › don't slide away as the height changes), and on anything
   taller than the screen both stop just above the dock (`ui/canvas/useBarFloor.ts`, which also reports how far a bar
-  hangs below the last section so Add a section makes that much room). Both share one look (`ui/frames/bar.ts`). Esc
+  hangs below the last section so Add a section makes that much room). Sideways a bar stays inside its section while that's in
+  view, else inside the screen between the side panels (zoomed in, it comes to the visible middle instead of running off),
+  and a bar wider than that scrolls its row (`[data-bar-row]`); menus under it are never cut off. Both share one look (`ui/frames/bar.ts`). Esc
   closes the thing on top first (`useEscape` in `ui/shell/keys.ts`: a menu, a tab, the shortcuts sheet) and stops there;
-  Enter and Space press a focused button instead of saving or shuffling (`pressable`). The block bar is slim like the section bar (its name, ‹ Look ›,
+  Enter and Space press a focused button instead of saving or shuffling (`pressable`). The block bar is slim like the section bar (its name, its look,
   words, picture, link, then its quick options, item add/duplicate/remove, Style, note, ⋯; Add a blok is in ⋯ and A).
-  Quick options that need more than a click (color, size, alignment, shape, padding, gap) are one button each that opens
-  a small menu under the bar; columns step in place and a row's direction is one icon.
+  Every control shows only what it's set to, with its icon, and opens its choices on a click: the look's live tiles
+  (`LooksPicker`) and shape, padding and gap under the bar; color, size and alignment right in the bar, in place of their
+  button; columns step in place and a row's direction is one icon. The section bar does the same: background (a paint
+  bucket and its color), width and the room above and below. Things in a group or card (a row's buttons, a header's
+  heading) move among themselves: drag them like list items, ⌥ + arrows, or `set_block` `move` (`BlockEdit.order` on the
+  group, `applyOrder` in `sectionClip`, which swaps the group into a frame whole; `groupOrderOf`, `moveInGroup`).
   Quick options (`core/blocks/quick.ts` `quickOptions`, also in `get_options` as `quick`) are the few things you change
   most for that kind, on the bar (`ui/blocks/QuickOptions.tsx`): a button's color and size; a heading's or text's size
   and alignment; a picture's shape; a card's or item's fill, padding and alignment; a grid list's columns ("− 3 across +",
@@ -576,7 +582,13 @@ From `docs/library.md` and `docs/simple-vision.md`: start from real sections, di
   shows its band dots, Width and Spacing on its bar. Everything else about how a block or a section looks is in one Style
   panel at the window's side, opened on ask, that follows the selection (`ui/panels/SelectionStyle.tsx`); its rows
   leave out what does nothing for a kind (`styleRows`: no fill on a list or a heading).
-  ← → step the selected block's looks, else the section's layouts (the section bar's ‹ Layout n of m ›). Over a skin's
+  ← → step the selected block's looks; a block with none (a list, a group) steps to what's beside it, and only the section
+  itself steps through layouts (the section bar's ‹ Layout n of m ›). Tab / Shift+Tab move to what's beside the selection
+  (`stepSibling`), Enter goes in (a section's or group's first thing, `insideOf`; a block with words starts editing them),
+  Shift+Enter and Escape come back out (`upOf`); with nothing selected, Enter saves a version. A double-click on a
+  picture or icon opens its menu (`openMenu`, `useBlockPreview.openMenuFor`). A file dragged over a picture outlines it
+  ("Drop to place it here") and lands in it, and a picture pasted with a picture selected goes into it
+  (`ui/blocks/placePicture.ts`, as Upload would: one undo step); a file let go of anywhere else never opens in the browser. Over a skin's
   default look, Original is stored as `variant: 'original'` (`ORIGINAL`), so it can be picked.
 - List items move by dragging: selecting anything in an item shows one grip on its corner; drag it, or press on the item
   and move (the frame posts `dragItem`/`dragMove`/`dragEnd`). The list reflows live in the frame (a preview `move`), the

@@ -671,6 +671,8 @@ export interface BlockEdit {
   /** Links and buttons: where they lead (absent = from their words, else nowhere). */
   link?: LinkTarget
   hidden?: boolean
+  /** A group or card: the order of what's directly in it, by id (a row's buttons, a header's eyebrow and heading). */
+  order?: string[]
   /** Phone widths (≤760px) only: spacing and hiding that differ from desktop. */
   mobile?: { style?: MobileSpacing; hidden?: boolean }
 }

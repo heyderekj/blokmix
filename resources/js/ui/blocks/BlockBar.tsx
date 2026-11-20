@@ -1,7 +1,7 @@
 import { ColorButton } from '@/ui/color/ColorPicker'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { create } from 'zustand'
-import { Link2, LayoutTemplate, Check, Copy, ListRestart, Minus, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Eye, Smartphone, MoreHorizontal, Palette, Plus, RotateCcw, Type, Users, MessageSquarePlus, Image as ImageIcon, Smile, Database, ListPlus } from 'lucide-react'
+import { Shapes, Link2, LayoutTemplate, Check, Copy, ListRestart, Minus, ChevronDown, ChevronRight, EyeOff, Eye, Smartphone, MoreHorizontal, Palette, Plus, RotateCcw, Type, Users, MessageSquarePlus, Image as ImageIcon, Smile, Database, ListPlus } from 'lucide-react'
 import type { BlockEdit, BlockInfo, BlockKind, BlockStyle, ColorRef, MobileSpacing, Slot } from '@/core/types'
 import { BLOCK_LABEL, COMPOSITE, upOf } from '@/core/blocks'
 import { defaultFor, effectiveEdit } from '@/core/blocks/style'
@@ -36,16 +36,16 @@ import { LinkLabel, LinkMenu } from './LinkMenu'
 import { CollectionMenu } from './CollectionMenu'
 import { TextMenu } from './TextMenu'
 import { autoTextStyle } from '@/core/textStyles'
-import { LooksPicker, stepLook } from './LooksPicker'
+import { LooksPicker } from './LooksPicker'
 import { setStylePanel, useStylePanel } from '../panels/stylePanel'
 import { CORE, Segmented, Swatch, usePaint } from './swatches'
 import { quickOptions, styleRows, type Quick, type StyleRow } from '@/core/blocks/quick'
-import { isQuickMenu, QuickInline, QuickMenuBody, type QuickMenu } from './QuickOptions'
+import { isQuickMenu, OPENS_INLINE, QuickInline, QuickMenuBody, type QuickMenu } from './QuickOptions'
 
 /** Icons that read as included or not. */
 const MARK_ON = ['check', 'check-circle']
 const MARK_OFF = ['minus', 'x']
-type Menu = 'crumbs' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'collection' | 'add' | QuickMenu | null
+type Menu = 'crumbs' | 'look' | 'image' | 'icon' | 'words' | 'link' | 'more' | 'collection' | 'add' | QuickMenu | null
 
 /** Quick options about how it looks (the bar's others, words, picture, link and adding, have their own buttons). */
 const STYLE_QUICK = new Set<Quick>(['color', 'size', 'align', 'shape', 'fill', 'padding', 'columns', 'direction', 'gap'])
@@ -91,6 +91,14 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
     setMenu(null)
     useBlockPreview.getState().setKeepNext(null)
   }, [block.id])
+  // A double-click on a picture or an icon opens what changes it.
+  const openFor = useBlockPreview((s) => s.openMenuFor)
+  useEffect(() => {
+    if (openFor !== block.id) return
+    useBlockPreview.setState({ openMenuFor: null })
+    if (block.kind === 'image') setMenu('image')
+    else if (block.kind === 'icon') setMenu('icon')
+  }, [openFor, block.id, block.kind])
   // A menu that opens near the bottom of the screen slides the page up so it's all in view.
   useLayoutEffect(() => {
     if (menu) keepInView(ref.current)
@@ -145,7 +153,7 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
 
   return (
     <div ref={ref} className="flex w-max flex-col items-start gap-1.5" data-chrome onPointerDown={(e) => e.stopPropagation()}>
-      <div className="glass-panel flex h-11 items-center gap-1 whitespace-nowrap pl-1.5 pr-1.5 text-[13px]" style={BAR_SURFACE}>
+      <div data-bar-row className="glass-panel flex h-11 items-center gap-1 whitespace-nowrap pl-1.5 pr-1.5 text-[13px] [&>*]:shrink-0" style={BAR_SURFACE}>
         {/* what it is; everything around it (up to the section) is in its menu */}
         <button
           type="button"
@@ -158,23 +166,17 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
           <ChevronDown size={13} className="text-zinc-400" />
         </button>
         {variants.length > 0 && (
-          // Its looks a step at a time (← → too); the name opens them all in the Style panel.
-          <div className="flex items-center">
-            <button type="button" title="Previous look (←)" aria-label="Previous look" onClick={() => stepLook(slot.id, block.id, -1)} className={STEP + ' rounded-l-full'}>
-              <ChevronLeft size={15} />
-            </button>
-            <button
-              type="button"
-              title="See every look in the Style panel"
-              onClick={() => setStylePanel(!styling)}
-              className="flex h-8 max-w-[104px] cursor-pointer items-center truncate px-1 text-[12.5px] font-medium text-zinc-600 transition hover:text-zinc-900 active:scale-[0.97]"
-            >
-              {current?.label ?? 'Original'}
-            </button>
-            <button type="button" title="Next look (→)" aria-label="Next look" onClick={() => stepLook(slot.id, block.id, 1)} className={STEP + ' rounded-r-full'}>
-              <ChevronRight size={15} />
-            </button>
-          </div>
+          // Its look, by name; a click opens every look under the bar (pointing at one shows it on the block). ← → step them.
+          <button
+            type="button"
+            aria-expanded={menu === 'look'}
+            title="Look: pick another (← → step through them)"
+            onClick={() => setMenu(menu === 'look' ? null : 'look')}
+            className={`flex h-8 max-w-[160px] cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-[background-color,color,scale] active:scale-[0.97] ${menu === 'look' ? 'bg-zinc-950/[0.07] text-zinc-900' : 'text-zinc-700 hover:bg-zinc-950/5 hover:text-zinc-900'}`}
+          >
+            <Shapes size={15} className="shrink-0 text-zinc-500" />
+            <span className="truncate">{current?.label ?? 'Original'}</span>
+          </button>
         )}
         <Sep />
         {block.field && (
@@ -285,7 +287,14 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
         />
       )}
       {menu === 'link' && <LinkMenu slot={slot} block={block} />}
-      {isQuickMenu(menu) && <QuickMenuBody q={menu} block={block} shown={shown} apply={apply} hover={hover} />}
+      {menu === 'look' && (
+        <Popover width={360}>
+          <div className="p-1.5">
+            <LooksPicker slot={slot} block={block} />
+          </div>
+        </Popover>
+      )}
+      {isQuickMenu(menu) && !OPENS_INLINE.has(menu) && <QuickMenuBody q={menu} block={block} shown={shown} apply={apply} hover={hover} />}
       {menu === 'collection' && list && <CollectionMenu slot={slot} list={list.list} onClose={() => setMenu(null)} />}
       {menu === 'add' && <AddBlockMenu slot={slot} block={block} onClose={() => setMenu(null)} />}
       {menu === 'words' && block.field && <WordsMenu slot={slot} field={block.field} blockId={block.id} onClose={() => setMenu(null)} />}
@@ -354,7 +363,6 @@ export function BlockBar({ slot, block, rect }: { slot: Slot; block: BlockInfo; 
   )
 }
 
-const STEP = 'grid h-8 w-6 cursor-pointer place-items-center text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-900 active:scale-[0.97]'
 
 /**
  * How the selected block looks, in the Style panel: suggestions, its looks, its text, its color and shape, its motion,

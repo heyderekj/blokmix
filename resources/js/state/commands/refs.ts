@@ -176,6 +176,8 @@ export function describeSection(slot: Slot, position: number) {
         hidden: !!e?.hidden,
         // What differs on phones (≤760px): spacing, or hidden there only.
         mobile: e?.mobile ?? null,
+        // A group or card you put in another order: what's in it, by id.
+        ...(slot.edits?.[clip.id]?.[b.id]?.order ? { order: slot.edits[clip.id]![b.id].order } : {}),
       }
     }),
   }
