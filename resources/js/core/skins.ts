@@ -333,7 +333,7 @@ const rgbDistance = (a: string, b: string) => {
 const family = (stack: string) => primaryFamily(stack).toLowerCase()
 
 /** How far a skin's look is from these values: a small number is close. Light or dark and the main color count most. */
-function lookDistance(t: TokenSet, s: TokenSet): number {
+export function lookDistance(t: TokenSet, s: TokenSet): number {
   const number = (v: string) => parseFloat(v) || 0
   return (
     (toneOfGuide(t) === toneOfGuide(s) ? 0 : 100) +

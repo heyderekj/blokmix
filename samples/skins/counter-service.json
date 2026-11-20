@@ -7,13 +7,13 @@
     "classic"
   ],
   "tokens": {
-    "icon.set": "iconoir:light",
+    "icon.set": "phosphor:regular",
     "color.bg": "#fff6d7",
     "color.surface": "#ffebaf",
     "color.text": "#322318",
     "color.muted": "#735644",
     "color.border": "#c4a871",
-    "color.primary": "#ad331d",
+    "color.primary": "#c8321a",
     "color.onPrimary": "#fff9e7",
     "color.accent": "#d95021",
     "font.display": "'Fraunces', Georgia, serif",
@@ -22,30 +22,53 @@
     "type.base": "18px",
     "type.ratio": "1.333",
     "type.displayWeight": "650",
-    "radius.base": "3px",
+    "radius.base": "8px",
     "stroke.width": "1px",
     "shadow.card": "2px 3px 0 #dcc596",
     "space.base": "4px",
     "space.section": "80px",
     "motion.duration": "280ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "motion.ease": "cubic-bezier(0.33, 1, 0.68, 1)",
     "space.content": "1160px",
     "space.text": "650px"
   },
   "textStyles": {
     "label": {
       "font": "mono",
-      "weight": 500,
-      "tracking": 0.12
+      "weight": 600,
+      "tracking": 0.02,
+      "size": "sm"
+    },
+    "h1": {
+      "tracking": -0.03,
+      "leading": 1.02,
+      "phone": "3xl"
     },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.025,
+      "leading": 1.08,
+      "phone": "xl"
     },
     "h3": {
-      "tracking": -0.01
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.2,
+      "phone": "lg"
     },
     "h4": {
-      "tracking": -0.01
+      "weight": 600,
+      "tracking": -0.005,
+      "leading": 1.25
+    },
+    "bodyLarge": {
+      "leading": 1.5
+    },
+    "small": {
+      "weight": 500
+    },
+    "caption": {
+      "font": "mono",
+      "tracking": 0.04
     }
   },
   "industries": [
@@ -57,41 +80,131 @@
       "variant": "outline"
     },
     "card": {
-      "variant": "bordered"
+      "variant": "raised"
     },
     "icon": {
-      "variant": "bare"
+      "variant": "tinted"
     },
     "button": {
+      "variant": "solid",
       "secondary": {
         "variant": "arrow"
       }
     },
     "input": {
       "variant": "underline"
+    },
+    "link": {
+      "variant": "dotted"
     }
   },
   "sections": {
     "hero": {
       "spacing": {
         "top": "roomy"
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true
       }
     },
     "nav": {
       "surface": "soft"
     },
     "features": {
-      "surface": "soft"
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true
+      }
     },
     "gallery": {
-      "surface": "page"
+      "surface": "page",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "stagger": true,
+        "onScroll": true
+      }
     },
     "cta": {
-      "surface": "brand"
+      "surface": "brand",
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
     }
   },
   "picture": {
-    "style": "grain-gradient",
+    "style": "bread-counter",
     "subjects": [
       "bread-counter",
       "bakery",

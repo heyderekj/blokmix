@@ -7,12 +7,12 @@
     "warm"
   ],
   "tokens": {
-    "icon.set": "tabler:bold",
-    "color.bg": "#ffffff",
-    "color.surface": "#f2f2ee",
-    "color.text": "#000000",
-    "color.muted": "#555555",
-    "color.border": "#000000",
+    "icon.set": "lucide:bold",
+    "color.bg": "#fff8ef",
+    "color.surface": "#fbe9d3",
+    "color.text": "#1d1410",
+    "color.muted": "#5e4a40",
+    "color.border": "#1d1410",
     "color.primary": "#89301f",
     "color.onPrimary": "#ffffff",
     "color.accent": "#605422",
@@ -20,15 +20,15 @@
     "font.body": "'Figtree', sans-serif",
     "font.mono": "'Space Mono', ui-monospace, monospace",
     "type.base": "16px",
-    "type.ratio": "1.25",
+    "type.ratio": "1.2",
     "type.displayWeight": "800",
     "radius.base": "14px",
     "stroke.width": "2px",
-    "shadow.card": "6px 6px 0 #000000",
+    "shadow.card": "5px 5px 0 #1d1410",
     "space.base": "4px",
     "space.section": "88px",
     "motion.duration": "240ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "motion.ease": "cubic-bezier(0.16, 1, 0.3, 1)",
     "space.content": "1240px",
     "space.text": "660px"
   },
@@ -36,76 +36,88 @@
     "grain": {
       "id": "grain",
       "params": {
-        "amount": 36,
-        "size": 1.8,
-        "color": "primary"
+        "amount": 14,
+        "size": 1.2
       }
     },
     "shadow": {
       "id": "shadow",
       "params": {
-        "elevation": 6,
+        "elevation": 5,
         "softness": 0,
         "layers": 1,
-        "opacity": 60,
+        "opacity": 100,
         "tighten": 0,
         "angle": 135,
-        "tint": "primary"
+        "tint": "text"
       }
     },
     "gradient": {
       "id": "gradient",
       "params": {
         "stops": [
-          "accent",
-          "primary"
+          "primary",
+          "accent"
         ],
-        "angle": 90,
-        "smooth": false
+        "angle": 135
       }
     }
   },
   "textStyles": {
     "label": {
-      "font": "mono",
       "weight": 700,
-      "tracking": 0.04,
-      "size": "sm"
+      "tracking": 0.06,
+      "size": "xs"
+    },
+    "h1": {
+      "tracking": -0.04,
+      "leading": 1
     },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.035,
+      "leading": 1.05
     },
     "h3": {
-      "tracking": -0.01
+      "tracking": -0.02,
+      "leading": 1.15
     },
     "h4": {
-      "tracking": -0.01
+      "weight": 600,
+      "tracking": -0.01,
+      "leading": 1.2
+    },
+    "bodyLarge": {
+      "weight": 500,
+      "leading": 1.5
+    },
+    "small": {
+      "leading": 1.5
+    },
+    "caption": {
+      "weight": 500
     }
   },
   "components": {
     "badge": {
-      "variant": "square"
+      "variant": "solid"
     },
     "card": {
       "variant": "offset"
     },
     "button": {
-      "variant": "caps",
+      "variant": "solid",
       "secondary": {
         "variant": "outline"
       }
     },
-    "heading": {
-      "variant": "caps"
-    },
     "icon": {
-      "variant": "bare"
+      "variant": "tinted"
     },
     "link": {
       "variant": "underline"
     },
     "input": {
-      "variant": "underline"
+      "variant": "outlined"
     }
   },
   "sections": {
@@ -115,23 +127,116 @@
         "params": {
           "strength": 8
         }
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true
       }
     },
     "testimonials": {
-      "surface": "inverse"
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true
+      }
     },
     "nav": {
       "surface": "brand"
     },
     "features": {
-      "surface": "soft"
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
     },
     "cta": {
-      "surface": "inverse"
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
     }
   },
   "picture": {
-    "style": "shapes",
+    "style": "op-art",
     "subjects": [
       "pottery-shelf",
       "ceramics",

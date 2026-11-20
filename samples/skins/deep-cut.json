@@ -7,12 +7,12 @@
     "modern"
   ],
   "tokens": {
-    "icon.set": "tabler:regular",
-    "color.bg": "#0a1015",
-    "color.surface": "#141c22",
-    "color.text": "#ebeff3",
-    "color.muted": "#9fa6ab",
-    "color.border": "#272f35",
+    "icon.set": "phosphor:bold",
+    "color.bg": "#0e1110",
+    "color.surface": "#171c1a",
+    "color.text": "#e9efec",
+    "color.muted": "#9aa5a0",
+    "color.border": "#2a322f",
     "color.primary": "#a8f2db",
     "color.onPrimary": "#171717",
     "color.accent": "#e3baff",
@@ -24,7 +24,7 @@
     "type.displayWeight": "700",
     "radius.base": "6px",
     "stroke.width": "1px",
-    "shadow.card": "0 0 0 1px rgb(255 255 255 / 0.06), 0 20px 40px rgb(0 0 0 / 0.4)",
+    "shadow.card": "0 0 0 1px rgb(168 242 219 / 0.08), 0 16px 32px rgb(0 0 0 / 0.5)",
     "space.base": "4px",
     "space.section": "88px",
     "motion.duration": "176ms",
@@ -36,28 +36,52 @@
     "label": {
       "font": "mono",
       "weight": 500,
-      "tracking": 0.06
+      "tracking": 0,
+      "upper": false,
+      "size": "sm"
+    },
+    "h1": {
+      "tracking": -0.045,
+      "leading": 1
     },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.04,
+      "leading": 1.05
     },
     "h3": {
-      "tracking": -0.01
+      "weight": 700,
+      "tracking": -0.025,
+      "leading": 1.15
     },
     "h4": {
-      "tracking": -0.01
+      "weight": 500,
+      "tracking": -0.015,
+      "leading": 1.25
+    },
+    "bodyLarge": {
+      "leading": 1.55
+    },
+    "small": {
+      "font": "mono",
+      "tracking": 0
+    },
+    "caption": {
+      "font": "mono",
+      "tracking": 0.08,
+      "upper": true
     }
   },
   "components": {
     "badge": {
-      "variant": "mono"
+      "variant": "square"
     },
     "card": {
-      "variant": "bordered"
+      "variant": "glow"
     },
     "button": {
+      "variant": "solid",
       "secondary": {
-        "variant": "ghost"
+        "variant": "outline"
       }
     },
     "icon": {
@@ -77,16 +101,28 @@
         "params": {
           "strength": 8
         }
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "quick"
       }
     },
     "features": {
-      "surface": "soft"
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
     },
     "testimonials": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
+        "enter": "fade",
         "onScroll": true,
         "speed": "quick"
       }
@@ -94,7 +130,7 @@
     "pricing": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "slide",
         "stagger": true,
         "onScroll": true,
         "speed": "quick"
@@ -106,12 +142,18 @@
       }
     },
     "cta": {
-      "surface": "inverse"
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "quick"
+      }
     },
     "stats": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
         "onScroll": true,
         "speed": "quick"
@@ -120,7 +162,7 @@
     "team": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "slide",
         "stagger": true,
         "onScroll": true,
         "speed": "quick"
@@ -129,7 +171,7 @@
     "blog": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "slide",
         "stagger": true,
         "onScroll": true,
         "speed": "quick"
@@ -138,7 +180,7 @@
     "gallery": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
         "onScroll": true,
         "speed": "quick"
@@ -147,8 +189,7 @@
     "contact": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
+        "enter": "slide",
         "onScroll": true,
         "speed": "quick"
       }
@@ -203,5 +244,15 @@
         "type": "afterhours"
       }
     }
-  ]
+  ],
+  "effects": {
+    "glow": {
+      "id": "glow",
+      "params": {
+        "color": "primary",
+        "size": 36,
+        "strength": 16
+      }
+    }
+  }
 }

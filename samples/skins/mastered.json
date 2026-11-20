@@ -7,12 +7,12 @@
     "modern"
   ],
   "tokens": {
-    "icon.set": "lucide:regular",
-    "color.bg": "#ffffff",
-    "color.surface": "#f4f5f7",
-    "color.text": "#0c0e13",
-    "color.muted": "#5a606e",
-    "color.border": "#e2e4e9",
+    "icon.set": "heroicons:outline",
+    "color.bg": "#fbfcfe",
+    "color.surface": "#eef2f7",
+    "color.text": "#0e1a2b",
+    "color.muted": "#51607a",
+    "color.border": "#d5dde8",
     "color.primary": "#193c61",
     "color.onPrimary": "#ffffff",
     "color.accent": "#2e6b57",
@@ -20,11 +20,11 @@
     "font.body": "'IBM Plex Sans', sans-serif",
     "font.mono": "'JetBrains Mono', ui-monospace, monospace",
     "type.base": "16px",
-    "type.ratio": "1.25",
+    "type.ratio": "1.2",
     "type.displayWeight": "700",
     "radius.base": "6px",
     "stroke.width": "1px",
-    "shadow.card": "0 1px 2px rgb(12 14 19 / 0.06), 0 8px 24px rgb(12 14 19 / 0.06)",
+    "shadow.card": "0 1px 0 rgb(14 26 43 / 0.04), 0 2px 6px rgb(14 26 43 / 0.08)",
     "space.base": "4px",
     "space.section": "84px",
     "motion.duration": "192ms",
@@ -37,27 +37,48 @@
       "id": "gradient",
       "params": {
         "stops": [
-          "accent",
-          "primary"
+          "primary",
+          "accent"
         ],
-        "angle": 135
+        "angle": 180
       }
     }
   },
   "textStyles": {
     "label": {
-      "font": "mono",
-      "weight": 500,
-      "tracking": 0.08
+      "weight": 700,
+      "tracking": 0.04,
+      "size": "xs"
+    },
+    "h1": {
+      "tracking": -0.035,
+      "leading": 1.05
     },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.03,
+      "leading": 1.1
     },
     "h3": {
-      "tracking": -0.01
+      "weight": 700,
+      "tracking": -0.02,
+      "leading": 1.2
     },
     "h4": {
-      "tracking": -0.01
+      "weight": 700,
+      "tracking": -0.01,
+      "leading": 1.25
+    },
+    "bodyLarge": {
+      "leading": 1.5
+    },
+    "small": {
+      "weight": 500,
+      "leading": 1.45
+    },
+    "caption": {
+      "font": "mono",
+      "weight": 500,
+      "tracking": 0
     }
   },
   "components": {
@@ -68,18 +89,19 @@
       "variant": "bordered"
     },
     "button": {
+      "variant": "solid",
       "secondary": {
-        "variant": "outline"
+        "variant": "raised"
       }
     },
     "icon": {
-      "variant": "bare"
+      "variant": "tinted"
     },
     "link": {
-      "variant": "sweep"
+      "variant": "quiet"
     },
     "input": {
-      "variant": "filled"
+      "variant": "inset"
     }
   },
   "sections": {
@@ -89,19 +111,29 @@
         "params": {
           "strength": 8
         }
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
       }
     },
     "features": {
-      "surface": "soft"
-    },
-    "testimonials": {
       "surface": "soft",
       "motion": {
         "mode": "preset",
         "enter": "rise",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "quick"
+      }
+    },
+    "testimonials": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
       }
     },
     "pricing": {
@@ -110,7 +142,7 @@
         "enter": "rise",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "quick"
       }
     },
     "faq": {
@@ -119,15 +151,21 @@
       }
     },
     "cta": {
-      "surface": "inverse"
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "quick"
+      }
     },
     "stats": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "drop",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "quick"
       }
     },
     "team": {
@@ -136,7 +174,7 @@
         "enter": "rise",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "quick"
       }
     },
     "blog": {
@@ -145,25 +183,21 @@
         "enter": "rise",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "quick"
       }
     },
     "gallery": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "enter": "fade",
+        "onScroll": true
       }
     },
     "contact": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "enter": "fade",
+        "onScroll": true
       }
     },
     "content": {

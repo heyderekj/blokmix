@@ -8,11 +8,11 @@
   ],
   "tokens": {
     "icon.set": "material:bold",
-    "color.bg": "#fdfcff",
-    "color.surface": "#f3effe",
-    "color.text": "#1e1b3a",
-    "color.muted": "#6e6a8a",
-    "color.border": "#e6e1f7",
+    "color.bg": "#f9faff",
+    "color.surface": "#eceffa",
+    "color.text": "#1a2038",
+    "color.muted": "#5b6380",
+    "color.border": "#d9deef",
     "color.primary": "#35458d",
     "color.onPrimary": "#ffffff",
     "color.accent": "#8c4627",
@@ -20,15 +20,15 @@
     "font.body": "'Source Sans 3', sans-serif",
     "font.mono": "'JetBrains Mono', ui-monospace, monospace",
     "type.base": "16px",
-    "type.ratio": "1.25",
+    "type.ratio": "1.2",
     "type.displayWeight": "600",
     "radius.base": "18px",
     "stroke.width": "1px",
-    "shadow.card": "0 2px 4px #1e1b3a0d, 0 12px 32px #7c5cff1f",
+    "shadow.card": "0 1px 2px rgb(26 32 56 / 0.06), 0 6px 16px rgb(53 69 141 / 0.1)",
     "space.base": "4px",
     "space.section": "96px",
     "motion.duration": "272ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "motion.ease": "cubic-bezier(0.33, 1, 0.68, 1)",
     "space.content": "1180px",
     "space.text": "720px"
   },
@@ -36,47 +36,57 @@
     "gradient": {
       "id": "gradient",
       "params": {
-        "shape": "radial",
         "stops": [
-          "accent",
           "primary",
-          "surface"
-        ]
+          "accent"
+        ],
+        "angle": 120
       }
     },
     "shadow": {
       "id": "shadow",
       "params": {
-        "elevation": 18,
-        "softness": 80,
-        "layers": 4,
-        "opacity": 16,
-        "tighten": 25
-      }
-    },
-    "glow": {
-      "id": "glow",
-      "params": {
-        "color": "accent",
-        "size": 60,
-        "strength": 30
+        "elevation": 10,
+        "softness": 50,
+        "layers": 3,
+        "opacity": 12,
+        "tighten": 10
       }
     }
   },
   "textStyles": {
     "label": {
-      "weight": 700,
-      "tracking": 0.01,
-      "upper": false
+      "weight": 600,
+      "tracking": 0.03,
+      "upper": false,
+      "size": "sm"
+    },
+    "h1": {
+      "tracking": -0.02,
+      "leading": 1.1
     },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.015,
+      "leading": 1.18
     },
     "h3": {
-      "tracking": -0.01
+      "weight": 500,
+      "tracking": -0.005,
+      "leading": 1.28
     },
     "h4": {
-      "tracking": -0.01
+      "weight": 500,
+      "tracking": 0,
+      "leading": 1.35
+    },
+    "bodyLarge": {
+      "leading": 1.6
+    },
+    "small": {
+      "leading": 1.5
+    },
+    "caption": {
+      "weight": 600
     }
   },
   "components": {
@@ -84,21 +94,22 @@
       "variant": "pill"
     },
     "card": {
-      "variant": "tinted"
+      "variant": "raised"
     },
     "button": {
+      "variant": "solid",
       "secondary": {
         "variant": "soft"
       }
     },
     "icon": {
-      "variant": "bare"
+      "variant": "tinted"
     },
     "link": {
       "variant": "underline"
     },
     "input": {
-      "variant": "filled"
+      "variant": "outlined"
     }
   },
   "sections": {
@@ -108,18 +119,28 @@
         "params": {
           "strength": 8
         }
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "drop",
+        "stagger": true,
+        "onScroll": true
       }
     },
     "features": {
-      "surface": "soft"
-    },
-    "testimonials": {
+      "surface": "soft",
       "motion": {
         "mode": "preset",
         "enter": "rise",
         "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "onScroll": true
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
       }
     },
     "pricing": {
@@ -127,8 +148,7 @@
         "mode": "preset",
         "enter": "rise",
         "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "onScroll": true
       }
     },
     "faq": {
@@ -137,15 +157,19 @@
       }
     },
     "cta": {
-      "surface": "inverse"
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true
+      }
     },
     "stats": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "onScroll": true
       }
     },
     "team": {
@@ -153,8 +177,7 @@
         "mode": "preset",
         "enter": "rise",
         "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "onScroll": true
       }
     },
     "blog": {
@@ -162,26 +185,22 @@
         "mode": "preset",
         "enter": "rise",
         "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "onScroll": true
       }
     },
     "gallery": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "onScroll": true
       }
     },
     "contact": {
       "motion": {
         "mode": "preset",
         "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "slow"
+        "onScroll": true
       }
     },
     "content": {

@@ -7,12 +7,12 @@
     "warm"
   ],
   "tokens": {
-    "icon.set": "phosphor:duotone",
-    "color.bg": "#fbf6ee",
-    "color.surface": "#f4eadb",
-    "color.text": "#2b2119",
-    "color.muted": "#6f5f50",
-    "color.border": "#e6d8c4",
+    "icon.set": "phosphor:light",
+    "color.bg": "#f7f6ef",
+    "color.surface": "#ebeee2",
+    "color.text": "#20261f",
+    "color.muted": "#5c6657",
+    "color.border": "#d7dccb",
     "color.primary": "#315647",
     "color.onPrimary": "#ffffff",
     "color.accent": "#79583c",
@@ -24,11 +24,11 @@
     "type.displayWeight": "500",
     "radius.base": "24px",
     "stroke.width": "1px",
-    "shadow.card": "0 1px 2px rgb(43 33 25 / 0.06), 0 10px 30px rgb(43 33 25 / 0.08)",
+    "shadow.card": "0 1px 2px rgb(32 38 31 / 0.05), 0 14px 36px rgb(49 86 71 / 0.1)",
     "space.base": "4px",
     "space.section": "104px",
     "motion.duration": "208ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "motion.ease": "cubic-bezier(0.33, 1, 0.68, 1)",
     "space.content": "1120px",
     "space.text": "700px"
   },
@@ -36,31 +36,48 @@
     "grain": {
       "id": "grain",
       "params": {
-        "amount": 6,
-        "size": 0.9
+        "amount": 4,
+        "size": 0.6
       }
     }
   },
   "textStyles": {
     "label": {
-      "weight": 600,
-      "tracking": 0.02,
-      "upper": false,
-      "size": "sm"
+      "weight": 500,
+      "tracking": 0.14,
+      "size": "xs"
+    },
+    "h1": {
+      "tracking": -0.02,
+      "leading": 1.08
     },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.015,
+      "leading": 1.15
     },
     "h3": {
-      "tracking": -0.01
+      "weight": 400,
+      "tracking": -0.005,
+      "leading": 1.3
     },
     "h4": {
-      "tracking": -0.01
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.35
+    },
+    "bodyLarge": {
+      "leading": 1.65
+    },
+    "small": {
+      "leading": 1.55
+    },
+    "caption": {
+      "tracking": 0.02
     }
   },
   "components": {
     "badge": {
-      "variant": "pill"
+      "variant": "dot"
     },
     "card": {
       "variant": "tinted"
@@ -68,11 +85,11 @@
     "button": {
       "variant": "pill",
       "secondary": {
-        "variant": "soft"
+        "variant": "outline"
       }
     },
     "icon": {
-      "variant": "bare"
+      "variant": "tinted"
     },
     "link": {
       "variant": "sweep"
@@ -88,18 +105,30 @@
         "params": {
           "strength": 8
         }
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
       }
     },
     "features": {
-      "surface": "soft"
-    },
-    "testimonials": {
+      "surface": "soft",
       "motion": {
         "mode": "preset",
         "enter": "rise",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "slow"
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "slow"
       }
     },
     "pricing": {
@@ -108,7 +137,7 @@
         "enter": "rise",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "slow"
       }
     },
     "faq": {
@@ -117,15 +146,21 @@
       }
     },
     "cta": {
-      "surface": "inverse"
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
     },
     "stats": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "fade",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "slow"
       }
     },
     "team": {
@@ -134,7 +169,7 @@
         "enter": "rise",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "slow"
       }
     },
     "blog": {
@@ -143,25 +178,23 @@
         "enter": "rise",
         "stagger": true,
         "onScroll": true,
-        "speed": "normal"
+        "speed": "slow"
       }
     },
     "gallery": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
+        "enter": "blur",
         "onScroll": true,
-        "speed": "normal"
+        "speed": "slow"
       }
     },
     "contact": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
+        "enter": "fade",
         "onScroll": true,
-        "speed": "normal"
+        "speed": "slow"
       }
     },
     "content": {
