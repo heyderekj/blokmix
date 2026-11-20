@@ -37,14 +37,14 @@ describe('text styles', () => {
     expect(blockTextStyle(headline, hero.blocks, undefined, edited)).toBe('display')
     const css = blockCss({ blocks: hero.blocks, edits: undefined, textStyles: edited.textStyles, select })
     expect(css).toContain(`[data-mx-b="${headline.id}"] {`)
-    expect(css).toContain('font-size: var(--mx-text-5xl);')
+    expect(css).toContain('font-size: min(var(--mx-text-5xl), 11cqi);')
     // 'none' opts a block out.
     expect(blockTextStyle(headline, hero.blocks, 'none', edited)).toBeUndefined()
   })
 
   it('a picked style and a size, with smaller big sizes on phones', () => {
     const t = textDecl(resolveTextStyles(undefined).h2, undefined)
-    expect(t.desktop).toContain('font-size: var(--mx-text-4xl);')
+    expect(t.desktop).toContain('font-size: min(var(--mx-text-4xl), 11cqi);')
     expect(t.phone).toEqual(['font-size: var(--mx-text-2xl);'])
     const sized = textDecl(undefined, '5xl')
     expect(sized.desktop).toEqual(['font-size: var(--mx-text-5xl);', 'line-height: 1.08;'])
@@ -63,7 +63,7 @@ describe('text styles', () => {
     expect(auto).toContain('letter-spacing: -0.05em;')
     expect(auto).not.toContain('font-size:')
     const explicit = blockCss({ blocks: hero.blocks, edits: { [headline.id]: { style: { text: 'display' } } }, layout: true, textStyles: guide.textStyles, select })
-    expect(explicit).toContain('font-size: var(--mx-text-6xl);')
+    expect(explicit).toContain('font-size: min(var(--mx-text-6xl), 11cqi);')
   })
 
   it('commands: edit a style, pick one for a block, size a block', () => {

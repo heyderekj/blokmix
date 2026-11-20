@@ -54,8 +54,10 @@ describe('finished themes are each their own', () => {
   })
 
   it('each has its own picture style and icon set, and a main button with a quieter one', () => {
-    expect(new Set(themes.map((s) => s.picture?.style)).size, 'picture styles').toBe(themes.length)
-    expect(new Set(themes.map((s) => skinTokens(s)['icon.set'])).size, 'icon sets').toBe(themes.length)
+    // Experiments (odd 2) may borrow a picture style or icon set: there are fewer icon sets than themes.
+    const finished = themes.filter((s) => s.odd !== 2)
+    expect(new Set(finished.map((s) => s.picture?.style)).size, 'picture styles').toBe(finished.length)
+    expect(new Set(finished.map((s) => skinTokens(s)['icon.set'])).size, 'icon sets').toBe(finished.length)
     for (const s of themes) {
       expect(s.components?.button?.variant, `${s.id} main button`).toBeTruthy()
       expect(s.components?.button?.secondary?.variant, `${s.id} quieter button`).not.toBe(s.components?.button?.variant)

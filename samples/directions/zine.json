@@ -1,0 +1,38 @@
+{
+  "name": "Zine",
+  "why": "Photocopied and proud: hard lines, mono type and work pinned up any which way.",
+  "theme": "bootleg",
+  "layouts": {
+    "nav": [
+      "cells"
+    ],
+    "hero": [
+      "collage"
+    ],
+    "features": [
+      "list"
+    ],
+    "gallery": [
+      "masonry"
+    ],
+    "testimonials": [
+      "cards"
+    ],
+    "cta": [
+      "sticker"
+    ],
+    "footer": [
+      "index"
+    ]
+  },
+  "density": "dense",
+  "kinds": [
+    "studio",
+    "event"
+  ],
+  "formats": [
+    "portfolio",
+    "event"
+  ],
+  "odd": 2
+}

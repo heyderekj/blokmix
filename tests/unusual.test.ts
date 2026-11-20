@@ -3,6 +3,8 @@ import { library } from '@/data/library'
 import '@/data/directions'
 import { byUnusual, directionList, oddness } from '@/core/directions'
 import { currentSlots, useStore } from '@/state/store'
+import { skinList } from '@/core/skins'
+import '@/data/skins'
 import { runCommand } from '@/state/commands'
 
 describe('how unusual', () => {
@@ -13,6 +15,15 @@ describe('how unusual', () => {
     expect(layouts.get(anySafeLayout)).toBe(0)
     expect(themes.get(safe.theme.split('/')[0])).toBe(0)
     expect([...layouts.values()].some((v) => v >= 1)).toBe(true)
+  })
+
+  it('keeps an experiment strange even when a safe direction uses it', () => {
+    const experiments = skinList().filter((s) => s.odd === 2).map((s) => s.id)
+    expect(experiments.sort()).toEqual(['bootleg', 'full-volume', 'light-show'])
+    const safe = { ...directionList().find((d) => (d.odd ?? 0) === 0)!, id: 'test-safe', theme: 'bootleg', odd: 0 as const }
+    const { themes } = oddness([...directionList(), safe])
+    for (const id of experiments) expect(themes.get(id), id).toBe(2)
+    expect(themes.get('studio')).toBe(0)
   })
 
   it('picks safe ones, any, or the unusual ones first, never nothing', () => {
@@ -49,5 +60,17 @@ describe('Mix at a setting', () => {
     runCommand('apply_skin', { skin: 'acoustic' }, 'agent')
     const far = runCommand('surprise_me', { seed: 3, unusual: 2 }, 'agent') as { words: string }
     expect(near.words).not.toBe(far.words)
+  })
+
+  it('Mix the rest at Safe never lands an experiment, and at Strange it can', () => {
+    const experiments = skinList().filter((s) => s.odd === 2).map((s) => s.name)
+    const words = (unusual: 0 | 2) =>
+      Array.from({ length: 12 }, (_, seed) => {
+        runCommand('apply_skin', { skin: 'acoustic' }, 'agent')
+        return (runCommand('surprise_me', { seed, unusual }, 'agent') as { words: string }).words
+      }).join(' | ')
+    const safe = words(0)
+    for (const name of experiments) expect(safe, name).not.toContain(name)
+    expect(experiments.some((name) => words(2).includes(name))).toBe(true)
   })
 })

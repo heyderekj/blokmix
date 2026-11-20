@@ -10,7 +10,7 @@ import { emptyContract, STYLE_AREAS } from './contract'
 import { resolveGuide } from './guide'
 import { heroFamily } from './heroLayouts'
 import { pickable } from './library'
-import { partSource, skinById, swapThemeParts, themeList, type Skin, type ThemeParts } from './skins'
+import { partSource, skinById, skinList, swapThemeParts, themeList, type Skin, type ThemeParts } from './skins'
 import { contentFor, countShelves, fillPage, guideFor, otherPages, RECIPES, siteFromPages, type StartCandidate, type StartInput } from './start'
 import { navForStart } from './startNav'
 import { leanOf, passedRefs, type Taste } from './taste'
@@ -307,7 +307,8 @@ export function checkDirections(lib: Library, pool: Direction[] = directionList(
 
 /**
  * How unusual each layout and theme is, read off the curated directions: the least unusual one that uses it (0 safe,
- * 1 a little unexpected, 2 strange). Ones no direction uses count as safe.
+ * 1 a little unexpected, 2 strange). Ones no direction uses count as safe. A theme's own `odd` is a floor: an
+ * experiment stays strange even when a safe direction or starter uses it.
  */
 export function oddness(pool: Direction[] = directionList()): { layouts: Map<string, number>; themes: Map<string, number> } {
   const layouts = new Map<string, number>()
@@ -318,6 +319,7 @@ export function oddness(pool: Direction[] = directionList()): { layouts: Map<str
     for (const ids of Object.values(d.layouts)) for (const id of ids ?? []) note(layouts, id, odd)
     note(themes, d.theme.split('/')[0], odd)
   }
+  for (const s of skinList()) if (s.odd) themes.set(s.id, Math.max(themes.get(s.id) ?? 0, s.odd))
   return { layouts, themes }
 }
 

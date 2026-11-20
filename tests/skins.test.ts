@@ -169,7 +169,7 @@ describe('section defaults', () => {
 
 describe('the skins themselves', () => {
   it('load the catalog, starting from Wireframe', () => {
-    expect(skinList().map((s) => s.id).sort()).toEqual(['acoustic', 'afterhours', 'counter-service', 'day-planner', 'deep-cut', 'dreampop', 'field-recording', 'flyer', 'gatefold', 'headliner', 'homeroom', 'liner-notes', 'lofi', 'mastered', 'mixtape', 'press-kit', 'solo', 'songbook', 'studio', 'supper-club', 'vinyl', 'wireframe'])
+    expect(skinList().map((s) => s.id).sort()).toEqual(['acoustic', 'afterhours', 'bootleg', 'counter-service', 'day-planner', 'deep-cut', 'dreampop', 'field-recording', 'flyer', 'full-volume', 'gatefold', 'headliner', 'homeroom', 'light-show', 'liner-notes', 'lofi', 'mastered', 'mixtape', 'press-kit', 'solo', 'songbook', 'studio', 'supper-club', 'vinyl', 'wireframe'])
     expect(skinList()[0].id).toBe('wireframe')
   })
 
@@ -189,7 +189,9 @@ describe('the skins themselves', () => {
       expect(s.tokens[k], `${id} ${k}`).toBeTruthy()
     expect(Object.keys(s.textStyles?.label ?? {}).length, `${id} label`).toBeGreaterThan(0)
     // Layouts size the headline to the window (clamp with vw); a Display style would fix it at one size everywhere.
-    expect(s.textStyles?.display, `${id} display`).toBeUndefined()
+    // An experiment may set one on purpose (Full Volume's oversized type), with its own phone size.
+    if (s.odd === 2 && s.textStyles?.display) expect(s.textStyles.display.phone, `${id} display phone`).toBeTruthy()
+    else expect(s.textStyles?.display, `${id} display`).toBeUndefined()
     for (const style of Object.keys(s.textStyles ?? {})) expect(TEXT_STYLES, `${id} ${style}`).toContain(style)
     const has = (kind: 'badge' | 'card' | 'icon' | 'button', v?: string) => !!v && (VARIANTS[kind] ?? []).some((x) => x.id === v)
     expect(has('badge', s.components?.badge?.variant), `${id} badge`).toBe(true)
