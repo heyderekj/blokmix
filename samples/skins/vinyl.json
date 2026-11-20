@@ -8,7 +8,7 @@
     "serious"
   ],
   "tokens": {
-    "icon.set": "iconoir:light",
+    "icon.set": "phosphor:thin",
     "color.bg": "#0f0e0c",
     "color.surface": "#1a1815",
     "color.text": "#f2ece0",
@@ -29,7 +29,7 @@
     "space.base": "4px",
     "space.section": "128px",
     "motion.duration": "280ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "motion.ease": "cubic-bezier(0.16, 1, 0.3, 1)",
     "space.content": "1308px",
     "space.text": "716px"
   },
@@ -54,14 +54,36 @@
       "weight": 400,
       "tracking": 0.16
     },
+    "h1": {
+      "tracking": -0.02,
+      "leading": 1,
+      "phone": "3xl"
+    },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.015,
+      "leading": 1.08,
+      "phone": "2xl"
     },
     "h3": {
-      "tracking": -0.01
+      "tracking": -0.005,
+      "leading": 1.2,
+      "phone": "xl"
     },
     "h4": {
-      "tracking": -0.01
+      "font": "body",
+      "weight": 500,
+      "tracking": 0.01,
+      "leading": 1.4
+    },
+    "bodyLarge": {
+      "leading": 1.6
+    },
+    "small": {
+      "tracking": 0.01
+    },
+    "caption": {
+      "tracking": 0.1,
+      "upper": true
     }
   },
   "components": {
@@ -69,9 +91,10 @@
       "variant": "line"
     },
     "card": {
-      "variant": "rule"
+      "variant": "flat"
     },
     "button": {
+      "variant": "caps",
       "secondary": {
         "variant": "arrow"
       }
@@ -80,7 +103,7 @@
       "variant": "bare"
     },
     "link": {
-      "variant": "sweep"
+      "variant": "quiet"
     },
     "input": {
       "variant": "underline"
@@ -101,7 +124,7 @@
       },
       "motion": {
         "mode": "preset",
-        "enter": "fade",
+        "enter": "blur",
         "onScroll": true,
         "speed": "slow"
       }
@@ -110,6 +133,7 @@
       "motion": {
         "mode": "preset",
         "enter": "fade",
+        "stagger": true,
         "onScroll": true,
         "speed": "slow"
       }
@@ -127,6 +151,7 @@
       "motion": {
         "mode": "preset",
         "enter": "fade",
+        "stagger": true,
         "onScroll": true,
         "speed": "slow"
       }
@@ -139,7 +164,7 @@
     "cta": {
       "motion": {
         "mode": "preset",
-        "enter": "fade",
+        "enter": "blur",
         "onScroll": true,
         "speed": "slow"
       }
@@ -148,6 +173,7 @@
       "motion": {
         "mode": "preset",
         "enter": "fade",
+        "stagger": true,
         "onScroll": true,
         "speed": "slow"
       }
@@ -156,6 +182,7 @@
       "motion": {
         "mode": "preset",
         "enter": "fade",
+        "stagger": true,
         "onScroll": true,
         "speed": "slow"
       }
@@ -164,6 +191,7 @@
       "motion": {
         "mode": "preset",
         "enter": "fade",
+        "stagger": true,
         "onScroll": true,
         "speed": "slow"
       }
@@ -171,7 +199,8 @@
     "gallery": {
       "motion": {
         "mode": "preset",
-        "enter": "fade",
+        "enter": "blur",
+        "stagger": true,
         "onScroll": true,
         "speed": "slow"
       }
@@ -198,14 +227,7 @@
     }
   },
   "picture": {
-    "style": "grain-gradient",
-    "params": {
-      "a": "accent",
-      "b": "bg",
-      "c": "primary",
-      "angle": 200,
-      "grain": 40
-    },
+    "style": "flow",
     "subjects": [
       "reading-room",
       "print-edition",

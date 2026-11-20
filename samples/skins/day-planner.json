@@ -7,7 +7,7 @@
     "playful"
   ],
   "tokens": {
-    "icon.set": "material:bold",
+    "icon.set": "heroicons:solid",
     "color.bg": "#f6f3ff",
     "color.surface": "#e7dfff",
     "color.text": "#22234a",
@@ -20,7 +20,7 @@
     "font.body": "'Inter', sans-serif",
     "font.mono": "'JetBrains Mono', ui-monospace, monospace",
     "type.base": "16px",
-    "type.ratio": "1.25",
+    "type.ratio": "1.2",
     "type.displayWeight": "800",
     "radius.base": "5px",
     "stroke.width": "1px",
@@ -34,18 +34,43 @@
   },
   "textStyles": {
     "label": {
-      "weight": 700,
-      "tracking": 0.01,
-      "upper": false
+      "font": "display",
+      "weight": 600,
+      "tracking": 0.08,
+      "size": "sm"
+    },
+    "h1": {
+      "tracking": 0.005,
+      "leading": 0.95,
+      "upper": true
     },
     "h2": {
-      "tracking": -0.025
+      "tracking": 0.01,
+      "leading": 1,
+      "upper": true
     },
     "h3": {
-      "tracking": -0.01
+      "weight": 600,
+      "tracking": 0.02,
+      "leading": 1.1,
+      "upper": true
     },
     "h4": {
-      "tracking": -0.01
+      "font": "body",
+      "weight": 600,
+      "tracking": -0.005,
+      "leading": 1.25
+    },
+    "bodyLarge": {
+      "leading": 1.5
+    },
+    "small": {
+      "weight": 500
+    },
+    "caption": {
+      "weight": 600,
+      "tracking": 0.04,
+      "upper": true
     }
   },
   "industries": [
@@ -70,6 +95,12 @@
     },
     "input": {
       "variant": "filled"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "heading": {
+      "variant": "caps"
     }
   },
   "sections": {
@@ -80,20 +111,116 @@
           "gap": 50,
           "strength": 8
         }
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
       }
     },
     "stats": {
-      "surface": "brand"
+      "surface": "brand",
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
     },
     "features": {
-      "surface": "soft"
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
     },
     "cta": {
-      "surface": "inverse"
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
     }
   },
   "picture": {
-    "style": "blocks",
+    "style": "grid",
     "subjects": [
       "day-ticket",
       "calendar",

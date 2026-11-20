@@ -29,7 +29,7 @@
     "space.base": "4px",
     "space.section": "104px",
     "motion.duration": "280ms",
-    "motion.ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+    "motion.ease": "cubic-bezier(0.33, 1, 0.68, 1)",
     "space.content": "1248px",
     "space.text": "696px"
   },
@@ -37,26 +37,45 @@
     "grain": {
       "id": "grain",
       "params": {
-        "amount": 6,
-        "size": 0.9
+        "amount": 10,
+        "size": 1
       }
     }
   },
   "textStyles": {
     "label": {
-      "weight": 600,
+      "weight": 700,
       "tracking": 0.02,
       "upper": false,
       "size": "sm"
     },
+    "h1": {
+      "tracking": -0.01,
+      "leading": 1.1
+    },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.01,
+      "leading": 1.18
     },
     "h3": {
-      "tracking": -0.01
+      "tracking": 0,
+      "leading": 1.28
     },
     "h4": {
-      "tracking": -0.01
+      "font": "body",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.3
+    },
+    "bodyLarge": {
+      "leading": 1.6
+    },
+    "small": {
+      "weight": 500
+    },
+    "caption": {
+      "weight": 500,
+      "tracking": 0.01
     }
   },
   "components": {
@@ -64,7 +83,7 @@
       "variant": "pill"
     },
     "card": {
-      "variant": "tinted"
+      "variant": "grain"
     },
     "button": {
       "variant": "pill",
@@ -79,7 +98,7 @@
       "variant": "underline"
     },
     "input": {
-      "variant": "outlined"
+      "variant": "pill"
     }
   },
   "sections": {
@@ -99,36 +118,31 @@
         "mode": "preset",
         "enter": "rise",
         "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "features": {
       "surface": "soft",
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "testimonials": {
       "motion": {
         "mode": "preset",
         "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "pricing": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "faq": {
@@ -140,55 +154,47 @@
       "surface": "brand",
       "motion": {
         "mode": "preset",
-        "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "enter": "pop",
+        "onScroll": true
       }
     },
     "stats": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "team": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "blog": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "gallery": {
       "motion": {
         "mode": "preset",
-        "enter": "rise",
+        "enter": "pop",
         "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "contact": {
       "motion": {
         "mode": "preset",
         "enter": "rise",
-        "stagger": true,
-        "onScroll": true,
-        "speed": "normal"
+        "onScroll": true
       }
     },
     "content": {

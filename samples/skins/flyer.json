@@ -72,14 +72,40 @@
       "tracking": 0.04,
       "size": "sm"
     },
+    "h1": {
+      "tracking": -0.03,
+      "leading": 0.95,
+      "upper": true
+    },
     "h2": {
-      "tracking": -0.025
+      "tracking": -0.03,
+      "leading": 1,
+      "upper": true
     },
     "h3": {
-      "tracking": -0.01
+      "tracking": -0.02,
+      "leading": 1.1,
+      "upper": true
     },
     "h4": {
-      "tracking": -0.01
+      "font": "body",
+      "weight": 800,
+      "tracking": 0.02,
+      "leading": 1.2,
+      "upper": true
+    },
+    "bodyLarge": {
+      "weight": 500,
+      "leading": 1.45
+    },
+    "small": {
+      "weight": 500
+    },
+    "caption": {
+      "font": "mono",
+      "weight": 700,
+      "tracking": 0.04,
+      "upper": true
     }
   },
   "components": {
@@ -87,10 +113,10 @@
       "variant": "square"
     },
     "card": {
-      "variant": "offset"
+      "variant": "bordered"
     },
     "button": {
-      "variant": "caps",
+      "variant": "offset",
       "secondary": {
         "variant": "outline"
       }
@@ -110,13 +136,113 @@
   },
   "sections": {
     "hero": {
-      "surface": "brand"
+      "surface": "brand",
+      "motion": {
+        "mode": "preset",
+        "enter": "drop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
     },
     "testimonials": {
-      "surface": "inverse"
+      "surface": "inverse",
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true,
+        "speed": "quick"
+      }
     },
     "nav": {
       "surface": "brand"
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "drop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "cta": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "stagger": true,
+        "onScroll": true,
+        "speed": "quick"
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade"
+      }
     }
   },
   "picture": {
