@@ -26,7 +26,7 @@ export const FEEL_SYNONYMS: Record<string, string> = {
 /** "not", "no", "never too"… right before a word turns it into something to steer away from. */
 const NOT = /\b(?:not|no|never|nothing|without|avoid|isn['’]?t|aren['’]?t|less)\s+(?:too\s+|very\s+|so\s+|overly\s+|at\s+all\s+|a\s+bit\s+|remotely\s+)?$/i
 
-const bare = (label: string) => label.replace(/^(an?|my|our|the)\s+/i, '').toLowerCase()
+export const bare = (label: string) => label.replace(/^(an?|my|our|the)\s+/i, '').toLowerCase()
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 interface Hit {

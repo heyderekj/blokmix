@@ -53,6 +53,8 @@ export interface Blank {
   ownOnly?: boolean
   /** Search existing choices without saving unmatched text. */
   searchOnly?: boolean
+  /** Takes a list in one go ("warm, handmade, a bit bold"): each item becomes its own pick (`core/jev/blankList.ts`). */
+  list?: boolean
 }
 
 export type Segment = { text: string } | { blank: Blank }
@@ -221,9 +223,9 @@ const filled = (picks: Picks, id: string) => (picks[id] ?? []).some((p) => p.wor
 export const START_BLANKS = {
   business: { id: 'business', ask: 'what it is', placeholder: 'a bakery', options: BUSINESSES, groups: Object.values(BUSINESS_GROUPS) },
   name: { id: 'name', ask: 'its name', placeholder: 'Fern & Co', options: [], ownOnly: true },
-  feel: { id: 'feel', ask: 'a feeling', placeholder: 'cozy', options: FEELS, groups: Object.keys(FEEL_GROUPS) },
-  goal: { id: 'goal', ask: 'do what', placeholder: 'order ahead', options: GOALS, groups: Object.keys(GOAL_GROUPS) },
-  show: { id: 'show', ask: 'what to show', placeholder: 'our menu', options: SHOWS, many: true, groups: Object.keys(SHOW_GROUPS) },
+  feel: { id: 'feel', ask: 'a feeling', placeholder: 'cozy', options: FEELS, groups: Object.keys(FEEL_GROUPS), list: true },
+  goal: { id: 'goal', ask: 'do what', placeholder: 'order ahead', options: GOALS, groups: Object.keys(GOAL_GROUPS), list: true },
+  show: { id: 'show', ask: 'what to show', placeholder: 'our menu', options: SHOWS, many: true, list: true, groups: Object.keys(SHOW_GROUPS) },
 } satisfies Record<string, Blank>
 
 /**
@@ -285,21 +287,23 @@ export function fillStart(picks: Picks): StartFill {
   const one = (id: string) => picks[id]?.[0]
   const business = byId(BUSINESSES, one('business')?.id)
   const kind = business?.kind ?? null
-  const feel = byId(FEELS, one('feel')?.id)
-  const goal = byId(GOALS, one('goal')?.id)
+  // Every feeling and every goal said (a list in one blank: "warm, handmade"; "book a table, order ahead").
+  const feels = (picks.feel ?? []).flatMap((p) => byId(FEELS, p.id) ?? [])
+  const goals = (picks.goal ?? []).flatMap((p) => byId(GOALS, p.id) ?? [])
+  const goal = goals[0]
   const shows = (picks.show ?? []).map((p) => ({ p, s: byId(SHOWS, p.id) }))
   let sections: SectionType[] | null = null
   if (kind) {
     sections = RECIPES[kind].home
-    for (const t of [...(goal?.sections ?? []), ...shows.flatMap(({ s }) => (s?.section ? [s.section] : []))]) sections = placeSection(sections, t)
+    for (const t of [...goals.flatMap((g) => g.sections), ...shows.flatMap(({ s }) => (s?.section ? [s.section] : []))]) sections = placeSection(sections, t)
   }
-  const feelWords = one('feel')?.words.trim()
+  const feelWords = listWords((picks.feel ?? []).map((p) => p.words.trim()).filter(Boolean)) || undefined
   const businessWords = one('business')?.words.trim().replace(/^(an?|my|our)\s+/i, '')
   return {
     kind,
     name: one('name')?.words.trim() ?? '',
     sections,
-    looks: feel ? rankThemes({brief:guessBrief(businessWords ?? ''), words:[SENTENCE_FEEL[feel.id]]}).map((r) => r.skin.id) : [],
+    looks: feels.length ? rankThemes({ brief: guessBrief(businessWords ?? ''), words: [...new Set(feels.flatMap((f) => SENTENCE_FEEL[f.id] ?? []))] }).map((r) => r.skin.id) : [],
     button: goal?.button ?? (one('goal')?.words.trim() ? capital(one('goal')!.words.trim()) : undefined),
     feel: feelWords ? `${feelWords}${businessWords ? ` ${businessWords}` : ''}` : undefined,
     wants: shows.filter(({ s }) => !s?.section).map(({ p }) => p.words.trim()).filter(Boolean),

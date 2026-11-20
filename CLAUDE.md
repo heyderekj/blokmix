@@ -169,7 +169,10 @@ Noted."). The sentence is whole from the start, each empty blank naming what it 
 answer): "I'm making a site for [what it is] called [its name]. It should feel [a feeling] and help people [do what].
 Show [what to show]." (`core/jev/sentence.ts` `startSentence`, `fillStart`, `startText`; `ui/jev/Sentence.tsx`: each blank
 opens a shortlist and a field that searches or takes your own words, which are always the first option ("Use “…”"); a
-long answer shows its start and flows with the sentence. Jev's order (`rankRequest`) or the kind informs the shortlist and
+long answer shows its start and flows with the sentence. A list typed into the feeling, the goal or what to show ("menu, opening
+hours, a map and reviews") becomes one pick per item, each matched without the network (`core/jev/blankList.ts` `splitList`,
+`matchOption`: labels, labels without "a"/"our", whole words either way, synonyms; an item with a "no" is left to the read), and Enter
+moves on to the next blank. Jev's order (`rankRequest`) or the kind informs the shortlist and
 `matchRequest` matches your words to an option). Under it, a row for each thing it understood, filled in and changeable in
 place (`ui/start/ChipRows.tsx`: kind of site and industry, what it should do, main button (`actionChoices` or your words),
 what's on the page (✕ and +), who it's for, and the feel in your words with what to steer away from). "I have words

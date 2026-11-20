@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { applyRead, becauseLines, briefFrom, changedSection, dropAvoid, emptyStart, sectionsFrom, setBrief, setPicks, startView, type StartState } from '@/core/startFlow'
 import { checkRead, keywordRead } from '@/core/reader'
-import { fillStart, type Picks } from '@/core/jev/sentence'
+import { fillStart, startText, type Picks } from '@/core/jev/sentence'
 import { rankThemes } from '@/core/themeRanking'
 import { TYPE_LABEL } from '@/core/content'
 import { hearStart } from '@/lib/startFromText'
@@ -170,5 +170,47 @@ describe('a paragraph written into a blank', () => {
     expect(s.picks.business).toEqual([{ words: para }])
     expect(s.mine).toContain('business')
     expect(s.from).not.toContain('business')
+  })
+})
+
+describe('your words in a blank, read', () => {
+  it('tags your words with what the read heard when the read was asked with them in the sentence', () => {
+    const own = 'warm and handmade'
+    const now = { business: pick('bakery', 'a bakery'), feel: [{ words: own }] }
+    const s = applyRead(withPicks(now), keywordRead(own), now, { blank: 'feel', words: own })
+    expect(s.picks.feel).toEqual([{ words: own, id: 'warm' }])
+    expect(s.from).toContain('feel')
+  })
+
+  it('only says “From what you wrote” on your blank when the read heard something there', () => {
+    const own = 'something unusual'
+    const now = { feel: [{ words: own }] }
+    const s = applyRead(withPicks(now), keywordRead(own), now, { blank: 'feel', words: own })
+    expect(s.from).not.toContain('feel')
+  })
+
+  it('never lists the same thing to show twice', () => {
+    const own = 'menu'
+    const now = { business: pick('bakery', 'a bakery'), show: [{ id: 'menu', words: own }] }
+    const read = { ...keywordRead('our menu and opening hours'), show: ['menu', 'hours'] as never }
+    const s = applyRead(withPicks(now), read, now, { blank: 'show', words: own })
+    expect(s.picks.show.map((p) => p.id)).toEqual(['menu', 'hours'])
+  })
+
+  it('takes every goal in the blank into the brief, and the first one’s button', () => {
+    const v = startView(withPicks({ business: pick('bakery', 'a bakery'), goal: [{ id: 'book-table', words: 'book a table' }, { id: 'order', words: 'order ahead' }] }))
+    expect(v.brief.goals).toEqual(['bookings', 'orders'])
+    expect(v.brief.mainAction).toBe('Book a table')
+    expect(v.sections).toContain('contact')
+  })
+})
+
+describe('a business you picked', () => {
+  it('keeps the kind of site, whatever a keyword elsewhere says', () => {
+    const picks = { business: pick('bakery', 'a bakery'), show: [{ id: 'menu', words: 'menu' }, { words: 'a podcast' }] }
+    const s = applyRead(withPicks(picks), keywordRead(startText(picks)), picks)
+    const v = startView(s)
+    expect(v.brief.format).toBe('business')
+    expect(v.kind).toBe('local')
   })
 })
