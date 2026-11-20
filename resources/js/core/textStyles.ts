@@ -99,13 +99,19 @@ export const phoneStep = (s: TypeStep): TypeStep => (stepOf(s) >= stepOf('3xl') 
 export const nudgeStep = (s: TypeStep, by: number): TypeStep => TYPE_STEPS[Math.min(TYPE_STEPS.length - 1, Math.max(0, stepOf(s) + by))]
 
 /** CSS declarations for a style (desktop and phones), and for a block's own size on top. */
+/**
+ * A style's size. The biggest steps also answer to the section (every section root is a size container), so oversized
+ * type set in a style shrinks in a narrow column on a tablet instead of breaking its words.
+ */
+const styleSize = (step: TypeStep) => (TYPE_STEPS.indexOf(step) >= TYPE_STEPS.indexOf('4xl') ? `min(var(--mx-text-${step}), 11cqi)` : `var(--mx-text-${step})`)
+
 export function textDecl(def: TextStyleDef | undefined, size: TypeStep | undefined, sizing: 'style' | 'phone' | 'layout' = 'style'): { desktop: string[]; phone: string[] } {
   const desktop: string[] = []
   const phone: string[] = []
   if (def) {
     desktop.push(
       `font-family: var(--mx-font-${def.font});`,
-      ...(sizing === 'style' ? [`font-size: var(--mx-text-${def.size});`] : []),
+      ...(sizing === 'style' ? [`font-size: ${styleSize(def.size)};`] : []),
       `font-weight: ${def.weight === 'display' ? 'var(--mx-type-display-weight)' : def.weight};`,
       `line-height: ${def.leading};`,
       `letter-spacing: ${def.tracking}em;`,

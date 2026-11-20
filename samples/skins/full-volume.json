@@ -1,0 +1,224 @@
+{
+  "name": "Full Volume",
+  "words": "Type turned all the way up: huge, tight headlines and few pictures.",
+  "mode": "light",
+  "odd": 2,
+  "feel": [
+    "bold",
+    "playful"
+  ],
+  "tokens": {
+    "icon.set": "heroicons:outline",
+    "color.bg": "#eef0e2",
+    "color.surface": "#e1e4d0",
+    "color.text": "#121410",
+    "color.muted": "#4b4f44",
+    "color.border": "#c6cab2",
+    "color.primary": "#121410",
+    "color.onPrimary": "#eef0e2",
+    "color.accent": "#d6431b",
+    "font.display": "'Darker Grotesque', 'Helvetica Neue', sans-serif",
+    "font.body": "'Instrument Sans', system-ui, sans-serif",
+    "font.mono": "'Geist Mono', ui-monospace, monospace",
+    "type.base": "18px",
+    "type.ratio": "1.333",
+    "type.displayWeight": "800",
+    "radius.base": "6px",
+    "stroke.width": "1px",
+    "shadow.card": "0 1px 0 #c6cab2",
+    "space.base": "4px",
+    "space.section": "120px",
+    "space.content": "1320px",
+    "space.text": "720px",
+    "motion.duration": "280ms",
+    "motion.ease": "cubic-bezier(0.3, 1, 0.4, 1)"
+  },
+  "textStyles": {
+    "label": {
+      "font": "display",
+      "weight": 800,
+      "tracking": -0.01,
+      "size": "lg",
+      "upper": false
+    },
+    "display": {
+      "font": "display",
+      "size": "6xl",
+      "phone": "3xl",
+      "weight": 800,
+      "tracking": -0.055,
+      "leading": 0.86
+    },
+    "h1": {
+      "size": "5xl",
+      "phone": "3xl",
+      "weight": 800,
+      "tracking": -0.05,
+      "leading": 0.88
+    },
+    "h2": {
+      "size": "5xl",
+      "phone": "3xl",
+      "weight": 800,
+      "tracking": -0.045,
+      "leading": 0.9
+    },
+    "h3": {
+      "size": "3xl",
+      "phone": "2xl",
+      "weight": 800,
+      "tracking": -0.03,
+      "leading": 0.96
+    },
+    "h4": {
+      "size": "xl",
+      "phone": "lg",
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.1
+    },
+    "bodyLarge": {
+      "size": "xl",
+      "phone": "lg",
+      "leading": 1.35,
+      "weight": 400
+    },
+    "small": {
+      "leading": 1.45
+    },
+    "caption": {
+      "size": "sm",
+      "tracking": 0
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "line"
+    },
+    "card": {
+      "variant": "flat"
+    },
+    "button": {
+      "variant": "solid",
+      "secondary": {
+        "variant": "arrow"
+      }
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "underline"
+    }
+  },
+  "sections": {
+    "hero": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "rise",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "testimonials": {
+      "motion": {
+        "mode": "preset",
+        "enter": "blur",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "brand",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "speed": "slow"
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    }
+  },
+  "picture": {
+    "style": "balance-book",
+    "mode": "image",
+    "subjects": [
+      "mountain-trail"
+    ]
+  }
+}

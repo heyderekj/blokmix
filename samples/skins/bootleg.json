@@ -1,0 +1,217 @@
+{
+  "name": "Bootleg",
+  "words": "Raw and photocopied: mono type, hard black lines and blue ink.",
+  "mode": "light",
+  "odd": 2,
+  "feel": [
+    "bold",
+    "modern"
+  ],
+  "tokens": {
+    "icon.set": "tabler:bold",
+    "color.bg": "#e6e6e0",
+    "color.surface": "#d8d8d0",
+    "color.text": "#000000",
+    "color.muted": "#45453f",
+    "color.border": "#000000",
+    "color.primary": "#1a1aff",
+    "color.onPrimary": "#ffffff",
+    "color.accent": "#ff3b00",
+    "font.display": "'Space Mono', ui-monospace, monospace",
+    "font.body": "'JetBrains Mono', ui-monospace, monospace",
+    "font.mono": "'JetBrains Mono', ui-monospace, monospace",
+    "type.base": "15px",
+    "type.ratio": "1.2",
+    "type.displayWeight": "700",
+    "radius.base": "0px",
+    "stroke.width": "2px",
+    "shadow.card": "4px 4px 0 #000000",
+    "space.base": "4px",
+    "space.section": "88px",
+    "space.content": "1280px",
+    "space.text": "700px",
+    "motion.duration": "160ms",
+    "motion.ease": "cubic-bezier(0.2, 1, 0.2, 1)"
+  },
+  "textStyles": {
+    "label": {
+      "font": "mono",
+      "weight": 700,
+      "tracking": 0,
+      "size": "xs",
+      "upper": true
+    },
+    "h1": {
+      "weight": 700,
+      "tracking": -0.05,
+      "leading": 1,
+      "upper": true
+    },
+    "h2": {
+      "weight": 700,
+      "tracking": -0.04,
+      "leading": 1.02,
+      "upper": true
+    },
+    "h3": {
+      "weight": 700,
+      "tracking": -0.02,
+      "leading": 1.1
+    },
+    "h4": {
+      "font": "body",
+      "weight": 700,
+      "tracking": 0,
+      "leading": 1.25,
+      "upper": true
+    },
+    "bodyLarge": {
+      "leading": 1.5,
+      "weight": 400
+    },
+    "small": {
+      "leading": 1.45,
+      "weight": 400
+    },
+    "caption": {
+      "size": "xs",
+      "tracking": 0.02,
+      "upper": true
+    }
+  },
+  "components": {
+    "badge": {
+      "variant": "solid"
+    },
+    "card": {
+      "variant": "offset"
+    },
+    "heading": {
+      "variant": "marker"
+    },
+    "button": {
+      "variant": "offset",
+      "secondary": {
+        "variant": "outline"
+      }
+    },
+    "icon": {
+      "variant": "bare"
+    },
+    "link": {
+      "variant": "underline"
+    },
+    "input": {
+      "variant": "outlined"
+    }
+  },
+  "sections": {
+    "hero": {
+      "backdrop": {
+        "id": "grid"
+      },
+      "motion": {
+        "mode": "preset",
+        "enter": "drop",
+        "onScroll": true
+      }
+    },
+    "features": {
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "pricing": {
+      "motion": {
+        "mode": "preset",
+        "enter": "drop",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "team": {
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "blog": {
+      "motion": {
+        "mode": "preset",
+        "enter": "slide",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "gallery": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "testimonials": {
+      "surface": "soft",
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "stats": {
+      "motion": {
+        "mode": "preset",
+        "enter": "pop",
+        "onScroll": true,
+        "stagger": true
+      }
+    },
+    "faq": {
+      "motion": {
+        "mode": "none"
+      }
+    },
+    "cta": {
+      "surface": "brand",
+      "motion": {
+        "mode": "preset",
+        "enter": "drop",
+        "onScroll": true
+      }
+    },
+    "contact": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "content": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    },
+    "logos": {
+      "motion": {
+        "mode": "preset",
+        "enter": "fade",
+        "onScroll": true
+      }
+    }
+  },
+  "picture": {
+    "style": "op-art",
+    "mode": "image",
+    "subjects": [
+      "print-studio"
+    ]
+  }
+}
